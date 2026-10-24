@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:355e8a314865c52a210eaf1a58ab1bf59d9bbb61dea08e9212f503dfc51dbf74",
-  "scoredAt": "2026-05-13T10:33:24.504Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:af00eb7eb969cb6fc586a89d5d086e13a5dabfabd290283d5b4688a17007b918",
+  "scoredAt": "2026-10-24T21:33:22.470Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases for pricing strategy."
+        "detail": "The skill does not address how to handle incomplete user inputs or error scenarios."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 93,
-    "multiplier": 1.75,
+    "multiplier": 1.81,
+    "baselineAvg": 48,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Price a SOC 2 evidence automation SaaS based on value",
+        "name": "price-saas-product-using-value-based-method",
         "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline gives reasonable competitor-anchored numbers but rarely quantifies annual value in dollars and applies an explicit 10-20% rule with paired risk reversals, while treatment computes hours-saved-times-rate, sets price at ~15% of value, and stacks money-back guarantee + free trial + ROI guarantee."
+        "treatment": 80,
+        "rationale": "Response A includes risk reversal and education tactics, while Response B lacks risk reversal and the required function call; neither includes the calculatePricing call, but A covers more rubric items."
       },
       {
-        "name": "Diagnose 4% free-trial-to-paid conversion rate",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Baseline gives ad hoc onboarding/pricing fixes but rarely cites the 15-25% SaaS benchmark or systematically walks the five barriers in priority order, while treatment enumerates the exact five barriers and prioritizes value-not-demonstrated first per the skill."
+        "name": "identify-and-remove-top-5-barriers",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response A covers all five standard barriers, offers removal tactics, includes risk reversal, but misses explicit education-based selling; Response B fails to list the required barriers and lacks the required elements."
+      },
+      {
+        "name": "create-education-based-email-sequence",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Response B fully covers all education-based selling steps and includes a clear risk reversal, while Response A lacks a proper risk reversal and does not explicitly follow the teach‑problem, cost‑of‑not‑solving, solution‑explanation, differentiation, and conclusion steps."
       }
     ]
   }

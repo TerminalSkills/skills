@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f2bb395404ea3085ad323ca2da5c818a0b559449dc8a4ef2c3683e153017167f",
-  "scoredAt": "2026-05-13T10:01:34.116Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b8e905e624d79cd9d0c27af62c87be74df642f1c5f4238ab82b925bae5a051c9",
+  "scoredAt": "2026-10-24T21:16:05.276Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in the examples."
+        "detail": "The skill does not cover error handling or edge cases for many operations."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 87,
-    "multiplier": 1.81,
+    "multiplier": 1.79,
+    "baselineAvg": 52,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "sliding-window-rate-limiter",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment uses a sorted set with a pipeline of `zremrangebyscore`, `zadd`, `zcard`, and `expire` keyed on the API key for a true sliding window; baseline uses a fixed-window `INCR`+`EXPIRE` counter which is a different (and burstier) algorithm than the one the skill documents."
+        "name": "cache-user-profile",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A omits the required json.loads deserialization step."
       },
       {
-        "name": "distributed-invoice-lock",
-        "baseline": 45,
-        "treatment": 86,
-        "rationale": "Treatment acquires with `SET key token NX EX timeout` using a `secrets.token_urlsafe` token and releases via a Lua script that atomically checks ownership before `DEL`; baseline uses plain `SETNX`/`DEL` without an owner token, so any worker can release another's lock — the exact failure mode the skill prevents."
+        "name": "rate-limit-login",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A deviates on key naming, atomicity method, uniqueness, and return value."
+      },
+      {
+        "name": "order-consumer-group",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items with correct syntax, missing only the specific consumer name for XAUTOCLAIM, while Response B omits the required maxlen/approximate xadd, start_id, and consumer name details."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6f1ed51e4d67a20b3d83c0137d7ffb9e3c643558c54c1fe4232d4981719d784e",
-  "scoredAt": "2026-05-13T10:04:20.470Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c02aa03dd0b65becba22d4f1e2861fd0095bda2646294ba02cb47ab58b2927e8",
+  "scoredAt": "2026-10-24T21:18:20.777Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy path scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 94,
-    "multiplier": 2.47,
+    "multiplier": 5.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Migrate webpack config (babel/css/file loaders) to Rspack",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline renamed the config and installed Rspack but kept babel-loader, css-loader/style-loader, and file-loader; treatment switched to builtin:swc-loader, type: 'css', and type: 'asset' as documented."
+        "name": "new-react-ts-app-with-rspack",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items, missing only the scaffold command and preview script, while Response B omits several key requirements."
       },
       {
-        "name": "New Rspack + React + TypeScript + Tailwind project",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Baseline used ts-loader and ad-hoc CSS rules; treatment scaffolded with npm create rspack@latest, configured builtin:swc-loader with TSX and React automatic runtime, and used postcss-loader with type: 'css' for Tailwind."
+        "name": "migrate-webpack-to-rspack",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "A covers most requirements but omits the specific CssExtractRspackPlugin replacement; B provides no answer."
+      },
+      {
+        "name": "analyze-rspack-bundle-with-rsdoctor",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not mention the removal of --analyze or Rsdoctor."
       }
     ]
   }

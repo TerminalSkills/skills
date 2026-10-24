@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a50b719256c0e0ee8e3f57120c9117ab90eb60c287b4eb39726cd424ff9b2dbb",
-  "scoredAt": "2026-05-13T15:14:26.050Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:011090cfab3e6b3debeb5161b2ed7bc0f44092914586517491415ac84303ddb4",
+  "scoredAt": "2026-10-24T20:34:06.379Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill covers only happy path scenarios and lacks error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.86,
-    "baselineAvg": 35,
-    "treatmentAvg": 100,
+    "multiplier": 2.6,
+    "baselineAvg": 30,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "setup-letsencrypt-dns01-wildcard",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the 15‑day renewBefore, the ECDSA private key specification, and the api.example.com host in the Ingress."
+        "name": "setup-learnet-dns-wildcard",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items, missing only the hostedZoneID and annotation name, while Response B lacks the required Helm flag, certificate spec, and ingress annotations."
       },
       {
-        "name": "manual-renewal-and-status-check",
+        "name": "debug-pending-certificate",
         "baseline": 0,
+        "treatment": 55,
+        "rationale": "Response A covers many diagnostic steps but omits the required cmctl command and some listed causes, while Response B provides no content."
+      },
+      {
+        "name": "create-internal-ca-and-leaf",
+        "baseline": 40,
         "treatment": 100,
-        "rationale": "Response A includes both required cmctl commands, while Response B does not include either of them."
+        "rationale": "Response A fully covers all rubric items, while Response B omits the required selfSigned ClusterIssuer and CA Certificate steps."
       }
     ]
   }

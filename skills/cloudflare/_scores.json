@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e766413d4df594a5772f9859a335562b45f162e19175102a1e74ef94e9842efa",
-  "scoredAt": "2026-05-13T15:35:20.654Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c80afa1060b9d76a1ed5c7af7812fa51fb67be9edd3a1b51212bb3fdeb76b128",
+  "scoredAt": "2026-10-24T20:37:04.928Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions assume availability of bash, Terraform, and Node.js environments."
+        "detail": "The instructions do not cover error handling or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.94,
-    "baselineAvg": 80,
-    "treatmentAvg": 75,
+    "multiplier": 1.79,
+    "baselineAvg": 43,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "add-dns-record-via-api",
+        "name": "add-proxied-a-record",
         "baseline": 80,
-        "treatment": 60,
-        "rationale": "Response A provides a fuller, more detailed example that closely matches the required structure, while Response B is minimal but still contains the essential elements."
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required environment variable references."
       },
       {
-        "name": "create-health-check-worker",
-        "baseline": 80,
-        "treatment": 90,
-        "rationale": "Response A directly exports a fetch method matching the rubric, while Response B uses an event listener pattern, slightly less aligned with the specified export requirement."
+        "name": "terraform-dns-record",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the full name 'www.example.com'; Response B fails key requirements by using the old resource name and not reading the token from the environment."
+      },
+      {
+        "name": "deploy-hello-worker",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response A includes the required src/index.js with an exported fetch handler and a route configuration, whereas Response B uses an event listener and omits the export; both miss the jsonc format, route array, and dev command, but A is closer to the rubric."
       }
     ]
   }

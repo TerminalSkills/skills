@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0abcf792c4759ffdbb9990853ed6734b5914f77163057f5584cf0caff9348abf",
-  "scoredAt": "2026-05-13T09:34:10.581Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:58fdf6d967e56a6018dea647c89494056ea9eef72b3e4b955eb61e5fcac6aeaa",
+  "scoredAt": "2026-10-24T20:51:05.551Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not fully cover all error scenarios and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 95,
-    "multiplier": 1.98,
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "Sprint planning transcript to structured summary",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline produces a freeform bullet summary missing the SKILL's required structure; treatment uses the exact template — Meeting Summary heading, Discussion Summary grouped by topic, and an Action Items markdown table with Task/Owner/Deadline/Priority columns."
+        "name": "summarize-raw-transcript",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide a summary as required."
       },
       {
-        "name": "Action items only, flag unassigned",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline emits a flat checklist and lumps owner-less tasks in with the rest; treatment uses the SKILL Example-2 layout of a Task/Owner/Deadline/Status table followed by a separate Unassigned items section."
+        "name": "extract-action-items-only",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses are identical and fail to meet the rubric."
+      },
+      {
+        "name": "generate-follow-up-email",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to produce the required email."
       }
     ]
   }

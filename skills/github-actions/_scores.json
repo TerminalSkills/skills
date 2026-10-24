@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ce090d9270d658017f4eb78f58d4a7a1eee95a107d9aae24e94a95a959818775",
-  "scoredAt": "2026-05-13T09:08:13.296Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9064a6b359ade9dccbc4eaa61ecad999a48c355fba6a0bc5e0e54b6b32ceab89",
+  "scoredAt": "2026-10-24T20:45:54.476Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly cover error handling or edge cases beyond typical CI patterns."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 95,
-    "treatmentAvg": 97,
-    "multiplier": 1.02,
+    "multiplier": 2.66,
+    "baselineAvg": 35,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Lint+test+build+deploy pipeline with concurrency and main-branch guard",
-        "baseline": 95,
-        "treatment": 98,
-        "rationale": "Both include concurrency cancel-in-progress, cache: npm, needs ordering, artifact handoff, and main-only deploy guard; treatment adds retention-days and production environment."
+        "name": "ci-with-cache-and-artifacts",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement, while Response B fails to use the specified actions, versions, permissions, concurrency, and retention settings."
       },
       {
-        "name": "Postgres service container with health check for integration tests",
-        "baseline": 95,
-        "treatment": 96,
-        "rationale": "Both define a postgres service with env vars, pg_isready health check, and DATABASE_URL on localhost:5432; treatment also wires a Redis sidecar and explains the readiness gate."
+        "name": "reusable-node-ci-workflow",
+        "baseline": 55,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A fails on action version and secret inheritance."
+      },
+      {
+        "name": "docker-build-and-integration-tests",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A satisfies most rubric items except the push‑conditional requirement, while Response B fails on several key points such as image version, action versions, tagging, and permissions."
       }
     ]
   }

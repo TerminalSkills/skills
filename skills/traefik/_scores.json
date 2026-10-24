@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:38ae190a2f94769bc219b983b9d0f0bc2af7d98a3ad73fc7ccbcc148ac88c3c5",
-  "scoredAt": "2026-05-13T10:27:19.858Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9f6bee4f6f30d65e6893ead79a61b7aa8eca85857f6d61e6e22c0782c8ae13ec",
+  "scoredAt": "2026-10-24T21:45:11.521Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing certificates or misconfigured labels."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text that may be considered verbose for a concise instruction set."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 85,
-    "multiplier": 1.7,
+    "multiplier": 1.74,
+    "baselineAvg": 42,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Set up Traefik v3 fronting three Docker services with auto Let's Encrypt and HTTPS redirect",
-        "baseline": 55,
-        "treatment": 86,
-        "rationale": "Treatment used providers.docker with exposedByDefault=false, certificatesresolvers.letsencrypt.acme.tlschallenge=true, and the documented HTTP-to-HTTPS redirect entrypoint flags, plus per-service traefik.http.routers labels; baseline produced workable but generic Traefik labels and often picked the HTTP challenge or omitted exposedByDefault=false."
+        "name": "multi-service-https-setup",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response A meets most rubric items (correct enable, rule, certresolver, and middleware attachment) but uses different middleware names; Response B also misnames middlewares and uses a different certresolver, so it is less complete."
       },
       {
-        "name": "Add rate limiting and IP allowlist middleware to an admin path on an existing Traefik setup",
-        "baseline": 45,
-        "treatment": 84,
-        "rationale": "Treatment chained traefik.http.middlewares.*.ratelimit.average/burst and ipallowlist.sourcerange labels on the router; baseline reached for nginx-style configuration or named the middlewares incorrectly (e.g. ipwhitelist instead of ipallowlist documented for v3)."
+        "name": "path-based-routing-with-prefix-strip",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A uses nginx instead of Traefik and misses all required labels; Response B uses Traefik but with different router, service, and middleware names, partially meeting the functional intent but not the exact rubric."
+      },
+      {
+        "name": "health-checked-load-balancing",
+        "baseline": 75,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits the required server.port=3000 setting."
       }
     ]
   }

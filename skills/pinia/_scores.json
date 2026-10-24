@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a3aff20e185a144f5d20d2f3ec0cc819d215cdab6b19bc032bacc84e55443490",
-  "scoredAt": "2026-05-13T09:50:38.543Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b45bffefed8cc17df999873c7f9828538a55a97b1a27a8c3f2e968f2668925a1",
+  "scoredAt": "2026-10-24T21:09:08.927Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The skill does not cover error handling or edge cases for API failures and SSR scenarios."
       }
     ]
   },

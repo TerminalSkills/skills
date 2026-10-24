@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:344a28cb5c3149c3ba357fb9f34919bb906a7fa81e212de9e36fadd55c1a3cde",
-  "scoredAt": "2026-05-13T10:35:45.309Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8952a1f794952d92400ae8401e4a98b411623356c0201e67c240cfe8b993f582",
+  "scoredAt": "2026-10-24T21:34:06.388Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only demonstrates happy path examples and does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Docker and specific OS compatibility, limiting use on other platforms."
+        "detail": "The skill does not cover all possible error scenarios and edge cases, such as connection failures or authentication errors."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Hybrid search on an Article collection with category filter",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses articles.query.hybrid with alpha and articles.filter.byProperty('category').equal('tech') from the v4 client; baseline writes generic GraphQL or hand-rolled BM25+vector merging."
+        "name": "run-weaviate-docker",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not include a docker compose command or compose file and therefore fails to satisfy the requirements."
       },
       {
-        "name": "Create schema with text2vec-openai vectorizer and run backup via REST",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment uses client.collections.create with weaviate.configure.vectorizer.text2VecOpenAI and POSTs to /v1/backups/filesystem with the documented payload; baseline gives generic schema design and misses the backups REST shape."
+        "name": "create-article-collection-and-import",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies rubric, A does not."
+      },
+      {
+        "name": "backup-and-restore-article-collection",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A covers most of the required curl steps (backup creation, deletion, restore) but omits the GET to check the backup and the final GET confirming SUCCESS, whereas Response B uses MongoDB tools instead of the specified API calls, missing all rubric items."
       }
     ]
   }

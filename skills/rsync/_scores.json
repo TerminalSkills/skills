@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3b60dba4a7b335a8afb0886863de807af78855daab36b9d3a22528395b35007b",
-  "scoredAt": "2026-05-13T10:04:13.833Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ace61b0a389250df31de0f2b3b4fbdcaa77fb8efb09b0793854f166ce39f1f8a",
+  "scoredAt": "2026-10-24T21:19:07.204Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios such as network failures or permission errors."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "multiplier": 1.38,
+    "baselineAvg": 52,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "Space-efficient daily snapshot backups",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline created a dated backup directory but did not use --link-dest hard-linking, so snapshots were not space-efficient; treatment used --link-dest=/backups/latest, dated destination, and updated the latest symlink with ln -snf."
+        "name": "deploy-build-with-excludes",
+        "baseline": 60,
+        "treatment": 55,
+        "rationale": "Both responses omit the required -i flag, but Response A includes additional flags (-z, --delete) and a more detailed explanation, giving it a slight edge."
       },
       {
-        "name": "Deploy build to prod with safe exclusions and pruning",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Baseline mentioned --delete and one exclude but omitted a dry-run pass; treatment combined --delete, both --exclude patterns for node_modules and .env, and a -n dry-run step before the destructive sync."
+        "name": "resume-large-iso-with-bandwidth-limit",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with the required flags and paths, while Response B omits --append-verify, uses the wrong progress flag, and mis-specifies the bandwidth limit."
+      },
+      {
+        "name": "daily-snapshot-backup-with-hardlinks",
+        "baseline": 55,
+        "treatment": 60,
+        "rationale": "Both scripts meet most rubric items, but B includes the required --exclude option and uses a clearer link-dest path, giving it a slight edge over A, which omits the exclude and lacks rsync option documentation."
       }
     ]
   }

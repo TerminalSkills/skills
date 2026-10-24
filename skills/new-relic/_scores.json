@@ -1,53 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e2aeda8e2b15e796693e5c769e7314affea4379041bbc9b377b70595b754e610",
-  "scoredAt": "2026-05-13T09:40:04.991Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:74d5bf2b04d5c6c9ff60f46bbdaa5cf0e970a14c44d46d3d2c1c75ead95f8744",
+  "scoredAt": "2026-10-24T21:00:54.742Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error scenarios or edge cases."
+        "detail": "The instructions do not cover error handling for missing license or API keys."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The setup assumes a Linux environment with apt and Node.js 22+, limiting cross-platform applicability."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Uses curl|bash to install infrastructure agent without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 95,
-    "multiplier": 1.58,
+    "multiplier": 3.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "NRQL slowest endpoints for payment-service",
-        "baseline": 75,
-        "treatment": 95,
-        "rationale": "Baseline produces a reasonable NRQL with FACET and SINCE but omits max/count enrichment and explicit ORDER BY; treatment exactly mirrors the SKILL.md pattern with average/max/count plus ORDER BY average(duration) DESC LIMIT 20."
+        "name": "install-node-apm-agent",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric by providing the npm install command, a newrelic.js file with the correct app_name and license key usage, and a code snippet that requires newrelic first."
       },
       {
-        "name": "NerdGraph alert policy + NRQL static condition",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline tends to suggest deprecated REST v2 alert endpoints rather than NerdGraph, missing alertsPolicyCreate/alertsNrqlConditionStaticCreate mutations, signal aggregation, and terms; treatment uses the exact mutations and headers from the SKILL.md."
+        "name": "create-nrql-alert-condition",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements while Response A does not include any GraphQL calls or the required NRQL condition."
+      },
+      {
+        "name": "create-dashboard-nerdgraph",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required GraphQL request and widgets, while Response B provides a Grafana dashboard instead of the specified New Relic GraphQL mutation."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c319fc493b29189380fef9a39d25c4c786849828f9daecf3ae33bc5989f0af28",
-  "scoredAt": "2026-05-13T10:08:37.727Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c28469b7a1aea80523b8f61a88e7c46e5351a3313f9af91fbc8a19b26fd3eadb",
+  "scoredAt": "2026-10-24T21:20:54.209Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 8.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Add buy button to static HTML page with size variant",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented Snipcart CDN script include, data-api-key div, and the snipcart-add-item class with data-item-* attributes including data-item-custom1-name/options for size; baseline reaches for a generic JS cart or Stripe rather than the attribute-driven pattern."
+        "name": "add-snipcart-to-static-site",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the required script placement, loadStrategy, currency, and checkout button with cart count."
       },
       {
-        "name": "Track add-to-cart and order confirmation events in analytics",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment listens for the snipcart.ready DOM event and calls Snipcart.api.cart.items.added and Snipcart.api.cart.confirmed exactly as the skill documents; baseline tries to wire ecommerce events through DOM clicks or generic Stripe webhooks instead of the documented JS API."
+        "name": "add-product-with-custom-options",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use the required data-item attributes at all."
+      },
+      {
+        "name": "add-product-via-mcp",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response A includes the required JSON body and secret key header but omits the specific MCP command reference, while Response B lacks both the command and header entirely."
       }
     ]
   }

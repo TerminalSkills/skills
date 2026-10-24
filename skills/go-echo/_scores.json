@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:23e36fec86ee3b5d1c62fec2bb6abf5884cebe7b20458d8fe724205e990ff995",
-  "scoredAt": "2026-05-13T09:08:41.395Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:96c25fd6c42e26ed26e57bc23e48eed00d0dcbb49ff6c7ee08a378b060f50675",
+  "scoredAt": "2026-10-24T20:47:37.233Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 93,
-    "multiplier": 1.6,
+    "multiplier": 3.57,
+    "baselineAvg": 23,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Bind, validate, and return 201 handler",
-        "baseline": 65,
-        "treatment": 93,
-        "rationale": "Baseline knows c.Bind and c.JSON but may skip c.Validate and use plain errors; treatment chains c.Bind + c.Validate + echo.NewHTTPError + c.JSON(http.StatusCreated) as the skill prescribes."
+        "name": "minimal-echo-v5-api-with-jwt-cors-logging-shutdown",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response A meets most rubric items but omits GracefulTimeout in StartConfig, while Response B fails to use the required middleware and echojwt.WithConfig, resulting in a lower score."
       },
       {
-        "name": "echo-jwt with Skipper and claim access",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Baseline often reaches for the deprecated middleware.JWT and lacks a Skipper; treatment uses echojwt.WithConfig with SigningKey + Skipper and reads claims via c.Get(\"user\").(*jwt.Token) and jwt.MapClaims."
+        "name": "paginated-list-endpoint-with-default-page",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully meets the Go/Echo rubric, B does not."
+      },
+      {
+        "name": "migrate-v4-handler-to-v5",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response B covers more rubric items, including the updated signature and typed token retrieval, while Response A fails to replace c.Get and uses the wrong signature."
       }
     ]
   }

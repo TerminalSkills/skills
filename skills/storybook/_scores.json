@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fdbb4dc9c85f6c78b463c6f58e4b959daf980629744c7d787a75f50f97b6a689",
-  "scoredAt": "2026-05-13T10:12:27.553Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:87b91edd6da6c589b3f0174b0fa7d725175908a8aeeac1a90216596d87d018da",
+  "scoredAt": "2026-10-24T21:25:59.837Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for storybook setup and testing."
+        "detail": "The instructions do not cover error scenarios or edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 96,
-    "multiplier": 4.17,
+    "multiplier": 2.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Button.stories.tsx with variants and interaction test",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Baseline uses CSF named exports but omits args-driven controls, the autodocs tag, and a @storybook/test play function; treatment satisfies all four rubric checks."
+        "name": "setup-vue3-storybook-with-addons",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key commands and details."
       },
       {
-        "name": "Visual regression and a11y in CI",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline rolls a generic Playwright job; treatment uses @storybook/test-runner, @storybook/addon-a11y, and Chromatic exactly as documented."
+        "name": "github-actions-vitest-storybook-tests",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key steps and details."
+      },
+      {
+        "name": "generate-autodocs-mdx-page",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks a proper autodocs story tag, Controls import, and correct MDX structure."
       }
     ]
   }

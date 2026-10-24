@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a1595706bfe8d180d8717e32d121ff0c6277001cef1a1f612f852d9119d2c024",
-  "scoredAt": "2026-05-13T09:50:18.481Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cb8a3b3a1f6b74e4d3b160dc532e164d2785a46343f95f4356e1117468b9c549",
+  "scoredAt": "2026-10-24T21:08:33.067Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill documentation does not cover error scenarios and edge cases comprehensively."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to Elixir/Phoenix and does not generalize across different AI agent platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 66,
-    "treatmentAvg": 94,
-    "multiplier": 1.42,
+    "multiplier": 3.09,
+    "baselineAvg": 22,
+    "treatmentAvg": 68,
     "scenarios": [
       {
-        "name": "Articles context with changeset and preload",
-        "baseline": 72,
-        "treatment": 95,
-        "rationale": "Phoenix/Ecto patterns (schema, changeset, contexts, preload) are mainstream so baseline gets most of the rubric; treatment matches the documented context pattern with explicit where/order_by/preload pipeline exactly."
+        "name": "generate-comments-crud",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Response A provides more of the required files and details, but still lacks the zero‑argument list_comments/0 function and test suite; Response B is even more incomplete."
       },
       {
-        "name": "LiveView with debounced search",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Baseline knows mount/handle_event shape but typically misses phx-debounce and the live route helper specifics; treatment uses phx-change/phx-debounce and the live router macro as documented."
+        "name": "add-article-publish-api",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A is in Node.js and does not meet the Elixir-specific rubric, while Response B implements the required Elixir controller action but does not call Articles.update_article/2 as specified."
+      },
+      {
+        "name": "create-chat-channel",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers the required Phoenix socket and channel logic (token verification, user_id assignment, join/3 implementation) but uses a \"room:*\" topic instead of the specified \"chat:*\"; Response B is a Node.js implementation and does not meet the Phoenix‑specific rubric."
       }
     ]
   }

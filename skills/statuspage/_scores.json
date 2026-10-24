@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:542f3fc2d8f881dfd44102cca72c7add4361f98483d7faff7f429e4fadf6de7d",
-  "scoredAt": "2026-05-13T10:11:58.301Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8fbb0e1bc2ce4da8f5604c17c57c319ae8c39af4b444e2b3f39c9de7cc8606c5",
+  "scoredAt": "2026-10-24T21:47:09.957Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "detail": "The skill does not cover all error scenarios and edge cases, such as missing environment variables or non-200 HTTP responses beyond rate limiting."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 91,
-    "multiplier": 2.39,
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Open and progress an incident affecting the Payment API",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Baseline knew the general Statuspage incident lifecycle but used Bearer auth and omitted the components-status mapping payload; treatment POSTed to /v1/pages/{PAGE_ID}/incidents with Authorization: OAuth, the components map setting payment-api to degraded_performance, then PATCHed through identified to resolved with operational restore."
+        "name": "update-component-status-with-group",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a correct curl PATCH request, while Response B does not provide the required curl request at all."
       },
       {
-        "name": "Schedule a 2-hour database maintenance window 48h ahead",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Baseline gestured at the dashboard UI and missed required API fields; treatment POSTed an incident with status: scheduled plus scheduled_for and scheduled_until ISO timestamps targeting the database component_id, using the documented OAuth header against /v1/pages/{PAGE_ID}/incidents."
+        "name": "schedule-database-maintenance",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide the required curl request."
+      },
+      {
+        "name": "python-incident-automation",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits key fields and uses incorrect status."
       }
     ]
   }

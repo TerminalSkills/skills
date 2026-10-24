@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d7412476dea650e7f7f616bc38abf38fdd5ccf7c7789d8500c90ab04987f4aac",
-  "scoredAt": "2026-05-13T09:46:11.452Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:41b95a77ae0f4892e520816d56efe09147741f9d16b7af196e311bf6a470f759",
+  "scoredAt": "2026-10-24T21:04:52.604Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path examples and does not address error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases, only happy path."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 87,
-    "multiplier": 2.64,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Stand up a weekly on-call rotation with a tiered escalation policy for the Platform team",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment calls /v2/schedules with a weekly rotation, timeRestriction, and ownerTeam, then /v2/escalations with if-not-acked rules at 5/15/30 minutes plus a repeat block, and uses the GenieKey auth header; baseline gestures at the UI or invents endpoints."
+        "name": "create-routing-rule-devops",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a correct curl command and JSON body, while Response A provides only a JSON snippet and no curl command."
       },
       {
-        "name": "Wire Prometheus Alertmanager into Opsgenie so critical alerts page the right team",
-        "baseline": 30,
-        "treatment": 85,
-        "rationale": "Treatment supplies the opsgenie_configs Alertmanager receiver with priority templating tied to severity, responders.team, entity/source, plus a /v2/teams/{team}/routing-rules rule using match-all-conditions on priority=P1 and tags contains production; baseline gives generic webhook config and misses the routing-rules contract."
+        "name": "setup-devops-oncall-schedule",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is for a different service and misses all required details."
+      },
+      {
+        "name": "create-alert-and-acknowledge-payment",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, Response B does not use Opsgenie endpoints or headers."
       }
     ]
   }

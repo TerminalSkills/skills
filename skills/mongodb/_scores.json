@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:69da9efdd440d3622900a50f30af16e8154729929128e15fcda36e7072a92172",
-  "scoredAt": "2026-05-13T09:36:42.812Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e4bd5d1ee7940ec77a37ca2da890616233ad0e4defe071a64775bccee483befd",
+  "scoredAt": "2026-10-24T20:57:03.794Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing coverage of error handling and edge cases such as invalid data, missing fields, and query failures."
+        "detail": "The skill does not explicitly cover error handling or edge cases for schema validation failures."
       },
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "Lacks concrete code examples or step-by-step procedures for implementing the described practices."
+        "category": "conciseness",
+        "detail": "The skill contains repeated guidelines and verbose explanations that could be streamlined."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 87,
-    "multiplier": 1.64,
+    "multiplier": 1.16,
+    "baselineAvg": 45,
+    "treatmentAvg": 52,
     "scenarios": [
       {
-        "name": "Product catalog schema with faceted search",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment embeds variants/pricing, references categories as ObjectIds, adds compound indexes, and builds aggregation with $facet plus $bucket as the skill prescribes; baseline tends to normalize too aggressively and misses $facet/$bucket."
+        "name": "chat-schema-design",
+        "baseline": 0,
+        "treatment": 10,
+        "rationale": "Response A offers more detail and covers some schema aspects, but still fails to meet the rubric’s key requirements; Response B is incomplete and does not satisfy the rubric at all."
       },
       {
-        "name": "Auto-expiring sessions with index verification",
+        "name": "rating-aggregation",
         "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment uses a TTL index for automatic expiry and verifies the plan with explain('executionStats') as the skill recommends; baseline knows TTL but typically skips the explain verification step."
+        "treatment": 45,
+        "rationale": "Response A includes a $project stage and uses $lookup, but omits $match and explain(); Response B lacks $project and explain() and also omits $match, making A slightly more complete."
+      },
+      {
+        "name": "movie-vector-search",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, including explain(), while Response B omits the explain() step."
       }
     ]
   }

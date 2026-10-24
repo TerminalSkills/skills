@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:c4fc9ffa0873b849346389adbfd9cff46792d668e786ee68ff5bc66e4d9b8c05",
-  "scoredAt": "2026-05-13T08:50:32.379Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:fa1a098bf7054f524da823e9d921d0e11c6321db7bc9acf91d8bc116d03bdb69",
+  "scoredAt": "2026-10-24T20:43:35.532Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions lack coverage of error handling and edge cases."
       }
     ]
   },
@@ -27,21 +27,21 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 90,
-    "multiplier": 1.8,
+    "multiplier": 1.19,
+    "baselineAvg": 70,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Scaffold tabs + dynamic post route with Expo Router",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses npx create-expo-app --template tabs, the app/(tabs)/_layout.tsx Tabs container, app/post/[slug].tsx with useLocalSearchParams, and Stack root layout exactly as documented; baseline scaffolds react-navigation manually and does not use Expo Router file-based routing or route groups."
+        "name": "setup-social-app-navigation",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response A covers the required file structure, Tabs component with Ionicons, root Stack with modal, dynamic post route using useLocalSearchParams, and is close to the rubric, missing only the deep link note; Response B uses a different navigation library and omits the specified file names and dynamic route."
       },
       {
-        "name": "Ship an OTA bug fix and configure deep links",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment runs eas update --branch production with the scheme set in app.json and notes the auto-URL mapping (myapp://post/hello-world) plus EAS Build/Submit commands from the skill; baseline references CodePush or generic OTA without the eas update --branch flag or scheme-based deep link auto-mapping."
+        "name": "configure-deep-linking",
+        "baseline": 95,
+        "treatment": 80,
+        "rationale": "Response A is more comprehensive, covering Android Asset Links, detailed link handling code, and a full checklist, while Response B omits the Android assetlinks.json and is slightly less detailed."
       }
     ]
   }

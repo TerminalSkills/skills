@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4cff5cbdd0958584dc4f59c1f78f01b8e35cc85d9061520a0b5acada6973e19f",
-  "scoredAt": "2026-05-13T10:38:10.533Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0bc2be289a33af0cfa2c5e3eb265da69f34f97174ee859a271a830eb0833a62a",
+  "scoredAt": "2026-10-24T21:35:26.211Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file lacks error handling and edge case coverage, focusing only on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "publicEndpoint",
-        "detail": "The custom WooCommerce REST endpoint is publicly accessible and returns product data without authentication."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 88,
-    "multiplier": 2.32,
+    "multiplier": 2.62,
+    "baselineAvg": 37,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Migrate URLs after a domain change",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline runs raw SQL UPDATE on wp_posts/options risking serialized data corruption; treatment uses wp db export for backup then wp search-replace with --dry-run before the live run, the documented WP-CLI safe pattern."
+        "name": "create-block-theme",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B fails to meet key criteria such as the required theme.json version and missing templates/index.html."
       },
       {
-        "name": "Headless Next.js posts list with pagination",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline fetches /wp/v2/posts with no _embed and counts results client-side; treatment uses the documented ?_embed query, next.revalidate=60, and the X-WP-Total header for total pages plus slug query for single-post lookup."
+        "name": "register-custom-post-type",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing the required CPT registration and REST route with correct parameters and callback."
+      },
+      {
+        "name": "search-replace-staging-to-production",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response A includes the required WP‑CLI commands and references the $DB_PASSWORD variable, while Response B uses a MySQL script and does not provide the WP‑CLI commands specified in the rubric."
       }
     ]
   }

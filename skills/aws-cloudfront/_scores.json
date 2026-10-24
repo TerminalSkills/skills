@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:246c000ad4a3d14f9b080437ea1a71cadf44bec52987686bb8c2cb67b20fa9f8",
-  "scoredAt": "2026-05-13T14:22:11.276Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:edac8107346424695ae2477c1d366f33d0bfa41af74194436ac5f93784f1765d",
+  "scoredAt": "2026-10-24T20:18:44.082Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for distribution creation and other operations."
+        "detail": "Missing handling for command failures and edge cases such as existing distributions or invalid IDs."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Explanatory text is verbose and could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.73,
-    "baselineAvg": 45,
-    "treatmentAvg": 78,
+    "multiplier": 4.85,
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "create-distribution-with-s3-alb-and-lambda-edge",
-        "baseline": 20,
-        "treatment": 55,
-        "rationale": "Response A includes the OAC command, Lambda@Edge snippets, and a partial distribution config, whereas Response B lacks the required create-distribution command, OAC command, and proper cache behavior definitions."
+        "name": "private-s3-alb-distribution",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the required OAC, bucket policy, and cache policy details."
       },
       {
-        "name": "add-custom-error-responses-and-realtime-logs",
-        "baseline": 70,
+        "name": "invalidate-all-content",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Response B includes both the required create-invalidation and list-invalidations commands with a status check, while Response A only covers creation and waiting, missing the list-invalidations part."
+      },
+      {
+        "name": "custom-error-pages-spa",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A includes both the required update-distribution and create-realtime-log-config commands, while Response B omits the explicit create-realtime-log-config command."
+        "rationale": "Response A fully satisfies the rubric, while Response B does not address CloudFront at all."
       }
     ]
   }

@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:03314dcb83aae70442423d386a0da931f55e65debb8fd4370165a92879d49f83",
-  "scoredAt": "2026-05-13T10:27:31.764Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:110a8be32e176e70219d959a33a7ccb037eee9ba2ae51ecd62f44e3af0fa7d1a",
+  "scoredAt": "2026-10-24T21:30:31.563Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not handle all possible error scenarios, such as missing environment variables or invalid dataset IDs."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a concise implementation."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 87,
-    "multiplier": 2.9,
+    "multiplier": 6.13,
+    "baselineAvg": 15,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Add hybrid search with highlighted snippets to a docs site backed by Trieve",
-        "baseline": 28,
-        "treatment": 88,
-        "rationale": "Treatment hit /api/chunk/search with search_type='hybrid', highlight_results, score_threshold, and the TR-Dataset header; baseline produced a generic vector or Algolia-style search without the documented endpoint and parameters."
+        "name": "ingest-documents-with-upsert",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the specified requirements."
       },
       {
-        "name": "Build a streaming RAG answer endpoint that cites source chunks",
-        "baseline": 32,
-        "treatment": 86,
-        "rationale": "Treatment called /api/chunk/generate with prev_messages, llm_options (system_prompt, temperature), and stream_response=true, returning answer plus source chunks; baseline rolled its own retrieval + completion against generic LLM SDKs without the Trieve RAG endpoint."
+        "name": "hybrid-search-with-category-filter",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use trieveFetch or the required TRIEVE environment variables."
+      },
+      {
+        "name": "rag-answer-with-top-chunks",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A explicitly performs a search and then a generate call with the required parameters, while Response B omits the explicit search step and does not mention the required environment variables."
       }
     ]
   }

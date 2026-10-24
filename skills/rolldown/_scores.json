@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2ce92f3a238118e505d90f995e09abf0359b6f2b4a4da41fd9f56b2aed361bb2",
-  "scoredAt": "2026-05-13T10:04:31.874Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:86311386827d46636e12265c5b08e51ebdf844c0f3dc4d3926f8fc19c0923df7",
+  "scoredAt": "2026-10-24T21:16:44.945Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "multiplier": 6.53,
+    "baselineAvg": 15,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Migrate TS library Rollup config to Rolldown (ESM+CJS)",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Baseline kept @rollup/plugin-typescript and @rollup/plugin-node-resolve and partially renamed the config; treatment swapped rollup for rolldown in package.json, used defineConfig from rolldown with an output array for esm and cjs, and removed the now-redundant TypeScript plugin."
+        "name": "bundle-script-with-cli",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses a different bundler and omits the required rolldown command."
       },
       {
-        "name": "Bundle src/index.ts to ESM with watch mode",
-        "baseline": 55,
+        "name": "library-build-two-formats",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet the specified requirements."
+      },
+      {
+        "name": "migrate-from-rollup",
+        "baseline": 45,
         "treatment": 95,
-        "rationale": "Baseline produced a generic Rollup-style config and used rollup --watch; treatment imported defineConfig from rolldown, set output.format to 'esm', and ran npx rolldown -c --watch as documented."
+        "rationale": "Response B fully follows the rubric, while Response A omits key steps and incorrectly retains plugins."
       }
     ]
   }

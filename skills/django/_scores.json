@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:79a8afe885ff611fcbb41efaac044016954adeb0fa85ec280f561298b5e62c5d",
-  "scoredAt": "2026-05-13T16:38:38.082Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8294a2701ed823b3891acf0c27c17d9b56b2bc5ee561e84c35ee494d37ea0d50",
+  "scoredAt": "2026-10-24T20:40:19.716Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory sections that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.23,
-    "baselineAvg": 73,
-    "treatmentAvg": 90,
+    "multiplier": 1.3,
+    "baselineAvg": 50,
+    "treatmentAvg": 65,
     "scenarios": [
       {
-        "name": "setup-django-project-with-custom-user",
-        "baseline": 75,
+        "name": "custom-user-model-bio-admin-migration",
+        "baseline": 70,
         "treatment": 80,
-        "rationale": "Both responses cover the required Django commands and custom user setup, but neither includes the os.environ usage for secrets; A is slightly more concise and directly addresses the key steps, giving it a marginal edge."
+        "rationale": "Both responses meet most rubric items but fail to use the required 'core' app name; Response A is slightly more complete in its admin configuration and model definition."
       },
       {
-        "name": "create-article-list-view-with-selectrelated",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required core/urls.py registration and myproject/urls.py inclusion."
+        "name": "article-api-author-permission-token-auth",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric, covering filtering, correct permissions, and authentication, while Response A lacks author_name, filtering, and uses wrong permission classes."
+      },
+      {
+        "name": "production-settings-security-middleware",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response A covers more rubric items than Response B."
       }
     ]
   }

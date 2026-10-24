@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dca205958f6b7ff536623b7057df2b9d95107d0b36fd7aa5c647ec7953ad3f9f",
-  "scoredAt": "2026-05-13T09:08:21.073Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8cf3cd2813348e54442929d2d6c0764e4b43130d327f57a658687f11c9f168f8",
+  "scoredAt": "2026-10-24T20:46:43.486Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios such as missing subscription or network failures."
+        "detail": "The skill does not cover error handling or edge cases for setup and usage scenarios."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Skill contains verbose sections that could be trimmed for brevity."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is specific to GitHub Copilot and VS Code, not generic across AI agents."
+        "detail": "The skill contains extensive explanatory text that may be considered verbose for a concise skill file."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 91,
-    "treatmentAvg": 95,
-    "multiplier": 1.04,
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Install Copilot via CLI and configure per-language enablement",
-        "baseline": 92,
-        "treatment": 95,
-        "rationale": "Both install both extensions via code --install-extension and configure github.copilot.enable for yaml/markdown/plaintext; treatment adds inline suggest count and cycle shortcuts."
+        "name": "setup-vscode-copilot",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully covers all rubric points, while Response A omits key details and includes unnecessary manual install steps."
       },
       {
-        "name": "Cross-file codebase questions with @workspace",
-        "baseline": 90,
-        "treatment": 95,
-        "rationale": "Both recommend @workspace, give matching prompts, and explain project-wide indexing; treatment also covers @terminal/@vscode agents and gh copilot CLI."
+        "name": "generate-tests-with-slash",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits database failure coverage, while Response B does not address the rubric at all."
+      },
+      {
+        "name": "migrate-gh-copilot-to-cli",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B misses key installation, authentication, and token details."
       }
     ]
   }

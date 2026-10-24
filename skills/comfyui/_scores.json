@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:91b15c75e5bde9d78e519176d1cc3a4bcd0f591bed307c74f794869c26dcf619",
-  "scoredAt": "2026-05-13T15:46:34.333Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c14b6961fa19dba4c4874c2d265e04dca3cb954e8793c9bc963424175dc905bc",
+  "scoredAt": "2026-10-24T21:41:46.804Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill file assumes specific OS and GPU configurations, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Model downloads lack checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 5,
+    "multiplier": 4.65,
     "baselineAvg": 20,
-    "treatmentAvg": 100,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "controlnet-cityscape-workflow",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
+        "name": "install-comfyui-via-cli",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B includes the required comfy-cli commands and default address, while Response A omits them entirely."
       },
       {
-        "name": "docker-compose-comfyui-gpu",
-        "baseline": 40,
+        "name": "generate-image-via-api",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong image, omits models/output volumes, and lacks the required deploy GPU reservation details."
+        "rationale": "Response A fully satisfies the rubric with a complete workflow, polling, and image retrieval, while Response B fails to provide any of the required content."
+      },
+      {
+        "name": "add-controlnet-and-install-custom-node-pack",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits manager setup, ControlNetLoader/ApplyAdvanced nodes, and KSampler linking."
       }
     ]
   }

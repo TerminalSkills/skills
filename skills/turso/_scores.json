@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6a2d5205b41f463d352bad7f7732a291cd4601e9d4a91a404098a63438096b50",
-  "scoredAt": "2026-05-13T10:28:24.085Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f18da245aaafb41eff2f1c2ac4f15382b73a2e79218f5123f8e257ed7b32661a",
+  "scoredAt": "2026-10-24T21:46:44.787Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,42 +17,37 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes macOS/Linux environments, lacking Windows support."
+        "detail": "The skill assumes Homebrew installation, which may not be available on all platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "installScript",
-        "detail": "Uses curl to download and pipe to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 14,
-    "treatmentAvg": 95,
-    "multiplier": 6.79,
+    "multiplier": 9.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Vector similarity search over document embeddings in Turso",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline stores embeddings as TEXT/JSON and computes cosine in JavaScript; treatment uses the F32_BLOB(1536) column type, vector32(?) for inserts, and ORDER BY vector_distance_cos(embedding, vector32(?))."
+        "name": "create-db-readonly-token-connect",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to use the required commands, environment variables, and client API."
       },
       {
-        "name": "Embedded replica with atomic 2-account transfer",
-        "baseline": 12,
-        "treatment": 95,
-        "rationale": "Baseline reaches for better-sqlite3 with manual BEGIN/COMMIT and no cloud sync; treatment uses createClient with url:'file:...', syncUrl, syncInterval, and db.batch([...], 'write') with parameterized args."
+        "name": "atomic-fund-transfer",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B does not use db.batch and thus fails."
+      },
+      {
+        "name": "vector-search-articles",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the table name, while Response B omits all required SQL and TypeScript details."
       }
     ]
   }

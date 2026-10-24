@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:51736cec9b932e0313345372074375ef73f36873969dc58631841a84852478d0",
-  "scoredAt": "2026-05-13T10:05:55.160Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a0b772a554ad3be2dad4bfb2e47bdaa74c1c1d45d7e7c57dd53a6e480f3fd585",
+  "scoredAt": "2026-10-24T21:20:06.721Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
     },
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing columns or mismatched data types."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks runnable code snippets or concrete procedures, providing only high-level guidance."
+        "detail": "The instructions do not cover error handling or edge cases such as missing columns or incompatible data types."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is specific to Python and scikit-learn, limiting its applicability to agents that can execute Python code."
+        "detail": "The skill requires Python 3.11+ and scikit-learn 1.9, which are minor platform assumptions."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 94,
-    "multiplier": 1.57,
+    "multiplier": 2.25,
+    "baselineAvg": 40,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "churn-pipeline",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline used ColumnTransformer + GradientBoostingClassifier with GridSearchCV and pickle; treatment chose HistGradientBoostingClassifier inside a Pipeline, tuned with RandomizedSearchCV + StratifiedKFold, reported with classification_report(), and serialized via joblib.dump()."
+        "name": "imbalanced-classification-pipeline",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items but omits cross_val_score, while Response A fails to meet any of the specified requirements."
       },
       {
-        "name": "customer-segmentation",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Baseline used KMeans with the elbow method and skipped pipelines; treatment built a Pipeline around StandardScaler + KMeans, selected k via silhouette score, applied PCA for visualization, and called out leakage prevention as the reason for the Pipeline."
+        "name": "feature-importance-with-permutation",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully implements the required pipeline, training, importance, and serialization, while Response A only shows post‑training steps without constructing the pipeline."
+      },
+      {
+        "name": "optimal-clustering-with-silhouette",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, including using a Pipeline; Response A lacks a Pipeline but otherwise covers most steps."
       }
     ]
   }

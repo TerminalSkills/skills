@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:26db217b929629a52f5705ba8ba8fb159de559a338242f9a25566a8e77e3de46",
-  "scoredAt": "2026-05-13T14:25:23.354Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:22467e6916c3677dbd388e3fd0ea29c8f91ee953c2eb4a5dea7be0892867a24c",
+  "scoredAt": "2026-10-24T20:24:20.531Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case scenarios in the instructions."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 3.6,
-    "baselineAvg": 25,
-    "treatmentAvg": 90,
+    "multiplier": 1.15,
+    "baselineAvg": 68,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "deploy-fargate-service-with-alb",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items, missing only the secrets block, while Response A lacks health checks, secrets, and deployment circuit breaker."
+        "name": "create-cluster-with-capacity-providers",
+        "baseline": 60,
+        "treatment": 55,
+        "rationale": "Both responses omit the required JSON format for the capacity provider strategy, but Response B also provides a Terraform alternative, giving it a slight edge."
       },
       {
-        "name": "enable-ecs-service-auto-scaling",
-        "baseline": 0,
+        "name": "push-image-and-register-task-definition",
+        "baseline": 100,
         "treatment": 100,
-        "rationale": "Response A meets all rubric requirements; Response B fails to meet key specifications."
+        "rationale": "Both responses fully satisfy the rubric, providing all required commands and a correct JSON task definition."
+      },
+      {
+        "name": "deploy-service-with-circuit-breaker-and-run-migration",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but misses the exact task-definition name, while Response B fails several key requirements such as container name, port, and task definition for the run-task command."
       }
     ]
   }

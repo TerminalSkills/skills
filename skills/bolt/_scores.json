@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a9d7fdf3e39c489cd6309b510841e1ff43cfdeb894dbfcf4de1ff7d51b96ae16",
-  "scoredAt": "2026-05-13T14:51:11.469Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:361771ea2526e7a26f9f363845cbbaa6c9bfb262746cf44c88a53dec6b2dd1e4",
+  "scoredAt": "2026-10-24T20:30:27.116Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for Bolt.new usage."
+        "detail": "The instructions do not cover all error scenarios and edge cases."
       },
       {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks concrete, runnable procedures or code snippets for the agent to execute."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Bolt and does not work with other AI agents."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.63,
-    "baselineAvg": 80,
-    "treatmentAvg": 50,
+    "multiplier": 7.15,
+    "baselineAvg": 13,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "task-management-kanban",
-        "baseline": 100,
-        "treatment": 0,
-        "rationale": "Response A provides a complete, runnable codebase with frontend, backend, SQLite, Kanban board, drag‑and‑drop, authentication, and mobile responsiveness, whereas Response B merely offers a prompt without any actual implementation."
+        "name": "create-task-manager-app",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items, while Response B does not mention Bolt or any of the required steps."
       },
       {
-        "name": "url-shortener-analytics",
-        "baseline": 60,
+        "name": "stripe-integration-security-audit",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items, missing only the paid‑plan note, while Response B omits key Bolt‑specific steps and the audit button."
+      },
+      {
+        "name": "setup-bolt-diy-local",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully covers all rubric items with detailed code, while Response B omits a dashboard and uses the wrong rate‑limit window."
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the required Node.js version, uses the wrong clone URL, incorrect dev server port, and does not provide the exact pnpm run dev command."
       }
     ]
   }

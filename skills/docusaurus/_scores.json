@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b75c57e3186f8174e4b88aa2138001077efb052c78b83ddb2def7d28ba4a0532",
-  "scoredAt": "2026-05-13T16:43:34.487Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f8e3e69add549ac2e4f9eacd04d10bcafaf93f5cffb9992ab8f452ca9f245d54",
+  "scoredAt": "2026-10-24T20:41:44.805Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions do not cover error scenarios or edge cases, focusing mainly on the happy path."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.26,
-    "baselineAvg": 43,
-    "treatmentAvg": 97,
+    "multiplier": 1.34,
+    "baselineAvg": 50,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "versioned-sdk-docs-with-algolia",
+        "name": "algolia-mdx-highlight",
         "baseline": 50,
-        "treatment": 95,
-        "rationale": "Treatment uses the exact `npm run docusaurus docs:version 1.0` command, the documented `algolia` themeConfig shape with appId/apiKey/indexName, and `type: 'category'` sidebar entries; baseline scaffolds correctly but misses the snapshot command and the precise algolia config block."
+        "treatment": 70,
+        "rationale": "Response B correctly uses environment variables for Algolia and defines the Highlight component, while Response A does not; both lack the required Tabs MDX page, but B covers more rubric items."
       },
       {
-        "name": "mdx-tabs-for-package-managers",
-        "baseline": 35,
-        "treatment": 98,
-        "rationale": "Treatment imports `@theme/Tabs` and `@theme/TabItem` and uses value/label with `default` exactly as documented; baseline tends to suggest generic react-tabs or wrong import paths that don't render in Docusaurus."
+        "name": "versioned-docs-dropdown",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A includes the required commands and config snippet but the sidebar items are incorrect; Response B has the correct sidebar structure but omits the versioning commands."
+      },
+      {
+        "name": "custom-page-deploy-github",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Both responses provide a page with a table and a config snippet, but neither uses the exact required organizationName and projectName or the exact deploy command; A is slightly closer to the rubric by using a simpler built‑in Table component and a deploy command that only differs in the placeholder name."
       }
     ]
   }

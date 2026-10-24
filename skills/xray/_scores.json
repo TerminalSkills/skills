@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b90ef053e0729154175eff3aeed91ef35c4f8d7cddc1b9de2cfd39337ba089f6",
-  "scoredAt": "2026-05-13T10:38:53.707Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0690afb0a12423d569109d3b13eb2227d7887f6c671b58ac970301a1b39bd50f",
+  "scoredAt": "2026-10-24T21:36:37.370Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for installation and configuration failures."
+        "detail": "The instructions do not explicitly cover error handling or edge cases such as missing files or permission errors."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The instructions assume a Linux environment with specific package managers and system services, limiting cross-platform applicability."
+        "detail": "The skill is limited to Linux with systemd and Xray-core 26.x, not platform-agnostic."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 8.7,
+    "baselineAvg": 10,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Deploy VLESS+Reality for 3 users on Debian VPS",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment installs via the documented install-release.sh script, generates X25519 keys with xray x25519, configures realitySettings with dest/serverNames/shortIds and xtls-rprx-vision flow per the skill, and emits the documented vless:// share link format; baseline produces a generic v2ray-style config without Reality specifics."
+        "name": "vless-reality-multi-user-setup",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers most required steps but omits the final share links, while Response B is incomplete."
       },
       {
-        "name": "Add and remove users at runtime without restart",
-        "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment uses the documented xray api adi / xray api rmi / xray api stats commands against the dokodemo-door API inbound on 127.0.0.1:10085 with the stats policy block, while baseline edits config.json and reloads the service, disconnecting active users."
+        "name": "cdn-websocket-fallback-setup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B is incomplete and does not provide the necessary details."
+      },
+      {
+        "name": "runtime-user-management-and-stats",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A includes the required xray API commands and most steps, missing only config and systemctl checks; Response B uses curl instead of the specified xray commands."
       }
     ]
   }

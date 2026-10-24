@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ebb984829c116bd2c8c5a1a7ce33e7d85546f86d5aa6f1ad943173ff266d7554",
-  "scoredAt": "2026-05-13T14:23:43.972Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c5446c577936f032095fc3b21ec8b9b1e2234769d6ab34c1f0acab4bdad91380",
+  "scoredAt": "2026-10-24T20:20:22.404Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for DynamoDB operations."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to AWS and does not support other cloud providers or generic AI agents."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that could be trimmed for conciseness."
       }
     ]
   },
@@ -37,16 +32,22 @@
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "create-orders-table-with-gsi-and-streams",
-        "baseline": 100,
+        "name": "create-table-with-gsi-and-pitr",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric with correct command syntax and all required parameters."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits billing-mode, separate PITR command, and the wait command."
       },
       {
-        "name": "single-table-design-for-ecommerce-app",
+        "name": "conditional-put-with-boto3-and-query-gsi",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing correct boto3 code, Decimal usage, conditional put_item, and GSI query."
+      },
+      {
+        "name": "transaction-stock-and-order",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric with a complete schema, create-table command, and sample put_item calls, while Response A is not provided and therefore cannot meet the requirements."
+        "rationale": "Response A fully satisfies the rubric with a correct boto3 transact_write_items call, while Response B provides unrelated PostgreSQL code."
       }
     ]
   }

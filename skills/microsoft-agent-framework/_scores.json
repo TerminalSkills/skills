@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8ab1dd89ad4c14b8c06d6ae3f6280b85d7c86e582097958a231d67700a824546",
-  "scoredAt": "2026-05-13T09:34:44.561Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4092c8d06f47ccd9fdf5be862e85e66714944a0c524675e8bdb207645a5ca123",
+  "scoredAt": "2026-10-24T20:52:03.564Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The skill file does not explicitly cover error handling for missing environment variables or runtime failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 96,
-    "multiplier": 3.43,
+    "multiplier": 3.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Sequential Researcher-Writer-Editor pipeline with AgentGroupChat",
+        "name": "agent-with-tool",
         "baseline": 20,
-        "treatment": 97,
-        "rationale": "Baseline called the OpenAI API directly with no Semantic Kernel primitives; treatment composes ChatCompletionAgents in AgentGroupChat with SequentialSelectionStrategy and KernelFunctionTerminationStrategy(max_iterations=6)."
+        "treatment": 80,
+        "rationale": "Response A meets the majority of the rubric requirements, including the tool decorator, agent creation, and async run, but it omits explicit reference to the OPENAI_API_KEY environment variable; Response B fails to use the required framework, decorator, and async execution, making it largely non-compliant."
       },
       {
-        "name": "Parallel multi-agent market analysis with synthesizer",
-        "baseline": 35,
+        "name": "concurrent-workflow",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Baseline correctly fanned out with asyncio.gather but used raw chat completions; treatment uses ChatCompletionAgent.invoke per agent under asyncio.gather and a synthesizer agent as the skill describes."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use OpenAIChatClient or ConcurrentBuilder and thus fails to meet the requirements."
+      },
+      {
+        "name": "migrate-agent-groupchat",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with round‑robin selection, max_rounds, tool conversion, and OpenAIChatClient usage, while Response A omits max_rounds, tool conversion, and the client replacement."
       }
     ]
   }

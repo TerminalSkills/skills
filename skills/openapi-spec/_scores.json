@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:aab9054591514fd98904d8ed35b76b8e52b9e800874bda064003360ee8928388",
-  "scoredAt": "2026-05-13T09:45:09.258Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3be7ca7ec566451b0923c16b97bd2e4ac3e808266e00a1a4795f2390b8225ab9",
+  "scoredAt": "2026-10-24T21:03:44.715Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases beyond basic examples."
-      },
-      {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment for tooling, limiting cross-platform applicability."
+        "detail": "The skill is vendor-locked to Node.js and specific tooling, not platform-agnostic."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 95,
-    "multiplier": 2.38,
+    "multiplier": 7.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Generate TypeScript types from openapi.yaml",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline reaches for class-based codegen tools like openapi-typescript-codegen and misses the paths-indexed type pattern, while treatment uses the documented npx openapi-typescript invocation plus paths['...']['get']['responses'] indexing."
+        "name": "write-simple-user-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A lacks operationIds, security schemes, correct lint/build commands, and a typed client example."
       },
       {
-        "name": "Lint and preview docs locally",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline suggests Spectral or swagger-cli without preview, while treatment uses the documented npx @redocly/cli lint and preview-docs commands directly."
+        "name": "fix-swagger-nullable-example",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A provides no content or steps, while Response B outlines a workflow but omits the required original spec snippet, explicit lint outputs, and the final success message, so it only partially meets the rubric."
+      },
+      {
+        "name": "add-archive-project-endpoint",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B covers the spec addition, linting, type generation, and most of the client call, while Response A omits key requirements such as 401/404 refs, the correct lint command, type generation, and the typed client call format."
       }
     ]
   }

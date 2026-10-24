@@ -177,14 +177,14 @@
     {
       "name": "agent-workflow-packager",
       "slug": "agent-workflow-packager",
-      "description": "Converts repeated AI coding-agent workflows into reusable skill packages with triggers, guardrails, examples, and verification checks. Use when a user wants to turn a prompt, checklist, AGENTS.md section, Claude/Codex workflow, or recurring agent task into a portable SKILL.md.",
+      "description": "Turns a workflow a team keeps repeating with a coding agent (a pasted prompt, runbook, review checklist or AGENTS.md section) into a spec-valid Agent Skill folder with SKILL.md, triggers, approval gates and a done check. Use when asked to \"turn this into a skill\", \"package our release checklist as a skill\" or \"convert this runbook to SKILL.md\".",
       "category": "development",
       "tags": [
-        "ai-agents",
-        "skills",
+        "agent-skills",
+        "skill-authoring",
         "workflow",
-        "codex",
-        "claude-code"
+        "claude-code",
+        "codex"
       ]
     },
     {
@@ -752,29 +752,29 @@
     {
       "name": "aws-dynamodb",
       "slug": "aws-dynamodb",
-      "description": "Build with Amazon DynamoDB for fast, scalable NoSQL storage. Design tables with partition and sort keys, create GSI and LSI for flexible queries, enable streams for change data capture, and apply single-table design patterns for efficient data modeling.",
+      "description": "Amazon DynamoDB is a fully managed NoSQL key-value and document database with single-digit millisecond reads and writes. Use this skill to design tables with partition and sort keys, add global and local secondary indexes, write and query items with the AWS CLI and boto3, use conditional writes and transactions, enable streams and TTL, and apply single-table design. Use when someone says \"create a DynamoDB table\", \"query by sort key\", \"add a GSI\" or \"expire items automatically\".",
       "category": "devops",
       "tags": []
     },
     {
       "name": "aws-ec2",
       "slug": "aws-ec2",
-      "description": "Launch and manage Amazon EC2 instances for scalable compute. Configure AMIs, security groups, key pairs, and EBS volumes. Set up auto-scaling groups for high availability and cost optimization across availability zones.",
+      "description": "Amazon EC2 provides resizable virtual servers on AWS. Use this skill to launch and manage EC2 instances with the AWS CLI: pick a current AMI, set up security groups, enforce IMDSv2, attach EBS volumes, build launch templates and Auto Scaling groups, and run Spot instances. Use when someone says \"launch an EC2 instance\", \"resize my instance\", \"create an AMI\", \"set up an auto scaling group\" or \"use spot instances\".",
       "category": "devops",
       "tags": []
     },
     {
       "name": "aws-ecs",
       "slug": "aws-ecs",
-      "description": "Run containerized applications with Amazon ECS. Define tasks and services, deploy on Fargate for serverless containers or EC2 for full control. Configure load balancing, auto-scaling, and service discovery for production workloads.",
+      "description": "Amazon ECS is AWS's managed container orchestrator that runs Docker containers on Fargate or EC2. Use this skill to create clusters, write task definitions, deploy services behind an Application Load Balancer, roll back failed deployments, autoscale, push images to ECR, run one-off tasks and open a shell with ECS Exec. Use when someone says \"deploy a container to ECS\", \"set up Fargate\", \"ECS service won't stabilize\" or \"run a migration task\".",
       "category": "devops",
       "tags": []
     },
     {
       "name": "aws-lambda",
       "slug": "aws-lambda",
-      "description": "You are an expert in AWS Lambda, Amazon's serverless compute service. You help developers build event-driven applications using Lambda functions triggered by API Gateway, S3 events, SQS queues, DynamoDB streams, and scheduled events — with support for Node.js, Python, Go, Rust, Java, and container images, automatic scaling from zero to thousands of concurrent executions, and pay-per-invocation pricing.",
-      "category": "Cloud & Serverless",
+      "description": "AWS Lambda runs your code on demand without servers, scaling from zero to thousands of concurrent executions and billing per invocation. Use this skill to build Lambda functions in Node.js or Python behind API Gateway, S3, SQS or DynamoDB triggers, define them with AWS SAM, deploy and test them locally, or when asked about \"serverless function\", \"Lambda handler\", \"SAM template\", \"cold start\" or \"Lambda runtime deprecation\".",
+      "category": "devops",
       "tags": []
     },
     {
@@ -801,20 +801,26 @@
     {
       "name": "aws-sqs",
       "slug": "aws-sqs",
-      "description": "Work with Amazon SQS for reliable message queuing. Create standard and FIFO queues, configure dead-letter queues for failed messages, send and receive messages in batches, and build decoupled event-driven architectures.",
+      "description": "Amazon SQS is AWS's managed message queue for decoupling services. Use when creating standard or FIFO queues, adding a dead-letter queue and redriving failed messages, sending and receiving messages in batches with the AWS CLI or boto3, tuning visibility timeout and long polling, or writing an idempotent queue consumer.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "aws",
+        "sqs",
+        "messaging",
+        "queues",
+        "event-driven"
+      ]
     },
     {
       "name": "ax-extract-workflow",
       "slug": "ax-extract-workflow",
-      "description": "Reconstructs the workflow behind a past artifact by querying local ax session, recall, and commit history data. Use when a user asks \"what made X work\", \"how was Y shipped/built\", \"extract workflow from <date|sha>\", \"workflow around <topic>\", \"recipe for this feature\", or similar. It finds the anchor session or commit, inspects ax sessions, ax recall, and ax sessions show, and returns an ordered read-only narrative with decisions and evidence.",
+      "description": "Rebuilds how a past feature, fix or release came about by reading the local ax history graph (sessions, commits, subagents) through the ax CLI. Use when asked \"how did we build X\", \"what made Y work\", \"walk me through the work around commit <sha>\" or \"recipe for this feature\". Finds the anchor commit or date, inspects the sessions around it and answers with an ordered, evidence-backed narrative. Read-only.",
       "category": "productivity",
       "tags": [
         "ax",
+        "session-history",
         "workflow-reconstruction",
-        "sessions",
-        "developer-productivity"
+        "git"
       ]
     },
     {
@@ -1079,8 +1085,8 @@
     {
       "name": "bolt",
       "slug": "bolt",
-      "description": "You are an expert in Bolt.new by StackBlitz, the AI-powered full-stack development environment that runs entirely in the browser. You help developers go from idea to deployed app in minutes using natural language prompts — Bolt generates complete applications with frontend, backend, database, and deployment, all running in a WebContainer without local setup.",
-      "category": "Developer Tools",
+      "description": "Bolt (bolt.new, by StackBlitz) is an AI app builder that turns a text prompt into a working web or mobile app, with built-in database, hosting and domains. Use when asked to prototype an app from a prompt in Bolt, write better Bolt prompts, plan with Plan Mode, spend fewer tokens, connect GitHub, Supabase, Stripe or Netlify, publish a Bolt project, or run the open-source bolt.diy instead.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1362,7 +1368,7 @@
     {
       "name": "ccpa-compliance",
       "slug": "ccpa-compliance",
-      "description": "California Consumer Privacy Act (CCPA) / CPRA compliance for businesses handling California resident data. Use when serving California users, building privacy features, implementing consumer data rights, or responding to data subject requests.",
+      "description": "Builds California Consumer Privacy Act (CCPA, as amended by CPRA) compliance features: consumer request handling, opt-out of sale/sharing, Global Privacy Control detection and privacy-notice content. Use when serving California users, building privacy features, implementing consumer data rights, or responding to data subject requests.",
       "category": "development",
       "tags": [
         "ccpa",
@@ -1409,7 +1415,7 @@
     {
       "name": "cert-manager",
       "slug": "cert-manager",
-      "description": "cert-manager for automatic TLS certificate management in Kubernetes. Use when the user needs to issue, renew, and manage TLS certificates from Let's Encrypt or other CAs, configure ClusterIssuers, and secure Ingress resources.",
+      "description": "cert-manager issues and renews TLS certificates automatically inside Kubernetes, from Let's Encrypt (ACME) or a private CA. Use when someone asks to \"get HTTPS on my Kubernetes ingress\", \"set up Let's Encrypt in a cluster\", \"create a ClusterIssuer\", \"issue a wildcard certificate\", \"renew a certificate\" or \"debug a certificate stuck in pending\".",
       "category": "devops",
       "tags": []
     },
@@ -1449,7 +1455,7 @@
     {
       "name": "changesets",
       "slug": "changesets",
-      "description": "Assists with managing versioning and changelogs in JavaScript/TypeScript monorepos using Changesets. Use when automating semantic versioning, generating changelogs from PRs, coordinating multi-package releases, or publishing to npm. Trigger words: changesets, versioning, changelog, npm publish, monorepo release, semver.",
+      "description": "Changesets manages versions and changelogs for JavaScript/TypeScript packages and monorepos with small markdown files committed alongside code changes. Use when automating semantic versioning, generating changelogs from PRs, coordinating multi-package releases, or publishing to npm. Trigger words: changesets, versioning, changelog, npm publish, monorepo release, semver.",
       "category": "development",
       "tags": [
         "changesets",
@@ -1490,9 +1496,15 @@
     {
       "name": "chi",
       "slug": "chi",
-      "description": "You are an expert in Chi, the lightweight, idiomatic Go HTTP router built on `net/http`. You help developers build composable HTTP services using Chi's middleware stack, route groups, URL parameters, sub-routers, and context-based request scoping — providing Express-like ergonomics while staying 100% compatible with Go's standard library.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Chi is a lightweight Go HTTP router built on net/http, with composable middleware, route groups, URL parameters and sub-routers. Use when building a REST API or web service in Go, adding middleware (logging, timeouts, auth, CORS, client IP), nesting routes under /api, loading a resource into the request context, or migrating from gorilla/mux or the standard ServeMux.",
+      "category": "development",
+      "tags": [
+        "go",
+        "router",
+        "http",
+        "middleware",
+        "rest-api"
+      ]
     },
     {
       "name": "chromadb",
@@ -1681,7 +1693,7 @@
     {
       "name": "cloudflare",
       "slug": "cloudflare",
-      "description": "Protect and accelerate websites with Cloudflare. Use when a user asks to add CDN, DDoS protection, DNS management, SSL, WAF, or edge computing to a website or API.",
+      "description": "Cloudflare is a global network that sits in front of a website or API to provide DNS, CDN caching, DDoS protection, TLS and WAF, and runs serverless code at the edge with Workers. Use this skill when a user asks to put a site behind Cloudflare, create or script DNS records, choose an SSL/TLS encryption mode, manage Cloudflare with Terraform, or deploy a Worker.",
       "category": "devops",
       "tags": []
     },
@@ -1851,7 +1863,7 @@
     {
       "name": "comfyui",
       "slug": "comfyui",
-      "description": "Node-based graphical interface for Stable Diffusion workflows. Build complex image generation pipelines by connecting nodes visually. Supports custom nodes, ControlNet, LoRA, upscaling, and advanced workflows with full control over the diffusion process.",
+      "description": "ComfyUI is a node-based interface and HTTP server for running Stable Diffusion and other diffusion models as graph workflows. Use when a user asks to install ComfyUI, generate images from a script through the ComfyUI API, queue a workflow JSON, add ControlNet or LoRA nodes, install custom nodes with ComfyUI-Manager, or poll for results and download the images.",
       "category": "data-ai",
       "tags": []
     },
@@ -2585,7 +2597,7 @@
     {
       "name": "django",
       "slug": "django",
-      "description": "Django is a batteries-included Python web framework that follows the model-template-view pattern. It provides an ORM, admin interface, authentication, and everything needed to build full-featured web applications rapidly and securely.",
+      "description": "Django is a batteries-included Python web framework with an ORM, admin site, authentication, forms and templates. Use when asked to start a Django project, write models, views, URLs or admin, add a REST API with Django REST framework, run migrations, configure settings for production, or write Django tests.",
       "category": "development",
       "tags": []
     },
@@ -2968,7 +2980,7 @@
     {
       "name": "ethers-js",
       "slug": "ethers-js",
-      "description": "Interact with Ethereum and EVM blockchains using ethers.js. Use when a user asks to connect to Ethereum, read blockchain data, send transactions, interact with smart contracts, or build a dApp frontend.",
+      "description": "ethers.js is a JavaScript/TypeScript library for reading Ethereum and EVM chains, signing and sending transactions, and calling smart contracts. Use when a user asks to connect to Ethereum, read blockchain data, send transactions, interact with smart contracts, or build a dApp frontend.",
       "category": "development",
       "tags": []
     },
@@ -3129,7 +3141,7 @@
     {
       "name": "fastapi",
       "slug": "fastapi",
-      "description": "FastAPI is a modern, high-performance Python web framework for building APIs. It leverages Python type hints and Pydantic for automatic validation, serialization, and OpenAPI documentation generation with async/await support out of the box.",
+      "description": "FastAPI is a Python web framework for building HTTP and WebSocket APIs from type-annotated functions, with request validation by Pydantic and automatic OpenAPI docs at /docs. Use this skill to create a FastAPI project, define routes and Pydantic schemas, use Depends dependency injection and Annotated parameters, add auth headers, background tasks, middleware, lifespan startup, WebSockets, tests with TestClient or httpx, and run the app with the fastapi CLI.",
       "category": "development",
       "tags": []
     },
@@ -3694,14 +3706,14 @@
     {
       "name": "github-actions",
       "slug": "github-actions",
-      "description": "Build CI/CD pipelines with GitHub Actions — workflows, jobs, steps, triggers, caching, artifacts, matrix builds, secrets, environments, reusable workflows, and custom actions. Use when tasks involve automating tests, builds, deployments, code quality checks, or any GitHub-triggered automation.",
+      "description": "GitHub Actions runs CI/CD pipelines defined as YAML workflows inside a GitHub repository. Use when someone asks to \"set up CI\", \"add a GitHub Actions workflow\", \"run tests on every pull request\", \"cache dependencies\", \"build a matrix\", \"deploy from Actions\", \"push a Docker image to ghcr.io\" or \"reuse a workflow\", or needs triggers, secrets, environments, artifacts and permissions explained.",
       "category": "devops",
       "tags": []
     },
     {
       "name": "github-copilot",
       "slug": "github-copilot",
-      "description": "GitHub Copilot is an AI-powered pair programming tool that integrates directly into your editor and terminal. It provides real-time code suggestions, natural language chat for explaining and refactoring code, slash commands for common operations, and workspace-aware agents that can reason across your entire codebase. Copilot accelerates development by turning intent into working code, reducing boilerplate, and helping developers navigate unfamiliar APIs and patterns.",
+      "description": "GitHub Copilot is an AI coding assistant for VS Code and the terminal that suggests code inline, answers questions in chat, and runs agent tasks across a project. Use it when a user asks to set up Copilot, write better prompts for Copilot Chat, use slash commands or #codebase context, generate tests with /tests, or move from the retired gh copilot extension to the GitHub Copilot CLI.",
       "category": "development",
       "tags": []
     },
@@ -3728,15 +3740,15 @@
     {
       "name": "go-echo",
       "slug": "go-echo",
-      "description": "You are an expert in Echo, the high-performance, minimalist Go web framework. You help developers build REST APIs and web applications using Echo's optimized router, middleware chain, data binding, validation, template rendering, and WebSocket support — providing a clean API surface with excellent performance and comprehensive built-in middleware.",
-      "category": "Backend Development",
+      "description": "Echo is a minimalist, high-performance Go web framework for REST APIs, with a fast router, route groups, middleware, request binding and validation, and centralized error handling. Use when asked to build a Go API with Echo, add JWT auth, CORS, rate limiting or request logging to an Echo app, bind and validate JSON, or migrate Echo v4 code to v5.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "go-fiber",
       "slug": "go-fiber",
-      "description": "You are an expert in Fiber, the Express.js-inspired web framework for Go built on top of Fasthttp. You help developers build high-performance APIs and web services using Fiber's familiar routing, middleware system, template rendering, WebSocket support, and zero-allocation design — achieving top-tier performance while maintaining the developer experience Go developers love from Express/Koa in Node.js.",
-      "category": "Backend Development",
+      "description": "Fiber is an Express.js-inspired web framework for Go built on Fasthttp. Use it when a user asks to \"build a REST API in Go with Fiber\", \"add middleware or rate limiting to a Fiber app\", \"bind and validate JSON in Fiber\", \"migrate Fiber v2 to v3\", or \"structure routes with groups\". Covers setup, handlers, request binding, middleware, error handling and graceful shutdown on Fiber v3, with the v2 differences called out.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3914,7 +3926,7 @@
     {
       "name": "gsap",
       "slug": "gsap",
-      "description": "Create advanced animations with GSAP. Use when building complex timelines, scroll-driven animations, SVG morphing, text animations, or high-performance web animations beyond CSS capabilities.",
+      "description": "GSAP is a JavaScript animation library for tweens, timelines, scroll-driven animation (ScrollTrigger), SVG morphing and text splitting. Use it when building complex timelines, scroll-linked animations, SVG morphing, text animations, or high-performance web animations beyond CSS capabilities.",
       "category": "development",
       "tags": [
         "gsap",
@@ -5421,7 +5433,7 @@
     {
       "name": "market-evaluation",
       "slug": "market-evaluation",
-      "description": "Evaluate market opportunities before building — assess demand, competition, margins, and timing using Personal MBA's proven 10-factor framework. Use when: evaluating a new business idea, deciding which market to enter, assessing product-market fit potential.",
+      "description": "Scores a business idea or market on the ten factors from Josh Kaufman's The Personal MBA (urgency, market size, pricing, acquisition cost and more) before anything is built. Use when someone asks to evaluate a business idea, compare markets, decide whether an idea is worth pursuing, or assess demand and competition.",
       "category": "business",
       "tags": [
         "market-research",
@@ -5612,12 +5624,14 @@
     {
       "name": "microsoft-agent-framework",
       "slug": "microsoft-agent-framework",
-      "description": "Build multi-agent AI systems with Microsoft's Agent Framework (formerly Semantic Kernel Agents). Use when: defining AI agents, orchestrating multi-agent workflows (sequential, parallel, conditional), creating custom agents in Python or .NET, using built-in agents (ChatCompletion, OpenAI Assistant), deploying agent systems, or comparing agent orchestration patterns.",
+      "description": "Microsoft Agent Framework is an open-source framework for building AI agents and multi-agent workflows in Python and .NET, the successor to Semantic Kernel agents and AutoGen. Use this skill when a user asks to build an agent with tools, run sequential, concurrent, handoff or group-chat orchestrations, host agents on Microsoft Foundry or OpenAI, or migrate from Semantic Kernel agents (AgentGroupChat) to Agent Framework.",
       "category": "development",
       "tags": [
         "microsoft",
         "multi-agent",
-        "orchestration"
+        "orchestration",
+        "agents",
+        "workflows"
       ]
     },
     {
@@ -5684,14 +5698,14 @@
     {
       "name": "mintlify",
       "slug": "mintlify",
-      "description": "Create beautiful developer documentation with Mintlify — AI-powered docs platform. Use when someone asks to \"create documentation site\", \"Mintlify\", \"developer docs\", \"API documentation\", \"beautiful docs like Stripe\", or \"documentation platform with AI search\". Covers page creation, API reference generation, components, analytics, and AI chat.",
+      "description": "Mintlify is a hosted documentation platform that turns MDX files and a docs.json config in a Git repository into a developer docs site with built-in search, an API playground generated from OpenAPI, and an AI assistant. Use this skill to create a documentation site, set up the mint CLI, write MDX pages with components, generate API reference pages from an OpenAPI spec, preview locally, validate and deploy; also to migrate an old mint.json project.",
       "category": "content",
       "tags": [
         "documentation",
         "mintlify",
         "docs",
         "api-reference",
-        "developer-experience"
+        "mdx"
       ]
     },
     {
@@ -5717,15 +5731,14 @@
     {
       "name": "mixpanel",
       "slug": "mixpanel",
-      "description": "Product analytics with Mixpanel — event tracking, funnels, retention analysis, user segmentation, and A/B testing. Covers JavaScript SDK for frontend tracking, server-side tracking with Node.js and Python, identity management, group analytics, and the Query API. Use when tasks involve tracking user behavior in web or mobile apps, building conversion funnels, analyzing retention curves, or running experiments.",
+      "description": "Mixpanel is a product analytics service for tracking events, building funnels and retention reports, and segmenting users. Use when a user asks to add Mixpanel tracking to a web app, send server-side events from Node.js or Python, identify users, set up company-level group analytics, import historical events, or pull data out with the Query and Export APIs.",
       "category": "data-ai",
       "tags": [
         "mixpanel",
         "analytics",
         "product-analytics",
         "funnels",
-        "retention",
-        "ab-testing"
+        "retention"
       ]
     },
     {
@@ -6011,7 +6024,7 @@
     {
       "name": "neon",
       "slug": "neon",
-      "description": "Assists with building applications using Neon serverless PostgreSQL. Use when setting up serverless databases, creating branches for development workflows, integrating with edge runtimes, or configuring Prisma/Drizzle with Neon. Trigger words: neon, serverless postgres, database branching, neon serverless driver, pgvector, neon database.",
+      "description": "Neon is serverless PostgreSQL with scale-to-zero compute and copy-on-write database branching. Use when setting up serverless databases, creating branches for development workflows, integrating with edge runtimes, or configuring Prisma/Drizzle with Neon. Trigger words: neon, serverless postgres, database branching, neon serverless driver, pgvector, neon database.",
       "category": "data-ai",
       "tags": [
         "neon",
@@ -6037,7 +6050,7 @@
     {
       "name": "nestjs",
       "slug": "nestjs",
-      "description": "NestJS is a progressive TypeScript framework for building scalable server-side applications on Node.js. It uses decorators, modules, dependency injection, and an opinionated architecture inspired by Angular.",
+      "description": "NestJS is a TypeScript framework for building server-side Node.js applications with modules, dependency injection, controllers, guards and pipes. Use when creating a NestJS REST API, adding validation, JWT guards, TypeORM or tests, or upgrading a NestJS 11 project to 12.",
       "category": "development",
       "tags": []
     },
@@ -6051,7 +6064,6 @@
         "observability",
         "apm",
         "nrql",
-        "browser-monitoring",
         "alerts"
       ]
     },
@@ -6473,7 +6485,7 @@
     {
       "name": "openapi-spec",
       "slug": "openapi-spec",
-      "description": "Design and maintain OpenAPI specifications. Use when a user asks to create an API spec, document REST APIs, generate client SDKs from a spec, validate API contracts, or implement design-first API development.",
+      "description": "OpenAPI is the standard format for describing HTTP APIs in YAML or JSON, from which docs, typed clients and mock servers can be generated. Use this skill to write an OpenAPI 3.1 spec, lint it with Redocly CLI, generate TypeScript types and a typed fetch client, build HTML docs, and keep a spec valid. Use when someone says \"write an OpenAPI spec\", \"document my REST API\", \"generate a client from openapi.yaml\" or \"lint my swagger file\".",
       "category": "development",
       "tags": []
     },
@@ -6619,7 +6631,7 @@
     {
       "name": "opsgenie",
       "slug": "opsgenie",
-      "description": "Configure Opsgenie for alert management, on-call scheduling, routing rules, and incident response. Use when a user needs to set up alert routing, create escalation policies, manage on-call rotations, integrate with monitoring tools, or automate incident workflows with Opsgenie.",
+      "description": "Opsgenie is Atlassian's alert and on-call management service, driven through its REST API v2. Use when a user needs to set up alert routing, escalation policies, on-call rotations, Alertmanager integration, or to plan the move away from Opsgenie before its April 2027 end of support.",
       "category": "devops",
       "tags": [
         "opsgenie",
@@ -6857,7 +6869,7 @@
     {
       "name": "passive-recon",
       "slug": "passive-recon",
-      "description": "Comprehensive passive reconnaissance covering WHOIS, DNS history, reverse IP, SSL certificates, Google dorks, and Wayback Machine enumeration. Use when: initial target profiling without active scanning, stealth recon where no direct target contact is desired, or building a complete picture of a target's infrastructure from public data alone.",
+      "description": "Passive reconnaissance gathers information about a domain from public sources only: WHOIS, DNS records, certificate transparency logs, the Wayback Machine, reverse IP and search-engine dorks. Use when asked to profile a target without scanning it, find subdomains from public data, look up old IPs and URLs of a domain, or prepare the scoping stage of an authorized pentest or bug bounty.",
       "category": "research",
       "tags": [
         "passive-recon",
@@ -7086,8 +7098,8 @@
     {
       "name": "pinia",
       "slug": "pinia",
-      "description": "You are an expert in Pinia, the official state management library for Vue.js. You help developers build Vue applications with type-safe stores, Composition API support, getters (computed), actions (sync and async), plugins, SSR compatibility, and Vue DevTools integration — replacing Vuex with a simpler, fully typed, modular store system.",
-      "category": "Frontend Development",
+      "description": "Pinia is the official state management library for Vue.js: type-safe stores with getters, actions, plugins, SSR support and Vue DevTools integration. Use when a Vue or Nuxt app needs shared state, when migrating from Vuex, or when asked to define, test, persist or hydrate Pinia stores.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7221,7 +7233,7 @@
     {
       "name": "polars",
       "slug": "polars",
-      "description": "Polars is a blazingly fast DataFrame library written in Rust with a Python API. Learn eager and lazy evaluation, expressions, groupby, joins, and how Polars outperforms pandas for large datasets through parallel execution.",
+      "description": "Polars is a fast DataFrame library written in Rust with Python bindings, built on Apache Arrow with lazy evaluation and a streaming engine for larger-than-memory data. Use it when a user asks to replace pandas for speed, read CSV or Parquet files, write expressions, group_by, join and window queries, or process a file bigger than RAM.",
       "category": "data-ai",
       "tags": []
     },
@@ -7389,7 +7401,7 @@
     {
       "name": "product-analytics",
       "slug": "product-analytics",
-      "description": "Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. Applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.",
+      "description": "Frameworks and queries for measuring a software product: North Star and input metrics, AARRR funnels, retention cohorts, and A/B test design with sample-size math. Use when someone asks to \"define product metrics\", \"find our aha moment\", \"analyze retention\", \"build a funnel\", \"size an A/B test\" or \"why are users churning\".",
       "category": "business",
       "tags": []
     },
@@ -7564,7 +7576,7 @@
     {
       "name": "puppeteer",
       "slug": "puppeteer",
-      "description": "Automate browsers and scrape dynamic websites with Puppeteer. Use when a user asks to scrape JavaScript-rendered pages, automate browser interactions, take screenshots of web pages, generate PDFs from URLs, test web UIs, fill out forms programmatically, crawl SPAs, extract data from dynamic sites, automate login flows, or build web scrapers that need a real browser. Covers headless Chrome, page navigation, DOM interaction, network interception, screenshots, PDF generation, and stealth techniques.",
+      "description": "Automate browsers and scrape dynamic websites with Puppeteer. Use when a user asks to scrape JavaScript-rendered pages, automate browser interactions, take screenshots of web pages, generate PDFs from URLs, test web UIs, fill out forms programmatically, crawl SPAs, extract data from dynamic sites, automate login flows, or build web scrapers that need a real browser. Covers headless Chrome, page navigation, DOM interaction, network interception, screenshots, PDF generation.",
       "category": "development",
       "tags": []
     },
@@ -7638,7 +7650,7 @@
     {
       "name": "qwik",
       "slug": "qwik",
-      "description": "Qwik is a resumable web framework that delivers instant-loading applications by eliminating hydration. It serializes application state on the server and lazily loads JavaScript on interaction, making it ideal for edge deployment.",
+      "description": "Qwik is a resumable web framework that delivers instant-loading applications by eliminating hydration. Use when building a Qwik City app: components, signals, routeLoader$, routeAction$ forms, layouts, middleware, deployment adapters, or deciding between Qwik 1.x and the 2.0 release candidate.",
       "category": "development",
       "tags": []
     },
@@ -7684,7 +7696,7 @@
     {
       "name": "rails",
       "slug": "rails",
-      "description": "Ruby on Rails is a full-stack web framework following convention over configuration. It provides ActiveRecord ORM, Action Controller, Action View templates, Action Cable for WebSockets, and generators for rapid application development.",
+      "description": "Ruby on Rails is a full-stack web framework with ActiveRecord ORM, controllers, views, Active Job, Action Cable and built-in authentication. Use when someone asks to \"create a Rails app\", \"add a model and migration\", \"build a Rails API endpoint\", \"add login to Rails\", \"run background jobs\", \"write Rails tests\" or \"upgrade to Rails 8\".",
       "category": "development",
       "tags": []
     },
@@ -7859,7 +7871,7 @@
     {
       "name": "redis",
       "slug": "redis",
-      "description": "Build applications with Redis — caching, session storage, pub/sub, streams, rate limiting, leaderboards, and queues. Use when tasks involve in-memory data storage, real-time messaging, distributed locking, or performance optimization with caching layers.",
+      "description": "Redis is an in-memory data store used as a cache, session store, message broker and counter service. Use when adding a cache layer, storing sessions, rate limiting an API, running pub/sub or Streams with consumer groups, taking a distributed lock, building a leaderboard, or configuring Redis for production (persistence, maxmemory, eviction).",
       "category": "development",
       "tags": [
         "redis",
@@ -8095,7 +8107,7 @@
     {
       "name": "rolldown",
       "slug": "rolldown",
-      "description": "Bundle JavaScript with Rolldown — Rust-based Rollup replacement, future Vite bundler. Use when someone asks to \"Rolldown\", \"Rust Rollup\", \"fast Rollup alternative\", \"future Vite bundler\", \"Rolldown bundler\", or \"OXC bundler\". Covers Rollup-compatible config, Vite integration roadmap, performance comparison, and migration from Rollup.",
+      "description": "Bundle JavaScript with Rolldown, the Rust-based Rollup-compatible bundler that powers Vite 8. Use when someone asks for \"Rolldown\", \"Rust Rollup\", \"fast Rollup alternative\", \"Vite 8 bundler\", or \"OXC bundler\". Covers config, CLI, library builds, built-in TypeScript and CommonJS handling, and migration from Rollup.",
       "category": "devops",
       "tags": [
         "bundling",
@@ -8134,7 +8146,7 @@
     {
       "name": "rspack",
       "slug": "rspack",
-      "description": "Bundle JavaScript/TypeScript applications with Rspack — Rust-based webpack replacement that's 5-10x faster. Use when someone asks to \"speed up webpack\", \"Rspack\", \"fast bundler\", \"Rust bundler for JavaScript\", \"replace webpack\", \"migrate from webpack\", or \"faster build times\". Covers webpack compatibility, configuration, loaders, plugins, and migration from webpack.",
+      "description": "Rspack is a Rust-based JavaScript bundler with a webpack-compatible config, loader and plugin API, built for much faster builds. Use when someone asks to \"speed up webpack\", \"migrate from webpack to Rspack\", \"set up Rspack\", \"fast bundler for React and TypeScript\", or \"replace babel-loader and css-loader\". Covers installing Rspack 2, converting a webpack config, builtin SWC and CSS support, dev server settings and common migration pitfalls.",
       "category": "devops",
       "tags": [
         "bundling",
@@ -8147,7 +8159,7 @@
     {
       "name": "rsync",
       "slug": "rsync",
-      "description": "Sync files and directories with rsync. Use when a user asks to copy files between servers, sync directories, create incremental backups, deploy files to a remote server, or mirror directories efficiently.",
+      "description": "rsync copies and synchronizes files locally or over SSH, sending only the parts that changed. Use when someone asks to \"copy files to a server\", \"sync two directories\", \"mirror a folder\", \"make incremental backups with hard links\", \"deploy a build to a remote host\", \"resume a big transfer\" or \"exclude node_modules when copying\".",
       "category": "devops",
       "tags": []
     },
@@ -8551,7 +8563,7 @@
     {
       "name": "snipcart",
       "slug": "snipcart",
-      "description": "Add e-commerce to any website with Snipcart. Use when a user asks to add a shopping cart to a static site, sell products from a JAMstack site, add buy buttons to any HTML page, or integrate e-commerce without a backend.",
+      "description": "Snipcart is a hosted shopping cart and checkout that you add to any website with a script and HTML data attributes, no backend needed. Use when a user asks to add a shopping cart to a static site, sell products from a JAMstack or Astro/Next.js site, add \"add to cart\" buttons, validate prices with the JSON crawler, listen to cart events, or manage a Snipcart store from an AI assistant through the Snipcart MCP server.",
       "category": "business",
       "tags": []
     },
@@ -8611,7 +8623,7 @@
     {
       "name": "socketio",
       "slug": "socketio",
-      "description": "Add real-time communication with Socket.IO. Use when a user asks to build real-time features, add WebSocket communication, build a chat application, implement live notifications, create collaborative editing, stream live data, build real-time dashboards, add presence indicators, or implement pub/sub messaging in a web app. Covers server setup, client connection, rooms, namespaces, authentication, scaling with Redis adapter, and Next.js integration.",
+      "description": "Socket.IO is a Node.js library for bidirectional, event-based real-time communication between browsers (or other clients) and a server, with WebSocket transport, HTTP long-polling fallback, automatic reconnection, rooms and namespaces. Use when a user asks to build a chat, live notifications, a real-time dashboard, presence indicators, collaborative editing or pub/sub messaging, add WebSocket communication, authenticate socket connections, or scale Socket.IO across several servers with the Redis adapter.",
       "category": "development",
       "tags": []
     },
@@ -8825,8 +8837,8 @@
     {
       "name": "stagehand",
       "slug": "stagehand",
-      "description": "Builds web automations with Stagehand by BrowserBase, the AI-powered browser automation framework that controls web pages through natural language instructions. Acts on, extracts data from, and observes pages using plain English commands instead of brittle CSS selectors — powered by GPT-4o or Claude for visual understanding of page layouts. Use when writing browser automation, scraping dynamic sites, or replacing fragile Playwright selectors.",
-      "category": "AI & Machine Learning",
+      "description": "Stagehand is Browserbase's open-source SDK for browser agents. It adds three natural-language calls (act, extract, observe) on top of a Chrome browser you drive from TypeScript, Python or Go. Use this skill to automate sites that change often, pull schema-validated data from dynamic pages, log in without sending credentials to the model, and run the same script locally or on Browserbase. Use when someone says \"automate this website with AI\", \"scrape a dynamic page\", or \"replace brittle Playwright selectors\".",
+      "category": "automation",
       "tags": []
     },
     {
@@ -8839,7 +8851,7 @@
     {
       "name": "statuspage",
       "slug": "statuspage",
-      "description": "Configure and manage status pages for incident communication and service health transparency. Use when a user needs to set up Atlassian Statuspage or open-source alternatives, manage components and incidents, automate status updates, or integrate with monitoring and alerting tools.",
+      "description": "Atlassian Statuspage is a hosted status page service with a REST API for components, incidents and scheduled maintenance. Use this skill to list and update component status, open, update and resolve incidents, schedule maintenance windows, and automate all of it from monitoring alerts with curl or Python. Use when someone says \"update our status page\", \"create a Statuspage incident\", \"schedule maintenance on the status page\" or \"post alerts to Statuspage\".",
       "category": "devops",
       "tags": [
         "statuspage",
@@ -8892,7 +8904,7 @@
     {
       "name": "storybook",
       "slug": "storybook",
-      "description": "Assists with developing, documenting, and testing UI components in isolation using Storybook. Use when writing component stories, setting up visual regression testing, configuring addons, or generating component documentation. Trigger words: storybook, stories, csf, component story format, visual testing, chromatic, storybook addons.",
+      "description": "Storybook is a workshop for building, documenting and testing UI components in isolation. Use this skill when writing component stories (CSF), setting up Storybook 10, adding interaction, accessibility or visual tests, generating autodocs, or moving off the old test runner. Trigger words: storybook, stories, csf, play function, storybook test, vitest addon, chromatic, a11y addon.",
       "category": "development",
       "tags": [
         "storybook",
@@ -9038,7 +9050,7 @@
     {
       "name": "svgo",
       "slug": "svgo",
-      "description": "Optimize SVG files with SVGO — remove unnecessary metadata, minify paths, merge shapes, configure plugins, and integrate into build pipelines. Use when tasks involve reducing SVG file size, cleaning up exported SVGs from design tools, building icon systems, or automating SVG optimization in CI/CD.",
+      "description": "SVGO is a Node.js tool that optimizes SVG files by removing editor metadata, comments and redundant attributes and by shortening paths. Use when asked to reduce SVG file size, clean up SVGs exported from Figma, Illustrator or Sketch, configure SVGO plugins, optimize icons in a build, or fix an SVG that broke after optimization (lost viewBox, title or IDs).",
       "category": "design",
       "tags": [
         "svg",
@@ -9307,7 +9319,7 @@
     {
       "name": "team-leadership",
       "slug": "team-leadership",
-      "description": "Lead teams effectively using proven frameworks — set clear intent, reduce communication overhead, create psychological safety, and use forcing functions to drive results. Use when: managing teams, improving team collaboration, setting goals and accountability.",
+      "description": "Six team-leadership frameworks from The Personal MBA (commander's intent, communication overhead, golden trifecta, earned regard, forcing functions, bystander apathy) for aligning a team, cutting meeting load and assigning clear ownership. Use when: managing teams, improving team collaboration, setting goals and accountability.",
       "category": "business",
       "tags": [
         "leadership",
@@ -9673,7 +9685,7 @@
     {
       "name": "trieve",
       "slug": "trieve",
-      "description": "Expert guidance for Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. Helps developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.",
+      "description": "Trieve is open-source search infrastructure that combines full-text, semantic and hybrid search with a RAG endpoint, recommendations and search analytics behind one REST API. Use this skill when a user asks to add Trieve search, ingest chunks into a Trieve dataset, build hybrid search or autocomplete, generate RAG answers from retrieved chunks, or read search analytics. The hosted service appears to be gone (trieve.ai no longer resolves and api.trieve.ai does not answer), so the code takes the base URL from an environment variable and targets a self-hosted deployment.",
       "category": "data-ai",
       "tags": []
     },
@@ -9701,8 +9713,8 @@
     {
       "name": "trpc",
       "slug": "trpc",
-      "description": "You are an expert in tRPC, the framework for building type-safe APIs without schemas or code generation. You help developers create full-stack TypeScript applications where the server defines procedures and the client calls them with full type inference — no REST routes, no GraphQL schemas, no OpenAPI specs, just TypeScript functions that are type-safe from database to UI.",
-      "category": "Backend Development",
+      "description": "tRPC builds end-to-end type-safe TypeScript APIs without schemas or code generation: the server defines procedures, the client calls them with full type inference. Use when someone asks to \"add tRPC\", \"set up a tRPC router\", \"call my API with type safety\", \"use tRPC with React Query or Next.js\", or to migrate a tRPC v10 app to v11.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9741,8 +9753,8 @@
     {
       "name": "turso",
       "slug": "turso",
-      "description": "You are an expert in Turso, the SQLite-based database platform for production workloads. You help developers use libSQL (Turso's SQLite fork) as a primary database with features like embedded replicas (SQLite file synced from cloud), multi-region replication, vector search, branching, and edge deployment — providing sub-millisecond reads with the simplicity of SQLite and the durability of a cloud database.",
-      "category": "Backend Development",
+      "description": "Turso is a managed SQLite-compatible database platform (Turso Cloud) built on libSQL, with an HTTP/WebSocket API, embedded replicas, native vector search and database branching. Use this skill to connect a TypeScript app with @libsql/client, create databases and tokens with the turso CLI, run batched transactions, add vector similarity search, use Drizzle ORM, or keep a local read replica synced from the cloud.",
+      "category": "development",
       "tags": []
     },
     {
@@ -10351,7 +10363,7 @@
     {
       "name": "weaviate",
       "slug": "weaviate",
-      "description": "Weaviate is an open-source vector database with built-in vectorization modules. Learn schema definition, GraphQL and REST APIs, hybrid search combining BM25 and vectors, and self-hosted deployment with Docker.",
+      "description": "Weaviate is an open-source vector database that stores objects with embeddings and searches them by meaning, keyword (BM25) or both at once. Use this skill to run Weaviate with Docker, define collections with a vectorizer, import data in batches, run near-text, hybrid and filtered queries, do RAG with a generative module, and back up a local instance, using the v4 Python or v3 TypeScript client.",
       "category": "data-ai",
       "tags": []
     },
@@ -10553,9 +10565,15 @@
     {
       "name": "wordpress",
       "slug": "wordpress",
-      "description": "You are an expert in WordPress, the open-source CMS powering 43% of the web. You help developers build websites, blogs, e-commerce stores, and web applications using WordPress block editor (Gutenberg), custom themes, plugins, REST API, WP-CLI, and headless WordPress — from simple blogs to complex multi-site enterprise platforms.",
-      "category": "Web Development",
-      "tags": []
+      "description": "WordPress is an open-source CMS for websites, blogs and online stores, extended with themes, plugins and a REST API. Use when installing or scripting WordPress with WP-CLI, building a block theme with theme.json, registering custom post types or REST routes, running WordPress headless behind a Next.js frontend, or adding WooCommerce endpoints.",
+      "category": "development",
+      "tags": [
+        "wordpress",
+        "cms",
+        "php",
+        "rest-api",
+        "wp-cli"
+      ]
     },
     {
       "name": "worktrunk",
@@ -10815,5 +10833,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T14:50:54.039Z"
+  "updatedAt": "2026-10-24T21:47:22.655Z"
 }

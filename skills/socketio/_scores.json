@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:89e9b9f2dc7a7ae157051c46716e0545a2a41bb2421e95fa63b1a7f8123f454a",
-  "scoredAt": "2026-05-13T10:09:30.390Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a0395bc46832a02f8ea1716ef5663068ff0baed2612e133af8f25807b7527370",
+  "scoredAt": "2026-10-24T21:22:40.225Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover all error scenarios and edge cases, such as reconnection handling and server restarts."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes a Node.js environment, limiting applicability to other platforms."
+        "detail": "The skill assumes a Node.js environment, which is a minor platform assumption."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 89,
-    "multiplier": 1.48,
+    "multiplier": 2.24,
+    "baselineAvg": 38,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Scale Socket.IO across multiple Node instances",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment installs @socket.io/redis-adapter with createClient + pubClient.duplicate() then io.adapter(createAdapter(pubClient, subClient)) per the skill; baseline reaches for sticky sessions or generic pub/sub and misses the redis-adapter pattern."
+        "name": "minimal-authenticated-server",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A satisfies all server‑side requirements but omits the React hook, while Response B fails to meet several key server specifications and also lacks the hook."
       },
       {
-        "name": "Authenticate WebSocket connections with JWT in handshake",
-        "baseline": 65,
-        "treatment": 88,
-        "rationale": "Treatment uses io.use middleware reading socket.handshake.auth.token and storing decoded userId on socket.data per the skill; baseline often parses cookies or query strings and misses the auth payload convention."
+        "name": "presence-updates",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required presence logic or constraints."
+      },
+      {
+        "name": "redis-scaled-server",
+        "baseline": 85,
+        "treatment": 75,
+        "rationale": "Both responses cover the core Redis adapter setup and sticky sessions, but neither mentions that adapter messages are unsigned; Response A provides more detailed transport and sticky‑session configuration, giving it a higher score."
       }
     ]
   }

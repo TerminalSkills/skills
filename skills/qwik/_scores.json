@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:08c2a7002db4decc0a80f42f983674772d6332bcae5266e411a3126393e93b5f",
-  "scoredAt": "2026-05-13T09:59:35.816Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:70b52b9fff37018f31c990156f8ea9631df7735208aac217eb0ca612aa444d45",
+  "scoredAt": "2026-10-24T21:12:38.965Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for data loading and server actions."
+        "detail": "The skill file does not cover all possible error scenarios and edge cases, limiting robustness."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 92,
-    "multiplier": 1.84,
+    "multiplier": 2.33,
+    "baselineAvg": 40,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "qwik-routeloader-articles",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses routeLoader$ with env.get('API_URL') and consumes .value inside a component$, matching Qwik City's serialization model, while the baseline often uses useResource$/useEffect-like patterns and skips env.get."
+        "name": "counter-component",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits useTask$, whereas Response B fails to use any of the required hooks."
       },
       {
-        "name": "qwik-form-action-with-zod",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment uses routeAction$ with zod$ schema validation and throws redirect(302,...) on success inside <Form action={action}>, while the baseline typically writes a manual fetch handler without zod$ or the thrown redirect pattern."
+        "name": "articles-list-page",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B omits the env.get('API_URL') and fail usage, missing key rubric elements."
+      },
+      {
+        "name": "article-create-form",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits several critical elements such as env-based POST, proper redirect handling, and error display on action.failed."
       }
     ]
   }

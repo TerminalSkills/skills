@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:957f0c6f098cee367e293370638b8868e7b465c8691c247f08276d6273fd7bce",
-  "scoredAt": "2026-05-13T09:39:55.810Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:300c88f7b8acca6876f2ad1a5b52561da94b668f2ae429a3131caceba007b372",
+  "scoredAt": "2026-10-24T21:00:00.860Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill covers happy path but lacks coverage of all error scenarios and edge cases."
+        "category": "crossPlatform",
+        "detail": "The instructions assume specific Node.js versions, which may not be available on all platforms."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 75,
-    "treatmentAvg": 95,
-    "multiplier": 1.27,
+    "multiplier": 2.96,
+    "baselineAvg": 27,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Articles CRUD module with JWT-guarded create",
-        "baseline": 80,
-        "treatment": 95,
-        "rationale": "Baseline produces idiomatic NestJS code but often skips ParseIntPipe, class-validator decorators in DTO, or InjectRepository in the service; treatment matches the SKILL.md pattern exactly including @UseGuards(AuthGuard) on create and NotFoundException in service."
+        "name": "create-articles-with-jwt",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B misses key elements such as using `nest g resource`, `registerAsync`, exporting `AuthGuard`, and protecting routes."
       },
       {
-        "name": "Bootstrap with ValidationPipe whitelist + TypeORM Postgres",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Baseline tends to enable the global ValidationPipe but omits whitelist/transform pair, autoLoadEntities, or the NODE_ENV gate on synchronize; treatment uses the exact main.ts and AppModule patterns from the SKILL.md."
+        "name": "upgrade-nestjs-11-to-12",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B explicitly runs the required dry‑run and upgrade commands, confirms @nestjs/* packages are bumped to 12 and TypeScript to 6, while Response A omits the specific upgrade commands and TS 6 bump."
+      },
+      {
+        "name": "unit-test-articles-service",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response B uses the required useValue provider and vi.fn(), but does not pre‑mock find to resolve an empty array as the rubric demands; Response A uses useClass and jest instead of vi, missing the key useValue requirement."
       }
     ]
   }

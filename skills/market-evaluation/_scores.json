@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1e5e7567557c9f404f2579db39581aa325c6c8f03bc345f5628fa23b7bd910f2",
-  "scoredAt": "2026-05-13T09:28:15.043Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:de070824475643fd416ebb2b6c8bf774ffdf9f1404d36a30da8e2dcdd0cd0f95",
+  "scoredAt": "2026-10-24T20:50:45.192Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly handle scenarios where the user provides incomplete or ambiguous business idea details, leaving potential gaps in guidance."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text and examples, which may be more verbose than necessary for quick execution."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The provided TypeScript code example may not run on all AI agents, limiting cross-platform applicability."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 95,
-    "multiplier": 3.96,
+    "multiplier": 2.57,
+    "baselineAvg": 28,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "Score a single SaaS idea on the 10-factor framework",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Treatment scores all 10 named factors 1-10, sums to a 0-100 total, applies the 75/50 verdict thresholds, identifies strengths/weaknesses/critical risks, and lists cheapest assumptions to test; baseline gives a prose pros/cons take with no structured score or verdict."
+        "name": "evaluate-single-idea",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key elements such as factor scoring, total score, verdict, strengths/weaknesses, critical risks, assumptions, and a cheapest validation step."
       },
       {
-        "name": "Compare three ideas and pick a winner",
-        "baseline": 22,
-        "treatment": 94,
-        "rationale": "Treatment scores each idea on all 10 factors, ranks by total, applies Iron Law of the Market for existing-budget check, and recommends a specific shadow test (landing page + $200 LinkedIn ads with 2-5% signup band); baseline picks a winner qualitatively without scoring or validation plan."
+        "name": "compare-multiple-ideas",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A provides a ranking table, verdicts, and detailed analysis for one idea, whereas Response B only gives a recommendation without any scoring or comprehensive comparison."
+      },
+      {
+        "name": "identify-red-flags",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Response B better covers assumptions and offers a cheap validation step, while Response A lacks a validation recommendation and explicit reference to the 10 evaluation factors."
       }
     ]
   }

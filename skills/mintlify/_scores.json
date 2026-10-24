@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:14d02072e7dc3d1db34798ecb4a607bba4cd4e1863e6f34fdd334b28a8d4ffec",
-  "scoredAt": "2026-05-13T09:35:26.031Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a3e4de2b9e733862f27230b177d5a2aa93926ceb32a437a7cf4f825beff825ed",
+  "scoredAt": "2026-10-24T20:53:38.687Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for the Mintlify CLI and configuration steps."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
+    "multiplier": 2.16,
     "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Bootstrap Mintlify docs with quickstart and API reference",
-        "baseline": 35,
+        "name": "create-site-with-openapi",
+        "baseline": 25,
         "treatment": 85,
-        "rationale": "Treatment uses mint.json navigation groups, MDX components (Steps, CodeGroup, Note, Card), and api page frontmatter; baseline references generic Markdown/Docusaurus patterns missing Mintlify-specific config."
+        "rationale": "Response A follows the required Mintlify CLI commands and includes the OpenAPI reference in docs.json, while Response B uses the wrong CLI and omits key steps such as mint new, docs.json, and validate."
       },
       {
-        "name": "Generate API reference page for POST /v1/users with playground",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment writes frontmatter with `api: \"POST ...\"`, uses `<ParamField>` and `<ResponseExample>` blocks that auto-create the playground; baseline returns plain Markdown tables without Mintlify components."
+        "name": "migrate-mintjson-to-docsjson",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Both responses miss one required step, but B covers the rename, schema, relative URL update, and validation via the CLI, whereas A focuses on a script and JSON‑schema validation but omits the CLI update and validation."
+      },
+      {
+        "name": "write-guide-with-builtins-and-lint",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B satisfies all rubric requirements (MDX frontmatter, required components, and linting commands), whereas Response A lacks frontmatter and uses incorrect linting commands."
       }
     ]
   }

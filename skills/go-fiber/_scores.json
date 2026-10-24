@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0fdfd51c3865cfa116614b0463b2aeae6f9eeebed4da79b61b2ed52077a56a00",
-  "scoredAt": "2026-05-13T09:08:45.540Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0a71ac401f95cfd8638f47eaeffb39cd735ea7f4c25082afd6de8cec1b6e1531",
+  "scoredAt": "2026-10-24T20:48:53.886Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Go and assumes a Go environment, which is a minor platform assumption."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 93,
-    "multiplier": 1.55,
+    "multiplier": 2,
+    "baselineAvg": 50,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "JWT-protected v1 group with Locals",
-        "baseline": 65,
-        "treatment": 92,
-        "rationale": "Baseline covers Fiber basics but often skips c.Locals for downstream handlers; treatment follows the skill's pattern of c.Get + c.Locals + app.Group with middleware injected at group level."
+        "name": "simple-health-and-items-api",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required c.Bind().JSON usage and graceful context setup."
       },
       {
-        "name": "Production hardening with built-in middleware",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Baseline cites rate-limit and CORS but typically misses BodyLimit in fiber.Config and ShutdownWithTimeout; treatment wires recover/logger/cors/limiter via the documented imports and sets Config/Shutdown correctly."
+        "name": "add-rate-limiter",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly call limiter.New with Max:20 and Expiration: time.Minute, apply it globally, and use the correct time.Duration type."
+      },
+      {
+        "name": "migrate-fiber-v2-to-v3",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A fails to implement the necessary changes."
       }
     ]
   }

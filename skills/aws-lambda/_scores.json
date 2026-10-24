@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d8f4a810537bf1d5e55b06623980541652078bc6074bfda377d956377c1fdbe1",
-  "scoredAt": "2026-05-13T14:26:21.206Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9a21923b286758fc1812847cb6a55de8f3ed61a144aa7a110607831c219fdb5c",
+  "scoredAt": "2026-10-24T20:25:43.555Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases, such as missing error handling in the Python example."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill file contains verbose sections, including extensive best practices, which may distract from core instructions."
+        "detail": "The skill file contains verbose sections that may distract from core instructions."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.63,
-    "baselineAvg": 38,
-    "treatmentAvg": 100,
+    "multiplier": 2.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "nodejs-api-gateway-dynamodb",
-        "baseline": 25,
+        "name": "function-url-dynamodb",
+        "baseline": 100,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits several key elements such as the correct handler type, runtime, environment variable, policy, and API paths."
+        "rationale": "Both responses fully satisfy the rubric, providing a SAM template with nodejs24.x runtime, arm64 architecture, IAM‑protected Function URL, and a DynamoDBCrudPolicy referencing an in‑template table."
       },
       {
-        "name": "python-s3-image-thumbnail",
-        "baseline": 50,
+        "name": "s3-image-processor",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A lacks key elements such as the correct handler name, runtime, prefix filter, statusCode, and processed count."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified bucket name, policy, or Pillow inclusion criteria."
+      },
+      {
+        "name": "sqs-batch-item-failures",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Unable to evaluate responses because their content is not provided."
       }
     ]
   }

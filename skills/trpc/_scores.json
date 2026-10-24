@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9c9515b701b8d288ede5d311e074689236ee7a27800f998fcafbb149cd7b334a",
-  "scoredAt": "2026-05-13T10:27:57.575Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:20311d93b95ece349fe767aac08fb981dc36a6238a64636ef3a68ae9c7cea3e5",
+  "scoredAt": "2026-10-24T21:31:33.809Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases, such as subscription handling or advanced middleware patterns."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node/TypeScript environment and does not address compatibility with other runtime environments or AI agents that may not support TypeScript."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 93,
-    "multiplier": 1.60,
+    "multiplier": 4.44,
+    "baselineAvg": 18,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Protected mutation with auth middleware",
-        "baseline": 60,
-        "treatment": 93,
-        "rationale": "Baseline tends to inline ctx checks and throw plain Errors; treatment defines protectedProcedure as t.procedure.use(...) that throws TRPCError({code:\"UNAUTHORIZED\"}) and re-injects ctx.user via next(), then validates input with the exact z.object schema and uses .mutation."
+        "name": "add-protected-rename-endpoint",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required tRPC protectedProcedure with middleware, input schema, and user ID update, while Response B uses Express/Mongoose and does not meet the tRPC-specific rubric."
       },
       {
-        "name": "Cursor pagination with infinite scroll",
+        "name": "call-api-node-script",
         "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline often uses offset/page or guesses getNextPageParam; treatment implements the limit+1 trick returning {items,nextCursor} and wires useInfiniteQuery with getNextPageParam:(lastPage)=>lastPage.nextCursor exactly as in the skill."
+        "treatment": 90,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses the wrong client constructor and mismatches the expected method path."
+      },
+      {
+        "name": "upgrade-v10-to-v11",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A contains more relevant details, though it still misses several rubric items; Response B is incomplete."
       }
     ]
   }

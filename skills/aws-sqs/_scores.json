@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f9c847c3baa27982934e7724f467235a868b36f421acc73bfe95d1b9d180ac4e",
-  "scoredAt": "2026-05-13T14:29:29.438Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a25a143c069beceba6bfa6f8d785a1d0533a24046c475ea96e294cf33ad10ea7",
+  "scoredAt": "2026-10-24T20:26:48.939Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for queue operations."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to AWS and requires AWS CLI and boto3, limiting cross-platform applicability."
+        "detail": "Instructions do not cover error handling or edge cases such as missing IAM permissions or command failures."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.43,
-    "baselineAvg": 35,
-    "treatmentAvg": 85,
+    "multiplier": 1.18,
+    "baselineAvg": 82,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "setup-fifo-queue-with-dlq-and-batch-send",
-        "baseline": 20,
-        "treatment": 70,
-        "rationale": "Response B meets most rubric items except ContentBasedDeduplication, while Response A fails on queue names, attributes, and redrive policy."
+        "name": "create-standard-queue-batch-send-receive",
+        "baseline": 95,
+        "treatment": 90,
+        "rationale": "Response A includes explicit region usage and covers all rubric items, while Response B also meets the rubric but omits region specification and has a minor syntax issue."
       },
       {
-        "name": "batch-receive-process-delete-monitor",
+        "name": "create-fifo-queue-with-dedup-and-order",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing queue creation, message sending with the required attributes, message receiving, and explicit confirmation of FIFO ordering."
+      },
+      {
+        "name": "add-dlq-and-move-messages-back",
         "baseline": 50,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A uses short polling and single deletes, missing key elements."
+        "rationale": "Response A covers all rubric items, while Response B omits the DLQ retention setting, the start-message-move-task, and the list-message-move-tasks steps."
       }
     ]
   }

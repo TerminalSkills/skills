@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:05f43d7432ef634e088fb37036b83d691b09d76891351e07326a4118cc9f600d",
-  "scoredAt": "2026-05-13T14:03:18.803Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:2a6f50dac4212580662fc30849e3947925cb3636847b862807191e7c8c0d201d",
+  "scoredAt": "2026-10-24T20:17:01.711Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "The skill does not explicitly cover error handling or edge cases for unsupported API versions."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Examples assume Express/Node, limiting applicability to other platforms."
+        "detail": "The implementation assumes a Node.js/Express environment, limiting portability to other platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 100,
+    "multiplier": 1.62,
+    "baselineAvg": 60,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "add-optional-field-no-version-bump",
-        "baseline": 80,
+        "name": "add-pagination-with-deprecation",
+        "baseline": 40,
         "treatment": 100,
-        "rationale": "Response B explicitly cites the backwards‑compatible pattern and shows a minimal change, while Response A omits that explicit reference."
+        "rationale": "Response A fully meets all rubric requirements, while Response B omits the required deprecation headers, link, and envelope structure."
       },
       {
-        "name": "deprecate-old-version-with-headers",
-        "baseline": 0,
+        "name": "rename-graphql-field-with-deprecation",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Response A correctly adds the state field, deprecates status, keeps resolver, and provides a migration guide, while Response B incorrectly deprecates state and lacks a proper migration comment."
+      },
+      {
+        "name": "add-optional-field-to-response",
+        "baseline": 100,
         "treatment": 100,
-        "rationale": "Response A fully implements the required middleware and mounting, while Response B provides no content."
+        "rationale": "Both responses fully satisfy the rubric by adding an optional taskCount field, preserving existing fields, and explicitly noting the change is safe and backwards‑compatible."
       }
     ]
   }

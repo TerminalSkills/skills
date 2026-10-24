@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:801de12727aaa3c589373f54a80c00282ad2c735cdba05c0e96dabfc1e6ea610",
-  "scoredAt": "2026-05-13T10:23:54.235Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.0.1",
+  "skillHash": "sha256:0a71acb101171b31ec0cd3f4d3ca2b62b1308b8f8186c2e1aa2a539106ca264c",
+  "scoredAt": "2026-10-24T21:27:45.603Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error scenarios or edge cases such as conflicting constraints or team resistance."
+        "detail": "The skill does not address error scenarios or edge cases for applying frameworks."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that may overwhelm users."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 91,
-    "multiplier": 2.76,
+    "multiplier": 2.57,
+    "baselineAvg": 37,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Commander's Intent for Keycloak migration",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline produced a generic memo without the labeled SITUATION/INTENT/CONSTRAINTS structure or measurable success criteria, while treatment used the exact Commander's Intent format with explicit prohibitions and quantitative targets."
+        "name": "create-commanders-intent",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required section labels, measurable criteria, constraints, and a clear timeline."
       },
       {
-        "name": "Reduce meeting overhead after team doubled",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline suggested generic meeting hygiene but missed the n(n-1)/2 channel calculation, two-pizza splitting, and explicit Bystander Apathy ownership rules that the treatment applied directly."
+        "name": "reduce-meeting-overhead",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
+      },
+      {
+        "name": "implement-forcing-functions",
+        "baseline": 90,
+        "treatment": 85,
+        "rationale": "Both responses cover the rubric, but Response A provides a more exhaustive list of forcing functions, ownership practices, and concrete implementation details, giving it a higher score."
       }
     ]
   }

@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b8fd077c59b9f0ba74e9d0ab3e4ed2b081bd9b9600cf915f555aa3c212ae0db4",
-  "scoredAt": "2026-05-13T15:21:06.443Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:ff0444856c885b71a7e33b831b4dcd96d9f6572674db32fd92f1873b46ddc36a",
+  "scoredAt": "2026-10-24T20:36:26.264Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill example covers basic error handling but does not address all potential error scenarios and edge cases such as database failures or malformed input."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one code example is provided; additional realistic examples would improve demonstration coverage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.08,
-    "baselineAvg": 60,
-    "treatmentAvg": 65,
+    "multiplier": 3.04,
+    "baselineAvg": 28,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "authenticated-user-crud",
-        "baseline": 20,
-        "treatment": 30,
-        "rationale": "Both responses omit the critical router setup and route grouping; A provides more of the required handlers and middleware, so it scores higher."
+        "name": "api-key-protected-items-route",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A omits r.Route usage, correct middleware ordering, and missing Timeout and cors middleware."
       },
       {
-        "name": "admin-subrouter-with-cors",
-        "baseline": 100,
-        "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric, creating the main router, applying RequestID, mounting an admin sub‑router with at least one route, and configuring CORS to allow only GET and POST from https://admin.example.com."
+        "name": "mount-admin-subrouter",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully meets the chi-specific requirements, while Response A uses Express and does not satisfy the rubric."
+      },
+      {
+        "name": "test-router-with-httptest",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits the required context loader middleware, whereas Response B does not meet any of the Go/chi/httptest requirements."
       }
     ]
   }

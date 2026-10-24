@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:db0de80da8e81b1104ab84eca1829c813fe8f74b6420dc4aa298ec93fcb0fe50",
-  "scoredAt": "2026-05-13T09:59:57.896Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7a5f6ef28418bf79f75e81d1da375136fd5c43749433ee564b056e02396c829d",
+  "scoredAt": "2026-10-24T21:14:48.861Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as authentication failures or missing parameters."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 69,
-    "treatmentAvg": 91,
-    "multiplier": 1.32,
+    "multiplier": 2.75,
+    "baselineAvg": 32,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "rails-restful-controller",
-        "baseline": 72,
-        "treatment": 92,
-        "rationale": "Both produce RESTful controllers, but the treatment consistently combines before_action authentication, set_article, params.require.permit, includes(:author), and current_user.articles.build, while the baseline often omits one or two of these specific patterns."
+        "name": "create-api-app-with-postgres-tailwind",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B satisfies every rubric requirement, while Response A omits the Tailwind flag, body validation, scopes, slug callback, and other key elements."
       },
       {
-        "name": "rails-actioncable-chat",
-        "baseline": 65,
-        "treatment": 90,
-        "rationale": "The treatment follows the exact ApplicationCable::Channel template with stream_from, receive(data), ActionCable.server.broadcast, and the routes mount, while the baseline often forgets the cable mount in routes or uses a less idiomatic broadcast call."
+        "name": "add-built-in-authentication",
+        "baseline": 15,
+        "treatment": 65,
+        "rationale": "Response B includes the required generator command, root route, and mentions the Authentication concern, while Response A omits the generator command and key details."
+      },
+      {
+        "name": "create-welcome-email-job",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A deviates on retry settings, perform signature, mailer call, and enqueue example."
       }
     ]
   }

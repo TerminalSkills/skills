@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b24f1908e14ceba5ccddb6cd1241b48110e9236e59a578766c942dd347c0e091",
-  "scoredAt": "2026-05-13T09:10:56.189Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bcc94b389a9e064d3db2635c8a23d1982e47c302d659124016238e0fc377af75",
+  "scoredAt": "2026-10-24T20:49:45.038Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack error handling and edge case coverage."
+        "detail": "The skill does not cover error handling or edge cases such as missing elements or plugin load failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 8,
+    "baselineAvg": 3,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Build a pinned horizontal-scroll section that scrubs with scroll",
-        "baseline": 25,
-        "treatment": 94,
-        "rationale": "Baseline reached for CSS scroll-snap and IntersectionObserver; treatment registered ScrollTrigger, used pin:true with scrub, and computed x from scrollWidth - window.innerWidth exactly as the skill prescribes."
+        "name": "hero-timeline-entrance",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not use GSAP."
       },
       {
-        "name": "Stagger a row of cards on scroll inside a React component",
-        "baseline": 30,
-        "treatment": 93,
-        "rationale": "Baseline used useEffect without proper cleanup or scope; treatment used the useGSAP hook from @gsap/react with the scope option and stagger inside a ScrollTrigger config, matching the documented React pattern."
+        "name": "horizontal-scroll-pin",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers almost all rubric items (registers ScrollTrigger, uses gsap.to with correct x function, trigger, pin, end), but uses scrub:true instead of scrub:1, whereas Response A is empty."
+      },
+      {
+        "name": "headline-reveal-reduced-motion",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A follows most of the rubric but omits the required mask and uses the wrong target in onSplit; Response B does not use GSAP or SplitText at all."
       }
     ]
   }
