@@ -13,7 +13,7 @@ compatibility: >-
   (Microsoft 365).
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - onedrive
@@ -35,11 +35,23 @@ This skill helps AI agents manage files in OneDrive (personal and business) via 
 
 ```typescript
 // Permissions needed:
-//   Files.ReadWrite — user's OneDrive
-//   Files.ReadWrite.All — all drives (admin, SharePoint included)
+//   Files.ReadWrite     — delegated: the signed-in user's own OneDrive (use /me/drive)
+//   Files.ReadWrite.All — delegated or application: any drive the app may reach
+// Application permissions work only for work/school accounts, not personal OneDrive.
+// npm install @microsoft/microsoft-graph-client @azure/identity
 
-// Same Azure AD auth as other Microsoft 365 skills
-// graphClient setup identical to Teams/SharePoint/Outlook
+import { Client } from '@microsoft/microsoft-graph-client';
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
+import { ClientSecretCredential } from '@azure/identity';
+
+const credential = new ClientSecretCredential(
+  process.env.AZURE_TENANT_ID, process.env.AZURE_CLIENT_ID, process.env.AZURE_CLIENT_SECRET);
+const graphClient = Client.initWithMiddleware({
+  authProvider: new TokenCredentialAuthenticationProvider(credential, {
+    scopes: ['https://graph.microsoft.com/.default'],
+  }),
+});
+const userId = 'sarah.chen@contoso.com'; // app-only calls address a user; delegated calls use /me/drive
 ```
 
 ### File & Folder Operations
@@ -71,7 +83,7 @@ await graphClient.api(`/users/${userId}/drive/root/children`)
     '@microsoft.graph.conflictBehavior': 'rename', // 'fail', 'replace', or 'rename'
   });
 
-// Create nested folders (by path)
+// Create a subfolder by path
 await graphClient.api(`/users/${userId}/drive/root:/Projects/Q1-2026/Reports:/children`)
   .post({
     name: 'March',
@@ -82,15 +94,15 @@ await graphClient.api(`/users/${userId}/drive/root:/Projects/Q1-2026/Reports:/ch
 ### Upload Files
 
 ```typescript
-// Simple upload (< 4MB)
-const fileBuffer = fs.readFileSync('/path/to/file.pdf');
+// Simple upload (up to 250 MB)
+const fileBuffer = fs.readFileSync('./proposal.pdf');
 const uploaded = await graphClient
-  .api(`/users/${userId}/drive/root:/Documents/report.pdf:/content`)
+  .api(`/users/${userId}/drive/root:/Documents/proposal.pdf:/content`)
   .put(fileBuffer);
 
 console.log('Uploaded:', uploaded.webUrl);
 
-// Large file upload (> 4MB) — resumable session
+// Large file upload (over 250 MB, or any file you want resumable) — upload session
 const uploadSession = await graphClient
   .api(`/users/${userId}/drive/root:/LargeFiles/database-backup.zip:/createUploadSession`)
   .post({
@@ -100,9 +112,9 @@ const uploadSession = await graphClient
     },
   });
 
-const filePath = '/path/to/database-backup.zip';
+const filePath = './database-backup.zip';
 const fileSize = fs.statSync(filePath).size;
-const chunkSize = 10 * 1024 * 1024; // 10MB chunks (must be multiple of 320KB)
+const chunkSize = 10 * 1024 * 1024; // 10 MiB chunks: a multiple of 320 KiB, under 60 MiB
 const file = fs.openSync(filePath, 'r');
 
 let offset = 0;
@@ -114,12 +126,14 @@ while (offset < fileSize) {
   const res = await fetch(uploadSession.uploadUrl, {
     method: 'PUT',
     headers: {
+      // no Authorization header: the uploadUrl is pre-authenticated and a token can cause 401
       'Content-Length': `${length}`,
       'Content-Range': `bytes ${offset}-${offset + length - 1}/${fileSize}`,
     },
     body: buffer,
   });
 
+  if (!res.ok) throw new Error(`Chunk upload failed: ${res.status} ${await res.text()}`);
   offset += length;
   console.log(`Progress: ${Math.round(offset / fileSize * 100)}%`);
 }
@@ -133,17 +147,16 @@ fs.closeSync(file);
 const stream = await graphClient
   .api(`/users/${userId}/drive/items/${itemId}/content`)
   .getStream();
-const writer = fs.createWriteStream('/path/to/output.pdf');
+const writer = fs.createWriteStream('./output.pdf');
 stream.pipe(writer);
 
 // Download by path
 const content = await graphClient
-  .api(`/users/${userId}/drive/root:/Documents/report.pdf:/content`)
-  .get();
+  .api(`/users/${userId}/drive/root:/Documents/proposal.pdf:/content`)
+  .getStream();
 ```
 
 ### Move, Copy, Rename, Delete
-
 ```typescript
 // Rename or move via PATCH
 await graphClient.api(`/users/${userId}/drive/items/${itemId}`)
@@ -164,10 +177,10 @@ await graphClient.api(`/users/${userId}/drive/items/${itemId}`).delete();
 const link = await graphClient
   .api(`/users/${userId}/drive/items/${itemId}/createLink`)
   .post({
-    type: 'view',    // 'view', 'edit', 'embed'
-    scope: 'organization', // 'anonymous', 'organization', 'users'
-    expirationDateTime: '2026-04-01T00:00:00Z', // Optional expiry
-    password: 'securePassword123', // Optional password protection
+    type: 'view',    // 'view', 'edit', 'embed' (embed: OneDrive Personal only)
+    scope: 'organization', // 'anonymous' (admins may disable it), 'organization' (Business/SharePoint only), 'users'
+    expirationDateTime: '2026-12-31T00:00:00Z', // Optional expiry
+    // password: supported on OneDrive Personal only
   });
 console.log('Share link:', link.link.webUrl);
 
@@ -179,8 +192,8 @@ const invite = await graphClient
     sendInvitation: true,
     roles: ['read'], // 'read', 'write'
     recipients: [
-      { email: 'sarah@company.com' },
-      { email: 'external@partner.com' },
+      { email: 'priya.nair@contoso.com' },
+      { email: 'mark.ellis@northwind.example' },
     ],
     message: 'Please review the attached report.',
   });
@@ -212,15 +225,9 @@ For advanced full-text search inside files, use the Microsoft Search API with `e
 ### Thumbnails & Preview
 
 ```typescript
-// Get thumbnails (small, medium, large for images, PDFs, Office docs)
-const thumbs = await graphClient
-  .api(`/users/${userId}/drive/items/${itemId}/thumbnails`)
-  .get();
-
-// Embeddable viewer URL
-const preview = await graphClient
-  .api(`/users/${userId}/drive/items/${itemId}/preview`)
-  .post({});
+const thumbs = await graphClient.api(`/users/${userId}/drive/items/${itemId}/thumbnails`).get();
+// Embeddable viewer URL (OneDrive for Business / SharePoint only)
+const preview = await graphClient.api(`/users/${userId}/drive/items/${itemId}/preview`).post({});
 ```
 
 ### Delta Queries (Efficient Sync)
@@ -242,7 +249,6 @@ while (response['@odata.nextLink']) {
   allItems.push(...response.value);
 }
 
-// Save deltaLink for next sync
 deltaLink = response['@odata.deltaLink'];
 console.log(`Initial sync: ${allItems.length} items`);
 
@@ -259,36 +265,35 @@ for (const item of changes.value) {
   }
 }
 
-// Save new deltaLink
 deltaLink = changes['@odata.deltaLink'];
 ```
 
 ### Webhooks and Conversions
 
-Subscribe to file changes via `/subscriptions` (webhook notifies something changed, then use delta query to get specifics). Convert files server-side by appending `?format=pdf` to the content endpoint — works for Word, Excel, and PowerPoint.
+Subscribe to file changes via `/subscriptions` (webhook notifies something changed, then use delta query to get specifics). Subscriptions on OneDrive for Business can target only the drive root; personal OneDrive allows any folder. Convert files server-side by requesting `.../content?format=pdf` (source files up to 2 MB; `format=pdf` for Office, text and Loop types, `format=jpg` also needs `width` and `height`; the call answers 302 to a short-lived download URL).
 
 ## Examples
 
 ### Example 1: Upload project files and share with external partner
-**User prompt:** "Upload the proposal.pdf and budget.xlsx files to the 'Acme Partnership' folder in OneDrive, create the folder if it doesn't exist, and generate a view-only sharing link that expires in 30 days for our partner at sarah@acmecorp.com."
+**User prompt:** "Upload the proposal.pdf and budget.xlsx files to the 'Contoso Partnership' folder in OneDrive, create the folder if it doesn't exist, and generate a view-only sharing link that expires in 30 days for our partner at sarah.chen@northwind.example."
 
-The agent will first create the folder using `POST /users/{userId}/drive/root/children` with `name: 'Acme Partnership'` and `conflictBehavior: 'rename'`. It will then upload both files using simple PUT to `/users/{userId}/drive/root:/Acme Partnership/proposal.pdf:/content` and the same for budget.xlsx. Finally, it will create a sharing link with `type: 'view'`, `scope: 'users'`, and an expiration date 30 days from now, then send an invite to sarah@acmecorp.com with read-only permissions and a message explaining the shared documents.
+The agent will first create the folder using `POST /users/{userId}/drive/root/children` with `name: 'Contoso Partnership'` and `conflictBehavior: 'fail'` (a 409 means the folder already exists, so carry on). It will then upload both files using simple PUT to `/users/{userId}/drive/root:/Contoso Partnership/proposal.pdf:/content` and the same for budget.xlsx. Finally, it will create a sharing link with `type: 'view'`, `scope: 'users'`, and an expiration date 30 days from now, then send an invite to sarah.chen@northwind.example with read-only permissions and a message explaining the shared documents.
 
 ### Example 2: Sync local directory with OneDrive using delta queries
-**User prompt:** "Set up an efficient sync script that tracks changes in the /Projects/Q1-2026 folder on OneDrive and downloads only files that have been added or modified since the last sync."
+**User prompt:** "Set up an efficient sync script that downloads only the OneDrive files that were added or modified since the last sync."
 
-The agent will implement an initial delta sync using `GET /users/{userId}/drive/root:/Projects/Q1-2026:/delta` with select fields for id, name, deleted, file, and lastModifiedDateTime. It will paginate through all results using `@odata.nextLink`, store the `@odata.deltaLink` to a local config file, and download each file's content. On subsequent runs, it will call the stored deltaLink to get only changes since last sync, downloading new or modified files and removing locally deleted ones.
+The agent will implement an initial delta sync using `GET /users/{userId}/drive/root/delta` with select fields for id, name, deleted, file, and lastModifiedDateTime. It will paginate through all results using `@odata.nextLink`, store the `@odata.deltaLink` to a local state file, and download each file's content. On subsequent runs, it will call the stored deltaLink to get only changes since last sync, downloading new or modified files and removing locally deleted ones. Delta is documented only on the drive root, so limiting it to one folder (such as /Projects/Q1-2026) means keeping a map of item IDs under that folder and ignoring other changes.
 
 ## Guidelines
 
 - Use delta queries for sync — don't re-list entire folders, track changes incrementally
-- Large files (>4MB) must use upload sessions — simple PUT has size limits
+- Simple PUT is limited to 250 MB; larger files must use an upload session
 - `@microsoft.graph.conflictBehavior` — always specify ('fail', 'replace', or 'rename')
-- Sharing links with expiry dates and passwords for external sharing — never permanent anonymous links
+- Sharing links with expiry dates for external sharing (passwords work only on OneDrive Personal) — never permanent anonymous links
 - Batch requests for multiple operations — max 20 per batch
 - Thumbnails are available for images, PDFs, Office docs — use for file previews in UI
-- `?format=pdf` for server-side conversion — no need for external tools
 - Webhook + delta query pattern: webhook notifies "something changed", delta query shows exactly what
-- Rate limits: 10,000 requests per 10 min per app per tenant
+- URL-encode folder and file names with spaces or `#`/`%` when building `root:/path:` URLs
+- Throttling returns 429 with a `Retry-After` header: wait that long and retry (the SDK middleware retries by default)
 - OneDrive for Business uses same API as SharePoint document libraries — they're the same service
 - Personal OneDrive uses `/me/drive`, Business uses `/users/{id}/drive` or `/drives/{driveId}`
