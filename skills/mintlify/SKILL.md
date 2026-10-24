@@ -1,230 +1,148 @@
 ---
 name: mintlify
 description: >-
-  Create beautiful developer documentation with Mintlify — AI-powered docs
-  platform. Use when someone asks to "create documentation site", "Mintlify",
-  "developer docs", "API documentation", "beautiful docs like Stripe", or
-  "documentation platform with AI search". Covers page creation, API reference
-  generation, components, analytics, and AI chat.
+  Mintlify is a hosted documentation platform that turns MDX files and a docs.json config in a Git repository into a developer docs site with built-in search, an API playground generated from OpenAPI, and an AI assistant. Use this skill to create a documentation site, set up the mint CLI, write MDX pages with components, generate API reference pages from an OpenAPI spec, preview locally, validate and deploy; also to migrate an old mint.json project.
 license: Apache-2.0
-compatibility: "MDX. Hosted or self-hosted. GitHub integration."
+compatibility: 'Node.js 20.17+ for the mint CLI; a Mintlify account and a GitHub repository for deployment'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.1.0
   category: content
-  tags: ["documentation", "mintlify", "docs", "api-reference", "developer-experience"]
+  tags: ["documentation", "mintlify", "docs", "api-reference", "mdx"]
 ---
 
 # Mintlify
 
 ## Overview
 
-Mintlify is a documentation platform that makes developer docs look like Stripe's — beautiful by default, with built-in API reference generation, AI-powered search, analytics, and MDX components. Write in MDX, push to GitHub, docs deploy automatically. Includes interactive API playground, versioning, and AI chatbot trained on your docs.
+Mintlify builds a documentation site from a Git repository of `.mdx` pages plus one configuration file, `docs.json`. The CLI is the npm package `mint` (the old `mintlify` package is legacy: do not install it). Pushing to the connected branch deploys the site to `https://<subdomain>.mintlify.site`, and a custom domain can be added. Search, the AI assistant, analytics and the API playground are part of the hosted platform; the local preview shows the pages, and search needs `mint login`.
 
-## When to Use
-
-- Creating documentation for an API or developer product
-- Want beautiful docs without building a custom site
-- Need interactive API reference with try-it-now playground
-- Want AI-powered search and chatbot for your docs
-- Replacing ReadMe, GitBook, or Docusaurus with something prettier
+The configuration file used to be `mint.json`. Current projects use `docs.json`. If you find a `mint.json`, convert it to `docs.json` by hand against the `docs.json` schema (`"$schema": "https://mintlify.com/docs.json"` gives editor validation, and `mint validate` reports mistakes) instead of extending it.
 
 ## Instructions
 
-### Setup
+### 1. Install the CLI and scaffold a project
 
 ```bash
-# Install CLI
-npm install -g mintlify
-
-# Initialize in your project
-mintlify init
-
-# Local development
-mintlify dev
+node --version                      # needs v20.17.0 or newer
+npm i -g mint
+mint new acme-docs --name "Acme Billing" --theme mint     # non-interactive; scaffolds into acme-docs/
+cd acme-docs
+mint dev                            # preview on http://localhost:3000; add --port 3459 to change it
 ```
 
-### Configuration
+`mint dev` serves on localhost only unless you pass `--host`. Never use `mint new --force` in a folder with files you want to keep. Other commands: `mint validate` (strict build check, fails on warnings), `mint broken-links`, `mint a11y`, `mint format`, `mint update`, `mint status`.
+
+### 2. Configure `docs.json`
+
+This configuration was validated with `mint validate` (CLI 4.2.x). Pages are listed by path without extension.
 
 ```json
-// mint.json — Documentation configuration
 {
-  "name": "My Product",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
-  },
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Acme Billing",
+  "colors": { "primary": "#0D9373", "light": "#07C983", "dark": "#0D9373" },
   "favicon": "/favicon.svg",
-  "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+  "logo": { "light": "/logo/light.svg", "dark": "/logo/dark.svg" },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          { "group": "Getting started", "pages": ["index", "quickstart"] },
+          { "group": "Guides", "pages": ["guides/webhooks"] }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          { "group": "Overview", "pages": ["api-reference/introduction"] },
+          { "group": "Invoices", "openapi": "api-reference/openapi.json" }
+        ]
+      }
+    ]
   },
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": ["introduction", "quickstart", "authentication"]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview",
-        {
-          "group": "Users",
-          "pages": [
-            "api-reference/users/list",
-            "api-reference/users/create",
-            "api-reference/users/get",
-            "api-reference/users/update"
-          ]
-        }
-      ]
-    },
-    {
-      "group": "Guides",
-      "pages": ["guides/webhooks", "guides/rate-limits", "guides/errors"]
-    }
-  ],
-  "api": {
-    "baseUrl": "https://api.myproduct.com",
-    "auth": { "method": "bearer" }
+  "navbar": {
+    "links": [{ "label": "Status", "href": "https://status.acme-billing.io" }],
+    "primary": { "type": "button", "label": "Dashboard", "href": "https://app.acme-billing.io" }
   },
-  "topbarLinks": [
-    { "name": "Dashboard", "url": "https://app.myproduct.com" }
-  ],
-  "tabs": [
-    { "name": "API Reference", "url": "api-reference" },
-    { "name": "SDKs", "url": "sdks" }
-  ],
-  "footerSocials": {
-    "github": "https://github.com/myproduct",
-    "twitter": "https://twitter.com/myproduct"
-  }
+  "footer": { "socials": { "github": "https://github.com/mintlify" } }
 }
 ```
 
-### Writing Pages
+`logo.href` and the `href` of `navbar` links and buttons accept absolute URLs or paths that start with `/`; an outdated CLI rejects relative paths with `Must be a valid url`, so run `mint update`.
 
-```mdx
+### 3. Write pages in MDX
+
+Each page starts with `title` and `description` frontmatter. Built-in components include `<Note>`, `<Warning>`, `<Tip>`, `<Steps>`/`<Step>`, `<CodeGroup>`, `<Card>`, `<ParamField>` and `<ResponseExample>`.
+
+````mdx
 ---
-title: "Quickstart"
-description: "Get up and running in 5 minutes"
+title: "Webhooks"
+description: "Receive invoice events"
 ---
 
-## Install the SDK
+<Steps>
+  <Step title="Add an endpoint">Register `https://shop.acme-billing.io/hooks` in the dashboard.</Step>
+  <Step title="Verify the signature">Reject requests whose signature does not match.</Step>
+</Steps>
 
 <CodeGroup>
 ```bash npm
-npm install @myproduct/sdk
-```
-```bash yarn
-yarn add @myproduct/sdk
+npm install @acme-billing/sdk
 ```
 ```bash pnpm
-pnpm add @myproduct/sdk
+pnpm add @acme-billing/sdk
 ```
 </CodeGroup>
 
-## Initialize
+<Card title="API reference" icon="code" href="/api-reference/introduction">Explore endpoints</Card>
+````
 
-```typescript
-import { MyProduct } from "@myproduct/sdk";
+### 4. API reference
 
-const client = new MyProduct({
-  apiKey: process.env.MYPRODUCT_API_KEY,
-});
+Preferred: put an OpenAPI 3 file in the repo and reference it from navigation with `"openapi": "api-reference/openapi.json"` (every endpoint becomes a page with a playground), or list endpoints (`"GET /v1/invoices"`) under `pages` to choose some. Check the spec with `mint validate`. The playground uses the spec's `servers` and `security`.
+
+For a small API, write endpoint pages by hand. Configure the server and auth once, then give each page an `api` frontmatter field (a relative path needs the `server` value):
+
+```json
+{ "api": { "mdx": { "server": "https://api.acme-billing.io/", "auth": { "method": "bearer" } } } }
 ```
-
-<Note>
-  Never expose your API key in client-side code. Use environment variables.
-</Note>
-
-## Make your first request
-
-<Steps>
-  <Step title="Create a resource">
-    ```typescript
-    const resource = await client.resources.create({
-      name: "My First Resource",
-    });
-    ```
-  </Step>
-  <Step title="Verify it worked">
-    ```typescript
-    const fetched = await client.resources.get(resource.id);
-    console.log(fetched.name); // "My First Resource"
-    ```
-  </Step>
-</Steps>
-
-<Card title="Full API Reference" icon="code" href="/api-reference">
-  Explore all available endpoints
-</Card>
-```
-
-### API Reference Pages
 
 ```mdx
 ---
-title: "Create User"
-api: "POST https://api.myproduct.com/v1/users"
-description: "Create a new user account"
+title: "Create invoice"
+api: "POST /v1/invoices"
 ---
 
-<ParamField body="email" type="string" required>
-  User's email address
-</ParamField>
-
-<ParamField body="name" type="string" required>
-  Full name (2-100 characters)
-</ParamField>
-
-<ParamField body="role" type="string" default="user">
-  One of: `user`, `admin`
-</ParamField>
-
-<ResponseExample>
-```json 200
-{
-  "id": "usr_1a2b3c",
-  "email": "kai@example.com",
-  "name": "Kai",
-  "role": "user",
-  "created_at": "2026-02-26T12:00:00Z"
-}
+<ParamField body="customer_id" type="string" required>Customer to bill</ParamField>
+<ParamField body="amount" type="integer" required>Amount in cents</ParamField>
 ```
-```json 400
-{
-  "error": "validation_error",
-  "message": "Email is required"
-}
-```
-</ResponseExample>
-```
+
+### 5. Deploy
+
+`mint login` (existing account) or `mint signup`, connect the GitHub repository in the browser, then push to the production branch. `mint status` shows the subdomain. Run `mint validate` and `mint broken-links` before every push (they work offline).
 
 ## Examples
 
-### Example 1: Document an API from OpenAPI spec
+### Example 1: Document a REST API from its OpenAPI spec
 
-**User prompt:** "Generate documentation for my REST API from our OpenAPI spec."
+Request: "Generate documentation for our billing API from openapi.yaml."
 
-The agent will convert the OpenAPI spec to Mintlify pages, create navigation structure, add code examples in multiple languages, and set up the API playground.
+Run `mint new billing-docs --name "Acme Billing" --theme mint`, copy the spec to `billing-docs/api-reference/openapi.yaml`, add a group with `"openapi": "api-reference/openapi.yaml"` to the navigation, run `mint validate`, then `mint dev --port 3459`. Result: validation prints `success build validation passed` and the preview has one page per endpoint with a request playground.
 
-### Example 2: Create product docs with guides
+### Example 2: Product docs with a quickstart and guides
 
-**User prompt:** "Set up documentation for our SaaS product — quickstart, guides, and API reference."
+Request: "Set up docs for our SaaS: quickstart, two guides and an API reference tab."
 
-The agent will initialize Mintlify, create the navigation structure, write quickstart and guide pages with MDX components, and configure deployment.
+Scaffold with `mint new`, write `quickstart.mdx` and `guides/*.mdx` using `<Steps>` and `<CodeGroup>`, define two `tabs` in `docs.json` as in step 2, and run `mint broken-links`. Result: `success no broken links found`, with Guides and API reference tabs in the top navigation.
 
 ## Guidelines
 
-- **MDX for rich content** — use components like `<Note>`, `<Card>`, `<Steps>`, `<CodeGroup>`
-- **`mint.json` is the config** — navigation, branding, API settings
-- **API pages auto-generate playground** — users can try API calls from the docs
-- **`mintlify dev` for local preview** — hot reload during writing
-- **GitHub integration** — push to repo, docs deploy automatically
-- **AI chatbot** — trained on your docs, answers user questions
-- **OpenAPI import** — `mintlify openapi <spec.yaml>` generates API reference pages
-- **Versioning** — support multiple API versions
-- **Analytics built-in** — see which pages are popular, where users drop off
-- **Custom domains** — `docs.myproduct.com`
+- Treat `docs.json` as the source of truth for navigation: a page that exists as a file but is missing from `navigation` is not shown.
+- `mint validate` runs in strict mode; fix warnings rather than ignoring them.
+- Do not publish real API keys in examples; use environment variable names such as `ACME_BILLING_API_KEY`.
+- Hand-written endpoint pages drift from the real API; prefer OpenAPI generation for anything larger than a few endpoints.
+- Do not run `mint dev` on a port another project uses; pick one with `--port`.
+- Mintlify is a hosted service. If you need a fully self-hosted site, use a static generator such as Docusaurus (`mint export` produces an offline zip for air-gapped viewing).
