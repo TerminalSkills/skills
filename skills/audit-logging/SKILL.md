@@ -1,14 +1,15 @@
 ---
 name: audit-logging
 description: >-
-  Implement tamper-evident audit logs for compliance (SOC 2, HIPAA, PCI DSS). Use when building
-  compliance audit trails, tracking who did what and when, or implementing immutable event logs
-  that satisfy regulatory retention requirements.
+  Builds tamper-evident audit logs for compliance (SOC 2, HIPAA, PCI DSS): an append-only PostgreSQL
+  table with a hash chain computed inside the database, a verification query, and an AWS CloudTrail
+  plus S3 Object Lock archive. Use when building compliance audit trails, tracking who did what and
+  when, or implementing immutable event logs that satisfy regulatory retention requirements.
 license: Apache-2.0
-compatibility: "Node.js 18+ and Python 3.9+. Storage: PostgreSQL, S3, AWS CloudTrail."
+compatibility: "PostgreSQL 14+ (built-in sha256, gen_random_uuid). Optional: Node.js 20+ with the pg package, AWS CLI v2."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["audit-logging", "compliance", "soc2", "hipaa", "immutable-log"]
   use-cases:
@@ -22,385 +23,196 @@ metadata:
 
 ## Overview
 
-Compliance audit logs must answer: **who** did **what** to **which resource**, **when**, from **where**, and with **what result**. They must also be tamper-evident — an auditor must be able to verify logs haven't been modified.
+A compliance audit log answers: **who** did **what** to **which resource**, **when**, from **where**, and with **what result**. It must also be tamper-evident, so an auditor can check that nobody edited or removed entries.
 
-**Regulatory retention requirements:**
-| Standard | Retention |
-|----------|-----------|
-| HIPAA | 6 years |
-| PCI DSS | 12 months online + 12 months archive |
-| SOC 2 (typical) | 1 year |
-| GDPR | Defined by purpose (often 1-3 years) |
+This skill puts the whole mechanism in PostgreSQL, so every application and every language gets it for free: a trigger links each row to the previous one by SHA-256, other triggers refuse UPDATE, DELETE and TRUNCATE, and one function re-checks the chain. The SQL below was run on PostgreSQL 18, including 40 concurrent inserts.
 
-## Required Log Fields
+Retention floors to design for (confirm with your auditor, they depend on scope):
 
-```typescript
-interface AuditLogEntry {
-  // Core required fields
-  id: string;             // UUID — unique event identifier
-  timestamp: string;      // ISO 8601 UTC — when the event occurred
-  actor_id: string;       // User/service that performed the action
-  actor_type: 'user' | 'service' | 'admin' | 'system';
-  action: string;         // What happened: "read" | "write" | "delete" | "login" | "export"
-  resource_type: string;  // "patient_record" | "invoice" | "user_account"
-  resource_id: string;    // ID of the affected resource
-  result: 'success' | 'failure' | 'denied';
-  
-  // Context fields
-  ip_address: string;     // Source IP
-  user_agent?: string;    // Browser/client identifier
-  session_id?: string;    // Session identifier
-  
-  // Optional fields
-  changed_fields?: string[];    // For write operations: which fields changed
-  old_values?: Record<string, unknown>;  // Previous values (be careful with PII)
-  reason?: string;              // Clinical justification (HIPAA), business reason
-  
-  // Tamper-evidence
-  prev_hash?: string;     // Hash of previous log entry (hash chaining)
-  hash: string;           // SHA-256 of this entry
-}
-```
+| Standard | Typical requirement |
+|----------|---------------------|
+| HIPAA | Documentation kept 6 years (45 CFR 164.316(b)(2)) |
+| PCI DSS v4 (req. 10.5.1) | 12 months of history, the latest 3 months immediately available for analysis |
+| SOC 2 | No fixed number; 1 year is the usual auditor expectation |
+| GDPR | Only as long as the purpose needs; log IDs, not personal data |
 
-## Hash Chain Implementation
+## Instructions
 
-Hash chaining makes log tampering detectable: each entry includes a hash of the previous entry. Modifying any entry breaks the chain.
+### 1. Required fields
 
-```python
-import json
-import hashlib
-import uuid
-from datetime import datetime, timezone
-from typing import Optional
+Every entry records: `id`, `occurred_at` (UTC), `actor_id` and `actor_type`, `action`, `resource_type` and `resource_id`, `result` (`success`, `failure`, `denied`) and the source `ip_address`. Add `session_id`, `reason` (the clinical or business justification HIPAA asks for) and `changed_fields` (names only). Never store passwords, tokens or full old values of sensitive fields: the log outlives the data and cannot be edited to remove them.
 
-class AuditLogger:
-    def __init__(self, db_connection):
-        self.db = db_connection
-        self._last_hash: Optional[str] = None
-    
-    def _compute_hash(self, entry: dict, prev_hash: Optional[str]) -> str:
-        """Compute SHA-256 of the log entry for tamper-evidence."""
-        hashable = {
-            "id": entry["id"],
-            "timestamp": entry["timestamp"],
-            "actor_id": entry["actor_id"],
-            "action": entry["action"],
-            "resource_type": entry["resource_type"],
-            "resource_id": entry["resource_id"],
-            "result": entry["result"],
-            "prev_hash": prev_hash or "GENESIS"
-        }
-        content = json.dumps(hashable, sort_keys=True)
-        return hashlib.sha256(content.encode()).hexdigest()
-    
-    async def log(
-        self,
-        actor_id: str,
-        actor_type: str,
-        action: str,
-        resource_type: str,
-        resource_id: str,
-        result: str,
-        ip_address: str,
-        **kwargs
-    ) -> dict:
-        """Create and persist a tamper-evident audit log entry."""
-        # Get last hash for chaining
-        prev_hash = self._last_hash or await self._get_last_hash()
-        
-        entry = {
-            "id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "actor_id": actor_id,
-            "actor_type": actor_type,
-            "action": action,
-            "resource_type": resource_type,
-            "resource_id": resource_id,
-            "result": result,
-            "ip_address": ip_address,
-            "prev_hash": prev_hash or "GENESIS",
-            **kwargs
-        }
-        
-        entry["hash"] = self._compute_hash(entry, prev_hash)
-        self._last_hash = entry["hash"]
-        
-        # Persist to append-only storage
-        await self.db.audit_logs.insert_one(entry)
-        return entry
-    
-    async def verify_chain(self, limit: int = 1000) -> bool:
-        """Verify the hash chain integrity."""
-        entries = await self.db.audit_logs.find(
-            sort=[("timestamp", 1)], 
-            limit=limit
-        )
-        
-        prev_hash = "GENESIS"
-        for i, entry in enumerate(entries):
-            expected_hash = self._compute_hash(entry, prev_hash)
-            if entry["hash"] != expected_hash:
-                print(f"❌ Chain broken at entry {i}: id={entry['id']}")
-                return False
-            if entry["prev_hash"] != prev_hash:
-                print(f"❌ prev_hash mismatch at entry {i}")
-                return False
-            prev_hash = entry["hash"]
-        
-        print(f"✅ Chain verified: {len(entries)} entries intact")
-        return True
-    
-    async def _get_last_hash(self) -> Optional[str]:
-        last = await self.db.audit_logs.find_one(sort=[("timestamp", -1)])
-        return last["hash"] if last else None
-```
-
-## Express.js Audit Middleware
-
-```javascript
-const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
-
-class AuditLogger {
-  constructor(db) {
-    this.db = db;
-  }
-  
-  async log({ actorId, actorType = 'user', action, resourceType, resourceId, 
-               result, ipAddress, sessionId, reason, changedFields }) {
-    const prevHash = await this.getLastHash();
-    
-    const entry = {
-      id: uuidv4(),
-      timestamp: new Date().toISOString(),
-      actor_id: actorId,
-      actor_type: actorType,
-      action,
-      resource_type: resourceType,
-      resource_id: resourceId,
-      result,
-      ip_address: ipAddress,
-      session_id: sessionId,
-      reason,
-      changed_fields: changedFields,
-      prev_hash: prevHash || 'GENESIS',
-    };
-    
-    entry.hash = this.computeHash(entry);
-    await this.db.auditLogs.create(entry);
-    return entry;
-  }
-  
-  computeHash(entry) {
-    const hashable = JSON.stringify({
-      id: entry.id,
-      timestamp: entry.timestamp,
-      actor_id: entry.actor_id,
-      action: entry.action,
-      resource_type: entry.resource_type,
-      resource_id: entry.resource_id,
-      result: entry.result,
-      prev_hash: entry.prev_hash,
-    });
-    return crypto.createHash('sha256').update(hashable).digest('hex');
-  }
-  
-  async getLastHash() {
-    const last = await this.db.auditLogs.findOne({ order: [['timestamp', 'DESC']] });
-    return last?.hash || null;
-  }
-}
-
-// Express middleware — auto-log all requests
-const createAuditMiddleware = (auditLogger) => async (req, res, next) => {
-  const start = Date.now();
-  
-  // Capture response
-  const originalSend = res.send;
-  res.send = function(body) {
-    res.send = originalSend;
-    
-    // Log after response sent
-    setImmediate(async () => {
-      try {
-        await auditLogger.log({
-          actorId: req.user?.id || 'anonymous',
-          actorType: req.user ? 'user' : 'anonymous',
-          action: `${req.method.toLowerCase()}_${req.route?.path || req.path}`,
-          resourceType: req.params.resourceType || 'api_request',
-          resourceId: req.params.id || req.path,
-          result: res.statusCode < 400 ? 'success' : 
-                  res.statusCode === 403 ? 'denied' : 'failure',
-          ipAddress: req.ip,
-          sessionId: req.session?.id,
-          duration_ms: Date.now() - start,
-        });
-      } catch (err) {
-        console.error('Audit log failed:', err);
-        // Never let audit logging errors break the main flow
-      }
-    });
-    
-    return originalSend.apply(this, arguments);
-  };
-  
-  next();
-};
-```
-
-## PostgreSQL Append-Only Table
+### 2. Append-only, hash-chained table
 
 ```sql
--- Append-only audit log table
--- The CHECK constraint and trigger prevent UPDATE/DELETE
 CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  actor_id TEXT NOT NULL,
-  actor_type TEXT NOT NULL CHECK (actor_type IN ('user', 'service', 'admin', 'system')),
-  action TEXT NOT NULL,
+  seq           BIGINT PRIMARY KEY,  -- chain position, assigned by the trigger
+  id            UUID NOT NULL DEFAULT gen_random_uuid(),
+  occurred_at   TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  actor_id      TEXT NOT NULL,
+  actor_type    TEXT NOT NULL CHECK (actor_type IN ('user','service','admin','system','anonymous')),
+  action        TEXT NOT NULL,
   resource_type TEXT NOT NULL,
-  resource_id TEXT NOT NULL,
-  result TEXT NOT NULL CHECK (result IN ('success', 'failure', 'denied')),
-  ip_address INET,
-  session_id TEXT,
-  reason TEXT,
+  resource_id   TEXT NOT NULL,
+  result        TEXT NOT NULL CHECK (result IN ('success','failure','denied')),
+  ip_address    INET,
+  session_id    TEXT,
+  reason        TEXT,
   changed_fields TEXT[],
-  prev_hash TEXT,
-  hash TEXT NOT NULL UNIQUE
+  prev_hash     BYTEA,
+  hash          BYTEA NOT NULL
 );
+CREATE INDEX audit_actor_idx ON audit_logs (actor_id, occurred_at DESC);
+CREATE INDEX audit_resource_idx ON audit_logs (resource_type, resource_id, occurred_at DESC);
 
--- Create append-only trigger — prevent modification
-CREATE OR REPLACE FUNCTION prevent_audit_modification()
-RETURNS TRIGGER AS $$
+-- The digest covers every business column, so changing any of them breaks the chain.
+CREATE FUNCTION audit_row_digest(r audit_logs) RETURNS BYTEA LANGUAGE sql IMMUTABLE AS $$
+  SELECT sha256(convert_to(jsonb_build_array(
+    r.id, to_char(r.occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    r.actor_id, r.actor_type, r.action, r.resource_type, r.resource_id, r.result,
+    host(r.ip_address), r.session_id, r.reason, r.changed_fields,
+    encode(r.prev_hash, 'hex'))::text, 'UTF8'))
+$$;
+
+-- Link each new row to the previous one. The advisory lock serialises writers,
+-- otherwise two concurrent inserts would share one parent and fork the chain.
+-- SECURITY DEFINER: the trigger must read the previous row, which an INSERT-only role cannot do.
+CREATE FUNCTION audit_chain() RETURNS trigger LANGUAGE plpgsql
+  SECURITY DEFINER SET search_path = pg_catalog, public AS $$
 BEGIN
-  RAISE EXCEPTION 'Audit logs are immutable — modification not allowed';
-END;
-$$ LANGUAGE plpgsql;
+  PERFORM pg_advisory_xact_lock(hashtext('audit_logs_chain'));
+  SELECT seq + 1, hash INTO NEW.seq, NEW.prev_hash FROM audit_logs ORDER BY seq DESC LIMIT 1;
+  NEW.seq := COALESCE(NEW.seq, 1);
+  NEW.hash := audit_row_digest(NEW);
+  RETURN NEW;
+END $$;
+CREATE TRIGGER audit_logs_chain BEFORE INSERT ON audit_logs
+  FOR EACH ROW EXECUTE FUNCTION audit_chain();
 
-CREATE TRIGGER audit_logs_immutable
-BEFORE UPDATE OR DELETE ON audit_logs
-FOR EACH ROW EXECUTE FUNCTION prevent_audit_modification();
-
--- Indexes for common queries
-CREATE INDEX idx_audit_actor_id ON audit_logs(actor_id);
-CREATE INDEX idx_audit_resource ON audit_logs(resource_type, resource_id);
-CREATE INDEX idx_audit_timestamp ON audit_logs(timestamp DESC);
-CREATE INDEX idx_audit_action ON audit_logs(action);
-
--- Query: All actions by a user in the last 30 days
-SELECT timestamp, action, resource_type, resource_id, result, ip_address
-FROM audit_logs
-WHERE actor_id = 'user-123'
-  AND timestamp > NOW() - INTERVAL '30 days'
-ORDER BY timestamp DESC;
-
--- Query: All access to a specific patient record
-SELECT timestamp, actor_id, action, result, ip_address, reason
-FROM audit_logs
-WHERE resource_type = 'patient_record'
-  AND resource_id = 'patient-456'
-ORDER BY timestamp DESC;
-
--- Query: Failed access attempts (security monitoring)
-SELECT actor_id, COUNT(*) as failed_attempts, MAX(timestamp) as last_attempt
-FROM audit_logs
-WHERE result IN ('failure', 'denied')
-  AND timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY actor_id
-HAVING COUNT(*) > 5
-ORDER BY failed_attempts DESC;
+CREATE FUNCTION audit_forbid() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN RAISE EXCEPTION 'audit_logs is append-only'; END $$;
+CREATE TRIGGER audit_logs_no_change BEFORE UPDATE OR DELETE ON audit_logs
+  FOR EACH ROW EXECUTE FUNCTION audit_forbid();
+CREATE TRIGGER audit_logs_no_truncate BEFORE TRUNCATE ON audit_logs
+  FOR EACH STATEMENT EXECUTE FUNCTION audit_forbid();
 ```
 
-## AWS CloudTrail + Immutable S3
+The application never computes a hash. It inserts the business columns; `seq`, `prev_hash` and `hash` are filled by the trigger.
+
+### 3. Verify the chain
+
+```sql
+CREATE FUNCTION audit_verify() RETURNS TABLE (broken_seq BIGINT) LANGUAGE sql STABLE AS $$
+  SELECT seq FROM (
+    SELECT a.*, lag(a.hash) OVER (ORDER BY seq) AS expected_prev FROM audit_logs a
+  ) t
+  WHERE t.hash IS DISTINCT FROM audit_row_digest(ROW(t.seq,t.id,t.occurred_at,t.actor_id,t.actor_type,
+          t.action,t.resource_type,t.resource_id,t.result,t.ip_address,t.session_id,t.reason,
+          t.changed_fields,t.prev_hash,t.hash)::audit_logs)
+     OR t.prev_hash IS DISTINCT FROM t.expected_prev
+  ORDER BY seq LIMIT 1
+$$;
+
+SELECT * FROM audit_verify();   -- zero rows = chain intact; otherwise the first broken seq
+```
+
+Run it on a schedule and alert on any row. A chain inside the same database protects against edits that bypass the triggers only if the verifier's result and a recent `hash` are also kept somewhere the database admin cannot change (step 5).
+
+### 4. Write entries from the application
+
+```javascript
+import pg from 'pg';
+const pool = new pg.Pool({ connectionString: process.env.AUDIT_DATABASE_URL });
+
+export async function audit({ actorId, actorType = 'user', action, resourceType, resourceId,
+                              result, ip, sessionId, reason, changedFields }) {
+  await pool.query(
+    `INSERT INTO audit_logs (actor_id, actor_type, action, resource_type, resource_id,
+                             result, ip_address, session_id, reason, changed_fields)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    [actorId, actorType, action, resourceType, resourceId, result, ip, sessionId, reason, changedFields]);
+}
+
+// Express: log the access decision where it is made, not every request.
+app.get('/patients/:id', requireLogin, async (req, res) => {
+  const allowed = await canRead(req.user, req.params.id);
+  await audit({ actorId: req.user.id, action: 'read', resourceType: 'patient_record',
+                resourceId: req.params.id, result: allowed ? 'success' : 'denied',
+                ip: req.ip, sessionId: req.sessionID, reason: req.query.reason });
+  if (!allowed) return res.sendStatus(403);
+  res.json(await loadPatient(req.params.id));
+});
+```
+
+Await the insert for security-relevant actions: if the audit write fails, the action should fail too (fail closed). For low-value events, queue the insert instead and alert when the queue backs up.
+
+Give the application a database role with only `INSERT` (and `SELECT` for the reviewer role) on `audit_logs`. The triggers stop honest mistakes; privileges stop the rest. The chain trigger runs as the table owner (`SECURITY DEFINER`), so that role needs no read access.
+
+### 5. Anchor and archive outside the database
+
+An attacker with superuser rights can disable the triggers and rewrite the whole chain consistently. Defend by periodically exporting the newest `hash` (and rotated rows) to storage the database cannot reach, such as an S3 bucket with Object Lock:
 
 ```bash
-# Create CloudTrail that logs to immutable S3 bucket
-aws cloudtrail create-trail \
-  --name compliance-audit-trail \
-  --s3-bucket-name my-audit-logs-bucket \
-  --include-global-service-events \
-  --is-multi-region-trail \
-  --enable-log-file-validation  # Cryptographic log integrity
-
-# Create S3 bucket with Object Lock (WORM - Write Once Read Many)
-aws s3api create-bucket \
-  --bucket my-audit-logs-bucket \
+aws s3api create-bucket --bucket acme-audit-archive-2026 --region us-east-1 \
   --object-lock-enabled-for-bucket
+aws s3api put-object-lock-configuration --bucket acme-audit-archive-2026 \
+  --object-lock-configuration '{"ObjectLockEnabled":"Enabled","Rule":{"DefaultRetention":{"Mode":"GOVERNANCE","Days":365}}}'
+```
 
-# Set default retention: compliance mode (cannot delete even by admin)
-aws s3api put-object-lock-configuration \
-  --bucket my-audit-logs-bucket \
-  --object-lock-configuration '{
-    "ObjectLockEnabled": "Enabled",
-    "Rule": {
-      "DefaultRetention": {
-        "Mode": "COMPLIANCE",
-        "Years": 6
-      }
-    }
-  }'
+`GOVERNANCE` lets a privileged user with a special permission remove objects; `COMPLIANCE` lets nobody, not even the root account, until retention ends. Test with `GOVERNANCE`, and switch to `COMPLIANCE` only when the retention period is final: it cannot be shortened. Outside `us-east-1`, `create-bucket` also needs `--create-bucket-configuration LocationConstraint=<region>` with your region.
 
-# Verify log file integrity (CloudTrail)
+### 6. Cloud control-plane events: CloudTrail
+
+CloudTrail records AWS API calls (not your application's events). Turn on log file validation, which signs digest files so deletion or edits are detectable:
+
+```bash
+aws cloudtrail create-trail --name org-audit-trail --s3-bucket-name acme-cloudtrail-2026 \
+  --is-multi-region-trail --include-global-service-events --enable-log-file-validation
+aws cloudtrail start-logging --name org-audit-trail
 aws cloudtrail validate-logs \
-  --trail-arn arn:aws:cloudtrail:us-east-1:123456789:trail/compliance-audit-trail \
-  --start-time 2024-01-01T00:00:00Z
+  --trail-arn arn:aws:cloudtrail:us-east-1:111122223333:trail/org-audit-trail \
+  --start-time 2026-10-01T00:00:00Z
 ```
 
-## FastAPI Audit Middleware (Python)
+The destination bucket needs the CloudTrail bucket policy before `create-trail` succeeds. `validate-logs` requires both `--trail-arn` and `--start-time`.
 
-```python
-from fastapi import FastAPI, Request
-import time
+## Examples
 
-app = FastAPI()
+### Example 1: "Prove nobody changed the patient access log"
 
-@app.middleware("http")
-async def audit_middleware(request: Request, call_next):
-    start_time = time.time()
-    
-    # Extract context before processing
-    actor_id = None
-    if hasattr(request.state, 'user'):
-        actor_id = request.state.user.id
-    
-    response = await call_next(request)
-    duration_ms = int((time.time() - start_time) * 1000)
-    
-    # Determine result from status code
-    if response.status_code < 400:
-        result = "success"
-    elif response.status_code == 403:
-        result = "denied"
-    else:
-        result = "failure"
-    
-    # Log asynchronously to avoid blocking response
-    import asyncio
-    asyncio.create_task(audit_logger.log(
-        actor_id=actor_id or "anonymous",
-        actor_type="user" if actor_id else "anonymous",
-        action=f"{request.method.lower()}:{request.url.path}",
-        resource_type="api_endpoint",
-        resource_id=str(request.url.path),
-        result=result,
-        ip_address=request.client.host,
-        duration_ms=duration_ms,
-        http_status=response.status_code,
-    ))
-    
-    return response
+```console
+$ psql "$AUDIT_DATABASE_URL" -c "SELECT * FROM audit_verify();"
+ broken_seq
+------------
+(0 rows)
 ```
 
-## Compliance Checklist
+Zero rows: every digest and every parent link matches. If someone edited the IP of row 2 with the triggers disabled, the same call returns `broken_seq = 2`.
 
-- [ ] All required fields logged (actor, action, resource, timestamp, IP, result)
-- [ ] Tamper-evidence implemented (hash chaining or digital signatures)
-- [ ] Append-only storage (trigger prevents UPDATE/DELETE, or S3 Object Lock)
-- [ ] Log aggregation centralized (avoid local file logs that can be deleted)
-- [ ] Retention policy matches regulation (HIPAA: 6yr, PCI: 1yr+1yr archive)
-- [ ] Alerts for anomalies (failed logins, access spikes, unusual hours)
-- [ ] Logs reviewed periodically (monthly for SOC 2, daily for high-security)
-- [ ] Log access itself is audited (who viewed audit logs)
-- [ ] Backup of audit logs separate from primary storage
-- [ ] WORM storage for regulatory compliance archives
+### Example 2: "Who touched patient-456 and who was refused?"
+
+```sql
+SELECT occurred_at, actor_id, action, result, ip_address, reason
+FROM audit_logs
+WHERE resource_type = 'patient_record' AND resource_id = 'patient-456'
+ORDER BY occurred_at DESC;
+
+SELECT actor_id, COUNT(*) AS refused, MAX(occurred_at) AS last_attempt
+FROM audit_logs
+WHERE result IN ('failure','denied') AND occurred_at > now() - INTERVAL '24 hours'
+GROUP BY actor_id HAVING COUNT(*) > 5
+ORDER BY refused DESC;
+```
+
+The first query is the evidence for an access-review request; the second feeds a failed-access alert.
+
+## Guidelines
+
+- The chain serialises every insert behind one lock. That is fine up to a few hundred events per second; above that, shard by tenant (one chain per tenant) or batch inserts.
+- Use the default READ COMMITTED isolation for writers. Under REPEATABLE READ the trigger can read a stale parent.
+- `FOR EACH ROW` triggers do not fire for TRUNCATE, hence the separate statement-level trigger. A superuser can still drop triggers: monitor DDL on the table and keep the anchor from step 5.
+- Do not partition or archive by deleting old rows; move whole partitions to the archive and keep the first remaining row's `prev_hash` as the new anchor.
+- Log access to the audit log itself, and review it on a schedule (monthly for SOC 2, more often for high-risk systems).
+- Keep personal data out of the log. Store IDs, and keep the sensitive values in the system of record, so erasure requests do not collide with immutability.
+- Synchronise server clocks (NTP); `occurred_at` is only as trustworthy as the host's time.
+- A log that is only written is not evidence. Run `audit_verify()` on a schedule, test a restore of the archive, and alert on gaps.
