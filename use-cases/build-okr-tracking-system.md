@@ -17,307 +17,239 @@ tags:
 
 # Build an OKR Tracking System
 
-David is the CTO of a 50-person startup. They adopted OKRs six months ago. The process: every quarter, teams set objectives in a shared Notion doc, key results are tracked in a spreadsheet, and progress is presented in an all-hands. By week 4, the spreadsheet is out of date. By week 8, nobody is looking at it. David wants a system that makes OKRs visible, sends weekly nudges, and automatically flags key results that are off track — so OKRs stay alive, not just quarterly theater.
+David is the CTO of a 50-person startup. They adopted OKRs six months ago. The process: every quarter, teams set objectives in a shared Notion doc, key results are tracked in a spreadsheet, and progress is presented in an all-hands. By week 4, the spreadsheet is out of date. By week 8, nobody is looking at it. David wants a system that makes OKRs visible, sends weekly nudges, and automatically flags key results that are off track, so OKRs stay alive instead of becoming quarterly theater.
+The stack is Next.js (App Router), PostgreSQL through Prisma 7 and Resend; checked against Prisma 7.10, Resend SDK 6.34 and Next.js 16.
 
 ## Step 1 — Schema: Company → Team → Individual OKRs
 
-```typescript
-// prisma/schema.prisma — OKR hierarchy with company, team, and individual levels.
+Install `@prisma/client@7`, `@prisma/adapter-pg@7`, `resend` and, as dev dependencies, `prisma@7` (the npm `latest` tag now points at an 8.0 release candidate, so pin the major) and `dotenv`. Prisma 7 changed three things you will trip over if you copy older tutorials: the generator is `prisma-client` with a required `output`, the connection URL no longer lives in `schema.prisma`, and the client needs a driver adapter.
+
+In `prisma.config.ts`, start with `import "dotenv/config"` (Prisma 7 no longer reads `.env` for the CLI by itself), then export `defineConfig({ schema: "prisma/schema.prisma", datasource: { url: env("DATABASE_URL") } })` (both from `prisma/config`).
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
+}
 
 model Cycle {
-  id        String   @id @default(cuid())
-  name      String   // "Q1 2025", "H1 2025"
-  startDate DateTime
-  endDate   DateTime
-  status    CycleStatus @default(ACTIVE)
+  id         String      @id @default(cuid())
+  name       String      // "Q3 2026"
+  startDate  DateTime
+  endDate    DateTime
+  status     String      @default("ACTIVE") // DRAFT | ACTIVE | COMPLETED
   objectives Objective[]
-  createdAt DateTime @default(now())
 }
 
 model Objective {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  level       OKRLevel  // COMPANY | TEAM | INDIVIDUAL
-  ownerId     String    // userId or teamId
-  ownerName   String    // denormalized for display
-  cycleId     String
-  cycle       Cycle     @relation(fields: [cycleId], references: [id])
-  parentId    String?   // links team OKR to company OKR
-  parent      Objective? @relation("alignment", fields: [parentId], references: [id])
-  children    Objective[] @relation("alignment")
-  keyResults  KeyResult[]
-  status      OKRStatus @default(ON_TRACK)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String      @id @default(cuid())
+  title      String
+  level      String      // COMPANY | TEAM | INDIVIDUAL
+  ownerId    String      // accountable user (the team lead for team objectives)
+  ownerName  String      // denormalized for display
+  cycleId    String
+  cycle      Cycle       @relation(fields: [cycleId], references: [id])
+  parentId   String?     // links a team objective to a company objective
+  parent     Objective?  @relation("alignment", fields: [parentId], references: [id])
+  children   Objective[] @relation("alignment")
+  keyResults KeyResult[]
+  status     Status      @default(ON_TRACK)
 }
 
 model KeyResult {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   title        String
+  startValue   Float      @default(0)
   targetValue  Float
-  currentValue Float     @default(0)
-  unit         String    @default("%")  // %, $, users, points
-  startValue   Float     @default(0)
+  currentValue Float      @default(0)
+  unit         String     @default("%")
   objectiveId  String
-  objective    Objective @relation(fields: [objectiveId], references: [id])
+  objective    Objective  @relation(fields: [objectiveId], references: [id])
   updates      KRUpdate[]
-  status       KRStatus  @default(ON_TRACK)
-  confidence   Int       @default(5)   // 1-10 confidence score
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  status       Status     @default(ON_TRACK)
 }
 
 model KRUpdate {
-  id           String    @id @default(cuid())
-  keyResultId  String
-  keyResult    KeyResult @relation(fields: [keyResultId], references: [id])
+  id            String    @id @default(cuid())
+  keyResultId   String
+  keyResult     KeyResult @relation(fields: [keyResultId], references: [id])
   previousValue Float
   newValue      Float
-  note         String?
-  updatedById  String
-  createdAt    DateTime  @default(now())
+  note          String?
+  updatedById   String
+  createdAt     DateTime  @default(now())
 }
 
-enum CycleStatus { DRAFT ACTIVE COMPLETED }
-enum OKRLevel    { COMPANY TEAM INDIVIDUAL }
-enum OKRStatus   { ON_TRACK AT_RISK OFF_TRACK COMPLETED }
-enum KRStatus    { ON_TRACK AT_RISK OFF_TRACK COMPLETED DROPPED }
+enum Status {
+  ON_TRACK
+  AT_RISK
+  OFF_TRACK
+  COMPLETED
+  DROPPED // key results only
+}
 ```
+
+```typescript
+// src/lib/prisma.ts — Prisma 7 requires a driver adapter.
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@/generated/prisma/client";
+
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
+```
+
+Run `npx prisma migrate dev --name init`, then `npx prisma generate`: in Prisma 7, `migrate dev` no longer generates the client.
 
 ## Step 2 — Key Result Progress and Auto-Status
 
-When a key result is updated, automatically compute its status based on expected vs. actual progress.
+When a key result is updated, compute its status from expected versus actual progress. Since Next.js 15, `params` in a route handler is a Promise, so it must be awaited.
 
 ```typescript
 // src/app/api/key-results/[id]/update/route.ts — Update KR value and compute status.
-
 import { prisma } from "@/lib/prisma";
-import { NextRequest } from "next/server";
+import { currentUserId } from "@/lib/auth"; // your own session helper
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { newValue, note, updatedById } = await request.json();
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const userId = await currentUserId();
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { newValue, note } = await request.json();
+  if (!Number.isFinite(newValue)) return Response.json({ error: "newValue must be a number" }, { status: 400 });
 
   const kr = await prisma.keyResult.findUniqueOrThrow({
-    where: { id: params.id },
+    where: { id },
     include: { objective: { include: { cycle: true } } },
   });
 
-  // Log the update
-  await prisma.kRUpdate.create({
-    data: {
-      keyResultId: params.id,
-      previousValue: kr.currentValue,
-      newValue,
-      note,
-      updatedById,
-    },
-  });
-
-  // Compute progress percentage
   const range = kr.targetValue - kr.startValue;
-  const progress = range !== 0
-    ? ((newValue - kr.startValue) / range) * 100
-    : 0;
+  const progress = range !== 0 ? ((newValue - kr.startValue) / range) * 100 : 0;
 
-  // Compute expected progress based on how far through the cycle we are
-  const cycle = kr.objective.cycle;
-  const now = Date.now();
-  const cycleTotal = cycle.endDate.getTime() - cycle.startDate.getTime();
-  const cycleElapsed = now - cycle.startDate.getTime();
-  const expectedProgress = Math.min((cycleElapsed / cycleTotal) * 100, 100);
+  const { startDate, endDate } = kr.objective.cycle;
+  const elapsed = (Date.now() - startDate.getTime()) / (endDate.getTime() - startDate.getTime());
+  const expectedProgress = Math.min(Math.max(elapsed, 0), 1) * 100;
 
-  // Status: if progress is <70% of expected, flag as at-risk; <40%, off-track
-  const progressRatio = expectedProgress > 0 ? progress / expectedProgress : 1;
-  const status: "ON_TRACK" | "AT_RISK" | "OFF_TRACK" | "COMPLETED" =
-    progress >= 100 ? "COMPLETED" :
-    progressRatio >= 0.7 ? "ON_TRACK" :
-    progressRatio >= 0.4 ? "AT_RISK" :
-    "OFF_TRACK";
+  // Below 70% of the expected pace is at risk, below 40% is off track
+  const ratio = expectedProgress > 0 ? progress / expectedProgress : 1;
+  const status =
+    progress >= 100 ? "COMPLETED" : ratio >= 0.7 ? "ON_TRACK" : ratio >= 0.4 ? "AT_RISK" : "OFF_TRACK";
 
-  const updated = await prisma.keyResult.update({
-    where: { id: params.id },
-    data: { currentValue: newValue, status },
+  // One transaction, so the history never disagrees with the value
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.kRUpdate.create({
+      data: { keyResultId: id, previousValue: kr.currentValue, newValue, note, updatedById: userId },
+    });
+    const result = await tx.keyResult.update({ where: { id }, data: { currentValue: newValue, status } });
+
+    const sibs = (await tx.keyResult.findMany({
+      where: { objectiveId: kr.objectiveId, status: { not: "DROPPED" } },
+      select: { status: true },
+    })).map((s) => s.status);
+    const worst =
+      sibs.includes("OFF_TRACK") ? "OFF_TRACK" :
+      sibs.includes("AT_RISK") ? "AT_RISK" :
+      sibs.every((s) => s === "COMPLETED") ? "COMPLETED" : "ON_TRACK";
+    await tx.objective.update({ where: { id: kr.objectiveId }, data: { status: worst } });
+    return result;
   });
-
-  // Roll up status to parent objective
-  await updateObjectiveStatus(kr.objectiveId);
 
   return Response.json({ ...updated, progress: +progress.toFixed(1), expectedProgress: +expectedProgress.toFixed(1) });
 }
-
-async function updateObjectiveStatus(objectiveId: string) {
-  const krs = await prisma.keyResult.findMany({
-    where: { objectiveId },
-    select: { status: true },
-  });
-
-  const worstStatus =
-    krs.some((kr) => kr.status === "OFF_TRACK") ? "OFF_TRACK" :
-    krs.some((kr) => kr.status === "AT_RISK") ? "AT_RISK" :
-    krs.every((kr) => kr.status === "COMPLETED") ? "COMPLETED" :
-    "ON_TRACK";
-
-  await prisma.objective.update({
-    where: { id: objectiveId },
-    data: { status: worstStatus as any },
-  });
-}
 ```
+
+The user id comes from the session, never from the request body.
 
 ## Step 3 — Weekly Check-In Reminders
 
-Every Monday, send each objective owner a brief check-in prompt. Keep the update friction-free: a link goes directly to the KR update form.
+Every Monday, each owner gets one email listing their key results with a direct link to the update form. Resend's batch endpoint takes at most 100 emails per call, so the code sends in chunks. The emails are plain text, so user-entered titles need no HTML escaping.
 
 ```typescript
 // src/lib/checkins.ts — Send weekly OKR check-in emails to KR owners.
-
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendWeeklyCheckins() {
-  const activeCycle = await prisma.cycle.findFirst({
+  const cycle = await prisma.cycle.findFirst({
     where: { status: "ACTIVE" },
-    include: {
-      objectives: {
-        include: { keyResults: true },
-        where: { status: { not: "COMPLETED" } },
-      },
-    },
+    include: { objectives: { where: { status: { not: "COMPLETED" } }, include: { keyResults: true } } },
+  });
+  if (!cycle) return;
+
+  const byOwner = new Map<string, (typeof cycle.objectives)[number]["keyResults"]>();
+  for (const obj of cycle.objectives) {
+    byOwner.set(obj.ownerId, [...(byOwner.get(obj.ownerId) ?? []), ...obj.keyResults]);
+  }
+
+  const owners = await prisma.user.findMany({ where: { id: { in: [...byOwner.keys()] } } });
+
+  const emails = owners.map((owner) => {
+    const krs = (byOwner.get(owner.id) ?? []).filter((kr) => kr.status !== "DROPPED");
+    return {
+      from: "OKRs <okrs@yourcompany.com>", // a sender on a domain verified in Resend
+      to: [owner.email],
+      subject: `Weekly OKR check-in: ${cycle.name}`,
+      text: [
+        `Weekly check-in: ${cycle.name}`,
+        ...krs.map((kr) => `- ${kr.title}: ${kr.currentValue}/${kr.targetValue} ${kr.unit}\n  ${process.env.NEXT_PUBLIC_APP_URL}/kr/${kr.id}/update`),
+        "What progress did you make? What is blocking you?",
+      ].join("\n\n"),
+    };
   });
 
-  if (!activeCycle) return;
-
-  // Group KRs by owner
-  const ownerMap = new Map<string, { name: string; krs: typeof activeCycle.objectives[0]["keyResults"] }>();
-
-  for (const obj of activeCycle.objectives) {
-    const existing = ownerMap.get(obj.ownerId);
-    if (existing) {
-      existing.krs.push(...obj.keyResults);
-    } else {
-      ownerMap.set(obj.ownerId, { name: obj.ownerName, krs: [...obj.keyResults] });
-    }
+  for (let i = 0; i < emails.length; i += 100) {
+    const { error } = await resend.batch.send(emails.slice(i, i + 100));
+    if (error) throw new Error(`Resend batch failed: ${error.message}`);
   }
-
-  const emails = [];
-
-  for (const [ownerId, { name, krs }] of ownerMap.entries()) {
-    const owner = await prisma.user.findUnique({
-      where: { id: ownerId },
-      select: { email: true },
-    });
-    if (!owner) continue;
-
-    const atRiskKRs = krs.filter((kr) => kr.status === "AT_RISK" || kr.status === "OFF_TRACK");
-    const alertSection = atRiskKRs.length > 0
-      ? `<p>⚠️ <strong>${atRiskKRs.length} key result(s) need attention:</strong> ${atRiskKRs.map((kr) => kr.title).join(", ")}</p>`
-      : "";
-
-    emails.push({
-      from: "OKRs <okrs@yourcompany.com>",
-      to: owner.email,
-      subject: `📊 Weekly OKR Check-In — ${activeCycle.name}`,
-      html: `
-        <h2>Weekly Check-In — ${activeCycle.name}</h2>
-        ${alertSection}
-        <p>Take 5 minutes to update your key results. It keeps the team aligned and surfaces blockers early.</p>
-        <ul>
-          ${krs.map((kr) => `
-            <li>
-              <strong>${kr.title}</strong> — ${kr.currentValue}/${kr.targetValue} ${kr.unit}
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/kr/${kr.id}/update">Update →</a>
-            </li>
-          `).join("")}
-        </ul>
-        <h3>Reflection prompts:</h3>
-        <ul>
-          <li>What progress did you make this week?</li>
-          <li>What's blocking you?</li>
-          <li>Do you need to change your approach?</li>
-        </ul>
-      `,
-    });
-  }
-
-  await resend.batch.send(emails);
 }
 ```
 
+Trigger it on a schedule. With Vercel Cron, add `{"crons": [{"path": "/api/cron/checkins", "schedule": "0 8 * * 1"}]}` to `vercel.json` (Mondays 08:00 UTC; Hobby accounts allow only daily-or-slower jobs). Set a `CRON_SECRET` environment variable and Vercel sends it as `Authorization: Bearer <secret>`, which a `GET` route at that path must compare before calling `sendWeeklyCheckins()`; answer 401 otherwise.
+
 ## Step 4 — Company Health Dashboard
 
-Real-time view of all OKRs: green/yellow/red by status, progress bars, top performers, and at-risk items that need attention.
+One endpoint returns objectives by status and the at-risk list. The counting is done by the database.
 
 ```typescript
 // src/app/api/dashboard/health/route.ts — Company OKR health summary.
-
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const cycle = await prisma.cycle.findFirst({
-    where: { status: "ACTIVE" },
-    include: {
-      objectives: {
-        include: { keyResults: true },
-        orderBy: { level: "asc" },
-      },
-    },
-  });
-
+  const cycle = await prisma.cycle.findFirst({ where: { status: "ACTIVE" } });
   if (!cycle) return Response.json({ error: "No active cycle" }, { status: 404 });
 
-  const allKRs = cycle.objectives.flatMap((o) => o.keyResults);
+  const [byStatus, atRisk] = await Promise.all([
+    prisma.objective.groupBy({ by: ["status"], where: { cycleId: cycle.id }, _count: true }),
+    prisma.objective.findMany({ where: { cycleId: cycle.id, status: { in: ["AT_RISK", "OFF_TRACK"] } } }),
+  ]);
 
-  const health = {
-    cycleId: cycle.id,
+  return Response.json({
     cycleName: cycle.name,
-    daysRemaining: Math.ceil((cycle.endDate.getTime() - Date.now()) / 86400000),
-    objectives: {
-      total: cycle.objectives.length,
-      onTrack: cycle.objectives.filter((o) => o.status === "ON_TRACK").length,
-      atRisk: cycle.objectives.filter((o) => o.status === "AT_RISK").length,
-      offTrack: cycle.objectives.filter((o) => o.status === "OFF_TRACK").length,
-      completed: cycle.objectives.filter((o) => o.status === "COMPLETED").length,
-    },
-    keyResults: {
-      total: allKRs.length,
-      avgProgress: allKRs.length
-        ? +(allKRs.reduce((s, kr) => {
-            const range = kr.targetValue - kr.startValue;
-            return s + (range !== 0 ? ((kr.currentValue - kr.startValue) / range) * 100 : 0);
-          }, 0) / allKRs.length).toFixed(1)
-        : 0,
-    },
-    atRiskObjectives: cycle.objectives
-      .filter((o) => ["AT_RISK", "OFF_TRACK"].includes(o.status))
-      .map((o) => ({ id: o.id, title: o.title, status: o.status, owner: o.ownerName })),
-    topObjectives: cycle.objectives
-      .filter((o) => o.level === "COMPANY")
-      .map((o) => ({
-        id: o.id,
-        title: o.title,
-        status: o.status,
-        krCount: o.keyResults.length,
-        completedKRs: o.keyResults.filter((kr) => kr.status === "COMPLETED").length,
-      })),
-  };
-
-  return Response.json(health);
+    objectivesByStatus: Object.fromEntries(byStatus.map((g) => [g.status, g._count])),
+    atRiskObjectives: atRisk,
+  });
 }
 ```
 
 ## Step 5 — End-of-Quarter Retrospective Report
 
-When a cycle ends, auto-generate and email the retrospective: what was achieved, what was missed, and key learnings.
+When a cycle ends, email leadership what was achieved and what was missed, then close the cycle.
 
 ```typescript
-// src/lib/retrospective.ts — Generate and email EOQ retrospective report.
-
+// src/lib/retrospective.ts — Generate and email the end-of-quarter retrospective.
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
@@ -326,44 +258,26 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function sendQuarterlyRetro(cycleId: string, leadershipEmails: string[]) {
   const cycle = await prisma.cycle.findUniqueOrThrow({
     where: { id: cycleId },
-    include: {
-      objectives: {
-        include: { keyResults: { include: { updates: { take: 1, orderBy: { createdAt: "desc" } } } } },
-      },
-    },
+    include: { objectives: { include: { keyResults: true } } },
   });
+  const krs = cycle.objectives.flatMap((o) => o.keyResults).filter((kr) => kr.status !== "DROPPED");
+  const done = krs.filter((kr) => kr.status === "COMPLETED");
+  const missed = krs.filter((kr) => kr.status !== "COMPLETED");
+  const rate = krs.length ? Math.round((done.length / krs.length) * 100) : 0;
+  const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
 
-  const allKRs = cycle.objectives.flatMap((o) => o.keyResults);
-  const completedKRs = allKRs.filter((kr) => kr.status === "COMPLETED");
-  const missedKRs = allKRs.filter((kr) => kr.status === "OFF_TRACK");
-  const completionRate = allKRs.length > 0
-    ? Math.round((completedKRs.length / allKRs.length) * 100)
-    : 0;
-
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: "OKRs <okrs@yourcompany.com>",
     to: leadershipEmails,
-    subject: `${cycle.name} Retrospective — ${completionRate}% KR completion`,
-    html: `
-      <h2>${cycle.name} — End of Quarter Retrospective</h2>
-      <h3>📊 Summary</h3>
-      <p><strong>KR Completion Rate:</strong> ${completionRate}% (${completedKRs.length}/${allKRs.length} key results completed)</p>
-      <p><strong>Objectives Completed:</strong> ${cycle.objectives.filter((o) => o.status === "COMPLETED").length}/${cycle.objectives.length}</p>
-
-      <h3>✅ What We Achieved</h3>
-      <ul>${completedKRs.map((kr) => `<li>${kr.title}</li>`).join("")}</ul>
-
-      <h3>❌ What We Missed</h3>
-      <ul>${missedKRs.map((kr) => `<li>${kr.title} — ${kr.currentValue}/${kr.targetValue} ${kr.unit}</li>`).join("")}</ul>
-
-      <h3>🔍 Questions for Retrospective</h3>
-      <ul>
-        <li>Which missed OKRs were in our control?</li>
-        <li>Did we set the right objectives for this quarter?</li>
-        <li>What should we carry forward vs. drop next quarter?</li>
-      </ul>
-    `,
+    subject: `${cycle.name} retrospective: ${rate}% KR completion`,
+    text: [
+      `${cycle.name}: ${done.length} of ${krs.length} key results completed (${rate}%).`,
+      `Achieved:\n${list(done.map((kr) => kr.title))}`,
+      `Missed:\n${list(missed.map((kr) => `${kr.title}: ${kr.currentValue}/${kr.targetValue} ${kr.unit}`))}`,
+      "Which misses were in our control? What do we carry forward, and what do we drop?",
+    ].join("\n\n"),
   });
+  if (error) throw new Error(`Resend failed: ${error.message}`);
 
   await prisma.cycle.update({ where: { id: cycleId }, data: { status: "COMPLETED" } });
 }
@@ -371,11 +285,13 @@ export async function sendQuarterlyRetro(cycleId: string, leadershipEmails: stri
 
 ## Results
 
-David rolled out the OKR system company-wide for Q2:
+In David's first full quarter on the system (the team's own numbers):
 
-- **KR update rate: 40% → 85%** — weekly reminder emails with one-click update links. No login friction.
-- **At-risk detection**: 3 key results flagged as off-track in week 4. Previously, this was discovered at the all-hands in week 12 — too late to course-correct.
-- **All-hands prep: 2 hours → 15 minutes** — the health dashboard generates the slide content. No one exports spreadsheets anymore.
-- **OKR alignment**: team objectives linked to company objectives. Everyone can see how their work connects to company goals.
-- **EOQ retrospective**: auto-generated and emailed to leadership on cycle close. Completion rate visible at a glance.
-- **Build time: ~14 hours** — schema, progress engine, check-in emails, dashboard, retrospective report.
+- Weekly reminders with a direct update link kept key results current instead of drifting after week 4.
+- Three key results were flagged off track in week 4. Before, the same problems surfaced at the week-12 all-hands.
+- All-hands prep became reading the health endpoint instead of exporting spreadsheets.
+
+## Related Skills
+
+- [prisma](/skills/prisma): schema, migrations and the typed client used in every step
+- [resend](/skills/resend): check-in and retrospective emails
