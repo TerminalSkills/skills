@@ -21,240 +21,222 @@ tags:
 
 ## The Problem
 
-Ada leads engineering at a 25-person website builder SaaS. Customers want their sites on their own domains (shop.acme.com) instead of acme.builder.io. Setting up a custom domain currently requires an engineer to manually configure Nginx, generate SSL certificates, and update DNS records — a 2-hour process per customer. Enterprise customers need this before signing $50K contracts. They need a self-service flow where customers add their domain, verify DNS, and get automatic SSL — all without engineering involvement.
+Ada leads engineering at a 25-person website builder SaaS. Customers want their sites on their own domains (shop.acme.com) instead of acme.builder.io. Setting up a custom domain currently requires an engineer to manually configure the reverse proxy, generate SSL certificates, and update DNS records — about two hours per customer. Enterprise customers need this before signing. They need a self-service flow where customers add their domain, verify DNS, and get automatic SSL — all without engineering involvement.
 
-## Step 1: Build the Custom Domain System
+## The Solution
+
+Do not write an ACME client. Put [Caddy](https://caddyserver.com) in front of the app with On-Demand TLS: when a browser connects to a hostname Caddy has no certificate for, Caddy asks your app whether that name is allowed, obtains a certificate from Let's Encrypt during the handshake, stores it, and renews it in the background. The app only has to do three things: store domain claims in PostgreSQL, verify DNS ownership, and answer "is this host one of ours?" quickly (Redis in front of PostgreSQL). Hono serves the API, Caddy's ask endpoint and the tenant site; Zod validates the domain names.
+
+Caddy's docs require that On-Demand TLS is restricted by an ask endpoint (otherwise anyone can make your server request certificates for any name), and recommend that the endpoint answers in milliseconds from an indexed lookup without DNS queries. Both shape the code below.
+
+## Step 1: Store domain claims
+
+```sql
+CREATE TABLE custom_domains (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id          text NOT NULL,
+  domain             text NOT NULL,
+  status             text NOT NULL DEFAULT 'pending_dns' CHECK (status IN ('pending_dns', 'active')),
+  verification_token text NOT NULL,
+  verified_at        timestamptz,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+-- Several tenants may claim a domain, but only one can have it active.
+CREATE UNIQUE INDEX custom_domains_active_domain ON custom_domains (domain) WHERE status = 'active';
+CREATE INDEX custom_domains_tenant ON custom_domains (tenant_id);
+```
+
+A claim stays `pending_dns` until the customer proves control. Several tenants can have a pending claim on the same name, but the partial unique index lets only one of them become `active`.
+
+## Step 2: Add, verify and look up domains
+
+Two DNS records are needed. A CNAME (or, for an apex domain, A records pointing at your servers) routes traffic to you. A TXT record containing a random token proves the customer controls the domain; without it, anyone could claim a domain that merely points at you. The token comes from `crypto.randomBytes`, not from tenant ids or timestamps.
 
 ```typescript
-// src/domains/custom-domains.ts — Self-service custom domains with auto-SSL
-import { pool } from "../db";
+// src/domains.ts — domain claims, DNS verification and host -> tenant lookup
+import { randomBytes } from "node:crypto";
+import { resolveCname, resolve4, resolveTxt } from "node:dns/promises";
+import { Pool } from "pg";
 import { Redis } from "ioredis";
-import { resolve } from "node:dns/promises";
+import { z } from "zod";
 
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const redis = new Redis(process.env.REDIS_URL!);
 
-interface CustomDomain {
-  id: string;
-  tenantId: string;
-  domain: string;
-  status: "pending_dns" | "dns_verified" | "provisioning_ssl" | "active" | "failed" | "expired";
-  dnsVerificationRecord: string;  // TXT record value
-  sslExpiresAt: string | null;
-  createdAt: string;
-  verifiedAt: string | null;
-}
+const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN ?? "builder.io";
+const CNAME_TARGET = process.env.CNAME_TARGET ?? `custom.${PLATFORM_DOMAIN}`;
+const SERVER_IPS = (process.env.SERVER_IPS ?? "").split(",").filter(Boolean);
 
-const VERIFICATION_PREFIX = "_acme-challenge.";
-const CNAME_TARGET = process.env.CNAME_TARGET || "custom.builder.io"; // wildcard DNS entry
+// Lowercase hostname with at least one dot; no scheme, port, path, IP literal or platform subdomain.
+export const DomainSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(253)
+  .regex(/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/, "Invalid domain")
+  .refine((d) => d !== PLATFORM_DOMAIN && !d.endsWith(`.${PLATFORM_DOMAIN}`), "Reserved domain");
 
-// Initiate custom domain setup
-export async function addCustomDomain(tenantId: string, domain: string): Promise<{
-  domain: CustomDomain;
-  instructions: {
-    cname: { host: string; value: string };
-    txt: { host: string; value: string };
-  };
-}> {
-  // Normalize domain
-  const normalizedDomain = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
-  // Validate format
-  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/.test(normalizedDomain)) {
-    throw new Error("Invalid domain format");
-  }
-
-  // Check not already registered
-  const { rows: existing } = await pool.query(
-    "SELECT 1 FROM custom_domains WHERE domain = $1 AND status != 'expired'",
-    [normalizedDomain]
+export async function addCustomDomain(tenantId: string, input: string) {
+  const domain = DomainSchema.parse(input);
+  const token = `builder-verify-${randomBytes(24).toString("base64url")}`;
+  const { rows } = await pool.query(
+    `INSERT INTO custom_domains (tenant_id, domain, verification_token)
+     VALUES ($1, $2, $3) RETURNING id`,
+    [tenantId, domain, token],
   );
-  if (existing.length > 0) throw new Error("Domain already registered");
-
-  // Generate verification token
-  const verificationToken = `builder-verify-${Buffer.from(`${tenantId}:${Date.now()}`).toString("base64url").slice(0, 32)}`;
-  const id = `dom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-
-  await pool.query(
-    `INSERT INTO custom_domains (id, tenant_id, domain, status, dns_verification_record, created_at)
-     VALUES ($1, $2, $3, 'pending_dns', $4, NOW())`,
-    [id, tenantId, normalizedDomain, verificationToken]
-  );
-
   return {
-    domain: {
-      id, tenantId, domain: normalizedDomain, status: "pending_dns",
-      dnsVerificationRecord: verificationToken,
-      sslExpiresAt: null, createdAt: new Date().toISOString(), verifiedAt: null,
-    },
-    instructions: {
-      cname: {
-        host: normalizedDomain,
-        value: CNAME_TARGET,
-      },
-      txt: {
-        host: `_builder-verification.${normalizedDomain}`,
-        value: verificationToken,
-      },
-    },
+    id: rows[0].id as string,
+    domain,
+    dns: [
+      { type: "CNAME", host: domain, value: CNAME_TARGET },   // apex domains: use A/ALIAS records instead
+      { type: "TXT", host: `_builder-verification.${domain}`, value: token },
+    ],
   };
 }
 
-// Verify DNS configuration
-export async function verifyDNS(domainId: string): Promise<{
-  cnameValid: boolean;
-  txtValid: boolean;
-  verified: boolean;
-  error?: string;
-}> {
-  const { rows: [domain] } = await pool.query("SELECT * FROM custom_domains WHERE id = $1", [domainId]);
-  if (!domain) throw new Error("Domain not found");
+export async function verifyDomain(tenantId: string, id: string) {
+  const { rows } = await pool.query(
+    "SELECT domain, verification_token FROM custom_domains WHERE id = $1 AND tenant_id = $2",
+    [id, tenantId],
+  );
+  if (!rows[0]) throw new Error("Domain not found");
+  const { domain, verification_token: token } = rows[0];
 
-  let cnameValid = false;
-  let txtValid = false;
+  const routed = await pointsAtUs(domain);
+  const owned = await resolveTxt(`_builder-verification.${domain}`)
+    .then((records) => records.some((chunks) => chunks.join("") === token))
+    .catch(() => false);
+  if (!routed || !owned) return { routed, owned, active: false };
 
-  // Check CNAME record
-  try {
-    const cnameRecords = await resolve(domain.domain, "CNAME");
-    cnameValid = cnameRecords.some((r: string) =>
-      r.replace(/\.$/, "").toLowerCase() === CNAME_TARGET.toLowerCase()
-    );
-  } catch {
-    // CNAME might not exist if using A record; check A record too
-    try {
-      const aRecords = await resolve(domain.domain, "A");
-      const ourIPs = (process.env.SERVER_IPS || "").split(",");
-      cnameValid = aRecords.some((ip: string) => ourIPs.includes(ip));
-    } catch {}
-  }
-
-  // Check TXT verification record
-  try {
-    const txtRecords = await resolve(`_builder-verification.${domain.domain}`, "TXT");
-    txtValid = txtRecords.some((records: string[]) =>
-      records.some((r) => r === domain.dns_verification_record)
-    );
-  } catch {}
-
-  const verified = cnameValid && txtValid;
-
-  if (verified) {
-    await pool.query(
-      "UPDATE custom_domains SET status = 'dns_verified', verified_at = NOW() WHERE id = $1",
-      [domainId]
-    );
-
-    // Auto-provision SSL
-    await provisionSSL(domainId);
-  }
-
-  return { cnameValid, txtValid, verified };
+  // The partial unique index allows only one active claim per domain; the loser gets an error here.
+  await pool.query(
+    "UPDATE custom_domains SET status = 'active', verified_at = now() WHERE id = $1",
+    [id],
+  );
+  await redis.set(`domain:${domain}`, tenantId, "EX", 300);
+  return { routed, owned, active: true };
 }
 
-// Provision SSL certificate via ACME (Let's Encrypt)
-async function provisionSSL(domainId: string): Promise<void> {
-  const { rows: [domain] } = await pool.query("SELECT * FROM custom_domains WHERE id = $1", [domainId]);
-
-  await pool.query("UPDATE custom_domains SET status = 'provisioning_ssl' WHERE id = $1", [domainId]);
-
-  try {
-    // In production: use acme-client or certbot
-    // This triggers Let's Encrypt certificate issuance
-    const cert = await requestCertificate(domain.domain);
-
-    // Store certificate
-    await pool.query(
-      `UPDATE custom_domains SET
-         status = 'active',
-         ssl_certificate = $2,
-         ssl_private_key = $3,
-         ssl_expires_at = $4
-       WHERE id = $1`,
-      [domainId, cert.certificate, cert.privateKey, cert.expiresAt]
-    );
-
-    // Update reverse proxy config
-    await updateProxyConfig(domain.domain, domain.tenant_id);
-
-    // Cache domain → tenant mapping
-    await redis.hset("domains:tenant_map", domain.domain, domain.tenant_id);
-
-  } catch (err: any) {
-    await pool.query(
-      "UPDATE custom_domains SET status = 'failed', error_message = $2 WHERE id = $1",
-      [domainId, err.message]
-    );
-    throw err;
-  }
+async function pointsAtUs(domain: string) {
+  const cname = await resolveCname(domain).catch(() => []);
+  if (cname.some((r) => r.replace(/\.$/, "").toLowerCase() === CNAME_TARGET)) return true;
+  const a = await resolve4(domain).catch(() => []);
+  return a.some((ip) => SERVER_IPS.includes(ip));
 }
 
-// Route incoming requests to correct tenant
-export async function resolveTenant(hostname: string): Promise<string | null> {
-  // Check cache first
-  const cached = await redis.hget("domains:tenant_map", hostname);
+// Called on every request (and by Caddy's ask endpoint), so keep it to one cache hit or one indexed query.
+export async function resolveTenant(rawHost: string): Promise<string | null> {
+  const host = rawHost.toLowerCase().replace(/:\d+$/, "");
+  const cached = await redis.get(`domain:${host}`);
   if (cached) return cached;
 
-  // Check database
-  const { rows: [domain] } = await pool.query(
-    "SELECT tenant_id FROM custom_domains WHERE domain = $1 AND status = 'active'",
-    [hostname]
-  );
-
-  if (domain) {
-    await redis.hset("domains:tenant_map", hostname, domain.tenant_id);
-    return domain.tenant_id;
-  }
-
-  // Check if it's a subdomain of our platform
-  if (hostname.endsWith(".builder.io")) {
-    const subdomain = hostname.replace(".builder.io", "");
-    const { rows: [tenant] } = await pool.query(
-      "SELECT id FROM tenants WHERE subdomain = $1",
-      [subdomain]
-    );
-    return tenant?.id || null;
-  }
-
-  return null;
-}
-
-// Auto-renew SSL certificates (cron job)
-export async function renewExpiringSertificates(): Promise<number> {
   const { rows } = await pool.query(
-    `SELECT id, domain FROM custom_domains
-     WHERE status = 'active' AND ssl_expires_at < NOW() + interval '30 days'`
+    "SELECT tenant_id FROM custom_domains WHERE domain = $1 AND status = 'active'",
+    [host],
   );
-
-  let renewed = 0;
-  for (const domain of rows) {
-    try {
-      await provisionSSL(domain.id);
-      renewed++;
-    } catch (err) {
-      console.error(`[SSL] Failed to renew ${domain.domain}:`, err);
-    }
-  }
-
-  return renewed;
+  if (!rows[0]) return null;
+  await redis.set(`domain:${host}`, rows[0].tenant_id, "EX", 300);
+  return rows[0].tenant_id;
 }
 
-async function requestCertificate(domain: string): Promise<{ certificate: string; privateKey: string; expiresAt: string }> {
-  // ACME protocol / Let's Encrypt integration
-  return {
-    certificate: "cert...",
-    privateKey: "key...",
-    expiresAt: new Date(Date.now() + 90 * 86400000).toISOString(),
-  };
-}
-
-async function updateProxyConfig(domain: string, tenantId: string): Promise<void> {
-  // Update Caddy/Nginx/Traefik config
+export async function removeDomain(tenantId: string, id: string) {
+  const { rows } = await pool.query(
+    "DELETE FROM custom_domains WHERE id = $1 AND tenant_id = $2 RETURNING domain",
+    [id, tenantId],
+  );
+  if (rows[0]) await redis.del(`domain:${rows[0].domain}`);
 }
 ```
 
-## Results
+## Step 3: Serve the API, the ask endpoint and the sites
 
-- **Custom domain setup: 2 hours → 5 minutes** — self-service wizard guides customers through DNS configuration; SSL provisioned automatically; zero engineering time
-- **Enterprise deal unblocked** — $50K contract signed same day after customer confirmed their domain works with auto-SSL
-- **SSL renewal automated** — cron job renews certificates 30 days before expiry; no more "your SSL expired" emergencies
-- **Tenant routing in <1ms** — Redis cache maps domain → tenant; incoming requests are routed instantly without database queries
-- **DNS verification prevents hijacking** — TXT record verification ensures only domain owners can map domains to their tenant; no one can claim someone else's domain
+Three small Hono apps run in one process, all on `127.0.0.1`. The ask endpoint must never be reachable from the internet, and Caddy is the only thing that talks to the tenant site.
+
+```typescript
+// src/server.ts — three Hono apps: customer API, Caddy's "ask" endpoint, and the tenant site
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { ZodError } from "zod";
+import { addCustomDomain, verifyDomain, resolveTenant, DomainSchema } from "./domains";
+
+// 1. Customer-facing API (put your real auth middleware in front; tenantId must come from the session)
+const api = new Hono<{ Variables: { tenantId: string } }>();
+api.use("*", async (c, next) => {
+  c.set("tenantId", "tenant-123"); // placeholder for your session lookup
+  await next();
+});
+api.onError((err, c) =>
+  err instanceof ZodError
+    ? c.json({ error: err.issues[0].message }, 400)
+    : c.json({ error: err.message }, 500),
+);
+api.post("/domains", async (c) => {
+  const { domain } = await c.req.json();
+  return c.json(await addCustomDomain(c.get("tenantId"), domain), 201);
+});
+api.post("/domains/:id/verify", async (c) =>
+  c.json(await verifyDomain(c.get("tenantId"), c.req.param("id"))),
+);
+
+// 2. Caddy asks here before it requests a certificate. Internal only: bound to 127.0.0.1 below.
+const internal = new Hono();
+internal.get("/ask", async (c) => {
+  const parsed = DomainSchema.safeParse(c.req.query("domain"));
+  const tenant = parsed.success ? await resolveTenant(parsed.data) : null;
+  return c.body(null, tenant ? 200 : 404);
+});
+
+// 3. The tenant site: Caddy forwards the customer's Host header unchanged
+const site = new Hono<{ Variables: { tenant: string } }>();
+site.use("*", async (c, next) => {
+  const tenant = await resolveTenant(c.req.header("host") ?? "");
+  if (!tenant) return c.text("Unknown domain", 404);
+  c.set("tenant", tenant);
+  await next();
+});
+site.get("/", (c) => c.text(`Site for ${c.get("tenant")}`));
+
+const bind = { hostname: "127.0.0.1" };
+serve({ fetch: api.fetch, port: 3001, ...bind });
+serve({ fetch: internal.fetch, port: 3002, ...bind });
+serve({ fetch: site.fetch, port: 3003, ...bind });
+```
+
+## Step 4: Configure Caddy
+
+```caddy
+{
+	email ops@builder.io
+	on_demand_tls {
+		ask http://127.0.0.1:3002/ask
+	}
+}
+
+# Any hostname that the ask endpoint approves gets a certificate on its first TLS handshake
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:3003
+}
+```
+
+Open ports 80 and 443 on the server and keep Caddy's data directory on persistent storage, since that is where the issued certificates and account keys live. Customers' CNAME/A records must point at this server before the first handshake, because Let's Encrypt validates the domain over the public internet. For your own `*.builder.io` subdomains use a normal site block with a wildcard certificate (DNS challenge), not On-Demand TLS.
+
+After `verifyDomain` succeeds the wizard can request `https://<domain>` once to warm the certificate; the first handshake is slower (seconds) while the certificate is issued, and later ones are fast.
+
+## Verification
+
+Run against local PostgreSQL 18 and Redis 8 with Caddy 2.11 (using Caddy's `internal` issuer instead of Let's Encrypt, so no public CA was contacted): adding a domain returns the DNS instructions; `/ask` returned 404 while pending and 200 once `active`; a TLS request for the approved name got a certificate and reached the tenant site, while an unapproved name failed the handshake and caused no issuance; reserved (`evil.builder.io`) and malformed names were rejected with 400. Real Let's Encrypt issuance and real DNS lookups were not exercised.
+
+## Real-World Example
+
+Ada's team ships this behind their dashboard's "Connect a domain" wizard. A customer enters `shop.acme.com`, the wizard shows the CNAME and TXT records, and a "Check now" button calls the verify endpoint. Once both records resolve, the domain turns active and the next visit gets a certificate. Setup that used to take an engineer two hours now takes the customer the time it takes to edit DNS, and renewals need no cron job because Caddy handles them. Removing a domain deletes the row and the Redis key, so the ask endpoint stops approving it immediately.
+
+## Related Skills
+
+- [typescript](/skills/typescript) — Typed domain, DNS and API code
+- [redis](/skills/redis) — Caches the host to tenant mapping
+- [postgresql](/skills/postgresql) — Stores domain claims with a partial unique index
+- [hono](/skills/hono) — Serves the API, the ask endpoint and the tenant site
+- [zod](/skills/zod) — Validates and normalizes domain names
