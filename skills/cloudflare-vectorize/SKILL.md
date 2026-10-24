@@ -1,15 +1,17 @@
 ---
 name: cloudflare-vectorize
 description: >-
-  Serverless vector database at the edge with Cloudflare Vectorize. Use when:
-  building semantic search on Cloudflare Workers, RAG pipelines at the edge,
-  low-latency vector similarity search, or storing and querying embeddings
-  without managing a separate vector database.
+  Cloudflare Vectorize is a managed vector database that Cloudflare Workers
+  query through a binding, used for semantic search and retrieval-augmented
+  generation (RAG) with Workers AI embeddings. Use when building semantic
+  search on Cloudflare Workers, a RAG pipeline at the edge, or when storing and
+  querying embeddings with metadata filtering and namespaces without running a
+  separate vector database.
 license: Apache-2.0
-compatibility: "Requires Cloudflare Workers with Vectorize binding. Use wrangler 3+."
+compatibility: "Cloudflare account (Workers Free or Paid), Node.js and a current Wrangler (Vectorize V2 needs 3.71.0 or later)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["cloudflare", "vectorize", "vector-database", "edge", "semantic-search"]
   use-cases:
@@ -23,290 +25,175 @@ metadata:
 
 ## Overview
 
-Cloudflare Vectorize is a globally distributed vector database built into the Cloudflare Workers platform. It stores high-dimensional vectors (embeddings) and supports fast approximate nearest-neighbor search — all at the edge, with no separate infrastructure to manage.
+Cloudflare Vectorize stores embeddings and answers approximate nearest-neighbor queries from Workers through a binding. It supports metadata filtering, namespaces, and pairs with Workers AI for embeddings and generation.
 
-Key features:
-- Create and query indexes directly from Workers
-- Metadata filtering alongside vector similarity
-- Namespace support for multi-tenant isolation
-- Native integration with Workers AI for end-to-end RAG
-- Scales automatically with zero configuration
-
-## Setup
-
-### 1. Create a Vectorize index
-
-Use Wrangler CLI to create an index. Specify the embedding dimensions and distance metric:
-
-```bash
-# For BAAI/bge-base-en-v1.5 (768 dims, cosine similarity)
-npx wrangler vectorize create my-index \
-  --dimensions=768 \
-  --metric=cosine
-
-# For OpenAI text-embedding-3-small (1536 dims)
-npx wrangler vectorize create my-index \
-  --dimensions=1536 \
-  --metric=cosine
-
-# Euclidean and dot-product are also supported
-npx wrangler vectorize create my-index \
-  --dimensions=384 \
-  --metric=euclidean
-```
-
-### 2. Bind the index in `wrangler.toml`
-
-```toml
-name = "my-worker"
-main = "src/index.ts"
-compatibility_date = "2024-09-23"
-
-[[vectorize]]
-binding = "VECTORIZE_INDEX"
-index_name = "my-index"
-```
-
-### 3. TypeScript types
-
-```typescript
-export interface Env {
-  VECTORIZE_INDEX: VectorizeIndex
-}
-```
+Limits that shape the design (Cloudflare limits page, August 2026): up to 1536 dimensions (float32), 10 KiB metadata per vector, 64-byte IDs, 20 million vectors per index, upsert batches of 1000 from a Worker (5000 over the HTTP API), `topK` up to 100, but only 50 when you return values or all metadata. Dimensions and metric are fixed at creation. Legacy V1 indexes (200,000 vectors, `topK` 20) are deprecated; everything below is V2.
 
 ## Instructions
 
-### Step 1: Insert vectors
+### 1. Create the index and bind it
 
-Each vector needs a unique string `id` and a `values` array matching the index dimensions:
+```bash
+# 768 dimensions for @cf/baai/bge-base-en-v1.5
+npx wrangler vectorize create docs-search --dimensions=768 --metric=cosine
 
-```typescript
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const vectors: VectorizeVector[] = [
-      {
-        id: "doc-001",
-        values: [0.1, 0.2, 0.3, /* ... 768 total */],
-        metadata: { title: "Introduction to Cloudflare", url: "/docs/intro" },
-      },
-      {
-        id: "doc-002",
-        values: [0.4, 0.5, 0.6, /* ... */],
-        metadata: { title: "Workers AI Overview", url: "/docs/workers-ai" },
-      },
-    ]
+# Metadata filtering needs an index per property, created BEFORE you insert (max 10 per index)
+npx wrangler vectorize create-metadata-index docs-search --property-name=category --type=string
+npx wrangler vectorize create-metadata-index docs-search --property-name=published_at --type=number
+```
 
-    const result = await env.VECTORIZE_INDEX.insert(vectors)
-    // result.count = number of vectors inserted
+Metrics are `cosine`, `euclidean` and `dot-product`. `--preset` configures dimensions and metric for a known embedding model. Vectors upserted before a metadata index exists are not in it until you upsert them again.
 
-    return Response.json({ inserted: result.count })
-  },
+Bind it in `wrangler.jsonc` (TOML `[[vectorize]]` works too):
+
+```jsonc
+{
+  "name": "docs-search-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "docs-search" }],
+  "ai": { "binding": "AI" }
 }
 ```
 
-### Step 2: Query for similar vectors
+Run `npx wrangler types` after editing the config to generate the `Env` type, instead of hand-writing it.
+
+### 2. Insert and upsert
+
+Vector `values` must be a dense `number[]`, `Float32Array` or `Float64Array` whose length equals the index dimensions. Writes are asynchronous: the call returns a mutation ID and vectors become queryable after a few seconds.
+
+- `insert()` keeps the first vector stored for an ID and ignores later ones.
+- `upsert()` replaces the whole vector (values and metadata) for an ID. Use it for updates.
 
 ```typescript
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const { queryVector, topK = 5 } = await request.json() as {
-      queryVector: number[]
-      topK?: number
-    }
-
-    const results = await env.VECTORIZE_INDEX.query(queryVector, {
-      topK,
-      returnMetadata: true,   // include metadata in results
-      returnValues: false,    // skip returning raw vector values
-    })
-
-    // results.matches is sorted by score (highest = most similar)
-    return Response.json({
-      matches: results.matches.map(m => ({
-        id: m.id,
-        score: m.score,
-        metadata: m.metadata,
-      }))
-    })
+const result = await env.VECTORIZE.upsert([
+  {
+    id: "intro-001",
+    values: embedding,                 // 768 numbers
+    metadata: { title: "Introduction to Workers", url: "/docs/intro", category: "guide", published_at: 1760000000 },
   },
-}
+]);
+// result.mutationId identifies the asynchronous write
 ```
 
-### Step 3: Metadata filtering
+Metadata keys cannot be empty, contain `.` or `"`, or start with `$`.
 
-Filter results to a subset before computing similarity — useful for multi-tenant or categorized data:
+### 3. Query
 
 ```typescript
-const results = await env.VECTORIZE_INDEX.query(queryVector, {
+const results = await env.VECTORIZE.query(queryVector, {
+  topK: 5,
+  returnMetadata: "all",   // "none" (default) | "indexed" | "all"
+  returnValues: false,
+});
+// results.matches: [{ id, score, metadata }], best match first
+```
+
+`returnMetadata: "indexed"` is faster but returns only indexed properties (long strings may be truncated). `returnValues: true` switches to exact scoring and is slower. `queryById(id, options)` searches with a vector already stored in the index.
+
+### 4. Metadata filters and namespaces
+
+A filter is applied first, then `topK` is taken from the filtered set. Operators: `$eq`, `$ne`, `$in`, `$nin`, `$lt`, `$lte`, `$gt`, `$gte`. Several keys are ANDed; a range may combine one upper and one lower bound; a filter must be under 2048 bytes of JSON.
+
+```typescript
+const results = await env.VECTORIZE.query(queryVector, {
   topK: 10,
-  returnMetadata: true,
-  filter: {
-    category: { $eq: "documentation" },
-  },
-})
-
-// Compound filter
-const filtered = await env.VECTORIZE_INDEX.query(queryVector, {
-  topK: 5,
-  returnMetadata: true,
-  filter: {
-    language: { $eq: "en" },
-    published: { $eq: true },
-  },
-})
+  returnMetadata: "all",
+  filter: { category: { $in: ["guide", "tutorial"] }, published_at: { $gte: 1750000000 } },
+});
 ```
 
-Supported filter operators: `$eq`, `$ne`, `$lt`, `$lte`, `$gt`, `$gte`, `$in`
-
-### Step 4: Namespace support
-
-Use namespaces to isolate data for different tenants or categories within a single index:
+Namespaces partition one index, for example per customer. Set `namespace` on upsert and on query; the namespace filter runs before metadata filters. An index holds up to 1000 namespaces on Workers Free and 50,000 on Paid.
 
 ```typescript
-// Insert with namespace
-await env.VECTORIZE_INDEX.insert([{
-  id: "tenant-a-doc-1",
-  values: embedding,
-  metadata: { text: "Document content..." },
-  namespace: "tenant-a",
-}])
-
-// Query within a namespace
-const results = await env.VECTORIZE_INDEX.query(queryVector, {
-  topK: 5,
-  returnMetadata: true,
-  namespace: "tenant-a",
-})
+await env.VECTORIZE.upsert([{ id: "kb-17", values: embedding, namespace: "customer-4821", metadata: { text: "Reset steps..." } }]);
+const hits = await env.VECTORIZE.query(queryVector, { topK: 5, namespace: "customer-4821" });
 ```
 
-### Step 5: Get, update, and delete vectors
+### 5. Read, delete, describe
 
 ```typescript
-// Get vectors by ID
-const vectors = await env.VECTORIZE_INDEX.getByIds(["doc-001", "doc-002"])
-
-// Upsert (insert or update)
-await env.VECTORIZE_INDEX.upsert([{
-  id: "doc-001",
-  values: newEmbedding,
-  metadata: { updated: true },
-}])
-
-// Delete by ID
-await env.VECTORIZE_INDEX.deleteByIds(["doc-001", "doc-002"])
+const vectors = await env.VECTORIZE.getByIds(["intro-001", "intro-002"]);
+await env.VECTORIZE.deleteByIds(["intro-001"]);
+const details = await env.VECTORIZE.describe();   // dimensions, metric
 ```
 
-### Step 6: End-to-end RAG with Workers AI
+### 6. RAG with Workers AI
 
-Complete RAG pipeline — embed query, search Vectorize, generate answer with LLM:
+`env.AI.run` for a text embedding model returns `{ shape, data }`; pass `data[0]` (one vector) to `query()`, never the whole response.
 
 ```typescript
-export interface Env {
-  AI: Ai
-  VECTORIZE_INDEX: VectorizeIndex
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const { question } = await request.json() as { question: string }
+    const { question } = (await request.json()) as { question: string };
 
-    // 1. Embed the user's question
-    const embeddingResult = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
-      text: [question],
-    })
-    const queryVector = embeddingResult.data[0]
+    const embedding = await env.AI.run("@cf/baai/bge-base-en-v1.5", { text: [question] });
+    const search = await env.VECTORIZE.query(embedding.data[0], { topK: 3, returnMetadata: "all" });
 
-    // 2. Find relevant documents
-    const searchResults = await env.VECTORIZE_INDEX.query(queryVector, {
-      topK: 3,
-      returnMetadata: true,
-    })
+    const context = search.matches.map((m) => m.metadata?.text as string).filter(Boolean).join("\n\n");
 
-    const context = searchResults.matches
-      .map(m => m.metadata?.text as string)
-      .filter(Boolean)
-      .join("\n\n")
-
-    // 3. Generate answer with context
-    const answer = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
+    const answer = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8", {
       messages: [
-        {
-          role: "system",
-          content: `Answer the question using only the provided context.\n\nContext:\n${context}`,
-        },
+        { role: "system", content: `Answer using only this context.\n\n${context}` },
         { role: "user", content: question },
       ],
       max_tokens: 512,
-    })
+    });
 
     return Response.json({
       answer: answer.response,
-      sources: searchResults.matches.map(m => ({
-        id: m.id,
-        score: m.score,
-        url: m.metadata?.url,
-      })),
-    })
+      sources: search.matches.map((m) => ({ id: m.id, score: m.score, url: m.metadata?.url })),
+    });
   },
-}
+};
 ```
 
-### Step 7: Bulk indexing pipeline
+Model catalog entries change; confirm the generation model in the Workers AI model list before deploying. Keep embedding model, `pooling` option and dimensions identical between indexing and querying (`bge-base` default pooling is `mean`; `cls` vectors are not compatible with it).
 
-For indexing large document collections, batch inserts for efficiency:
+### 7. Bulk indexing
 
 ```typescript
-async function indexDocuments(
-  documents: Array<{ id: string; text: string; metadata: Record<string, unknown> }>,
-  env: Env,
-  batchSize = 100
-) {
-  for (let i = 0; i < documents.length; i += batchSize) {
-    const batch = documents.slice(i, i + batchSize)
-
-    // Embed batch
-    const embeddingResult = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
-      text: batch.map(d => d.text),
-    })
-
-    // Prepare vectors
-    const vectors: VectorizeVector[] = batch.map((doc, idx) => ({
-      id: doc.id,
-      values: embeddingResult.data[idx],
-      metadata: { ...doc.metadata, text: doc.text },
-    }))
-
-    // Insert batch
-    await env.VECTORIZE_INDEX.insert(vectors)
-    console.log(`Indexed ${i + batch.length}/${documents.length} documents`)
+async function indexDocuments(docs: { id: string; text: string; url: string }[], env: Env, batchSize = 50) {
+  for (let i = 0; i < docs.length; i += batchSize) {
+    const batch = docs.slice(i, i + batchSize);
+    const embeddings = await env.AI.run("@cf/baai/bge-base-en-v1.5", { text: batch.map((d) => d.text) });
+    await env.VECTORIZE.upsert(
+      batch.map((d, n) => ({ id: d.id, values: embeddings.data[n], metadata: { url: d.url, text: d.text.slice(0, 2000) } })),
+    );
   }
 }
 ```
 
-## Manage indexes via Wrangler
+### Wrangler commands
 
 ```bash
-# List all indexes
 npx wrangler vectorize list
-
-# Describe an index (dimensions, metric, vector count)
-npx wrangler vectorize info my-index
-
-# Delete an index
-npx wrangler vectorize delete my-index
-
-# Get vectors by ID (for debugging)
-npx wrangler vectorize get-vectors my-index --ids=doc-001,doc-002
+npx wrangler vectorize info docs-search
+npx wrangler vectorize list-metadata-index docs-search
+npx wrangler vectorize get-vectors docs-search --ids intro-001 intro-002
+npx wrangler vectorize list-vectors docs-search --count=100
+npx wrangler vectorize delete docs-search     # asks for confirmation; --force skips it
 ```
+
+## Examples
+
+### Example 1: Semantic search for a docs site
+
+**User prompt:** "Add semantic search to our docs Worker. Pages have a title, URL and section."
+
+Create a 768-dimension cosine index `docs-search`, add a metadata index on `section`, bind it as `VECTORIZE`, and run `indexDocuments` over the pages. A request `GET /search?q=reset+password&section=guide` embeds the query, calls `query()` with `filter: { section: "guide" }`, and returns JSON like `[{ "id": "intro-001", "score": 0.83, "url": "/docs/intro" }]`.
+
+### Example 2: Per-customer knowledge base
+
+**User prompt:** "Each customer gets their own FAQ search. Don't mix tenants."
+
+Upsert each customer's chunks with `namespace: customerId` and always pass the same `namespace` on `query()`, taking it from the authenticated session, never from the request body. A query for customer-4821 returns only vectors upserted under that namespace.
 
 ## Guidelines
 
-- Dimensions must match exactly what your embedding model produces — mismatches cause errors at insert time.
-- Use `cosine` distance for normalized text embeddings (BAAI, OpenAI); use `euclidean` or `dot-product` only when your model specifically recommends it.
-- Store the original text in `metadata` so you can return it with search results without a separate database lookup.
-- Vectorize supports up to 100 vectors per `insert()` call — batch larger datasets.
-- Metadata values must be strings, numbers, or booleans; nested objects are not supported in filters.
-- Use namespaces for multi-tenant apps instead of separate indexes — it's cheaper and simpler.
-- Vectorize indexes have eventual consistency; newly inserted vectors may not appear in queries for a few seconds.
-- Combine with Workers AI for fully serverless RAG — no external embedding API keys required.
+- Dimensions must equal the model's output exactly; a mismatch fails at write time. Metric and dimensions cannot be changed later, so create a new index to switch models and re-embed everything.
+- Create metadata indexes before inserting; filtering on a property without an index does not work. Keep indexed values low-cardinality or bucketed (for example timestamps rounded to the hour); string indexes cover only the first 64 bytes.
+- Store the source text (or an ID to look it up) in metadata; keep it under 10 KiB per vector.
+- Writes are eventually consistent: do not query for a vector in the same request that upserted it.
+- Namespaces separate tenants for search, but authorization is your code's job: derive the namespace server-side.
+- Use `topK` 50 or less when returning values or `all` metadata.
