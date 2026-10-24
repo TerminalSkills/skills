@@ -7,10 +7,10 @@ description: >-
   browsers", or "automate UI testing". Covers test setup, page objects,
   authentication, API mocking, visual comparisons, and CI integration.
 license: Apache-2.0
-compatibility: 'Playwright 1.40+, Node.js 18+. Supports Chromium, Firefox, WebKit.'
+compatibility: 'Playwright 1.64 (needs Node.js 20+). Supports Chromium, Firefox, WebKit.'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - playwright
@@ -32,8 +32,9 @@ This skill helps AI agents write reliable end-to-end tests using Playwright. It 
 
 ```bash
 npm init playwright@latest
-# Or add to existing project:
+# Or add to an existing project:
 npm install -D @playwright/test && npx playwright install
+# On Linux CI or a fresh container also pass --with-deps for system libraries
 ```
 
 ```typescript
@@ -93,24 +94,25 @@ test.describe('Homepage', () => {
 
 ```typescript
 // tests/auth.setup.ts — authenticate once, reuse across tests
-import { test as setup } from '@playwright/test';
+import { test as setup, expect } from '@playwright/test';
 import path from 'path';
 
-const authFile = path.join(__dirname, '.auth/user.json');
+// Keep the saved state out of git: add playwright/.auth to .gitignore
+const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
-  await page.getByLabel('Email').fill('test@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Email').fill(process.env.E2E_EMAIL!);
+  await page.getByLabel('Password').fill(process.env.E2E_PASSWORD!);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL('/dashboard');
   await page.context().storageState({ path: authFile });
 });
 
-// In config: add setup dependency
+// Run this project first, then reuse the saved state; in playwright.config.ts:
 // projects: [
 //   { name: 'setup', testMatch: /.*\.setup\.ts/ },
-//   { name: 'chromium', use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/user.json' }, dependencies: ['setup'] },
+//   { name: 'chromium', use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/user.json' }, dependencies: ['setup'] },
 // ]
 ```
 
@@ -143,16 +145,19 @@ export class LoginPage {
 }
 
 // tests/login.spec.ts
+import { test, expect } from '@playwright/test';
+import { LoginPage } from './pages/login.page';
+
 test.describe('Login', () => {
   let loginPage: LoginPage;
   test.beforeEach(async ({ page }) => { loginPage = new LoginPage(page); await loginPage.goto(); });
 
   test('successful login redirects to dashboard', async ({ page }) => {
-    await loginPage.login('test@example.com', 'password123');
+    await loginPage.login(process.env.E2E_EMAIL!, process.env.E2E_PASSWORD!);
     await expect(page).toHaveURL('/dashboard');
   });
   test('invalid credentials show error', async () => {
-    await loginPage.login('wrong@example.com', 'wrong');
+    await loginPage.login('nobody@shopfront.dev', 'not-the-password');
     await loginPage.expectError('Invalid email or password');
   });
 });
@@ -189,8 +194,10 @@ test('homepage visual regression', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveScreenshot('homepage.png', { fullPage: true, maxDiffPixelRatio: 0.01 });
 });
-// Update snapshots: npx playwright test --update-snapshots
+// First run writes the baseline; update with: npx playwright test --update-snapshots
+// Baselines are per browser and OS (homepage-chromium-linux.png), so generate them on the OS that runs CI
 
+// npm install -D @axe-core/playwright
 import AxeBuilder from '@axe-core/playwright';
 test('no accessibility violations', async ({ page }) => {
   await page.goto('/');
@@ -209,13 +216,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: lts/*, cache: npm }
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx playwright test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: { name: playwright-report, path: playwright-report/, retention-days: 30 }
 ```
@@ -264,3 +271,4 @@ The agent will:
 - Capture traces on first retry — invaluable for debugging flaky tests in CI
 - Use `webServer` config to auto-start your dev server during tests
 - Keep visual snapshots in version control and review changes in PRs
+- Keep credentials in environment variables (`E2E_EMAIL`, `E2E_PASSWORD`) and never commit `playwright/.auth`
