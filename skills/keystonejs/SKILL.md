@@ -1,12 +1,14 @@
 ---
 name: keystonejs
-description: Expert guidance for KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
+description: >-
+  Keystone is an open-source headless CMS and application framework for Node.js that turns a TypeScript schema into a GraphQL API, a Prisma database layer and an Admin UI. Use it to define content schemas, add sessions and role-based access control, write lifecycle hooks, extend the GraphQL API, or upgrade a Keystone 6 project to @keystone-6/core 8 (Prisma 7 adapters, Next 16).
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Node.js 20.19+ or 22.12+ (Prisma 7), @keystone-6/core 8.x with Prisma 7, Next.js 16, React 19; SQLite, PostgreSQL or MySQL
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: content
+  repository: https://github.com/keystonejs/keystone
   tags:
   - cms
   - headless-cms
@@ -17,373 +19,250 @@ metadata:
 
 # KeystoneJS — Headless CMS & Application Framework
 
-
 ## Overview
 
-
-KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
-
+Keystone describes your data as TypeScript `list()` definitions. From that one file it generates a Prisma schema, a GraphQL API (`/api/graphql`) and an Admin UI. The npm scope is `@keystone-6`; the current line is `@keystone-6/core` 8.x (8.1.0 at the time of writing), which moved to Prisma 7 driver adapters, Next.js 16, React 19, Apollo Server 5 and Express 5. Most older tutorials (and `db.url`, `keystone prisma`, `keystone migrate`, `storage:` at config level, `validateInput`) describe 6.x/7.x and fail on 8.
 
 ## Instructions
 
-### Schema Definition
-
-Define your data model with Keystone's list API:
-
-```typescript
-// keystone.ts — Main Keystone configuration
-import { config, list } from "@keystone-6/core";
-import { allowAll } from "@keystone-6/core/access";
-import {
-  text, relationship, timestamp, select, integer,
-  image, json, checkbox, password, float,
-} from "@keystone-6/core/fields";
-import { document } from "@keystone-6/fields-document";
-
-export default config({
-  db: {
-    provider: "postgresql",         // "postgresql" | "sqlite" | "mysql"
-    url: process.env.DATABASE_URL!,
-  },
-
-  lists: {
-    // Blog post content type
-    Post: list({
-      access: allowAll,             // Will customize below
-      fields: {
-        title: text({
-          validation: { isRequired: true },
-          isIndexed: "unique",
-        }),
-        slug: text({
-          validation: { isRequired: true },
-          isIndexed: "unique",
-          hooks: {
-            // Auto-generate slug from title if not provided
-            resolveInput({ resolvedData, item }) {
-              if (!resolvedData.slug && resolvedData.title) {
-                return resolvedData.title
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-                  .replace(/^-|-$/g, "");
-              }
-              return resolvedData.slug;
-            },
-          },
-        }),
-        status: select({
-          options: [
-            { label: "Draft", value: "draft" },
-            { label: "Published", value: "published" },
-            { label: "Archived", value: "archived" },
-          ],
-          defaultValue: "draft",
-          ui: { displayMode: "segmented-control" },
-        }),
-        content: document({
-          // Rich text editor with custom blocks
-          formatting: true,
-          links: true,
-          dividers: true,
-          layouts: [
-            [1, 1],                 // Two-column layout
-            [1, 1, 1],             // Three-column layout
-          ],
-          componentBlocks: {},     // Custom editor components
-        }),
-        heroImage: image({
-          storage: "localImages",  // Configured in storage section
-        }),
-        publishedAt: timestamp(),
-        author: relationship({
-          ref: "User.posts",       // Bidirectional relationship
-          ui: { displayMode: "cards", cardFields: ["name", "email"] },
-        }),
-        categories: relationship({
-          ref: "Category.posts",
-          many: true,              // Many-to-many relationship
-          ui: { displayMode: "select" },
-        }),
-        readingTime: integer({
-          ui: { createView: { fieldMode: "hidden" } },  // Auto-calculated
-          hooks: {
-            resolveInput({ resolvedData }) {
-              if (resolvedData.content) {
-                const wordCount = JSON.stringify(resolvedData.content).split(/\s+/).length;
-                return Math.ceil(wordCount / 200);  // ~200 words per minute
-              }
-              return undefined;
-            },
-          },
-        }),
-      },
-    }),
-
-    // Category taxonomy
-    Category: list({
-      access: allowAll,
-      fields: {
-        name: text({ validation: { isRequired: true }, isIndexed: "unique" }),
-        description: text({ ui: { displayMode: "textarea" } }),
-        posts: relationship({ ref: "Post.categories", many: true }),
-      },
-    }),
-
-    // User with authentication
-    User: list({
-      access: allowAll,
-      fields: {
-        name: text({ validation: { isRequired: true } }),
-        email: text({ validation: { isRequired: true }, isIndexed: "unique" }),
-        password: password({
-          validation: { isRequired: true, length: { min: 8 } },
-        }),
-        role: select({
-          options: [
-            { label: "Admin", value: "admin" },
-            { label: "Editor", value: "editor" },
-            { label: "Author", value: "author" },
-          ],
-          defaultValue: "author",
-        }),
-        posts: relationship({ ref: "Post.author", many: true }),
-      },
-    }),
-  },
-
-  // File storage configuration
-  storage: {
-    localImages: {
-      kind: "local",
-      type: "image",
-      generateUrl: (path) => `/images${path}`,
-      serverRoute: { path: "/images" },
-      storagePath: "public/images",
-    },
-  },
-
-  // Authentication
-  session: {
-    maxAge: 60 * 60 * 24 * 30,     // 30 days
-    secret: process.env.SESSION_SECRET!,
-  },
-});
-```
-
-### Access Control
-
-Implement fine-grained permissions:
-
-```typescript
-// access.ts — Role-based access control rules
-import { ListAccessArgs } from "@keystone-6/core/types";
-
-// Helper to check if user is authenticated
-function isSignedIn({ session }: ListAccessArgs) {
-  return !!session;
-}
-
-// Helper to check user role
-function hasRole(role: string) {
-  return ({ session }: ListAccessArgs) => session?.data?.role === role;
-}
-
-// Post-specific access rules
-export const postAccess = {
-  operation: {
-    query: allowAll,                        // Anyone can read published posts
-    create: isSignedIn,                     // Must be logged in to create
-    update: isSignedIn,
-    delete: hasRole("admin"),               // Only admins can delete
-  },
-  filter: {
-    // Non-admins can only see published posts (in query results)
-    query: ({ session }: ListAccessArgs) => {
-      if (session?.data?.role === "admin") return {};  // Admins see everything
-      return { status: { equals: "published" } };
-    },
-    // Authors can only update their own posts
-    update: ({ session }: ListAccessArgs) => {
-      if (session?.data?.role === "admin") return {};
-      return { author: { id: { equals: session?.itemId } } };
-    },
-  },
-  item: {
-    // Additional per-item checks
-    update: async ({ session, item }: any) => {
-      // Editors can update any post, authors only their own
-      if (session?.data?.role === "editor") return true;
-      return item.authorId === session?.itemId;
-    },
-  },
-};
-```
-
-### Custom GraphQL Extensions
-
-Add custom queries and mutations:
-
-```typescript
-// schema.extensions.ts — Extend the auto-generated GraphQL API
-import { graphql } from "@keystone-6/core";
-
-export const extendGraphqlSchema = graphql.extend((base) => ({
-  query: {
-    // Custom query: get featured posts
-    featuredPosts: graphql.field({
-      type: graphql.list(graphql.nonNull(base.object("Post"))),
-      args: { limit: graphql.arg({ type: graphql.Int, defaultValue: 5 }) },
-      async resolve(source, { limit }, context) {
-        return context.db.Post.findMany({
-          where: {
-            status: { equals: "published" },
-          },
-          orderBy: { publishedAt: "desc" },
-          take: limit,
-        });
-      },
-    }),
-
-    // Custom query: site statistics
-    siteStats: graphql.field({
-      type: graphql.object("SiteStats")({
-        fields: {
-          totalPosts: graphql.field({ type: graphql.Int }),
-          totalUsers: graphql.field({ type: graphql.Int }),
-          totalCategories: graphql.field({ type: graphql.Int }),
-        },
-      }),
-      async resolve(source, args, context) {
-        const [posts, users, categories] = await Promise.all([
-          context.db.Post.count({ where: { status: { equals: "published" } } }),
-          context.db.User.count(),
-          context.db.Category.count(),
-        ]);
-        return {
-          totalPosts: posts,
-          totalUsers: users,
-          totalCategories: categories,
-        };
-      },
-    }),
-  },
-
-  mutation: {
-    // Custom mutation: publish a post
-    publishPost: graphql.field({
-      type: base.object("Post"),
-      args: { id: graphql.arg({ type: graphql.nonNull(graphql.ID) }) },
-      async resolve(source, { id }, context) {
-        return context.db.Post.updateOne({
-          where: { id },
-          data: {
-            status: "published",
-            publishedAt: new Date().toISOString(),
-          },
-        });
-      },
-    }),
-  },
-}));
-```
-
-### Webhooks and Hooks
-
-React to data changes with lifecycle hooks:
-
-```typescript
-// hooks/post-hooks.ts — Lifecycle hooks for post content
-import { ListHooks } from "@keystone-6/core/types";
-
-export const postHooks: ListHooks<any> = {
-  // Before saving to the database
-  resolveInput: {
-    create: async ({ resolvedData, context }) => {
-      // Auto-set the author to the current user
-      if (!resolvedData.author && context.session) {
-        resolvedData.author = { connect: { id: context.session.itemId } };
-      }
-      return resolvedData;
-    },
-  },
-
-  // After saving — trigger side effects
-  afterOperation: {
-    create: async ({ item, context }) => {
-      // Send notification when a new post is created
-      console.log(`New post created: ${item.title}`);
-    },
-    update: async ({ item, originalItem, context }) => {
-      // Trigger revalidation when a post is published
-      if (originalItem.status !== "published" && item.status === "published") {
-        await fetch(`${process.env.FRONTEND_URL}/api/revalidate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            secret: process.env.REVALIDATION_SECRET,
-            path: `/posts/${item.slug}`,
-          }),
-        });
-      }
-    },
-  },
-
-  // Validate before saving
-  validateInput: async ({ resolvedData, addValidationError }) => {
-    if (resolvedData.status === "published" && !resolvedData.content) {
-      addValidationError("Cannot publish a post without content");
-    }
-  },
-};
-```
-
-## Installation
+### Install and run
 
 ```bash
-# Create a new Keystone project
-npm create keystone-app@latest my-cms
-
-# Or add to existing project
-npm install @keystone-6/core @keystone-6/fields-document
-
-# Run in development mode (auto-generates Prisma schema + Admin UI)
-npx keystone dev
-# Admin UI at http://localhost:3000
-# GraphQL playground at http://localhost:3000/api/graphql
+npm create keystone-app@latest acme-news     # starter project
+cd acme-news && npm run dev                  # keystone dev
 ```
 
+For an existing project, `@keystone-6/core` now needs these as peer dependencies, installed by you:
+
+```bash
+npm install @keystone-6/core @keystone-6/auth @keystone-6/fields-document \
+  @prisma/client prisma next react react-dom
+npm install @prisma/adapter-pg pg                     # PostgreSQL
+# or: @prisma/adapter-better-sqlite3 better-sqlite3   # SQLite
+# or: @prisma/adapter-mariadb                         # MySQL
+```
+
+The first `keystone dev`/`keystone build` creates `prisma.config.ts`, `schema.prisma`, `schema.graphql` and `generated/` (types in `generated/keystone/types.ts`, Prisma client in `generated/prisma`). Commands: `keystone dev` (pushes the schema to the database), `keystone build`, `keystone start`, `keystone postinstall` (= `build --frozen --no-ui`, fails if `prisma.config.ts` is missing). Set `DATABASE_URL` for `prisma.config.ts` too.
+
+### Configuration, sessions and auth
+
+`db.url` is gone. Pass a Prisma driver adapter through `prismaClientOptions`:
+
+```typescript
+// keystone.ts
+import { config } from '@keystone-6/core'
+import { statelessSessions } from '@keystone-6/core/session'
+import { createAuth } from '@keystone-6/auth'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { lists } from './schema'
+import { extendGraphqlSchema } from './extensions'
+import type { TypeInfo } from './generated/keystone/types'
+
+const { withAuth } = createAuth({
+  listKey: 'User',
+  identityField: 'email',
+  secretField: 'password',
+  sessionData: 'id name role',          // copied into session.data on every request
+})
+
+export default withAuth<TypeInfo>(
+  config<TypeInfo>({
+    db: {
+      provider: 'sqlite',               // 'postgresql' | 'mysql' | 'sqlite'
+      prismaClientOptions: () => ({
+        adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? 'file:./keystone.db' }),
+      }),
+      async onConnect(context) {        // seed the first admin (createAuth has no initFirstItem any more)
+        const sudo = context.sudo()
+        if ((await sudo.db.User.count()) > 0) return
+        await sudo.db.User.createOne({
+          data: { name: 'Admin', email: 'admin@acme-news.dev', password: process.env.ADMIN_PASSWORD!, role: 'admin' },
+        })
+      },
+    },
+    lists,
+    graphql: { extendGraphqlSchema },   // not a top-level key
+    session: statelessSessions({
+      maxAge: 60 * 60 * 24 * 30,
+      secret: process.env.SESSION_SECRET!,   // at least 32 characters
+    }),
+    ui: { isAccessAllowed: ({ session }) => session?.data?.role === 'admin' },
+  })
+)
+```
+
+For PostgreSQL use `provider: 'postgresql'` with `new PrismaPg({ connectionString: process.env.DATABASE_URL })` from `@prisma/adapter-pg`.
+
+### Schema, access control and hooks
+
+```typescript
+// schema.ts
+import { list } from '@keystone-6/core'
+import { allowAll } from '@keystone-6/core/access'
+import { text, relationship, timestamp, select, password, integer } from '@keystone-6/core/fields'
+import { document } from '@keystone-6/fields-document'
+import type { Lists } from './generated/keystone/types'
+
+type Session = { itemId: string; data: { id: string; name: string; role: 'admin' | 'editor' | 'author' } }
+const isSignedIn = ({ session }: { session?: Session }) => !!session
+const isAdmin = ({ session }: { session?: Session }) => session?.data.role === 'admin'
+
+export const lists = {
+  User: list({
+    access: { operation: { query: isSignedIn, create: isAdmin, update: isSignedIn, delete: isAdmin } },
+    fields: {
+      name: text({ validation: { isRequired: true } }),
+      email: text({ validation: { isRequired: true }, isIndexed: 'unique' }),
+      password: password({ validation: { isRequired: true, length: { min: 10 } } }),
+      role: select({
+        type: 'enum',
+        options: [
+          { label: 'Admin', value: 'admin' },
+          { label: 'Editor', value: 'editor' },
+          { label: 'Author', value: 'author' },
+        ],
+        defaultValue: 'author',
+        access: { update: isAdmin },     // only admins may change roles
+      }),
+      posts: relationship({ ref: 'Post.author', many: true }),
+    },
+  }),
+  Post: list({
+    access: {
+      operation: { query: allowAll, create: isSignedIn, update: isSignedIn, delete: isAdmin },
+      filter: {                          // rows the caller may see / change
+        query: ({ session }: { session?: Session }) =>
+          session?.data.role === 'admin' ? true : { status: { equals: 'published' } },
+        update: ({ session }: { session?: Session }) => {
+          if (!session) return false
+          if (session.data.role !== 'author') return true
+          return { author: { id: { equals: session.itemId } } }
+        },
+      },
+    },
+    hooks: {
+      resolveInput: {
+        create: ({ resolvedData, context }) => {
+          if (!resolvedData.author && context.session) {
+            resolvedData.author = { connect: { id: context.session.itemId } }
+          }
+          return resolvedData
+        },
+      },
+      validate: {                        // replaces validateInput / validateDelete
+        create: ({ resolvedData, addValidationError }) => {
+          if (resolvedData.status === 'published' && !resolvedData.content) {
+            addValidationError('Cannot publish a post without content')
+          }
+        },
+      },
+      afterOperation: {
+        update: async ({ item, originalItem }) => {
+          if (originalItem.status !== 'published' && item.status === 'published') {
+            await fetch(`${process.env.FRONTEND_URL}/api/revalidate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ secret: process.env.REVALIDATION_SECRET, path: `/posts/${item.slug}` }),
+            })
+          }
+        },
+      },
+    },
+    fields: {
+      title: text({ validation: { isRequired: true } }),
+      slug: text({ isIndexed: 'unique', validation: { isRequired: true } }),
+      status: select({
+        type: 'enum',
+        options: [
+          { label: 'Draft', value: 'draft' },
+          { label: 'Published', value: 'published' },
+        ],
+        defaultValue: 'draft',
+        ui: { displayMode: 'segmented-control' },
+      }),
+      content: document({ formatting: true, links: true, dividers: true, layouts: [[1, 1], [1, 1, 1]] }),
+      publishedAt: timestamp(),
+      readingTime: integer(),
+      author: relationship({ ref: 'User.posts', ui: { displayMode: 'select', labelField: 'name' } }),
+    },
+  }),
+} satisfies Lists
+```
+
+Changes that bite when upgrading: relationship `displayMode` is only `select`, `table` or `count`; `isFilterable`/`isOrderable` were replaced by `access.read.filter`/`access.read.order`; `{field}.label` moved to `ui.label`; `ui.defaultFieldMode` became `fieldDefaults.ui.*.fieldMode`; the `password` field's `bcrypt`/`workFactor` options became `kdf`, and bcrypt rejects inputs over 72 bytes.
+
+### Images and files
+
+`storage` is no longer a config-level map. Give each `image()`/`file()` field a storage strategy (`put`, `delete`, `url`) and serve the files yourself, for example with `server.extendExpressApp` and `express.static`. The `examples/assets-local` and `examples/assets-s3` projects in the repository are the reference implementations.
+
+### Custom GraphQL
+
+`graphql.extend` is replaced by the `g` builder from `gWithContext`:
+
+```typescript
+// extensions.ts
+import { gWithContext } from '@keystone-6/core'
+import type { Context } from './generated/keystone/types'
+
+const g = gWithContext<Context>()
+
+export const extendGraphqlSchema = g.extend(base => ({
+  query: {
+    featuredPosts: g.field({
+      type: g.list(g.nonNull(base.object('Post'))),
+      args: { limit: g.arg({ type: g.Int, defaultValue: 5 }) },
+      resolve: (source, { limit }, context) =>
+        context.db.Post.findMany({
+          where: { status: { equals: 'published' } },
+          orderBy: { publishedAt: 'desc' },
+          take: limit ?? undefined,
+        }),
+    }),
+  },
+  mutation: {
+    publishPost: g.field({
+      type: base.object('Post'),
+      args: { id: g.arg({ type: g.nonNull(g.ID) }) },
+      resolve: (source, { id }, context) =>
+        context.db.Post.updateOne({
+          where: { id },
+          data: { status: 'published', publishedAt: new Date().toISOString() },
+        }),
+    }),
+  },
+}))
+```
+
+### Migrations
+
+`keystone prisma` and `keystone migrate` were removed in 8. `keystone dev` pushes the schema for local work; for production run the `prisma` CLI directly against the generated `schema.prisma` and `prisma.config.ts` (`npx prisma migrate dev`, `npx prisma migrate deploy`) and commit `migrations/`.
 
 ## Examples
 
+### Example 1: Add a blog with roles
 
-### Example 1: Setting up Keystonejs with a custom configuration
+**User request:** "Set up Keystone for a blog where authors only edit their own posts and visitors see only published ones."
 
-**User request:**
+Create `keystone.ts` and `schema.ts` as above, then run `DATABASE_URL=file:./keystone.db ADMIN_PASSWORD='change-me-0123456' npm run dev` (the generated `prisma.config.ts` reads `DATABASE_URL`; the password must be 10+ characters or the seed fails). Open http://localhost:3000, sign in as the seeded admin and create an author. Result: an anonymous query returns only published posts, and an author's `updatePost` on someone else's post is rejected.
 
-```
-I just installed Keystonejs. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Keystonejs with custom functionality
-
-**User request:**
-
-```
-I want to add a custom access control to Keystonejs. How do I build one?
+```bash
+curl -s localhost:3000/api/graphql -H 'content-type: application/json' \
+  -d '{"query":"{ posts { title status } }"}'
+# {"data":{"posts":[{"title":"Spring release notes","status":"published"}]}}
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Keystonejs's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+### Example 2: Upgrade a Keystone 6 project
 
+**User request:** "Our CMS is on @keystone-6/core 6 and `npm update` broke it."
+
+Install the peer dependencies and a Prisma adapter, replace `db.url` with `prismaClientOptions`, move `extendGraphqlSchema` under `graphql`, rename `validateInput` hooks to `validate`, move `storage` onto the `image`/`file` fields, delete `keystone prisma` scripts from `package.json`, then run `npx keystone build`. Fix the TypeScript errors it reports against `generated/keystone/types`; a clean `tsc` plus a successful `authenticateUserWithPassword` mutation means the upgrade works.
 
 ## Guidelines
 
-1. **Schema is code** — Define your content model in TypeScript; get auto-generated Admin UI, GraphQL API, and database migrations
-2. **Use relationships over IDs** — Let Keystone manage foreign keys; bidirectional relationships (`ref: "Post.author"`) keep data consistent
-3. **Access control from the start** — Don't use `allowAll` in production; define operation + filter + item level access per list
-4. **Document field for rich content** — The document field gives editors a structured rich text experience with custom blocks
-5. **Hooks for business logic** — Use `afterOperation` for side effects (notifications, cache invalidation, webhooks)
-6. **Custom GraphQL for complex queries** — Extend the schema for aggregations, full-text search, or multi-step operations
-7. **Prisma migrations** — Keystone uses Prisma under the hood; run `keystone prisma migrate` for production migrations
-8. **Separate API from admin** — In production, protect the admin UI behind authentication; expose only the GraphQL API publicly
+- Never ship `allowAll` on lists that hold private data; define `operation`, `filter` and field-level `access`, and treat `filter` as the way to scope rows per user.
+- Keep the Admin UI behind `ui.isAccessAllowed`; the GraphQL API is public unless access rules say otherwise.
+- `SESSION_SECRET` must be 32+ characters and come from the environment; stateless cookies cannot be revoked server-side, so keep `maxAge` short for privileged roles or use a session store.
+- Keep `@keystar/ui` pinned to the version in `@keystone-6/core`'s peer dependencies if you write custom Admin UI components; the old `@keystone-ui/*` packages are gone.
+- `context.sudo()` bypasses access control: use it only in trusted server code such as `onConnect` seeds.
+- Prisma errors are no longer returned as `GraphQLError`; set `graphql.apolloConfig.formatError` if you need custom handling.
+- Not the right tool when you need a hosted editor with no code, or a REST-first API.
