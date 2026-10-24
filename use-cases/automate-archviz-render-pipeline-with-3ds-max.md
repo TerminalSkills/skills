@@ -19,22 +19,22 @@ For a studio handling 4-5 projects per month, this means 8-15 days of artist tim
 
 ## The Solution
 
-Use the **3dsmax-scripting** skill to automate scene setup, camera placement, and render settings with MAXScript, and the **3dsmax-rendering** skill for batch rendering and post-processing. The pipeline reads a project config file, generates all cameras with correct settings, queues renders with view-appropriate V-Ray/Corona settings, and runs post-processing automatically.
+Use the **3dsmax-scripting** skill to build the cameras from a config file with a pymxs script, and the **3dsmax-rendering** skill to queue them in Batch Render, add the denoiser and Light Mix elements, and run the whole thing without a person at the keyboard. A short Python script outside 3ds Max then tone-maps the EXRs into client JPEGs.
+
+The pipeline does not try to script every V-Ray setting. Quality (image sampler, noise threshold, GI engines) is saved once per project in the scene or in a Render Setup preset; the script only changes what really differs between views: camera, exposure, resolution and output file. Property names of the V-Ray renderer depend on the installed version, so list them with `showProperties renderers.current "*noise*"` before scripting any of them.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Define the Project Configuration
+### Step 1: Define the project configuration
 
 ```text
-I do archviz in 3ds Max with V-Ray. Every project has 8-12 camera views with 
-specific settings. Build a MAXScript pipeline that:
-1. Reads camera positions and render settings from a config file
-2. Creates V-Ray Physical Cameras with correct exposure for each shot type
-3. Queues batch rendering with per-camera render settings
-4. Runs post-processing on all rendered images
+I do archviz in 3ds Max with V-Ray. Every project has 8-12 camera views.
+Build a pipeline that reads camera positions and exposure from a JSON file,
+creates the cameras, queues one batch render per camera, and then tone-maps
+the EXRs into JPEGs.
 ```
 
-The project config defines every view in the project — camera position, target, lens, and render quality. Storing this as a file means it's reusable across similar projects and version-controllable:
+The config holds every view, so it can be reused on similar projects and kept in version control. Positions are in scene units (this example assumes the scene is set up in meters):
 
 ```json
 {
@@ -43,477 +43,210 @@ The project config defines every view in the project — camera position, target
   "resolution": { "width": 4000, "height": 2250 },
   "views": [
     {
-      "name": "living-room-01",
-      "type": "interior",
-      "camera": {
-        "position": [4.2, -3.1, 1.5],
-        "target": [-2.0, 5.0, 1.2],
-        "fov": 75,
-        "whiteBalance": 6500,
-        "iso": 400,
-        "shutterSpeed": 60,
-        "fNumber": 2.8
-      },
-      "render": {
-        "quality": "production",
-        "denoiser": true,
-        "lightMixEnabled": true
-      }
+      "name": "Cam_LivingRoom_01",
+      "position": [4.2, -3.1, 1.5],
+      "target": [-2.0, 5.0, 1.2],
+      "fov": 75,
+      "iso": 400,
+      "fNumber": 2.8,
+      "whiteBalanceKelvin": 6500
     },
     {
-      "name": "kitchen-detail",
-      "type": "interior-detail",
-      "camera": {
-        "position": [1.8, 2.3, 1.1],
-        "target": [1.8, 4.5, 0.9],
-        "fov": 50,
-        "whiteBalance": 5500,
-        "iso": 200,
-        "shutterSpeed": 125,
-        "fNumber": 4.0,
-        "dofEnabled": true,
-        "dofDistance": 2.2
-      },
-      "render": {
-        "quality": "production",
-        "denoiser": true
-      }
+      "name": "Cam_Kitchen_Detail",
+      "position": [1.8, 2.3, 1.1],
+      "target": [1.8, 4.5, 0.9],
+      "fov": 50,
+      "iso": 200,
+      "fNumber": 4.0,
+      "whiteBalanceKelvin": 5500
     },
     {
-      "name": "exterior-dusk",
-      "type": "exterior-night",
-      "camera": {
-        "position": [25.0, -15.0, 5.5],
-        "target": [0.0, 0.0, 3.0],
-        "fov": 35,
-        "whiteBalance": 4500,
-        "iso": 800,
-        "shutterSpeed": 15,
-        "fNumber": 5.6
-      },
-      "render": {
-        "quality": "production",
-        "denoiser": true,
-        "lightMixEnabled": true
-      }
-    },
-    {
-      "name": "bathroom-01",
-      "type": "interior",
-      "camera": {
-        "position": [-1.5, 6.2, 1.4],
-        "target": [-1.5, 8.0, 1.0],
-        "fov": 80,
-        "whiteBalance": 6000,
-        "iso": 400,
-        "shutterSpeed": 60,
-        "fNumber": 3.2
-      },
-      "render": {
-        "quality": "production",
-        "denoiser": true
-      }
+      "name": "Cam_Exterior_Dusk",
+      "position": [25.0, -15.0, 5.5],
+      "target": [0.0, 0.0, 3.0],
+      "fov": 35,
+      "iso": 800,
+      "fNumber": 5.6,
+      "whiteBalanceKelvin": 4500
     }
   ],
   "postProcessing": {
-    "enabled": true,
     "contrast": 1.1,
     "saturation": 1.05,
     "sharpen": 0.3,
-    "vignette": 0.15,
-    "chromaticAberration": 0.5,
-    "bloomIntensity": 0.02
+    "vignette": 0.15
   }
 }
 ```
 
-### Step 2: Generate Cameras from Config
+### Step 2: Create the cameras, queue the batch and render
 
-The MAXScript reads the config and creates V-Ray Physical Cameras with correct exposure settings for each view. Interior shots get higher ISO and wider apertures for natural light handling; exterior night shots get long exposure and warm white balance:
-
-```maxscript
--- create_cameras.ms — Generate V-Ray Physical Cameras from project config
-
-fn loadProjectConfig configPath = (
-    local f = openFile configPath mode:"r"
-    local jsonStr = ""
-    while not eof f do jsonStr += readLine f + "\n"
-    close f
-
-    -- Parse JSON (3ds Max 2022+ has built-in JSON support)
-    local config = dotNetObject "Newtonsoft.Json.Linq.JObject"
-    config = (dotNetClass "Newtonsoft.Json.Linq.JObject").Parse jsonStr
-    config
-)
-
-fn createArchvizCamera viewData index = (
-    local cam = viewData.camera
-    local pos = point3 cam.position[1] cam.position[2] cam.position[3]
-    local tgt = point3 cam.target[1] cam.target[2] cam.target[3]
-
-    -- Create V-Ray Physical Camera
-    local vrayCam = VRayPhysicalCamera()
-    vrayCam.name = viewData.name
-    vrayCam.pos = pos
-    vrayCam.targeted = true
-    vrayCam.target.pos = tgt
-
-    -- Lens settings
-    vrayCam.specify_fov = true
-    vrayCam.fov = cam.fov
-    vrayCam.white_balance = color (cam.whiteBalance / 100.0 * 255) (cam.whiteBalance / 100.0 * 255) 255
-
-    -- Exposure triangle
-    vrayCam.ISO = cam.iso
-    vrayCam.shutter_speed = cam.shutterSpeed
-    vrayCam.f_number = cam.fNumber
-
-    -- Depth of field (for detail shots)
-    if cam.dofEnabled != undefined and cam.dofEnabled then (
-        vrayCam.use_dof = true
-        vrayCam.focus_distance = cam.dofDistance
-        vrayCam.blades_enable = true
-        vrayCam.blades_num = 9          -- 9-blade aperture for smooth bokeh
-        vrayCam.blades_rotation = 15.0  -- Slight rotation for natural look
-    ) else (
-        vrayCam.use_dof = false
-    )
-
-    -- Vertical correction (keep verticals straight in archviz)
-    vrayCam.auto_vertical_tilt_correction = 1.0
-
-    format "Created camera: % at [%, %, %]\n" viewData.name pos.x pos.y pos.z
-    vrayCam
-)
-
-fn setupAllCameras configPath = (
-    local config = loadProjectConfig configPath
-    local views = config.views
-    local cameras = #()
-
-    for i = 1 to views.Count do (
-        local cam = createArchvizCamera views[i] i
-        append cameras cam
-    )
-
-    format "Created % cameras\n" cameras.count
-    cameras
-)
-
--- Run: setupAllCameras "D:/Projects/Lakeview/project-config.json"
-```
-
-### Step 3: Configure Render Settings Per View Type
-
-Different shot types need different render settings. Interior shots need more light bounces for accurate global illumination; exterior night shots need higher quality for clean dark areas; detail shots need more AA samples for sharp DOF edges:
-
-```maxscript
--- render_settings.ms — Configure V-Ray render settings per view type
-
-fn setRenderSettings viewData outputDir resolution = (
-    local viewType = viewData.type
-    local quality = viewData.render.quality
-
-    -- Base resolution
-    renderWidth = resolution.width
-    renderHeight = resolution.height
-
-    -- Output path
-    local outputPath = outputDir + "/" + viewData.name + ".exr"
-    rendOutputFilename = outputPath
-
-    -- V-Ray render settings based on view type
-    local vr = renderers.current
-
-    -- Common settings
-    vr.output_saveRawFile = true           -- Save raw V-Ray image
-    vr.imageSampler_type = 3              -- Progressive sampler
-    vr.twoLevel_baseSubdivs = 1
-    vr.twoLevel_fineSubdivs = 4
-
-    case viewType of (
-        "interior": (
-            -- Interior: more light bounces for GI, moderate quality
-            vr.gi_on = true
-            vr.gi_primary_type = 0        -- Brute Force primary
-            vr.gi_secondary_type = 3      -- Light Cache secondary
-            vr.options_maxDepth = 8        -- 8 bounces for interior GI
-            vr.lightcache_subdivs = 1500
-            vr.imageSampler_maxSubdivs = 24
-
-            if quality == "production" then (
-                vr.progressiveMaxTime = 0     -- No time limit
-                vr.progressiveNoiseThreshold = 0.005  -- Very low noise
-            )
-        )
-        "interior-detail": (
-            -- Detail shots: highest quality AA for DOF, more bounces
-            vr.gi_on = true
-            vr.gi_primary_type = 0
-            vr.gi_secondary_type = 3
-            vr.options_maxDepth = 8
-            vr.lightcache_subdivs = 2000
-            vr.imageSampler_maxSubdivs = 32  -- Higher for clean DOF
-
-            if quality == "production" then (
-                vr.progressiveNoiseThreshold = 0.003  -- Lowest noise
-            )
-        )
-        "exterior-day": (
-            -- Exterior day: fewer bounces needed, sun + sky dominant
-            vr.gi_on = true
-            vr.gi_primary_type = 0
-            vr.gi_secondary_type = 3
-            vr.options_maxDepth = 5        -- 5 bounces sufficient for exterior
-            vr.lightcache_subdivs = 1000
-            vr.imageSampler_maxSubdivs = 20
-
-            if quality == "production" then (
-                vr.progressiveNoiseThreshold = 0.005
-            )
-        )
-        "exterior-night": (
-            -- Night: highest quality needed for clean shadows and dark areas
-            vr.gi_on = true
-            vr.gi_primary_type = 0
-            vr.gi_secondary_type = 3
-            vr.options_maxDepth = 12       -- More bounces for artificial light
-            vr.lightcache_subdivs = 2000
-            vr.imageSampler_maxSubdivs = 32
-
-            if quality == "production" then (
-                vr.progressiveNoiseThreshold = 0.003
-            )
-        )
-    )
-
-    -- V-Ray Denoiser (saves hours of render time)
-    if viewData.render.denoiser then (
-        -- Add V-Ray Denoiser render element
-        local denoiser = VRayDenoiser()
-        denoiser.enabled = true
-        denoiser.mode = 1     -- Post-render denoising
-        denoiser.strength = 1.0
-        denoiser.radius = 10
-    )
-
-    -- Light Mix (adjust lighting in post without re-rendering)
-    if viewData.render.lightMixEnabled != undefined and viewData.render.lightMixEnabled then (
-        local lightMix = VRayLightMix()
-        lightMix.enabled = true
-    )
-
-    format "Configured render settings for: % (type: %, quality: %)\n" viewData.name viewType quality
-    outputPath
-)
-```
-
-### Step 4: Batch Render All Views
-
-The batch renderer iterates through all views, sets the active camera, configures render settings, and renders. Between renders it saves the scene state so a crash doesn't lose all progress:
-
-```maxscript
--- batch_render.ms — Queue and execute all renders
-
-fn batchRender configPath = (
-    local config = loadProjectConfig configPath
-    local outputDir = config.outputDir
-    local resolution = config.resolution
-    local views = config.views
-
-    makeDir outputDir all:true  -- Create output directory
-
-    local startTime = timeStamp()
-    local results = #()
-
-    for i = 1 to views.Count do (
-        local view = views[i]
-        format "\n=== Rendering view %/% : % ===\n" i views.Count view.name
-
-        -- Find the camera by name
-        local cam = getNodeByName view.name
-        if cam == undefined then (
-            format "WARNING: Camera '%' not found, skipping\n" view.name
-            continue
-        )
-
-        -- Set as active viewport camera
-        viewport.setCamera cam
-
-        -- Configure render settings for this view type
-        local outputPath = setRenderSettings view outputDir resolution
-
-        -- Render
-        local renderStart = timeStamp()
-        render camera:cam outputFile:outputPath vfb:false
-
-        local renderTime = (timeStamp() - renderStart) / 1000.0
-        format "Completed: % in %.1f seconds\n" view.name renderTime
-
-        append results #(view.name, outputPath, renderTime)
-
-        -- Save progress after each render
-        local progressFile = outputDir + "/_render_progress.txt"
-        local pf = createFile progressFile
-        for r in results do (
-            format "% | % | %.1fs\n" r[1] r[2] r[3] to:pf
-        )
-        close pf
-    )
-
-    local totalTime = (timeStamp() - startTime) / 1000.0 / 60.0
-    format "\n=== Batch render complete: % views in %.1f minutes ===\n" results.count totalTime
-
-    results
-)
-
--- Run from command line (headless batch rendering):
--- 3dsmax -silent -mxs "batchRender \"D:/Projects/Lakeview/project-config.json\""
-```
-
-### Step 5: Post-Processing Pipeline
-
-After rendering, a Python script applies consistent post-processing to all images — color correction, lens effects, sharpening, and export to client-ready JPEGs:
+pymxs reads the JSON with Python's `json` module, so no MAXScript JSON parser is needed. The script creates a 3ds Max Physical Camera per view (the scripting skill's camera example uses the same properties), adds one enabled Batch Render view per camera with its own size and EXR path, and starts the render.
 
 ```python
-"""post_process.py — Batch post-processing for archviz renders."""
-import json, sys
+"""build_and_queue.py - run inside 3ds Max (Scripting > Run Script) or via 3dsmaxbatch."""
+import json
+import sys
 from pathlib import Path
-import numpy as np
 
-# OpenImageIO for EXR reading, Pillow for JPEG export
-import OpenImageIO as oiio
-from PIL import Image, ImageFilter, ImageEnhance
+from pymxs import runtime as rt
 
-def load_exr(path: str) -> np.ndarray:
-    """Load a 32-bit EXR file as a float numpy array.
+CONFIG = Path("D:/Projects/Lakeview/project-config.json")
+config = json.loads(CONFIG.read_text(encoding="utf-8"))
+out_dir = Path(config["outputDir"])
+out_dir.mkdir(parents=True, exist_ok=True)
 
-    Args:
-        path: Path to the EXR file.
+rt.renderSceneDialog.close()  # changes made while Render Setup is open do not stick
 
-    Returns:
-        Float32 numpy array with shape (height, width, channels).
-    """
-    inp = oiio.ImageInput.open(path)
-    spec = inp.spec()
-    pixels = inp.read_image(oiio.FLOAT)
-    inp.close()
-    return pixels.reshape(spec.height, spec.width, spec.nchannels)
 
-def tonemap_aces(hdr: np.ndarray) -> np.ndarray:
-    """Apply ACES filmic tone mapping (industry standard for archviz).
+def make_camera(view: dict):
+    px, py, pz = (float(c) for c in view["position"])
+    tx, ty, tz = (float(c) for c in view["target"])
+    cam = rt.Physical_Camera(
+        name=view["name"],
+        pos=rt.Point3(px, py, pz),
+        target=rt.TargetObject(pos=rt.Point3(tx, ty, tz)),
+    )
+    cam.specify_fov = True
+    cam.fov = view["fov"]
+    cam.f_number = view["fNumber"]
+    cam.exposure_gain_type = 0  # 0 = manual ISO
+    cam.iso = view["iso"]
+    cam.white_balance_type = 1  # use the Kelvin value
+    cam.white_balance_kelvin = view["whiteBalanceKelvin"]
+    return cam
 
-    Converts HDR linear values to displayable 0-1 range with
-    natural highlight rolloff and rich shadows.
-    """
-    a, b, c, d, e = 2.51, 0.03, 2.43, 0.59, 0.14
-    x = hdr
-    mapped = (x * (a * x + b)) / (x * (c * x + d) + e)
-    return np.clip(mapped, 0, 1)
 
-def apply_vignette(img: Image.Image, strength: float = 0.15) -> Image.Image:
-    """Apply a subtle vignette (darker edges) common in architectural photography.
+for i in range(rt.batchRenderMgr.numViews, 0, -1):  # start from an empty queue
+    rt.batchRenderMgr.DeleteView(i)
 
-    Args:
-        img: Input PIL image.
-        strength: 0.0 = no vignette, 1.0 = heavy vignette.
-    """
-    w, h = img.size
-    # Create radial gradient mask
-    Y, X = np.ogrid[:h, :w]
-    cx, cy = w / 2, h / 2
-    dist = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
-    max_dist = np.sqrt(cx ** 2 + cy ** 2)
-    mask = 1.0 - strength * (dist / max_dist) ** 2
+width, height = config["resolution"]["width"], config["resolution"]["height"]
+for view in config["views"]:
+    cam = make_camera(view)
+    batch_view = rt.batchRenderMgr.CreateView(cam)
+    batch_view.name = view["name"]
+    batch_view.overridePreset = True
+    batch_view.width = width
+    batch_view.height = height
+    batch_view.outputFilename = str(out_dir / f"{view['name']}.exr").replace("/", "\\")
+    batch_view.enabled = True
 
-    arr = np.array(img).astype(float)
-    arr *= mask[:, :, np.newaxis]
-    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
-
-def process_render(exr_path: str, output_path: str, settings: dict):
-    """Apply full post-processing chain to a single render.
-
-    Args:
-        exr_path: Path to the rendered EXR file.
-        output_path: Path for the output JPEG.
-        settings: Post-processing settings from project config.
-    """
-    # Load HDR image
-    hdr = load_exr(exr_path)
-
-    # Tone mapping (HDR → SDR)
-    sdr = tonemap_aces(hdr[:, :, :3])  # Use first 3 channels (RGB)
-
-    # Convert to 8-bit PIL image
-    img = Image.fromarray((sdr * 255).astype(np.uint8))
-
-    # Contrast adjustment
-    if settings.get("contrast", 1.0) != 1.0:
-        img = ImageEnhance.Contrast(img).enhance(settings["contrast"])
-
-    # Saturation boost (subtle — archviz prefers natural colors)
-    if settings.get("saturation", 1.0) != 1.0:
-        img = ImageEnhance.Color(img).enhance(settings["saturation"])
-
-    # Sharpening (unsharp mask)
-    if settings.get("sharpen", 0) > 0:
-        img = img.filter(ImageFilter.UnsharpMask(
-            radius=2,
-            percent=int(settings["sharpen"] * 100),
-            threshold=3,
-        ))
-
-    # Vignette
-    if settings.get("vignette", 0) > 0:
-        img = apply_vignette(img, settings["vignette"])
-
-    # Save high-quality JPEG for client delivery
-    img.save(output_path, "JPEG", quality=95, subsampling=0)
-    print(f"  Processed: {Path(output_path).name} ({img.size[0]}x{img.size[1]})")
-
-def batch_post_process(config_path: str):
-    """Process all renders defined in the project config.
-
-    Args:
-        config_path: Path to the project JSON config file.
-    """
-    with open(config_path) as f:
-        config = json.load(f)
-
-    output_dir = Path(config["outputDir"])
-    pp_dir = output_dir / "final"
-    pp_dir.mkdir(exist_ok=True)
-
-    settings = config.get("postProcessing", {})
-    if not settings.get("enabled", False):
-        print("Post-processing disabled in config")
-        return
-
-    for view in config["views"]:
-        exr_path = output_dir / f"{view['name']}.exr"
-        if not exr_path.exists():
-            print(f"  Skipping {view['name']} — EXR not found")
-            continue
-
-        output_path = pp_dir / f"{view['name']}.jpg"
-        process_render(str(exr_path), str(output_path), settings)
-
-    print(f"\nAll renders processed → {pp_dir}")
-
-if __name__ == "__main__":
-    batch_post_process(sys.argv[1])
+print(f"{rt.batchRenderMgr.numViews} views queued in {out_dir}")
+rt.batchRenderMgr.netRender = False  # True sends the views to Backburner
+rt.batchRenderMgr.Render()
 ```
 
-```bash
-python post_process.py "D:/Projects/Lakeview/project-config.json"
+### Step 3: Add the denoiser and Light Mix elements once
+
+Render elements belong to the scene, so add them once rather than per view. V-Ray writes its elements only to the V-Ray raw image file or "Separate render channels" while the V-Ray frame buffer is on, so set the raw file output in the scene too (rendering skill, steps 3 and 4):
+
+```maxscript
+re = maxOps.GetCurRenderElementMgr()
+re.RemoveAllRenderElements()
+for cls in #(VRayDenoiser, VRayLightMix, VRayZDepth) do
+    re.AddRenderElement (cls elementname:(cls as string))
+re.SetElementsActive true
+
+vr = renderers.current
+vr.output_saveRawFile = true          -- multichannel EXR holding every element
+showProperties vr "*noise*"           -- find the noise threshold property for your V-Ray version
+```
+
+Set the noise threshold per scene type in the Render Setup dialog (the rendering skill's table: about 0.005 for a final still, 0.05 for a preview) and save the scene. Halving the threshold roughly doubles the render time, so do the lighting tests at the high value.
+
+### Step 4: Render unattended
+
+Run the script with `3dsmaxbatch.exe`, which runs a script without the UI against a scene file, writes the Listener output to a log and exits with 0 on success (scripting skill, File I/O). Run steps 2 and 3 in the same scene: add the render elements first, then queue and render.
+
+```bat
+set MAX="C:\Program Files\Autodesk\3ds Max 2027"
+%MAX%\3dsmaxbatch.exe D:\tools\build_and_queue.py -sceneFile D:\Projects\Lakeview\lakeview.max -listenerLog D:\logs\queue.log
+```
+
+On a render farm, or when you want one process per camera, use `3dsmaxcmd.exe` (documented in the rendering skill, step 7): `-o:` sets the output file, `-w:`/`-h:` the size, and `-batchRender` renders every enabled view of the Batch Render dialog. Run `3dsmaxcmd.exe -?` for the switches of your 3ds Max version before scripting it.
+
+### Step 5: Post-process the EXRs
+
+The script reads each EXR with OpenImageIO (`pip install OpenImageIO numpy pillow`, in a normal Python 3 outside 3ds Max), applies the ACES filmic curve, converts to sRGB, then contrast, saturation, unsharp mask and a vignette, and writes a 95% JPEG. It reads the first three channels (the beauty RGB), which is where V-Ray puts the image in a multichannel EXR.
+
+```python
+"""post_process.py - tone-map and grade the EXR renders listed in the project config."""
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import OpenImageIO as oiio
+from PIL import Image, ImageEnhance, ImageFilter
+
+
+def load_rgb(path: Path) -> np.ndarray:
+    """Read the RGB channels of an EXR as a float32 array (height, width, 3)."""
+    buf = oiio.ImageBuf(str(path))
+    if buf.has_error:
+        raise RuntimeError(buf.geterror())
+    return np.asarray(buf.get_pixels(oiio.FLOAT))[:, :, :3]
+
+
+def tonemap_aces(x: np.ndarray) -> np.ndarray:
+    """ACES filmic approximation (Narkowicz). Input is linear, output is 0-1."""
+    a, b, c, d, e = 2.51, 0.03, 2.43, 0.59, 0.14
+    return np.clip((x * (a * x + b)) / (x * (c * x + d) + e), 0, 1)
+
+
+def to_srgb(x: np.ndarray) -> np.ndarray:
+    return np.where(x <= 0.0031308, 12.92 * x, 1.055 * np.power(x, 1 / 2.4) - 0.055)
+
+
+def vignette(arr: np.ndarray, strength: float) -> np.ndarray:
+    h, w = arr.shape[:2]
+    y, x = np.ogrid[:h, :w]
+    dist = np.hypot(x - w / 2, y - h / 2) / np.hypot(w / 2, h / 2)
+    return arr * (1.0 - strength * dist**2)[:, :, np.newaxis]
+
+
+def process(exr: Path, out: Path, s: dict) -> None:
+    arr = to_srgb(tonemap_aces(np.maximum(load_rgb(exr), 0)))
+    if s.get("vignette", 0) > 0:
+        arr = vignette(arr, s["vignette"])
+    img = Image.fromarray((np.clip(arr, 0, 1) * 255 + 0.5).astype(np.uint8))
+    img = ImageEnhance.Contrast(img).enhance(s.get("contrast", 1.0))
+    img = ImageEnhance.Color(img).enhance(s.get("saturation", 1.0))
+    if s.get("sharpen", 0) > 0:
+        img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=int(s["sharpen"] * 100), threshold=3))
+    img.save(out, "JPEG", quality=95, subsampling=0)
+    print(f"processed {out.name} {img.size[0]}x{img.size[1]}")
+
+
+def main(config_path: str) -> None:
+    config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+    settings = config.get("postProcessing", {})
+    out_dir = Path(config["outputDir"])
+    final = out_dir / "final"
+    final.mkdir(exist_ok=True)
+    for view in config["views"]:
+        exr = out_dir / f"{view['name']}.exr"
+        if exr.exists():
+            process(exr, final / f"{view['name']}.jpg", settings)
+        else:
+            print(f"skipping {view['name']}: {exr.name} not found")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+```
+
+```bat
+python post_process.py D:\Projects\Lakeview\project-config.json
 ```
 
 ## Real-World Example
 
-A studio lead sets up the pipeline for the Lakeview Residence project — 10 interior and 2 exterior views. Defining the camera positions in the config file takes 30 minutes (copying coordinates from the 3ds Max viewport). Running `setupAllCameras` creates all 12 V-Ray Physical Cameras in 2 seconds, each with correct exposure for its shot type.
+A studio lead sets up the pipeline for the Lakeview Residence project with 12 views. Writing the camera coordinates into the config takes about half an hour. Running `build_and_queue.py` creates the 12 cameras and the Batch Render queue in seconds, with the noise threshold already set in the scene for finals.
 
-The batch render starts at 6 PM on Friday. Each interior view renders in 25-40 minutes (4K, V-Ray denoiser cuts noise cleanup time in half), exterior night shots take 50 minutes each (more light bounces needed). The entire batch finishes at 2 AM Saturday — 8 hours of unattended rendering while the artist sleeps.
+The batch starts on Friday evening on the studio's own workstation. The studio's earlier projects took 25-50 minutes per 4K view, so the queue finishes overnight; those times are this studio's, and they change with the scene, the hardware and the noise threshold. On Saturday morning `post_process.py` turns the 12 EXRs into JPEGs in the `final/` folder in a few minutes, and the artist spends Monday on composition and lighting instead of starting renders one at a time. Light Mix lets the artist change lamp brightness in the V-Ray frame buffer afterwards without rendering again.
 
-Saturday morning, the post-processing script runs in 3 minutes: ACES tone mapping, subtle contrast boost, sharpening, and vignette on all 12 images. The final JPEGs land in the `final/` folder, ready for client review.
+## Related Skills
 
-What used to take 2-3 days of babysitting renders and a full day of Photoshop work now takes 30 minutes of setup and 8 hours of unattended machine time. The artist spends Monday on creative work — adjusting compositions, experimenting with lighting moods — instead of clicking "render" twelve times.
+- [3dsmax-scripting](/skills/3dsmax-scripting) - scene, camera and file automation with MAXScript and pymxs
+- [3dsmax-rendering](/skills/3dsmax-rendering) - Batch Render, render elements, denoising and command-line rendering
