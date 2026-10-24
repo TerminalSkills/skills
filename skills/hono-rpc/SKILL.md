@@ -1,17 +1,20 @@
 ---
 name: hono-rpc
 description: >-
-  Hono RPC — end-to-end type-safe API client for the Hono web framework. Use
-  when building type-safe REST APIs with Hono, sharing types between frontend
-  and backend, or replacing tRPC with a REST-compatible approach. Works on
-  Cloudflare Workers, Deno, Bun, and Node.js.
+  Hono RPC shares a Hono server's route types with a typed fetch client
+  (hc), giving end-to-end type safety for REST APIs without code generation or
+  schema files. Use when building a type-safe API with Hono, sharing API types
+  between frontend and backend, validating input with Zod and getting the types
+  on the client, or replacing tRPC with plain REST. Runs on Cloudflare Workers,
+  Deno, Bun and Node.js.
 license: Apache-2.0
-compatibility: "Hono 4.x. Works on Cloudflare Workers, Deno, Bun, Node.js."
+compatibility: "Hono 4.x (@hono/zod-validator 0.9 needs hono >= 4.11.2 and zod 3.25+ or 4), TypeScript with strict mode. Runs on Cloudflare Workers, Deno, Bun, Node.js."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: backend
-  tags: ["hono", "rpc", "type-safe", "cloudflare-workers", "api", "typescript"]
+  version: "1.1.0"
+  category: development
+  repository: https://github.com/honojs/hono
+  tags: ["hono", "rpc", "type-safe", "cloudflare-workers", "typescript"]
   use-cases:
     - "Build a type-safe REST API with Hono RPC and share types with the frontend"
     - "Replace tRPC with Hono RPC for a REST-compatible type-safe API"
@@ -24,317 +27,183 @@ metadata:
 
 ## Overview
 
-Hono RPC provides end-to-end type safety between a Hono server and its clients. Define routes with typed validators on the server, export the `AppType`, and use the `hc` client to make fully type-safe HTTP calls from the frontend or another service — no code generation, no schema files.
+Hono RPC links a Hono server and its clients through types. Routes with validators are written on the server, the app's type is exported as `AppType`, and the `hc<AppType>()` client from `hono/client` then knows every path, method, input and JSON response. The client is a thin wrapper over `fetch`; nothing is generated. Type inference only sees what the chain of route definitions exposes, so most pitfalls below are about keeping that chain intact.
 
-## Installation
+## Instructions
+
+### Install
 
 ```bash
-# npm / Node.js
-npm install hono
-npm install zod @hono/zod-validator
-
-# Bun
-bun add hono zod @hono/zod-validator
-
-# Deno (deno.json imports)
-# "hono": "jsr:@hono/hono@^4"
+npm install hono zod @hono/zod-validator
+npm install @hono/node-server        # only when running on Node.js
 ```
 
-## Server Setup
+On Bun and Cloudflare Workers `hono` is enough for the server. On Deno import `jsr:@hono/hono`. Set `"strict": true` in the `tsconfig.json` of both server and client (in a monorepo, of every package); without it the inferred types degrade. The validator also works with Standard Schema libraries such as Valibot through `@hono/standard-validator`.
 
-### Basic Route Definition
+### Define routes and export the type
 
-```typescript
+Chain the handlers (`new Hono().get(...).post(...)`) so each call adds to the type, and export `typeof` the final value:
+
+```ts
 // src/server.ts
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const app = new Hono();
-
-// Define a route with typed response
-const route = app.get("/hello", (c) => {
-  return c.json({ message: "Hello, Hono!" });
-});
-
-export type AppType = typeof route;
-export default app;
-```
-
-### Full API with Multiple Routes
-
-```typescript
-// src/server.ts
-import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-
-// Schemas
-const createUserSchema = z.object({
+const createUser = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   age: z.number().int().positive().optional(),
 });
 
-const updateUserSchema = createUserSchema.partial();
-
-// Router
 const users = new Hono()
-  .get("/", (c) => {
-    const users = [{ id: 1, name: "Alice", email: "alice@example.com" }];
-    return c.json({ users });
-  })
+  .get("/", (c) => c.json({ users: [{ id: 1, name: "Maria Lopez", email: "maria@lopez-studio.es" }] }))
   .get("/:id", (c) => {
     const id = Number(c.req.param("id"));
-    return c.json({ user: { id, name: "Alice", email: "alice@example.com" } });
+    if (id !== 1) return c.json({ error: "User not found" }, 404);
+    return c.json({ user: { id, name: "Maria Lopez" } }, 200);
   })
-  .post(
-    "/",
-    zValidator("json", createUserSchema),
-    async (c) => {
-      const data = c.req.valid("json"); // Fully typed
-      const user = { id: Date.now(), ...data };
-      return c.json({ user }, 201);
-    }
-  )
-  .patch(
-    "/:id",
-    zValidator("json", updateUserSchema),
-    async (c) => {
-      const id = Number(c.req.param("id"));
-      const data = c.req.valid("json");
-      return c.json({ user: { id, ...data } });
-    }
-  )
-  .delete("/:id", (c) => {
-    const id = Number(c.req.param("id"));
-    return c.json({ deleted: id });
-  });
+  .post("/", zValidator("json", createUser), (c) => {
+    const data = c.req.valid("json"); // typed from the schema
+    return c.json({ user: { id: 2, ...data } }, 201);
+  })
+  .patch("/:id", zValidator("json", createUser.partial()), (c) => {
+    return c.json({ user: { id: Number(c.req.param("id")), ...c.req.valid("json") } });
+  })
+  .delete("/:id", (c) => c.json({ deleted: Number(c.req.param("id")) }));
 
 const app = new Hono().route("/users", users);
 
-// Export the type — this is the key to Hono RPC
 export type AppType = typeof app;
 export default app;
 ```
 
-## Client Usage
+Run it on Node.js with `import { serve } from "@hono/node-server"; serve({ fetch: app.fetch, port: 3000 });`. Bun and Workers use the default export directly.
 
-```typescript
-// src/client.ts
+### Call it from the client
+
+```ts
 import { hc } from "hono/client";
-import type { AppType } from "./server";
+import type { AppType } from "./server"; // type-only import: no server code ships to the browser
 
-// Create the typed client
 const client = hc<AppType>("http://localhost:3000");
 
-// All calls are fully type-safe
-async function main() {
-  // GET /users — response is typed
-  const res = await client.users.$get();
-  const { users } = await res.json(); // users: { id: number; name: string; email: string }[]
+const list = await client.users.$get();
+if (list.ok) console.log((await list.json()).users);
 
-  // POST /users — request body is type-checked
-  const createRes = await client.users.$post({
-    json: {
-      name: "Bob",
-      email: "bob@example.com",
-      age: 30,
-    },
-  });
-  const { user } = await createRes.json();
-
-  // GET /users/:id — typed param
-  const userRes = await client.users[":id"].$get({ param: { id: "1" } });
-  const data = await userRes.json();
-
-  // PATCH /users/:id
-  await client.users[":id"].$patch({
-    param: { id: "1" },
-    json: { name: "Bob Updated" },
-  });
-
-  // DELETE /users/:id
-  await client.users[":id"].$delete({ param: { id: "1" } });
-}
+const created = await client.users.$post({ json: { name: "Tom Becker", email: "tom@becker.dev", age: 30 } });
+const one = await client.users[":id"].$get({ param: { id: "1" } });
+await client.users[":id"].$patch({ param: { id: "1" }, json: { name: "Tom B." } });
+await client.users[":id"].$delete({ param: { id: "1" } });
 ```
 
-## Query Parameters
+Path parameters and query values must be passed as strings even when the schema turns them into numbers. `hc` does not URL-encode `param`; wrap values that may contain `/` in `encodeURIComponent`, or declare the route with a regexp such as `/files/:name{.+}`.
 
-```typescript
-// Server — define query schema
-const searchSchema = z.object({
-  q: z.string().optional(),
-  page: z.coerce.number().default(1),
-  limit: z.coerce.number().default(20),
-});
+### Query, headers, cookies, abort
 
-const app = new Hono().get(
+```ts
+const search = new Hono().get(
   "/search",
-  zValidator("query", searchSchema),
-  (c) => {
-    const { q, page, limit } = c.req.valid("query");
-    return c.json({ results: [], q, page, limit });
-  }
+  zValidator("query", z.object({ q: z.string().optional(), page: z.coerce.number().default(1) })),
+  (c) => c.json({ results: [], ...c.req.valid("query") }),
 );
 
-export type AppType = typeof app;
-
-// Client
-const client = hc<AppType>("http://localhost:3000");
-const res = await client.search.$get({
-  query: { q: "hono", page: "1", limit: "10" },
+type SearchApp = typeof search;
+const client = hc<SearchApp>("http://localhost:3000", {
+  headers: { Authorization: `Bearer ${process.env.API_TOKEN}` }, // sent with every call
+  init: { credentials: "include" },                               // send cookies
 });
+const res = await client.search.$get({ query: { q: "hono", page: "2" } });
+const withId = await client.search.$get({ query: { q: "x" } }, { headers: { "X-Request-ID": crypto.randomUUID() } });
 ```
 
-## Headers and Auth
+Per-call options (second argument) accept `headers` and `init` (a `RequestInit`, for example `{ signal }` to abort; `init` wins over other options). Other validator targets are `form`, `param`, `header` and `cookie`; file uploads go through `form` with a `File`.
 
-```typescript
-// Pass headers in the client factory
-const client = hc<AppType>("http://localhost:3000", {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+### Status codes and errors
 
-// Or per-request
-const res = await client.users.$get(undefined, {
-  headers: { "X-Request-ID": crypto.randomUUID() },
-});
+Give `c.json()` an explicit status so the client can narrow on it. Do not use `c.notFound()` in an RPC route: its body is untyped and the client sees `unknown`. Return `c.json({ error: "..." }, 404)` instead.
+
+```ts
+const res = await client.users[":id"].$get({ param: { id: "999" } });
+if (res.status === 404) console.error((await res.json()).error);
+if (res.ok) console.log((await res.json()).user);
 ```
 
-## Cloudflare Workers Deployment
+Errors thrown with `HTTPException` or returned by `app.onError()` and global middleware are not part of the inferred types. Wrap the type with `ApplyGlobalResponse` from `hono/client` to add them: `hc<ApplyGlobalResponse<typeof app, { 500: { json: { error: string } } }>>(url)`.
 
-```typescript
+`parseResponse` from `hono/client` parses the body by content type and throws a `DetailedError` when the response is not ok, which suits data-fetching hooks:
+
+```ts
+import { parseResponse } from "hono/client";
+const { users } = await parseResponse(client.users.$get());
+```
+
+### Infer request and response types
+
+```ts
+import type { InferRequestType, InferResponseType } from "hono/client";
+
+const $post = client.users.$post;
+type CreateUserBody = InferRequestType<typeof $post>["json"];
+type CreateUserOk = InferResponseType<typeof $post, 201>; // pick one status code
+```
+
+### Larger apps and monorepos
+
+Build each sub-router as a chained `new Hono()`, mount with `.route()`, and export the type of the mounted result. Handlers registered separately (`app.get(...)` on its own line, or sub-routers that are not chained) are invisible to the client. A handler that returns a bare `.then()` chain loses its response type; make it `async` and return `c.json(...)`.
+
+In a monorepo, re-export `AppType` from the API package and import it type-only in the web package, with the same `hono` version on both sides (a mismatch breaks inference). With many routes the IDE slows down; compile the client type once:
+
+```ts
+// packages/api/src/client.ts
+import { hc, type ClientRequestOptions } from "hono/client";
+import type { app } from "./app";
+type App = typeof app;
+const probe = hc<App>("");
+export type Client = typeof probe;
+export const hcWithType = (url: string, options?: ClientRequestOptions): Client => hc<App>(url, options);
+```
+
+Then build the API package with `tsc` and use `hcWithType` in the frontend. Splitting one client per sub-app (`hc<AuthorsApp>("/authors")` with `type AuthorsApp = typeof authorsApp`) also helps.
+
+### Cloudflare Workers
+
+```ts
 // src/index.ts
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const app = new Hono<{ Bindings: CloudflareBindings }>();
-
-// Middleware
-app.use("*", logger());
-app.use(
-  "/api/*",
-  cors({ origin: ["https://myapp.com"], allowMethods: ["GET", "POST", "PUT", "DELETE"] })
-);
-
-// Routes with D1 database binding
-const api = app
+const app = new Hono<{ Bindings: { DB: D1Database } }>()
+  .use("/api/*", cors({ origin: ["https://shop.example.org"], allowMethods: ["GET", "POST"] }))
   .get("/api/items", async (c) => {
-    const db = c.env.DB; // Cloudflare D1
-    const items = await db.prepare("SELECT * FROM items").all();
-    return c.json({ items: items.results });
+    const { results } = await c.env.DB.prepare("SELECT id, name, price FROM items").all();
+    return c.json({ items: results });
   })
-  .post(
-    "/api/items",
-    zValidator("json", z.object({ name: z.string(), price: z.number() })),
-    async (c) => {
-      const { name, price } = c.req.valid("json");
-      const db = c.env.DB;
-      await db.prepare("INSERT INTO items (name, price) VALUES (?, ?)").bind(name, price).run();
-      return c.json({ ok: true }, 201);
-    }
-  );
+  .post("/api/items", zValidator("json", z.object({ name: z.string(), price: z.number() })), async (c) => {
+    const { name, price } = c.req.valid("json");
+    await c.env.DB.prepare("INSERT INTO items (name, price) VALUES (?, ?)").bind(name, price).run();
+    return c.json({ ok: true }, 201);
+  });
 
-export type AppType = typeof api;
+export type AppType = typeof app;
 export default app;
 ```
 
-```toml
-# wrangler.toml
-name = "my-api"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
+Declare the D1 binding in `wrangler.jsonc` (or `wrangler.toml`) and generate binding types with `npx wrangler types`; deploy with `npx wrangler deploy`.
 
-[[d1_databases]]
-binding = "DB"
-database_name = "my-db"
-database_id = "your-database-id"
-```
+## Examples
 
-## Sharing Types with Frontend
+**"Give my React app typed calls to the Hono API."** Export `AppType` from the server, add the API package as a dependency of the web app, then in `web/src/api.ts` write `export const api = hc<AppType>(import.meta.env.VITE_API_URL);`. In a query function `const res = await api.users.$get(); return res.json();` gives `{ users: ... }` typed. Renaming a field on the server turns the affected client lines red at compile time.
 
-```typescript
-// packages/api/src/types.ts — shared package
-export type { AppType } from "./server";
-
-// packages/web/src/api.ts — frontend
-import { hc } from "hono/client";
-import type { AppType } from "@myapp/api";
-
-export const api = hc<AppType>(import.meta.env.VITE_API_URL);
-
-// React component — fully typed
-const { data } = useQuery({
-  queryKey: ["users"],
-  queryFn: async () => {
-    const res = await api.users.$get();
-    return res.json();
-  },
-});
-```
-
-## Type Inference Helpers
-
-```typescript
-import type { InferRequestType, InferResponseType } from "hono/client";
-import type { AppType } from "./server";
-
-const client = hc<AppType>("http://localhost:3000");
-
-// Infer types from client methods
-type CreateUserRequest = InferRequestType<typeof client.users.$post>;
-type CreateUserResponse = InferResponseType<typeof client.users.$post, 201>;
-
-// Use in form handlers
-async function createUser(data: CreateUserRequest["json"]) {
-  const res = await client.users.$post({ json: data });
-  const result: CreateUserResponse = await res.json();
-  return result;
-}
-```
-
-## Error Handling
-
-```typescript
-// Server — use HTTPException
-import { HTTPException } from "hono/http-exception";
-
-app.get("/users/:id", (c) => {
-  const user = findUser(c.req.param("id"));
-  if (!user) {
-    throw new HTTPException(404, { message: "User not found" });
-  }
-  return c.json({ user });
-});
-
-// Global error handler
-app.onError((err, c) => {
-  if (err instanceof HTTPException) {
-    return c.json({ error: err.message }, err.status);
-  }
-  console.error(err);
-  return c.json({ error: "Internal server error" }, 500);
-});
-
-// Client — check response status
-const res = await client.users[":id"].$get({ param: { id: "999" } });
-if (!res.ok) {
-  const error = await res.json();
-  console.error("Error:", error);
-}
-```
+**"Why is `res.json()` unknown?"** Check, in order: the route was added in the chain that is exported as `AppType`; the handler returns `c.json(...)` (not `c.notFound()`, `c.text()` or a raw `Response`); the status is explicit if the response has several; `strict` is on; server and client resolve the same `hono` version.
 
 ## Guidelines
 
-- Export `AppType` from the server file as `typeof app` (not as an interface) to preserve route types.
-- Keep schemas close to routes so types stay in sync.
-- Use `zValidator` for all user input — body, query, params, headers.
-- In monorepos, put `AppType` in a shared package so both server and client import from one place.
-- Use `InferRequestType` and `InferResponseType` to derive types for form handlers and tests.
-- Hono RPC works on any runtime — Cloudflare Workers, Deno Deploy, Bun, and Node.js.
-- The `hc` client uses native `fetch` under the hood — no special transport needed.
+- Export `AppType` as `typeof app` of the final chained, mounted app, never an interface or an app built from unchained calls.
+- Validate every input with `zValidator` (json, form, query, param, header, cookie); the schema is also what types the client.
+- Query and path values are strings on the wire; use `z.coerce.number()` on the server and pass strings from the client.
+- Import `AppType` with `import type` so the server never enters the client bundle.
+- Never put secrets in client-side `hc` headers; the browser exposes them.
+- RPC types cover only JSON-style responses from `c.json()`; for streams, redirects or files use plain `fetch` or `client.path.$url()`.
