@@ -1,127 +1,116 @@
 ---
 name: bolt
 description: >-
-  You are an expert in Bolt.new by StackBlitz, the AI-powered full-stack
-  development environment that runs entirely in the browser. You help
-  developers go from idea to deployed app in minutes using natural language
-  prompts — Bolt generates complete applications with frontend, backend,
-  database, and deployment, all running in a WebContainer without local setup.
+  Bolt (bolt.new, by StackBlitz) is an AI app builder that turns a text prompt into a working
+  web or mobile app, with built-in database, hosting and domains. Use when asked to prototype
+  an app from a prompt in Bolt, write better Bolt prompts, plan with Plan Mode, spend fewer
+  tokens, connect GitHub, Supabase, Stripe or Netlify, publish a Bolt project, or run the
+  open-source bolt.diy instead.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Browser (Chromium-based recommended, Safari has limits); bolt.new account"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Developer Tools
+  version: "1.1.0"
+  category: development
   tags:
     - ai-coding
     - full-stack
     - prototyping
     - web-app
-    - browser-ide
     - vibe-coding
 ---
 
-# Bolt.new — AI Full-Stack App Builder in the Browser
+# Bolt — AI App Builder
 
-You are an expert in Bolt.new by StackBlitz, the AI-powered full-stack development environment that runs entirely in the browser. You help developers go from idea to deployed app in minutes using natural language prompts — Bolt generates complete applications with frontend, backend, database, and deployment, all running in a WebContainer without local setup.
+## Overview
 
-## Core Capabilities
+Bolt is a hosted AI builder: you describe an app in the chat, an agent writes the code, runs it in a live preview and can publish it. It builds JavaScript-based web apps (Node.js backends, any browser-side JS framework), and mobile apps through the Expo integration. Bolt Cloud supplies the built-in database, authentication, file storage, server functions, hosting and custom domains, so a first version needs no other accounts. There is no CLI or API to drive it; work happens in the browser at bolt.new. This skill is about how to use it well. Plans, token amounts and prices change, so read them in the Help Center (support.bolt.new) rather than from memory.
 
-### Prompt-to-App
+## Instructions
 
-```markdown
-## How Bolt Works
+### 1. Plan, then build
 
-1. Describe your app in natural language
-2. Bolt generates the full codebase (frontend + backend + database)
-3. App runs live in the browser (WebContainer)
-4. Iterate with follow-up prompts
-5. Deploy to Netlify/Vercel with one click
+- Start in **Plan Mode** (a chat mode that discusses and plans without changing code). It sees your project, can search the web for current docs, and ends with an "Implement this plan" button that switches to Build Mode. Planning costs fewer tokens than building.
+- Use the **Enhance prompt** button before the first build: Bolt may ask clarifying questions.
+- Name the stack and the data in the first prompt. Bolt only supports JavaScript backends, so a request for a PHP or Python server will not work. For a phone app, include the words `mobile app` so Bolt picks Expo.
 
-## Example Prompts
+### 2. Choose an agent
 
-### SaaS Dashboard
-"Build a project management dashboard with:
-- User authentication (email/password)
-- Kanban board with drag-and-drop
-- Team member management
-- Activity feed
-- Dark mode toggle
-Use React, Tailwind, and SQLite for the database."
+| Agent | Use for | Plans |
+|-------|---------|-------|
+| Standard | Small and medium apps, UI changes, clearly defined tasks | All plans, including Free |
+| Max | Large codebases, interconnected features, refactoring, open-ended problems | Paid plans |
 
-### API + Landing Page
-"Create a URL shortener with:
-- Landing page with a form to paste long URLs
-- API that generates short codes
-- Redirect handler
-- Click analytics dashboard
-- Rate limiting (10 URLs per hour per IP)
-Use Astro for the frontend and Hono for the API."
+Bolt Forge (open-source models with extra usage) appears in the same picker when your plan includes it. Switch agents between prompts as the task changes.
 
-### Internal Tool
-"Build an employee directory app:
-- Search by name, department, or location
-- Profile cards with photo, role, contact info
-- Department filter sidebar
-- CSV import for bulk adding employees
-- Admin panel for editing profiles"
+### 3. Iterate in small steps
+
+Add one feature per prompt, test it in the preview, and continue. Point to the exact place: use the **Select** tool to click an element in the preview, or tag files in the chat. Fix the base (pages, navigation, consistent design) before adding advanced features.
+
+### 4. Keep tokens under control
+
+Tokens are the unit Bolt bills for; most are spent on reading and syncing the project files, so large projects cost more per message.
+
+- Use buttons rather than prompts where they exist: **Publish**, **Version History**, and direct edits in **Code view** use no tokens.
+- Keep prompts specific ("in `Sidebar.tsx`, close the menu when a link is clicked").
+- Clear or trim context when a chat gets long, and turn on connectors only while needed.
+- Free plan: separate daily and monthly caps that do not roll over; a custom domain is not available.
+
+### 5. Persist, store and publish
+
+- **Database and auth**: ask for them in the prompt ("store tasks in the Bolt database, email sign-in"). Bolt Cloud creates tables, row-level security and server functions, and scans for open permissions. You can connect your own Supabase instead on Pro and Teams plans.
+- **Secrets**: keep API keys in the database secrets settings; never paste them in a prompt or commit them into the project.
+- **Publish**: Publish menu, then Publish. Free sites go to a `bolt.host` address and show a "Made in Bolt" badge; a free site that exceeds its monthly bandwidth or request limit goes offline until the next month. Custom domains need a paid plan.
+- **GitHub**: connect a repository (an individual GitHub account is required) to back up commits and work in branches; edit elsewhere and return to Bolt. Netlify and Stripe have their own integrations.
+- **Skills and Knowledge**: *Knowledge* holds project facts sent with every prompt; *Skills* are reusable instructions applied when the prompt matches, or by typing `/$skill-name`. Both reduce repeated explanation. An MCP connector gives the agent live access to external tools.
+
+### 6. Safety check before launch
+
+Click **Publish**, then **Run security audit**: it reviews code and database, fixes what it can and lists the rest as action items (it uses no tokens and is available on paid plans; the database security check is on all plans). Prompting Bolt to audit instead costs tokens. Review the database security settings, test auth with two different accounts, and test payments in Stripe test mode before going live.
+
+### 7. When you want it local: bolt.diy
+
+`bolt.diy` is the community-maintained open-source version (github.com/stackblitz-labs/bolt.diy) where you bring your own model provider keys (OpenAI, Anthropic, Gemini, Ollama and others). It needs Node.js 22.12+ and pnpm:
+
+```console
+$ git clone https://github.com/stackblitz-labs/bolt.diy.git
+$ cd bolt.diy && pnpm install && pnpm run dev
 ```
 
-### Iterative Development
+It then serves on http://localhost:5173. It is a separate product from hosted Bolt: no Bolt Cloud, tokens or hosting.
 
-```markdown
-## Follow-Up Prompts (Iterate on Generated App)
+## Examples
 
-After initial generation:
-- "Add a settings page with profile photo upload"
-- "Make the dashboard responsive for mobile"
-- "Add real-time notifications using server-sent events"
-- "Connect to Supabase instead of SQLite"
-- "Add Stripe checkout for the premium plan"
-- "Write tests for the API endpoints"
-- "Fix the bug where the sidebar doesn't close on mobile"
+### Example 1: "Build me an internal tool to track equipment loans"
 
-Bolt understands the full context of the generated app.
-Each prompt modifies the existing codebase, not starting over.
+Plan Mode first:
+
+```text
+Plan an internal web app for tracking equipment loans for a 40-person design studio.
+Items, borrowers, due dates, overdue list, admin and staff roles.
+Use React, Tailwind and the Bolt database with email sign-in.
 ```
 
-### Tech Stack Options
+Review the plan, click Implement, then iterate with one change per prompt:
 
-```markdown
-## Supported Frameworks & Tools
-
-Frontend: React, Vue, Svelte, Astro, Next.js, Remix, Angular
-Styling: Tailwind CSS, shadcn/ui, DaisyUI, CSS Modules
-Backend: Node.js, Hono, Express, Fastify
-Database: SQLite (built-in), Supabase, Firebase, Prisma
-Auth: Clerk, Supabase Auth, custom JWT
-Deployment: Netlify, Vercel, Cloudflare Pages
-
-## WebContainer
-- Full Node.js runtime in the browser
-- npm install works (most packages)
-- File system, terminal, package manager
-- No Docker, no local setup, no environment issues
+```text
+1. Add a check-out form with item, borrower and due date.
+2. Show an overdue list sorted by days late.
+3. Only admins can delete items.
 ```
 
-## Installation
+Result: a running preview with tables for items and loans, sign-in, and role checks that you verify with two test users before publishing.
 
-```markdown
-# No installation — runs in the browser
-# https://bolt.new
+### Example 2: "My landing page took 40% of my monthly tokens, how do I avoid that?"
 
-# Free tier: Limited generations
-# Pro: $20/month (unlimited generations)
-# Teams: Custom pricing
-```
+Switch to the Standard agent for copy and layout tweaks, batch related small edits into one message, edit text yourself in Code view (free), and restore a bad change with Version History instead of asking Bolt to revert it. Keep the Max agent for the one refactor that needs it.
 
-## Best Practices
+## Guidelines
 
-1. **Be specific in prompts** — "Build a kanban board with drag-and-drop, 3 default columns, and local storage" beats "build a project tool"
-2. **Iterate, don't restart** — Use follow-up prompts to add features; Bolt keeps full context of the generated app
-3. **Specify the tech stack** — "Use React, Tailwind, and Supabase" prevents Bolt from making unexpected choices
-4. **Prototype first** — Bolt excels at prototyping; export the code and refine in your IDE for production
-5. **Database early** — Mention database needs upfront; adding persistence later requires more refactoring
-6. **Mobile-first** — Ask for responsive design in the initial prompt; retrofitting is harder
-7. **Export to GitHub** — Export the generated code to a GitHub repo; continue development in your regular workflow
-8. **Combine with Cursor** — Generate the prototype in Bolt, export, then refine with Cursor for production quality
+- Treat the first output as a prototype: review the code, export it to GitHub and harden it in your own IDE before production.
+- Do not put secrets, customer data or private keys into prompts or project files.
+- Safari: Code view is read-only and the terminal is missing; use a Chromium browser for development work.
+- Code view, visual edits and the database panel are desktop-only.
+- Backends in PHP, Python or other languages are not supported.
+- Free hosting has hard limits; moving a busy site to a paid plan or another host is a deliberate step.
+- Output varies from run to run. Restore a known-good version rather than stacking fixes on a broken state.
