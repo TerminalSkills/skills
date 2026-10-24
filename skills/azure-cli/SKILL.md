@@ -1,203 +1,126 @@
 ---
 name: azure-cli
 description: >-
-  Azure Command Line Interface for managing Microsoft Azure resources. Use when
-  the user needs to create VMs, manage storage accounts, deploy functions,
-  configure resource groups, and automate Azure operations from the terminal.
+  The Azure CLI (`az`) manages Microsoft Azure resources from the terminal.
+  Use when the user needs to sign in to Azure, create resource groups, VMs,
+  storage accounts, Function apps, AKS clusters or virtual networks, query
+  resources with JMESPath, or script Azure operations in CI.
 license: Apache-2.0
-compatibility: 'linux, macos, windows'
+compatibility: "linux, macos, windows; Azure CLI 2.91 (Python 3.10+ when installed with pip)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
-  tags:
-    - azure
-    - cli
-    - cloud
-    - microsoft
-    - devops
+  tags: ["azure", "cli", "cloud", "microsoft", "devops"]
+  repository: https://github.com/Azure/azure-cli
 ---
 
 # Azure CLI
 
-The Azure CLI (`az`) manages Azure resources and services from the terminal.
+## Overview
 
-## Setup
+The Azure CLI (`az`) is Microsoft's command-line tool for Azure Resource Manager. Commands follow `az <group> <subcommand> [--options]`, output JSON by default (`-o table|tsv|yaml`), and filter with `--query` (JMESPath). Extensions (such as `ssh`) install on first use. This skill was checked against Azure CLI 2.91.0 (October 2026): every command below exists in that release, but nothing was run against a live subscription.
 
-```bash
-# Install Azure CLI
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+## Instructions
 
-# Login and set subscription
-az login
-az account set --subscription "My Subscription"
-az account show
+- Install with a package manager, never by piping a script into a shell: `brew install azure-cli`, `winget install -e --id Microsoft.AzureCLI`, the Microsoft apt/dnf repositories (the install page lists the steps per distribution), or `pip install azure-cli` inside a virtual environment. Check with `az version`.
+- Sign in with `az login` (browser) or `az login --use-device-code` on a headless machine. For CI use a service principal with a federated (OIDC) credential or a managed identity (`az login --identity`) instead of a stored secret. Then pick the subscription: `az account set --subscription "Contoso Production"` and confirm with `az account show`.
+- Set defaults once to shorten commands: `az configure --defaults location=westeurope group=rg-shop-prod`.
+- Before any create or delete, run the matching `--help`, and add `--query` plus `-o table` or `-o tsv` when the result feeds a script. `az vm list` reports `powerState` only with `--show-details` (`-d`).
+- Prefer Microsoft Entra authentication over account keys: `--auth-mode login` for storage commands (the signed-in identity needs a data role such as Storage Blob Data Contributor) and managed identities for apps.
+- Create resources inside a resource group so a whole environment can be removed at once. Tag production resources.
+- Use `--no-wait` for long operations and poll with `az <group> show`, `az group wait`, or `az deployment group wait`.
+- For repeatable infrastructure use Bicep with `az deployment group create --resource-group rg-shop-prod --template-file main.bicep`; `az group export` is only a starting point for reverse-engineering.
 
-# Configure defaults
-az configure --defaults location=eastus group=my-resource-group
-```
+## Examples
 
-## Resource Groups
+### Example 1: A web VM with an open HTTPS port
 
-```bash
-# Resource group management
-az group create --name my-rg --location eastus --tags Environment=production
-az group list --output table
-az group delete --name my-rg --yes --no-wait
-```
-
-## Virtual Machines
+**User request:** "Create a small Ubuntu VM for the shop's web tier in West Europe and open port 443."
 
 ```bash
-# Create a VM
+az group create --name rg-shop-prod --location westeurope --tags Environment=production
 az vm create \
-  --resource-group my-rg \
-  --name web-vm \
-  --image Ubuntu2204 \
+  --resource-group rg-shop-prod \
+  --name vm-shop-web \
+  --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username azureuser \
   --generate-ssh-keys \
   --public-ip-sku Standard \
-  --vnet-name my-vnet --subnet default \
-  --nsg my-nsg \
+  --vnet-name vnet-shop --subnet default \
+  --nsg nsg-shop-web \
   --tags Environment=production Role=web
-
-# List VMs
-az vm list -g my-rg \
-  --query "[].{Name:name,Size:hardwareProfile.vmSize,State:powerState}" -o table
-
-# Manage VM state
-az vm stop -g my-rg -n web-vm
-az vm start -g my-rg -n web-vm
-az vm deallocate -g my-rg -n web-vm
-az vm delete -g my-rg -n web-vm --yes
-
-# Open port
-az vm open-port -g my-rg -n web-vm --port 443 --priority 100
-
-# SSH into VM
-az ssh vm -g my-rg -n web-vm
+az vm open-port -g rg-shop-prod -n vm-shop-web --port 443 --priority 100
+az vm list -g rg-shop-prod -d \
+  --query "[].{Name:name,Size:hardwareProfile.vmSize,State:powerState,IP:publicIps}" -o table
 ```
 
-## Storage
+**Result:** the VM and its network resources appear in the table with `VM running` and a public IP. `Ubuntu2204` and `Ubuntu2404` are valid image aliases (`az vm image list` shows the offline alias list). Connect with `az ssh vm -g rg-shop-prod -n vm-shop-web` (installs the `ssh` extension) or plain `ssh azureuser@<ip>`. Note that `az vm stop` leaves the VM allocated and billed; use `az vm deallocate` to stop charges for compute.
+
+### Example 2: Private blob storage with a temporary download link
+
+**User request:** "Upload report.json to Azure storage and give the auditor a link that works for 7 days."
 
 ```bash
-# Create storage account and container
-az storage account create \
-  --name mystorageacct \
-  --resource-group my-rg \
-  --location eastus \
-  --sku Standard_LRS \
-  --encryption-services blob \
-  --min-tls-version TLS1_2
-
-az storage container create \
-  --name mycontainer \
-  --account-name mystorageacct \
-  --auth-mode login
-
-# Upload and download
-az storage blob upload \
-  --account-name mystorageacct \
-  --container-name mycontainer \
-  --file ./data.json --name data.json
-
-az storage blob download \
-  --account-name mystorageacct \
-  --container-name mycontainer \
-  --name data.json --file ./downloaded.json
-
-# List blobs
-az storage blob list \
-  --account-name mystorageacct \
-  --container-name mycontainer -o table
-
-# Generate SAS token
-az storage blob generate-sas \
-  --account-name mystorageacct \
-  --container-name mycontainer \
-  --name data.json \
-  --permissions r --expiry 2024-12-31
+az storage account create --name stshopreports01 --resource-group rg-shop-prod \
+  --location westeurope --sku Standard_LRS --min-tls-version TLS1_2 \
+  --allow-blob-public-access false
+az storage container create --name reports --account-name stshopreports01 --auth-mode login
+az storage blob upload --account-name stshopreports01 --container-name reports \
+  --name report.json --file ./report.json --auth-mode login
+az storage blob generate-sas --account-name stshopreports01 --container-name reports \
+  --name report.json --permissions r --https-only --as-user --auth-mode login \
+  --full-uri --expiry "$(date -u -d '+7 days' '+%Y-%m-%dT%H:%MZ')"
 ```
 
-## Azure Functions
+**Result:** the last command prints a full HTTPS URL with a user-delegation SAS valid for seven days. Storage account names are 3 to 24 lowercase letters and digits, globally unique. A user-delegation SAS cannot outlive the delegation key (at most 7 days).
+
+### Example 3: A Python Function app and an AKS cluster
+
+**User request:** "Set up a serverless Python function and a small Kubernetes cluster."
 
 ```bash
-# Create Function App
-az functionapp create \
-  --resource-group my-rg \
-  --name my-func-app \
-  --consumption-plan-location eastus \
-  --runtime python --runtime-version 3.11 \
-  --functions-version 4 \
-  --storage-account mystorageacct \
-  --os-type Linux
+az functionapp list-flexconsumption-locations --query "sort_by(@, &name)[].name" -o tsv | head -3
+az storage account create --name stshopfunc01 --resource-group rg-shop-prod \
+  --location westeurope --sku Standard_LRS --allow-blob-public-access false
+az functionapp create --resource-group rg-shop-prod --name func-shop-orders \
+  --storage-account stshopfunc01 --flexconsumption-location westeurope \
+  --runtime python --runtime-version 3.13
+az functionapp config appsettings set -g rg-shop-prod -n func-shop-orders \
+  --settings "ORDERS_DB_HOST=orders.postgres.database.azure.com" "APP_ENV=production"
+func azure functionapp publish func-shop-orders      # Azure Functions Core Tools, installed separately
+func azure functionapp logstream func-shop-orders
 
-# Deploy function code
-func azure functionapp publish my-func-app
-
-# App settings
-az functionapp config appsettings set \
-  --name my-func-app -g my-rg \
-  --settings "DB_HOST=mydb.postgres.database.azure.com" "ENV=production"
-
-# View logs
-az functionapp log tail --name my-func-app -g my-rg
-```
-
-## AKS (Kubernetes)
-
-```bash
-# Create AKS cluster
-az aks create \
-  --resource-group my-rg \
-  --name my-aks \
-  --node-count 3 \
-  --node-vm-size Standard_DS2_v2 \
-  --enable-managed-identity \
-  --generate-ssh-keys
-
-# Get credentials
-az aks get-credentials -g my-rg -n my-aks
-
-# Scale node pool
-az aks scale -g my-rg -n my-aks --node-count 5
-
-# Enable autoscaler
-az aks update -g my-rg -n my-aks \
+az aks create -g rg-shop-prod -n aks-shop --node-count 3 \
+  --enable-managed-identity --generate-ssh-keys
+az aks get-credentials -g rg-shop-prod -n aks-shop
+az aks update -g rg-shop-prod -n aks-shop \
   --enable-cluster-autoscaler --min-count 1 --max-count 10
 ```
 
-## Networking
+**Result:** the function app is created on the Flex Consumption plan, `func publish` uploads the code, and `kubectl get nodes` shows the cluster nodes. The Consumption plan (`--consumption-plan-location`) is a legacy plan (Linux Consumption retires on 30 September 2028 per Microsoft Learn); use `--flexconsumption-location` for new apps. There is no `az functionapp log tail`; stream logs with the Core Tools command shown above.
+
+### Example 4: Networking and queries
+
+This uses new names (`vnet-shop-data`, `nsg-shop-data`) because Example 1 already created `vnet-shop` and `nsg-shop-web`, and `az vm open-port --priority 100` took priority 100 on that group.
 
 ```bash
-# Create VNet and subnet
-az network vnet create \
-  --resource-group my-rg \
-  --name my-vnet \
-  --address-prefix 10.0.0.0/16 \
-  --subnet-name default --subnet-prefix 10.0.1.0/24
-
-# Network Security Group
-az network nsg create -g my-rg -n my-nsg
-az network nsg rule create -g my-rg --nsg-name my-nsg \
-  -n allow-https --priority 100 \
-  --destination-port-ranges 443 --access Allow --protocol Tcp
-```
-
-## Useful Patterns
-
-```bash
-# Query with JMESPath
-az vm list -g my-rg --query "[?powerState=='VM running'].name" -o tsv
-
-# Export ARM template from existing resources
-az group export -g my-rg > template.json
-
-# Cost analysis
-az consumption usage list --start-date 2024-01-01 --end-date 2024-01-31
-
-# Monitor and alerts
-az monitor metrics list --resource /subscriptions/.../my-vm \
+az network vnet create -g rg-shop-prod -n vnet-shop-data --address-prefix 10.1.0.0/16 \
+  --subnet-name default --subnet-prefix 10.1.1.0/24
+az network nsg create -g rg-shop-prod -n nsg-shop-data
+az network nsg rule create -g rg-shop-prod --nsg-name nsg-shop-data -n allow-https \
+  --priority 100 --destination-port-ranges 443 --access Allow --protocol Tcp
+az vm list -g rg-shop-prod -d --query "[?powerState=='VM running'].name" -o tsv
+az monitor metrics list --resource "$(az vm show -g rg-shop-prod -n vm-shop-web --query id -o tsv)" \
   --metric "Percentage CPU" --interval PT1H
+az group export -g rg-shop-prod > template.json
 ```
+
+## Guidelines
+
+- `az group delete --name rg-shop-prod --yes --no-wait` removes every resource in the group without recovery: confirm the group name and subscription (`az account show`) first, and never add `--yes` to a command you have not read.
+- Keep secrets out of commands and history: read them from environment variables or Key Vault (`az keyvault secret show`), and avoid `--admin-password` in shared scripts.
+- The `consumption`/cost commands are in preview; use Cost Management in the portal for billing questions.
+- Regional capacity and VM sizes vary: if a size is rejected, list sizes with `az vm list-sizes --location westeurope`.
+- Use `az rest` only for APIs that have no dedicated command, and `az upgrade` to update the CLI itself when it was installed in a way that supports it.
