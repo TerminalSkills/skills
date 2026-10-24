@@ -1,187 +1,177 @@
 ---
 name: together-ai
 description: |
-  Cloud platform for running open-source AI models. Provides inference APIs for LLMs,
-  image models, and embedding models. Supports fine-tuning on custom data, OpenAI-compatible
-  API format, and competitive pricing for open-source model hosting.
+  Together AI is a cloud platform that runs open-source AI models behind an API: chat and reasoning LLMs, image generation, and fine-tuning on your own data. Use when a user wants to call open models such as GLM, DeepSeek, Qwen or gpt-oss through an OpenAI-compatible API, stream chat output, get JSON that matches a schema, generate images, or fine-tune a model with the Together Python SDK or CLI.
 license: Apache-2.0
-compatibility: 'python 3.8+, typescript/node 18+, any OpenAI-compatible client'
+compatibility: 'Python 3.10+ (together 3.x), Node 20+ (together-ai), or any OpenAI-compatible client; needs TOGETHER_API_KEY'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags:
     - llm-hosting
     - open-source-models
     - fine-tuning
-    - embeddings
+    - image-generation
     - inference-api
 ---
 
 # Together AI
 
-## Installation
+## Overview
+
+Together AI hosts open-weight models on shared per-token ("serverless") endpoints and on dedicated endpoints you rent. The API is OpenAI-compatible, so the OpenAI SDK works with a different base URL; the official `together` SDK (Python) and `together-ai` (TypeScript) add files, fine-tuning and image calls. Model IDs change often: the catalog at https://docs.together.ai/docs/serverless/models and the deprecations page at https://docs.together.ai/docs/deprecations are the source of truth. Old IDs (Llama 3.1 Turbo, Mixtral, Stable Diffusion XL, `togethercomputer/m2-bert-*`) have been removed, and Llama-3.3-70B-Instruct-Turbo was scheduled for removal on 2026-10-22.
+
+## Instructions
+
+### Install and authenticate
 
 ```bash
-# Install Together Python client
-pip install together
-
-# Set API key
-export TOGETHER_API_KEY="xxxxxxxxxxxx"
+pip install together          # Python 3.10+, installs the `tg` CLI too
+npm install together-ai       # TypeScript
+export TOGETHER_API_KEY="..." # create it under Settings > API keys in the Together dashboard
 ```
 
-## Chat Completions (OpenAI-Compatible)
+`Together()` reads `TOGETHER_API_KEY` itself. Do not paste keys into code.
+
+### Chat completions
 
 ```python
-# chat_completions.py — Use Together AI with the OpenAI SDK
-from openai import OpenAI
+from together import Together
 
-client = OpenAI(
-    base_url="https://api.together.xyz/v1",
-    api_key="your-together-api-key",
-)
-
+client = Together()
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.1-70B-Instruct-Turbo",
+    model="Qwen/Qwen3.5-9B",
     messages=[
         {"role": "system", "content": "You are a helpful coding assistant."},
         {"role": "user", "content": "Write a Python function to merge two sorted lists."},
     ],
     max_tokens=500,
-    temperature=0.7,
 )
 print(response.choices[0].message.content)
 ```
 
-## Together Python SDK
+List the live model IDs with `client.models.list()` or the catalog page before hard-coding one. Reasoning models return their thinking in a separate `reasoning` field next to `content`; keep `max_tokens` generous for them.
+
+### Streaming
 
 ```python
-# together_sdk.py — Use the native Together SDK for additional features
-import together
-
-client = together.Together()
-
-# Chat completion
-response = client.chat.completions.create(
-    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-    messages=[{"role": "user", "content": "Explain transformers architecture."}],
-    max_tokens=300,
-)
-print(response.choices[0].message.content)
-
-# Streaming
 stream = client.chat.completions.create(
-    model="meta-llama/Llama-3.1-8B-Instruct-Turbo",
-    messages=[{"role": "user", "content": "Write a haiku about coding"}],
+    model="Qwen/Qwen3.5-9B",
+    messages=[{"role": "user", "content": "Write a haiku about code review"}],
     stream=True,
 )
 for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
+    if not chunk.choices:
+        continue
+    delta = chunk.choices[0].delta
+    if delta.content:
+        print(delta.content, end="", flush=True)
 ```
 
-## Embeddings
+### OpenAI SDK
 
 ```python
-# embeddings.py — Generate embeddings for semantic search and RAG
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    base_url="https://api.together.xyz/v1",
-    api_key="your-together-api-key",
+client = OpenAI(api_key=os.environ["TOGETHER_API_KEY"], base_url="https://api.together.ai/v1")
+response = client.chat.completions.create(
+    model="MiniMaxAI/MiniMax-M3",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
-
-response = client.embeddings.create(
-    model="togethercomputer/m2-bert-80M-8k-retrieval",
-    input=["What is machine learning?", "How does deep learning work?"],
-)
-
-for i, emb in enumerate(response.data):
-    print(f"Text {i}: {len(emb.embedding)} dimensions")
 ```
 
-## Image Generation
+Chat, completions, vision, image generation and embeddings are covered by the compatibility layer. Requests that must stay in the US or Canada go to `us-api.together.ai` or `ca-api.together.ai` (25% premium, a subset of models).
+
+### Structured output (JSON schema)
 
 ```python
-# image_gen.py — Generate images with open-source models
-import together
-import base64
+import json
+from pydantic import BaseModel
 
-client = together.Together()
-
-response = client.images.generate(
-    model="stabilityai/stable-diffusion-xl-base-1.0",
-    prompt="A serene Japanese garden at sunset, watercolor style",
-    width=1024,
-    height=1024,
-    steps=30,
-    n=1,
-)
-
-# Save the image
-image_data = base64.b64decode(response.data[0].b64_json)
-with open("garden.png", "wb") as f:
-    f.write(image_data)
-```
-
-## Fine-Tuning
-
-```python
-# fine_tune.py — Fine-tune an open-source model on custom data
-import together
-
-client = together.Together()
-
-# Upload training data (JSONL format)
-file = client.files.upload(file="training_data.jsonl")
-print(f"File ID: {file.id}")
-
-# Start fine-tuning job
-ft_job = client.fine_tuning.create(
-    training_file=file.id,
-    model="meta-llama/Llama-3.1-8B-Instruct-Reference",
-    n_epochs=3,
-    learning_rate=1e-5,
-    batch_size=4,
-    suffix="my-custom-model",
-)
-print(f"Job ID: {ft_job.id}")
-
-# Check status
-status = client.fine_tuning.retrieve(ft_job.id)
-print(f"Status: {status.status}")
-```
-
-```jsonl
-# training_data.jsonl — Training data format for fine-tuning
-{"messages": [{"role": "system", "content": "You are a support agent."}, {"role": "user", "content": "How do I reset my password?"}, {"role": "assistant", "content": "Go to Settings > Security > Reset Password."}]}
-{"messages": [{"role": "user", "content": "What are your hours?"}, {"role": "assistant", "content": "We're available 24/7 via chat and email."}]}
-```
-
-## JSON Mode
-
-```python
-# json_mode.py — Force structured JSON output from models
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://api.together.xyz/v1",
-    api_key="your-together-api-key",
-)
+class VoiceNote(BaseModel):
+    title: str
+    summary: str
+    actionItems: list[str]
 
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.1-70B-Instruct-Turbo",
-    messages=[{"role": "user", "content": "List 3 programming languages with their year of creation as JSON."}],
-    response_format={"type": "json_object"},
+    model="Qwen/Qwen3.5-9B",
+    messages=[
+        {"role": "system", "content": f"Answer only in JSON following this schema: {json.dumps(VoiceNote.model_json_schema())}"},
+        {"role": "user", "content": "Voice note: tomorrow I must book the dentist and send the Q4 invoice to Maria."},
+    ],
+    reasoning={"enabled": False},
+    response_format={
+        "type": "json_schema",
+        "json_schema": {"name": "voice_note", "schema": VoiceNote.model_json_schema()},
+    },
 )
-print(response.choices[0].message.content)
+note = VoiceNote.model_validate_json(response.choices[0].message.content)
 ```
 
-## Key Concepts
+Only models marked "Structured outputs: Yes" in the catalog accept `response_format`. Also describe the schema in the prompt so the model fills it sensibly.
 
-- **OpenAI-compatible**: Use the OpenAI SDK by changing `base_url` — minimal migration effort
-- **Open-source focus**: Hosts Llama, Mistral, Mixtral, DBRX, and other open models
-- **Turbo models**: Together-optimized versions with faster inference and lower latency
-- **Fine-tuning**: LoRA and full fine-tuning on hosted models with simple JSONL data format
-- **Embeddings**: Dedicated embedding models for RAG and semantic search use cases
-- **Pricing**: Per-token pricing, typically cheaper than proprietary model APIs
+### Image generation
+
+```python
+import base64
+
+response = client.images.generate(
+    model="black-forest-labs/FLUX.2-dev",
+    prompt="A serene Japanese garden at sunset, watercolor style",
+    steps=20,
+    response_format="base64",
+)
+with open("garden.png", "wb") as f:
+    f.write(base64.b64decode(response.data[0].b64_json))
+```
+
+With the default `url` response, download the image with a non-empty `User-Agent` header or the CDN answers 403. Stable Diffusion XL is gone; use a FLUX or other model from the catalog's image table.
+
+### Embeddings
+
+The serverless catalog currently lists no embedding or rerank models, and the old `togethercomputer/m2-bert-*` and BGE IDs are retired. Embedding and rerank models run only on dedicated endpoints (https://docs.together.ai/docs/dedicated-endpoints/models); for serverless embeddings use another provider.
+
+### Fine-tuning
+
+```python
+train_file = client.files.upload(file="support_chats.jsonl", purpose="fine-tune", check=True)
+
+# wait until client.files.retrieve(train_file.id).processing_status == "COMPLETED"
+
+job = client.fine_tuning.create(
+    training_file=train_file.id,
+    model="Qwen/Qwen3.5-9B",   # pick a base from the fine-tuning supported-models page
+    lora=True,                 # False = full fine-tuning
+    n_epochs=3,
+    learning_rate=1e-5,
+    suffix="support-bot",
+)
+print(job.id)
+print(client.fine_tuning.retrieve(job.id).status)
+```
+
+States run `pending, queued, running, uploading, completed`. The same job from the shell: `tg fine-tuning create --training-file file-... --model Qwen/Qwen3.5-9B --lora --n-epochs 3`, then `tg fine-tuning retrieve ft-...` (log in with `tg login`). Each `create` call starts a billed job, so list existing jobs before retrying after an error.
+
+Conversational training data is JSONL, one conversation per line:
+
+```json
+{"messages": [{"role": "system", "content": "You are a support agent."}, {"role": "user", "content": "How do I reset my password?"}, {"role": "assistant", "content": "Open Settings > Security and choose Reset Password."}]}
+```
+
+## Examples
+
+**Request:** "Summarize this changelog with an open model and print it as it streams."
+Use the streaming snippet with a current chat model from the catalog; the summary prints token by token.
+
+**Request:** "Extract name, amount and due date from these invoices as JSON."
+Define a Pydantic model, pass its schema in `response_format` as above, and parse with `model_validate_json`; a model without structured-output support returns a 400, in which case pick another from the catalog.
+
+## Guidelines
+
+- Check the deprecations page before pinning a model ID; removed models return errors, and some IDs silently redirect to a newer version.
+- Prices and context lengths are per model and change; read them from the catalog instead of assuming "cheaper than proprietary APIs".
+- Keep the key in `TOGETHER_API_KEY`; never commit it or send it to a browser.
+- Handle rate-limit (429) responses with backoff; the SDK retries twice by default.
+- Fine-tuning and dedicated endpoints bill by usage or by the minute; confirm the price before launching and stop endpoints you no longer need.
