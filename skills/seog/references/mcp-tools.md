@@ -1,4 +1,4 @@
-# SEOG MCP — tool reference (90 tools)
+# SEOG MCP — tool reference (newer servers add blog, draft-post and update_post tools)
 
 Endpoint: `https://api.seog.ai/mcp` (streamable HTTP, MCP protocol `2025-06-18`).
 Auth: `Authorization: Bearer <personal MCP token>` (issued in app Settings → MCP access).
@@ -72,9 +72,8 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | Tool | Params | Notes |
 |---|---|---|
 | `list_keywords` | `businessId` | Latest position + movement per tracked keyword |
-| `add_keyword` 💳 | `businessId`, `keyword` (2–120 ch), `locationLabel?`, `searchLat?`, `searchLng?`, `searchRadius?` (500–50000 m, default 5000), `languageCode?` | Empty location ⇒ business location |
-| `check_keyword` 💳🔒 | `businessId`, `keywordId` | Live rank check + snapshot |
-| `refresh_rankings` 💳 | `businessId` | Re-checks EVERY active keyword in one charge — cheaper than looping `check_keyword` |
+| `add_keyword` 💳 | `businessId`, `keyword` (2–120 ch), `locationLabel?`, `searchLat?`, `searchLng?`, `searchRadius?` (500–50000 m, default 5000), `languageCode?` | Empty location ⇒ business location. One charge covers the add and its first rank check |
+| `check_keyword` 💳🔒 | `businessId`, `keywordId` | Live rank check AND geo-grid map redraw in one charge (service-area businesses are mapped per declared area); stores both snapshots |
 | `keyword_history` | `businessId`, `keywordId`, `days?` (1–365, default 30) | Stored snapshots |
 | `keyword_recommendations` 💳 | `businessId` | Suggestions with search volume |
 | `keyword_recommendations_cache` | `businessId` | The last run's result, free |
@@ -85,9 +84,8 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 
 | Tool | Params | Notes |
 |---|---|---|
-| `run_grid_scan` 💳🔒 | `businessId`, `keywordId`, `gridSize?` (3–9, default 5), `cellSize?` (100–10000 m, default 1000) | Rank at every grid point; **price scales with `gridSize²`** |
 | `get_latest_grid_scan` | `businessId` | Most recent scan across keywords |
-| `get_keyword_grid_scan` | `businessId`, `keywordId`, `gridSize?` | Latest scan for one keyword |
+| `get_keyword_grid_scan` | `businessId`, `keywordId`, `gridSize?` | Latest stored scan for one keyword (free); `gridSize` 3–9 sets the detail level, ignored for service-area businesses |
 | `get_grid_history` | `businessId`, `keywordId`, `limit?` (1–100, default 30) | Avg rank + top-3 coverage per scan |
 | `get_grid_snapshot` | `businessId`, `keywordId`, `snapshotId` | One full past scan |
 | `check_ai_overview` 💳 | `businessId`, `keywordId`, `engine?` ∈ `gemini\|chatgpt\|claude` | Is the business named in the AI answer |
@@ -116,7 +114,6 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `remove_competitor` | `businessId`, `competitorId`, **`confirm: true`** | Also drops its snapshot history |
 | `set_competitor_watchlist` | `businessId`, `competitorId`, `isWatchListed` | Watched rivals raise alerts on snapshots |
 | `snapshot_competitor` 💳🔒 | `businessId`, `competitorId` | Refresh metrics + raise alerts |
-| `refresh_competitors` 💳 | `businessId` | Snapshots every tracked rival in one charge |
 | `compare_competitors` | `businessId` | Head-to-head comparison + gaps |
 | `list_competitor_alerts` | `businessId`, `unreadOnly?` | Rating/review/photo/profile changes |
 | `mark_competitor_alerts_read` | `businessId`, `alertId?` | Omit `alertId` to clear all |
@@ -139,7 +136,6 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 |---|---|---|
 | `get_website_analysis` | `businessId` | Last audit: score, checks, PageSpeed, action plan |
 | `refresh_website_analysis` 💳 | `businessId` | Re-crawl + recompute |
-| `refresh_website_all` 💳 | `businessId` | Audit **and** Search Console in ONE charge (GSC best-effort) |
 | `get_search_performance` | `businessId` | Stored clicks/impressions/top queries |
 | `get_search_console_status` | `businessId` | Whether GSC is connected + property matched |
 | `load_search_performance` 💳 | `businessId` | Live 16-week load; fails (refunded) with `NO_WEBSITE` / `GSC_NOT_CONNECTED` |
@@ -153,7 +149,6 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `validate_post` | `businessId`, draft fields | Free rule check — always run before publishing |
 | `draft_post_content` 💳 | `businessId`, `topicType`, `templateKey?`, `instructions?` | AI copy; publishes nothing |
 | `publish_post` 💳 | `businessId`, `topicType` ∈ `STANDARD\|EVENT\|OFFER`, `summary?` (≤1500 ch), `ctaType?`, `ctaUrl?`, `eventTitle?` (≤58 ch), `eventStart/EndDate`, `eventStart/EndTime`, `photoUrl?`, `scheduledAt?` | **Public on Google.** `scheduledAt` uses Google-native scheduling |
-| `refresh_posts` 💳 | `businessId` | Re-sync LIVE/REJECTED states (one Google read) |
 | `delete_post` 💳 | `businessId`, `postId`, **`confirm: true`** | Removes it publicly; republishing costs a new `publish_post` |
 
 ## Google connection
