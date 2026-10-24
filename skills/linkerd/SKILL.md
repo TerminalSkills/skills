@@ -1,14 +1,16 @@
 ---
 name: linkerd
 description: >-
-  Linkerd lightweight service mesh for Kubernetes. Use when the user needs
-  automatic mTLS, traffic splitting, retries, and observability with minimal
-  resource overhead and operational complexity.
+  Linkerd is a lightweight service mesh for Kubernetes that adds automatic mTLS, retries,
+  timeouts, traffic splitting, authorization policy and golden-metric observability without
+  changing application code. Use when installing Linkerd, meshing a namespace, running a
+  canary rollout, restricting which services can call each other, or linking clusters.
 license: Apache-2.0
-compatibility: 'linux, macos'
+compatibility: 'Kubernetes cluster with kubectl; Gateway API CRDs; Helm 3 optional; Linux or macOS CLI'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: "https://github.com/linkerd/linkerd2"
   category: devops
   tags:
     - linkerd
@@ -20,232 +22,198 @@ metadata:
 
 # Linkerd
 
-Linkerd is an ultralight service mesh for Kubernetes focused on simplicity, security, and performance.
+## Overview
 
-## Installation
+Linkerd is a CNCF service mesh with a small Rust sidecar proxy. Once a workload is meshed, traffic between meshed pods is encrypted with mutual TLS and reported as success rate, request rate and latency.
+
+Release model (as of this writing): the Linkerd project itself publishes only **edge** releases (`edge-26.10.1` is the newest; the numbers are year.month.count). Numbered releases such as 2.20 are cut from edge by vendors (Buoyant Enterprise for Linkerd). The docs and examples below use the edge CLI and charts. Pick one release line and keep the CLI, control plane and extensions on matching versions (`linkerd version` shows client and server).
+
+Configuration has moved to Gateway API types: retries, timeouts and traffic splits use `HTTPRoute`; the old SMI `TrafficSplit` is no longer developed and `ServiceProfile` is legacy.
+
+## Instructions
+
+### Install
+
+Prerequisites: the Gateway API CRDs (check with `kubectl get crd httproutes.gateway.networking.k8s.io`; the Linkerd 2.20 docs list 1.2.1 to 1.5.1 as compatible):
 
 ```bash
-# Install Linkerd CLI
-curl --proto '=https' -sSfL https://run.linkerd.io/install | sh
-export PATH=$HOME/.linkerd2/bin:$PATH
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+```
 
-# Pre-check cluster
-linkerd check --pre
+Install the CLI by taking the `linkerd2-cli-edge-<version>-<os>-<arch>` binary for your platform from the GitHub releases page of `linkerd/linkerd2` (the newest edge), or with Homebrew (`brew install linkerd`, which currently installs 2.20, the build matching edge-26.6.3; its `linkerd install` deploys that version, not the newest edge). Then:
 
-# Install control plane
-linkerd install --crds | kubectl apply -f -
-linkerd install | kubectl apply -f -
-
-# Verify installation
+```bash
+linkerd check --pre                           # is the cluster ready?
+linkerd install --crds | kubectl apply -f -   # CRDs first
+linkerd install | kubectl apply -f -          # control plane; trust anchor and issuer certificates are generated
 linkerd check
-
-# Install viz extension (dashboard, metrics)
-linkerd viz install | kubectl apply -f -
+linkerd viz install | kubectl apply -f -      # optional metrics stack, tap and dashboard
 linkerd viz check
 ```
 
-## Mesh Injection
+The generated certificates are fine for trying Linkerd. For production use Helm with your own certificates (the CLI `--ha` flag and the chart's `values-ha.yaml` give high availability):
 
 ```bash
-# Inject sidecar proxies into a deployment
-kubectl get deploy web-app -o yaml | linkerd inject - | kubectl apply -f -
-
-# Inject entire namespace
-kubectl annotate namespace default linkerd.io/inject=enabled
-
-# Verify meshed pods
-linkerd stat deploy -n default
+helm repo add linkerd-edge https://helm.linkerd.io/edge
+helm install linkerd-crds linkerd-edge/linkerd-crds -n linkerd --create-namespace
+helm install linkerd-control-plane linkerd-edge/linkerd-control-plane -n linkerd \
+  --set-file identityTrustAnchorsPEM=ca.crt \
+  --set-file identity.issuer.tls.crtPEM=issuer.crt \
+  --set-file identity.issuer.tls.keyPEM=issuer.key
 ```
 
+Rotate the issuer certificate before it expires (cert-manager can automate it). Do not run `linkerd install` twice for the same cluster; use `linkerd upgrade | kubectl apply -f -` or `helm upgrade`.
+
+### Mesh workloads
+
+```bash
+kubectl annotate namespace shop linkerd.io/inject=enabled      # new pods in the namespace get the proxy
+kubectl rollout restart deploy -n shop                         # existing pods need a restart
+kubectl get deploy web-app -n shop -o yaml | linkerd inject - | kubectl apply -f -   # one workload
+linkerd -n shop check --proxy
+```
+
+The annotation `linkerd.io/inject: enabled` can also sit in a Deployment's pod template metadata.
+
+### Retries and timeouts (annotations)
+
+Set them on a `Service` (all traffic to it) or on an `HTTPRoute` whose parent is that Service. The calling pod must be meshed, since both run in the client proxy.
+
 ```yaml
-# deployment.yaml — Deployment with Linkerd injection annotation
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: web-app
+  name: api-service
+  namespace: shop
   annotations:
-    linkerd.io/inject: enabled
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: web-app
-  template:
-    metadata:
-      annotations:
-        linkerd.io/inject: enabled
-    spec:
-      containers:
-        - name: web
-          image: myregistry.com/web-app:v1
-          ports:
-            - containerPort: 8080
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-```
-
-## Traffic Splitting
-
-```yaml
-# traffic-split.yaml — Canary deployment with 90/10 traffic split
-apiVersion: split.smi-spec.io/v1alpha2
-kind: TrafficSplit
-metadata:
-  name: web-app-split
-spec:
-  service: web-app
-  backends:
-    - service: web-app-stable
-      weight: 900
-    - service: web-app-canary
-      weight: 100
-```
-
-```yaml
-# services.yaml — Backend services for traffic split
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-app
+    retry.linkerd.io/http: 5xx
+    retry.linkerd.io/limit: "2"
+    retry.linkerd.io/timeout: 1s
+    timeout.linkerd.io/request: 5s
 spec:
   selector:
-    app: web-app
+    app: api-service
   ports:
     - port: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-app-stable
-spec:
-  selector:
-    app: web-app
-    version: stable
-  ports:
-    - port: 8080
----
-apiVersion: v1
-kind: Service
+```
+
+Retry only idempotent requests; bodies over 64 KiB are not retried. Retries and timeouts do not work for headless services, and are ignored if a `ServiceProfile` exists for the Service.
+
+### Traffic splitting (canary)
+
+```yaml
+apiVersion: policy.linkerd.io/v1beta2
+kind: HTTPRoute
 metadata:
   name: web-app-canary
+  namespace: shop
 spec:
-  selector:
-    app: web-app
-    version: canary
-  ports:
-    - port: 8080
+  parentRefs:
+    - name: web-app
+      kind: Service
+      group: core
+      port: 8080
+  rules:
+    - backendRefs:
+        - name: web-app
+          port: 8080
+          weight: 90
+        - name: web-app-canary
+          port: 8080
+          weight: 10
 ```
 
-## Service Profiles
+`web-app` and `web-app-canary` are ordinary Services selecting the stable and canary pods. Meshed clients calling `web-app` are split 90/10; change the weights to shift traffic, and verify with `linkerd viz stat -n shop --from deploy/frontend deploy`.
+
+### Authorization policy
+
+A `Server` describes a pod port; once one exists, only traffic allowed by a policy reaches it (kubelet probes are authorized automatically until an `HTTPRoute` is attached to the Server; then authorize them explicitly). Authorize callers by mesh identity:
 
 ```yaml
-# service-profile.yaml — Define routes with retries and timeouts
-apiVersion: linkerd.io/v1alpha2
-kind: ServiceProfile
-metadata:
-  name: api-service.default.svc.cluster.local
-  namespace: default
-spec:
-  routes:
-    - name: GET /api/users
-      condition:
-        method: GET
-        pathRegex: /api/users
-      responseClasses:
-        - condition:
-            status:
-              min: 500
-              max: 599
-          isFailure: true
-      timeout: 5s
-      isRetryable: true
-    - name: POST /api/orders
-      condition:
-        method: POST
-        pathRegex: /api/orders
-      timeout: 10s
-      isRetryable: false
-  retryBudget:
-    retryRatio: 0.2
-    minRetriesPerSecond: 10
-    ttl: 10s
-```
-
-## Authorization Policy
-
-```yaml
-# authz-policy.yaml — Server and authorization for mTLS access control
-apiVersion: policy.linkerd.io/v1beta2
+apiVersion: policy.linkerd.io/v1beta3
 kind: Server
 metadata:
   name: api-server
-  namespace: default
+  namespace: shop
 spec:
   podSelector:
     matchLabels:
       app: api-service
   port: 8080
-  proxyProtocol: HTTP/2
+  proxyProtocol: HTTP/1
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: shop-frontend-only
+  namespace: shop
+spec:
+  identities:
+    - "frontend.shop.serviceaccount.identity.linkerd.cluster.local"
 ---
 apiVersion: policy.linkerd.io/v1alpha1
 kind: AuthorizationPolicy
 metadata:
-  name: api-access
-  namespace: default
+  name: api-allow-frontend
+  namespace: shop
 spec:
   targetRef:
     group: policy.linkerd.io
     kind: Server
     name: api-server
   requiredAuthenticationRefs:
-    - name: default-mesh-tls
+    - name: shop-frontend-only
       kind: MeshTLSAuthentication
       group: policy.linkerd.io
----
-apiVersion: policy.linkerd.io/v1alpha1
-kind: MeshTLSAuthentication
-metadata:
-  name: default-mesh-tls
-  namespace: default
-spec:
-  identities:
-    - "*.default.serviceaccount.identity.linkerd.cluster.local"
 ```
 
-## Multicluster
+Check the result with `linkerd viz authz -n shop deploy/api-service`. Metrics scraping and other legitimate callers also need to be allowed once a `Server` exists (`linkerd viz allow-scrapes -n shop` outputs the policy for Prometheus).
+
+### Multicluster
 
 ```bash
-# Link two clusters
-linkerd multicluster install | kubectl apply -f -
-linkerd multicluster link --cluster-name=west | kubectl --context=east apply -f -
-
-# Export a service to other clusters
-kubectl label svc web-app mirror.linkerd.io/exported=true
-
-# Check multicluster status
-linkerd multicluster check
-linkerd multicluster gateways
+linkerd --context=east multicluster install | kubectl --context=east apply -f -
+linkerd --context=west multicluster install | kubectl --context=west apply -f -
+linkerd --context=east multicluster link-gen --cluster-name east | kubectl --context=west apply -f -
+kubectl --context=east -n shop label svc web-app mirror.linkerd.io/exported=true
+linkerd --context=west multicluster check
+linkerd --context=west multicluster gateways
 ```
 
-## Common Commands
+`multicluster link` was replaced by `link-gen`. Both clusters must share a trust anchor. Exported services appear in the other cluster as `web-app-east`.
+
+### Observability and debugging
 
 ```bash
-# Observability
-linkerd viz stat deploy
-linkerd viz routes deploy/web-app
-linkerd viz top deploy/web-app
-linkerd viz tap deploy/web-app
-
-# Dashboard
-linkerd viz dashboard
-
-# Debugging
-linkerd diagnostics proxy-metrics -n default pod/web-app-abc123
-linkerd identity -n default
-
-# Check and upgrade
-linkerd check
-linkerd upgrade | kubectl apply -f -
+linkerd viz stat deploy -n shop            # success rate, RPS, latency
+linkerd viz top deploy/web-app -n shop     # live per-path view
+linkerd viz tap deploy/web-app -n shop     # sample live requests
+linkerd viz edges deploy -n shop           # which identities talk to which
+linkerd viz dashboard                      # opens the web dashboard
+linkerd identity -n shop web-app-6d9f7c5b8-xk2lp   # inspect a pod's certificate
+linkerd diagnostics proxy-metrics -n shop po/web-app-6d9f7c5b8-xk2lp
 ```
+
+## Examples
+
+### Example 1: Mesh a namespace and confirm mTLS
+
+**User request:** "Add Linkerd to our shop namespace and prove traffic is encrypted"
+
+Install the Gateway API CRDs, run `linkerd install --crds | kubectl apply -f -` and `linkerd install | kubectl apply -f -`, then `linkerd viz install | kubectl apply -f -`. Annotate the namespace and `kubectl rollout restart deploy -n shop`. `linkerd viz edges deploy -n shop` lists each client/server pair with its identity and a `SECURED` column; `linkerd viz stat deploy -n shop` shows a MESHED count equal to the pod count.
+
+### Example 2: 10% canary of a new version
+
+**User request:** "Send 10% of traffic to web-app v2 and watch errors"
+
+Create the `web-app-canary` Service (selector `version: canary`) and the `HTTPRoute` above. Watch `linkerd viz stat -n shop --from deploy/frontend deploy`: it shows each backend deployment's share of requests, success rate and latency. If the canary's success rate holds, change the weights to 50/50 and then 0/100; to roll back, set the canary weight to 0.
+
+## Guidelines
+
+- Linkerd only works for meshed pods: the proxy is added when a pod is created, so restart workloads after annotating.
+- Protocol detection fails for server-speaks-first protocols (MySQL, SMTP); mark such ports opaque with the `config.linkerd.io/opaque-ports` annotation.
+- Test an authorization policy in a non-production namespace first: creating a `Server` denies everything not explicitly allowed. `config.linkerd.io/default-inbound-policy` sets the default for a namespace.
+- Do not mix retry annotations with a `ServiceProfile` on the same Service; the profile wins and the annotations are silently ignored.
+- Keep the trust anchor and issuer keys outside the cluster repository; never commit them.
+- Run `linkerd check` after every install, upgrade and extension change.
+- Viz is for troubleshooting and light dashboards; for long retention send proxy metrics to your own Prometheus.
