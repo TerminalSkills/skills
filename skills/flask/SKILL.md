@@ -1,15 +1,14 @@
 ---
 name: flask
 description: |
-  Flask is a lightweight Python micro web framework that provides the essentials
-  for web development without imposing structure. It uses Jinja2 templates and
-  Werkzeug WSGI toolkit, with a rich ecosystem of extensions for databases, auth, and more.
+  Flask is a lightweight Python web framework built on Werkzeug and Jinja2; it gives you routing, requests, templates and a test client and leaves the rest to extensions. Use this skill when the user wants to build a Flask app or JSON API, set up an application factory with blueprints, add Flask-SQLAlchemy, Flask-Migrate or Flask-Login, write pytest tests for a Flask app, or run it with the flask CLI and gunicorn.
 license: Apache-2.0
-compatibility: 'python >= 3.8, pip'
+compatibility: 'Python >= 3.9, pip; Flask 3.1'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/pallets/flask
   tags:
     - python
     - web
@@ -20,44 +19,65 @@ metadata:
 
 # Flask
 
-Flask is a micro web framework for Python. It's minimal by design — you choose your ORM, auth system, and structure. Extensions fill in the gaps.
+## Overview
 
-## Installation
+Flask is a micro web framework for Python. It is minimal by design: you pick the ORM, auth and layout, and extensions fill the gaps. This skill covers Flask 3.1 (3.1.3, February 2026; it needs Python 3.9 or newer) with Flask-SQLAlchemy 3.1, Flask-Migrate 4.1 and Flask-Login 0.6, using the application-factory plus blueprints layout. The code below was run with those versions: tests pass and the migrations apply.
+
+## Instructions
+
+### Install
 
 ```bash
-# Install Flask
-pip install flask
+python3 -m venv .venv
+.venv/bin/pip install flask flask-sqlalchemy flask-migrate flask-login pytest gunicorn
 ```
 
-## Project Structure
+### Extensions and configuration
 
-```
-# Recommended Flask project layout with blueprints
-app/
-├── __init__.py        # Application factory
-├── config.py          # Configuration classes
-├── models.py          # SQLAlchemy models
-├── extensions.py      # Extension instances
-├── auth/
-│   ├── __init__.py    # Auth blueprint
-│   ├── routes.py
-│   └── forms.py
-├── main/
-│   ├── __init__.py    # Main blueprint
-│   └── routes.py
-├── templates/
-│   ├── base.html
-│   └── auth/
-└── static/
-```
+The project is a package `app/` with `config.py`, `extensions.py`, `models.py`, blueprint packages `main/` and `api/`, `templates/`, and `tests/` beside it.
 
-## Application Factory
+Create extensions in their own module, without an app, so blueprints import them without circular imports. Pass a `DeclarativeBase` subclass as `model_class` for SQLAlchemy 2.0 style models.
 
 ```python
-# app/__init__.py — application factory pattern
+# app/extensions.py
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
+migrate = Migrate()
+login_manager = LoginManager()
+login_manager.login_view = "main.login"
+```
+
+```python
+# app/config.py
+import os
+
+class Config:
+    SECRET_KEY = os.environ["SECRET_KEY"]  # fail at startup if it is missing
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///app.db")
+
+class TestConfig(Config):
+    TESTING = True
+    SECRET_KEY = "test-only-secret"
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+```
+
+`SECRET_KEY` signs the session cookie. Read it from the environment without a default, so a forgotten variable stops the app at startup instead of shipping a guessable key.
+
+### Application factory
+
+```python
+# app/__init__.py
 from flask import Flask
-from .extensions import db, migrate, login_manager
+
 from .config import Config
+from .extensions import db, login_manager, migrate
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -67,207 +87,211 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    from .auth import bp as auth_bp
+    from .api import bp as api_bp
     from .main import bp as main_bp
-    app.register_blueprint(auth_bp, url_prefix="/auth")
+
     app.register_blueprint(main_bp)
+    app.register_blueprint(api_bp, url_prefix="/api")
 
     return app
 ```
 
-```python
-# app/extensions.py — extension instances
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
+### Models
 
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
-login_manager.login_view = "auth.login"
+```python
+# app/models.py
+from datetime import datetime, timezone
+
+from flask_login import UserMixin
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from .extensions import db, login_manager
+
+class User(UserMixin, db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(80), unique=True)
+    password_hash: Mapped[str] = mapped_column(String(256))
+    posts: Mapped[list["Post"]] = relationship(back_populates="author")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+class Post(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    author: Mapped[User] = relationship(back_populates="posts")
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
 ```
 
-## Configuration
+### HTML blueprint
+
+Each blueprint package's `__init__.py` creates `bp = Blueprint("main", __name__)` and then imports its `routes` module at the bottom (`from . import routes`); the `api` package does the same with `Blueprint("api", __name__)`.
 
 ```python
-# app/config.py — configuration classes
-import os
+# app/main/routes.py
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import login_user
 
-class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key")
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///app.db")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-```
-
-## Routes and Blueprints
-
-```python
-# app/main/routes.py — main blueprint routes
-from flask import render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
-from . import bp
-from ..models import Post
 from ..extensions import db
+from ..models import Post, User
+from . import bp
 
 @bp.route("/")
 def index():
     page = request.args.get("page", 1, type=int)
-    posts = Post.query.order_by(Post.created_at.desc()).paginate(page=page, per_page=20)
+    query = db.select(Post).order_by(Post.created_at.desc())
+    posts = db.paginate(query, page=page, per_page=20, error_out=False)
     return render_template("main/index.html", posts=posts)
 
-@bp.route("/post", methods=["POST"])
-@login_required
-def create_post():
-    post = Post(body=request.form["body"], author=current_user)
-    db.session.add(post)
-    db.session.commit()
-    flash("Post created!")
-    return redirect(url_for("main.index"))
+@bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = db.session.scalar(
+            db.select(User).where(User.username == request.form["username"])
+        )
+        if user and user.check_password(request.form["password"]):
+            login_user(user)
+            return redirect(url_for("main.index"))
+        flash("Wrong username or password")
+    return render_template("main/login.html")
+
 ```
 
-```python
-# app/main/__init__.py — blueprint definition
-from flask import Blueprint
-bp = Blueprint("main", __name__)
-from . import routes
-```
+`db.paginate()` takes a `select()` and returns a pagination object that you can loop over in the template (`posts.items`, `posts.has_next`, `posts.next_num`). The old `Model.query.paginate()` still works in Flask-SQLAlchemy 3.1 but is marked legacy.
 
-## Models
+### JSON API blueprint
 
 ```python
-# app/models.py — SQLAlchemy models
-from datetime import datetime, UTC
-from flask_login import UserMixin
-from .extensions import db, login_manager
+# app/api/routes.py
+from flask import abort, jsonify, request
+from flask_login import current_user
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256))
-    posts = db.relationship("Post", backref="author", lazy="dynamic")
-
-@login_manager.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-```
-
-## API Routes
-
-```python
-# app/api/routes.py — JSON API endpoints
-from flask import jsonify, request, abort
-from . import bp
-from ..models import Post
 from ..extensions import db
+from ..models import Post
+from . import bp
 
-@bp.route("/posts")
-def get_posts():
-    posts = Post.query.order_by(Post.created_at.desc()).limit(50).all()
+@bp.get("/posts")
+def list_posts():
+    posts = db.session.scalars(
+        db.select(Post).order_by(Post.created_at.desc()).limit(50)
+    )
     return jsonify([{"id": p.id, "body": p.body, "author": p.author.username} for p in posts])
 
-@bp.route("/posts", methods=["POST"])
+@bp.post("/posts")
 def create_post():
-    data = request.get_json()
-    if not data or "body" not in data:
-        abort(400)
-    post = Post(body=data["body"], user_id=data["user_id"])
+    if not current_user.is_authenticated:
+        abort(401)
+    data = request.get_json(silent=True)
+    if not data or not data.get("body"):
+        abort(400, description="body is required")
+    post = Post(body=data["body"], author=current_user)
     db.session.add(post)
     db.session.commit()
-    return jsonify({"id": post.id}), 201
+    return jsonify(id=post.id), 201
 
 @bp.errorhandler(404)
 def not_found(e):
     return jsonify(error="Not found"), 404
 ```
 
-## Templates
+Take the author from `current_user`, never from a `user_id` in the request body. `@bp.get` and `@bp.post` are shortcuts for `route(..., methods=[...])`.
 
-```html
-<!-- templates/base.html — base template with Jinja2 -->
-<!DOCTYPE html>
-<html>
-<head><title>{% block title %}App{% endblock %}</title></head>
-<body>
-  <nav>
-    <a href="{{ url_for('main.index') }}">Home</a>
-    {% if current_user.is_authenticated %}
-      <a href="{{ url_for('auth.logout') }}">Logout</a>
-    {% else %}
-      <a href="{{ url_for('auth.login') }}">Login</a>
-    {% endif %}
-  </nav>
-  {% with messages = get_flashed_messages() %}
-    {% for msg in messages %}<div class="flash">{{ msg }}</div>{% endfor %}
-  {% endwith %}
-  {% block content %}{% endblock %}
-</body>
-</html>
-```
+### Templates
 
-## Error Handling
+`templates/base.html` holds the page shell with `{% block content %}{% endblock %}` and `get_flashed_messages()`; pages extend it. Jinja2 autoescapes `{{ }}` in `.html` templates, so never mark user input `|safe`.
+
+### Testing
 
 ```python
-# app/__init__.py — custom error handlers (add inside create_app)
-@app.errorhandler(404)
-def not_found(e):
-    return render_template("errors/404.html"), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    db.session.rollback()
-    return render_template("errors/500.html"), 500
-```
-
-## Testing
-
-```python
-# tests/test_main.py — testing Flask app
+# tests/test_posts.py
 import pytest
+
 from app import create_app
 from app.config import TestConfig
 from app.extensions import db
+from app.models import User
 
 @pytest.fixture
-def client():
+def app():
     app = create_app(TestConfig)
-    with app.test_client() as client:
-        with app.app_context():
-            db.create_all()
-        yield client
+    with app.app_context():
+        db.create_all()
+        user = User(username="maria")
+        user.set_password("correct-horse")
+        db.session.add(user)
+        db.session.commit()
+        yield app
+        db.drop_all()
 
-def test_index(client):
-    resp = client.get("/")
-    assert resp.status_code == 200
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+def test_index_is_empty(client):
+    assert client.get("/").status_code == 200
+
+def test_api_requires_login(client):
+    assert client.post("/api/posts", json={"body": "hi"}).status_code == 401
+
+def test_login_and_post(client):
+    client.post("/login", data={"username": "maria", "password": "correct-horse"})
+    resp = client.post("/api/posts", json={"body": "First note"})
+    assert resp.status_code == 201
+    assert client.get("/api/posts").json[0]["author"] == "maria"
 ```
 
-## Running
+`TestConfig` uses an in-memory database; keep the app context open for the whole test so it survives between requests.
+
+### Running and migrations
 
 ```bash
-# Run development server
-flask --app app run --debug --port 5000
+export SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+flask --app app run --debug --port 5000     # development server with reloader
 
-# Database migrations
-flask --app app db init
-flask --app app db migrate -m "Initial"
-flask --app app db upgrade
+flask --app app db init                     # once, creates migrations/
+flask --app app db migrate -m "Initial"     # generate a revision from the models
+flask --app app db upgrade                  # apply it
+
+gunicorn --workers 4 --bind 127.0.0.1:8000 "app:create_app()"   # production
 ```
 
-## Key Patterns
+## Examples
 
-- Always use the application factory pattern for testability
-- Use blueprints to organize code by feature
-- Initialize extensions separately from `create_app` to avoid circular imports
-- Use `flask db` (Flask-Migrate) for schema changes — never `db.create_all()` in production
-- Access config via `current_app.config` inside request context
-- Use `@login_required` from Flask-Login for protected routes
+### Example 1: "Add a health check to my Flask API"
+
+Add to `app/api/routes.py`:
+
+```python
+@bp.get("/health")
+def health():
+    db.session.execute(db.select(1))
+    return jsonify(status="ok")
+```
+
+`curl -s localhost:5000/api/health` returns JSON with `"status": "ok"` (the debug server pretty-prints it).
+
+### Example 2: "Write a test that logs in and creates a post"
+
+The `test_login_and_post` test above does this; the test client keeps cookies, so the API call after the `/login` POST is authenticated.
+
+Run it with `SECRET_KEY=ci-secret python -m pytest -q` from the project root (plain `pytest` cannot import `app`); the output ends in `3 passed`.
+
+## Guidelines
+
+- Use the application factory and blueprints; initialise extensions with `init_app` inside `create_app`.
+- Debug mode exposes the interactive debugger, which allows code execution. Use it on localhost only.
+- Use `flask db migrate` and `upgrade` for schema changes in production, not `db.create_all()`.
+- Hash passwords with `generate_password_hash`; never store them in plain text.
+- Cookie sessions are signed, not encrypted: do not put secrets in `session`. To rotate the key, put the old ones in `SECRET_KEY_FALLBACKS` (Flask 3.1).
+- Protect form POSTs against CSRF (Flask-WTF `CSRFProtect`); JSON APIs that use cookie login need the same care.
+- Set `MAX_CONTENT_LENGTH` to bound request sizes.
