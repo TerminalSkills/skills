@@ -1,155 +1,155 @@
 ---
 name: pusher
 description: >-
-  You are an expert in Pusher Channels, the hosted real-time messaging
-  platform. You help developers add live features to applications using
-  pub/sub channels, presence channels for online status, private channels with
-  auth, client events for peer-to-peer, webhooks, and batch triggers —
-  enabling real-time notifications, live dashboards, chat, and collaborative
-  features without managing WebSocket infrastructure.
+  Pusher Channels is a hosted real-time messaging service: your server triggers
+  events over HTTP and browsers receive them over WebSockets, with no socket
+  infrastructure to run. Use this skill when a user wants to add live
+  notifications, dashboards, chat, typing indicators or online-presence lists
+  with pusher / pusher-js, authorize private and presence channels, send batch
+  triggers, or verify Pusher webhooks.
 license: Apache-2.0
-compatibility: ''
+compatibility: Node.js 10+ for the pusher server SDK; any modern browser for pusher-js. Needs a Pusher Channels app (app id, key, secret, cluster).
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
+  version: 1.1.0
+  category: development
+  repository: https://github.com/pusher/pusher-js
   tags:
     - realtime
     - websocket
     - channels
     - pub-sub
-    - notifications
     - presence
 ---
 
-# Pusher — Real-Time Communication Platform
+# Pusher
 
-You are an expert in Pusher Channels, the hosted real-time messaging platform. You help developers add live features to applications using pub/sub channels, presence channels for online status, private channels with auth, client events for peer-to-peer, webhooks, and batch triggers — enabling real-time notifications, live dashboards, chat, and collaborative features without managing WebSocket infrastructure.
+## Overview
 
-## Core Capabilities
+Pusher Channels is publish/subscribe over WebSockets. The server SDK (`pusher`, 5.x) publishes events through Pusher's HTTP API; the browser library (`pusher-js`, 8.x) subscribes to channels and falls back to HTTP streaming or polling on restrictive networks. Channel type is decided by the name prefix: no prefix is public, `private-` needs server authorization, `presence-` needs authorization plus user identity, `private-encrypted-` adds end-to-end encryption. The app id, key, secret and cluster come from the Channels app in the Pusher dashboard; the secret never leaves the server.
 
-### Server-Side (Node.js)
+## Instructions
+
+1. Install: `npm install pusher` on the server, `npm install pusher-js` in the client.
+2. Create one server instance. `trigger` and `triggerBatch` return promises, so `await` them and catch `Pusher.RequestError`.
+3. Trigger limits: event data at most 10 KB, one `trigger` to at most 100 channels, `triggerBatch` at most 10 events, channel names at most 164 characters including the `private-`/`presence-` prefix (letters, digits and `_ - = @ , . ;`).
+4. Authorize private and presence channels with `pusher.authorizeChannel(socketId, channelName, presenceData?)`. pusher-js POSTs `socket_id` and `channel_name` as form-encoded fields to `channelAuthorization.endpoint` (default `/pusher/auth`), so the server needs `express.urlencoded()`. Always check that the logged-in user may join that channel before signing.
+5. In the client set `channelAuthorization: { endpoint: "/api/pusher/auth" }`. The old `authEndpoint` option is the pre-v7 name; use the new one.
+6. Client events (typing, cursors) must be enabled in the app settings, only work on private and presence channels, and event names must start with `client-`.
+7. To exclude the sender from receiving its own server event, pass `{ socket_id }` as the fourth argument of `trigger`.
+8. Verify webhooks (channel_occupied, channel_vacated, member_added, member_removed) with `pusher.webhook({ headers, rawBody }).isValid()`; use the raw request body, not parsed JSON.
+
+## Examples
+
+### Server: trigger, batch and channel auth (Express)
 
 ```typescript
+import express from "express";
 import Pusher from "pusher";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
   key: process.env.PUSHER_KEY!,
   secret: process.env.PUSHER_SECRET!,
-  cluster: "us2",
+  cluster: process.env.PUSHER_CLUSTER ?? "eu",
   useTLS: true,
 });
 
-// Trigger event on a channel
-await pusher.trigger("orders", "new-order", {
-  id: "ord-123",
-  total: 99.99,
-  customer: "Alice",
-});
+const app = express();
+app.use(express.urlencoded({ extended: false }));
 
-// Batch trigger (multiple channels)
+// "Notify the warehouse dashboard about order 8841"
+await pusher.trigger("orders", "new-order", { id: "ord-8841", total: 99.99 });
+
 await pusher.triggerBatch([
-  { channel: "user-42", name: "notification", data: { message: "New message" } },
+  { channel: "private-user-42", name: "notification", data: { message: "Invoice paid" } },
   { channel: "dashboard", name: "metric-update", data: { activeUsers: 1234 } },
 ]);
 
-// Private channel auth (Express middleware)
-app.post("/pusher/auth", (req, res) => {
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-
-  // Verify user has access to this channel
-  if (!userCanAccessChannel(req.user, channel)) {
+app.post("/api/pusher/auth", (req, res) => {
+  const { socket_id, channel_name } = req.body;
+  const user = req.user; // set by your session middleware
+  if (!user || !userCanAccessChannel(user, channel_name)) {
     return res.status(403).json({ error: "Forbidden" });
   }
-
-  const auth = pusher.authorizeChannel(socketId, channel);
-  res.json(auth);
-});
-
-// Presence channel auth (includes user info)
-app.post("/pusher/auth", (req, res) => {
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-
-  if (channel.startsWith("presence-")) {
-    const auth = pusher.authorizeChannel(socketId, channel, {
-      user_id: req.user.id,
-      user_info: { name: req.user.name, avatar: req.user.avatar },
-    });
-    return res.json(auth);
+  if (channel_name.startsWith("presence-")) {
+    return res.json(
+      pusher.authorizeChannel(socket_id, channel_name, {
+        user_id: String(user.id),
+        user_info: { name: user.name },
+      })
+    );
   }
-
-  const auth = pusher.authorizeChannel(socketId, channel);
-  res.json(auth);
+  res.json(pusher.authorizeChannel(socket_id, channel_name));
 });
 ```
 
-### Client-Side (React)
+### Client: live metric and presence list (React)
 
 ```tsx
 import Pusher from "pusher-js";
 import { useEffect, useState } from "react";
 
 const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-  cluster: "us2",
-  authEndpoint: "/api/pusher/auth",
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
 });
 
-function useChannel<T>(channelName: string, eventName: string): T | null {
-  const [data, setData] = useState<T | null>(null);
-
+export function ActiveUsers() {
+  const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
-    const channel = pusher.subscribe(channelName);
-    channel.bind(eventName, (payload: T) => setData(payload));
-    return () => { pusher.unsubscribe(channelName); };
-  }, [channelName, eventName]);
-
-  return data;
+    const channel = pusher.subscribe("dashboard");
+    const onMetric = (p: { activeUsers: number }) => setCount(p.activeUsers);
+    channel.bind("metric-update", onMetric);
+    return () => {
+      channel.unbind("metric-update", onMetric);
+      pusher.unsubscribe("dashboard");
+    };
+  }, []);
+  return <div>Active users: {count ?? "..."}</div>;
 }
 
-function LiveDashboard() {
-  const metric = useChannel<{ activeUsers: number }>("dashboard", "metric-update");
-  return <div>Active Users: {metric?.activeUsers ?? "..."}</div>;
-}
+type Member = { id: string; info: { name: string } };
 
-// Presence channel (who's online)
-function OnlineUsers({ roomId }: { roomId: string }) {
-  const [members, setMembers] = useState<any[]>([]);
-
+export function OnlineUsers({ roomId }: { roomId: string }) {
+  const [members, setMembers] = useState<Member[]>([]);
   useEffect(() => {
-    const channel = pusher.subscribe(`presence-room-${roomId}`);
+    const name = `presence-room-${roomId}`;
+    const channel = pusher.subscribe(name);
     channel.bind("pusher:subscription_succeeded", (m: any) => {
-      setMembers(Object.values(m.members));
+      const list: Member[] = [];
+      m.each((member: Member) => list.push(member));
+      setMembers(list);
     });
-    channel.bind("pusher:member_added", (m: any) => {
-      setMembers(prev => [...prev, m.info]);
-    });
-    channel.bind("pusher:member_removed", (m: any) => {
-      setMembers(prev => prev.filter(p => p.id !== m.id));
-    });
-    return () => { pusher.unsubscribe(`presence-room-${roomId}`); };
+    channel.bind("pusher:member_added", (m: Member) => setMembers((prev) => [...prev, m]));
+    channel.bind("pusher:member_removed", (m: Member) =>
+      setMembers((prev) => prev.filter((p) => p.id !== m.id))
+    );
+    return () => pusher.unsubscribe(name);
   }, [roomId]);
-
-  return <ul>{members.map(m => <li key={m.id}>{m.name}</li>)}</ul>;
+  return <ul>{members.map((m) => <li key={m.id}>{m.info.name}</li>)}</ul>;
 }
 ```
 
-## Installation
+Result: the dashboard number updates the moment the server calls `trigger`, and the list gains or loses a name as users join or leave the room.
 
-```bash
-npm install pusher                        # Server
-npm install pusher-js                     # Client
+### Webhook endpoint
+
+```typescript
+app.post("/webhooks/pusher", express.raw({ type: "application/json" }), (req, res) => {
+  const hook = pusher.webhook({ headers: req.headers as Record<string, string>, rawBody: req.body.toString("utf8") });
+  if (!hook.isValid()) return res.sendStatus(401);
+  for (const ev of hook.getEvents()) console.log(ev.name, ev.channel);
+  res.sendStatus(200);
+});
 ```
 
-## Best Practices
+## Guidelines
 
-1. **Channel naming** — Public: `orders`; Private: `private-user-42`; Presence: `presence-room-5`
-2. **Private channels** — Use for user-specific data; server must authorize via auth endpoint
-3. **Presence for online status** — Use presence channels to track who's online; includes user info
-4. **Batch triggers** — Use `triggerBatch()` for multiple events; single API call, reduced latency
-5. **Client events** — Enable for peer-to-peer (typing indicators, cursor position); no server roundtrip
-6. **Webhooks** — Configure webhooks for channel_occupied/vacated events; track active channels server-side
-7. **Max payload 10KB** — Keep event data small; send IDs and fetch details client-side if needed
-8. **Fallback** — Pusher auto-falls back from WebSocket to HTTP streaming/polling for restrictive networks
+- Keep payloads small: send an id and let the client fetch details. Over 10 KB the API rejects the trigger.
+- Never expose `PUSHER_SECRET` to the browser; only the key and cluster are public. Do not mark the secret `NEXT_PUBLIC_`.
+- A public channel is readable by anyone who knows its name. Put user-specific data on `private-` channels.
+- Presence channels are limited to 100 members, 1 KB of `user_info` per member and 128-character user ids; use them for rosters, not large audiences.
+- Mount the webhook route with a raw-body parser; a JSON parser changes the bytes and breaks the signature.
+- Pusher delivers events live only: a client that was offline misses them. Store messages in your database and load history on connect.
+- Always unbind handlers and unsubscribe on cleanup, or React strict mode will deliver duplicates.
