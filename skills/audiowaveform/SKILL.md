@@ -8,11 +8,12 @@ description: >-
   waveform generation into audio processing pipelines. Covers audiowaveform CLI,
   JSON/binary data output, and web player integration.
 license: Apache-2.0
-compatibility: 'Linux, macOS (audiowaveform 1.7+)'
+compatibility: 'Linux, macOS, Windows (audiowaveform 1.11 is current; install via Ubuntu PPA, Homebrew, a release package, or build from source)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: content
+  repository: https://codeberg.org/chrisn/audiowaveform
   tags:
     - audiowaveform
     - waveform
@@ -25,28 +26,33 @@ metadata:
 
 ## Overview
 
-Generate waveform visualizations from audio files using BBC's audiowaveform tool. Renders PNG/SVG waveform images and outputs peak data as JSON or binary for web-based audio players (wavesurfer.js, peaks.js). Ideal for podcast players, music platforms, social media audio previews, and any UI that shows audio waveforms.
+Generate waveform visualizations from audio files using BBC's audiowaveform tool. Renders PNG waveform images (PNG only, no SVG), converts audio to WAV, and outputs peak data as JSON or binary (.dat) for web-based audio players (wavesurfer.js, peaks.js). Ideal for podcast players, music platforms, social media audio previews, and any UI that shows audio waveforms.
 
 ## Instructions
 
 ### Step 1: Installation
 
 ```bash
-# Ubuntu/Debian
-apt install -y audiowaveform
-
-# macOS
+# macOS and Linuxbrew
 brew install audiowaveform
 
-# From source (if not in repos)
-apt install -y cmake g++ libmad0-dev libsndfile1-dev libgd-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev
-git clone https://github.com/bbc/audiowaveform.git
-cd audiowaveform && mkdir build && cd build
-cmake .. && make && make install
-
-# Verify
-audiowaveform --version
+# Ubuntu (Launchpad PPA maintained by the author)
+sudo add-apt-repository ppa:chris-needham/ppa
+sudo apt-get update
+sudo apt-get install audiowaveform
 ```
+
+Development moved from GitHub (bbc/audiowaveform, now a stale mirror) to [Codeberg](https://codeberg.org/chrisn/audiowaveform); the current version is 1.11.1. Debian, RHEL-family and Windows packages are attached to the [Codeberg releases](https://codeberg.org/chrisn/audiowaveform/releases) (the 1.10.2 release has the .deb and .rpm files, 1.11.0 only a Windows zip, 1.10.3 and 1.11.1 none); pick the file that matches your OS version and install it with `dpkg -i` plus `apt-get -f install`, or `yum localinstall`. A community Docker image, `realies/audiowaveform`, also exists. To build from source on Ubuntu:
+
+```bash
+sudo apt-get install git make cmake gcc g++ libmad0-dev libid3tag0-dev \
+  libsndfile1-dev libgd-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev
+git clone https://codeberg.org/chrisn/audiowaveform.git
+cd audiowaveform && mkdir build && cd build
+cmake -D ENABLE_TESTS=0 .. && make && sudo make install
+```
+
+Verify with `audiowaveform --version`. Input can be MP3, WAV, FLAC, Ogg Vorbis, or Opus (Opus needs libsndfile 1.0.29+).
 
 ### Step 2: Generate Waveform Images
 
@@ -67,10 +73,18 @@ audiowaveform -i episode.mp3 -o waveform.png \
   --border-color ffffff \
   --zoom auto
 ```
+`--zoom auto` fits the whole file into the image width. `--zoom`, `--pixels-per-second` and `--end` are mutually exclusive.
 
 **Color schemes:**
-- `audacity` — classic Audacity look
-- Custom: use hex `--waveform-color`, `--background-color`
+- `audacity` (default) — blue waveform on grey
+- `audition` — green on dark, like Adobe Audition
+- Custom: hex `rrggbb` or `rrggbbaa` via `--waveform-color`, `--background-color`, `--border-color`, `--axis-label-color`
+
+**Bars instead of a continuous waveform:**
+```bash
+audiowaveform -i episode.mp3 -o bars.png -w 1000 -h 200 -z auto \
+  --waveform-style bars --bar-width 10 --bar-gap 2 --bar-style rounded
+```
 
 **High-res for social media (1200x630 — OG image size):**
 ```bash
@@ -88,9 +102,9 @@ audiowaveform -i episode.wav -o clip.png \
   --width 800 --height 150
 ```
 
-**Split channels (stereo):**
+**Split channels (stereo):** pass one colour per channel.
 ```bash
-audiowaveform -i stereo.wav -o waveform.png --split-channels
+audiowaveform -i stereo.wav -o waveform.png --split-channels --waveform-color 3b82f6,ef4444
 ```
 
 ### Step 3: Generate Waveform Data (JSON)
@@ -102,6 +116,7 @@ For web players that render waveforms client-side:
 audiowaveform -i episode.wav -o peaks.json \
   --pixels-per-second 20 \
   --bits 8
+# --bits defaults to 16; 8 gives smaller files
 
 # Binary format (smaller files)
 audiowaveform -i episode.wav -o peaks.dat \
@@ -117,8 +132,8 @@ audiowaveform -i episode.wav -o peaks.dat \
   "sample_rate": 44100,
   "samples_per_pixel": 2205,
   "bits": 8,
-  "length": 1200,
-  "data": [0, 45, -3, 67, 12, 89, ...]
+  "length": 4,
+  "data": [-12, 45, -3, 67, -20, 89, -7, 31]
 }
 ```
 
@@ -130,33 +145,32 @@ audiowaveform -i episode.wav -o peaks.dat \
 
 ### Step 4: Web Player Integration
 
-**With wavesurfer.js:**
+**With wavesurfer.js (v8):** pass normalized peaks and the duration so the waveform draws before the audio is decoded. audiowaveform writes integers (-128..127 for 8 bit), wavesurfer expects floats between -1 and 1.
 ```html
 <div id="waveform"></div>
 <button onclick="wavesurfer.playPause()">Play/Pause</button>
 
-<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<script src="https://unpkg.com/wavesurfer.js@8.0.3"></script>
 <script>
-const wavesurfer = WaveSurfer.create({
-  container: "#waveform",
-  waveColor: "#3b82f6",
-  progressColor: "#1d4ed8",
-  cursorColor: "#ef4444",
-  barWidth: 2,
-  barRadius: 2,
-  barGap: 1,
-  height: 80,
-  responsive: true,
-  // Use pre-generated peaks for instant rendering
-  peaks: null, // Will load from JSON
-  url: "/audio/episode.mp3",
-});
-
-// Load pre-generated peaks (skip client-side decoding)
+let wavesurfer;
 fetch("/waveforms/episode-peaks.json")
   .then(r => r.json())
   .then(data => {
-    wavesurfer.load("/audio/episode.mp3", [data.data]);
+    const peaks = data.data.map(v => v / 2 ** (data.bits - 1));
+    const duration = data.length * data.samples_per_pixel / data.sample_rate;
+    wavesurfer = WaveSurfer.create({
+      container: "#waveform",
+      waveColor: "#3b82f6",
+      progressColor: "#1d4ed8",
+      cursorColor: "#ef4444",
+      barWidth: 2,
+      barRadius: 2,
+      barGap: 1,
+      height: 80,
+      url: "/audio/episode.mp3",
+      peaks: [peaks],
+      duration,
+    });
   });
 </script>
 ```
@@ -165,8 +179,9 @@ fetch("/waveforms/episode-peaks.json")
 ```html
 <div id="zoomview-container"></div>
 <div id="overview-container"></div>
+<audio id="audio" src="/audio/episode.mp3" controls></audio>
 
-<script src="https://unpkg.com/peaks.js"></script>
+<script src="https://unpkg.com/peaks.js@4.0.0/dist/peaks.js"></script>
 <script>
 const audioElement = document.getElementById("audio");
 
@@ -179,7 +194,8 @@ Peaks.init({
   dataUri: {
     json: "/waveforms/episode-peaks.json",
   },
-  zoomLevels: [256, 512, 1024, 2048],
+  // samples per pixel; none may be below the file's samples_per_pixel (2205 here)
+  zoomLevels: [2205, 4410, 8820, 17640],
   overview: {
     waveformColor: "#3b82f6",
     playedWaveformColor: "#1d4ed8",
@@ -233,16 +249,17 @@ done
 # Binary → JSON
 audiowaveform -i peaks.dat -o peaks.json
 
-# JSON → PNG (render from pre-computed data)
-audiowaveform -i peaks.json -o waveform.png \
-  --width 1200 --height 200 \
-  --zoom auto
+# Decode once into a master .dat, then render images from it
+audiowaveform -i input.wav -o master.dat -z 256 -b 8
+audiowaveform -i master.dat -o overview.png -z auto --width 2000 --height 100
+audiowaveform -i master.dat -o detail.png --start 60 --end 120 --width 800 --height 200
 
-# From raw audio → multiple outputs
-audiowaveform -i input.wav -o peaks.dat --bits 8 --pixels-per-second 20
-audiowaveform -i peaks.dat -o overview.png --width 2000 --height 100
-audiowaveform -i peaks.dat -o detail.png --start 60 --end 120 --width 800 --height 200
+# MP3 → WAV, or pipe from ffmpeg (reading stdin needs `--input-format`: wav, mp3, flac, ogg, opus, dat, json or raw)
+audiowaveform -i episode.mp3 -o episode.wav
+ffmpeg -i interview.mp4 -f wav - | audiowaveform --input-format wav --output-format dat -b 8 > interview.dat
 ```
+
+A waveform rendered from a `.dat` file cannot use a zoom (samples per pixel) smaller than the one the file was created with. Rendering `overview.png` from a 20-pixels-per-second file with the default zoom of 256 fails, so create the master at `-z 256` or lower, or pass `-z auto`.
 
 ## Examples
 
@@ -267,7 +284,8 @@ The agent will:
 
 ## Guidelines
 
-- Always check that audiowaveform is installed before running commands; it is not available in most default package managers and may require building from source on older systems.
+- Check that audiowaveform is installed before running commands; on Ubuntu it comes from the author's PPA, on Debian and RHEL from the release packages, and old systems may need a source build.
+- Output is PNG, JSON, `.dat` or WAV only; for SVG render the JSON peaks in the browser instead.
 - Use `--pixels-per-second 20` with `--bits 8` for JSON peaks data intended for web players; higher values produce unnecessarily large files for overview waveforms.
 - Pre-generate waveform JSON server-side rather than decoding audio client-side; this eliminates multi-second load times for listeners on the web.
 - For social media images, use `--no-axis-labels` to produce cleaner graphics without time markers that clutter the visual at small sizes.
