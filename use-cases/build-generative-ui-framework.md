@@ -7,6 +7,7 @@ skills:
   - redis
   - hono
   - zod
+  - a2ui
 category: data-ai
 tags:
   - generative-ui
@@ -252,3 +253,7 @@ export function createStreamRenderer(sessionId: string) {
 - **Inline forms** — agent asks for feedback via rendered form with dropdowns and toggles; submission triggers next action; no context switching
 - **Streaming partial render** — components appear as LLM streams; table headers render before all rows arrive; feels instant even on complex queries
 - **Consistent theming** — dark/light mode, brand colors applied to all generated components; chatbot UI matches the app
+
+## Related Skills
+
+- [a2ui](/skills/a2ui) — choose it when the UI should be a declarative JSON protocol rendered by a client's own trusted component catalog (web or Flutter) rather than a framework you build yourself

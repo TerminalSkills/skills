@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:9c3e87029e82369df79cc5794d8766827157438e8ca19ff26f2d8fb4e8816dbb",
+  "scoredAt": "2026-10-24T23:08:42.660Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill includes platform-specific assumptions such as Node.js 18+ and Python 3.10+, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.8,
+    "baselineAvg": 0,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "booking-form-with-validation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A does not include the required JSON structure."
+      },
+      {
+        "name": "update-guests-and-delete-surface",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets the rubric exactly, while Response B does not provide the required JSON messages."
+      },
+      {
+        "name": "modal-confirmation-with-url",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response B includes the required components but omits sendDataModel true, whereas Response A provides no A2UI messages at all."
+      }
+    ]
+  }
+}
