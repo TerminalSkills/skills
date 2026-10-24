@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Supports TypeScript, JavaScript, Python, Go, Java, Rust, Ruby, C#, and PHP."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["documentation", "jsdoc", "docstrings", "architecture", "onboarding"]
 ---
@@ -54,16 +54,20 @@ When asked to document code:
    - Note design patterns used (repository pattern, event sourcing, CQRS, etc.)
 
 5. **Language-specific format:**
-   - TypeScript/JavaScript: JSDoc with `@param`, `@returns`, `@throws`, `@example`
-   - Python: Google-style docstrings with Args, Returns, Raises sections
-   - Go: Package-level and exported function doc comments per Go conventions
+   - JavaScript: JSDoc with `@param {type}`, `@returns`, `@throws`, `@example`
+   - TypeScript: TSDoc (`/** */` with `@param name - text`, `@returns`, `@throws`, `@example`); leave types out, the signature already has them
+   - Python: follow the project's existing docstring style (Google, NumPy or Sphinx); if none, Google-style with Args, Returns, Raises. Keep type hints in the signature (PEP 484)
+   - Go: a comment directly above each exported name that starts with that name ("Parse reads ..."); one package comment per package
    - Java: Javadoc with `@param`, `@return`, `@throws`
-   - Rust: `///` doc comments with `# Examples` sections
+   - Rust: `///` for items and `//!` for modules; sections `# Examples`, `# Errors`, `# Panics`, `# Safety` (for `unsafe`); examples run as doctests with `cargo test`
 
-6. **Quality rules:**
+6. **Verify:** run the project's doc tooling after writing (for example `cargo test --doc` or `cargo doc`, `go vet ./...`, `python -m doctest -v module.py`, `npx tsc --noEmit`) so examples and syntax are checked, not assumed. Keep documentation in the existing style of the repository.
+
+7. **Quality rules:**
    - Never state the obvious ("Increments counter by 1")
    - Document the contract, not the implementation (what, not how — unless the how is surprising)
-   - Include realistic example values, not `foo`, `bar`, `test123`
+   - Use realistic example values taken from the domain (real-looking IDs, amounts, names)
+   - Describe only what the code does today; if behavior is unclear, say so rather than guess
    - Flag functions that are too complex and suggest refactoring before documenting
    - Note when documentation reveals a likely bug (e.g., unhandled null case)
 
@@ -79,29 +83,34 @@ def process_payment(user_id, amount, currency, idempotency_key=None):
         raise ValueError("User not found")
     if user.balance < amount and not user.credit_enabled:
         return {"status": "declined", "reason": "insufficient_funds"}
-    charge = stripe.charges.create(
-        amount=int(amount * 100),
-        currency=currency,
-        customer=user.stripe_id,
-        idempotency_key=idempotency_key
+    intent = stripe_client.v1.payment_intents.create(
+        params={
+            "amount": int(amount * 100),
+            "currency": currency,
+            "customer": user.stripe_id,
+            "payment_method": user.default_payment_method,
+            "confirm": True,
+            "off_session": True,
+        },
+        options={"idempotency_key": idempotency_key},
     )
     db.transactions.insert({
         "user_id": user_id, "amount": amount,
-        "stripe_charge_id": charge.id, "created_at": datetime.utcnow()
+        "payment_intent_id": intent.id, "created_at": datetime.now(timezone.utc)
     })
     if user.balance < amount:
         user.balance = user.balance - amount
         db.users.update(user)
-    return {"status": "success", "charge_id": charge.id}
+    return {"status": "success", "payment_intent_id": intent.id}
 ```
 
 **Output:**
 ```python
 def process_payment(user_id, amount, currency, idempotency_key=None):
-    """Process a payment by charging the user's Stripe account.
+    """Process a payment by charging the user's saved Stripe payment method.
 
-    Validates the user's balance (unless credit is enabled), creates a Stripe
-    charge, records the transaction, and deducts from the user's internal balance
+    Validates the user's balance (unless credit is enabled), creates and confirms
+    a Stripe PaymentIntent, records the transaction, and deducts from the user's internal balance
     if applicable.
 
     Args:
@@ -112,29 +121,31 @@ def process_payment(user_id, amount, currency, idempotency_key=None):
             Recommended for all production calls.
 
     Returns:
-        dict: {"status": "success", "charge_id": "ch_..."} on success,
+        dict: {"status": "success", "payment_intent_id": "pi_..."} on success,
               {"status": "declined", "reason": "insufficient_funds"} if balance
               is too low and credit is not enabled.
 
     Raises:
         ValueError: If user_id does not match any user in the database.
-        stripe.error.CardError: If the card is declined by Stripe.
-        stripe.error.InvalidRequestError: If Stripe parameters are invalid.
+        stripe.CardError: If the card is declined by Stripe.
+        stripe.InvalidRequestError: If Stripe parameters are invalid.
 
     Side Effects:
-        - Creates a Stripe charge (external API call)
+        - Creates and confirms a Stripe PaymentIntent (external API call)
         - Inserts a row into the transactions table
         - May update the user's balance
 
     Example:
         >>> result = process_payment("usr_8f2k3j", 49.99, "usd", idempotency_key="pay_retry_001")
         >>> result
-        {"status": "success", "charge_id": "ch_3Kx9mPqR2s"}
+        {'status': 'success', 'payment_intent_id': 'pi_3Kx9mPqR2s'}
 
     Note:
         ⚠ Potential bug: balance deduction only happens when balance < amount,
         but the charge always goes through. If balance >= amount, the user is
         charged via Stripe but their internal balance is not deducted.
+        Also, ``int(amount * 100)`` truncates instead of rounding (19.99
+        becomes 1998 cents); use ``round(amount * 100)`` or ``Decimal``.
     """
 ```
 
@@ -160,29 +171,29 @@ and delivery status tracking.
   ├── service.ts         — Core orchestration: resolves channel, renders template, dispatches
   ├── channels/
   │   ├── email.ts       — SendGrid integration (SMTP fallback)
-  │   ├── push.ts        — Firebase Cloud Messaging
+  │   ├── push.ts        — Firebase Cloud Messaging (HTTP v1 API)
   │   └── in-app.ts      — WebSocket broadcast + database persistence
   ├── templates/
   │   ├── renderer.ts    — Handlebars template engine with i18n support
   │   └── templates/     — .hbs files organized by notification type
   ├── preferences.ts     — User channel preferences (opt-in/opt-out per type)
-  └── queue.ts           — Bull queue consumer for async delivery
+  └── queue.ts           — BullMQ queue consumer for async delivery
 
 ## Key Data Flow: Sending a Notification
   1. API call or internal event → service.send(userId, type, data)
   2. service.ts checks user preferences → skips opted-out channels
   3. renderer.ts renders template with user's locale
-  4. Dispatch queued via Bull (Redis-backed) for reliability
+  4. Dispatch queued via BullMQ (Redis-backed) for reliability
   5. Channel adapter delivers and records status in notifications table
 
 ## External Dependencies
   - SendGrid API (email delivery)
   - Firebase Cloud Messaging (push notifications)
-  - Redis (Bull queue backing store)
+  - Redis (BullMQ queue backing store)
   - PostgreSQL (notification history, preferences, templates metadata)
 
 ## Environment Variables
-  SENDGRID_API_KEY, FCM_SERVER_KEY, REDIS_URL, NOTIFICATION_FROM_EMAIL
+  SENDGRID_API_KEY, GOOGLE_APPLICATION_CREDENTIALS (FCM service account), REDIS_URL, NOTIFICATION_FROM_EMAIL
 ```
 
 ## Guidelines
