@@ -11,9 +11,7 @@ skills:
   - prisma
   - redis
   - tailwindcss
-  - shadcn-ui
   - zod
-  - authjs
 category: development
 tags:
   - white-label
@@ -28,574 +26,273 @@ tags:
 
 ## The Problem
 
-Nadia built a project management SaaS with 200 paying customers. Three enterprise prospects each want the same product but with their own logo, colors, domain, and login page. Her current options: fork the codebase three times (maintenance nightmare) or tell them no ($180K/year in lost ARR). One prospect wants `projects.acmecorp.com` with their brand colors; another needs custom email templates with their compliance footer; the third requires feature flags to hide modules they didn't purchase.
+Nadia built a project management SaaS with 200 paying customers. Three enterprise prospects each want the same product but with their own logo, colors and domain. Her options: fork the codebase three times (a maintenance nightmare) or say no and lose roughly $180K a year in contracts. One prospect wants `projects.acmecorp.com` in their brand colors; another needs email templates with their compliance footer; the third wants modules they did not buy hidden.
 
 Nadia needs:
-- **Single codebase** serving unlimited tenants with unique branding
-- **Custom domains** — each tenant's users see `app.clientdomain.com`, not her SaaS domain
-- **Theme engine** — colors, logos, fonts, email templates per tenant
-- **Feature flags per tenant** — premium modules enabled/disabled
-- **Tenant-aware auth** — users authenticate against their tenant's config
-- **Admin dashboard** for tenants to self-manage their branding
+- **One codebase** serving many tenants with their own branding
+- **Custom domains**, so users see `app.clientdomain.com`, not her domain
+- **A theme engine** for colors, logo and font per tenant
+- **Feature flags per tenant**, enforced on the server
 
-## Step 1: Tenant Configuration Schema
+## The Solution
 
-Each tenant's configuration defines their branding, domain, features, and auth settings.
+Resolve the tenant from the hostname in Next.js `proxy.ts`, load its config from Redis (falling back to Postgres through Prisma), validate it with Zod, and expose the theme as CSS variables that Tailwind v4 utilities read. Caddy issues certificates for customer domains on demand, but only after your app confirms it knows the domain.
+
+Versions this was written against: Next.js 16 (the old `middleware.ts` is now `proxy.ts` and runs on the Node.js runtime, so Redis and Prisma are allowed there), Tailwind CSS 4, Zod 4, Prisma 7, ioredis, Caddy 2.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Tenant configuration schema
+
+Never store or cache secrets in this object. SSO client secrets stay in their own table and are read only by the auth code.
 
 ```typescript
 // src/lib/tenant-config.ts
-// Defines the shape of a tenant's white-label configuration
-
 import { z } from 'zod';
 
+const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
 export const TenantTheme = z.object({
-  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  secondaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  fontFamily: z.string().default('Inter'),
+  primaryColor: hex,
+  backgroundColor: hex,
+  // Allowlist, not free text: the value ends up in a CSS variable
+  fontFamily: z.enum(['Inter', 'Roboto', 'Open Sans', 'Lato']).default('Inter'),
   borderRadius: z.enum(['none', 'sm', 'md', 'lg', 'full']).default('md'),
-  logoUrl: z.string().url(),
-  faviconUrl: z.string().url(),
-  loginBackgroundUrl: z.string().url().optional(),
+  logoUrl: z.url({ protocol: /^https$/ }),
 });
 
 export const TenantFeatures = z.object({
   timeTracking: z.boolean().default(false),
   ganttChart: z.boolean().default(false),
-  customFields: z.boolean().default(false),
-  apiAccess: z.boolean().default(false),
-  ssoEnabled: z.boolean().default(false),
   maxUsers: z.number().int().positive().default(25),
   maxProjects: z.number().int().positive().default(10),
-  whiteLabel: z.boolean().default(false),   // meta: can they hide "Powered by"
+  hidePoweredBy: z.boolean().default(false),
 });
 
 export const TenantConfig = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string(),
-  customDomain: z.string().optional(),       // e.g., "projects.acmecorp.com"
+  customDomain: z.string().nullish(),
   theme: TenantTheme,
   features: TenantFeatures,
-  emailFromName: z.string().default(''),
-  emailFooterHtml: z.string().default(''),
-  supportEmail: z.string().email().optional(),
-  ssoConfig: z.object({
-    provider: z.enum(['saml', 'oidc']).optional(),
-    issuerUrl: z.string().url().optional(),
-    clientId: z.string().optional(),
-    clientSecret: z.string().optional(),
-  }).optional(),
-  createdAt: z.string().datetime(),
 });
 
 export type TenantConfig = z.infer<typeof TenantConfig>;
 export type TenantTheme = z.infer<typeof TenantTheme>;
-export type TenantFeatures = z.infer<typeof TenantFeatures>;
 ```
 
-## Step 2: Tenant Resolution Middleware
+The `Tenant` Prisma model stores `slug`, a unique nullable `customDomain`, a random `domainVerifyToken`, `active`, and the `theme` and `features` columns as `Json`, matching these schemas.
 
-Every request must be resolved to a tenant before anything else happens. Resolution order: custom domain → subdomain → path prefix.
+### Step 2: Tenant store with Redis cache
 
-```typescript
-// src/middleware/tenant-resolver.ts
-// Resolves the current tenant from the request hostname or path
-
-import { type NextRequest, NextResponse } from 'next/server';
-import { getTenantByDomain, getTenantBySlug } from '@/lib/tenant-store';
-
-export async function resolveTenant(request: NextRequest) {
-  const hostname = request.headers.get('host') ?? '';
-  const pathname = request.nextUrl.pathname;
-
-  // 1. Try custom domain first (e.g., projects.acmecorp.com)
-  let tenant = await getTenantByDomain(hostname);
-  if (tenant) {
-    return { tenant, rewrite: null };
-  }
-
-  // 2. Try subdomain (e.g., acmecorp.app.projecthub.io)
-  const baseDomain = process.env.BASE_DOMAIN ?? 'app.projecthub.io';
-  if (hostname.endsWith(`.${baseDomain}`)) {
-    const slug = hostname.replace(`.${baseDomain}`, '');
-    tenant = await getTenantBySlug(slug);
-    if (tenant) {
-      return { tenant, rewrite: null };
-    }
-  }
-
-  // 3. Try path prefix (e.g., /t/acmecorp/dashboard)
-  const pathMatch = pathname.match(/^\/t\/([a-z0-9-]+)(\/.*)?$/);
-  if (pathMatch) {
-    tenant = await getTenantBySlug(pathMatch[1]);
-    if (tenant) {
-      // Rewrite to remove the /t/slug prefix
-      const rewrite = pathMatch[2] ?? '/';
-      return { tenant, rewrite };
-    }
-  }
-
-  return { tenant: null, rewrite: null };
-}
-```
+`prisma` is your shared client from `src/lib/prisma.ts`; Prisma 7 needs a driver adapter there, see the Prisma docs for your database.
 
 ```typescript
 // src/lib/tenant-store.ts
-// Caches tenant configs in Redis with 5-minute TTL
-
 import { Redis } from 'ioredis';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma';
 import { TenantConfig } from './tenant-config';
 
 const redis = new Redis(process.env.REDIS_URL!);
-const prisma = new PrismaClient();
-const CACHE_TTL = 300;  // 5 minutes
-
-export async function getTenantByDomain(domain: string): Promise<TenantConfig | null> {
-  // Check cache first
-  const cached = await redis.get(`tenant:domain:${domain}`);
-  if (cached) return JSON.parse(cached);
-
-  const row = await prisma.tenant.findFirst({
-    where: { customDomain: domain, active: true },
-  });
+const TTL_SECONDS = 300;
+async function cached(key: string, load: () => Promise<unknown | null>) {
+  const hit = await redis.get(key);
+  if (hit) return TenantConfig.parse(JSON.parse(hit));
+  const row = await load();
   if (!row) return null;
-
-  const config = mapToConfig(row);
-  await redis.setex(`tenant:domain:${domain}`, CACHE_TTL, JSON.stringify(config));
+  const config = TenantConfig.parse(row);
+  await redis.set(key, JSON.stringify(config), 'EX', TTL_SECONDS);
   return config;
 }
 
-export async function getTenantBySlug(slug: string): Promise<TenantConfig | null> {
-  const cached = await redis.get(`tenant:slug:${slug}`);
-  if (cached) return JSON.parse(cached);
+export const getTenantByDomain = (domain: string) =>
+  cached(`tenant:domain:${domain}`, () =>
+    prisma.tenant.findFirst({ where: { customDomain: domain, active: true } }));
 
-  const row = await prisma.tenant.findFirst({
-    where: { slug, active: true },
-  });
-  if (!row) return null;
+export const getTenantBySlug = (slug: string) =>
+  cached(`tenant:slug:${slug}`, () =>
+    prisma.tenant.findFirst({ where: { slug, active: true } }));
 
-  const config = mapToConfig(row);
-  await redis.setex(`tenant:slug:${slug}`, CACHE_TTL, JSON.stringify(config));
-  return config;
-}
-
-// Invalidate cache when tenant updates their config
-export async function invalidateTenantCache(tenantId: string): Promise<void> {
-  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
-  if (!tenant) return;
-
-  await redis.del(`tenant:slug:${tenant.slug}`);
-  if (tenant.customDomain) {
-    await redis.del(`tenant:domain:${tenant.customDomain}`);
-  }
-}
-
-function mapToConfig(row: any): TenantConfig {
-  return TenantConfig.parse({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    customDomain: row.customDomain,
-    theme: row.theme,
-    features: row.features,
-    emailFromName: row.emailFromName,
-    emailFooterHtml: row.emailFooterHtml,
-    supportEmail: row.supportEmail,
-    ssoConfig: row.ssoConfig,
-    createdAt: row.createdAt.toISOString(),
-  });
+export async function invalidateTenantCache(tenantId: string) {
+  const t = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  if (!t) return;
+  await redis.del(`tenant:slug:${t.slug}`);
+  if (t.customDomain) await redis.del(`tenant:domain:${t.customDomain}`);
 }
 ```
 
-## Step 3: Dynamic Theme Provider
+### Step 3: Resolve the tenant in `proxy.ts`
 
-CSS custom properties injected at the layout level let every component inherit tenant branding without prop drilling.
+Resolution order: custom domain, then subdomain. The result is passed to the app as a request header. Delete any `x-tenant-slug` the client sent, otherwise a visitor can pick their own tenant.
 
 ```typescript
-// src/components/theme-provider.tsx
-// Injects tenant theme as CSS custom properties
+// src/proxy.ts  (named middleware.ts before Next.js 16)
+import { NextRequest, NextResponse } from 'next/server';
+import { getTenantByDomain, getTenantBySlug } from '@/lib/tenant-store';
 
-'use client';
+const BASE_DOMAIN = process.env.BASE_DOMAIN ?? 'app.projecthub.io';
+export async function proxy(request: NextRequest) {
+  const headers = new Headers(request.headers);
+  headers.delete('x-tenant-slug');
 
-import { createContext, useContext, type ReactNode } from 'react';
-import type { TenantConfig, TenantTheme } from '@/lib/tenant-config';
+  const host = request.nextUrl.hostname.toLowerCase(); // no port
 
-const TenantContext = createContext<TenantConfig | null>(null);
+  let tenant = await getTenantByDomain(host);
+  if (!tenant && host.endsWith(`.${BASE_DOMAIN}`)) {
+    tenant = await getTenantBySlug(host.slice(0, -(BASE_DOMAIN.length + 1)));
+  }
+  if (!tenant) return new NextResponse('Unknown tenant', { status: 404 });
 
-export function useTenant(): TenantConfig {
-  const ctx = useContext(TenantContext);
-  if (!ctx) throw new Error('useTenant must be used within TenantProvider');
-  return ctx;
+  headers.set('x-tenant-slug', tenant.slug);
+  return NextResponse.next({ request: { headers } });
 }
 
-export function useFeature(feature: keyof TenantConfig['features']): boolean {
-  const tenant = useTenant();
-  return Boolean(tenant.features[feature]);
-}
-
-export function TenantProvider({
-  tenant,
-  children,
-}: {
-  tenant: TenantConfig;
-  children: ReactNode;
-}) {
-  const cssVars = themeToCssVars(tenant.theme);
-
-  return (
-    <TenantContext.Provider value={tenant}>
-      <div style={cssVars as React.CSSProperties}>
-        {children}
-      </div>
-    </TenantContext.Provider>
-  );
-}
-
-function themeToCssVars(theme: TenantTheme): Record<string, string> {
-  return {
-    '--color-primary': theme.primaryColor,
-    '--color-secondary': theme.secondaryColor,
-    '--color-accent': theme.accentColor,
-    '--color-background': theme.backgroundColor,
-    '--color-text': theme.textColor,
-    '--font-family': theme.fontFamily,
-    '--radius': radiusMap[theme.borderRadius],
-  };
-}
-
-const radiusMap: Record<string, string> = {
-  none: '0px',
-  sm: '4px',
-  md: '8px',
-  lg: '12px',
-  full: '9999px',
+export const config = {
+  matcher: ['/((?!_next/|api/tls-allowed|favicon.ico).*)'],
 };
 ```
 
-```css
-/* src/app/globals.css */
-/* All components reference CSS variables — theme changes propagate automatically */
+### Step 4: Theme variables and Tailwind v4
 
-:root {
-  --color-primary: #3b82f6;
-  --color-secondary: #64748b;
-  --color-accent: #f59e0b;
-  --color-background: #ffffff;
-  --color-text: #0f172a;
-  --font-family: 'Inter', sans-serif;
-  --radius: 8px;
-}
+The root layout is a server component: it reads the header, loads the config and sets the variables on `<html>`. Server components can read the config directly; only client components that need it use the context.
 
-body {
-  font-family: var(--font-family);
-  background-color: var(--color-background);
-  color: var(--color-text);
-}
+```tsx
+// src/app/layout.tsx
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { getTenantBySlug } from '@/lib/tenant-store';
+import { TenantProvider } from '@/components/tenant-provider';
+import './globals.css';
 
-.btn-primary {
-  background-color: var(--color-primary);
-  border-radius: var(--radius);
-}
+const RADIUS = { none: '0px', sm: '4px', md: '8px', lg: '12px', full: '9999px' };
 
-.btn-secondary {
-  background-color: var(--color-secondary);
-  border-radius: var(--radius);
-}
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const slug = (await headers()).get('x-tenant-slug');
+  const tenant = slug ? await getTenantBySlug(slug) : null;
+  if (!tenant) notFound();
+  const t = tenant.theme;
 
-.accent-border {
-  border-color: var(--color-accent);
-}
-```
+  const vars = {
+    '--tenant-primary': t.primaryColor,
+    '--tenant-background': t.backgroundColor,
+    '--tenant-font': `'${t.fontFamily}', sans-serif`,
+    '--tenant-radius': RADIUS[t.borderRadius],
+  } as React.CSSProperties;
 
-## Step 4: Feature-Gated Components
-
-Modules appear or disappear based on the tenant's purchased features.
-
-```typescript
-// src/components/feature-gate.tsx
-// Conditionally renders children based on tenant feature flags
-
-'use client';
-
-import { useFeature } from './theme-provider';
-import type { TenantConfig } from '@/lib/tenant-config';
-
-export function FeatureGate({
-  feature,
-  children,
-  fallback = null,
-}: {
-  feature: keyof TenantConfig['features'];
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}) {
-  const enabled = useFeature(feature);
-  return enabled ? <>{children}</> : <>{fallback}</>;
-}
-```
-
-```typescript
-// src/app/(dashboard)/project/[id]/page.tsx
-// Project page with feature-gated modules
-
-import { FeatureGate } from '@/components/feature-gate';
-import { TaskBoard } from '@/components/task-board';
-import { GanttChart } from '@/components/gantt-chart';
-import { TimeTracker } from '@/components/time-tracker';
-import { UpgradeBanner } from '@/components/upgrade-banner';
-
-export default function ProjectPage({ params }: { params: { id: string } }) {
   return (
-    <div className="space-y-6">
-      {/* Always available */}
-      <TaskBoard projectId={params.id} />
-
-      {/* Only for tenants with Gantt enabled */}
-      <FeatureGate
-        feature="ganttChart"
-        fallback={<UpgradeBanner feature="Gantt Charts" />}
-      >
-        <GanttChart projectId={params.id} />
-      </FeatureGate>
-
-      {/* Only for tenants with time tracking */}
-      <FeatureGate feature="timeTracking">
-        <TimeTracker projectId={params.id} />
-      </FeatureGate>
-    </div>
+    <html lang="en" style={vars}>
+      <body className="bg-background font-tenant">
+        <TenantProvider tenant={tenant}>{children}</TenantProvider>
+      </body>
+    </html>
   );
 }
 ```
 
-## Step 5: Custom Domain SSL with Caddy
+In Tailwind v4 the theme lives in CSS. `@theme inline` makes utilities such as `bg-primary` and `rounded-tenant` read the runtime variables instead of baking in values:
 
-Each tenant's custom domain needs a valid SSL certificate. Caddy handles this automatically via ACME.
+```css
+/* src/app/globals.css */
+@import 'tailwindcss';
+
+:root {
+  --tenant-primary: #3b82f6;
+  --tenant-background: #ffffff;
+  --tenant-font: 'Inter', sans-serif;
+  --tenant-radius: 8px;
+}
+
+@theme inline {
+  --color-primary: var(--tenant-primary);
+  --color-background: var(--tenant-background);
+  --font-tenant: var(--tenant-font);
+  --radius-tenant: var(--tenant-radius);
+}
+```
+
+`TenantProvider` is a small client context (`createContext` plus a `useTenant()` hook that throws outside the provider) so client components can read the config.
+
+### Step 5: Feature gates, in the UI and on the server
+
+Hiding a module is cosmetic. Every route handler for a gated module must check the flag too, or a tenant can call the API directly. In the UI a `<FeatureGate feature="ganttChart" fallback={<UpgradeBanner />}>` component simply renders its children when `useTenant().features[feature]` is true.
+
+```typescript
+// src/app/api/projects/[id]/gantt/route.ts, same check at the top of every gated handler
+const slug = (await headers()).get('x-tenant-slug');
+const tenant = slug ? await getTenantBySlug(slug) : null;
+if (!tenant?.features.ganttChart) return Response.json({ error: 'feature_disabled' }, { status: 403 });
+```
+
+### Step 6: Custom domains with on-demand TLS
+
+Never let Caddy issue a certificate for any hostname that arrives: that lets anyone exhaust your Let's Encrypt rate limits. Configure an `ask` endpoint that returns 200 only for domains you have verified.
+
+```caddy
+# /etc/caddy/Caddyfile
+{
+	on_demand_tls {
+		ask http://127.0.0.1:3000/api/tls-allowed
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	# the ask endpoint must not be reachable from the internet
+	respond /api/tls-allowed 404
+	reverse_proxy 127.0.0.1:3000
+}
+```
+
+Caddy calls the endpoint with `?domain=<hostname>` and issues a certificate only on a 200 response:
+
+```typescript
+// src/app/api/tls-allowed/route.ts
+import { prisma } from '@/lib/prisma';
+
+export async function GET(req: Request) {
+  const domain = new URL(req.url).searchParams.get('domain')?.toLowerCase();
+  if (!domain) return new Response(null, { status: 400 });
+  const ok = await prisma.tenant.findFirst({ where: { customDomain: domain, active: true } });
+  return new Response(null, { status: ok ? 200 : 404 });
+}
+```
+
+The `respond` line keeps the endpoint off the public site (Caddy itself reaches it directly on 127.0.0.1), and the matcher in Step 3 keeps it out of the tenant proxy. Domain verification happens before `customDomain` is saved:
 
 ```typescript
 // src/lib/domain-manager.ts
-// Manages custom domain registration and SSL provisioning
+import { resolveCname, resolveTxt } from 'node:dns/promises';
 
-import { PrismaClient } from '@prisma/client';
-import { invalidateTenantCache } from './tenant-store';
-
-const prisma = new PrismaClient();
-
-export async function registerCustomDomain(
-  tenantId: string,
-  domain: string
-): Promise<{ success: boolean; instructions: string[] }> {
-  // Verify domain ownership via DNS
-  const verified = await verifyDomainDns(domain, tenantId);
-  if (!verified) {
-    return {
-      success: false,
-      instructions: [
-        `Add a CNAME record: ${domain} → app.projecthub.io`,
-        `Or add a TXT record: _projecthub.${domain} → verify=${tenantId}`,
-        'DNS changes can take up to 48 hours to propagate.',
-      ],
-    };
-  }
-
-  // Store domain mapping
-  await prisma.tenant.update({
-    where: { id: tenantId },
-    data: { customDomain: domain },
-  });
-
-  // Notify Caddy to provision SSL (via admin API)
-  await provisionSsl(domain);
-
-  // Clear cache so new domain resolves immediately
-  await invalidateTenantCache(tenantId);
-
-  return { success: true, instructions: [] };
-}
-
-async function verifyDomainDns(domain: string, tenantId: string): Promise<boolean> {
-  const { resolve } = await import('dns/promises');
-  try {
-    // Check CNAME
-    const cnames = await resolve(domain, 'CNAME').catch(() => []);
-    if (cnames.some((c: string) => c.includes('projecthub.io'))) return true;
-
-    // Check TXT verification record
-    const txts = await resolve(`_projecthub.${domain}`, 'TXT').catch(() => []);
-    const flat = txts.flat();
-    return flat.some((t: string) => t === `verify=${tenantId}`);
-  } catch {
-    return false;
-  }
-}
-
-async function provisionSsl(domain: string): Promise<void> {
-  // Caddy's admin API auto-provisions Let's Encrypt certs
-  await fetch('http://localhost:2019/config/apps/http/servers/srv0/routes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      match: [{ host: [domain] }],
-      handle: [{
-        handler: 'reverse_proxy',
-        upstreams: [{ dial: 'localhost:3000' }],
-      }],
-    }),
-  });
-}
-```
-
-## Step 6: Tenant Admin Dashboard
-
-Tenants manage their own branding through a self-service dashboard.
-
-```typescript
-// src/app/(admin)/settings/branding/page.tsx
-// Self-service branding editor for tenant admins
-
-'use client';
-
-import { useState } from 'react';
-import { useTenant } from '@/components/theme-provider';
-
-export default function BrandingSettings() {
-  const tenant = useTenant();
-  const [theme, setTheme] = useState(tenant.theme);
-  const [saving, setSaving] = useState(false);
-
-  async function handleSave() {
-    setSaving(true);
-    const res = await fetch(`/api/admin/tenant/${tenant.id}/theme`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(theme),
-    });
-    if (res.ok) {
-      // Theme applies on next page load (cache invalidated server-side)
-      window.location.reload();
-    }
-    setSaving(false);
-  }
-
+export async function isDomainVerified(domain: string, verifyToken: string) {
+  const cnames = await resolveCname(domain).catch(() => [] as string[]);
+  const txts = (await resolveTxt(`_projecthub.${domain}`).catch(() => [] as string[][])).flat();
   return (
-    <div className="max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold">Branding</h1>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Colors</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <ColorPicker
-            label="Primary"
-            value={theme.primaryColor}
-            onChange={(c) => setTheme({ ...theme, primaryColor: c })}
-          />
-          <ColorPicker
-            label="Secondary"
-            value={theme.secondaryColor}
-            onChange={(c) => setTheme({ ...theme, secondaryColor: c })}
-          />
-          <ColorPicker
-            label="Accent"
-            value={theme.accentColor}
-            onChange={(c) => setTheme({ ...theme, accentColor: c })}
-          />
-          <ColorPicker
-            label="Background"
-            value={theme.backgroundColor}
-            onChange={(c) => setTheme({ ...theme, backgroundColor: c })}
-          />
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Logo</h2>
-        <LogoUploader
-          currentUrl={theme.logoUrl}
-          onUpload={(url) => setTheme({ ...theme, logoUrl: url })}
-        />
-      </section>
-
-      {/* Live preview with the edited theme */}
-      <section className="border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Preview</h2>
-        <div style={{
-          '--color-primary': theme.primaryColor,
-          '--color-secondary': theme.secondaryColor,
-          '--color-accent': theme.accentColor,
-        } as React.CSSProperties}>
-          <button className="btn-primary px-4 py-2 text-white rounded">
-            Primary Button
-          </button>
-          <button className="btn-secondary px-4 py-2 text-white rounded ml-2">
-            Secondary
-          </button>
-        </div>
-      </section>
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="btn-primary px-6 py-2 text-white rounded"
-      >
-        {saving ? 'Saving...' : 'Save Changes'}
-      </button>
-    </div>
-  );
-}
-
-function ColorPicker({ label, value, onChange }: {
-  label: string; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <label className="flex items-center gap-3">
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-10 h-10 rounded cursor-pointer"
-      />
-      <span>{label}</span>
-      <code className="text-sm text-gray-500">{value}</code>
-    </label>
-  );
-}
-
-function LogoUploader({ currentUrl, onUpload }: {
-  currentUrl: string; onUpload: (url: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-4">
-      <img src={currentUrl} alt="Logo" className="h-12" />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          const form = new FormData();
-          form.append('file', file);
-          const res = await fetch('/api/admin/upload', { method: 'POST', body: form });
-          const { url } = await res.json();
-          onUpload(url);
-        }}
-      />
-    </div>
+    cnames.some((c) => c.replace(/\.$/, '').toLowerCase() === 'app.projecthub.io') ||
+    txts.includes(`verify=${verifyToken}`)
   );
 }
 ```
 
-## Results
+If it returns false, show the tenant the CNAME (`domain -> app.projecthub.io`) or TXT (`_projecthub.domain -> verify=<token>`) record to add. Only after it returns true save `customDomain` (lowercased) and call `invalidateTenantCache`. Never match the CNAME target with `includes`: `evil-projecthub.io` would pass.
 
-After launching white-label to the three enterprise prospects:
+Apex domains cannot carry a CNAME, so those tenants must use the TXT record plus an A/ALIAS record pointing to your server.
 
-- **$180K ARR added** from three enterprise contracts ($5K/month each)
-- **Single codebase** — zero forks, zero divergence, one CI/CD pipeline
-- **Tenant onboarding** takes 15 minutes — create config, point DNS, done
-- **Custom domain SSL** provisioned automatically via Caddy — no manual cert management
-- **Theme changes** are live in <5 seconds (Redis cache invalidation + page reload)
-- **Feature gate overhead**: 0.2ms per check — negligible impact on page load
-- **Two more enterprise prospects** signed after seeing the white-label demo
-- **Support tickets** dropped 40% — tenants self-manage branding instead of requesting changes
+### Step 7: Tenant branding endpoint
+
+The branding page is a form with `<input type="color">` fields that PUTs to a handler. Validate with `TenantTheme.safeParse`, write the `theme` column, then call `invalidateTenantCache`. Take `tenantId` from the session of an authenticated tenant admin, never from the URL or body, so one tenant cannot edit another. Accept logo uploads through a presigned upload to object storage and store only the resulting HTTPS URL.
+
+## Real-World Example
+
+Nadia onboards Acme Corp. She inserts a `Tenant` row with Acme's colors and `ganttChart: true`, then sends them the TXT record to publish. Once `isDomainVerified` returns true, she saves `customDomain`, and the first visit to `https://projects.acmecorp.com` makes Caddy ask `/api/tls-allowed`, get a 200 and obtain a certificate. A second tenant with `ganttChart: false` sees the upgrade banner in the UI and gets a 403 from the Gantt API. All three customers run on the same deployment, so a bug fix ships once.
+
+## Related Skills
+
+- [typescript](../skills/typescript/SKILL.md): typed config shared by proxy, layout and handlers
+- [nextjs](../skills/nextjs/SKILL.md): `proxy.ts`, server layouts and route handlers
+- [prisma](../skills/prisma/SKILL.md): tenant model and domain lookups
+- [redis](../skills/redis/SKILL.md): tenant config cache with explicit invalidation
+- [tailwindcss](../skills/tailwindcss/SKILL.md): `@theme inline` bound to runtime variables
+- [zod](../skills/zod/SKILL.md): validation of tenant config and branding input
