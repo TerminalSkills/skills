@@ -1,297 +1,227 @@
 ---
 name: redis
 description: >-
-  Build applications with Redis — caching, session storage, pub/sub, streams,
-  rate limiting, leaderboards, and queues. Use when tasks involve in-memory
-  data storage, real-time messaging, distributed locking, or performance
-  optimization with caching layers.
+  Redis is an in-memory data store used as a cache, session store, message
+  broker and counter service. Use when adding a cache layer, storing sessions,
+  rate limiting an API, running pub/sub or Streams with consumer groups,
+  taking a distributed lock, building a leaderboard, or configuring Redis for
+  production (persistence, maxmemory, eviction).
 license: Apache-2.0
-compatibility: "Requires Redis 6+"
+compatibility: "Redis 7+ or Valkey; redis-py 8 (Python 3.10+) or ioredis 6 / node-redis 6 for Node.js"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/redis/redis
   tags: ["redis", "caching", "database", "pub-sub", "queues"]
 ---
 
 # Redis
 
-Build fast, scalable applications with Redis as a cache, message broker, session store, or real-time data engine.
+## Overview
 
-## Setup
+Redis keeps data structures (strings, hashes, sets, sorted sets, streams) in memory and answers commands over TCP on port 6379. Typical uses: a cache in front of a database, expiring sessions, counters and rate limits, queues and event streams, locks, and leaderboards. Licensing: Redis 7.2 and earlier are BSD; Redis 8 is released under RSALv2, SSPLv1 or AGPLv3 at your option. Valkey is a BSD-licensed fork with the same protocol; every command below works on both.
 
-### Docker (quickstart)
+## Instructions
+
+### Run it locally
+
+Publish the port on loopback only, require a password, and pass the password through the environment so it does not sit in the process list or shell history:
 
 ```bash
-# Redis 7 with persistence
-docker run -d --name redis -p 6379:6379 \
-  -v redis-data:/data \
-  redis:7-alpine redis-server --appendonly yes --requirepass "your-password"
+export REDIS_PASSWORD="$(openssl rand -hex 16)"
+docker run -d --name redis-dev -p 127.0.0.1:6379:6379 -e REDIS_PASSWORD \
+  -v redis-data:/data redis:8-alpine \
+  sh -c 'exec redis-server --appendonly yes --requirepass "$REDIS_PASSWORD"'
+docker exec redis-dev sh -c 'redis-cli -a "$REDIS_PASSWORD" --no-auth-warning ping'
 ```
 
-### Connection
+The last command prints `PONG`. Never publish Redis on `0.0.0.0` or the public internet; Redis has no TLS or access control worth trusting without configuration.
+
+### Connect
 
 ```python
-"""redis_client.py — Redis connection with connection pooling."""
+import os
 import redis
 
-# Single connection
-r = redis.Redis(host="localhost", port=6379, password="your-password", db=0,
-                decode_responses=True)  # Auto-decode bytes to strings
-
-# Connection pool (recommended for production)
-pool = redis.ConnectionPool(
-    host="localhost", port=6379, password="your-password",
-    max_connections=20,  # Match your app's concurrency
-    decode_responses=True,
-)
-r = redis.Redis(connection_pool=pool)
-
-# Verify connection
-r.ping()  # Returns True
+# One client per process: it owns a connection pool (default is unlimited, so cap it).
+r = redis.Redis(host="127.0.0.1", port=6379, password=os.environ["REDIS_PASSWORD"],
+                decode_responses=True, max_connections=20)
+r.ping()  # True
 ```
 
 ```javascript
-// redis-client.js — Node.js connection with ioredis
 import Redis from 'ioredis';
 const redis = new Redis({
-  host: 'localhost', port: 6379, password: 'your-password',
+  host: '127.0.0.1', port: 6379, password: process.env.REDIS_PASSWORD,
   maxRetriesPerRequest: 3,
   retryStrategy: (times) => Math.min(times * 50, 2000),
 });
 ```
 
-## Caching Patterns
+The official client for Node.js is `redis` (node-redis): `createClient({ url })`, then `await client.connect()`; commands take options such as `client.set(k, v, { expiration: { type: 'EX', value: 60 } })` (the flat `{ EX: 60 }` form is deprecated).
 
-### Cache-Aside (most common)
+### Cache-aside
+
+Read the cache first, fall back to the database, store with a TTL, and delete the key on writes:
 
 ```python
-"""cache_aside.py — Cache-aside pattern with automatic expiration."""
 import json
 
 def get_user(user_id: int) -> dict:
-    """Fetch user from cache, falling back to database.
-
-    Args:
-        user_id: The user's ID.
-
-    Returns:
-        User dict from cache or database.
-    """
-    cache_key = f"user:{user_id}"
-    cached = r.get(cache_key)
+    key = f"user:{user_id}"
+    cached = r.get(key)
     if cached:
         return json.loads(cached)
-
-    # Cache miss — fetch from database
-    user = db.query("SELECT * FROM users WHERE id = %s", user_id)
-    r.setex(cache_key, 3600, json.dumps(user))  # Cache for 1 hour
+    user = db.fetch_user(user_id)          # your data layer
+    r.set(key, json.dumps(user), ex=3600)  # SET ... EX replaces the older SETEX
     return user
 
-def update_user(user_id: int, data: dict):
-    """Update user in database and invalidate cache.
-
-    Args:
-        user_id: The user's ID.
-        data: Fields to update.
-    """
-    db.execute("UPDATE users SET ... WHERE id = %s", user_id)
-    r.delete(f"user:{user_id}")  # Invalidate — next read repopulates
+def update_user(user_id: int, fields: dict):
+    db.update_user(user_id, fields)
+    r.delete(f"user:{user_id}")            # next read repopulates
 ```
 
-### Write-Through Cache
+Write-through (write the database, then `r.set(key, ..., ex=7200)`) keeps the cache warm but the two writes are not atomic; if the cache write fails the entry stays stale until the TTL ends, so always set a TTL.
+
+### Sessions
+
+`GETEX` reads and refreshes the TTL in one command (sliding expiry); a per-user set allows "log out everywhere":
 
 ```python
-"""write_through.py — Write-through: update cache and DB together."""
+import json, secrets, time
 
-def save_product(product_id: str, data: dict):
-    """Save product to both database and cache atomically.
+SESSION_TTL = 86400
 
-    Args:
-        product_id: Product identifier.
-        data: Product data dict.
-    """
-    # Write to DB first (source of truth)
-    db.execute("INSERT INTO products ... ON CONFLICT UPDATE ...", data)
-
-    # Then update cache
-    r.setex(f"product:{product_id}", 7200, json.dumps(data))  # 2h TTL
-```
-
-## Session Storage
-
-```python
-"""session_store.py — HTTP session storage in Redis."""
-import secrets, json
-
-SESSION_TTL = 86400  # 24 hours
-
-def create_session(user_id: int, metadata: dict = None) -> str:
-    """Create a new session and return the session token.
-
-    Args:
-        user_id: Authenticated user's ID.
-        metadata: Optional session metadata (IP, user-agent, etc.).
-    """
+def create_session(user_id: int, metadata: dict | None = None) -> str:
     token = secrets.token_urlsafe(32)
-    session_data = {"user_id": user_id, "created_at": time.time(), **(metadata or {})}
-    r.setex(f"session:{token}", SESSION_TTL, json.dumps(session_data))
-    # Track active sessions per user for "log out everywhere"
-    r.sadd(f"user_sessions:{user_id}", token)
+    data = {"user_id": user_id, "created_at": time.time(), **(metadata or {})}
+    pipe = r.pipeline()
+    pipe.set(f"session:{token}", json.dumps(data), ex=SESSION_TTL)
+    pipe.sadd(f"user_sessions:{user_id}", token)
+    pipe.expire(f"user_sessions:{user_id}", SESSION_TTL)
+    pipe.execute()
     return token
 
 def get_session(token: str) -> dict | None:
-    """Validate and return session data, extending TTL on access.
-
-    Args:
-        token: Session token from cookie/header.
-    """
-    data = r.get(f"session:{token}")
-    if not data:
-        return None
-    r.expire(f"session:{token}", SESSION_TTL)  # Sliding expiration
-    return json.loads(data)
+    data = r.getex(f"session:{token}", ex=SESSION_TTL)
+    return json.loads(data) if data else None
 
 def destroy_all_sessions(user_id: int):
-    """Invalidate all sessions for a user (password change, security breach).
-
-    Args:
-        user_id: The user whose sessions to destroy.
-    """
     tokens = r.smembers(f"user_sessions:{user_id}")
     if tokens:
         r.delete(*[f"session:{t}" for t in tokens])
     r.delete(f"user_sessions:{user_id}")
 ```
 
-## Rate Limiting
+### Sliding-window rate limit
 
-### Sliding Window
+The member must be unique per request, or two requests in the same instant collapse into one entry. Rejected requests are also counted, which is usually what you want against abuse:
 
 ```python
-"""rate_limiter.py — Sliding window rate limiter using sorted sets."""
-import time
+import time, uuid
 
 def is_rate_limited(key: str, limit: int, window_seconds: int) -> bool:
-    """Check if a key has exceeded its rate limit.
-
-    Args:
-        key: Identifier (e.g., IP address, API key, user ID).
-        limit: Maximum requests allowed in the window.
-        window_seconds: Window size in seconds.
-
-    Returns:
-        True if rate limited, False if request is allowed.
-    """
     now = time.time()
-    window_start = now - window_seconds
-    pipe = r.pipeline()
     rk = f"ratelimit:{key}"
-
-    pipe.zremrangebyscore(rk, 0, window_start)  # Remove expired entries
-    pipe.zadd(rk, {f"{now}": now})              # Add current request
-    pipe.zcard(rk)                               # Count requests in window
-    pipe.expire(rk, window_seconds)              # Auto-cleanup
-
-    results = pipe.execute()
-    count = results[2]
-    return count > limit
+    pipe = r.pipeline()  # runs as MULTI/EXEC
+    pipe.zremrangebyscore(rk, 0, now - window_seconds)
+    pipe.zadd(rk, {f"{now}:{uuid.uuid4().hex[:8]}": now})
+    pipe.zcard(rk)
+    pipe.expire(rk, window_seconds)
+    return pipe.execute()[2] > limit
 ```
 
-For smoother rate limiting, consider a token bucket implementation using a Lua script that tracks tokens and refill timestamps in a Redis hash.
+For a cheaper fixed window use `INCR` plus `EXPIRE ... NX` on a per-window key.
 
-## Pub/Sub
+### Pub/sub
+
+Pub/sub is fire-and-forget: a subscriber that is offline misses the message. `run_in_thread` handles the listener loop; call `thread.stop()` to shut down (it closes the subscription itself):
 
 ```python
-"""pubsub.py — Real-time messaging with Redis pub/sub."""
-import threading
-
-def publish_event(channel: str, event: dict):
-    """Publish an event to a channel.
-
-    Args:
-        channel: Channel name (e.g., "notifications:user:123").
-        event: Event data dict — serialized to JSON.
-    """
-    r.publish(channel, json.dumps(event))
-
-def subscribe_to_events(pattern: str, callback):
-    """Subscribe to channels matching a pattern.
-
-    Args:
-        pattern: Glob pattern (e.g., "notifications:*").
-        callback: Function called with (channel, data) for each message.
-    """
-    ps = r.pubsub()
-    ps.psubscribe(pattern)
-
-    def listener():
-        for msg in ps.listen():
-            if msg["type"] == "pmessage":
-                callback(msg["channel"], json.loads(msg["data"]))
-
-    thread = threading.Thread(target=listener, daemon=True)
-    thread.start()
-    return ps  # Return for cleanup: ps.punsubscribe()
+pubsub = r.pubsub(ignore_subscribe_messages=True)
+pubsub.psubscribe(**{"notifications:*": lambda m: print(m["channel"], json.loads(m["data"]))})
+thread = pubsub.run_in_thread(sleep_time=0.05, daemon=True)
+r.publish("notifications:user:123", json.dumps({"type": "invoice_paid"}))
 ```
 
-## Streams (persistent messaging)
+### Streams with consumer groups
 
-Unlike pub/sub, streams persist messages and support consumer groups. Use `XADD` to add events, `XGROUP CREATE` to create consumer groups, and `XREADGROUP`/`XACK` to consume and acknowledge messages. Set `maxlen` on `XADD` to cap stream memory.
-
-## Distributed Locking
+Use Streams when messages must survive restarts and be acknowledged:
 
 ```python
-"""distributed_lock.py — Distributed lock using Redis (Redlock pattern)."""
+try:
+    r.xgroup_create("orders", "billing", id="$", mkstream=True)
+except redis.ResponseError as e:
+    if "BUSYGROUP" not in str(e):
+        raise
+
+r.xadd("orders", {"order_id": "A-1001", "total": "49.99"}, maxlen=10000, approximate=True)
+
+for _stream, entries in r.xreadgroup("billing", "worker-1", {"orders": ">"}, count=10, block=5000) or []:
+    for entry_id, fields in entries:
+        handle(fields)
+        r.xack("orders", "billing", entry_id)
+
+# Take over entries a crashed worker never acknowledged
+r.xautoclaim("orders", "billing", "worker-2", min_idle_time=60_000, start_id="0-0", count=10)
+```
+
+### Lock on one Redis instance
+
+`SET key token NX EX` acquires; a Lua script releases only if you still own it. This protects against a crashed holder but is not Redlock: it is unsafe across failover and for long critical sections, so use a fencing token on the protected resource when correctness matters:
+
+```python
+import secrets
+
+release = r.register_script("""
+if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end
+return 0
+""")
 
 def acquire_lock(name: str, timeout: int = 10) -> str | None:
-    """Acquire a distributed lock.
-
-    Args:
-        name: Lock name (e.g., "process:invoice:12345").
-        timeout: Lock expiration in seconds (prevents deadlocks).
-
-    Returns:
-        Lock token if acquired, None if already held.
-    """
     token = secrets.token_urlsafe(16)
-    acquired = r.set(f"lock:{name}", token, nx=True, ex=timeout)
-    return token if acquired else None
-
-# Lua script ensures atomic check-and-delete (only owner can release)
-RELEASE_SCRIPT = """
-if redis.call('GET', KEYS[1]) == ARGV[1] then
-    return redis.call('DEL', KEYS[1])
-end
-return 0
-"""
+    return token if r.set(f"lock:{name}", token, nx=True, ex=timeout) else None
 
 def release_lock(name: str, token: str) -> bool:
-    """Release a lock (only if we own it).
-
-    Args:
-        name: Lock name.
-        token: Token returned by acquire_lock.
-    """
-    return r.eval(RELEASE_SCRIPT, 1, f"lock:{name}", token) == 1
+    return release(keys=[f"lock:{name}"], args=[token]) == 1
 ```
 
-## Leaderboards
+### Leaderboard
 
-Use sorted sets (`ZADD`, `ZREVRANGE`, `ZREVRANK`) for real-time leaderboards. `ZADD` sets scores, `ZREVRANGE` returns top N entries, and `ZREVRANK` gets a member's rank.
+```python
+r.zadd("leaderboard:weekly", {"ana": 1200, "bo": 900, "cy": 1500})
+r.zrange("leaderboard:weekly", 0, 2, desc=True, withscores=True)  # top 3: cy, ana, bo
+r.zrevrank("leaderboard:weekly", "ana")                           # 1 (zero-based)
+```
 
-## Production Configuration
+`ZRANGE ... REV` (`desc=True`) replaces the deprecated `ZREVRANGE`.
 
-Key settings: `maxmemory 2gb`, `maxmemory-policy allkeys-lru`, `appendonly yes`, `appendfsync everysec`. Always set a `maxmemory` limit to prevent out-of-memory crashes.
+### Production settings
+
+Set `maxmemory` always. Choose the policy by role: `allkeys-lru` for a pure cache; `noeviction` (or `volatile-lru` with TTLs on everything evictable) when Redis holds sessions, streams or locks that must not disappear. Use `appendonly yes` with `appendfsync everysec` when the data matters. Put Redis on a private network, require `requirepass` or ACL users (`ACL SETUSER`), and disable dangerous commands for app users through ACLs rather than renaming them.
+
+## Examples
+
+### Example 1: Cache a slow product lookup
+
+**User request:** "Our /products/:id endpoint hits Postgres every time. Add Redis caching and make sure edits show up."
+
+Apply the cache-aside code with key `product:{id}` and a 10-minute TTL, and call `r.delete(f"product:{id}")` inside the update handler after the database commit. Check with `redis-cli -a "$REDIS_PASSWORD" --no-auth-warning TTL product:981`, which prints a number below 600 after the first read and `-2` after an update.
+
+### Example 2: Throttle an API key
+
+**User request:** "Limit each API key to 100 requests per minute."
+
+Call `is_rate_limited(f"key:{api_key_id}", 100, 60)` at the start of the request; on `True` return HTTP 429 with a `Retry-After: 60` header. Tested with limit 3: the calls return `[False, False, False, True, True]`.
 
 ## Guidelines
 
-- Use `SETEX`/`SET ... EX` with TTLs for all cache keys -- keys without expiration leak memory
-- Pipeline multiple commands when doing batch operations -- reduces round trips
-- Use Lua scripts for atomic multi-step operations (check-and-set, compare-and-delete)
-- Prefer Streams over pub/sub when message persistence matters -- pub/sub drops messages if no subscriber is listening
-- Key naming convention: use colons as separators (`user:123:profile`, `cache:product:456`)
-- Monitor memory usage with `INFO memory` -- Redis is in-memory, running out kills the process
-- Use `SCAN` instead of `KEYS *` in production -- `KEYS` blocks the server on large datasets
-- Connection pooling is essential -- creating a new connection per request adds 1-2ms latency
-- Redis is single-threaded for commands -- one slow Lua script blocks everything
+- Give every cache key a TTL (`SET ... EX`); keys without one grow until `maxmemory` is reached.
+- Use `SCAN` (`r.scan_iter("ratelimit:*", count=100)`) instead of `KEYS`, which blocks the server on large datasets.
+- Pipeline batches of commands to save round trips; use Lua scripts or `MULTI` for read-modify-write steps.
+- Redis runs commands on one thread: one slow script, a huge `SMEMBERS` or `DEL` of a big key blocks everyone. Use `UNLINK` for large keys.
+- Keep values small; store large blobs elsewhere and cache the reference.
+- Name keys with colons (`user:123:profile`) so tools and ACL patterns can group them.
+- Watch `INFO memory`, `evicted_keys` and `connected_clients`; alert before memory reaches `maxmemory`.
+- Do not use Redis as the only copy of data you cannot rebuild unless persistence and backups are configured and tested.
