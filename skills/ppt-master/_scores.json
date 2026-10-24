@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:81dfb266dd6487f54a4d8877112cbdb5fcc1e3009123cf4b4dd1ea3779cb27c6",
+  "scoredAt": "2026-10-24T23:19:27.376Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error scenarios or edge cases comprehensively."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.79,
+    "baselineAvg": 43,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "generate-deck-with-native-charts-and-ai-images",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric points, while Response B omits the flag, export location, and explicit mention of AI images per slide."
+      },
+      {
+        "name": "edit-deck-with-narration",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is empty."
+      },
+      {
+        "name": "create-template-and-generate-deck-with-animation",
+        "baseline": 80,
+        "treatment": 30,
+        "rationale": "Response A covers the required commands and options, missing only the explicit final .pptx statement, while Response B omits the command syntax and the final output confirmation."
+      }
+    ]
+  }
+}

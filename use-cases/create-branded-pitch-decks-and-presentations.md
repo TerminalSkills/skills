@@ -5,6 +5,7 @@ description: "Generate on-brand presentations using AI slide generation guided b
 skills:
   - ai-slides
   - brand-guidelines
+  - ppt-master
 category: design
 tags:
   - presentations
@@ -69,3 +70,7 @@ The marketing lead rolled out the brand guidelines and templates on a Monday. Th
 The sales team adopted the case study template and produced 4 customer stories in a single afternoon for an upcoming conference. Each case study followed the same narrative arc (challenge, solution, results with specific metrics), making them easy for prospects to compare across different customer profiles.
 
 When a new marketing hire joined, they created their first branded deck on day one without asking anyone which blue to use, because the brand guidelines answered every visual question. The quality checklist caught three presentations with off-brand colors and one with 14pt font before they went external. Three months later, every presentation leaving the company looked like it came from the same organization, and the investor who led the Series B round later mentioned that the consistent, polished materials were a factor in their confidence assessment.
+
+## Related Skills
+
+- [ppt-master](/skills/ppt-master) — choose it when the deck must come out as a natively editable .pptx: it fills the company's existing PowerPoint template with new content, or builds a reusable brand template from it, keeping slide masters and layouts intact.
