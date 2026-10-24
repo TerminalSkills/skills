@@ -1,295 +1,206 @@
 ---
 name: jest
 description: >
-  Jest is a comprehensive JavaScript testing framework built by Meta, designed for zero-configuration
-  testing of JavaScript and TypeScript applications. It provides a complete ecosystem for unit testing,
-  integration testing, and snapshot testing with built-in code coverage, mocking capabilities, and
-  parallel test execution. Jest works seamlessly with React, Node.js, Angular, Vue, and virtually
-  any JavaScript project, making it the most widely adopted testing framework in the ecosystem.
+  Jest is a JavaScript and TypeScript testing framework from the OpenJS Foundation that bundles a test
+  runner, assertions, mocking, snapshots and code coverage in one package. Use it when you need to
+  write unit tests, mock modules or timers, test async code, enforce coverage thresholds, run tests in
+  watch mode, or wire Jest into CI for Node.js, React or TypeScript projects.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: 'macos, linux, windows; Node.js 18.14+ (Jest 30)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/jestjs/jest
   tags:
     - javascript
     - testing
     - unit-testing
     - mocking
     - coverage
-    - snapshot-testing
-    - tdd
 ---
 
 # Jest — JavaScript Testing Framework
 
-Jest brings a batteries-included approach to JavaScript testing. Where other frameworks require you to assemble a test runner, assertion library, and mocking tool separately, Jest ships all three in a single package. You install it, write a test, and run it. That simplicity is why it dominates the JavaScript testing landscape.
+## Overview
 
-This skill walks you through Jest from first principles — writing assertions, mocking dependencies, testing asynchronous code, generating coverage reports, and integrating everything into a CI pipeline.
+Jest ships a test runner, `expect` assertions, mocks, snapshots and Istanbul coverage in one package. Current major version is 30 (needs Node 18.14+, 20, 22 or 24+). This skill covers setup for TypeScript, writing tests, mocking, async code, snapshots, coverage and CI.
 
-## Installing and Configuring Jest
+## Instructions
 
-Every Jest setup begins with installation and a configuration file. Jest works out of the box for plain JavaScript, but most real projects need a bit of configuration for TypeScript, JSX, or module resolution.
+### Install and configure (TypeScript)
 
 ```bash
-# Install Jest and its TypeScript support
-npm install --save-dev jest ts-jest @types/jest
+npm install --save-dev jest ts-jest typescript @types/jest ts-node
 ```
 
-Once installed, create a configuration file at the root of your project. The `jest.config.ts` format gives you type checking on your configuration options.
+`ts-node` is needed only so Jest can read `jest.config.ts`. `ts-jest` 29.x supports Jest 29 and 30.
 
 ```typescript
-// jest.config.ts — Root Jest configuration for a TypeScript project
+// jest.config.ts
 import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.test.ts', '**/*.spec.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-  ],
-  coverageThresholds: {
-    global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
-    },
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/**/index.ts'],
+  coverageThreshold: {
+    global: { branches: 80, functions: 80, lines: 80, statements: 80 },
   },
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
 };
 
 export default config;
 ```
 
-Add test scripts to your `package.json` so your team has consistent commands.
+The key is `coverageThreshold` (singular). A misspelling such as `coverageThresholds` only prints a validation warning, and no threshold is enforced.
+
+TypeScript 6 no longer loads every `@types/*` package automatically, so without a `types` entry the globals `describe`, `test`, `expect` and `jest` fail with "Cannot find name". Either list them in `tsconfig.json` or import from `@jest/globals` in each test:
 
 ```json
-// package.json — Scripts section for Jest commands
-{
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit"
-  }
-}
+{ "compilerOptions": { "target": "es2022", "module": "commonjs", "esModuleInterop": true, "strict": true, "types": ["jest", "node"] } }
 ```
 
-## Writing Assertions
+Scripts:
 
-Jest's `expect` API gives you a fluent interface for asserting values. Every test follows the same pattern: arrange your data, act on it, then assert the result.
+```json
+{ "scripts": { "test": "jest", "test:watch": "jest --watch", "test:coverage": "jest --coverage" } }
+```
+
+Test files match `**/__tests__/**/*.[jt]s?(x)` and `**/?(*.)+(spec|test).[jt]s?(x)` by default. Without ts-jest, `@swc/jest` is a faster transformer and `babel-jest` is built in.
+
+### Assertions
 
 ```typescript
-// src/__tests__/math.test.ts — Basic assertion patterns with Jest matchers
-describe('arithmetic operations', () => {
-  test('adds two numbers correctly', () => {
-    const result = add(2, 3);
-    expect(result).toBe(5);
+// src/math.test.ts
+import { add, divide, createUser } from './math';
+
+describe('math', () => {
+  test('adds two numbers', () => {
+    expect(add(2, 3)).toBe(5);
   });
 
-  test('returns an object with computed properties', () => {
-    const result = createUser('Alice', 30);
-
-    // toEqual performs deep equality, unlike toBe which checks reference
-    expect(result).toEqual({
-      name: 'Alice',
-      age: 30,
-      id: expect.any(String),
-    });
+  test('toEqual compares deeply, toBe compares identity', () => {
+    expect(createUser('Alice', 30)).toEqual({ name: 'Alice', age: 30, id: expect.any(String) });
   });
 
-  test('array contains specific items', () => {
-    const fruits = getFruits();
-
-    expect(fruits).toContain('apple');
-    expect(fruits).toHaveLength(3);
-    expect(fruits).toEqual(expect.arrayContaining(['apple', 'banana']));
-  });
-
-  test('function throws on invalid input', () => {
+  test('throws on division by zero', () => {
     expect(() => divide(10, 0)).toThrow('Cannot divide by zero');
-    expect(() => divide(10, 0)).toThrow(ArithmeticError);
   });
 });
 ```
 
-## Mock Functions and Module Mocking
-
-Mocking is where Jest truly shines. You can replace any function, module, or timer with a controllable substitute. This lets you test units in complete isolation.
+### Mocks
 
 ```typescript
-// src/__tests__/userService.test.ts — Mocking external dependencies
-import { UserService } from '../userService';
-import { database } from '../database';
+// src/userService.test.ts
+import { UserService } from './userService';
+import { database } from './database';
 
-// Replace the entire database module with auto-mocked version
-jest.mock('../database');
+jest.mock('./database'); // auto-mock every export
 
 const mockedDb = jest.mocked(database);
 
-describe('UserService', () => {
-  beforeEach(() => {
-    // Clear all mock state between tests
-    jest.clearAllMocks();
-  });
+beforeEach(() => jest.clearAllMocks());
 
-  test('fetches a user by ID from the database', async () => {
-    const mockUser = { id: '1', name: 'Alice', email: 'alice@example.com' };
-    mockedDb.findById.mockResolvedValue(mockUser);
+test('fetches a user by id', async () => {
+  mockedDb.findById.mockResolvedValue({ id: '1', name: 'Alice' });
 
-    const service = new UserService();
-    const user = await service.getUser('1');
+  const user = await new UserService().getUser('1');
 
-    expect(mockedDb.findById).toHaveBeenCalledWith('1');
-    expect(mockedDb.findById).toHaveBeenCalledTimes(1);
-    expect(user).toEqual(mockUser);
-  });
+  expect(mockedDb.findById).toHaveBeenCalledWith('1');
+  expect(user.name).toBe('Alice');
+});
 
-  test('throws when user is not found', async () => {
-    mockedDb.findById.mockResolvedValue(null);
-
-    const service = new UserService();
-
-    await expect(service.getUser('999')).rejects.toThrow('User not found');
-  });
+test('rejects when the user is missing', async () => {
+  mockedDb.findById.mockResolvedValue(null);
+  await expect(new UserService().getUser('999')).rejects.toThrow('User not found');
 });
 ```
 
-For more granular control, `jest.fn()` creates standalone mock functions you can pass as callbacks or method implementations.
+- `jest.fn()` makes a standalone mock; `.mockReturnValueOnce()`, `.mockResolvedValue()` and `.mockImplementation()` control it.
+- `jest.spyOn(obj, 'method')` wraps a real method; `mockRestore()` puts it back.
+- `clearAllMocks` resets call history, `resetAllMocks` also removes implementations, `restoreAllMocks` restores spies. Config keys `clearMocks`, `resetMocks` and `restoreMocks` do this before every test.
+
+### Async code and timers
+
+Always `await` or `return` the promise, otherwise the test ends before the assertion runs.
 
 ```typescript
-// src/__tests__/eventHandler.test.ts — Using jest.fn() for callback testing
-describe('event handler', () => {
-  test('calls the callback with processed data', () => {
-    const callback = jest.fn();
+test('retries a failed fetch', async () => {
+  global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
 
-    processEvents([{ type: 'click', target: 'button' }], callback);
+  const result = await fetchWithRetry('/api/orders', { retries: 3 });
 
-    expect(callback).toHaveBeenCalledTimes(1);
-    expect(callback).toHaveBeenCalledWith({
-      type: 'click',
-      target: 'button',
-      timestamp: expect.any(Number),
-    });
-  });
+  expect(result.error).toBe('Network error');
+  expect(global.fetch).toHaveBeenCalledTimes(4); // first call + 3 retries
+});
 
-  test('mock implementation controls return value', () => {
-    const getPrice = jest.fn()
-      .mockReturnValueOnce(10.99)
-      .mockReturnValueOnce(24.99)
-      .mockReturnValue(0);
+test('debounced search fires once', () => {
+  jest.useFakeTimers();
+  const onSearch = jest.fn();
+  const search = debounce(onSearch, 300);
 
-    expect(getPrice()).toBe(10.99);
-    expect(getPrice()).toBe(24.99);
-    expect(getPrice()).toBe(0);
-  });
+  search('jest'); search('jest co');
+  jest.advanceTimersByTime(300);
+
+  expect(onSearch).toHaveBeenCalledTimes(1);
+  jest.useRealTimers();
 });
 ```
 
-## Testing Asynchronous Code
-
-Modern JavaScript is heavily asynchronous. Jest handles promises, async/await, and callbacks with equal ease. The key is always returning or awaiting the asynchronous operation so Jest knows when the test is done.
+### Snapshots
 
 ```typescript
-// src/__tests__/api.test.ts — Patterns for testing async operations
-describe('API client', () => {
-  test('fetches data with async/await', async () => {
-    const data = await fetchUserProfile('alice');
-
-    expect(data.username).toBe('alice');
-    expect(data.posts).toBeInstanceOf(Array);
-  });
-
-  test('handles API errors gracefully', async () => {
-    // Mock fetch to simulate a network failure
-    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
-
-    const result = await fetchWithRetry('/api/data', { retries: 3 });
-
-    expect(result.error).toBe('Network error');
-    expect(global.fetch).toHaveBeenCalledTimes(4); // initial + 3 retries
-  });
-
-  test('resolves multiple concurrent requests', async () => {
-    const [users, posts] = await Promise.all([
-      fetchUsers(),
-      fetchPosts(),
-    ]);
-
-    expect(users).toHaveLength(10);
-    expect(posts).toHaveLength(25);
-  });
-});
-```
-
-## Snapshot Testing
-
-Snapshots capture the output of a component or function and compare it against a saved reference. They are invaluable for catching unintended changes in UI components or serialized data structures.
-
-```typescript
-// src/__tests__/components.test.tsx — Snapshot testing for React components
 import { render } from '@testing-library/react';
-import { UserCard } from '../components/UserCard';
+import { UserCard } from './UserCard';
 
-describe('UserCard', () => {
-  test('renders correctly with user data', () => {
-    const { container } = render(
-      <UserCard
-        name="Alice Johnson"
-        email="alice@example.com"
-        role="admin"
-      />
-    );
+test('renders the admin card', () => {
+  const { container } = render(<UserCard name="Alice Johnson" role="admin" />);
+  expect(container).toMatchSnapshot();
+});
 
-    expect(container).toMatchSnapshot();
-  });
-
-  test('inline snapshot for small outputs', () => {
-    const formatted = formatAddress({
-      street: '123 Main St',
-      city: 'Springfield',
-      state: 'IL',
-    });
-
-    expect(formatted).toMatchInlineSnapshot(`"123 Main St, Springfield, IL"`);
-  });
+test('formats an address', () => {
+  expect(formatAddress({ street: '123 Main St', city: 'Springfield', state: 'IL' }))
+    .toMatchInlineSnapshot(`"123 Main St, Springfield, IL"`);
 });
 ```
 
-When a snapshot test fails because you intentionally changed the output, update the snapshots with `jest --updateSnapshot`.
+Update intentionally changed snapshots with `npx jest --updateSnapshot` (`-u`). Review the snapshot diff in the pull request like any code.
 
-## Coverage Reports and Watch Mode
+React component tests need `testEnvironment: 'jsdom'` and, since Jest 28, a separate package: `npm install --save-dev jest-environment-jsdom @testing-library/react @testing-library/jest-dom`. Load the matchers in a setup file listed in `setupFilesAfterEnv` with `import '@testing-library/jest-dom'`.
 
-Jest's built-in coverage tool uses Istanbul under the hood. It generates reports showing which lines, branches, functions, and statements your tests exercise.
-
-```bash
-# Generate a coverage report in multiple formats
-npx jest --coverage --coverageReporters='text' --coverageReporters='lcov'
-```
-
-Watch mode is where Jest becomes a development companion. It watches for file changes and re-runs only the tests affected by those changes.
+### Coverage, watch mode, filtering
 
 ```bash
-# Start watch mode — press 'p' to filter by filename, 't' to filter by test name
-npx jest --watch
+npx jest --coverage --coverageReporters=text --coverageReporters=lcov
+npx jest --watch                       # re-runs tests related to changed files (needs git)
+npx jest --testPathPatterns=billing    # Jest 30 name; Jest 29 used --testPathPattern
+npx jest -t "retries a failed fetch"   # filter by test name
+npx jest --onlyChanged
 ```
 
-Watch mode supports interactive filtering. Press `p` to filter tests by a filename regex, `t` to filter by test name, or `a` to run all tests. This tight feedback loop makes TDD practical even in large codebases.
+In watch mode press `p` to filter by file name, `t` by test name, `a` to run all.
 
-## CI Integration
+## Examples
 
-In continuous integration, Jest should run with specific flags that optimize for non-interactive environments and produce machine-readable output.
+### Example 1: "Add Jest to my TypeScript API and fail CI under 80% coverage"
+
+```bash
+npm install --save-dev jest ts-jest typescript @types/jest ts-node
+```
+
+Create `jest.config.ts` as above with `coverageThreshold`, then run `npx jest --ci --coverage`. When a threshold is missed Jest exits non-zero and prints, for example, `Jest: Coverage for branches (50%) does not meet "global" threshold (80%)`.
+
+### Example 2: "Test a function that uses setTimeout without waiting"
+
+Use `jest.useFakeTimers()`, trigger the code, then `jest.advanceTimersByTime(ms)` or `jest.runAllTimers()` as in the debounce example. Call `jest.useRealTimers()` afterwards. Result: the test runs in milliseconds and the callback count is exact.
+
+### Example 3: GitHub Actions
 
 ```yaml
-# .github/workflows/test.yml — GitHub Actions workflow running Jest
+# .github/workflows/test.yml
 name: Tests
 on: [push, pull_request]
 
@@ -300,12 +211,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-
       - run: npm ci
       - run: npx jest --ci --coverage --maxWorkers=2
-
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -313,4 +222,13 @@ jobs:
           path: coverage/lcov-report/
 ```
 
-The `--ci` flag changes snapshot behavior to fail instead of writing new snapshots, preventing accidental snapshot updates in CI. The `--maxWorkers` flag controls parallelism to match your CI runner's CPU count and avoid out-of-memory failures.
+`--ci` makes a missing snapshot fail instead of being written. `--maxWorkers` matches the runner's CPU count. For JUnit XML install `jest-junit` and add `--reporters=default --reporters=jest-junit`.
+
+## Guidelines
+
+- Prefer `toEqual` for objects and arrays, `toBe` for primitives and identity, `toStrictEqual` when `undefined` properties matter.
+- `jest.mock` calls are hoisted above imports by babel-jest and ts-jest. In ESM mode (`"type": "module"`) they are not; use `jest.unstable_mockModule` and run with `NODE_OPTIONS=--experimental-vm-modules`, or keep tests in CommonJS.
+- Jest 30 removed or renamed several APIs (`--testPathPattern` became `--testPathPatterns`, `jest.genMockFromModule` was removed in favour of `jest.createMockFromModule`, the old `toBeCalled`-style aliases were dropped). Read the Jest 30 upgrade guide when moving from 29.
+- Avoid snapshots of large or volatile output; assert on the values that matter.
+- Keep tests independent: reset mocks and timers in `beforeEach`/`afterEach`.
+- For a project already built with Vite, Vitest is usually less setup than Jest.
