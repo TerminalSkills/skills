@@ -1,156 +1,151 @@
 ---
 name: langtrace
 description: >-
-  You are an expert in Langtrace, the open-source observability platform for
-  LLM applications built on OpenTelemetry. You help developers trace LLM
-  calls, RAG pipelines, agent tool use, and chain executions with automatic
-  instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+
-  providers — providing cost tracking, latency analysis, token usage, and
-  quality evaluation in a self-hostable dashboard.
+  Langtrace is an open-source, OpenTelemetry-based observability platform for
+  LLM applications that records traces, token usage, cost and latency for LLM,
+  vector database and framework calls. Use when the user wants to trace OpenAI
+  or Anthropic calls, debug a RAG pipeline or agent, group calls into one
+  trace, collect user feedback on responses, or self-host an LLM tracing
+  dashboard.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Node.js (TypeScript SDK) or Python 3.9+ (Python SDK); self-hosting needs Docker Compose'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  category: data-ai
+  repository: https://github.com/Scale3-Labs/langtrace
   tags:
     - observability
     - tracing
     - llm
     - opentelemetry
     - monitoring
-    - evaluation
 ---
 
 # Langtrace — Open-Source LLM Observability
 
-You are an expert in Langtrace, the open-source observability platform for LLM applications built on OpenTelemetry. You help developers trace LLM calls, RAG pipelines, agent tool use, and chain executions with automatic instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+ providers — providing cost tracking, latency analysis, token usage, and quality evaluation in a self-hostable dashboard.
+## Overview
 
-## Core Capabilities
+Langtrace captures traces and metrics from applications that call LLM APIs, vector databases and LLM frameworks. Spans follow OpenTelemetry conventions, so they can also go to any OTLP backend. Two ways to run it: the hosted service at langtrace.ai (create a project, copy its API key) or your own deployment. The dashboard application is AGPL-3.0; the SDKs are Apache-2.0.
 
-### Auto-Instrumentation
+SDKs checked against the registries on 2026-10-24: `@langtrase/typescript-sdk` 6.3.7 and `langtrace-python-sdk` 3.8.21 (both last published July 2025; note the npm scope is spelled `langtrase`). Instrumented today (per the SDK READMEs): OpenAI, Anthropic, Azure OpenAI, Cohere, Gemini, Mistral, xAI, Perplexity, Ollama, Vertex AI, AWS Bedrock, LlamaIndex, Pinecone, ChromaDB, Qdrant, Weaviate and PGVector in both languages. Python only: LangChain, LangGraph, DSPy, CrewAI. TypeScript only: Vercel AI.
 
-```typescript
-// Automatic tracing — one line setup
-import * as Langtrace from "@langtrase/typescript-sdk";
+## Instructions
 
-Langtrace.init({
-  api_key: process.env.LANGTRACE_API_KEY,
-  batch: true,                            // Batch spans for performance
-  instrumentations: {
-    openai: true,
-    anthropic: true,
-    langchain: true,
-    pinecone: true,
-    chromadb: true,
-  },
-});
+### TypeScript
 
-// Now all LLM calls are automatically traced
-import OpenAI from "openai";
-const openai = new OpenAI();
-
-// This call is automatically instrumented — no code changes needed
-const response = await openai.chat.completions.create({
-  model: "gpt-4o",
-  messages: [{ role: "user", content: "Explain quantum computing" }],
-});
-// Langtrace captures: model, tokens, latency, cost, input, output
+```bash
+npm install @langtrase/typescript-sdk
+export LANGTRACE_API_KEY=lt_project_key_from_dashboard
 ```
 
-### Python with Decorators
+Call `init` before importing any LLM library, otherwise those libraries are not patched:
+
+```typescript
+// tracing.ts — import this file first in your entry point
+import * as Langtrace from "@langtrase/typescript-sdk";
+
+Langtrace.init({ batch: true });   // api_key is read from LANGTRACE_API_KEY
+```
+
+```typescript
+// app.ts
+import "./tracing";
+import OpenAI from "openai";
+
+const openai = new OpenAI();
+const response = await openai.chat.completions.create({
+  model: process.env.OPENAI_MODEL!,
+  messages: [{ role: "user", content: "Explain quantum computing" }],
+});
+// Langtrace records model, token counts, latency, cost, input and output
+```
+
+In Next.js and other bundled apps automatic patching does not work. Pass the imported module for each vendor: `Langtrace.init({ instrumentations: { openai: openai } })` where `openai` is `import * as openai from "openai"`. The values are module objects, not booleans.
+
+Group related calls into one trace and add attributes you can filter on:
+
+```typescript
+await Langtrace.withAdditionalAttributes(
+  () => Langtrace.withLangTraceRootSpan(async (spanId, traceId) => {
+    return answerQuestion(query);
+  }, "rag-pipeline"),
+  { "user.tier": "pro", feature: "search" },
+);
+```
+
+`sendUserFeedback({ userId, userScore, traceId, spanId })` attaches a user rating to a trace; the ids come from the root-span callback.
+
+### Python
+
+```bash
+pip install langtrace-python-sdk
+```
+
+A clean install on Python 3.12 failed on import for two missing dependencies. If you see `No module named 'importlib_metadata'` or `No module named 'pkg_resources'`, run `pip install importlib-metadata "setuptools<81"`.
 
 ```python
-from langtrace_python_sdk import langtrace, with_langtrace_root_span
-from langtrace_python_sdk.utils.with_root_span import with_additional_attributes
+import os
+from langtrace_python_sdk import langtrace, with_langtrace_root_span, inject_additional_attributes
 
-langtrace.init(api_key="your-api-key")
+langtrace.init()   # reads LANGTRACE_API_KEY; must run before importing openai
+
+from openai import AsyncOpenAI
+client = AsyncOpenAI()
 
 @with_langtrace_root_span("rag-pipeline")
 async def answer_question(query: str) -> str:
-    """Full RAG pipeline — every step traced automatically."""
-
-    # Step 1: Embed query (traced)
-    embedding = await openai.embeddings.create(
-        model="text-embedding-3-small", input=query,
+    response = await client.chat.completions.create(
+        model=os.environ["OPENAI_MODEL"],
+        messages=[{"role": "user", "content": query}],
     )
-
-    # Step 2: Vector search (traced if Pinecone/Chroma instrumented)
-    results = index.query(vector=embedding.data[0].embedding, top_k=5)
-
-    # Step 3: Generate answer (traced)
-    context = "\n".join([r.metadata["text"] for r in results.matches])
-    response = await openai.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": f"Answer using this context:\n{context}"},
-            {"role": "user", "content": query},
-        ],
-    )
-
     return response.choices[0].message.content
 
-# Custom attributes for filtering
-@with_additional_attributes({"user.tier": "pro", "feature": "search"})
-@with_langtrace_root_span("search")
-async def pro_search(query: str):
-    return await answer_question(query)
+# attach custom attributes to everything called inside
+result = await inject_additional_attributes(
+    lambda: answer_question("What is our refund policy?"),
+    {"user.tier": "pro", "feature": "support-bot"},
+)
 ```
 
-### Evaluation
+`with_additional_attributes` still exists but is deprecated in favour of `inject_additional_attributes(fn, attributes)`.
+
+### Self-hosting
+
+The dashboard is three services (Next.js app, Postgres, ClickHouse), so a single `docker run` is not enough. Clone the `Scale3-Labs/langtrace` repository, change the default secrets in its `.env` (`NEXTAUTH_SECRET`, the database and admin passwords ship with example values), sign in, create a project to get an API key, and run `docker compose up`; the UI listens on `http://localhost:3000`. `docker compose down -v` also deletes the data volumes. Point the SDK at it:
+
+```typescript
+Langtrace.init({ api_host: "http://localhost:3000/api/trace", api_key: process.env.LANGTRACE_API_KEY });
+```
 
 ```python
-from langtrace_python_sdk import langtrace
-from langtrace_python_sdk.utils.with_root_span import with_langtrace_root_span
-
-# Run evaluations and track scores
-@with_langtrace_root_span("evaluate-rag")
-async def evaluate_rag(test_set: list[dict]):
-    results = []
-    for test in test_set:
-        answer = await answer_question(test["query"])
-
-        # Score with LLM-as-judge
-        eval_response = await openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[{
-                "role": "user",
-                "content": f"""Score this answer 1-5 for relevance and accuracy.
-                Question: {test['query']}
-                Expected: {test['expected']}
-                Got: {answer}
-                Return JSON: {{"relevance": N, "accuracy": N}}""",
-            }],
-        )
-        scores = json.loads(eval_response.choices[0].message.content)
-        results.append({**scores, "query": test["query"]})
-
-    # All evaluation traces visible in Langtrace dashboard
-    avg_relevance = sum(r["relevance"] for r in results) / len(results)
-    avg_accuracy = sum(r["accuracy"] for r in results) / len(results)
-    return {"avg_relevance": avg_relevance, "avg_accuracy": avg_accuracy}
+langtrace.init(api_key=os.environ["LANGTRACE_API_KEY"], api_host="http://localhost:3000/api/trace")
 ```
 
-## Installation
+To see spans without any backend, use `write_spans_to_console=True` (Python) or `write_spans_to_console: true` (TypeScript). Use `custom_remote_exporter` to send spans to your own OTLP exporter.
 
-```bash
-# TypeScript
-npm install @langtrase/typescript-sdk
+## Examples
 
-# Python
-pip install langtrace-python-sdk
+### Example 1: Trace a support chatbot per user tier
 
-# Self-hosted
-docker run -p 3000:3000 langtrace/langtrace-client
+Request: "I want to see cost and latency of our support bot split by free and pro users."
+
+Wrap the handler in `withLangTraceRootSpan` and `withAdditionalAttributes` with `{ "user.tier": tier }` as shown above. Result: each request is one trace with the OpenAI span nested inside; in the dashboard filter by the `user.tier` attribute to compare token cost and latency between tiers.
+
+### Example 2: Debug a slow RAG pipeline locally without an account
+
+Request: "Where is the time going in my retrieval chain? I do not want to sign up for anything."
+
+```python
+langtrace.init(api_key="local-dev", write_spans_to_console=True, batch=False)
 ```
 
-## Best Practices
+Result: every span (root span, embedding call, vector query, completion) prints as JSON on stdout with start and end times, so the slow step is visible from the timestamps. Switch to the self-hosted dashboard when you want charts.
 
-1. **One-line setup** — `langtrace.init()` auto-instruments all supported libraries; no per-call changes
-2. **OpenTelemetry native** — Exports standard OTLP traces; send to Jaeger, Grafana, Datadog alongside Langtrace
-3. **Cost tracking** — Automatic cost calculation per model per call; aggregate by user, feature, or pipeline
-4. **Root spans** — Use `@with_langtrace_root_span` to group related calls into a single trace (RAG pipeline, agent run)
-5. **Custom attributes** — Add user ID, feature flags, A/B test groups; filter and compare in dashboard
-6. **Self-hosted** — Deploy your own instance for data privacy; no vendor lock-in
-7. **Evaluation tracking** — Log evaluation scores alongside traces; track quality regressions over time
-8. **Batch mode** — Enable `batch: true` for production; reduces overhead by batching span exports
+## Guidelines
+
+- Initialise Langtrace before importing the instrumented libraries, in every process (workers, serverless handlers included).
+- Use `batch: true` in production to cut export overhead; use `batch=False` when debugging so spans appear immediately.
+- Prompts and completions are stored in spans. Use `disable_tracing_attributes` (TypeScript) or self-host if they contain personal data.
+- The SDKs have not been released since July 2025; check that your provider SDK version is still instrumented before relying on a new feature of it.
+- Judge-style quality scoring is something you write yourself (call a model, record the score as a span attribute or user feedback); there is no built-in evaluator API in the SDKs to call.
