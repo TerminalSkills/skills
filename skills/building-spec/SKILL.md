@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: [architecture, building-spec, floor-plan, 3d, standards]
 ---
@@ -29,7 +29,11 @@ Search the project root (and parent directories) for any of these filenames:
 - `building-spec.md`
 - `dimensions.md`
 
-If found, load it and treat it as ground truth for all dimensions.
+If found, load it and treat it as ground truth for all dimensions. To search the project and its parent directories from a shell:
+
+```bash
+find ~/projects/riverside-house ~/projects -maxdepth 1 \( -iname 'BUILDING_SPEC.md' -o -iname 'DIMENSIONS.md' -o -iname 'building-spec.md' -o -iname 'dimensions.md' \) 2>/dev/null
+```
 
 ### Step 2: Parse the Spec
 
@@ -106,7 +110,7 @@ Projects should create this file in the root directory:
 
 ### Default Fallback Values
 
-When no spec file is found, use these defaults:
+When no spec file is found, use these defaults. They are project conventions chosen by this skill, not code minimums. Local building code always governs. For US residential work, the 2021 IRC (section R305.1) requires a ceiling height of at least 7 ft (2134 mm) in habitable space and hallways, and 6 ft 8 in (2032 mm) in bathrooms, toilet rooms and laundry rooms. Section R304 requires habitable rooms other than kitchens to have at least 70 sq ft (6.5 m2) of floor area and no horizontal dimension under 7 ft (2134 mm). No default may fall below these. Confirm the edition and any local amendments with the `ibc-building-codes` and `architectural-dimensions` skills before relying on a value.
 
 | Parameter | Value |
 |---|---|
@@ -137,13 +141,19 @@ A project has `BUILDING_SPEC.md` with ground floor height 3.5 m (retail), upper 
 
 ### Example 2: Validate an Existing Model Against Spec
 
-A model has a bedroom at 9 m2 but the spec requires minimum 10 m2:
+A model has a bedroom at 9 m2 and 2.5 m wide, but the spec requires at least 10 m2 and 2.7 m width:
 
-1. Load spec: bedroom min area = 10 m2
-2. Scan model rooms: bedroom R-bed2 has area 9.0 m2
-3. Violation detected: "Room Bedroom 2: area 9.0 m2 < spec minimum 10 m2"
-4. Auto-fix: expand room width from 2.5 m to 2.8 m, increasing area to 11.2 m2
-5. Re-validate: all rooms now pass
+1. Load spec: bedroom min area = 10 m2, min width = 2.7 m
+2. Scan model rooms: bedroom R-bed2 is 2.5 m x 3.6 m, area 9.0 m2, width 2.5 m
+3. Violation detected:
+
+```text
+ERROR  Bedroom 2 (R-bed2): area 9.0 m2 < spec minimum 10 m2
+ERROR  Bedroom 2 (R-bed2): width 2.5 m < spec minimum 2.7 m
+ERROR  2 violation(s), 0 warnings
+```
+4. Auto-fix: widen the room from 2.5 m to 2.8 m, keeping depth 3.6 m, so the area becomes 10.08 m2 (2.8 x 3.6)
+5. Re-validate: the area (10.08 m2) now passes the 10 m2 minimum, and the new 2.8 m width passes the 2.7 m minimum width
 
 ### Example 3: No Spec File Found
 
