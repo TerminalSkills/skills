@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: business
   tags:
   - strategy
@@ -153,16 +153,17 @@ Find the empty quadrant. That might be your positioning.
 - **Per-seat**: Charge per user (Jira, Salesforce)
 - **Usage-based**: Charge per API call, GB, transaction (AWS, Twilio, Stripe)
 - **Flat-rate tiers**: Fixed price per tier (Basecamp, Netflix)
-- **Hybrid**: Per-seat + usage (HubSpot, Datadog)
+- **Hybrid**: Per-seat + usage (HubSpot)
+- **Per-host / usage tiers**: Charge per monitored host or per GB ingested (Datadog)
 
 ### Choose Your Value Metric
 The value metric is what you charge for. It should scale with
 the value the customer receives.
 
 Good value metrics:
-- Stripe: % of transaction volume (they make money when you make money)
+- Stripe: a percentage of each transaction plus a fixed fee (revenue grows with payment volume)
 - Twilio: per message sent (scales with usage)
-- Figma: per editor (viewers are free — viral loop)
+- Figma: per paid seat; viewers are free (viral loop)
 
 Bad value metrics:
 - Per feature (customers feel nickel-and-dimed)
@@ -177,7 +178,7 @@ Bad value metrics:
 - **Van Westendorp**: Ask 4 questions about price perception
   "At what price is this too expensive? A bargain? Expensive but worth it? Too cheap?"
 - **Conjoint Analysis**: Show bundles of features at different prices; measure preference
-- **Competitor benchmarking**: Where do alternatives price? Price 20-30% different.
+- **Competitor benchmarking**: Where do alternatives price? Map their prices before you set your own.
 ```
 
 ### Outcome-Driven Roadmap
@@ -246,6 +247,6 @@ The agent analyzes the existing work against product strategy best practices, id
 3. **Competitive analysis is ongoing** — Review competitors quarterly; track their product launches, pricing changes, and positioning shifts
 4. **Price on value, not cost** — Charge based on the value delivered to the customer, not the cost to build the feature
 5. **Outcome roadmaps** — Commit to outcomes (reduce churn by 3%), not features (build feature X); outcomes give teams freedom to find the best solution
-6. **Strategic pillars = focus** — Limit to 3-4 pillars per year; saying no to good ideas is the hardest part of strategy
+6. **Strategic pillars = focus** — As a rule of thumb, limit to 3-4 pillars per year; saying no to good ideas is the hardest part of strategy
 7. **DHM for prioritization** — Test every big bet against Delight, Hard-to-copy, Margin-enhancing; if it scores zero on all three, skip it
 8. **Strategy ≠ a plan** — Strategy is a set of choices about where to play and how to win; it should fit on one page
