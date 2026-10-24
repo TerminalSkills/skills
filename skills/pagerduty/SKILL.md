@@ -6,10 +6,11 @@ description: >-
   services, create escalation policies, configure integrations with monitoring
   tools, manage on-call rotations, or automate incident workflows.
 license: Apache-2.0
-compatibility: "PagerDuty API v2, Events API v2"
+compatibility: "PagerDuty REST API v2 and Events API v2; curl, jq and a REST API key (PD_API_KEY) or OAuth token"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  repository: https://github.com/PagerDuty/api-schema
+  version: "1.1.0"
   category: devops
   tags: ["pagerduty", "incident-management", "on-call", "escalation", "alerting"]
 ---
@@ -21,6 +22,8 @@ metadata:
 Set up PagerDuty for incident management with on-call schedules, escalation policies, and integrations. Covers service creation, Events API for triggering alerts, schedule management, and automation via the REST API.
 
 ## Instructions
+
+REST calls go to `https://api.pagerduty.com` with `Authorization: Token token=${PD_API_KEY}` (an OAuth access token uses `Authorization: Bearer ...`). The API expects `Accept: application/vnd.pagerduty+json;version=2` for versioning; the snippets below omit it for brevity, so add `-H "Accept: application/vnd.pagerduty+json;version=2"` in real scripts. Events API calls need no API key, only the integration's routing key (`PD_ROUTING_KEY`).
 
 ### Task A: Create Services and Escalation Policies
 
@@ -46,7 +49,6 @@ curl -X POST "https://api.pagerduty.com/escalation_policies" \
           ]
         }
       ],
-      "repeat_enabled": true,
       "num_loops": 2
     }
   }'
@@ -65,9 +67,6 @@ curl -X POST "https://api.pagerduty.com/services" \
       "alert_creation": "create_alerts_and_incidents",
       "auto_resolve_timeout": 14400,
       "acknowledgement_timeout": 1800,
-      "alert_grouping_parameters": {
-        "type": "intelligent"
-      },
       "incident_urgency_rule": {
         "type": "use_support_hours",
         "during_support_hours": { "type": "constant", "urgency": "high" },
@@ -84,6 +83,24 @@ curl -X POST "https://api.pagerduty.com/services" \
   }'
 ```
 
+Alert grouping on a service is configured through the Alert Grouping Settings resource; the `alert_grouping_parameters` field on a service is deprecated.
+
+```bash
+curl -X POST "https://api.pagerduty.com/alert_grouping_settings" \
+  -H "Authorization: Token token=${PD_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alert_grouping_setting": {
+      "name": "Payment alerts by component",
+      "type": "content_based",
+      "config": { "time_window": 900, "aggregate": "all", "fields": ["summary", "component"] },
+      "services": [{ "id": "PSVC_PAY", "type": "service_reference" }]
+    }
+  }'
+```
+
+Grouping features depend on the plan; the API returns an error if yours does not include the chosen type.
+
 ### Task B: Send Alerts via Events API
 
 ```bash
@@ -91,7 +108,7 @@ curl -X POST "https://api.pagerduty.com/services" \
 curl -X POST "https://events.pagerduty.com/v2/enqueue" \
   -H "Content-Type: application/json" \
   -d '{
-    "routing_key": "<INTEGRATION_KEY>",
+    "routing_key": "'"${PD_ROUTING_KEY}"'",
     "event_action": "trigger",
     "dedup_key": "payment-service/high-error-rate/prod",
     "payload": {
@@ -119,7 +136,7 @@ curl -X POST "https://events.pagerduty.com/v2/enqueue" \
 curl -X POST "https://events.pagerduty.com/v2/enqueue" \
   -H "Content-Type: application/json" \
   -d '{
-    "routing_key": "<INTEGRATION_KEY>",
+    "routing_key": "'"${PD_ROUTING_KEY}"'",
     "event_action": "acknowledge",
     "dedup_key": "payment-service/high-error-rate/prod"
   }'
@@ -130,7 +147,7 @@ curl -X POST "https://events.pagerduty.com/v2/enqueue" \
 curl -X POST "https://events.pagerduty.com/v2/enqueue" \
   -H "Content-Type: application/json" \
   -d '{
-    "routing_key": "<INTEGRATION_KEY>",
+    "routing_key": "'"${PD_ROUTING_KEY}"'",
     "event_action": "resolve",
     "dedup_key": "payment-service/high-error-rate/prod"
   }'
@@ -150,8 +167,8 @@ curl -X POST "https://api.pagerduty.com/schedules" \
       "schedule_layers": [
         {
           "name": "Weekly Rotation",
-          "start": "2026-02-19T09:00:00-05:00",
-          "rotation_virtual_start": "2026-02-19T09:00:00-05:00",
+          "start": "2026-11-02T09:00:00-05:00",
+          "rotation_virtual_start": "2026-11-02T09:00:00-05:00",
           "rotation_turn_length_seconds": 604800,
           "users": [
             { "user": { "id": "PUSER01", "type": "user_reference" } },
@@ -192,7 +209,7 @@ curl -s "https://api.pagerduty.com/incidents?statuses[]=triggered&statuses[]=ack
 curl -X POST "https://api.pagerduty.com/incidents/${INCIDENT_ID}/notes" \
   -H "Authorization: Token token=${PD_API_KEY}" \
   -H "Content-Type: application/json" \
-  -H "From: oncall@example.com" \
+  -H "From: maria.lopez@northwind-logistics.io" \
   -d '{
     "note": {
       "content": "Identified root cause: connection pool exhaustion on db-primary. Scaling up connections from 100 to 200."
@@ -203,7 +220,7 @@ curl -X POST "https://api.pagerduty.com/incidents/${INCIDENT_ID}/notes" \
 ### Task E: Automation with Event Orchestration
 
 ```bash
-# Create event orchestration rules
+# Replace the router rules of a global orchestration (rules left out of the request are deleted)
 curl -X PUT "https://api.pagerduty.com/event_orchestrations/${ORCH_ID}/router" \
   -H "Authorization: Token token=${PD_API_KEY}" \
   -H "Content-Type: application/json" \
@@ -216,7 +233,7 @@ curl -X PUT "https://api.pagerduty.com/event_orchestrations/${ORCH_ID}/router" \
             {
               "label": "Route payments alerts",
               "conditions": [
-                { "expression": "event.component matches part '\''payment'\'' " }
+                { "expression": "event.component matches part '\''payment'\''" }
               ],
               "actions": {
                 "route_to": { "service": { "id": "PSVC_PAY", "type": "service_reference" } }
@@ -225,7 +242,7 @@ curl -X PUT "https://api.pagerduty.com/event_orchestrations/${ORCH_ID}/router" \
             {
               "label": "Suppress health checks",
               "conditions": [
-                { "expression": "event.payload.summary matches part '\''health check'\''" }
+                { "expression": "event.summary matches part '\''health check'\''" }
               ],
               "actions": { "suppress": true }
             }
@@ -241,8 +258,36 @@ curl -X PUT "https://api.pagerduty.com/event_orchestrations/${ORCH_ID}/router" \
   }'
 ```
 
-## Best Practices
+## Examples
 
+### Example 1: Page the on-call engineer for a failing payment service
+
+**User request:** "Wire Alertmanager to PagerDuty so a payment error rate above 5% pages whoever is on call."
+
+Create the escalation policy and service (Task A), add an Events API v2 integration to the service in the PagerDuty UI and export its routing key as `PD_ROUTING_KEY`, then send the trigger from Task B. A successful call returns:
+
+```json
+{"status": "success", "message": "Event processed", "dedup_key": "payment-service/high-error-rate/prod"}
+```
+
+Sending the same `dedup_key` with `resolve` closes the incident when the error rate recovers.
+
+### Example 2: Find who is on call right now
+
+**User request:** "Who is on call for the platform schedule?"
+
+```bash
+curl -s "https://api.pagerduty.com/oncalls?schedule_ids[]=PSCHED1&earliest=true" \
+  -H "Authorization: Token token=${PD_API_KEY}" | jq -r '.oncalls[] | "\(.user.summary) until \(.end)"'
+```
+
+Prints one line per escalation level, for example `Dana Whitfield until 2026-11-09T09:00:00-05:00`.
+
+## Guidelines
+
+- Keep `PD_API_KEY` and routing keys in environment variables or a secret store, never in the repository; a REST key can read and change the whole account unless it is read-only
+- Notes, incident updates and other write calls on incidents need a `From` header with the email of a valid PagerDuty user
+- List endpoints are paginated (`limit` up to 100, `offset`, `more`); loop until `more` is false
 - Use `dedup_key` to prevent duplicate incidents for the same issue
 - Set intelligent alert grouping to automatically correlate related alerts
 - Include runbook links and dashboard URLs in alert custom details
