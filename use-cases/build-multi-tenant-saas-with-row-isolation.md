@@ -1,13 +1,12 @@
 ---
 title: Build Multi-Tenant SaaS with Row-Level Isolation
 slug: build-multi-tenant-saas-with-row-isolation
-description: Build a multi-tenant SaaS architecture using PostgreSQL Row-Level Security where tenant data isolation is enforced at the database level — making cross-tenant data leaks structurally impossible.
+description: Build a multi-tenant SaaS architecture using PostgreSQL Row-Level Security where tenant data isolation is enforced at the database level — so a query that forgets the tenant filter returns nothing from other tenants.
 skills:
   - typescript
   - postgresql
   - hono
   - zod
-  - prisma
 category: development
 tags:
   - multi-tenant
@@ -21,234 +20,162 @@ tags:
 
 ## The Problem
 
-Sasha leads engineering at a 30-person B2B SaaS. They have 400 customers sharing one database. Tenant isolation relies on `WHERE tenant_id = ?` in every query — but developers forget it. Two months ago, a new API endpoint leaked 12 customers' data because a developer omitted the tenant filter on a dashboard query. The security audit found 8 more queries missing the filter. They can't trust application-level filtering. PostgreSQL's Row-Level Security (RLS) enforces isolation at the database level — even if application code forgets the filter, the database won't return another tenant's data.
+Sasha leads engineering at a 30-person B2B SaaS with 400 customers sharing one database. Tenant isolation relies on `WHERE tenant_id = ?` in every query, and developers forget it. Two months ago a new dashboard endpoint leaked data from other customers because the filter was missing, and the follow-up audit found more queries without it. Application-level filtering cannot be trusted to be complete. PostgreSQL Row-Level Security (RLS) moves the rule into the database: a query that forgets the filter returns only the current tenant's rows.
 
-## Step 1: Set Up RLS Policies
+## The Solution
+
+Every tenant-owned table gets a `tenant_id` column and one policy that compares it with a per-transaction setting, `app.tenant_id`. The API connects as `app_user`, a role that is neither superuser nor owner and cannot bypass RLS. Each request runs in a transaction that starts with `set_config('app.tenant_id', ..., true)`. The `true` makes the setting transaction-local, so it disappears at COMMIT or ROLLBACK and a pooled connection can never carry one tenant into another request. This also works behind PgBouncer in transaction mode, which a session-level `SET` does not.
+
+Points the usual tutorials get wrong: `SET` cannot take bind parameters (use `set_config`); `CREATE POLICY IF NOT EXISTS` does not exist; a superuser or a role with `BYPASSRLS` ignores every policy, so the application role must be neither; and a missing setting must mean "no rows", which `current_setting('app.tenant_id', true)` (the `true` means "missing is not an error") gives you.
+
+```bash
+npm i pg zod hono @hono/node-server
+npm i -D typescript tsx @types/node @types/pg
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Roles, tables and policies
+
+Run this once per environment as the migration role. Passwords come from variables, not from the file. The `DO` block repeats for every tenant-owned table; on existing tables, add `tenant_id` nullable, backfill it, then set `NOT NULL` before enabling RLS. `FORCE ROW LEVEL SECURITY` binds the table owner too. The single policy covers all commands: `USING` filters reads, updates and deletes, and `WITH CHECK` rejects writes with another tenant's id. The `(SELECT app_tenant())` wrapper lets PostgreSQL evaluate the function once per query instead of once per row.
+
+```sql
+-- Run once per environment as the table owner (the migration role), never as app_user.
+-- Roles: set the passwords from your secret store, e.g. psql -v app_pw="$APP_DB_PASSWORD" -f rls.sql
+CREATE ROLE app_user LOGIN PASSWORD :'app_pw' NOSUPERUSER NOBYPASSRLS;      -- the API connects as this
+CREATE ROLE report_user LOGIN PASSWORD :'report_pw' NOSUPERUSER BYPASSRLS;  -- cross-tenant reports only
+
+CREATE TABLE tenants  (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL);
+CREATE TABLE projects (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  name text NOT NULL, description text, created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- NULL when the setting is missing or empty, so a request without a tenant sees no rows
+CREATE FUNCTION app_tenant() RETURNS uuid LANGUAGE sql STABLE AS
+  $$ SELECT nullif(current_setting('app.tenant_id', true), '')::uuid $$;
+
+-- Repeat the block for every tenant-owned table
+DO $$ DECLARE t text; BEGIN
+  FOREACH t IN ARRAY ARRAY['projects'] LOOP
+    EXECUTE format('CREATE INDEX ON %I (tenant_id)', t);
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);   -- the owner is bound too
+    EXECUTE format($p$CREATE POLICY tenant_isolation ON %I
+      USING (tenant_id = (SELECT app_tenant()))
+      WITH CHECK (tenant_id = (SELECT app_tenant()))$p$, t);
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON %I TO app_user', t);
+  END LOOP;
+END $$;
+GRANT SELECT ON tenants TO report_user;
+GRANT SELECT ON projects TO report_user;
+```
+
+```bash
+psql "$MIGRATION_DATABASE_URL" -v app_pw="$APP_DB_PASSWORD" -v report_pw="$REPORT_DB_PASSWORD" -f rls.sql
+```
+
+### Step 2: Tenant context middleware
+
+The tenant id must come from the verified session or JWT set by your auth middleware, never from a header or body the client controls. Hono passes handler errors to `onError` instead of throwing through `next()`, so the middleware checks `c.error` to decide between COMMIT and ROLLBACK.
 
 ```typescript
-// src/db/setup-rls.ts — PostgreSQL Row-Level Security configuration
-import { pool } from "../db";
+import pg from "pg";
+import type { MiddlewareHandler } from "hono";
 
-export async function setupRLS(): Promise<void> {
-  // Create the application role (non-superuser, subject to RLS)
-  await pool.query(`
-    DO $$ BEGIN
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'app_user') THEN
-        CREATE ROLE app_user LOGIN PASSWORD 'secure-password';
-      END IF;
-    END $$
-  `);
+// Connects as app_user, a role that is subject to row-level security
+export const appPool = new pg.Pool({ connectionString: process.env.APP_DATABASE_URL, max: 20 });
 
-  // Tables that need tenant isolation
-  const tables = [
-    "projects", "tasks", "documents", "comments", "invoices",
-    "team_members", "api_keys", "webhooks", "audit_log",
-  ];
+export type Env = { Variables: { tenantId: string; db: pg.PoolClient } };
 
-  for (const table of tables) {
-    // Ensure tenant_id column exists
-    await pool.query(`
-      ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS tenant_id UUID NOT NULL
-    `);
-
-    // Create index for performance (RLS uses these)
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_${table}_tenant ON ${table} (tenant_id)
-    `);
-
-    // Enable RLS on the table
-    await pool.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
-
-    // Force RLS even for table owners (critical for security)
-    await pool.query(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`);
-
-    // SELECT policy — can only see own tenant's rows
-    await pool.query(`
-      CREATE POLICY IF NOT EXISTS tenant_select_${table} ON ${table}
-        FOR SELECT
-        USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
-    `);
-
-    // INSERT policy — can only insert for own tenant
-    await pool.query(`
-      CREATE POLICY IF NOT EXISTS tenant_insert_${table} ON ${table}
-        FOR INSERT
-        WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid)
-    `);
-
-    // UPDATE policy — can only update own tenant's rows
-    await pool.query(`
-      CREATE POLICY IF NOT EXISTS tenant_update_${table} ON ${table}
-        FOR UPDATE
-        USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
-        WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::uuid)
-    `);
-
-    // DELETE policy — can only delete own tenant's rows
-    await pool.query(`
-      CREATE POLICY IF NOT EXISTS tenant_delete_${table} ON ${table}
-        FOR DELETE
-        USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
-    `);
-
-    // Grant access to app_user
-    await pool.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON ${table} TO app_user`);
+// One transaction per request. set_config(..., true) is transaction-local: it is cleared on
+// COMMIT/ROLLBACK, so a pooled connection can never carry a tenant into the next request,
+// and it stays safe behind PgBouncer in transaction mode (a session-level SET does not).
+export const withTenant: MiddlewareHandler<Env> = async (c, next) => {
+  const tenantId = c.get("tenantId"); // from the verified session or JWT, never from a header the client controls
+  if (!tenantId) return c.json({ error: "Tenant context required" }, 403);
+  const db = await appPool.connect();
+  try {
+    await db.query("BEGIN");
+    await db.query("SELECT set_config('app.tenant_id', $1, true)", [tenantId]); // SET cannot take $1
+    c.set("db", db);
+    await next();
+    await db.query(c.error ? "ROLLBACK" : "COMMIT"); // Hono hands handler errors to onError, so check c.error
+  } catch (e) {
+    await db.query("ROLLBACK").catch(() => {});
+    throw e;
+  } finally {
+    db.release();
   }
-
-  // Admin bypass policy for cross-tenant operations (migrations, reports)
-  // This role is NEVER used by the application
-  await pool.query(`
-    DO $$ BEGIN
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'admin_user') THEN
-        CREATE ROLE admin_user SUPERUSER LOGIN PASSWORD 'admin-password';
-      END IF;
-    END $$
-  `);
-
-  console.log(`[rls] Row-Level Security configured for ${tables.length} tables`);
-}
+};
 ```
 
-## Step 2: Build the Tenant Context Middleware
+### Step 3: Routes without tenant filters
+
+Handlers contain no `WHERE tenant_id`. Inserts take `tenant_id` from `app_tenant()` so a body field cannot override it, and a request for another tenant's id gets the same 404 as a missing one.
 
 ```typescript
-// src/middleware/tenant-context.ts — Set tenant context on every database connection
-import { Context, Next } from "hono";
-import { Pool } from "pg";
-
-// Dedicated pool using app_user role (subject to RLS)
-const appPool = new Pool({
-  connectionString: process.env.DATABASE_URL!.replace(/\/\/\w+:/, "//app_user:"),
-  max: 20,
-});
-
-// Middleware: extract tenant from auth token and set on DB connection
-export function tenantContext() {
-  return async (c: Context, next: Next) => {
-    const tenantId = c.get("tenantId"); // set by auth middleware
-
-    if (!tenantId) {
-      return c.json({ error: "Tenant context required" }, 403);
-    }
-
-    // Get a connection and set the tenant context
-    const client = await appPool.connect();
-
-    try {
-      // This is the critical line — it tells PostgreSQL which tenant we are
-      await client.query("SET app.current_tenant_id = $1", [tenantId]);
-
-      // Make the tenant-scoped client available to route handlers
-      c.set("db", client);
-      c.set("tenantId", tenantId);
-
-      await next();
-    } finally {
-      // Reset the tenant context before returning connection to pool
-      await client.query("RESET app.current_tenant_id");
-      client.release();
-    }
-  };
-}
-
-// Helper: get tenant-scoped database client from context
-export function getDB(c: Context) {
-  const db = c.get("db");
-  if (!db) throw new Error("Database client not available — is tenantContext middleware applied?");
-  return db;
-}
-```
-
-## Step 3: Build Tenant-Aware API Routes
-
-```typescript
-// src/routes/projects.ts — API routes that are automatically tenant-scoped
 import { Hono } from "hono";
-import { getDB } from "../middleware/tenant-context";
 import { z } from "zod";
+import { withTenant, type Env } from "./db";
 
-const app = new Hono();
+export const app = new Hono<Env>();
+// auth middleware (sets tenantId) goes first, then:
+app.use("/projects/*", withTenant);
 
-const CreateProjectSchema = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string().optional(),
-});
+const CreateProject = z.object({ name: z.string().min(1).max(255), description: z.string().max(2000).optional() });
 
-// List projects — RLS automatically filters to current tenant
 app.get("/projects", async (c) => {
-  const db = getDB(c);
-
-  // No WHERE tenant_id needed — RLS handles it
-  const { rows } = await db.query(
-    "SELECT id, name, description, created_at FROM projects ORDER BY created_at DESC"
-  );
-
+  // No WHERE tenant_id: the policy adds it
+  const { rows } = await c.get("db").query("SELECT id, name, description, created_at FROM projects ORDER BY created_at DESC");
   return c.json({ projects: rows });
 });
 
-// Create project — RLS ensures tenant_id matches
 app.post("/projects", async (c) => {
-  const db = getDB(c);
-  const body = CreateProjectSchema.parse(await c.req.json());
-  const tenantId = c.get("tenantId");
-
-  const { rows } = await db.query(
-    `INSERT INTO projects (name, description, tenant_id, created_at)
-     VALUES ($1, $2, $3, NOW()) RETURNING id, name, description`,
-    [body.name, body.description || null, tenantId]
-  );
-
+  const body = CreateProject.safeParse(await c.req.json().catch(() => null));
+  if (!body.success) return c.json({ error: body.error.issues }, 400);
+  // tenant_id comes from the same setting the policy checks, never from the request body
+  const { rows } = await c.get("db").query(
+    `INSERT INTO projects (tenant_id, name, description) VALUES (app_tenant(), $1, $2) RETURNING id, name, description`,
+    [body.data.name, body.data.description ?? null]);
   return c.json({ project: rows[0] }, 201);
 });
 
-// Get single project — RLS prevents accessing other tenants' projects
 app.get("/projects/:id", async (c) => {
-  const db = getDB(c);
-  const { id } = c.req.param();
-
-  // Even if someone guesses another tenant's project ID, RLS returns empty
-  const { rows } = await db.query(
-    "SELECT id, name, description, created_at FROM projects WHERE id = $1",
-    [id]
-  );
-
-  if (rows.length === 0) return c.json({ error: "Project not found" }, 404);
-  return c.json({ project: rows[0] });
+  if (!z.uuid().safeParse(c.req.param("id")).success) return c.json({ error: "Project not found" }, 404);
+  const { rows } = await c.get("db").query("SELECT id, name, description FROM projects WHERE id = $1", [c.req.param("id")]);
+  return rows.length ? c.json({ project: rows[0] }) : c.json({ error: "Project not found" }, 404); // another tenant's id looks the same
 });
 
-// Delete project — RLS prevents deleting other tenants' projects
 app.delete("/projects/:id", async (c) => {
-  const db = getDB(c);
-  const { id } = c.req.param();
-
-  const { rowCount } = await db.query("DELETE FROM projects WHERE id = $1", [id]);
-
-  if (rowCount === 0) return c.json({ error: "Project not found" }, 404);
-  return c.json({ deleted: true });
+  if (!z.uuid().safeParse(c.req.param("id")).success) return c.json({ error: "Project not found" }, 404);
+  const r = await c.get("db").query("DELETE FROM projects WHERE id = $1", [c.req.param("id")]);
+  return r.rowCount ? c.json({ deleted: true }) : c.json({ error: "Project not found" }, 404);
 });
-
-// Cross-tenant report (admin only, uses admin connection bypassing RLS)
-app.get("/admin/projects/stats", async (c) => {
-  // This endpoint uses the admin pool, not the RLS-restricted pool
-  const { pool: adminPool } = await import("../db");
-
-  const { rows } = await adminPool.query(`
-    SELECT t.name as tenant, COUNT(p.id) as project_count, 
-           MAX(p.created_at) as last_activity
-    FROM tenants t LEFT JOIN projects p ON t.id = p.tenant_id
-    GROUP BY t.id, t.name ORDER BY project_count DESC
-  `);
-
-  return c.json({ stats: rows });
-});
-
-export default app;
 ```
 
-## Results
+### Step 4: Cross-tenant reports
 
-- **Cross-tenant data leaks are structurally impossible** — even if a developer writes `SELECT * FROM projects` without any filter, PostgreSQL returns only the current tenant's data; the 8 missing-filter queries are now harmless
-- **Security audit passed with zero findings** — auditors verified that RLS policies are enforced at the database level; application bugs can't bypass them
-- **Developer productivity improved** — developers write simpler queries without worrying about tenant filters; `SELECT * FROM tasks` just works correctly
-- **Performance maintained** — tenant_id indexes ensure RLS filter pushdown; query plans show index scans, not sequential scans
-- **Admin operations use separate role** — cross-tenant reports and migrations bypass RLS through a dedicated admin connection that's never exposed to the application API
+Internal reporting uses a separate connection string for `report_user`, which has `BYPASSRLS` but only `SELECT` rights. Keep it out of the request path: run it in a script or a job, never behind a tenant-facing route. Do not use a superuser for this, as many guides do: it needs no policy and can write anywhere.
+
+```typescript
+import pg from "pg";
+const reports = new pg.Pool({ connectionString: process.env.REPORT_DATABASE_URL });
+const { rows } = await reports.query(
+  `SELECT t.name, count(p.id) AS projects FROM tenants t
+   LEFT JOIN projects p ON p.tenant_id = t.id GROUP BY t.name ORDER BY projects DESC`);
+```
+
+## Real-World Example
+
+Sasha's team ships the policies first, then moves routes onto `withTenant` one at a time. The old dashboard query that forgot its filter now returns only the caller's rows, and the audit's list of missing-filter queries stops being a leak. Developers write `SELECT * FROM projects` and get the right rows. To keep it that way, add a test to CI that runs as `app_user` with no tenant set and asserts that every tenant table returns zero rows.
+
+Checked against PostgreSQL 16 with two tenants: each tenant listed only its own projects; a request without a tenant got 403; reading or deleting another tenant's project id returned 404; a `tenant_id` sent in the body was ignored; an unfiltered `SELECT *` with no setting returned 0 rows; inserting a row for another tenant failed with SQLSTATE 42501 (`new row violates row-level security policy`); the setting was empty on the connection after the transaction ended; and `report_user` could count across tenants but could not delete.
+
+Limits to know: RLS does not protect against a bug that sets the wrong tenant id, so tenant resolution deserves its own tests. Tenant-scoped uniqueness needs composite constraints such as `UNIQUE (tenant_id, slug)`, and a foreign key check runs without RLS, which can reveal that another tenant's id exists. Index `tenant_id` (or lead composite indexes with it) so policy filters use index scans.
+
+## Related Skills
+
+- [typescript](/skills/typescript), [postgresql](/skills/postgresql)
+- [hono](/skills/hono), [zod](/skills/zod)
