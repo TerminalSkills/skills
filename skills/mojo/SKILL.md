@@ -1,263 +1,166 @@
 ---
 name: mojo
-description: Expert guidance for Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
+description: >-
+  Mojo is a compiled programming language from Modular with Python-like
+  syntax, static types, SIMD vectors and direct Python interop. Use it when the
+  user asks to write or run Mojo code, install Mojo, speed up a hot Python loop,
+  use SIMD or vectorize, call NumPy from Mojo, or migrate old Mojo code that
+  uses let, fn or DTypePointer.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Mojo 1.2 via pip/uv wheel on Linux x86_64/aarch64 or macOS arm64; Python 3.10+ for interop"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
-  tags:
-  - mojo
-  - modular
-  - python
-  - performance
-  - ai
+  repository: https://github.com/modular/modular
+  tags: ["mojo", "modular", "python", "simd", "performance"]
 ---
 
-# Mojo — Python-Speed Systems Language for AI
-
+# Mojo
 
 ## Overview
 
+Mojo is a statically typed, compiled language with Python-like syntax. It can import and call Python modules, and lets you write the hot parts of a program with typed structs and SIMD. The language changed a lot between 0.x and 1.x: this skill is checked against Mojo 1.2.0 (PyPI, October 2026). Old tutorials will not compile. The differences that matter:
 
-Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
-
+- `fn` and `let` are removed: use `def` and `var`. A `def` no longer raises implicitly; write `def f() raises:` if it calls anything that can fail (including `Python.import_module`).
+- The standard library lives under the `std.` namespace: `from std.python import Python`, `from std.algorithm import vectorize`, `from std.sys import simd_width_of`. `from python import Python` fails with "unable to locate module".
+- `inout` is now `mut`, `__del__` is `__deinit__`, `simdwidthof` is `simd_width_of`, `DTypePointer` is gone, and `@parameter` is being replaced by `@__parameter` (the old name still works with a warning).
+- Compile-time constants use `comptime` (for example `comptime dtype = DType.float32`).
+- The compiler warns when it sees deprecated names, so read the warnings: `ptr.load`/`ptr.store` became `unsafe_load`/`unsafe_store`.
 
 ## Instructions
 
-### Python Compatibility
-
-```mojo
-# Mojo can run Python code directly and call Python libraries.
-# Start with Python, optimize hot paths in Mojo.
-
-from python import Python
-
-fn main() raises:
-    # Import any Python library
-    let np = Python.import_module("numpy")
-    let plt = Python.import_module("matplotlib.pyplot")
-
-    # Use NumPy arrays as usual
-    let data = np.random.randn(1000)
-    let mean = np.mean(data)
-    let std = np.std(data)
-    print("Mean:", mean, "Std:", std)
-
-    # Plot with matplotlib
-    plt.hist(data, bins=30)
-    plt.title("Distribution")
-    plt.savefig("plot.png")
-```
-
-### High-Performance Structs
-
-```mojo
-# matrix.mojo — Custom matrix type with SIMD operations
-# This runs 10-100x faster than equivalent NumPy for small matrices.
-
-from math import sqrt
-from algorithm import vectorize, parallelize
-
-struct Matrix:
-    var data: DTypePointer[DType.float64]
-    var rows: Int
-    var cols: Int
-
-    fn __init__(inout self, rows: Int, cols: Int):
-        self.rows = rows
-        self.cols = cols
-        self.data = DTypePointer[DType.float64].alloc(rows * cols)
-        memset_zero(self.data, rows * cols)
-
-    fn __getitem__(self, row: Int, col: Int) -> Float64:
-        return self.data.load(row * self.cols + col)
-
-    fn __setitem__(inout self, row: Int, col: Int, val: Float64):
-        self.data.store(row * self.cols + col, val)
-
-    fn __del__(owned self):
-        self.data.free()
-
-    fn matmul(self, other: Matrix) -> Matrix:
-        """Matrix multiplication using SIMD vectorization.
-
-        Processes multiple floating-point operations per CPU instruction.
-        On a modern CPU with 256-bit SIMD, this processes 4 float64 ops
-        at once — a 4x speedup over scalar code.
-        """
-        var result = Matrix(self.rows, other.cols)
-        let simd_width = simdwidthof[DType.float64]()
-
-        @parameter
-        fn calc_row(row: Int):
-            for k in range(self.cols):
-                @parameter
-                fn dot[simd_width: Int](col: Int):
-                    result.data.store[width=simd_width](
-                        row * other.cols + col,
-                        result.data.load[width=simd_width](row * other.cols + col)
-                        + self[row, k] * other.data.load[width=simd_width](k * other.cols + col)
-                    )
-                vectorize[dot, simd_width](other.cols)
-
-        parallelize[calc_row](self.rows)    # Parallelize across CPU cores
-        return result
-
-    fn frobenius_norm(self) -> Float64:
-        """Compute the Frobenius norm using SIMD reduction."""
-        var sum: Float64 = 0.0
-        let simd_width = simdwidthof[DType.float64]()
-
-        @parameter
-        fn accumulate[width: Int](idx: Int):
-            let vals = self.data.load[width=width](idx)
-            sum += (vals * vals).reduce_add()
-
-        vectorize[accumulate, simd_width](self.rows * self.cols)
-        return sqrt(sum)
-```
-
-### SIMD and Vectorization
-
-```mojo
-# simd_example.mojo — Process data in parallel lanes
-from algorithm import vectorize
-from sys.info import simdwidthof
-
-fn relu_activation(inout data: DTypePointer[DType.float32], size: Int):
-    """Apply ReLU activation using SIMD.
-
-    Processes 8 float32 values simultaneously on AVX2 CPUs,
-    or 16 on AVX-512. The @parameter decorator ensures the
-    SIMD width is resolved at compile time.
-    """
-    let simd_width = simdwidthof[DType.float32]()  # 8 on AVX2
-
-    @parameter
-    fn apply_relu[width: Int](idx: Int):
-        let values = data.load[width=width](idx)
-        let zeros = SIMD[DType.float32, width](0)
-        data.store[width=width](idx, values.max(zeros))
-
-    vectorize[apply_relu, simd_width](size)
-
-
-fn softmax(inout data: DTypePointer[DType.float32], size: Int):
-    """Numerically stable softmax with SIMD operations."""
-    # Find max for numerical stability
-    var max_val: Float32 = data.load(0)
-    for i in range(1, size):
-        let val = data.load(i)
-        if val > max_val:
-            max_val = val
-
-    # Compute exp(x - max) and sum
-    var sum: Float32 = 0.0
-    for i in range(size):
-        let exp_val = math.exp(data.load(i) - max_val)
-        data.store(i, exp_val)
-        sum += exp_val
-
-    # Normalize
-    let inv_sum = 1.0 / sum
-    let simd_width = simdwidthof[DType.float32]()
-
-    @parameter
-    fn normalize[width: Int](idx: Int):
-        data.store[width=width](idx, data.load[width=width](idx) * inv_sum)
-
-    vectorize[normalize, simd_width](size)
-```
-
-### Parallelism
-
-```mojo
-# parallel.mojo — Multi-core parallel processing
-from algorithm import parallelize, vectorize
-from time import now
-
-fn parallel_image_processing(
-    inout pixels: DTypePointer[DType.uint8],
-    width: Int,
-    height: Int,
-):
-    """Apply grayscale conversion in parallel across CPU cores.
-
-    Each row is processed by a different core, and within each row,
-    SIMD processes multiple pixels simultaneously.
-    """
-    @parameter
-    fn process_row(row: Int):
-        let row_offset = row * width * 3    # 3 channels (RGB)
-
-        for col in range(width):
-            let idx = row_offset + col * 3
-            let r = pixels.load(idx).cast[DType.float32]()
-            let g = pixels.load(idx + 1).cast[DType.float32]()
-            let b = pixels.load(idx + 2).cast[DType.float32]()
-
-            # Luminance formula: 0.299R + 0.587G + 0.114B
-            let gray = (0.299 * r + 0.587 * g + 0.114 * b).cast[DType.uint8]()
-            pixels.store(idx, gray)
-            pixels.store(idx + 1, gray)
-            pixels.store(idx + 2, gray)
-
-    parallelize[process_row](height)    # Each core handles a subset of rows
-```
-
-## Installation
+### Install and run
 
 ```bash
-# Install Modular CLI
-curl -s https://get.modular.com | sh -
-
-# Install Mojo
-modular install mojo
-
-# Verify
-mojo --version
-
-# Run a Mojo file
-mojo run my_program.mojo
-
-# Build a binary
-mojo build my_program.mojo -o my_program
+python3 -m venv .venv && source .venv/bin/activate
+pip install mojo            # or: uv pip install mojo
+mojo --version              # Mojo 1.2.0 (...)
+mojo run hello.mojo         # build and run in one step
+mojo build hello.mojo -o hello && ./hello
+mojo format .               # formatter
 ```
 
+Activate the environment before calling `mojo`; the wheel carries the compiler and standard library. Python interop uses the interpreter of the active environment, so `pip install numpy` there first.
+
+### Structs, errors and collections
+
+```mojo
+struct Vec3(Copyable, Writable):
+    var x: Float64
+    var y: Float64
+    var z: Float64
+
+    def __init__(out self, x: Float64, y: Float64, z: Float64):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __add__(self, other: Self) -> Self:
+        return Self(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def dot(self, other: Self) -> Float64:
+        return self.x * other.x + self.y * other.y + self.z * other.z
+
+    def scale(mut self, k: Float64):
+        self.x *= k
+        self.y *= k
+        self.z *= k
+
+
+def norm_sq(v: Vec3) -> Float64:
+    return v.dot(v)
+
+
+def parse_port(text: String) raises -> Int:
+    var port = Int(text)
+    if port < 1 or port > 65535:
+        raise Error("port out of range: " + text)
+    return port
+
+
+def main() raises:
+    var a = Vec3(1.0, 2.0, 3.0)
+    var b = Vec3(0.5, 0.5, 0.5)
+    var c = a + b
+    c.scale(2.0)
+    print(c.x, c.y, c.z, norm_sq(c))
+    print(parse_port("8080"))
+    try:
+        _ = parse_port("70000")
+    except e:
+        print("error:", e)
+    var counts = Dict[String, Int]()
+    counts["mojo"] = 1
+    counts["mojo"] += 1
+    print(counts["mojo"])
+```
+
+Running it prints `3.0 5.0 7.0 83.0`, `8080`, `error: port out of range: 70000` and `2`. Method receivers are read-only by default; mark mutating methods with `mut self`. Copyable, Movable and Writable are traits you list on the struct.
+
+### Calling Python
+
+```mojo
+from std.python import Python
+
+
+def main() raises:
+    var np = Python.import_module("numpy")
+    var data = np.random.randn(1000)
+    print("Mean:", np.mean(data), "Std:", np.std(data))
+    var n = Int(py=np.size(data))
+    print("count", n)
+```
+
+Python results are `PythonObject`s. Convert with `Int(py=obj)`, `Float64(py=obj)` or `String(obj)` before using them in typed code. Mojo can also import your own `.py` modules when the folder is on `sys.path` (`Python.add_to_path("src")`).
+
+### SIMD and vectorize
+
+```mojo
+from std.algorithm import vectorize
+from std.sys import simd_width_of
+
+comptime dtype = DType.float32
+comptime width = simd_width_of[dtype]()
+
+
+def relu(mut values: List[Float32]):
+    var p = values.unsafe_ptr()
+
+    def apply[w: Int](i: Int) {mut}:
+        p.unsafe_store(i, max(p.unsafe_load[width=w](i), 0))
+
+    vectorize[width](len(values), apply)
+
+
+def main():
+    var xs: List[Float32] = [-2.0, 3.5, -0.5, 8.0, -1.0, 2.0, -7.0, 4.0, 1.5]
+    relu(xs)
+    for x in xs:
+        print(x, end=" ")
+    print()
+    var v = SIMD[DType.float32, 4](1.0, -2.0, 3.0, -4.0)
+    print(v * 2, v.reduce_add(), (v * v).reduce_add())
+```
+
+Output: `0.0 3.5 0.0 8.0 0.0 2.0 0.0 4.0 1.5` and `[2.0, -4.0, 6.0, -8.0] -2.0 30.0`. `vectorize[width](size, closure)` calls the closure with full-width chunks and then a remainder with a smaller `w`; the closure that captures a variable by mutable reference is declared `{mut}` (a plain nested `def` fails with "Could not infer capture convention"). Raw pointers and allocation APIs (`UnsafePointer`, `alloc`) are changing between releases: prefer `List`, `SIMD` values and the pointer you get from `list.unsafe_ptr()`, and read the compiler warnings.
 
 ## Examples
 
+### Example 1: "Run a NumPy calculation from Mojo"
 
-### Example 1: Building a feature with Mojo
+Request: "Compute mean and std of 1000 random numbers from Mojo."
+Steps: `pip install mojo numpy` in the active venv, save the interop file as `interop.mojo`, run `mojo run interop.mojo`. Output looks like `Mean: 0.0079 Std: 1.0187` and `count 1000`.
 
-**User request:**
+### Example 2: "Port this old Mojo snippet"
 
-```
-Add a real-time collaborative python compatibility to my React app using Mojo.
-```
-
-The agent installs the package, creates the component with proper Mojo initialization, implements the python compatibility with event handling and state management, and adds TypeScript types for the integration.
-
-### Example 2: Migrating an existing feature to Mojo
-
-**User request:**
-
-```
-I have a basic high-performance structs built with custom code. Migrate it to use Mojo for better high-performance structs support.
-```
-
-The agent reads the existing implementation, maps the custom logic to Mojo's API, rewrites the components using Mojo's primitives, preserves existing behavior, and adds features only possible with Mojo (like SIMD and Vectorization, Parallelism).
-
+Request: "`let x = 3`, `fn main():` and `from python import Python` do not compile."
+Steps: replace `let` with `var`, `fn` with `def`, add `raises` to `main`, and change the import to `from std.python import Python`. Re-run with `mojo run` and fix each deprecation warning it prints.
 
 ## Guidelines
 
-1. **Start with Python, optimize in Mojo** — Use Python imports for prototyping; rewrite hot loops in native Mojo for 10-1000x speedups
-2. **Use SIMD for data processing** — `vectorize` processes multiple values per instruction; always prefer it over scalar loops for numeric data
-3. **Parallelize across cores** — `parallelize` distributes work across CPU cores; combine with `vectorize` for maximum throughput
-4. **`fn` over `def`** — Use `fn` for performance-critical functions (strict typing, no overhead); use `def` for flexibility
-5. **Owned and borrowed references** — Use `borrowed` (default) for read-only, `inout` for mutation, `owned` for transfers; this enables zero-copy optimizations
-6. **Compile-time metaprogramming** — Use `@parameter` for compile-time evaluation; SIMD widths, loop unrolling, and specialization happen at compile time
-7. **Profile before optimizing** — Use `mojo build -O3` and benchmark; not everything needs SIMD — focus on actual bottlenecks
-8. **Gradual migration** — Port one function at a time from Python to Mojo; the interop layer makes incremental adoption easy
+- Start from working Python and rewrite only the measured hot loop. Measure before and after; speedups depend on the algorithm and the data, so do not assume them.
+- Do not trust code from tutorials older than 2026: confirm names against the compiler output and the Mojo docs (docs.modular.com/mojo).
+- Parallel helpers and low-level pointer APIs moved in 1.x; if an import fails, look at the installed `std` package docs rather than guessing, and prefer constructs shown above.
+- Install Mojo only inside a virtual environment; do not pipe an installer script into a shell.
+- Mojo has a smaller library ecosystem than Python: call Python for plotting, I/O and ML frameworks.
