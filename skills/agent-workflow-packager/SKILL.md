@@ -1,175 +1,141 @@
 ---
 name: agent-workflow-packager
 description: >-
-  Converts repeated AI coding-agent workflows into reusable skill packages with
-  triggers, guardrails, examples, and verification checks. Use when a user wants
-  to turn a prompt, checklist, AGENTS.md section, Claude/Codex workflow, or
-  recurring agent task into a portable SKILL.md.
+  Turns a workflow a team keeps repeating with a coding agent (a pasted prompt,
+  runbook, review checklist or AGENTS.md section) into a spec-valid Agent Skill
+  folder with SKILL.md, triggers, approval gates and a done check. Use when asked
+  to "turn this into a skill", "package our release checklist as a skill" or
+  "convert this runbook to SKILL.md".
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "Needs Python 3 and pip to run the optional skills-ref validator"
 metadata:
-  author: MemoAsh
-  version: "1.0.0"
+  author: terminal-skills
+  version: "2.0.0"
   category: development
-  tags: ["ai-agents", "skills", "workflow", "codex", "claude-code"]
+  tags: ["agent-skills", "skill-authoring", "workflow", "claude-code", "codex"]
 ---
 
 # Agent Workflow Packager
 
 ## Overview
 
-Package a repeated coding-agent workflow into a reusable `SKILL.md` that another agent can follow without rediscovering context. The output should include clear activation triggers, bounded instructions, examples, and a verification checklist that proves the workflow worked.
+A skill is a folder holding a `SKILL.md` that an agent loads when a task matches it. This skill takes a procedure that people currently paste into chats over and over, and converts it into such a folder that works in any host that implements the Agent Skills format (Claude Code, Codex and others). The result is one focused skill with a description that triggers reliably, steps with a clear end state, approval gates for risky actions, and a validator run as proof.
+
+Hosts read skills in three layers, per the Agent Skills specification: `name` and `description` are loaded at startup for every skill (about 100 tokens), the full `SKILL.md` body loads only when the skill activates (under 5000 tokens recommended), and files in `scripts/`, `references/` and `assets/` load on demand. Design every packaging decision around that.
 
 ## Instructions
 
-When a user asks to turn a prompt, checklist, runbook, AGENTS.md section, or repeated agent task into a skill, follow this process.
+### 1. Decide whether it deserves a skill
 
-### Step 1: Extract the recurring workflow
+Collect evidence of repetition: past chat prompts, a runbook, merged PRs, an AGENTS.md section. A candidate has (a) inputs that look the same each time, (b) steps that mostly do not change, (c) a way to tell it is finished. If the user describes a one-off or a taste ("write cleaner code"), say so and offer a short checklist in AGENTS.md or CLAUDE.md instead. If it is a rule that must hold in every session, that also belongs in those files, not in a skill.
 
-Identify:
+### 2. Write down the workflow as facts
 
-- The user persona and recurring task.
-- The input artifacts the agent needs, such as a PR URL, failing test output, issue, design screenshot, or repo path.
-- The expected output artifact, such as a patch, review, migration plan, report, or generated file.
-- The steps the user repeats manually.
-- The failure modes the user keeps correcting.
-- The command or inspection that proves the task is done.
+Fill in six lines before drafting: who runs it, the trigger phrase they actually type, the input artifacts (PR URL, failing log, ticket, repo path), the output artifact (patch, report, file), the corrections users keep making to the agent, and the command or check that proves it is done. Ask for any line you cannot fill from the evidence; do not invent it.
 
-If the workflow is a one-off request, say that it is not yet a good skill candidate and offer a shorter checklist instead.
+### 3. Write the description last-mile first
 
-### Step 2: Define activation triggers
+The description is the only text used to decide activation. State what the skill does, then "Use when" with two or three phrases lifted from real requests. Put the key use case first: Claude Code truncates the combined `description` and `when_to_use` text at 1,536 characters in its skill listing, and the specification caps `description` at 1024 anyway. Avoid generic wording ("helps with code") that makes the skill fire on unrelated tasks.
 
-Write a `description` that includes both what the skill does and when to use it. Include specific trigger phrases from the user's workflow, such as:
+### 4. Choose name, folder and frontmatter
 
-- "review this PR for security issues"
-- "turn this runbook into an agent skill"
-- "replay our release checklist"
-- "debug failing GitHub Actions"
-- "convert this AGENTS.md workflow into SKILL.md"
+The specification constrains the fields:
 
-Do not use broad triggers like "help with code" or "improve productivity".
+- `name` (required): at most 64 characters, lowercase letters, digits and hyphens, no leading or trailing hyphen. The folder must carry the same name.
+- `description` (required): 1 to 1024 characters.
+- `license`, `compatibility` (1 to 500 characters, environment needs), `metadata` (string keys to string values) and `allowed-tools` (space-separated, experimental) are optional. Treat `allowed-tools` as a convenience only; keep approval rules in the body because host support differs.
 
-### Step 3: Bound the skill
+Place the folder where the target host scans it:
 
-Add constraints that prevent overreach:
+| Host | Project scope | Personal scope |
+|------|---------------|----------------|
+| Claude Code | `.claude/skills/<name>/SKILL.md` | `~/.claude/skills/<name>/SKILL.md` |
+| Codex | `.agents/skills/<name>/SKILL.md` | `$HOME/.agents/skills/<name>/SKILL.md` |
 
-- What the skill should do.
-- What it should not do.
-- When it must ask for missing inputs.
-- Which files, commands, or tools are safe to use.
-- Which user approvals are required before writes, deploys, purchases, or public posts.
-
-Keep the skill focused on one reusable job. Split unrelated work into separate skills.
-
-### Step 4: Write the package
-
-Create a `SKILL.md` with:
-
-```yaml
----
-name: short-kebab-case-name
-description: >-
-  What the skill does and when to use it, including concrete trigger words.
-license: Apache-2.0
-compatibility: "No special requirements"
-metadata:
-  author: github-username
-  version: "1.0.0"
-  category: development
-  tags: ["tag-one", "tag-two", "tag-three"]
----
+```
+.claude/skills/changelog-release-notes/
+  SKILL.md
+  scripts/merged-since-tag.sh
+  references/format.md
 ```
 
-Then add:
+Claude Code also walks up from the working directory to the repository root; Codex scans `.agents/skills` in each directory from the working directory to the repository root. Commit project-scope skills so the whole team gets them. For cross-host teams, keep one copy and symlink or copy it into the other path.
 
-- `# Skill Name`
-- `## Overview`
-- `## Instructions`
-- `## Examples`
-- `## Guidelines`
+### 5. Draft the body
 
-Use imperative, step-by-step instructions. Avoid long background essays.
+Use imperative steps, each one an action with an observable result. Include:
 
-### Step 5: Add examples
+- Inputs to collect, and which ones to ask the user for when missing.
+- The ordered procedure, with exact commands only where they are stable across the team.
+- Hard limits: what the skill must not touch, and which steps need explicit user approval first (writes outside the repo, deploys, pushes, paid or public actions).
+- The done check: the command or inspection whose output decides success, and what to report if it fails.
 
-Include at least two realistic examples. Each example should show:
+Move long tables, API notes or templates to `references/`, and deterministic helpers to `scripts/`, and link them with relative paths from `SKILL.md`. Keep the main file well under the 500-line ceiling the specification recommends.
 
-- The user's input.
-- The agent's action plan.
-- The expected output shape.
-- The verification step.
+### 6. Control activation on the host
 
-Use concrete repo names, files, commands, and outputs. Do not use placeholders like `foo`, `bar`, or lorem ipsum.
+Claude Code supports `disable-model-invocation: true` in frontmatter for steps with side effects, so only the user can start the skill by name. Codex reads `agents/openai.yaml`; setting `policy.allow_implicit_invocation: false` there stops implicit matching while `$skill-name` still works. ```yaml
+# agents/openai.yaml (Codex)
+policy:
+  allow_implicit_invocation: false
+```
 
-### Step 6: Add verification
+Use these for release, deploy and migration skills.
 
-End with a checklist the agent can run before claiming success:
+### 7. Validate and test
 
-- Frontmatter parses as YAML.
-- The skill has clear triggers.
-- The workflow has a bounded input and output.
-- The examples are realistic.
-- The verification commands or review checks are explicit.
-- The skill stays under the target length for the host catalog.
+1. Install the reference validator in a virtual environment and run it on the folder:
+
+   ```
+   python3 -m venv .venv
+   .venv/bin/pip install skills-ref
+   .venv/bin/agentskills validate path/to/<name>
+   ```
+
+   Version 0.1.1 provides the `agentskills` command (subcommands `validate` and `read-properties`). It rejects uppercase or mismatched names and flow-style lists inside `metadata`, so write `metadata` values as plain strings if the validator must pass.
+2. Start a fresh agent session in the target repo and send the exact phrase from the description. Confirm the skill activates and the done check runs.
+3. Send an unrelated request and confirm the skill stays quiet.
+4. Fix the description or steps where either test failed, bump `metadata.version`, repeat.
 
 ## Examples
 
-### Example 1: Package a PR review workflow
+### Example 1: Weekly release notes from merged pull requests
 
-**User request:** "We always ask agents to review payment PRs for auth, idempotency, Stripe webhook replay, and tests. Turn that into a reusable skill."
+**Request:** "Every Friday I paste the same prompt: list PRs merged since the last tag, group by label, write the CHANGELOG entry. Make it a skill for our repo `acme/billing-api`."
 
-**Agent output shape:**
+**Plan:**
 
-```markdown
----
-name: payment-pr-reviewer
-description: >-
-  Reviews payment-related pull requests for authorization, idempotency, webhook
-  replay safety, money movement bugs, and test coverage. Use when reviewing PRs
-  that touch Stripe, billing, subscriptions, invoices, or checkout code.
-license: Apache-2.0
-compatibility: "Any repository with payment code"
-metadata:
-  author: acme-dev
-  version: "1.0.0"
-  category: development
-  tags: ["payments", "code-review", "stripe", "security"]
----
+1. Evidence is repeated weekly, with known input (last git tag) and output (CHANGELOG.md section), so it qualifies.
+2. Create `.claude/skills/changelog-release-notes/` (and `.agents/skills/...` as a copy, since the team uses Codex too).
+3. Description: "Drafts a CHANGELOG.md entry from pull requests merged since the last git tag. Use when asked to 'write release notes', 'draft the changelog for v2.4.0' or 'summarise what shipped since the last tag'."
+4. Body steps: find the tag with `git describe --tags --abbrev=0`; run `scripts/merged-since-tag.sh`; group by label per `references/format.md`; write the entry; show the diff and stop. Committing and tagging are left to the user.
+5. Validate:
+
+```
+$ .venv/bin/agentskills validate .claude/skills/changelog-release-notes
+Valid skill: .claude/skills/changelog-release-notes
 ```
 
-The skill includes a review checklist, severity format, and verification step: inspect changed payment files, read related tests, and confirm webhook replay cases are covered.
+**Done check in the skill:** `git diff --stat` shows only `CHANGELOG.md` changed.
 
-### Example 2: Package a release checklist
+### Example 2: Rejecting a non-candidate, packaging a real one
 
-**User request:** "Every release we paste the same steps: update changelog, run tests, build Docker image, tag, push, and draft GitHub release."
+**Request:** "Make a skill from my rule 'always write tests'. And one from our migration runbook for `orders-db` (backup, run Alembic, verify row counts, roll back on mismatch)."
 
-**Agent output shape:**
+**Plan:**
 
-```markdown
----
-name: release-checklist-runner
-description: >-
-  Runs a project's release checklist from changelog update through tests, image
-  build, git tag, push, and draft release notes. Use when preparing a versioned
-  release or turning a manual release runbook into an agent workflow.
-license: Apache-2.0
-compatibility: "Requires git and the project's build toolchain"
-metadata:
-  author: acme-dev
-  version: "1.0.0"
-  category: devops
-  tags: ["release", "changelog", "git", "ci"]
----
-```
-
-The skill requires the agent to detect the package manager, read existing release docs, run the repo's test and build commands, and stop before publishing unless the user approves.
+1. The first has no inputs, steps or end state. Reply that it is a standing rule, and propose adding one line to AGENTS.md.
+2. The second qualifies. Create `db-migration-runner` with `disable-model-invocation: true` (Claude Code) and an `agents/openai.yaml` with `allow_implicit_invocation: false` (Codex), because it changes a database.
+3. Body gates: ask for the target environment; refuse `production` unless the user types the migration revision id; take a `pg_dump` into `backups/` before `alembic upgrade head`; compare `SELECT count(*)` of `orders` and `order_items` before and after; if counts differ, run `alembic downgrade -1` and report.
+4. Put the runbook's long failure table in `references/failures.md` and link it.
+5. Validate with `agentskills validate`, then test in a scratch clone with the staging config.
 
 ## Guidelines
 
-- Prefer evidence from past prompts, commits, issues, and runbooks over guessing.
-- Keep one skill scoped to one recurring workflow.
-- Use host-agnostic language unless the workflow truly depends on one agent.
-- Make destructive, public, or paid actions approval-gated.
-- Include exact file paths and commands only when they are stable for the target project.
-- If the workflow needs extra templates or scripts, mention those files in the skill and keep them next to `SKILL.md`.
-- Do not package a vague preference as a skill. A good skill has repeated inputs, repeated steps, and a clear done condition.
+- One skill, one job. If the draft needs "and also", split it.
+- Evidence beats memory: derive steps from the prompts and runbooks people already use.
+- Never put secrets, tokens or machine-specific absolute paths inside a skill; read them from the environment.
+- Every irreversible or public action needs an approval step written in the body, not only in `allowed-tools`.
+- Do not duplicate a rule that already lives in AGENTS.md or CLAUDE.md; reference it.
+- Skills in a personal folder are not seen by cloud or scheduled sessions that start from a clean checkout; commit project skills instead.
+- Re-run the validator and the activation test after every edit to the description.
