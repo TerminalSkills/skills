@@ -1,307 +1,253 @@
 ---
 title: "Build a Real-Time Collaborative App with Liveblocks"
-description: "Add Figma/Notion-style collaboration to your app: live cursors, presence avatars, synced shared state, and undo/redo — all with Liveblocks in a React app."
+description: "Add Figma-style collaboration to your React app: live cursors, presence avatars, shared canvas state that merges concurrent edits, undo/redo, and server-side room permissions with Liveblocks."
 skills: [liveblocks]
 difficulty: intermediate
 time_estimate: "4 hours"
-tags: [liveblocks, collaboration, real-time, cursors, presence, yjs, crdt, react, canvas]
+tags: [liveblocks, collaboration, real-time, cursors, presence, crdt, react, canvas]
 ---
 
 # Build a Real-Time Collaborative App with Liveblocks
 
-**Persona:** You're building a productivity tool and your biggest feature request is "real-time collaboration." Users want to see who else is online, follow their cursors, and edit without conflicts — like Figma or Notion. You have a React app and need to add this without building your own WebSocket infrastructure.
+## The Problem
 
----
+You are building a productivity tool and the most requested feature is "real-time collaboration". Users want to see who else is in the document, watch their cursors, and edit the same canvas without overwriting each other, like Figma. You have a React app and do not want to run your own WebSocket servers, persistence and conflict resolution.
 
-## What You'll Build
+## The Solution
 
-- **Liveblocks Room** with typed presence and storage
-- **Live cursors:** see other users' mouse positions in real time
-- **Presence indicators:** avatars, names, online badges
-- **Shared canvas/document state** with Yjs CRDT — no conflict resolution code
-- **Undo/redo history** that works across collaborators
+[Liveblocks](https://liveblocks.io/docs) hosts the rooms. Inside a room you get two kinds of state: **presence** (per-user and ephemeral: cursor, name) and **storage** (persistent, conflict-free data built from `LiveObject`, `LiveList` and `LiveMap`). You add a small auth endpoint so only the right people can enter a room. Checked against `@liveblocks/*` 3.24 and Next.js 16 (type-checked; not run against a live Liveblocks project).
 
----
+## Step-by-Step Walkthrough
 
-## Step 1: Setup Liveblocks
+### Step 1: Install and declare your types
+
+Every `@liveblocks/*` package must be on the same version.
 
 ```bash
-npm install @liveblocks/client @liveblocks/react @liveblocks/react-ui
+npm install @liveblocks/client @liveblocks/react @liveblocks/node
 ```
 
-Create `liveblocks.config.ts` to define your types:
+In 3.x the types are declared once, globally, and the hooks come straight from `@liveblocks/react/suspense`:
 
 ```ts
 // liveblocks.config.ts
-import { createClient } from '@liveblocks/client';
-import { createRoomContext } from '@liveblocks/react';
-
-const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_KEY!,
-});
-
-// Typed presence: what each user broadcasts about themselves
-type Presence = {
-  cursor: { x: number; y: number } | null;
-  name: string;
-  color: string;
-  selectedId: string | null;
-};
-
-// Shared storage: the collaborative document state
-type Storage = {
-  shapes: LiveMap<string, Shape>;
-  docContent: LiveObject<{ text: string }>;
-};
-
-type Shape = {
-  type: 'rect' | 'circle' | 'text';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  label?: string;
-};
-
-export const {
-  RoomProvider,
-  useRoom,
-  useMyPresence,
-  useOthers,
-  useSelf,
-  useStorage,
-  useMutation,
-  useHistory,
-  useCanUndo,
-  useCanRedo,
-  useOthersMapped,
-} = createRoomContext<Presence, Storage>(client);
+import type { LiveMap, LiveObject } from "@liveblocks/client";
+type Shape = { x: number; y: number; width: number; height: number; fill: string };
+declare global {
+  interface Liveblocks {
+    // Ephemeral, per connection
+    Presence: { cursor: { x: number; y: number } | null };
+    // Persistent, conflict-free document state
+    Storage: { shapes: LiveMap<string, LiveObject<Shape>> };
+    // Set by your auth endpoint, read with useSelf() and useOthers()
+    UserMeta: { id: string; info: { name: string; color: string } };
+  }
+}
+export {};
 ```
 
----
+### Step 2: Auth endpoint
 
-## Step 2: Room Provider Setup
+A `publicApiKey` is for prototypes. For a real app, keep the secret key on the server (`LIVEBLOCKS_SECRET_KEY`, never `NEXT_PUBLIC_`) and let your own session decide who may enter which room. The `userInfo` you attach here is what `useSelf().info` and `useOthers()` return on the client.
 
-Wrap your collaborative page with `RoomProvider`:
+```ts
+// app/api/liveblocks-auth/route.ts
+import { Liveblocks } from "@liveblocks/node";
+import { getCurrentUser, userCanOpenRoom } from "@/lib/auth"; // your own session and permission checks
+const liveblocks = new Liveblocks({ secret: process.env.LIVEBLOCKS_SECRET_KEY! });
+export async function POST(request: Request) {
+  const user = await getCurrentUser(request);
+  if (!user) return new Response("Unauthorized", { status: 401 });
+  const { room } = await request.json();
+  if (!(await userCanOpenRoom(user.id, room))) return new Response("Forbidden", { status: 403 });
+  const session = liveblocks.prepareSession(user.id, {
+    userInfo: { name: user.name, color: `hsl(${hash(user.id) % 360} 70% 45%)` },
+  });
+  session.allow(room, session.FULL_ACCESS);
+  const { status, body } = await session.authorize();
+  return new Response(body, { status });
+}
+const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+```
+
+Do not cache this endpoint's responses. Room ids such as `canvas:<id>` let you grant whole groups of rooms with a wildcard (`session.allow("canvas:*", ...)`) when that fits your model.
+
+### Step 3: Room provider
+
+`ClientSideSuspense` renders the fallback on the server and the children once the room has loaded, so the Suspense hooks never return `null`. `initialStorage` only applies the first time a room is created. In Next.js 15 and later `params` is a Promise.
+
+```tsx
+// app/canvas/[roomId]/Room.tsx
+"use client";
+import { ReactNode } from "react";
+import { LiveMap } from "@liveblocks/client";
+import { ClientSideSuspense, LiveblocksProvider, RoomProvider } from "@liveblocks/react/suspense";
+export function Room({ roomId, children }: { roomId: string; children: ReactNode }) {
+  return (
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+      <RoomProvider
+        id={roomId}
+        initialPresence={{ cursor: null }}
+        initialStorage={{ shapes: new LiveMap() }}
+      >
+        <ClientSideSuspense fallback={<p>Loading room…</p>}>{children}</ClientSideSuspense>
+      </RoomProvider>
+    </LiveblocksProvider>
+  );
+}
+```
 
 ```tsx
 // app/canvas/[roomId]/page.tsx
-'use client';
-import { RoomProvider } from '@/liveblocks.config';
-import { LiveMap, LiveObject } from '@liveblocks/client';
-import { CollaborativeCanvas } from '@/components/CollaborativeCanvas';
-import { ClientSideSuspense } from '@liveblocks/react';
-
-export default function CanvasPage({ params }: { params: { roomId: string } }) {
+import { Room } from "./Room";
+import { CollaborativeCanvas } from "@/components/CollaborativeCanvas";
+export default async function CanvasPage({ params }: { params: Promise<{ roomId: string }> }) {
+  const { roomId } = await params;
   return (
-    <RoomProvider
-      id={params.roomId}
-      initialPresence={{
-        cursor: null,
-        name: 'Anonymous',
-        color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-        selectedId: null,
-      }}
-      initialStorage={{
-        shapes: new LiveMap(),
-        docContent: new LiveObject({ text: '' }),
-      }}
-    >
-      <ClientSideSuspense fallback={<div>Loading room...</div>}>
-        {() => <CollaborativeCanvas />}
-      </ClientSideSuspense>
-    </RoomProvider>
+    <Room roomId={`canvas:${roomId}`}>
+      <CollaborativeCanvas />
+    </Room>
   );
 }
 ```
 
----
+### Step 4: Live cursors
 
-## Step 3: Live Cursors
-
-Broadcast your cursor position and render others' cursors:
+Presence updates are throttled by the client, so calling `updateMyPresence` on every pointer move is fine.
 
 ```tsx
 // components/LiveCursors.tsx
-'use client';
-import { useMyPresence, useOthersMapped } from '@/liveblocks.config';
-import { useCallback } from 'react';
-
-export function LiveCursors({ children }: { children: React.ReactNode }) {
-  const [, updateMyPresence] = useMyPresence();
-
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    updateMyPresence({
-      cursor: { x: Math.round(e.clientX - rect.left), y: Math.round(e.clientY - rect.top) },
-    });
-  }, [updateMyPresence]);
-
-  const onPointerLeave = useCallback(() => {
-    updateMyPresence({ cursor: null });
-  }, [updateMyPresence]);
-
-  const others = useOthersMapped(other => ({
-    cursor: other.presence.cursor,
-    name: other.presence.name,
-    color: other.presence.color,
-  }));
-
+"use client";
+import { ReactNode } from "react";
+import { useOthers, useUpdateMyPresence } from "@liveblocks/react/suspense";
+export function LiveCursors({ children }: { children: ReactNode }) {
+  const updateMyPresence = useUpdateMyPresence();
+  const others = useOthers();
   return (
-    <div className="relative w-full h-full" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
+    <div
+      style={{ position: "relative", flex: 1 }}
+      onPointerMove={(e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        updateMyPresence({ cursor: { x: Math.round(e.clientX - box.left), y: Math.round(e.clientY - box.top) } });
+      }}
+      onPointerLeave={() => updateMyPresence({ cursor: null })}
+    >
       {children}
-      {others.map(([id, { cursor, name, color }]) =>
-        cursor ? (
+      {others.map(({ connectionId, presence, info }) =>
+        presence.cursor ? (
           <div
-            key={id}
-            className="pointer-events-none absolute z-50 select-none"
-            style={{ transform: `translate(${cursor.x}px, ${cursor.y}px)` }}
+            key={connectionId}
+            style={{
+              position: "absolute", left: 0, top: 0, pointerEvents: "none",
+              transform: `translate(${presence.cursor.x}px, ${presence.cursor.y}px)`, color: info.color,
+            }}
           >
-            {/* SVG cursor */}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill={color}>
-              <path d="M0 0 L0 14 L4 10 L8 16 L10 15 L6 9 L12 9 Z" />
-            </svg>
-            <div
-              className="px-2 py-0.5 rounded text-xs text-white font-medium ml-3 -mt-1 whitespace-nowrap"
-              style={{ backgroundColor: color }}
-            >
-              {name}
-            </div>
+            ▲ {info.name}
           </div>
-        ) : null
+        ) : null,
       )}
     </div>
   );
 }
 ```
 
----
-
-## Step 4: Presence Avatars
-
-Show who's in the room:
+### Step 5: Presence avatars
 
 ```tsx
 // components/PresenceAvatars.tsx
-'use client';
-import { useOthers, useSelf } from '@/liveblocks.config';
-
+"use client";
+import { useOthers, useSelf } from "@liveblocks/react/suspense";
+function Avatar({ name, color }: { name: string; color: string }) {
+  return (
+    <span title={name} style={{ background: color, color: "white", borderRadius: "50%", width: 32, height: 32,
+      display: "inline-grid", placeItems: "center", fontWeight: 600 }}>
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
 export function PresenceAvatars() {
   const self = useSelf();
   const others = useOthers();
-
   return (
-    <div className="flex items-center gap-1 p-2">
-      {/* Current user */}
-      <Avatar name={self?.presence.name ?? 'You'} color={self?.presence.color ?? '#888'} isMe />
-
-      {/* Others */}
-      {others.slice(0, 4).map(other => (
-        <Avatar
-          key={other.connectionId}
-          name={other.presence.name}
-          color={other.presence.color}
-        />
-      ))}
-
-      {others.length > 4 && (
-        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
-          +{others.length - 4}
-        </div>
-      )}
-
-      <span className="text-sm text-gray-500 ml-2">
-        {others.length + 1} online
-      </span>
-    </div>
-  );
-}
-
-function Avatar({ name, color, isMe }: { name: string; color: string; isMe?: boolean }) {
-  return (
-    <div
-      className={`relative w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ring-2 ring-white ${isMe ? 'ring-indigo-500' : ''}`}
-      style={{ backgroundColor: color }}
-      title={name}
-    >
-      {name[0].toUpperCase()}
-      {isMe && <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white" />}
+    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+      <Avatar name={`${self.info.name} (you)`} color={self.info.color} />
+      {others.slice(0, 4).map((o) => <Avatar key={o.connectionId} name={o.info.name} color={o.info.color} />)}
+      {others.length > 4 && <span>+{others.length - 4}</span>}
+      <span>{others.length + 1} online</span>
     </div>
   );
 }
 ```
 
----
+### Step 6: Shared canvas with undo and redo
 
-## Step 5: Shared Canvas with Mutations
-
-Add, move, and delete shapes collaboratively:
+Each shape is a `LiveObject`, so two people moving different shapes never conflict, and two people editing the same field resolve last-write-wins. Pausing history during a drag makes the whole drag one undo step. `useStorage` returns a frozen plain object for a `LiveMap`, hence `Object.entries`.
 
 ```tsx
 // components/CollaborativeCanvas.tsx
-'use client';
-import { useStorage, useMutation, useHistory, useCanUndo, useCanRedo } from '@/liveblocks.config';
-import { LiveCursors } from './LiveCursors';
-
+"use client";
+import { useRef } from "react";
+import { LiveObject } from "@liveblocks/client";
+import {
+  useCanRedo, useCanUndo, useHistory, useMutation, useRedo, useStorage, useUndo,
+} from "@liveblocks/react/suspense";
+import { LiveCursors } from "./LiveCursors";
+import { PresenceAvatars } from "./PresenceAvatars";
 export function CollaborativeCanvas() {
-  const shapes = useStorage(root => root.shapes);
-  const history = useHistory();
-  const canUndo = useCanUndo();
-  const canRedo = useCanRedo();
-
+  const shapes = useStorage((root) => root.shapes); // a frozen plain object keyed by shape id
+  const { pause, resume } = useHistory();
+  const [undo, redo, canUndo, canRedo] = [useUndo(), useRedo(), useCanUndo(), useCanRedo()];
+  const drag = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const addShape = useMutation(({ storage }, x: number, y: number) => {
-    const id = crypto.randomUUID();
-    storage.get('shapes').set(id, {
-      type: 'rect', x, y, width: 120, height: 80,
-      fill: `hsl(${Math.random() * 360}, 60%, 70%)`,
-    });
+    storage.get("shapes").set(
+      crypto.randomUUID(),
+      new LiveObject({ x, y, width: 120, height: 80, fill: `hsl(${Math.random() * 360} 60% 75%)` }),
+    );
   }, []);
-
   const moveShape = useMutation(({ storage }, id: string, x: number, y: number) => {
-    const shape = storage.get('shapes').get(id);
-    if (shape) {
-      storage.get('shapes').set(id, { ...shape, x, y });
-    }
+    storage.get("shapes").get(id)?.update({ x, y }); // only x and y sync
   }, []);
-
   const deleteShape = useMutation(({ storage }, id: string) => {
-    storage.get('shapes').delete(id);
+    storage.get("shapes").delete(id);
   }, []);
-
   return (
-    <div className="flex flex-col h-screen">
-      <div className="p-2 border-b flex gap-2">
-        <button onClick={() => history.undo()} disabled={!canUndo} className="btn">↩ Undo</button>
-        <button onClick={() => history.redo()} disabled={!canRedo} className="btn">↪ Redo</button>
-      </div>
-
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <header style={{ display: "flex", gap: 8, padding: 8, justifyContent: "space-between" }}>
+        <div>
+          <button onClick={undo} disabled={!canUndo}>Undo</button>
+          <button onClick={redo} disabled={!canRedo}>Redo</button>
+        </div>
+        <PresenceAvatars />
+      </header>
       <LiveCursors>
         <div
-          className="flex-1 bg-gray-50 relative overflow-hidden"
-          onDoubleClick={e => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            addShape(e.clientX - rect.left, e.clientY - rect.top);
+          style={{ position: "absolute", inset: 0, background: "#f6f6f8", overflow: "hidden", touchAction: "none" }}
+          onDoubleClick={(e) => {
+            const box = e.currentTarget.getBoundingClientRect();
+            addShape(e.clientX - box.left, e.clientY - box.top);
           }}
+          onPointerMove={(e) => {
+            if (!drag.current) return;
+            const box = e.currentTarget.getBoundingClientRect();
+            moveShape(drag.current.id, e.clientX - box.left - drag.current.dx, e.clientY - box.top - drag.current.dy);
+          }}
+          onPointerUp={() => { drag.current = null; resume(); }}
         >
-          {shapes && Array.from(shapes.entries()).map(([id, shape]) => (
+          {Object.entries(shapes).map(([id, s]) => (
             <div
               key={id}
-              className="absolute rounded cursor-move select-none flex items-center justify-center text-sm"
-              style={{ left: shape.x, top: shape.y, width: shape.width, height: shape.height, backgroundColor: shape.fill }}
-              onContextMenu={e => { e.preventDefault(); deleteShape(id); }}
-              draggable
-              onDragEnd={e => {
-                const rect = e.currentTarget.parentElement!.getBoundingClientRect();
-                moveShape(id, e.clientX - rect.left - shape.width / 2, e.clientY - rect.top - shape.height / 2);
+              style={{ position: "absolute", left: s.x, top: s.y, width: s.width, height: s.height,
+                background: s.fill, borderRadius: 6, cursor: "grab", userSelect: "none" }}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                const box = e.currentTarget.parentElement!.getBoundingClientRect();
+                drag.current = { id, dx: e.clientX - box.left - s.x, dy: e.clientY - box.top - s.y };
+                e.currentTarget.parentElement!.setPointerCapture(e.pointerId);
+                pause(); // the whole drag becomes one undo step
               }}
-            >
-              {shape.label ?? 'Double-click to add'}
-            </div>
+              onContextMenu={(e) => { e.preventDefault(); deleteShape(id); }}
+            />
           ))}
-          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-gray-400 text-sm">
-            Double-click to add shape · Right-click to delete · Drag to move
-          </p>
         </div>
       </LiveCursors>
     </div>
@@ -309,12 +255,12 @@ export function CollaborativeCanvas() {
 }
 ```
 
----
+Open `/canvas/demo` in two browsers signed in as different users: double-click to add a rectangle, drag it, right-click to delete it, and use Undo and Redo (they only undo your own changes).
 
-## Key Outcomes
+## Real-World Example
 
-- Live cursors for all users in the room
-- Presence avatars showing who's online
-- Conflict-free shared state via Liveblocks CRDT
-- Undo/redo works across all collaborators
-- Zero WebSocket infrastructure to maintain
+A four-person team ("Sketchpad", an invented whiteboard startup) ships the canvas to beta users. They start with the public key in a prototype, then add the auth endpoint before launch so only workspace members get a token. The first support ticket ("my colleague moved my box") turns into a feature: they add `selectedId` to presence and draw an outline around shapes other people are holding. For rich text, they add a text editor binding (`@liveblocks/yjs` with a Yjs-based editor) in the same room instead of storing text in `LiveMap`.
+
+## Related Skills
+
+- [liveblocks](/skills/liveblocks): hooks, storage types, comments and notifications, and server-side authentication
