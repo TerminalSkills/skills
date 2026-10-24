@@ -12,8 +12,9 @@ license: Apache-2.0
 compatibility: Node.js 18+ or any HTTP client (REST API v3)
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: productivity
+  repository: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
   tags:
     - jira
     - atlassian
@@ -35,8 +36,8 @@ Automate and extend Jira Cloud — the most widely used issue tracker and projec
 ```typescript
 // Basic auth with API token — simplest for scripts and integrations.
 // Generate token at: https://id.atlassian.com/manage-profile/security/api-tokens
-const JIRA_BASE = "https://your-domain.atlassian.net";
-const AUTH = Buffer.from(`your-email@company.com:${process.env.JIRA_API_TOKEN}`).toString("base64");
+const JIRA_BASE = "https://acme-eng.atlassian.net";
+const AUTH = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString("base64");
 
 async function jira(method: string, path: string, body?: any) {
   const res = await fetch(`${JIRA_BASE}/rest/api/3${path}`, {
@@ -48,24 +49,27 @@ async function jira(method: string, path: string, body?: any) {
   return res.status === 204 ? null : res.json();
 }
 // For Marketplace apps, use OAuth 2.0 (3LO) — register at developer.atlassian.com
+// Set JIRA_EMAIL and JIRA_API_TOKEN in the environment; never hard-code them.
 ```
 
 ### Step 2: Projects & Issue Types
 
 ```typescript
-// Create a project: projectTypeKey = "software" | "business" | "service_desk"
+// Create a project: projectTypeKey = "software" | "business" | "service_desk" | "customer_service"
+// (give a projectTemplateKey, or at least the type; the template must match the type)
 const project = await jira("POST", "/project", {
   key: "ENG",                     // 2-10 char uppercase key (ENG-1, ENG-2)
   name: "Engineering",
   projectTypeKey: "software",
-  leadAccountId: "5f1234abc...",
+  leadAccountId: process.env.JIRA_LEAD_ACCOUNT_ID, // from GET /myself or /user/search?query=
+  projectTemplateKey: "com.pyxis.greenhopper.jira:gh-simplified-agility-scrum", // Scrum; ...-kanban for Kanban
   description: "Core product engineering",
 });
 // Default software issue types: Epic, Story, Task, Bug, Sub-task
 
 // Custom issue type (requires admin)
 const customType = await jira("POST", "/issuetype", {
-  name: "Tech Debt", type: "standard", hierarchyLevel: 0,
+  name: "Tech Debt", hierarchyLevel: 0, // 0 = standard (Story/Task level; the default), -1 = sub-task
 });
 ```
 
@@ -84,8 +88,8 @@ const issue = await jira("POST", "/issue", {
     },
     priority: { name: "High" },       // Highest, High, Medium, Low, Lowest
     labels: ["auth", "security"],
-    assignee: { accountId: "5f1234abc..." },
-    customfield_10016: 8,              // Story points (custom field ID varies)
+    assignee: { accountId: process.env.JIRA_ASSIGNEE_ACCOUNT_ID },
+    [process.env.JIRA_STORY_POINTS_FIELD!]: 8, // e.g. "customfield_10016"; the ID differs per site
     components: [{ name: "Backend" }],
   },
 });
@@ -109,8 +113,10 @@ const bulkResult = await jira("POST", "/issue/bulk", {
 ### Step 4: JQL — Jira Query Language
 
 ```typescript
-// JQL search — paginated via startAt/maxResults
-const myBugs = await jira("POST", "/search", {
+// JQL search: POST /search/jql. The old /search endpoint is being removed.
+// It has no startAt and no total: pass the returned nextPageToken until isLast is true.
+// Without "fields" only the issue id comes back.
+const myBugs = await jira("POST", "/search/jql", {
   jql: `project = ENG AND issuetype = Bug AND priority in (High, Highest)
     AND assignee = currentUser() AND sprint in openSprints()
     ORDER BY priority DESC`,
@@ -118,11 +124,12 @@ const myBugs = await jira("POST", "/search", {
 });
 
 // Stale work detection
-const staleIssues = await jira("POST", "/search", {
-  jql: `project = ENG AND status != Done AND updated <= -14d ORDER BY updated ASC`,
+const staleIssues = await jira("POST", "/search/jql", {
+  jql: `project = ENG AND statusCategory != Done AND updated <= -14d ORDER BY updated ASC`,
   maxResults: 100, fields: ["summary", "status", "assignee", "updated"],
 });
 
+// Next page: repeat the call with nextPageToken: myBugs.nextPageToken (while !myBugs.isLast)
 // Key JQL functions: currentUser(), membersOf("team"), openSprints(),
 // futureSprints(), startOfDay(), endOfWeek(), startOfMonth(-1)
 ```
@@ -138,48 +145,50 @@ async function agile(method: string, path: string, body?: any) {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`Agile ${method} ${path}: ${res.status}`);
-  return res.json();
+  return res.status === 204 ? null : res.json(); // moving issues into a sprint answers 204
 }
 
 // Boards, sprints, sprint issues
 const boards = await agile("GET", "/board?type=scrum");
+const boardId = boards.values[0].id;
 const sprints = await agile("GET", `/board/${boardId}/sprint?state=active`);
-const sprintIssues = await agile("GET", `/sprint/${sprints.values[0].id}/issue?fields=summary,status,assignee`);
+// GET /sprint/{id}/issue is deprecated; search the sprint with JQL instead
+const sprintIssues = await jira("POST", "/search/jql", {
+  jql: `sprint = ${sprints.values[0].id}`, fields: ["summary", "status", "assignee"], maxResults: 100,
+});
 
 // Create sprint, move issues, close sprint
 const newSprint = await agile("POST", "/sprint", {
-  name: "Sprint 24", startDate: "2026-02-24T09:00:00.000Z",
-  endDate: "2026-03-07T17:00:00.000Z", originBoardId: boardId,
+  name: "Sprint 24", startDate: "2026-11-02T09:00:00.000Z",
+  endDate: "2026-11-13T17:00:00.000Z", originBoardId: boardId,
   goal: "Complete auth module and API v2 migration",
 });
 await agile("POST", `/sprint/${newSprint.id}/issue`, { issues: ["ENG-142", "ENG-143"] });
-await agile("POST", `/sprint/${newSprint.id}`, { state: "closed", completeDate: new Date().toISOString() });
+await agile("POST", `/sprint/${newSprint.id}`, { state: "active" }); // start it first (dates required)
+await agile("POST", `/sprint/${newSprint.id}`, { state: "closed" }); // only an active sprint can be closed
 ```
 
-### Step 6: Webhooks & Automation
+### Step 6: Webhooks
 
 ```typescript
-// Register a webhook for issue events
-const webhook = await jira("POST", "/webhook", {
-  name: "Epic completion handler",
-  url: "https://your-app.com/webhook/jira",
-  events: ["jira:issue_updated"],
-  filters: { "issue-related-events-section": `project = ENG AND issuetype = Epic` },
-});
-
-// Webhook handler: auto-transition Epic children when Epic is marked Done
-app.post("/webhook/jira", async (req, res) => {
+// POST /rest/api/3/webhook ("dynamic webhooks") works only for Connect and OAuth 2.0 apps,
+// so an API-token script cannot call it. For a script, a Jira admin creates the webhook in
+// Settings > System > WebHooks (URL, events, optional JQL filter), or uses an
+// Automation rule with a "Send web request" action.
+// Handler: when an Epic is marked Done, close its open children.
+app.post("/webhook/jira/ENG-epics", async (req, res) => {
   res.sendStatus(200);
   const { issue, changelog } = req.body;
   const statusChange = changelog?.items?.find((i: any) => i.field === "status" && i.toString === "Done");
   if (!statusChange || issue.fields.issuetype.name !== "Epic") return;
 
-  const children = await jira("POST", "/search", {
-    jql: `"Epic Link" = ${issue.key} AND status != Done`, fields: ["status"],
+  // "Epic Link" is deprecated; children of an Epic are found with parent
+  const children = await jira("POST", "/search/jql", {
+    jql: `parent = ${issue.key} AND statusCategory != Done`, fields: ["status"],
   });
   for (const child of children.issues) {
     const tr = await jira("GET", `/issue/${child.key}/transitions`);
-    const done = tr.transitions.find((t: any) => t.name === "Done");
+    const done = tr.transitions.find((t: any) => t.to.statusCategory.key === "done");
     if (done) await jira("POST", `/issue/${child.key}/transitions`, { transition: { id: done.id } });
   }
 });
@@ -192,10 +201,11 @@ app.post("/webhook/jira", async (req, res) => {
 async function getVelocity(boardId: number, sprintCount = 5) {
   const closedSprints = await agile("GET", `/board/${boardId}/sprint?state=closed&maxResults=${sprintCount}`);
   return Promise.all(closedSprints.values.map(async (sprint: any) => {
-    const issues = await agile("GET", `/sprint/${sprint.id}/issue?fields=customfield_10016,status`);
-    const points = issues.issues
-      .filter((i: any) => i.fields.status.statusCategory.key === "done")
-      .reduce((sum: number, i: any) => sum + (i.fields.customfield_10016 || 0), 0);
+    const pointsField = process.env.JIRA_STORY_POINTS_FIELD!; // find it with GET /field
+    const issues = await jira("POST", "/search/jql", {
+      jql: `sprint = ${sprint.id} AND statusCategory = Done`, fields: [pointsField], maxResults: 100,
+    }); // follow nextPageToken for sprints with more than 100 issues
+    const points = issues.issues.reduce((sum: number, i: any) => sum + (i.fields[pointsField] || 0), 0);
     return { sprint: sprint.name, points };
   }));
 }
@@ -204,7 +214,7 @@ async function getVelocity(boardId: number, sprintCount = 5) {
 const filter = await jira("POST", "/filter", {
   name: "Sprint Burndown - ENG",
   jql: "project = ENG AND sprint in openSprints() ORDER BY rank ASC",
-  sharePermissions: [{ type: "project", project: { id: project.id } }],
+  sharePermissions: [{ type: "project", projectId: project.id }],
 });
 ```
 
@@ -213,10 +223,11 @@ const filter = await jira("POST", "/filter", {
 ```typescript
 // Check permissions and add users to project roles
 const permission = await jira("GET", `/mypermissions?projectKey=ENG&permissions=EDIT_ISSUES,ASSIGN_ISSUES`);
-await jira("POST", `/project/${projectKey}/role/${roleId}`, {
-  user: ["accountId1", "accountId2"],
+const roles = await jira("GET", "/project/ENG/role");   // { "Developers": ".../role/10001", ... }
+const roleId = roles["Developers"].split("/").pop();    // role IDs differ per site
+await jira("POST", `/project/ENG/role/${roleId}`, {
+  user: [process.env.JIRA_ASSIGNEE_ACCOUNT_ID],         // account IDs, not emails
 });
-// Common roles: 10002=Administrators, 10001=Developers, 10000=Users
 ```
 
 ## Examples
@@ -235,7 +246,7 @@ The agent will:
 **User prompt:** "Find all unresolved ENG issues that haven't been updated in over 14 days. Group them by assignee and tell me who has the most stale work."
 
 The agent will:
-1. Run a JQL search: `project = ENG AND status != Done AND updated <= -14d ORDER BY assignee ASC, updated ASC` with fields for summary, status, assignee, and updated date.
+1. Run a JQL search: `project = ENG AND statusCategory != Done AND updated <= -14d ORDER BY assignee ASC, updated ASC` via `POST /search/jql` with fields for summary, status, assignee, and updated date.
 2. Group the results by assignee account ID.
 3. Output a summary showing each assignee, their count of stale issues, and the oldest one by last update date.
 4. Highlight any issues not updated in over 30 days as critical.
@@ -244,7 +255,8 @@ The agent will:
 
 - Use API tokens (basic auth) for scripts and personal integrations; OAuth 2.0 (3LO) is only needed for Marketplace apps that act on behalf of multiple users.
 - Jira Cloud uses Atlassian Document Format (ADF) for descriptions and comments, not plain text; always construct the `{ type: "doc", version: 1, content: [...] }` structure.
-- Custom field IDs (like `customfield_10016` for story points) vary between Jira instances; use `GET /issue/createmeta` to discover the correct field IDs for your project.
+- Custom field IDs (story points is often `customfield_10016`) vary between sites; look them up with `GET /field` or `GET /issue/createmeta/{projectKey}/issuetypes/{issueTypeId}` (the bare `/issue/createmeta` is deprecated).
 - The Agile API (`/rest/agile/1.0`) is separate from the core API (`/rest/api/3`); use it for boards, sprints, backlog, and ranking operations.
-- JQL search results are paginated with a default limit of 50; use `startAt` and `maxResults` to iterate through large result sets.
+- Use `POST /search/jql`; the old `/search` is being removed. It pages with `nextPageToken` (no `startAt`, no total) and returns only issue IDs unless you list `fields`.
+- `POST /webhook` and dynamic webhooks are for Connect and OAuth apps only; a basic-auth script registers webhooks in the admin UI instead.
 - When transitioning issues, always fetch available transitions first with `GET /issue/{key}/transitions`; transition IDs are not stable across different workflow configurations.
