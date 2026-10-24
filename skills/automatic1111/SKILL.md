@@ -46,6 +46,8 @@ cd stable-diffusion-webui
 # Download a model (SDXL base, about 6.9 GB; use only .safetensors files)
 wget -P models/Stable-diffusion/ \
     "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors"
+# Verify against the SHA-256 Hugging Face publishes for this file (shown on its file page)
+echo "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b  models/Stable-diffusion/sd_xl_base_1.0.safetensors" | sha256sum -c -
 
 # Launch (auto-installs dependencies on first run). Binds to 127.0.0.1 only.
 ./webui.sh --api --xformers
