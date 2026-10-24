@@ -6,11 +6,12 @@ description: |
   real-time listeners for live updates, enable offline persistence, and write
   security rules for client-side access control.
 license: Apache-2.0
-compatibility: 'gcloud-cli, firebase-cli, python, nodejs'
+compatibility: 'google-cloud-firestore (Python) 2.x, @google-cloud/firestore (Node), firebase-tools, gcloud CLI; a Google Cloud project with Firestore enabled'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/googleapis/python-firestore
   tags:
     - gcp
     - firestore
@@ -21,9 +22,13 @@ metadata:
 
 # GCP Firestore
 
-Cloud Firestore is a flexible, scalable NoSQL document database. It supports real-time synchronization, offline access, and scales automatically. Available in Native mode (real-time + offline) and Datastore mode (server-only, higher throughput).
+## Overview
 
-## Core Concepts
+Cloud Firestore is a flexible, scalable NoSQL document database. It supports real-time synchronization, offline access, and scales automatically. Native mode (the default) has real-time listeners and offline client support; Datastore mode is server-only. Databases come in a Standard edition and an Enterprise edition (the latter also offers a MongoDB-compatible API).
+
+## Instructions
+
+### Core concepts
 
 - **Document** — a record containing fields (like a JSON object), identified by ID
 - **Collection** — a group of documents
@@ -32,18 +37,26 @@ Cloud Firestore is a flexible, scalable NoSQL document database. It supports rea
 - **Real-time listener** — streams live changes to documents or queries
 - **Security Rules** — declarative access control for client SDKs
 
-## CRUD Operations
+### Create a database and install the client
+
+```bash
+gcloud firestore databases create --location=nam5 --type=firestore-native
+pip install google-cloud-firestore          # Python
+npm install @google-cloud/firestore         # Node.js server SDK
+```
+
+Server libraries authenticate with Application Default Credentials (`gcloud auth application-default login` locally, an attached service account in production) and bypass security rules. Browser and mobile apps use the Firebase SDK (`npm install firebase`, modular `firebase/firestore` API) and are governed by security rules.
+
+### CRUD operations
 
 ```python
-# Initialize and write documents
 from google.cloud import firestore
 
 db = firestore.Client()
 
-# Create or overwrite a document
 db.collection('users').document('user-001').set({
     'name': 'Alice Johnson',
-    'email': 'alice@example.com',
+    'email': 'alice@northwind.dev',
     'role': 'admin',
     'created_at': firestore.SERVER_TIMESTAMP
 })
@@ -59,53 +72,45 @@ ref = db.collection('orders').add({
     'status': 'pending',
     'created_at': firestore.SERVER_TIMESTAMP
 })
-print(f"Created order: {ref[1].id}")
+print(f"Created order: {ref[1].id}")  # add() returns (update_time, ref)
 ```
 
 ```python
-# Read a document
 doc = db.collection('users').document('user-001').get()
-if doc.exists:
-    print(f"User: {doc.to_dict()}")
+print(doc.to_dict() if doc.exists else 'missing')
 ```
 
 ```python
-# Update specific fields (merge)
 db.collection('users').document('user-001').update({
     'role': 'superadmin',
     'updated_at': firestore.SERVER_TIMESTAMP
 })
 
-# Update nested fields
-db.collection('users').document('user-001').update({
-    'preferences.theme': 'dark',
-    'preferences.notifications': True
-})
+# Update nested fields with dotted paths
+db.collection('users').document('user-001').update({'preferences.theme': 'dark'})
 ```
 
 ```python
-# Delete a document
+# Delete a document, or just one field
 db.collection('users').document('user-001').delete()
-
-# Delete a specific field
 db.collection('users').document('user-001').update({
     'temporary_field': firestore.DELETE_FIELD
 })
 ```
 
-## Queries
+### Queries
 
 ```python
-# Simple queries
+from google.cloud.firestore_v1.base_query import FieldFilter
+
+# Use filter=FieldFilter(...); the positional where(field, op, value) form emits a UserWarning
 users_ref = db.collection('users')
+admins = users_ref.where(filter=FieldFilter('role', '==', 'admin')).stream()
 
-# Filter by field
-admins = users_ref.where('role', '==', 'admin').stream()
-
-# Multiple conditions
+# Multiple conditions (equality + range + order needs a composite index, see Indexes)
 recent_orders = db.collection('orders') \
-    .where('status', '==', 'pending') \
-    .where('total', '>=', 50) \
+    .where(filter=FieldFilter('status', '==', 'pending')) \
+    .where(filter=FieldFilter('total', '>=', 50)) \
     .order_by('total', direction=firestore.Query.DESCENDING) \
     .limit(20) \
     .stream()
@@ -121,7 +126,6 @@ first_page = db.collection('orders') \
     .limit(25) \
     .get()
 
-# Get next page starting after last document
 last_doc = first_page[-1]
 next_page = db.collection('orders') \
     .order_by('created_at', direction=firestore.Query.DESCENDING) \
@@ -132,21 +136,22 @@ next_page = db.collection('orders') \
 
 ```python
 # Array and IN queries
-# Find users with a specific tag
-db.collection('users').where('tags', 'array_contains', 'premium').stream()
+db.collection('users').where(filter=FieldFilter('tags', 'array_contains', 'premium')).stream()
 
-# Find orders with specific statuses
-db.collection('orders').where('status', 'in', ['pending', 'processing']).stream()
+db.collection('orders').where(filter=FieldFilter('status', 'in', ['pending', 'processing'])).stream()
+
+# Count without reading documents
+count = db.collection('orders').where(filter=FieldFilter('status', '==', 'pending')).count(alias='n').get()
+print(count[0][0].value)
 ```
 
-## Real-Time Listeners
+### Real-Time Listeners
 
 ```javascript
-// real-time-listener.js — listen for live document changes
+// real-time-listener.js — server-side listener (Node library)
 const { Firestore } = require('@google-cloud/firestore');
 const db = new Firestore();
 
-// Listen to a single document
 const unsubscribe = db.collection('orders').doc('order-001')
   .onSnapshot((doc) => {
     if (doc.exists) {
@@ -154,7 +159,6 @@ const unsubscribe = db.collection('orders').doc('order-001')
     }
   });
 
-// Listen to a query (all pending orders)
 const queryUnsubscribe = db.collection('orders')
   .where('status', '==', 'pending')
   .onSnapshot((snapshot) => {
@@ -173,13 +177,15 @@ const queryUnsubscribe = db.collection('orders')
 // unsubscribe();
 ```
 
-## Batch Writes and Transactions
+In a web app use the modular Firebase SDK: `onSnapshot(query(collection(db, 'orders'), where('status', '==', 'pending')), snap => ...)`; `initializeFirestore(app, { localCache: persistentLocalCache() })` enables offline persistence.
+
+### Batch Writes and Transactions
 
 ```python
-# Batch write (up to 500 operations)
+# Batch write: atomic, no operation-count limit, request must stay under 10 MiB
 batch = db.batch()
 
-for i in range(100):
+for i in range(3):
     ref = db.collection('products').document(f'product-{i:04d}')
     batch.set(ref, {
         'name': f'Product {i}',
@@ -188,8 +194,8 @@ for i in range(100):
     })
 
 batch.commit()
-print("Batch write complete")
 ```
+For large non-atomic loads use `db.bulk_writer()`.
 
 ```python
 # Transaction for atomic read-modify-write
@@ -214,46 +220,44 @@ transfer_funds(
 )
 ```
 
-## Security Rules
+### Security Rules
 
 ```javascript
 // firestore.rules — access control for client SDKs
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read/write their own profile
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Orders: owner can read, only server can write
     match /orders/{orderId} {
-      allow read: if request.auth.uid == resource.data.user_id;
+      allow read: if request.auth != null && request.auth.uid == resource.data.user_id;
       allow create: if request.auth != null
         && request.resource.data.user_id == request.auth.uid
         && request.resource.data.total > 0;
-      allow update, delete: if false; // server-side only
+      allow update, delete: if false;
     }
 
-    // Public read, admin write
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth.token.admin == true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
   }
 }
 ```
 
+`request.auth.token.admin` is a custom claim you set yourself with the Admin SDK. Rules do not filter results: a query must be provably within what the rules allow, or it fails.
+
 ```bash
-# Deploy security rules
-firebase deploy --only firestore:rules
+firebase deploy --only firestore:rules   # needs a "firestore" section in firebase.json
 ```
 
-## Indexes
+### Indexes
 
+Composite indexes live in `firestore.indexes.json`:
 ```json
-// firestore.indexes.json — composite indexes for complex queries
 {
   "indexes": [
     {
@@ -277,17 +281,19 @@ firebase deploy --only firestore:rules
 ```
 
 ```bash
-# Deploy indexes
 firebase deploy --only firestore:indexes
 ```
 
-## Best Practices
+## Examples
 
-- Design data around your queries — denormalize for read performance
-- Use subcollections for large lists that are always accessed per parent
-- Keep documents small (<1MB); use subcollections for unbounded lists
-- Use transactions for operations that need atomicity across documents
-- Create composite indexes for queries with multiple where/orderBy clauses
-- Use security rules for all client-accessible data — never trust the client
-- Use batch writes for bulk operations (up to 500 per batch)
-- Enable offline persistence for mobile apps with poor connectivity
+**"Store orders and list a user's newest ones."** Write with `add()` as above, then query `where(filter=FieldFilter('user_id','==','user-001')).order_by('created_at', direction=firestore.Query.DESCENDING).limit(25)`. The first run fails with `FailedPrecondition: The query requires an index` and a console link; add the second index from `firestore.indexes.json` and deploy it.
+
+**"Move money between two accounts safely."** Run `transfer_funds` inside a transaction: both reads happen first, then the updates; if another writer changes either balance the function is retried automatically (keep it free of side effects).
+
+## Guidelines
+
+- Design data around your queries and denormalize for reads
+- Documents are limited to 1 MiB; use subcollections for unbounded lists or lists read per parent
+- Secure all client-accessible data with rules; never trust the client
+- Use `bulk_writer()` for bulk loads and batches for small atomic groups; no 500-write cap, but requests are limited to 10 MiB; transactions time out after 270 s
+- Enable offline persistence for mobile and web apps with poor connectivity (client SDKs only)
