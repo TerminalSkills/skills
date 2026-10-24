@@ -5,10 +5,11 @@ description: |
   applications. It features LiveView for interactive UIs without JavaScript, channels
   for WebSockets, and Ecto for database access with compile-time query validation.
 license: Apache-2.0
-compatibility: 'elixir >= 1.14, erlang >= 25, mix'
+compatibility: 'Elixir >= 1.17 (phx_new 1.8), Erlang/OTP >= 25, mix, PostgreSQL'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/phoenixframework/phoenix
   category: development
   tags:
     - elixir
@@ -16,43 +17,29 @@ metadata:
     - realtime
     - liveview
     - websocket
-    - functional
 ---
 
 # Phoenix
 
-Phoenix leverages the Erlang VM (BEAM) for massive concurrency and fault tolerance. LiveView enables rich, real-time UIs with server-rendered HTML — no JavaScript framework needed.
+## Overview
 
-## Installation
+Phoenix leverages the Erlang VM (BEAM) for massive concurrency and fault tolerance. LiveView enables rich, real-time UIs with server-rendered HTML, with little custom JavaScript. This skill targets Phoenix 1.8 (1.8.16 checked) with LiveView 1.x and Ecto 3.
+
+## Instructions
+
+### Installation
 
 ```bash
-# Install Phoenix and create project
-mix archive.install hex phx_new
-mix phx.new my_app --database postgres
-cd my_app
-mix setup   # deps.get + ecto.create + assets
+mix archive.install hex phx_new      # asks to confirm; add --force to skip the prompt
+mix phx.new blog --database postgres # PostgreSQL is the default
+cd blog
+mix setup                            # deps.get, ecto.setup, assets.setup, assets.build
+mix phx.server                       # http://localhost:4000 (dev server binds to localhost)
 ```
 
-## Project Structure
+On Linux install `inotify-tools` for live reload. The examples below use the app name `my_app`; substitute your own.
 
-```
-# Phoenix project layout
-lib/my_app/
-├── application.ex          # OTP supervision tree
-├── repo.ex                 # Ecto repo
-├── accounts/               # Context module
-│   ├── user.ex             # Ecto schema
-│   └── accounts.ex         # Business logic
-lib/my_app_web/
-├── endpoint.ex             # HTTP entry point
-├── router.ex               # Routes
-├── controllers/            # REST controllers
-├── live/                   # LiveView modules
-├── components/             # Function components
-└── templates/              # HEEx templates
-```
-
-## Ecto Schema and Migration
+### Ecto Schema and Migration
 
 ```elixir
 # lib/my_app/articles/article.ex — Ecto schema
@@ -71,8 +58,8 @@ defmodule MyApp.Articles.Article do
 
   def changeset(article, attrs) do
     article
-    |> cast(attrs, [:title, :body, :published])
-    |> validate_required([:title, :body])
+    |> cast(attrs, [:title, :body, :published, :author_id])
+    |> validate_required([:title, :body, :author_id])
     |> validate_length(:title, max: 200)
     |> unique_constraint(:slug)
     |> generate_slug()
@@ -81,14 +68,18 @@ defmodule MyApp.Articles.Article do
   defp generate_slug(changeset) do
     case get_change(changeset, :title) do
       nil -> changeset
-      title -> put_change(changeset, :slug, Slug.slugify(title))
+      title -> put_change(changeset, :slug, slugify(title))
     end
+  end
+
+  defp slugify(title) do
+    title |> String.downcase() |> String.replace(~r/[^a-z0-9]+/u, "-") |> String.trim("-")
   end
 end
 ```
 
 ```elixir
-# priv/repo/migrations/20240101000000_create_articles.exs — migration
+# priv/repo/migrations/20261024120000_create_articles.exs — migration
 defmodule MyApp.Repo.Migrations.CreateArticles do
   use Ecto.Migration
 
@@ -107,10 +98,10 @@ defmodule MyApp.Repo.Migrations.CreateArticles do
 end
 ```
 
-## Context Module
+### Context Module
 
 ```elixir
-# lib/my_app/articles/articles.ex — business logic context
+# lib/my_app/articles.ex
 defmodule MyApp.Articles do
   import Ecto.Query
   alias MyApp.Repo
@@ -124,38 +115,34 @@ defmodule MyApp.Articles do
     |> Repo.all()
   end
 
-  def get_article!(id), do: Repo.get!(Article, id) |> Repo.preload(:author)
+  def get_published_by_slug!(slug) do
+    Article |> where(slug: ^slug, published: true) |> preload(:author) |> Repo.one!()
+  end
+
+  def search(term) do
+    Article
+    |> where([a], a.published and ilike(a.title, ^"%#{term}%"))
+    |> order_by(desc: :inserted_at)
+    |> preload(:author)
+    |> Repo.all()
+  end
 
   def create_article(attrs) do
     %Article{}
     |> Article.changeset(attrs)
     |> Repo.insert()
   end
-
-  def update_article(%Article{} = article, attrs) do
-    article
-    |> Article.changeset(attrs)
-    |> Repo.update()
-  end
 end
 ```
 
-## Router
+### Router
 
 ```elixir
 # lib/my_app_web/router.ex — routing
 defmodule MyAppWeb.Router do
   use MyAppWeb, :router
 
-  pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :put_root_layout, html: {MyAppWeb.Layouts, :root}
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-  end
-
+  # pipeline :browser (session, flash, root layout, CSRF) is generated by mix phx.new
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -163,54 +150,49 @@ defmodule MyAppWeb.Router do
   scope "/", MyAppWeb do
     pipe_through :browser
     live "/articles", ArticleLive.Index, :index
-    live "/articles/:slug", ArticleLive.Show, :show
+    live "/articles/:slug", ArticleLive.Show, :show   # Show: see mix phx.gen.live
   end
 
   scope "/api", MyAppWeb.API do
     pipe_through :api
-    resources "/articles", ArticleController, only: [:index, :show, :create]
+    resources "/articles", ArticleController, only: [:index, :create]
   end
 end
 ```
 
-## LiveView
+### LiveView
 
 ```elixir
-# lib/my_app_web/live/article_live/index.ex — LiveView for article list
+# lib/my_app_web/live/article_live/index.ex
 defmodule MyAppWeb.ArticleLive.Index do
   use MyAppWeb, :live_view
-
   alias MyApp.Articles
-
   @impl true
   def mount(_params, _session, socket) do
-    articles = Articles.list_published()
-    {:ok, assign(socket, articles: articles, search: "")}
+    {:ok, assign(socket, articles: Articles.list_published(), search: "")}
   end
 
   @impl true
   def handle_event("search", %{"query" => query}, socket) do
-    articles = Articles.search(query)
-    {:noreply, assign(socket, articles: articles, search: query)}
+    {:noreply, assign(socket, articles: Articles.search(query), search: query)}
   end
 end
 ```
 
 ```heex
-<!-- lib/my_app_web/live/article_live/index.html.heex — LiveView template -->
 <div>
   <h1>Articles</h1>
-  <form phx-change="search" phx-debounce="300">
-    <input type="text" name="query" value={@search} placeholder="Search..." />
+  <form phx-change="search">
+    <input type="text" name="query" value={@search} phx-debounce="300" placeholder="Search..." />
   </form>
   <div :for={article <- @articles}>
-    <h2><.link navigate={~p"/articles/#{article.slug}"}><%= article.title %></.link></h2>
-    <p>By <%= article.author.name %></p>
+    <h2><.link navigate={~p"/articles/#{article.slug}"}>{article.title}</.link></h2>
+    <p>By {article.author.email}</p>
   </div>
 </div>
 ```
 
-## JSON Controller
+### JSON Controller
 
 ```elixir
 # lib/my_app_web/controllers/api/article_controller.ex — API controller
@@ -219,8 +201,7 @@ defmodule MyAppWeb.API.ArticleController do
   alias MyApp.Articles
 
   def index(conn, _params) do
-    articles = Articles.list_published()
-    json(conn, %{data: Enum.map(articles, &article_json/1)})
+    json(conn, %{data: Enum.map(Articles.list_published(), &article_json/1)})
   end
 
   def create(conn, %{"article" => params}) do
@@ -231,19 +212,40 @@ defmodule MyAppWeb.API.ArticleController do
   end
 
   defp article_json(a), do: %{id: a.id, title: a.title, slug: a.slug}
+
+  defp format_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+  end
 end
 ```
 
-## Channels (Real-time)
+### Channels (Real-time)
 
 ```elixir
-# lib/my_app_web/channels/room_channel.ex — WebSocket channel
+# lib/my_app_web/channels/user_socket.ex — authenticate before any channel joins
+defmodule MyAppWeb.UserSocket do
+  use Phoenix.Socket
+  channel "room:*", MyAppWeb.RoomChannel
+
+  @impl true
+  def connect(%{"token" => token}, socket, _connect_info) do
+    case Phoenix.Token.verify(MyAppWeb.Endpoint, "user socket", token, max_age: 86_400) do
+      {:ok, user_id} -> {:ok, assign(socket, :user_id, user_id)}
+      {:error, _} -> :error
+    end
+  end
+
+  def connect(_params, _socket, _connect_info), do: :error
+
+  @impl true
+  def id(socket), do: "user_socket:#{socket.assigns.user_id}"
+end
+
+# lib/my_app_web/channels/room_channel.ex
 defmodule MyAppWeb.RoomChannel do
   use MyAppWeb, :channel
 
-  def join("room:" <> room_id, _params, socket) do
-    {:ok, assign(socket, :room_id, room_id)}
-  end
+  def join("room:" <> _room_id, _params, socket), do: {:ok, socket}
 
   def handle_in("message", %{"body" => body}, socket) do
     broadcast!(socket, "message", %{body: body, user: socket.assigns.user_id})
@@ -252,39 +254,46 @@ defmodule MyAppWeb.RoomChannel do
 end
 ```
 
-## Testing
+Register the socket in `endpoint.ex`: `socket "/socket", MyAppWeb.UserSocket, websocket: true, longpoll: false`.
+
+### Testing
 
 ```elixir
-# test/my_app/articles_test.exs — context test
 defmodule MyApp.ArticlesTest do
   use MyApp.DataCase
-  alias MyApp.Articles
+  import MyApp.AccountsFixtures   # created by `mix phx.gen.auth Accounts User users`
 
-  test "create_article/1 with valid data" do
-    attrs = %{title: "Test", body: "Content", author_id: user_fixture().id}
-    assert {:ok, article} = Articles.create_article(attrs)
-    assert article.title == "Test"
+  test "create_article/1 builds a slug" do
+    attrs = %{title: "Launch notes", body: "Content", author_id: user_fixture().id}
+    assert {:ok, article} = MyApp.Articles.create_article(attrs)
+    assert article.slug == "launch-notes"
   end
 end
 ```
 
-## Key Commands
+### Key Commands
 
-```bash
-# Common Mix commands
-mix phx.gen.live Articles Article articles title:string body:text
-mix ecto.migrate
-mix phx.routes          # Show all routes
-mix test
-mix phx.server          # Start dev server
-iex -S mix phx.server   # Start with REPL
-```
+`mix phx.gen.live Articles Article articles title:string body:text` generates a LiveView CRUD with migration and tests; `mix ecto.migrate`, `mix phx.routes`, `mix test`, `iex -S mix phx.server` (dev server with REPL), `mix phx.gen.secret` (value for `SECRET_KEY_BASE`).
 
-## Key Patterns
+## Examples
 
-- Organize business logic in Context modules — controllers/LiveViews delegate to contexts
-- Use changesets for all data validation — they compose and return descriptive errors
-- Use `preload` explicitly — Ecto never lazy-loads to prevent N+1
-- LiveView `handle_event` replaces most JavaScript interactivity
-- Use PubSub (`Phoenix.PubSub.broadcast`) for real-time updates across LiveView processes
-- Use `Ecto.Multi` for transactions spanning multiple operations
+### Example 1: "Add a blog section with search"
+
+Run `mix phx.gen.auth Accounts User users` for authors, add the schema, migration and context above, run `mix ecto.migrate`, and add the `live` routes. Typing in the search box sends a `search` event (debounced 300 ms) and the list re-renders without a page load.
+
+### Example 2: "Give me a JSON endpoint for mobile"
+
+Add the `/api` scope and `ArticleController`. `curl -s -X POST localhost:4000/api/articles -H 'content-type: application/json' -d '{"article":{"title":"Launch notes","body":"Hello","author_id":1}}'` returns `201` with `{"data":{"id":1,"title":"Launch notes","slug":"launch-notes"}}`; a missing title returns `422` with `{"errors":{"title":["can't be blank"]}}`.
+
+## Guidelines
+
+- Production config is read from `config/runtime.exs`: set `SECRET_KEY_BASE`, `DATABASE_URL`, `PHX_HOST` and `PHX_SERVER=true` as environment variables; build with `MIX_ENV=prod mix release`.
+- Authenticate sockets and check authorization in every `handle_event` / `handle_in`; clients can send any event name and payload.
+- Pass only whitelisted fields to `cast/3` (never `cast(attrs, Map.keys(attrs))`) and never cast privileged fields such as `is_admin`.
+- Keep the `:browser` pipeline's CSRF protection; skip it only in `:api` pipelines that authenticate with tokens.
+- Use `phx-debounce` on inputs that fire on every keystroke, and `stream/3` instead of assigning large lists to the socket.
+
+### Key Patterns
+- Business logic lives in context modules; controllers and LiveViews only delegate to them.
+- Validate through changesets; Ecto never lazy-loads, so `preload` explicitly.
+- Use `Ecto.Multi` for multi-step transactions and `Phoenix.PubSub.broadcast` to push updates across LiveView processes.
