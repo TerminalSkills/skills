@@ -12,16 +12,13 @@ license: Apache-2.0
 compatibility: 'Docker (self-hosted) or Appwrite Cloud'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - appwrite
-    - baas
     - backend
     - auth
     - database
-    - storage
-    - serverless
 ---
 
 # Appwrite
@@ -34,213 +31,192 @@ Appwrite is an open-source Backend-as-a-Service (BaaS) providing authentication,
 
 ### Step 1: Self-Hosted Deployment
 
+The installer starts a web setup wizard on port 20080 (open it in your firewall only while installing). Use the release tag the installation docs name (2.6.1 at the time of writing).
+
 ```bash
-# One-command Docker setup
 docker run -it --rm \
+  --publish 20080:20080 \
   --volume /var/run/docker.sock:/var/run/docker.sock \
   --volume "$(pwd)/appwrite:/usr/src/code/appwrite:rw" \
   --entrypoint="install" \
-  appwrite/appwrite:latest
-
-# Or with Docker Compose (production)
-curl -o docker-compose.yml https://appwrite.io/install/compose
-curl -o .env https://appwrite.io/install/env
-docker compose up -d
-
-# Console: http://localhost/console
-# Create your first project in the console UI
+  appwrite/appwrite:2.6.1
 ```
+
+Open http://localhost:20080, choose the hostname, the database (PostgreSQL is the default; MariaDB and MongoDB are options), save the generated secret key, and create the console account. Requirements: 2 CPU cores, 4 GB RAM, 2 GB swap, Docker Compose v2. After install the console is at `http://localhost/console`; create a project there and copy its project ID. Appwrite Cloud needs no install: use the endpoint `https://<region>.cloud.appwrite.io/v1` shown in the console settings.
 
 ### Step 2: Authentication
 
+The Web SDK (`appwrite`, 29.x) takes a single object of named parameters.
+
 ```javascript
-// lib/appwrite.js — Client SDK setup and authentication
-import { Client, Account, ID } from 'appwrite'
+// lib/appwrite.js
+import { Client, Account, ID, OAuthProvider } from 'appwrite'
 
-const client = new Client()
-  .setEndpoint('http://localhost/v1')    // Appwrite API endpoint
-  .setProject('your-project-id')         // from console
+export const client = new Client()
+  .setEndpoint('http://localhost/v1')
+  .setProject('66f0c1a2003b7e5d9a41')   // project ID from the console
 
-const account = new Account(client)
+export const account = new Account(client)
 
-// Sign up
-async function signUp(email, password, name) {
-  const user = await account.create(ID.unique(), email, password, name)
-  // Auto-login after signup
-  await account.createEmailPasswordSession(email, password)
+export async function signUp(email, password, name) {
+  const user = await account.create({ userId: ID.unique(), email, password, name })
+  await account.createEmailPasswordSession({ email, password })
   return user
 }
 
-// Login
-async function login(email, password) {
-  return await account.createEmailPasswordSession(email, password)
+export const login = (email, password) =>
+  account.createEmailPasswordSession({ email, password })
+
+// OAuth (the provider must be enabled in Auth > Settings)
+export const loginWithGoogle = () =>
+  account.createOAuth2Session({
+    provider: OAuthProvider.Google,
+    success: 'http://localhost:3000/callback',
+    failure: 'http://localhost:3000/login',
+  })
+
+export async function getCurrentUser() {
+  try { return await account.get() } catch { return null }   // not logged in
 }
 
-// OAuth login (Google, GitHub, Apple, etc.)
-account.createOAuth2Session('google', 'http://localhost:3000/callback', 'http://localhost:3000/login')
-
-// Get current user
-async function getCurrentUser() {
-  try {
-    return await account.get()
-  } catch {
-    return null    // not logged in
-  }
-}
-
-// Logout
-async function logout() {
-  await account.deleteSession('current')
-}
+export const logout = () => account.deleteSession({ sessionId: 'current' })
 ```
 
-### Step 3: Database Operations
+The platform (web origin or app ID) must be added under the project's Platforms, otherwise browser calls fail with a CORS error.
+
+### Step 3: Database Operations (TablesDB)
+
+In current Appwrite releases the primary database API is **TablesDB**: databases contain tables, tables have columns and rows. The older `Databases` API (collections, attributes, documents) still exists as a legacy API with the same data model; use it only for existing code.
 
 ```javascript
-// lib/database.js — CRUD operations with Appwrite Databases
-import { Client, Databases, ID, Query } from 'appwrite'
+// lib/database.js
+import { TablesDB, ID, Query, Permission, Role } from 'appwrite'
+import { client } from './appwrite'
 
-const client = new Client()
-  .setEndpoint('http://localhost/v1')
-  .setProject('your-project-id')
+const tablesDB = new TablesDB(client)
+const DATABASE_ID = 'main'
+const TABLE_ID = 'posts'
 
-const databases = new Databases(client)
-
-const DB_ID = 'main'
-const COLLECTION_ID = 'posts'
-
-// Create document
-async function createPost(title, content, authorId) {
-  return await databases.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
-    title,
-    content,
-    author_id: authorId,
-    status: 'draft',
-    created_at: new Date().toISOString(),
+export function createPost(title, content, authorId) {
+  return tablesDB.createRow({
+    databaseId: DATABASE_ID,
+    tableId: TABLE_ID,
+    rowId: ID.unique(),
+    data: { title, content, author_id: authorId, status: 'draft' },
+    permissions: [
+      Permission.read(Role.any()),
+      Permission.update(Role.user(authorId)),
+      Permission.delete(Role.user(authorId)),
+    ],
   })
 }
 
-// List with filters and pagination
-async function listPublishedPosts(page = 1, limit = 10) {
-  return await databases.listDocuments(DB_ID, COLLECTION_ID, [
-    Query.equal('status', 'published'),
-    Query.orderDesc('created_at'),
-    Query.limit(limit),
-    Query.offset((page - 1) * limit),
-  ])
-}
-
-// Update
-async function publishPost(postId) {
-  return await databases.updateDocument(DB_ID, COLLECTION_ID, postId, {
-    status: 'published',
-    published_at: new Date().toISOString(),
+export function listPublishedPosts(page = 1, limit = 10) {
+  return tablesDB.listRows({
+    databaseId: DATABASE_ID,
+    tableId: TABLE_ID,
+    queries: [
+      Query.equal('status', 'published'),
+      Query.orderDesc('$createdAt'),
+      Query.limit(limit),
+      Query.offset((page - 1) * limit),
+    ],
   })
 }
 
-// Delete
-async function deletePost(postId) {
-  await databases.deleteDocument(DB_ID, COLLECTION_ID, postId)
-}
+export const publishPost = (rowId) =>
+  tablesDB.updateRow({ databaseId: DATABASE_ID, tableId: TABLE_ID, rowId, data: { status: 'published' } })
+
+export const deletePost = (rowId) =>
+  tablesDB.deleteRow({ databaseId: DATABASE_ID, tableId: TABLE_ID, rowId })
 ```
+
+Columns (title, content, status, author_id) must be created in the console or through the API before rows can be written. Every row has `$id`, `$createdAt`, `$updatedAt` and `$permissions` automatically. A list call returns 25 rows by default; use `Query.limit` and `Query.offset` or `Query.cursorAfter` for pagination.
 
 ### Step 4: File Storage
 
 ```javascript
-// lib/storage.js — Upload and manage files
-import { Client, Storage, ID } from 'appwrite'
+// lib/storage.js
+import { Storage, ID } from 'appwrite'
+import { client } from './appwrite'
 
-const storage = new Storage(new Client()
-  .setEndpoint('http://localhost/v1')
-  .setProject('your-project-id'))
-
+const storage = new Storage(client)
 const BUCKET_ID = 'uploads'
 
-// Upload file
-async function uploadFile(file) {
-  /**
-   * Upload a file to Appwrite storage.
-   * Args:
-   *   file: File object from <input type="file"> or drag-and-drop
-   */
-  return await storage.createFile(BUCKET_ID, ID.unique(), file)
-}
+// file: a File from <input type="file">
+export const uploadFile = (file) =>
+  storage.createFile({ bucketId: BUCKET_ID, fileId: ID.unique(), file })
 
-// Get file URL (with transformations for images)
-function getFilePreview(fileId, width = 400, height = 300) {
-  return storage.getFilePreview(BUCKET_ID, fileId, width, height)
-}
+// These return a URL you can use as an image source or download link
+export const getFilePreview = (fileId) =>
+  storage.getFilePreview({ bucketId: BUCKET_ID, fileId, width: 400, height: 300 })
 
-// Download file
-function getFileDownload(fileId) {
-  return storage.getFileDownload(BUCKET_ID, fileId)
-}
+export const getFileDownload = (fileId) =>
+  storage.getFileDownload({ bucketId: BUCKET_ID, fileId })
 
-// Delete file
-async function deleteFile(fileId) {
-  await storage.deleteFile(BUCKET_ID, fileId)
-}
+export const deleteFile = (fileId) =>
+  storage.deleteFile({ bucketId: BUCKET_ID, fileId })
 ```
+
+Create the bucket in the console first; set its maximum file size, allowed extensions and permissions there. Previews work for images only.
 
 ### Step 5: Cloud Functions
 
-```javascript
-// functions/on-order-created/src/main.js — Serverless function triggered by database event
-// Deploy via Appwrite CLI: appwrite deploy function
+A function receives a context with `req`, `res`, `log` and `error`. Use `req.bodyJson` (parsed) or `req.bodyText`; the old `req.body` and `res.send` are deprecated (use `req.bodyText`/`req.bodyJson` and `res.text`/`res.json`). Inside a function the runtime supplies a short-lived key in the `x-appwrite-key` header, so you do not create or store an API key for calls to the same project.
 
-import { Client, Databases, Users } from 'node-appwrite'
+```javascript
+// functions/on-order-created/src/main.js
+// Trigger: event tablesdb.main.tables.orders.rows.*.create (set in the function's Settings > Events)
+import { Client, Users } from 'node-appwrite'
 
 export default async ({ req, res, log, error }) => {
   const client = new Client()
-    .setEndpoint(process.env.APPWRITE_ENDPOINT)
-    .setProject(process.env.APPWRITE_PROJECT)
-    .setKey(process.env.APPWRITE_API_KEY)
+    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
+    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
+    .setKey(req.headers['x-appwrite-key'])
 
-  const payload = JSON.parse(req.body)
-  const order = payload.$id ? payload : payload.data
-
+  const order = req.bodyJson          // the row that fired the event
   log(`New order: ${order.$id}, total: ${order.total}`)
 
-  // Send notification, update inventory, etc.
-  const users = new Users(client)
-  const user = await users.get(order.user_id)
-  log(`Order by: ${user.email}`)
-
+  try {
+    const user = await new Users(client).get({ userId: order.user_id })
+    log(`Order by: ${user.email}`)
+  } catch (e) {
+    error(`Cannot load user: ${e.message}`)
+    return res.json({ success: false }, 500)
+  }
   return res.json({ success: true, orderId: order.$id })
 }
 ```
 
+Deploy with the CLI (`npm install -g appwrite-cli`, or `brew install appwrite`): `appwrite login`, then `appwrite init functions` to scaffold and `appwrite push functions` to deploy. Pull existing config with `appwrite pull functions`. `appwrite deploy` is the old command; do not use it. The key from `x-appwrite-key` only carries the scopes you selected for the function in the console.
+
 ### Step 6: Realtime Subscriptions
 
+The Web SDK has a `Realtime` class and a `Channel` helper; the older `client.subscribe(...)` is replaced by it.
+
 ```javascript
-// hooks/useRealtime.js — Subscribe to live database changes
-import { Client } from 'appwrite'
+// lib/realtime.js
+import { Realtime, Channel } from 'appwrite'
+import { client } from './appwrite'
 
-const client = new Client()
-  .setEndpoint('http://localhost/v1')
-  .setProject('your-project-id')
+const realtime = new Realtime(client)
 
-// Subscribe to changes in a collection
-const unsubscribe = client.subscribe(
-  'databases.main.collections.messages.documents',
-  (response) => {
-    // Fires on create, update, delete
-    const event = response.events[0]
-    const document = response.payload
-
-    if (event.includes('.create')) {
-      console.log('New message:', document)
-    } else if (event.includes('.update')) {
-      console.log('Updated:', document)
-    } else if (event.includes('.delete')) {
-      console.log('Deleted:', document.$id)
+export async function watchMessages(onChange) {
+  const subscription = await realtime.subscribe(
+    Channel.tablesdb('main').table('messages').row(),   // any row in the table
+    (response) => {
+      const event = response.events[0]
+      if (event.endsWith('.create')) onChange('created', response.payload)
+      else if (event.endsWith('.update')) onChange('updated', response.payload)
+      else if (event.endsWith('.delete')) onChange('deleted', response.payload)
     }
-  }
-)
-
-// Cleanup
-// unsubscribe()
+  )
+  return subscription      // call await subscription.unsubscribe() to stop
+}
 ```
+
+Subscriptions follow row permissions: a user only receives events for rows they can read. Call `realtime.disconnect()` to close the socket. Server SDKs with an API key cannot use Realtime.
 
 ## Examples
 
@@ -248,12 +224,12 @@ const unsubscribe = client.subscribe(
 **User prompt:** "I want to build a recipe sharing app. Users sign up, post recipes with photos, and browse others' recipes. Use an open-source backend I can self-host."
 
 The agent will:
-1. Deploy Appwrite with Docker Compose.
+1. Install Appwrite with the Docker installer, pinned to the release in the docs.
 2. Set up authentication with email/password and Google OAuth.
-3. Create database collections: recipes (title, ingredients, steps, author, image_id), users.
+3. Create a TablesDB table `recipes` (columns title, ingredients, steps, author_id, image_id).
 4. Configure file storage bucket for recipe photos with size limits.
 5. Build a Next.js frontend using the Appwrite Web SDK.
-6. Set permissions so users can only edit their own recipes but read all published ones.
+6. Set row permissions (`Permission.update(Role.user(authorId))`, `Permission.read(Role.any())`) so only the author edits a recipe and everyone reads it.
 
 ### Example 2: Replace Firebase with a self-hosted alternative
 **User prompt:** "We're using Firebase but want to self-host for data sovereignty. Migrate our auth, Firestore, and storage to something open-source."
@@ -261,14 +237,15 @@ The agent will:
 The agent will:
 1. Deploy Appwrite on the target server.
 2. Export users from Firebase Auth, import to Appwrite.
-3. Map Firestore collections to Appwrite database collections.
+3. Map Firestore collections to Appwrite tables, and fields to typed columns.
 4. Migrate storage files using the Appwrite Server SDK.
 5. Update frontend code to use Appwrite SDK (similar API surface to Firebase).
 
 ## Guidelines
 
-- Appwrite runs as a set of Docker containers (API, worker, database, cache, etc.). It needs ~2GB RAM minimum for comfortable operation. Use Docker Compose for managing the full stack.
-- Configure database indexes in the Appwrite console for fields you filter or sort on — queries on unindexed fields will be slow at scale.
-- Use Appwrite's permission system (`read("any")`, `write("user:USER_ID")`) to control document access. Default is owner-only — explicitly set permissions for public content.
-- Server SDKs (Node.js, Python) use API keys and bypass permissions — use them for admin operations, cron jobs, and cloud functions. Client SDKs enforce user permissions.
-- Appwrite handles auth tokens, session management, and OAuth flows internally. You don't need to manage JWTs or refresh tokens manually.
+- Appwrite runs as a stack of Docker containers (API, workers, database, cache, proxy). Plan for 2 CPU cores, 4 GB RAM and 2 GB swap at minimum. Pin the image version and read the migration notes before upgrading.
+- Create indexes in the console for columns you filter or sort on; unindexed queries get slow as tables grow.
+- Permissions use `Permission.read(Role.any())`, `Role.user(id)`, `Role.team(id)` and similar. A row with no permissions is invisible to client users, so set them explicitly for content users should see.
+- Server SDKs (`node-appwrite`, Python, PHP) authenticate with an API key, bypass row permissions and must stay on the server. Never ship an API key in browser or mobile code.
+- Appwrite manages sessions and OAuth tokens itself; do not build your own JWT handling for normal logins.
+- Self-hosting means you own backups, TLS and updates; the installer binds the Docker socket, so run it only on a host you control.
