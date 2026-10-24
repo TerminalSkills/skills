@@ -2,233 +2,139 @@
 title: Build a Procedural Game Assets Pipeline with Houdini
 slug: build-procedural-game-assets-pipeline-with-houdini
 description: Create a procedural pipeline using Houdini HDAs for generating infinite variations of game-ready environments — terrain, vegetation, buildings, and props — that export directly to Unreal Engine via Houdini Engine plugin, replacing 3 months of manual environment art with a parameterized system that generates production-quality assets on demand.
-skills: [houdini]
+skills: [houdini, unreal-engine]
 category: design
 tags: [procedural, game-dev, pipeline, hda, unreal, environment-art, automation]
 ---
 
 # Build a Procedural Game Assets Pipeline with Houdini
 
-Ren is the tech art lead on a 12-person indie studio building an open-world survival game. The game needs hundreds of unique buildings, thousands of vegetation variations, and terrain that spans 16 square kilometers — but the art team is only 3 people. At current pace, the environment alone would take 14 months. They have 5 months.
+## The Problem
 
-Ren builds a Houdini-based procedural pipeline: HDAs (Houdini Digital Assets) that generate infinite variations from parameters, export game-ready assets with LODs and collision, and plug directly into Unreal Engine where level designers tweak parameters instead of modeling by hand.
+Ren is the tech art lead on a 12-person indie studio building an open-world survival game. The game needs hundreds of unique buildings, thousands of vegetation variations, and terrain that spans 16 square kilometers, but the art team is only 3 people. At the current pace the environment alone would take far longer than the 5 months they have.
 
-## Step 1: Procedural Building Generator HDA
+## The Solution
 
-Instead of modeling 200 buildings, Ren creates one HDA that generates any building from parameters: footprint shape, floor count, architectural style, and weathering level.
+Ren builds a Houdini-based procedural pipeline: HDAs (Houdini Digital Assets) that generate variations from parameters, output game-ready meshes with LODs and collision, and load in Unreal Engine through the Houdini Engine for Unreal plugin, where level designers change parameters instead of modeling by hand.
+
+Licensing decides who can do what. Houdini Apprentice assets (`.hdanc`) do not load in Houdini Engine, so the HDA author needs a commercial Houdini, or Houdini Indie (`.hdalc`, for studios under the revenue limit on SideFX's licensing page; Houdini Engine Indie is free). Check SideFX's current terms for your studio before committing. At the time of writing the plugin ships binaries for UE 5.7 and 5.8, with source for earlier UE5 versions; UE4 is no longer supported.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Building generator HDA
+
+One HDA generates any building from its footprint curve, floor count, style and weathering level. The VEX below runs in an Attribute Wrangle inside the HDA, with Run Over set to Primitives, over the facade primitives produced by an upstream loop that sets `i@floor_index` and `f@facade_width`. Local variables must not reuse VEX function names (`floor` is one), so the floor index is `fl`.
 
 ```c
-// VEX: Building facade generator (Point Wrangle inside HDA)
-// Generates window and door placement on extruded floors
+int fl = i@floor_index;
+int total_floors = chi("../total_floors");
+float facade_width = f@facade_width;
 
-int floor = @floor_index;                     // Set by upstream FOR loop
-int total_floors = chi("../total_floors");     // HDA parameter
-float floor_height = chf("../floor_height");  // 3.0 default
-float facade_width = @facade_width;           // Per-prim attribute
-
-// Window placement rules
-float window_width = 1.2;                     // Meters
+float window_width = 1.2;
 float window_height = 1.8;
-float window_spacing = 0.8;                   // Gap between windows
-float margin = 1.0;                           // Edge margin
+float window_spacing = 0.8;
+float margin = 1.0;
+int num_windows = int(floor((facade_width - 2 * margin) / (window_width + window_spacing)));
 
-// Calculate how many windows fit on this facade
-int num_windows = (int)floor((facade_width - 2 * margin) / (window_width + window_spacing));
-
-// Ground floor: wider openings for shops/doors
-if (floor == 0) {
+if (fl == 0) {                                 // ground floor: fewer, larger openings
     window_height = 2.5;
     window_width = 2.0;
-    num_windows = max(num_windows / 2, 1);    // Fewer, larger openings
+    num_windows = max(num_windows / 2, 1);
 }
 
-// Top floor: sometimes dormers instead of windows
-if (floor == total_floors - 1 && rand(@primnum * 7.7) > 0.5) {
-    i@window_type = 2;                        // Dormer window
-} else if (floor == 0) {
-    i@window_type = rand(@primnum * 3.3) > 0.6 ? 3 : 1;  // Door or shop window
+// window_type: 1 regular, 2 dormer, 3 door/shop, 4 balcony
+if (fl == total_floors - 1 && rand(@primnum * 7.7) > 0.5) {
+    i@window_type = 2;
+} else if (fl == 0) {
+    i@window_type = rand(@primnum * 3.3) > 0.6 ? 3 : 1;
 } else {
-    i@window_type = rand(@primnum * 5.5) > 0.8 ? 4 : 1;  // Balcony or regular
+    i@window_type = rand(@primnum * 5.5) > 0.8 ? 4 : 1;
 }
 
 i@num_windows = num_windows;
 f@window_width = window_width;
 f@window_height = window_height;
 
-// Weathering: age affects material and geometry
-float age = chf("../weathering");             // 0 = new, 1 = ruined
+float age = chf("../weathering");              // 0 = new, 1 = ruined
 if (age > 0.3) {
-    // Add cracks and broken edges (downstream Boolean with noise-displaced cutter)
-    f@crack_depth = fit01(age, 0, 0.15);
+    f@crack_depth = fit01(age, 0, 0.15);       // read by a downstream noise-displaced Boolean
     f@edge_damage = fit01(age, 0, 0.3);
 }
 ```
 
-```markdown
-## Building Generator HDA — Parameter Interface
+Promote the controls to HDA parameters in four groups:
 
-### Tab: Structure
-- Footprint: Curve input (draw any shape)
-- Floors: Integer slider (1–8)
-- Floor Height: Float (2.5–4.0 m)
-- Roof Type: Dropdown [Flat, Gable, Hip, Mansard, Dome]
-- Roof Overhang: Float (0–1.0 m)
+- **Structure**: footprint curve input, floors (1-8), floor height, roof type, roof overhang.
+- **Facade**: style, window density, balcony probability, door style, ground-floor use.
+- **Weathering**: age, moss, dirt, broken windows, collapsed sections.
+- **Export**: LOD count and a polycount target per LOD, collision type.
 
-### Tab: Facade
-- Style: Dropdown [Medieval, Colonial, Modern, Industrial, Fantasy]
-- Window Density: Float (0.3–1.0)
-- Balcony Probability: Float (0–0.5)
-- Door Style: Dropdown [Wooden, Arched, Glass, Garage]
-- Ground Floor: Dropdown [Residential, Shop, Tavern, Workshop]
+Build the LODs inside the HDA, not afterwards: a PolyReduce SOP per LOD, with each level in a primitive group named `lod0` (the full-detail mesh), `lod1`, `lod2` and so on. Houdini Engine for Unreal turns those groups into the LODs of one Static Mesh, ordered alphabetically by group name; geometry outside any LOD group becomes a separate mesh. Detail attributes named `lod0_screensize`, `lod1_screensize`, ... set the screen size at which each level switches (the plugin computes them if you leave them out). Put the collision shape in a group named `collision_geo` for complex collision. Do not pack the geometry inside the LOD groups, or the plugin makes an instancer instead of a LOD level.
 
-### Tab: Weathering
-- Age: Float (0–1) — new → ruined
-- Moss Coverage: Float (0–0.4)
-- Dirt: Float (0–0.6)
-- Broken Windows: Float (0–0.3)
-- Collapsed Sections: Float (0–0.2)
+### Step 2: Terrain biomes and vegetation scattering
 
-### Tab: Export
-- LOD Levels: Integer (1–4)
-- Polycount Target: [High: 15K, Med: 5K, Low: 1K, Proxy: 200]
-- Collision: Dropdown [Convex Hull, Box, Mesh]
-- UV: Auto-generated with UDIM support
-- Texture Size: Dropdown [512, 1024, 2048, 4096]
-```
-
-## Step 2: Terrain System with Vegetation Scattering
+Erode the terrain with the HeightField Erode node and paint or simulate a `moisture` layer. Scatter points over it with HeightField Scatter (turn on Match Normals with Terrain so the points get `@N`). Then run this Point Wrangle with the heightfield wired into its second input, so the wrangle can sample the `moisture` layer. The output points are the input of a Copy to Points node, or become instances directly in Unreal.
 
 ```c
-// VEX: Biome-based vegetation scattering (Point Wrangle)
-// Input: terrain heightfield converted to points
-
 float altitude = @P.y;
-float slope = 1.0 - dot(@N, {0, 1, 0});      // 0 = flat, 1 = cliff
-float moisture = f@moisture;                   // Painted in Houdini or from erosion sim
-float temperature = fit(altitude, 0, 200, 25, -10);  // Higher = colder
+float slope = 1.0 - dot(normalize(@N), {0, 1, 0});   // 0 flat, 1 vertical
+float moisture = volumesample(1, "moisture", @P);   // heightfield layer on input 2
+float temperature = fit(altitude, 0, 200, 25, -10);
 
-// Determine biome
-string biome = "";
-if (temperature < 0) {
-    biome = "snow";
-} else if (temperature < 10 && altitude > 80) {
-    biome = "alpine";
-} else if (moisture > 0.6) {
-    biome = "forest";
-} else if (moisture > 0.3) {
-    biome = "grassland";
-} else {
-    biome = "desert";
-}
+string biome = "desert";
+if (temperature < 0) biome = "snow";
+else if (temperature < 10 && altitude > 80) biome = "alpine";
+else if (moisture > 0.6) biome = "forest";
+else if (moisture > 0.3) biome = "grassland";
 s@biome = biome;
 
-// Skip vegetation on steep slopes
-if (slope > 0.7) {
-    removepoint(0, @ptnum);
-    return;
-}
-
-// Density by biome
-float density = 1.0;
+float density = 0.05;
 if (biome == "forest") density = 1.0;
 else if (biome == "grassland") density = 0.4;
 else if (biome == "alpine") density = 0.2;
-else if (biome == "desert") density = 0.05;
 else if (biome == "snow") density = 0.1;
 
-// Probabilistic removal for density control
-if (rand(@ptnum * 17.3) > density) {
+if (slope > 0.7 || rand(@ptnum * 17.3) > density) {
     removepoint(0, @ptnum);
     return;
 }
 
-// Assign vegetation type
 float r = rand(@ptnum * 23.7);
-if (biome == "forest") {
-    if (r < 0.4) s@veg_type = "oak_tree";
-    else if (r < 0.7) s@veg_type = "pine_tree";
-    else if (r < 0.85) s@veg_type = "bush";
-    else s@veg_type = "fern";
-} else if (biome == "alpine") {
-    if (r < 0.6) s@veg_type = "pine_tree";
-    else if (r < 0.8) s@veg_type = "rock";
-    else s@veg_type = "alpine_flower";
-} else if (biome == "desert") {
-    if (r < 0.5) s@veg_type = "cactus";
-    else s@veg_type = "dead_bush";
-}
+if (biome == "forest")         s@veg_type = r < 0.4 ? "oak_tree" : r < 0.7 ? "pine_tree" : r < 0.85 ? "bush" : "fern";
+else if (biome == "alpine")    s@veg_type = r < 0.6 ? "pine_tree" : r < 0.8 ? "rock" : "alpine_flower";
+else if (biome == "desert")    s@veg_type = r < 0.5 ? "cactus" : "dead_bush";
+else if (biome == "grassland") s@veg_type = r < 0.7 ? "grass_clump" : "bush";
+else                           s@veg_type = "rock";
 
-// Randomize scale and rotation
-float seed = @ptnum * 31.1;
-f@pscale = fit01(rand(seed), 0.6, 1.4);
-f@rot_y = rand(seed + 1) * 360;              // Random Y rotation
+f@pscale = fit01(rand(@ptnum * 31.1), 0.6, 1.4);
+p@orient = quaternion(radians(rand(@ptnum * 31.2) * 360), {0, 1, 0});   // random yaw
 ```
 
-## Step 3: PDG Batch Processing
+### Step 3: Batch variations with PDG (TOPs)
 
-```markdown
-## PDG Pipeline: Generate 500 Building Variations
+To bake a catalogue of buildings to disk, use a TOP network:
 
-### Node Graph:
-CSV Input (building_configs.csv: 500 rows with parameter combos)
-  → HDA Processor (building_generator HDA)
-    → For Each: LOD Level [0, 1, 2, 3]
-      → PolyReduce (target polycount per LOD)
-      → UV Flatten (auto-UV each LOD)
-      → ROP Geometry (export .fbx)
-    → ROP Texture (bake textures: albedo, normal, roughness, AO)
-  → Python Script (generate Unreal DataTable CSV with asset paths)
+1. **CSV Input** reads `building_configs.csv` and creates one work item per row, with the columns as attributes (floors, style, weathering, seed).
+2. **HDA Processor** cooks the building HDA once per work item (with hython). Its HDA Parameters tab is filled from the asset's interface, and you drive each parameter from a work item attribute.
+3. The same node writes the cooked geometry to the output file path and tag you set on it, one file per work item. The `top_roaderbuilder` example shipped in `$HH/help/files/pdg_examples/` shows this pattern, writing out geometry defined in a digital asset.
+4. A Python Script TOP writes a manifest CSV of the output paths, for Unreal's Data Table import.
 
-### Performance:
-- 500 buildings × 4 LODs = 2,000 assets
-- 8-core workstation: ~4 hours (parallelized across cores)
-- vs. manual: ~3 months for an artist
+Work items are independent, so the schedulers scale the same graph from your workstation to a farm: **Local Scheduler** uses the cores of one machine, and the **HQueue**, **Deadline** and **Tractor** schedulers distribute to other machines. Measure cook time on your own HDA with a few rows first; it depends entirely on the geometry and the machine.
 
-### Farm Rendering:
-PDG distributes work items across available machines:
-- Scheduler: HQueue / Deadline / AWS Thinkbox
-- Each work item is independent → near-linear scaling
-- 10 machines → ~24 minutes for 500 buildings
-```
+### Step 4: Houdini Engine in Unreal
 
-## Step 4: Houdini Engine in Unreal
+1. Install the Houdini Engine for Unreal plugin that matches your Houdini and UE versions (see SideFX's install page), and create a session.
+2. Import `building_generator.hda` into the Content Browser and drag it into the level. Its parameters appear in the Details panel, and the building recooks when a value changes.
+3. Level designers pick a style, floor count and weathering, and edit the footprint curve in the viewport.
+4. **Bake** converts the cooked outputs into native assets: Static Meshes (with the LODs and collision from Step 1) in the Content Browser.
 
-```markdown
-## Unreal Engine Integration
+For terrain, the plugin can take a Landscape as an input and output Landscapes. Instancers (packed primitives or point attributes) are output as Instanced Static Mesh Components, so a million trees are instances of a few meshes rather than copies of geometry. A Dynamic Mesh output has no LODs, so choose Static Mesh outputs for anything that ships.
 
-### Setup
-1. Install Houdini Engine for Unreal plugin
-2. Drop building_generator.hda into Unreal Content Browser
-3. Drag into level → Houdini parameters appear in Details panel
-4. Level designers tweak parameters → geometry regenerates live
+## Real-World Example
 
-### Workflow for Level Designers
-1. Place building HDA at desired location
-2. Set style: "Medieval", floors: 3, weathering: 0.4
-3. Adjust footprint curve in-editor
-4. Click "Bake" → generates static mesh with materials and collision
-5. Repeat 200 times with different parameters
+Ren spends the first weeks on the building HDA and the biome wrangle and gives level designers three style presets. The designers place and tweak buildings in the editor, and when the art director later changes the roof style, they change one parameter and re-bake, instead of re-modeling. The three artists spend their time on hero props and materials. The numbers (buildings generated, cook times, weeks saved) are the studio's to measure on its own hardware; start by timing 20 PDG work items and extrapolating.
 
-### Landscape Integration
-- Houdini terrain HDA reads Unreal Landscape heightfield
-- Scatters vegetation as Unreal Foliage instances (not geometry copies)
-- Respects Unreal's HLOD and streaming system
-- Generates NavMesh-friendly collision
+## Related Skills
 
-### Performance
-- HDA cooking: 2-5 seconds per building (interactive)
-- Baked static mesh: same perf as hand-modeled asset
-- LOD transitions handled by Unreal's standard LOD system
-```
-
-## Results
-
-The 3-person art team delivers a 16 km² game world in 4.5 months instead of the estimated 14 months. The world contains 480 unique buildings, 12 vegetation biomes, and terrain with erosion-simulated rivers and cliffs.
-
-- **Buildings**: 480 unique variations from 1 HDA (would have been ~50 hand-modeled)
-- **Vegetation**: 2.3 million instances across 12 biomes, 23 plant species
-- **Terrain**: 16 km² with procedural erosion, painted biome masks, auto-scattered props
-- **LODs**: 4 levels per asset, auto-generated (saved ~400 hours of manual LOD creation)
-- **Iteration speed**: Change architectural style parameter → all 480 buildings update in minutes
-- **Art team time saved**: 9.5 months (~$142K at $50/hr) replaced by 3 weeks of HDA development
-- **Pipeline**: Fully reproducible; when art direction changes, regenerate everything from parameters
+- [houdini](../skills/houdini/) for VEX, HDA authoring, TOPs and the licensing details
+- [unreal-engine](../skills/unreal-engine/) for importing, baking and using the generated assets in the editor
