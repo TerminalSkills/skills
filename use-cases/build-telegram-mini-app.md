@@ -1,7 +1,7 @@
 ---
 title: Build a Telegram Mini App
 slug: build-telegram-mini-app
-description: Build a Telegram Mini App (Web App) that runs inside Telegram with native UX — MainButton, BackButton, HapticFeedback, secure initData authentication, Telegram Payments, and deployment to Vercel.
+description: Build a Telegram Mini App (Web App) that runs inside Telegram with native UX — MainButton, BackButton, HapticFeedback, secure initData authentication, Telegram Stars payments for digital goods, and a Hono backend.
 skills:
   - typescript
   - react
@@ -20,344 +20,279 @@ tags:
 
 ## The Problem
 
-Alex is a founder who runs a digital products business. He sells templates and courses to a Telegram audience of 50,000 subscribers. He wants to build a storefront that lives inside Telegram — users browse products, tap "Buy", pay with Telegram Payments (no app store cuts), and get their download link without ever opening a browser. Telegram Mini Apps make this possible with native platform feel.
+Alex runs a digital products business with a Telegram audience of 50,000 subscribers. He wants a storefront inside Telegram: people browse templates and courses, pay, and get their files without opening a browser or creating an account.
 
-## Step 1: Create the Bot and Configure Web App
+## The Solution
+
+A React front end loads in Telegram's WebView and talks to a Hono API. The API trusts nobody until it has verified the signed `initData` that Telegram hands the Mini App. Checkout creates a Telegram Stars invoice (`XTR`), which is what Telegram requires for digital goods, and a grammY bot confirms the payment and delivers the product.
+
+## Step-by-Step Walkthrough
+
+### 1. Create the bot and plan the project
+
+Message @BotFather and send `/newbot`. Once the Mini App has a public HTTPS URL (Telegram only loads Mini Apps over HTTPS), set the menu button with `/setmenubutton` or Bot Settings > Menu Button.
+
+Digital goods and services must be paid in Telegram Stars, currency `XTR`. You do not connect a payment provider or pass a `provider_token` for Stars. Users buy Stars through Apple or Google in-app purchases or @PremiumBot, so the app stores' rules apply on the buying side; check Telegram's Stars page for current fees and withdrawal terms before you plan revenue.
 
 ```bash
-# 1. Create bot via @BotFather
-/newbot
-# → Get TOKEN: 7123456789:AABBCCDDEEFFaabbccddeeff...
-
-# 2. Set menu button (opens Mini App)
-/setmenubutton
-# Select your bot
-# Button text: 🛒 Shop
-# Button URL: https://your-mini-app.vercel.app
-
-# 3. Enable payments (for Telegram Payments)
-/mypayments
-# Connect Stripe or other provider via BotFather
-
-# 4. Set up web app domain
-/setdomain
-# Enter your deployed URL
+npm init -y && npm pkg set type=module
+npm install hono @hono/node-server grammy react react-dom tsx
+npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom @types/node @twa-dev/types
 ```
 
+Put `BOT_TOKEN` (from BotFather) and `MINI_APP_URL` (your public HTTPS URL) in an uncommitted `.env` file.
+
+### 2. Catalog and orders (server-side prices)
+
+The client never sends prices. The server looks products up by id, so a user cannot change what they pay.
+
 ```typescript
-// bot/index.ts — Bot that launches the Mini App
-import { Bot, InlineKeyboard } from "grammy";
+// server/catalog.ts
+export interface Product { id: string; name: string; description: string; stars: number }
 
-const bot = new Bot(process.env.BOT_TOKEN!);
+// Prices are in Telegram Stars (XTR).
+export const catalog: Product[] = [
+  { id: "notion-crm", name: "Notion CRM template", description: "Pipeline, contacts and follow-ups", stars: 250 },
+  { id: "ts-course", name: "TypeScript in a weekend", description: "12 video lessons + exercises", stars: 900 },
+];
+export const findProduct = (id: string) => catalog.find((p) => p.id === id);
 
-// Start command — show Mini App button
-bot.command("start", async (ctx) => {
-  const keyboard = new InlineKeyboard().webApp("🛒 Open Shop", process.env.MINI_APP_URL!);
-  await ctx.reply(
-    "Welcome to the shop! Browse and buy products directly in Telegram.",
-    { reply_markup: keyboard }
-  );
-});
-
-// Handle successful payments
-bot.on("message:successful_payment", async (ctx) => {
-  const payment = ctx.message.successful_payment;
-  const payload = JSON.parse(payment.invoice_payload);
-
-  // Deliver product
-  await deliverProduct(ctx.from!.id, payload.productId);
-
-  await ctx.reply(
-    `✅ Payment confirmed! Your ${payment.total_amount / 100} ${payment.currency} purchase is ready.`
-  );
-});
-
-// Handle pre-checkout (validate before charging)
-bot.on("pre_checkout_query", async (ctx) => {
-  // Validate stock, check if product still exists
-  const payload = JSON.parse(ctx.preCheckoutQuery.invoice_payload);
-  const product = await getProduct(payload.productId);
-
-  if (!product || !product.available) {
-    await ctx.answerPreCheckoutQuery(false, "This product is no longer available.");
-    return;
-  }
-  await ctx.answerPreCheckoutQuery(true);
-});
-
-bot.start();
+export interface Order { id: string; userId: number; productIds: string[]; stars: number; paid: boolean }
+export const orders = new Map<string, Order>(); // swap for a real database
 ```
 
-## Step 2: Frontend — React with Telegram WebApp SDK
+### 3. Verify `initData`
+
+Telegram signs the data the Mini App receives. The API recomputes an HMAC-SHA-256 over every field except `hash` (sorted, joined with newlines), keyed by an HMAC of your bot token with the constant `WebAppData`, and compares it in constant time. It also rejects stale data.
 
 ```typescript
-// src/App.tsx — Mini App root
-import { useEffect, useState } from "react";
-import { ProductList } from "./components/ProductList";
-import { Cart } from "./components/Cart";
-import { useCartStore } from "./store/cart";
+// server/auth.ts
+import { createHmac, timingSafeEqual } from "node:crypto";
 
-// Telegram WebApp SDK types
-declare global {
-  interface Window {
-    Telegram: {
-      WebApp: TelegramWebApp;
-    };
-  }
-}
+export interface TelegramUser { id: number; first_name: string; username?: string }
 
-export default function App() {
-  const { items } = useCartStore();
-  const [view, setView] = useState<"shop" | "cart">("shop");
-
-  useEffect(() => {
-    const twa = window.Telegram.WebApp;
-
-    // Expand to full height
-    twa.expand();
-    twa.ready();
-
-    // Apply Telegram color theme
-    document.documentElement.style.setProperty("--tg-bg", twa.themeParams.bg_color || "#fff");
-    document.documentElement.style.setProperty("--tg-text", twa.themeParams.text_color || "#000");
-    document.documentElement.style.setProperty("--tg-button", twa.themeParams.button_color || "#2481cc");
-  }, []);
-
-  // Show cart button when items in cart
-  useEffect(() => {
-    const twa = window.Telegram.WebApp;
-
-    if (items.length > 0 && view === "shop") {
-      twa.MainButton.setParams({
-        text: `🛒 View Cart (${items.length})`,
-        color: twa.themeParams.button_color,
-        text_color: twa.themeParams.button_text_color,
-        is_visible: true,
-      });
-      twa.MainButton.onClick(() => setView("cart"));
-    } else {
-      twa.MainButton.hide();
-    }
-  }, [items.length, view]);
-
-  // Handle back navigation
-  useEffect(() => {
-    const twa = window.Telegram.WebApp;
-
-    if (view === "cart") {
-      twa.BackButton.show();
-      twa.BackButton.onClick(() => {
-        setView("shop");
-        twa.BackButton.hide();
-      });
-    }
-  }, [view]);
-
-  return (
-    <div className="app" style={{ background: "var(--tg-bg)", color: "var(--tg-text)", minHeight: "100vh" }}>
-      {view === "shop" ? <ProductList /> : <Cart onCheckout={handleCheckout} />}
-    </div>
-  );
-}
-```
-
-## Step 3: Product List and Cart Components
-
-```typescript
-// src/components/ProductList.tsx
-import { useEffect, useState } from "react";
-import { useCartStore } from "../store/cart";
-
-interface Product { id: string; name: string; price: number; description: string; image: string }
-
-export function ProductList() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const { addItem } = useCartStore();
-
-  useEffect(() => {
-    fetch("/api/products").then((r) => r.json()).then(setProducts);
-  }, []);
-
-  const handleAdd = (product: Product) => {
-    addItem(product);
-    // Haptic feedback — feels native on iOS/Android
-    window.Telegram.WebApp.HapticFeedback.impactOccurred("light");
-  };
-
-  return (
-    <div className="product-grid">
-      {products.map((p) => (
-        <div key={p.id} className="product-card">
-          <img src={p.image} alt={p.name} loading="lazy" />
-          <h3>{p.name}</h3>
-          <p>{p.description}</p>
-          <div className="product-footer">
-            <strong>${(p.price / 100).toFixed(2)}</strong>
-            <button
-              className="add-btn"
-              onClick={() => handleAdd(p)}
-              style={{ background: "var(--tg-button)", color: "#fff" }}
-            >
-              Add to Cart
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// src/components/Cart.tsx
-import { useCartStore } from "../store/cart";
-
-export function Cart({ onCheckout }: { onCheckout: () => void }) {
-  const { items, removeItem, total } = useCartStore();
-  const twa = window.Telegram.WebApp;
-
-  useEffect(() => {
-    twa.MainButton.setParams({ text: `Pay $${(total / 100).toFixed(2)}`, is_visible: true });
-    twa.MainButton.onClick(onCheckout);
-    return () => twa.MainButton.hide();
-  }, [total]);
-
-  return (
-    <div className="cart">
-      <h2>Your Cart</h2>
-      {items.map((item) => (
-        <div key={item.id} className="cart-item">
-          <span>{item.name}</span>
-          <span>${(item.price / 100).toFixed(2)}</span>
-          <button onClick={() => removeItem(item.id)}>×</button>
-        </div>
-      ))}
-      <div className="cart-total">Total: ${(total / 100).toFixed(2)}</div>
-    </div>
-  );
-}
-```
-
-## Step 4: Backend — Auth, Checkout, and Payments
-
-```typescript
-// api/index.ts — Hono backend
-import { Hono } from "hono";
-import { createHmac } from "node:crypto";
-import { products, orders } from "./db";
-
-const app = new Hono();
-
-// Validate Telegram initData — critical for security
-function validateInitData(initData: string): Record<string, string> | null {
+/** Validates Telegram.WebApp.initData as described in the Mini Apps docs. */
+export function validateInitData(initData: string, botToken: string, maxAgeSec = 3600): TelegramUser | null {
   const params = new URLSearchParams(initData);
-  const hash = params.get("hash")!;
-  params.delete("hash");
+  const hash = params.get("hash");
+  if (!hash) return null;
+  params.delete("hash"); // `signature` stays in: only `hash` is excluded for the bot-token method
 
   const dataCheckString = [...params.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([k, v]) => `${k}=${v}`)
     .join("\n");
 
-  const secretKey = createHmac("sha256", "WebAppData").update(process.env.BOT_TOKEN!).digest();
-  const expectedHash = createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+  const secret = createHmac("sha256", "WebAppData").update(botToken).digest();
+  const expected = createHmac("sha256", secret).update(dataCheckString).digest();
+  const given = Buffer.from(hash, "hex");
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
 
-  if (expectedHash !== hash) return null;
+  const authDate = Number(params.get("auth_date"));
+  if (!authDate || Date.now() / 1000 - authDate > maxAgeSec) return null; // stale: replay
 
-  // Check expiry (within 1 hour)
-  const authDate = parseInt(params.get("auth_date") || "0");
-  if (Date.now() / 1000 - authDate > 3600) return null;
-
-  return Object.fromEntries(params);
+  try { return JSON.parse(params.get("user") ?? "") as TelegramUser; } catch { return null; }
 }
+```
 
-// Middleware: authenticate every request with initData
-app.use("/api/*", async (c, next) => {
-  const initData = c.req.header("X-Telegram-Init-Data");
-  if (!initData) return c.json({ error: "Unauthorized" }, 401);
+### 4. The API: authentication and checkout
 
-  const data = validateInitData(initData);
-  if (!data) return c.json({ error: "Invalid initData" }, 401);
+The payload of an invoice is limited to 128 bytes and is not shown to the user, so it carries an order id rather than the cart. For Stars the `prices` array must contain exactly one item.
 
-  const user = JSON.parse(data.user || "{}");
-  c.set("telegramUser", user);
+```typescript
+// server/api.ts
+import { randomUUID } from "node:crypto";
+import { Hono } from "hono";
+import { validateInitData, type TelegramUser } from "./auth";
+import { catalog, findProduct, orders } from "./catalog";
+
+const BOT_TOKEN = process.env.BOT_TOKEN!;
+
+export const api = new Hono<{ Variables: { user: TelegramUser } }>();
+// Every request must carry the Mini App's initData.
+api.use("*", async (c, next) => {
+  const user = validateInitData(c.req.header("X-Telegram-Init-Data") ?? "", BOT_TOKEN);
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+  c.set("user", user);
   await next();
 });
 
-app.get("/api/products", async (c) => {
-  return c.json(await products.list());
-});
+api.get("/products", (c) => c.json(catalog));
+api.post("/checkout", async (c) => {
+  const { productIds } = await c.req.json<{ productIds: string[] }>();
+  const products = (productIds ?? []).map(findProduct);
+  if (!products.length || products.some((p) => !p)) return c.json({ error: "Unknown product" }, 400);
+  const stars = products.reduce((sum, p) => sum + p!.stars, 0);
+  const order = { id: randomUUID(), userId: c.get("user").id, productIds, stars, paid: false };
+  orders.set(order.id, order);
 
-// Create Telegram invoice for payment
-app.post("/api/checkout", async (c) => {
-  const user = c.get("telegramUser");
-  const { items } = await c.req.json();
-
-  const total = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-
-  // Create invoice via Telegram Bot API
-  const invoiceRes = await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/createInvoiceLink`, {
+  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      title: "Digital Products Order",
-      description: `${items.length} item(s)`,
-      payload: JSON.stringify({ userId: user.id, items }),
-      provider_token: process.env.PAYMENT_PROVIDER_TOKEN,
-      currency: "USD",
-      prices: items.map((item: any) => ({
-        label: item.name,
-        amount: item.price * item.quantity,
-      })),
+      title: "Digital products order",
+      description: products.map((p) => p!.name).join(", ").slice(0, 255),
+      payload: order.id, // 1-128 bytes: an order id, never the cart itself
+      currency: "XTR", // digital goods must be sold in Telegram Stars
+      prices: [{ label: "Order", amount: stars }], // exactly one item for Stars
     }),
   });
-
-  const { result: invoiceLink } = await invoiceRes.json();
-  return c.json({ invoiceLink });
+  const { ok, result } = (await res.json()) as { ok: boolean; result?: string };
+  return ok && result ? c.json({ invoiceLink: result }) : c.json({ error: "Could not create invoice" }, 502);
 });
-
-app.get("/api/orders", async (c) => {
-  const user = c.get("telegramUser");
-  const userOrders = await orders.getByUserId(user.id);
-  return c.json(userOrders);
-});
-
-export default app;
 ```
 
-## Step 5: Deploy to Vercel
+### 5. The bot: launch button, pre-checkout, delivery
 
-```json
-// vercel.json
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" }
-  ]
+Telegram sends a `pre_checkout_query` before charging and expects an answer within 10 seconds. After payment it sends a `successful_payment` message; store `telegram_payment_charge_id`, because you need it to refund.
+
+```typescript
+// server/bot.ts
+import { Bot, InlineKeyboard } from "grammy";
+import { orders } from "./catalog";
+export const bot = new Bot(process.env.BOT_TOKEN!);
+bot.command("start", (ctx) =>
+  ctx.reply("Browse and buy digital products without leaving Telegram.", {
+    reply_markup: new InlineKeyboard().webApp("Open shop", process.env.MINI_APP_URL!),
+  }),
+);
+
+// Telegram waits for an answer to this query for 10 seconds.
+bot.on("pre_checkout_query", async (ctx) => {
+  const q = ctx.preCheckoutQuery;
+  const order = orders.get(q.invoice_payload);
+  const ok = order && !order.paid && order.userId === ctx.from.id && order.stars === q.total_amount;
+  await ctx.answerPreCheckoutQuery(Boolean(ok), ok ? undefined : "This order is no longer valid.");
+});
+bot.on("message:successful_payment", async (ctx) => {
+  const payment = ctx.message.successful_payment;
+  const order = orders.get(payment.invoice_payload);
+  if (!order || order.paid) return;
+  order.paid = true;
+  // Keep the charge id: it is required to refund the payment later.
+  console.log("paid", order.id, payment.telegram_payment_charge_id);
+  await ctx.reply("Payment received. Your download links are on their way.");
+});
+```
+
+### 6. Serve everything from one process
+
+The server binds to loopback and serves the Vite build; put a TLS-terminating reverse proxy or your host's HTTPS in front of it.
+
+```typescript
+// server/index.ts
+import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { Hono } from "hono";
+import { api } from "./api";
+import { bot } from "./bot";
+const app = new Hono();
+app.route("/api", api);
+app.use("*", serveStatic({ root: "./dist" })); // the Vite build
+serve({ fetch: app.fetch, port: 3000, hostname: "127.0.0.1" });
+bot.start({ allowed_updates: ["message", "pre_checkout_query"] });
+```
+
+### 7. The front end
+
+Load `<script src="https://telegram.org/js/telegram-web-app.js?64"></script>` in the `<head>` of `index.html`, before your own scripts; it defines `window.Telegram.WebApp`.
+
+```typescript
+// src/api.ts
+import type { WebApp } from "@twa-dev/types";
+
+declare global {
+  interface Window { Telegram: { WebApp: WebApp } }
+}
+export const tg = window.Telegram.WebApp;
+
+export interface Product { id: string; name: string; description: string; stars: number }
+
+async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`/api${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData },
+  });
+  if (!res.ok) throw new Error(`${path}: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+export const getProducts = () => call<Product[]>("/products");
+export const createInvoice = (productIds: string[]) =>
+  call<{ invoiceLink: string }>("/checkout", { method: "POST", body: JSON.stringify({ productIds }) });
+```
+
+Add the stock Vite React files (`index.html` with the script tag, `src/main.tsx` rendering `<App />`, and a `vite.config.ts` using `@vitejs/plugin-react`). `App.tsx` drives the native chrome: the MainButton shows "View cart" in the shop and "Pay" in the cart, the BackButton returns to the shop, and every handler registered in an effect is removed in its cleanup (otherwise handlers pile up and a tap fires several checkouts). `openInvoice` reports `paid`, `cancelled`, `failed` or `pending` to the callback.
+
+```tsx
+// src/App.tsx
+import { useEffect, useState } from "react";
+import { createInvoice, getProducts, tg, type Product } from "./api";
+
+export default function App() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState<Product[]>([]);
+  const [view, setView] = useState<"shop" | "cart">("shop");
+
+  useEffect(() => { tg.ready(); tg.expand(); getProducts().then(setProducts); }, []);
+
+  // The MainButton changes meaning with the view; its handler is removed on cleanup.
+  useEffect(() => {
+    const pay = async () => {
+      tg.MainButton.showProgress();
+      try {
+        const { invoiceLink } = await createInvoice(items.map((i) => i.id));
+        tg.openInvoice(invoiceLink, (status) => { if (status === "paid") { setItems([]); setView("shop"); } });
+      } finally { tg.MainButton.hideProgress(); }
+    };
+    const handler = view === "shop" ? () => setView("cart") : pay;
+    const total = items.reduce((sum, i) => sum + i.stars, 0);
+    if (view === "shop" && items.length === 0) tg.MainButton.hide();
+    else tg.MainButton.setParams({
+      text: view === "shop" ? `View cart (${items.length})` : `Pay ${total} ⭐`, is_visible: true,
+    });
+    tg.MainButton.onClick(handler);
+    return () => { tg.MainButton.offClick(handler); };
+  }, [view, items]);
+
+  useEffect(() => {
+    const back = () => setView("shop");
+    if (view === "cart") { tg.BackButton.show(); tg.BackButton.onClick(back); } else tg.BackButton.hide();
+    return () => { tg.BackButton.offClick(back); };
+  }, [view]);
+
+  const add = (p: Product) => {
+    setItems((cur) => (cur.some((i) => i.id === p.id) ? cur : [...cur, p]));
+    tg.HapticFeedback.impactOccurred("light");
+  };
+
+  return (
+    <main style={{ background: "var(--tg-theme-bg-color)", color: "var(--tg-theme-text-color)", minHeight: "100vh", padding: 16 }}>
+      {view === "shop"
+        ? products.map((p) => (
+            <section key={p.id}>
+              <h3>{p.name}</h3><p>{p.description}</p>
+              <button onClick={() => add(p)}>Add · {p.stars} ⭐</button>
+            </section>
+          ))
+        : items.map((i) => (
+            <div key={i.id}>{i.name} · {i.stars} ⭐ <button onClick={() => setItems(items.filter((x) => x !== i))}>×</button></div>
+          ))}
+    </main>
+  );
 }
 ```
 
-```bash
-# Install Vercel CLI
-npm install -g vercel
+### 8. Build, run and test in Telegram
 
-# Set environment variables
-vercel env add BOT_TOKEN
-vercel env add PAYMENT_PROVIDER_TOKEN
+Run `npx vite build`, then `npx tsx --env-file=.env server/index.ts`. Expose the loopback port through your HTTPS host or a tunnel, use that URL as `MINI_APP_URL` and as the menu button URL, then send `/start` to the bot. Theme colours arrive as CSS variables such as `--tg-theme-bg-color`. The API needs real `initData`, so test inside Telegram, not in a plain browser tab.
 
-# Deploy
-vercel --prod
-# → https://your-mini-app.vercel.app
+## Real-World Example
 
-# Update bot with new URL
-# BotFather → /setdomain → your-mini-app.vercel.app
+Alex launches with two products. A subscriber opens the shop from the menu button, adds the Notion CRM template (a light haptic tick), taps the MainButton and confirms the Stars invoice. The bot's `successful_payment` handler marks the order paid and sends the files; the order id in the payload ties the payment to the cart the server priced. Every `/api` call is verified against `initData`, so there is no sign-up form and no password. Before going live, replace the in-memory `orders` map with a database and add a refund path using the stored charge id. Deliver from `successful_payment`, never on the Mini App's say-so.
 
-# For Cloudflare Pages (alternative):
-# npm install -g wrangler
-# wrangler pages deploy dist --project-name=telegram-mini-app
-```
+## Related Skills
 
-## Results
-
-- **Conversion rate 3× higher than landing page** — users buy without leaving Telegram; no context switch, no login form
-- **Native UX with zero native code** — HapticFeedback on add-to-cart, MainButton for checkout flow, BackButton for navigation — feels like a native app
-- **Zero auth friction** — initData validation replaces OAuth; users are automatically authenticated via their Telegram identity
-- **Payments without app store fees** — Telegram Payments uses Stripe under the hood; no 30% Apple/Google cut on digital goods
-- **Deployed in 10 minutes** — Vercel deployment is a single command; Cloudflare Pages as fallback; global CDN, no server management
+- [typescript](../skills/typescript/SKILL.md) — typing the API and the Telegram globals
+- [react](../skills/react/SKILL.md) — the Mini App UI and effects
+- [hono](../skills/hono/SKILL.md) — the typed API, middleware and static serving
+- [telegram-bot-builder](../skills/telegram-bot-builder/SKILL.md) — the bot, payments and update handling
