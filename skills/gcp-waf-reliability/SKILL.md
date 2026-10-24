@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, Cloud Monitoring, Cloud Logging, Backup and DR Service'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -28,6 +28,8 @@ Reliability is measured by user experience, not infrastructure uptime. A system 
 
 ## Instructions
 
+The Reliability pillar groups its principles into four focus areas: scoping (understand the architecture and its failure modes), observation (monitoring), response (recovery) and learning (postmortems).
+
 ### Core Principles
 
 | Principle | What it means |
@@ -43,34 +45,38 @@ Reliability is measured by user experience, not infrastructure uptime. A system 
 
 ### Defining SLIs and SLOs
 
-```yaml
-# Example SLO definition (managed via gcloud or Terraform)
-# SLI: HTTP success rate from the load balancer
-# SLO: 99.9% of requests succeed over rolling 28 days
-displayName: "Web frontend availability"
-serviceLevelIndicator:
-  requestBased:
-    goodTotalRatio:
-      goodServiceFilter: |
-        metric.type="loadbalancing.googleapis.com/https/request_count"
-        resource.labels.url_map_name="web-frontend"
-        metric.labels.response_code_class="200"
-      totalServiceFilter: |
-        metric.type="loadbalancing.googleapis.com/https/request_count"
-        resource.labels.url_map_name="web-frontend"
-goal: 0.999
-rollingPeriod: 2419200s  # 28 days
-```
+The Cloud Monitoring SLO API has no `gcloud monitoring services` or `slos` commands (`gcloud monitoring` only manages alerts, dashboards, policies, snoozes and uptime checks). Create the service and the SLO with the REST API:
 
 ```bash
-# Apply via gcloud
-gcloud monitoring services create --service-id=web-frontend \
-  --display-name="Web frontend"
+PROJECT=orders-prod-4821
+TOKEN=$(gcloud auth print-access-token)
 
-gcloud alpha monitoring slos create \
-  --service=web-frontend \
-  --slo-from-file=availability-slo.yaml
+curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  "https://monitoring.googleapis.com/v3/projects/$PROJECT/services?serviceId=web-frontend" \
+  -d '{"displayName": "Web frontend", "custom": {}}'
+
+curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  "https://monitoring.googleapis.com/v3/projects/$PROJECT/services/web-frontend/serviceLevelObjectives?serviceLevelObjectiveId=availability-28d" \
+  -d @availability-slo.json
 ```
+
+```json
+{
+  "displayName": "99.9% of requests succeed over 28 days",
+  "goal": 0.999,
+  "rollingPeriod": "2419200s",
+  "serviceLevelIndicator": {
+    "requestBased": {
+      "goodTotalRatio": {
+        "goodServiceFilter": "resource.type=\"https_lb_rule\" metric.type=\"loadbalancing.googleapis.com/https/request_count\" resource.labels.url_map_name=\"web-frontend\" metric.labels.response_code_class=\"200\"",
+        "totalServiceFilter": "resource.type=\"https_lb_rule\" metric.type=\"loadbalancing.googleapis.com/https/request_count\" resource.labels.url_map_name=\"web-frontend\""
+      }
+    }
+  }
+}
+```
+
+`rollingPeriod` must be a whole number of days, at most 30. Alternatively use `calendarPeriod` (`DAY`, `WEEK`, `FORTNIGHT`, `MONTH`).
 
 ### Multi-Zone and Multi-Region Redundancy
 
@@ -92,16 +98,16 @@ gcloud compute disks create app-data \
 
 ```bash
 # Multi-region Cloud Storage (geo-redundant by default)
-gcloud storage buckets create gs://my-prod-data \
+gcloud storage buckets create gs://orders-prod-4821-data \
   --location=US --default-storage-class=STANDARD
 ```
 
-For workloads with multi-region SLOs, deploy to two regions behind a global HTTPS load balancer with `--load-balancing-scheme=EXTERNAL_MANAGED` and use Cloud DNS health checks for failover. Cloud Spanner is the right database when you need synchronous multi-region writes.
+For workloads with multi-region SLOs, deploy to two regions behind one global external Application Load Balancer (`--load-balancing-scheme=EXTERNAL_MANAGED`) with a backend service per region and health checks; the load balancer shifts traffic away from an unhealthy region by itself, so no DNS failover is needed. Cloud Spanner is the right database when you need synchronous multi-region writes.
 
 ### Horizontal Autoscaling
 
 ```yaml
-# GKE HPA — scale on CPU + custom metrics
+# GKE HPA — scale on CPU + an external metric (needs the Custom Metrics Stackdriver Adapter installed)
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata: { name: api }
@@ -119,7 +125,7 @@ spec:
       external:
         metric:
           name: pubsub.googleapis.com|subscription|num_undelivered_messages
-          selector: { matchLabels: { resource.label.subscription_id: events-sub } }
+          selector: { matchLabels: { resource.labels.subscription_id: events-sub } }
         target: { type: AverageValue, averageValue: "100" }
 ```
 
@@ -167,20 +173,20 @@ def render_homepage(user_id):
 ### Backup, Restore, and DR Testing
 
 ```bash
-# Backup and DR Service for VMs / GKE / databases
+# Backup and DR Service: plan for Compute Engine VMs (also supports Filestore, file.googleapis.com/Instance)
 gcloud backup-dr backup-plans create web-tier-plan \
   --location=us-central1 \
-  --backup-vault=projects/my-project/locations/us-central1/backupVaults/prod \
+  --backup-vault=projects/orders-prod-4821/locations/us-central1/backupVaults/prod \
   --resource-type=compute.googleapis.com/Instance \
-  --backup-rule=rule-id=daily,recurrence=DAILY,retention-days=30 \
-  --backup-rule=rule-id=monthly,recurrence=MONTHLY,retention-days=365
+  --backup-rule=rule-id=daily,recurrence=DAILY,retention-days=30,backup-window-start=1,backup-window-end=7 \
+  --backup-rule=rule-id=weekly,recurrence=WEEKLY,days-of-week=SUNDAY,retention-days=90,backup-window-start=1,backup-window-end=7
 ```
 
 ```bash
 # Cloud SQL: enable PITR and test restore quarterly
 gcloud sql instances clone orders orders-restore-test \
-  --point-in-time='2026-04-15T10:00:00Z'
-# Validate the clone, then delete it — proves backups are actually restorable
+  --point-in-time='2026-10-23T10:00:00Z'
+# Needs point-in-time recovery enabled on the source. Validate the clone, then delete it.
 ```
 
 DR testing is not optional. Schedule quarterly:
@@ -190,25 +196,10 @@ DR testing is not optional. Schedule quarterly:
 
 ### Alerting on Symptoms, Not Causes
 
-```yaml
-# Bad: alerts on CPU usage. Good: alerts on user-facing error rate.
-displayName: "High error rate — web-frontend"
-conditions:
-  - displayName: "Error rate > 1% for 5 minutes"
-    conditionThreshold:
-      filter: |
-        metric.type="loadbalancing.googleapis.com/https/request_count"
-        resource.labels.url_map_name="web-frontend"
-        metric.labels.response_code_class!="200"
-      comparison: COMPARISON_GT
-      thresholdValue: 0.01
-      duration: 300s
-notificationChannels:
-  - projects/my-project/notificationChannels/oncall-pagerduty
-```
+Alert on the SLO, not on CPU. Cloud Monitoring reads burn rate with the time-series selector `select_slo_burn_rate`, and a burn-rate alerting policy fires when the error budget is spent faster than the threshold you set. Two limits from Google's docs: the lookback period doubles as the compliance period, and alerts cannot use a lookback longer than 24 hours. Google suggests starting a fast-burn alert at 10x the baseline with a 1 or 2 hour lookback, plus a slow-burn alert with a longer lookback and a lower threshold. Create the policy from the console or the Monitoring API, and attach a notification channel (PagerDuty, Slack, e-mail).
 
 Page on:
-- SLO burn rate (e.g., 14.4× over 1h, 6× over 6h — Google's multi-window strategy)
+- SLO burn rate (SRE workbook multi-window values: 14.4× over 1h, 6× over 6h; its 1× over 3 days tier does not fit the 24-hour lookback limit, so use Google's slow-burn starting point of 2× over 24h instead)
 - User-facing error rate
 - Latency p99 above SLO
 
@@ -229,6 +220,7 @@ Don't page on:
 - [ ] **Graceful degradation patterns** in place (circuit breakers, retries with exponential backoff, rate limiting)
 - [ ] **Game days / chaos engineering** run regularly
 - [ ] **Blameless postmortem template** + tracking system exists and is used
+
 ## Examples
 
 ### Example 1 — Production readiness review for a new service
@@ -237,7 +229,7 @@ User wants to ship a payments API. Walk through: defined SLOs (99.95% success, p
 
 ### Example 2 — Diagnose unreliability complaints despite green dashboards
 
-User reports "users say checkout is broken but our infra dashboards are all green." Audit: alerts are on CPU and disk usage (causes), not on HTTP 5xx rate (symptom). Wire up an SLO on payment success rate, set up multi-window burn-rate alerts (14.4× / 6× / 3× / 1×), and discover a 0.4% baseline error from a flaky third-party that was invisible until measured. Recommend retries with jitter + circuit breaker for graceful degradation.
+User reports "users say checkout is broken but our infra dashboards are all green." Audit: alerts are on CPU and disk usage (causes), not on HTTP 5xx rate (symptom). Wire up an SLO on payment success rate, set up multi-window burn-rate alerts (14.4× over 1h, 6× over 6h, 2× over 24h), and discover a 0.4% baseline error from a flaky third-party that was invisible until measured. Recommend retries with jitter + circuit breaker for graceful degradation.
 
 ## Guidelines
 
