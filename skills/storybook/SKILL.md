@@ -1,67 +1,100 @@
 ---
 name: storybook
 description: >-
-  Assists with developing, documenting, and testing UI components in isolation using Storybook.
-  Use when writing component stories, setting up visual regression testing, configuring addons,
-  or generating component documentation. Trigger words: storybook, stories, csf, component
-  story format, visual testing, chromatic, storybook addons.
+  Storybook is a workshop for building, documenting and testing UI components in isolation. Use this skill when writing component stories (CSF), setting up Storybook 10, adding interaction, accessibility or visual tests, generating autodocs, or moving off the old test runner. Trigger words: storybook, stories, csf, play function, storybook test, vitest addon, chromatic, a11y addon.
 license: Apache-2.0
-compatibility: "Supports React, Vue, Svelte, Angular with Vite or Webpack"
+compatibility: "Storybook 10.x; Node.js 20+ (see install docs); React, Vue, Svelte, Angular, Web Components; Vite recommended"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["storybook", "component-testing", "ui-development", "documentation", "visual-testing"]
+  repository: https://github.com/storybookjs/storybook
 ---
 
 # Storybook
 
 ## Overview
 
-Storybook is a UI component workshop for developing, documenting, and testing components in isolation. It supports React, Vue, Svelte, and Angular with Component Story Format (CSF), interactive controls, accessibility auditing, and visual regression testing through Chromatic integration.
+Storybook renders each UI component in isolation as a set of "stories" written in Component Story Format (CSF). Stories double as living documentation (autodocs), interaction tests (play functions), accessibility checks (axe-core) and visual regression baselines. The current major is 10 (checked at 10.6.3); it is ESM-only and the testing helpers moved from `@storybook/test` into the main package as `storybook/test`.
 
 ## Instructions
 
-- When writing stories, use Component Story Format (CSF) with a default export for component metadata and named exports for each variant (Primary, Secondary, Loading, Error, Disabled).
-- When making stories interactive, use `args` for all dynamic props to enable the Controls panel, and add `play` functions with `@storybook/test` for automated interaction testing.
-- When adding documentation, use autodocs tag for automatic generation from stories, or MDX files for combining prose with live component examples using doc blocks like `<Canvas>`, `<Controls>`, and `<ArgTypes>`.
-- When testing accessibility, enable `@storybook/addon-a11y` which runs axe-core audits on every story automatically.
-- When setting up visual regression, integrate Chromatic or Percy for screenshot comparison across PRs, and run `@storybook/test-runner` in CI to execute all play functions.
-- When configuring globally, set shared decorators (ThemeProvider, RouterProvider) and parameters in `.storybook/preview.ts` to apply to all stories.
-- When organizing, use sidebar hierarchy with `title: "Components/Forms/Input"` and keep stories co-located with components (`Button.tsx` + `Button.stories.tsx`).
+### Install
+
+```bash
+npm create storybook@latest          # detects the framework, installs addons, adds scripts
+npm run storybook                    # dev server on http://localhost:6006
+npm run build-storybook              # static build in storybook-static/
+```
+
+pnpm: `pnpm create storybook@latest`; yarn: `yarn create storybook`. Add addons later with `npx storybook add @storybook/addon-a11y` so the package and `.storybook/main.ts` stay in sync.
+
+### Write stories
+
+One `*.stories.tsx` file per component, next to it. The default export is metadata, named exports are stories. Import types from the framework package (`@storybook/react-vite`, `@storybook/vue3-vite`, ...), not from `@storybook/react`.
+
+```tsx
+// src/components/Button.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
+import { Button } from './Button';
+
+const buttonMeta = {
+  title: 'Components/Button',
+  component: Button,
+  tags: ['autodocs'],
+  args: { label: 'Save changes', onClick: fn() },
+} satisfies Meta<typeof Button>;
+export default buttonMeta;
+type Story = StoryObj<typeof buttonMeta>;
+
+export const Primary: Story = { args: { variant: 'primary' } };
+export const Disabled: Story = { args: { disabled: true } };
+
+export const CallsHandler: Story = {
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: /save changes/i }));
+    await expect(args.onClick).toHaveBeenCalledOnce();
+  },
+};
+```
+
+- Use `args` for every dynamic prop so the Controls panel and story composition work; use `fn()` for callbacks.
+- Global decorators (ThemeProvider, router) and parameters go in `.storybook/preview.ts`; the `tags: ['autodocs']` entry can also go there to document every component.
+- Autodocs needs `@storybook/addon-docs` (installed by `create storybook`; in Storybook 9+ it is a separate addon). Use MDX with `<Meta of={...} />`, `<Canvas>`, `<Controls>` for hand-written pages.
+
+### Test
+
+- **Interaction tests**: `play` functions run in the Interactions panel while you browse and as tests in CI.
+- **Vitest addon (recommended)**: `npx storybook add @storybook/addon-vitest` sets up Vitest browser mode with Playwright Chromium and turns every story into a test. Run in the terminal or CI with `npx vitest --project=storybook` (the project name is created by the addon).
+- **Accessibility**: `npx storybook add @storybook/addon-a11y`. Control the effect per story with `parameters: { a11y: { test: 'error' | 'todo' | 'off' } }`; it also runs inside the Vitest addon.
+- **`@storybook/test-runner`** (Jest + Playwright) is superseded by the Vitest addon and is only kept for Webpack-based Storybooks; do not start new setups on it.
+- **Visual regression**: Chromatic (`npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN`) or the Visual tests addon; keep the token in CI secrets.
 
 ## Examples
 
-### Example 1: Build a component library with stories
+### Example 1: "Set up Storybook for our React + Vite component library"
 
-**User request:** "Set up Storybook for our React component library with all variants"
+Run `npm create storybook@latest` in the repo root, accept the Vitest and a11y options, then write `Button.stories.tsx` as above. `npm run storybook` shows the catalog with an auto-generated Docs page and an Interactions panel for `CallsHandler`.
 
-**Actions:**
-1. Initialize Storybook with `npx storybook@latest init` for the React Vite framework
-2. Write stories for each component with args for variant, size, disabled, and loading states
-3. Add play functions for interactive components (buttons, forms, modals)
-4. Configure autodocs for automatic documentation generation
+### Example 2: "Run our stories as tests in CI"
 
-**Output:** A browsable component catalog with interactive controls and auto-generated docs.
+```yaml
+# .github/workflows/storybook.yml (steps only)
+- run: npm ci
+- run: npx playwright install --with-deps chromium
+- run: npx vitest --project=storybook
+```
 
-### Example 2: Add visual regression testing to CI
-
-**User request:** "Set up visual testing for our Storybook components in CI"
-
-**Actions:**
-1. Install `@storybook/test-runner` and configure CI pipeline
-2. Add `@storybook/addon-a11y` for accessibility checks
-3. Integrate Chromatic for visual regression screenshots on each PR
-4. Configure the test-runner to execute all play functions in headless Playwright
-
-**Output:** A CI pipeline that catches visual regressions, accessibility issues, and broken interactions.
+A story that throws on render, fails an assertion in `play`, or violates an a11y rule set to `error` fails the job.
 
 ## Guidelines
 
-- Write at least one story per component variant: default, loading, error, disabled, and empty states.
-- Use `args` for all dynamic props to enable the Controls panel and story composition.
-- Keep stories next to components: `Button.tsx` + `Button.stories.tsx` in the same directory.
-- Add play functions for interactive components: buttons, forms, modals, and dropdowns.
-- Use decorators for shared context (ThemeProvider, RouterProvider) at the preview level.
-- Document design decisions in MDX: when to use each variant, dos and don'ts.
-- Run `storybook test-runner` in CI to catch broken interactions before merge.
+- Cover each meaningful state of a component: default, loading, error, disabled, empty.
+- Keep stories beside components and give each a clear `title` hierarchy (`Components/Forms/Input`) or let Storybook derive it.
+- Import test utilities from `storybook/test` in Storybook 9 and 10; `@storybook/test` and `@storybook/testing-library` are the old v8 packages.
+- Upgrade with `npx storybook@latest upgrade`; it runs the automigrations for major bumps.
+- Do not call real APIs in stories: mock data and modules (`msw`, module mocks) so tests stay deterministic.
+- Storybook is for component-level checks; do not use it in place of end-to-end tests of full user flows.
