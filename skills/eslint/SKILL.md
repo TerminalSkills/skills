@@ -3,139 +3,134 @@ name: eslint
 description: >
   ESLint is the standard linting tool for JavaScript and TypeScript projects. It statically analyzes
   your code to find problems, enforce coding conventions, and catch bugs before they reach production.
-  ESLint 9 introduced the flat config format, replacing the legacy `.eslintrc` system with a simpler,
-  more composable `eslint.config.js` file. With a rich plugin ecosystem covering React, TypeScript,
-  accessibility, and import ordering, ESLint is the backbone of code quality in modern web development.
+  Flat config (`eslint.config.js`) is the only config format in ESLint 10; the legacy `.eslintrc`
+  system is gone. Use for setting up linting, migrating from `.eslintrc`, TypeScript and React rules,
+  custom rules, auto-fix, and CI lint checks.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: 'Node.js 20.19+, 22.13+ or 24+ (ESLint 10); macOS, Linux, Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/eslint/eslint
   tags:
     - javascript
     - typescript
     - linting
     - code-quality
-    - eslint
-    - static-analysis
-    - react
 ---
 
 # ESLint — JavaScript and TypeScript Linting
 
+## Overview
+
 ESLint reads your source code, applies a set of rules, and reports problems ranging from stylistic inconsistencies to genuine bugs. It catches unused variables, missing return statements, inconsistent naming, accessibility violations, and hundreds of other issues that slip past even careful code review.
 
-This skill covers ESLint 9+ with the modern flat config format. If you're starting a new project or migrating from the legacy `.eslintrc` format, flat config is the way forward.
+This skill covers flat config, which works in ESLint 9 and 10. ESLint 10 (current, 10.13) requires Node.js 20.19+, 22.13+ or 24+ and no longer reads `.eslintrc*` files. Migrating an old project: `npx @eslint/migrate-config .eslintrc.json` writes a starting `eslint.config.mjs`; review it by hand.
 
-## Installing ESLint
+## Instructions
 
-ESLint 9 ships as a single package. TypeScript and React support come from companion plugins.
+### Installing ESLint
+
+The fastest start is the wizard, which asks about your framework and installs the right packages: `npm init @eslint/config@latest`. To install by hand for a TypeScript project:
 
 ```bash
-# Install ESLint and common plugins for a TypeScript React project
-npm install --save-dev eslint @eslint/js typescript-eslint eslint-plugin-react eslint-plugin-react-hooks
+npm install --save-dev eslint @eslint/js typescript-eslint
+# React projects also need the hooks plugin; add eslint-plugin-react if you want its JSX rules
+npm install --save-dev eslint-plugin-react-hooks
 ```
 
-## Flat Config Basics
+Two compatibility traps as of October 2026:
+
+- `typescript-eslint` 8.x supports TypeScript below 6.1 only, so a TypeScript 7 project must keep the linter on an older `typescript` for now.
+- `eslint-plugin-react` 7.37.5 declares ESLint `^9.7` at most, so `npm install` fails on ESLint 10 with an ERESOLVE error. Either pin `eslint@9` (the config below works unchanged) or leave that plugin out; `eslint-plugin-react-hooks` 7 already supports 10.
+
+### Flat Config Basics
 
 The flat config lives in `eslint.config.js` (or `.mjs`, `.ts`) at your project root. Instead of deeply nested JSON with `extends` and `overrides`, flat config uses an array of configuration objects. Each object applies to files matching its `files` glob pattern.
+
+The examples use `import` syntax, so a file named `eslint.config.js` needs `"type": "module"` in `package.json` (otherwise ESLint stops with "Cannot use import statement outside a module"); `eslint.config.mjs` works without it. The same applies to the custom rule file below.
 
 ```javascript
 // eslint.config.js — Flat config for a TypeScript project
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-export default [
-  // Base JavaScript recommended rules
+export default defineConfig([
+  // Ignore build output (a block with only `ignores` is global)
+  globalIgnores(['dist/', 'coverage/']),
+
   js.configs.recommended,
+  tseslint.configs.recommended,
 
-  // TypeScript recommended rules (type-aware)
-  ...tseslint.configs.recommended,
-
-  // Custom configuration for source files
   {
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
+    files: ['src/**/*.{ts,tsx}'],
     rules: {
       // Warn on console.log left in code
       'no-console': ['warn', { allow: ['warn', 'error'] }],
 
-      // Enforce consistent return types
-      '@typescript-eslint/explicit-function-return-type': 'off',
-
-      // Prevent unused variables (ignore underscore-prefixed)
+      // Unused variables are errors unless prefixed with an underscore
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
     },
   },
-
-  // Ignore build output and dependencies
-  {
-    ignores: ['dist/', 'node_modules/', 'coverage/', '*.config.js'],
-  },
-];
+]);
 ```
 
-The flat config is pure JavaScript. You can use conditionals, spread operators, and factory functions to compose configurations. There's no magic — each array element is a config object that gets merged in order.
+`node_modules/` is ignored by default. For rules that need type information (`no-floating-promises`, `no-unsafe-*`), use `tseslint.configs.recommendedTypeChecked` and turn on the project service, which finds your `tsconfig.json` by itself:
 
-## Adding React Support
+```javascript
+// Added to the array above
+{
+  files: ['**/*.{ts,tsx}'],
+  languageOptions: {
+    parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+  },
+},
+// Plain JS files such as eslint.config.js are not in a tsconfig; skip type-aware rules there
+{ files: ['**/*.js'], extends: [tseslint.configs.disableTypeChecked] },
+```
+
+The flat config is plain JavaScript: each array element is a config object, merged in order.
+
+### Adding React Support
 
 React projects need JSX parsing and rules for hooks. The flat config makes it straightforward to layer these on top of your base configuration.
 
 ```javascript
-// eslint.config.js — Full config for a React TypeScript project
+// eslint.config.js — React TypeScript project
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import react from 'eslint-plugin-react';
+import react from 'eslint-plugin-react'; // needs ESLint 9, see the install notes
 import reactHooks from 'eslint-plugin-react-hooks';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-export default [
+export default defineConfig([
+  globalIgnores(['dist/', '.next/']),
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
+  reactHooks.configs.flat.recommended,
 
-  // React plugin configuration
   {
-    files: ['src/**/*.tsx', 'src/**/*.jsx'],
-    plugins: {
-      react,
-      'react-hooks': reactHooks,
-    },
-    languageOptions: {
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
-    },
-    settings: {
-      react: { version: 'detect' },
-    },
+    files: ['src/**/*.{jsx,tsx}'],
+    plugins: { react },
+    languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+    settings: { react: { version: 'detect' } },
     rules: {
-      // React rules
-      'react/react-in-jsx-scope': 'off', // Not needed with React 17+ JSX transform
-      'react/prop-types': 'off', // Using TypeScript for prop validation
       'react/jsx-no-target-blank': 'error',
-
-      // Hooks rules — these catch real bugs
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
     },
   },
-
-  { ignores: ['dist/', 'node_modules/', '.next/'] },
-];
+]);
 ```
 
-## Understanding Rules
+`reactHooks.configs.flat.recommended` enables `rules-of-hooks` and `exhaustive-deps`. Version 7 of the plugin also ships React Compiler based rules in that preset (for example `react-hooks/set-state-in-effect`), which flag code that older versions accepted. Without `eslint-plugin-react`, drop the `react` lines and keep the rest.
 
-Every ESLint rule has three severity levels: `'off'` (0), `'warn'` (1), and `'error'` (2). Warnings appear in your editor but don't fail CI. Errors break the build.
+### Understanding Rules
 
-Rules can also take options as a second array element. The pattern is always `[severity, ...options]`.
+Rule severities are `'off'` (0), `'warn'` (1) and `'error'` (2); errors fail the run, warnings do not. Options go in an array: `[severity, ...options]`.
 
 ```javascript
 // eslint.config.js — Examples of rule configuration patterns
@@ -158,19 +153,14 @@ export default [
       '@typescript-eslint/naming-convention': ['error',
         { selector: 'interface', format: ['PascalCase'] },
         { selector: 'typeAlias', format: ['PascalCase'] },
-        { selector: 'enum', format: ['PascalCase'] },
-        { selector: 'enumMember', format: ['UPPER_CASE'] },
       ],
 
-      // Complexity limits
-      'max-depth': ['warn', 4],
-      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
     },
   },
 ];
 ```
 
-## Writing Custom Rules
+### Writing Custom Rules
 
 When the built-in rules and plugins don't cover your team's specific conventions, you can write custom rules. ESLint rules are functions that receive an AST node and report problems.
 
@@ -182,6 +172,7 @@ export default {
     docs: {
       description: 'Disallow hardcoded API URLs in source files',
     },
+    schema: [], // required in ESLint 9+ if the rule takes options; [] means none
     messages: {
       hardcodedUrl: 'Use environment variables instead of hardcoded URLs. Found: "{{url}}"',
     },
@@ -227,39 +218,32 @@ export default [
 ];
 ```
 
-## Auto-Fix
+### Auto-Fix
 
-Many ESLint rules support automatic fixing. The `--fix` flag rewrites your source files to resolve fixable violations — things like adding missing semicolons, removing unused imports, or reordering object keys.
+`--fix` rewrites files to resolve fixable violations.
 
 ```bash
 # Fix all auto-fixable issues
 npx eslint --fix src/
 
-# Preview what would change without writing files
-npx eslint --fix-dry-run src/
+# Apply only some kinds of fix (directive, problem, suggestion, layout)
+npx eslint --fix --fix-type problem,suggestion src/
 
-# Fix only specific rules
-npx eslint --fix --rule '{"import/order": "error"}' src/
+# Preview without writing: npx eslint --fix-dry-run -f json src/
 ```
 
-In your editor, configure ESLint to fix on save for a seamless experience.
+In VS Code, the ESLint extension can fix on save:
 
-```json
+```jsonc
 // .vscode/settings.json — Auto-fix ESLint issues on save
 {
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  },
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "javascriptreact",
-    "typescriptreact"
-  ]
+  }
 }
 ```
 
-## Running ESLint in CI
+### Running ESLint in CI
 
 In continuous integration, ESLint should run as a blocking check. Any error-level violation fails the pipeline, preventing the code from being merged.
 
@@ -275,7 +259,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
@@ -283,3 +267,33 @@ jobs:
 ```
 
 The `--max-warnings 0` flag treats warnings as errors in CI. This prevents warning count from growing unbounded while still letting developers see warnings in their editors during development.
+
+## Examples
+
+### Example 1: "Add ESLint to my Vite React TypeScript app"
+
+```bash
+npm install --save-dev eslint @eslint/js typescript-eslint eslint-plugin-react-hooks
+# create eslint.config.js from the React section above, then:
+npx eslint src/
+```
+
+Result: `src/a.tsx  4:9  error  'unused' is assigned a value but never used  @typescript-eslint/no-unused-vars` and a `react-hooks/exhaustive-deps` warning for a missing effect dependency; exit code 1 on errors.
+
+### Example 2: "We have 3,000 errors after enabling the strict preset"
+
+Bulk suppressions (ESLint 9.24+) record current violations in `eslint-suppressions.json`, so CI fails only on new ones:
+
+```bash
+npx eslint --suppress-all src/        # writes eslint-suppressions.json
+npx eslint --prune-suppressions src/  # after fixing some, drop entries that no longer apply
+```
+
+Commit the file and shrink it over time. Running `npx eslint src/` afterwards exits 0.
+
+## Guidelines
+
+- Run `npx eslint --print-config src/index.ts` to see the exact merged config for one file when a rule does not behave as expected; `npx eslint --inspect-config` opens a visual inspector.
+- Later config objects override earlier ones: put your rules after presets.
+- Use `// eslint-disable-next-line rule-name -- reason` for one line, not file-wide disables.
+- Leave formatting to a formatter such as Prettier.
