@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:39734441e832c56fc8a804cb2c8ca0be73d3cdc9fea484636ba7c70a6b1f9a00",
+  "scoredAt": "2026-10-24T23:15:50.787Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling for network failures, missing dependencies, or invalid inputs, leaving edge cases unaddressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that could be condensed, potentially obscuring key steps."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation and usage commands assume a Unix-like environment, lacking explicit guidance for Windows or other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.48,
+    "baselineAvg": 23,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "compress-large-json",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers the compress call, token stats, and overall workflow but omits the id:250 check, while Response B lacks the required compress(messages, model=…) call and the id:250 confirmation."
+      },
+      {
+        "name": "proxy-stats-check",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits the total_tokens_removed field, while Response B fails to use the required command, environment variable, and JSON fields."
+      },
+      {
+        "name": "wrap-claude-mcp",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B covers all required items except the undo command, while Response A misses the key command, tool names, and server registration."
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@ skills:
   - llm-cost-optimizer
   - structured-output
   - agent-memory
+  - headroom
 category: data-ai
 tags:
   - cost
@@ -286,3 +287,7 @@ After two weeks of optimization:
 - **Document Q&A**: 40% on mini (factual lookups), 60% on GPT-4o. Cost dropped from $1,300/month to $780/month.
 
 **Total: $4,200/month → $1,480/month (65% reduction)**, with no measurable quality degradation on the metrics that matter. The CFO is happy, and Tomás has a cost dashboard that shows exactly where every dollar goes.
+
+## Related Skills
+
+- [headroom](/skills/headroom) — choose it when the bill is dominated by large tool outputs, logs and retrieved chunks sent as input; it compresses them locally through a library call or a proxy, without changing models
