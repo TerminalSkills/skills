@@ -1,14 +1,15 @@
 ---
 name: mysql
 description: |
-  MySQL is the world's most popular open-source relational database management system.
-  Learn installation, SQL queries, indexing strategies, replication setup,
-  and client integration with Node.js (mysql2) and Python (mysql-connector).
+  MySQL is an open-source relational database server. Use when you need to install MySQL,
+  design tables, add indexes, write queries, set up replication, take backups, or connect
+  from Node.js (mysql2) or Python (mysql-connector-python).
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: 'MySQL 8.4 LTS or 9.7 LTS; macOS, Linux, Windows; Node.js mysql2 3.x, Python 3.10+ mysql-connector-python'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/mysql/mysql-server
   category: data-ai
   tags:
     - mysql
@@ -16,23 +17,29 @@ metadata:
     - relational-database
     - replication
     - nodejs
-    - python
 ---
 
 # MySQL
 
-MySQL is a robust relational database used from small apps to large-scale web platforms. It supports ACID transactions, replication, and extensive SQL features.
+## Overview
+
+MySQL is a relational database used from small apps to large web platforms, with ACID transactions (InnoDB), replication and full-text search. Current releases are the 8.4 and 9.7 LTS lines and the 26.x innovation line. MySQL 8.0 reached end of life in April 2026, so new installs should use 8.4 or 9.7. The snippets below were run on 9.7.4.
+
+## Instructions
+
+Install the server, create a schema with `utf8mb4` and InnoDB, index the columns your queries filter on, and connect with a pooled driver using parameterised queries.
 
 ## Installation
 
 ```bash
 # Docker (recommended for development)
-docker run -d --name mysql -p 3306:3306 \
-  -e MYSQL_ROOT_PASSWORD=secret \
+# tags: mysql:9.7 (LTS), mysql:8.4 (LTS), mysql:lts; mysql:8 now points at 8.4
+docker run -d --name mysql -p 127.0.0.1:3306:3306 \
+  -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
   -e MYSQL_DATABASE=myapp \
-  mysql:8
+  mysql:9.7
 
-# Ubuntu/Debian
+# Ubuntu/Debian (installs the version Ubuntu ships, check it is 8.4 or newer)
 sudo apt-get install mysql-server
 sudo mysql_secure_installation
 
@@ -103,7 +110,7 @@ CREATE INDEX idx_orders_status_date ON orders(status, created_at);
 -- Covering index — query answered entirely from index
 CREATE INDEX idx_users_email_name ON users(email, name);
 
--- Full-text index for search
+-- Full-text index for search (assumes a products table with name and description)
 ALTER TABLE products ADD FULLTEXT INDEX ft_search (name, description);
 SELECT * FROM products WHERE MATCH(name, description) AGAINST('laptop' IN BOOLEAN MODE);
 
@@ -120,7 +127,7 @@ const mysql = require('mysql2/promise');
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || 'secret',
+  password: process.env.DB_PASS,
   database: 'myapp',
   waitForConnections: true,
   connectionLimit: 10,
@@ -160,6 +167,7 @@ module.exports = { pool, getUser, createOrder };
 
 ```python
 # db.py: MySQL connection with mysql-connector-python
+import os
 import mysql.connector
 from mysql.connector import pooling
 
@@ -168,7 +176,7 @@ pool = pooling.MySQLConnectionPool(
     pool_size=5,
     host="localhost",
     user="root",
-    password="secret",
+    password=os.environ["DB_PASS"],
     database="myapp",
     charset="utf8mb4",
 )
@@ -200,9 +208,8 @@ def insert_users(users):
 ```ini
 # my.cnf (primary): Enable binary logging for replication
 [mysqld]
-server-id = 1
-log-bin = mysql-bin
-binlog-format = ROW
+server-id = 1          # unique per server
+log-bin = mysql-bin   # the binary log is already on in 9.7 by default; the line makes it explicit
 gtid-mode = ON
 enforce-gtid-consistency = ON
 ```
@@ -210,14 +217,14 @@ enforce-gtid-consistency = ON
 ```sql
 -- replication.sql: Configure replica to follow primary
 -- On primary: create replication user
-CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_password';
+CREATE USER 'repl'@'%' IDENTIFIED BY 'Rp7-9kQz-2xLm';
 GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
 
 -- On replica: start replication
 CHANGE REPLICATION SOURCE TO
   SOURCE_HOST='primary-host',
   SOURCE_USER='repl',
-  SOURCE_PASSWORD='repl_password',
+  SOURCE_PASSWORD='Rp7-9kQz-2xLm',
   SOURCE_AUTO_POSITION=1;
 START REPLICA;
 SHOW REPLICA STATUS\G
@@ -230,5 +237,31 @@ SHOW REPLICA STATUS\G
 mysqldump -u root -p --single-transaction --routines --triggers myapp | gzip > "backup_$(date +%Y%m%d).sql.gz"
 
 # Restore from backup
-gunzip < backup_20260219.sql.gz | mysql -u root -p myapp
+gunzip < backup_20261024.sql.gz | mysql -u root -p myapp
 ```
+
+## Examples
+
+**"Give me a local MySQL for my app and show the five newest orders per user."**
+
+```bash
+docker run -d --name mysql -p 127.0.0.1:3306:3306 -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" -e MYSQL_DATABASE=myapp mysql:9.7
+docker exec -i mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" myapp < schema.sql
+docker exec mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" myapp -e "
+  SELECT user_id, id, total_cents FROM (
+    SELECT o.*, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn FROM orders o
+  ) t WHERE rn <= 5"
+```
+
+The result is a table of `user_id`, `id`, `total_cents` rows, at most five per user.
+
+**"Why is this orders query slow?"** Run `EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 42 AND status = 'paid';`. With `idx_user_status` the plan reads `Index lookup on orders using idx_user_status`; a `Table scan` means the index is missing or the column order does not match the filter.
+
+## Guidelines
+
+- Use `mysql:8.4` or `mysql:9.7`; 8.0 no longer receives fixes. The `mysql_native_password` plugin is no longer available in 9.x, so create users with the default `caching_sha2_password` and use current drivers (mysql2 3.x and mysql-connector-python 26.x support it).
+- Always pass values as `?` / `%s` parameters, never by string concatenation.
+- Keep passwords in environment variables or a secrets manager; bind the server to 127.0.0.1 unless remote access is required.
+- Use `utf8mb4` everywhere; the server default collation is `utf8mb4_0900_ai_ci`.
+- Take a backup with `--single-transaction` for InnoDB, and restore it into a scratch database before relying on it.
+- Replication needs `server-id` unique per server and a replica user with only the replication privilege.
