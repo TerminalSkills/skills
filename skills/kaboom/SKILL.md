@@ -1,37 +1,47 @@
 ---
 name: kaboom
 description: >-
-  You are an expert in Kaboom.js (now maintained as Kaplay), the
-  beginner-friendly game library for making browser games quickly. You help
-  developers build games using Kaboom's component-based entity system,
-  built-in physics, sprite loading, scene management, and event system — where
-  games can be built in under 100 lines of code while still supporting complex
-  gameplay through composable components.
+  Build 2D browser games in JavaScript with Kaboom.js, whose maintained
+  successor is KAPLAY. Offers an entity-component system, built-in physics,
+  sprite animation, scenes and ASCII-map levels. Use when a user asks for a
+  quick browser game, a game-jam prototype, a platformer or a Kaboom/Kaplay
+  project, or wants to migrate a Kaboom game to KAPLAY.
 license: Apache-2.0
-compatibility: ''
+compatibility: Node.js 18+ and a bundler (Vite), or a script tag in a browser
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Game Development
+  version: 1.1.0
+  category: development
+  repository: https://github.com/kaplayjs/kaplay
   tags:
     - game-engine
     - browser-game
     - 2d
-    - beginner-friendly
+    - kaplay
     - javascript
-    - creative-coding
 ---
 
-# Kaboom (Kaplay) — Fun and Simple Browser Game Library
+# Kaboom (Kaplay)
 
-You are an expert in Kaboom.js (now maintained as Kaplay), the beginner-friendly game library for making browser games quickly. You help developers build games using Kaboom's component-based entity system, built-in physics, sprite loading, scene management, and event system — where games can be built in under 100 lines of code while still supporting complex gameplay through composable components.
+## Overview
 
-## Core Capabilities
+Kaboom.js is no longer maintained: the `kaboom` npm package (3000.1.17) is deprecated in favour of KAPLAY, built by the same community. Write new code against `kaplay` (3001.0.19 at the time of checking). KAPLAY keeps the Kaboom API, so Kaboom tutorials mostly work after changing the import. Games are built from entities assembled out of components (`sprite()`, `pos()`, `area()`, `body()`), grouped into scenes.
 
-### Game Setup
+## Instructions
+
+### Installation
+
+```bash
+npm create vite@latest coin-grabber -- --template vanilla
+cd coin-grabber && npm install kaplay
+```
+
+For a quick page without a bundler, load a pinned build: `<script src="https://unpkg.com/kaplay@3001.0.12/dist/kaplay.js"></script>` and call `kaplay()`. Migrating from Kaboom: replace `import kaboom from "kaboom"` with `import kaplay from "kaplay"` and `kaboom()` with `kaplay()`. Serve sprites and sounds from the project's `public/` folder (paths like `/sprites/hero.png`).
+
+### Game setup
 
 ```javascript
-// main.js — Kaboom game in under 50 lines
+// main.js — a coin-collecting platformer
 import kaplay from "kaplay";
 
 const k = kaplay({
@@ -41,6 +51,7 @@ const k = kaplay({
   scale: 2,                               // Pixel art scaling
   crisp: true,                            // No anti-aliasing
 });
+k.setGravity(1600);                       // body() entities only fall once gravity is set
 
 // Load assets
 k.loadSprite("hero", "/sprites/hero.png", {
@@ -86,10 +97,15 @@ k.scene("game", () => {
   }
 
   // Movement
-  k.onKeyDown("left", () => { player.move(-200, 0); player.play("run"); });
-  k.onKeyDown("right", () => { player.move(200, 0); player.play("run"); });
+  // play() restarts the animation, so call it only when the animation changes
+  const run = () => { if (player.getCurAnim()?.name !== "run") player.play("run"); };
+  k.onKeyDown("left", () => { player.move(-200, 0); run(); });
+  k.onKeyDown("right", () => { player.move(200, 0); run(); });
   k.onKeyRelease(["left", "right"], () => player.play("idle"));
   k.onKeyPress("space", () => { if (player.isGrounded()) player.jump(400); });
+
+  let score = 0;
+  const scoreText = k.add([k.text("Score: 0", { size: 16 }), k.pos(10, 10), k.fixed()]);
 
   // Collect coins
   player.onCollide("coin", (coin) => {
@@ -98,15 +114,12 @@ k.scene("game", () => {
     score += 10;
     scoreText.text = `Score: ${score}`;
   });
-
-  let score = 0;
-  const scoreText = k.add([k.text("Score: 0", { size: 16 }), k.pos(10, 10), k.fixed()]);
 });
 
 k.go("game");
 ```
 
-### Component System
+### Components
 
 ```javascript
 // Custom components — extend any entity
@@ -123,7 +136,7 @@ function patrol(speed = 100, distance = 200) {
   };
 }
 
-// Use the custom component
+// Use the custom component (load a "slime" sprite first, as with "hero" above)
 const enemy = k.add([
   k.sprite("slime"),
   k.pos(300, 400),
@@ -135,20 +148,28 @@ const enemy = k.add([
 ]);
 ```
 
-## Installation
+### Levels and timers
 
-```bash
-npm install kaplay
-# Or use CDN: <script src="https://unpkg.com/kaplay/dist/kaplay.js"></script>
-```
+`k.addLevel(["   $  ", "======"], { tileWidth: 32, tileHeight: 32, tiles: { "=": () => [k.rect(32, 32), k.area(), k.body({ isStatic: true })], "$": () => [k.circle(8), k.area(), "coin"] } })` builds a level from an ASCII map. `k.wait(2, fn)` runs once, `k.loop(1, fn)` repeats.
 
-## Best Practices
+## Examples
 
-1. **Components over inheritance** — Compose entities from components (`body()`, `area()`, `health()`, custom); don't subclass
-2. **Tags for queries** — Tag entities ("enemy", "coin", "bullet") and use `k.get("enemy")` to find them
-3. **Scenes for states** — Use `k.scene()` for menu, game, pause, game-over; `k.go("scene")` to switch
-4. **Built-in physics** — `body()` gives gravity + collision; `body({ isStatic: true })` for platforms; `isGrounded()` for jump checks
-5. **Level loading** — Use `k.addLevel()` with ASCII art maps for quick level prototyping
-6. **Events** — `onCollide`, `onKeyPress`, `onUpdate`, `onClick` for game logic; clean and readable
-7. **Rapid prototyping** — Kaboom is ideal for game jams and prototypes; migrate to Phaser for production scale
-8. **Timer events** — `k.wait(2, callback)` and `k.loop(1, callback)` for timed spawning and effects
+### Example 1: Coin-grabber prototype
+**User prompt:** "Make me a small browser platformer where I collect coins with the arrow keys and space to jump."
+
+The agent scaffolds the Vite project, installs `kaplay`, puts `hero.png`, `coin.png` and `collect.wav` in `public/`, and writes the game from the setup section into `main.js`. `npm run dev` serves it on `http://localhost:5173`; the hero falls onto the platform, runs with the arrows, jumps with space, and each coin adds 10 to the score text.
+
+### Example 2: Migrate a Kaboom game
+**User prompt:** "My game still uses the kaboom package, switch it to Kaplay."
+
+The agent runs `npm uninstall kaboom && npm install kaplay`, changes the import and the `kaboom({...})` call to `kaplay({...})`, then runs the dev server and fixes anything the console reports. Most component calls are unchanged.
+
+## Guidelines
+
+1. Compose entities from components (`body()`, `area()`, `health()`, custom); do not subclass.
+2. Tag entities (`"enemy"`, `"coin"`) and find them with `k.get("enemy")`.
+3. Use `k.scene()` for menu, game, pause and game-over, and `k.go("scene")` to switch.
+4. `body()` needs `k.setGravity(...)` to fall; `body({ isStatic: true })` is for platforms; `isGrounded()` gates jumps.
+5. `kaplay()` also puts every function on the global scope by default; pass `global: false` and use `k.` (as above) to avoid clashes.
+6. Kaboom/KAPLAY suits prototypes and game jams; for a large production game consider Phaser or Godot.
+7. Pin the version in production; the `next` tag is a 4000 alpha and may change the API.
