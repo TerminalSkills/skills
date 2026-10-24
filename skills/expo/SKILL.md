@@ -8,12 +8,13 @@ description: >-
   builds, or integrating native device APIs. Trigger words: expo, expo router,
   eas build, react native expo, file-based routing mobile, deep linking.
 license: Apache-2.0
-compatibility: "Expo SDK 50+, Node.js 18+. iOS, Android, Web."
+compatibility: "Expo SDK 57-58 (expo 58.0.x); Node.js 22.13+ or 24.3+; iOS, Android, Web. Cloud builds need an Expo account."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: ["expo", "react-native", "mobile", "routing", "eas"]
+  repository: https://github.com/expo/expo
 ---
 
 # Expo
@@ -27,9 +28,11 @@ Expo is a development platform for React Native providing file-based routing (Ex
 ### Setup
 
 ```bash
-npx create-expo-app@latest my-app --template tabs
-cd my-app && npx expo start
+npx create-expo-app@latest fieldnotes --template default@sdk-58
+cd fieldnotes && npx expo start
 ```
+
+The `default` template already includes Expo Router and TypeScript (`tabs` and `blank` templates also exist). While SDK 58 is rolling out, `create-expo-app@latest` without `--template` creates an SDK 57 project, which is the one to pick if you test on a physical device with Expo Go. Install packages with `npx expo install <pkg>` so versions match the SDK, and run `npx expo-doctor` to find mismatches.
 
 ### File-Based Routing (Expo Router)
 
@@ -107,6 +110,8 @@ import { Link, router, useLocalSearchParams } from "expo-router";
 // Programmatic: router.push("/settings/account")
 
 // app/post/[slug].tsx — Dynamic route
+import { Text } from "react-native";
+
 export default function PostScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   return <Text>{slug}</Text>;
@@ -123,36 +128,44 @@ Every route gets a URL automatically. Configure the scheme in `app.json`:
 
 - `myapp://` -> Home screen
 - `myapp://post/hello-world` -> Post screen
-- `https://myapp.com/post/hello-world` -> Same screen (universal links)
+- `https://fieldnotes.app/post/hello-world` -> same screen via universal links / app links, which additionally need `ios.associatedDomains` and Android `intentFilters` in the app config plus a hosted association file on your domain.
 
 ### Expo SDK Modules
 
 ```typescript
 // Camera
 import { CameraView, useCameraPermissions } from "expo-camera";
+// Render <CameraView ref={cameraRef} facing="back" /> once permission.granted is true
 const [permission, requestPermission] = useCameraPermissions();
 const photo = await cameraRef.current?.takePictureAsync();
 
-// Push Notifications
+// Push Notifications (remote push needs a development build on Android, not Expo Go)
 import * as Notifications from "expo-notifications";
-const token = await Notifications.getExpoPushTokenAsync({ projectId: "your-id" });
+import Constants from "expo-constants";
+const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+const token = await Notifications.getExpoPushTokenAsync({ projectId });
 
 // Secure Storage
 import * as SecureStore from "expo-secure-store";
-await SecureStore.setItemAsync("token", "jwt-abc123");
+await SecureStore.setItemAsync("session_token", sessionJwt);
 ```
 
 ### EAS Build, Submit, and Update
 
 ```bash
-npm install -g eas-cli
-eas build:configure
+npm install --global eas-cli      # or run commands as: npx eas-cli@latest <command>
+eas login
+eas build:configure               # creates eas.json (development, preview, production profiles)
+eas update:configure              # adds runtimeVersion, updates.url and the channel per profile
 eas build --platform ios          # Cloud build -> .ipa
-eas build --platform android      # Cloud build -> .aab
+eas build --platform android      # production profile -> .aab (use a preview profile for an .apk)
 eas submit --platform ios         # App Store Connect
 eas submit --platform android     # Google Play Console
-eas update --branch production --message "Bug fix"  # OTA update
+eas update --channel production --environment production --message "Fix login crash"   # OTA update
+eas update:rollback               # roll back a bad update
 ```
+
+OTA updates ship JavaScript and assets only. A build only receives updates whose runtime version matches its own; `eas update:configure` sets `"runtimeVersion": { "policy": "appVersion" }`, and the `"fingerprint"` policy changes the runtime version whenever native code or config changes. Anything that touches native code needs a new build. For SDK 55+ projects, `eas update` outside CI asks which EAS environment to use unless `--environment` is given, so pass it in scripts.
 
 ## Examples
 
@@ -166,7 +179,7 @@ The agent creates a tab layout in `app/(tabs)/_layout.tsx`, nested stack routes 
 
 **User prompt:** "Push an urgent fix to production without app store review."
 
-The agent fixes the JavaScript code, runs `eas update --channel production`, verifies the update fingerprint ensures no native code changes, and monitors rollout with rollback available if issues arise.
+The agent fixes the JavaScript code, checks that no native dependency or config changed (otherwise a new build is required), runs `eas update --channel production --environment production --message "Fix login crash"`, optionally limits exposure with `--rollout-percentage 10`, and uses `eas update:rollback` if the fix misbehaves.
 
 ## Guidelines
 
@@ -178,5 +191,7 @@ The agent fixes the JavaScript code, runs `eas update --channel production`, ver
 - Use `expo-image` over `Image` for better caching and modern format support
 - Store secrets in `expo-secure-store`, never AsyncStorage
 - Use config plugins instead of ejecting to keep managed workflow
-- Use development builds for custom native modules (Expo Go cannot run them)
+- Use development builds (`eas build --profile development`) for custom native modules and for Android push notifications; Expo Go cannot run them
+- Prefer `npx expo install` over `npm install` for SDK packages, and treat `expo-doctor` warnings as bugs
+- In SDK 58 and later, native tabs come from `expo-router/native-tabs` (`expo-router/unstable-native-tabs` in SDK 54-57)
 - Use EAS Build for reproducible cross-platform builds without local Xcode/Android Studio
