@@ -7,6 +7,7 @@ skills:
   - code-complexity-scanner
   - performance-reviewer
   - tech-debt-analyzer
+  - react-doctor
 category: development
 tags:
   - code-quality
@@ -87,3 +88,7 @@ A fintech team of eight engineers inherited a codebase where every sprint felt s
 - Start with the complexity scan because it is the fastest to run and gives immediate visibility into where problems cluster.
 - Use the tech debt backlog output directly as sprint planning input. Prioritize items that overlap high complexity and high traffic -- those deliver the most improvement per hour invested.
 - Track the total number of functions above the complexity threshold over time as a health metric. It should decrease or hold steady sprint over sprint.
+
+## Related Skills
+
+- [react-doctor](/skills/react-doctor) — Choose react-doctor when the codebase is React (Next.js, Vite, Expo): `npx react-doctor@latest --json` ranks bugs, effect mistakes, accessibility and performance findings by rule, and `--scope changed` keeps new issues out of pull requests.
