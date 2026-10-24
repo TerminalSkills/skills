@@ -2,10 +2,11 @@
 name: arcjet
 description: Expert guidance for Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. Helps developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: '@arcjet/next or @arcjet/node 1.x (checked against 1.14.1); Node.js 22.21+ or 24.5+; an Arcjet account and ARCJET_KEY'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/arcjet/arcjet-js
+  version: 1.1.0
   category: development
   tags:
   - rate-limiting
@@ -17,12 +18,9 @@ metadata:
 
 # Arcjet — Application Security Layer
 
-
 ## Overview
 
-
 Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. Helps developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
-
 
 ## Instructions
 
@@ -63,7 +61,7 @@ export const loginLimiter = arcjet({
   ],
 });
 
-// Fixed window with multiple tiers
+// Fixed window with multiple tiers (slidingWindow and tokenBucket use `interval`)
 export const apiLimiter = arcjet({
   key: process.env.ARCJET_KEY!,
   characteristics: ["http.request.headers[\"x-api-key\"]"],  // Per API key
@@ -71,12 +69,12 @@ export const apiLimiter = arcjet({
     fixedWindow({
       mode: "LIVE",
       max: 100,                      // 100 requests
-      interval: "1h",                // Per hour
+      window: "1h",                  // Per hour (fixedWindow uses `window`, not `interval`)
     }),
     fixedWindow({
       mode: "LIVE",
       max: 1000,                     // 1000 requests
-      interval: "1d",                // Per day
+      window: "1d",                  // Per day
     }),
   ],
 });
@@ -112,11 +110,13 @@ const aj = arcjet({
 export async function POST(request: NextRequest) {
   const decision = await aj.protect(request);
 
-  if (decision.isDenied()) {
+  if (decision.isErrored()) {
+    // Fail open: Arcjet itself had a problem; log it and let the request through.
+    console.error("Arcjet error", decision.reason.message);
+  } else if (decision.isDenied()) {
     if (decision.reason.isBot()) {
       return NextResponse.json(
-        { error: "Bot traffic is not allowed" },
-        { status: 403 }
+        { error: "Bot traffic is not allowed" }, { status: 403 }
       );
     }
     if (decision.reason.isRateLimit()) {
@@ -127,8 +127,7 @@ export async function POST(request: NextRequest) {
     }
     if (decision.reason.isShield()) {
       return NextResponse.json(
-        { error: "Suspicious request blocked" },
-        { status: 403 }
+        { error: "Suspicious request blocked" }, { status: 403 }
       );
     }
   }
@@ -154,12 +153,13 @@ const aj = arcjet({
   rules: [
     validateEmail({
       mode: "LIVE",
-      block: [
+      deny: [
         "DISPOSABLE",                // Block temporary email services
         "INVALID",                    // Block malformed addresses
         "NO_MX_RECORDS",             // Block domains without mail servers
       ],
-      // Allow free email providers (Gmail, Yahoo) — block only throwaway
+      // Use either `deny` or `allow`, not both. Free providers (Gmail, Yahoo)
+      // stay allowed because "FREE" is not listed.
     }),
   ],
 });
@@ -196,58 +196,32 @@ export async function POST(request: NextRequest) {
 
 ### Next.js Middleware Integration
 
-Apply security rules globally via middleware:
+Apply security rules globally. `createMiddleware` wraps the Arcjet client and returns a 403 for denied requests. Next.js 16 renamed the `middleware.ts` file to `proxy.ts` (export `proxy` or a default); the Arcjet code is the same.
 
 ```typescript
 // middleware.ts — Global security middleware for Next.js
-import arcjet, { detectBot, shield, tokenBucket } from "@arcjet/next";
-import { NextRequest, NextResponse } from "next/server";
+import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 
 const aj = arcjet({
   key: process.env.ARCJET_KEY!,
-  characteristics: ["ip.src"],
   rules: [
     shield({ mode: "LIVE" }),
     detectBot({
       mode: "LIVE",
       allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:MONITOR", "CATEGORY:PREVIEW"],
     }),
-    tokenBucket({
-      mode: "LIVE",
-      refillRate: 60,
-      interval: 60,
-      capacity: 120,
-    }),
   ],
 });
 
-export async function middleware(request: NextRequest) {
-  const decision = await aj.protect(request);
-
-  // Log all decisions for monitoring
-  console.log(`[Arcjet] ${request.url} | ${decision.conclusion} | IP: ${decision.ip.ip}`);
-
-  if (decision.isDenied()) {
-    // Return appropriate error based on reason
-    if (decision.reason.isRateLimit()) {
-      return NextResponse.json({ error: "Rate limited" }, { status: 429 });
-    }
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // Add security headers
-  const response = NextResponse.next();
-  response.headers.set("X-Arcjet-Decision", decision.conclusion);
-  return response;
-}
+export default createMiddleware(aj);
 
 export const config = {
-  matcher: [
-    "/api/:path*",              // Protect all API routes
-    "/((?!_next|favicon).*)",   // Protect pages (exclude static assets)
-  ],
+  // Skip static assets; run on pages and API routes
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
 ```
+
+Per-route rate limits belong in the route handler.
 
 ### Node.js / Express Integration
 
@@ -269,7 +243,7 @@ const aj = arcjet({
 });
 
 export async function arcjetMiddleware(req: Request, res: Response, next: NextFunction) {
-  const decision = await aj.protect(req);
+  const decision = await aj.protect(req, { requested: 1 });
 
   if (decision.isDenied()) {
     const status = decision.reason.isRateLimit() ? 429 : 403;
@@ -294,33 +268,24 @@ npm install @arcjet/next
 # Node.js / Express
 npm install @arcjet/node
 
-# Get API key at https://app.arcjet.com
+# Get a key at https://app.arcjet.com and export it as ARCJET_KEY
 ```
 
+`protect()` for a token bucket takes the cost of the request: `await aj.protect(request, { requested: 1 })`. Rules default to `DRY_RUN` when `mode` is omitted.
 
 ## Examples
 
+### Example 1: Protect a signup endpoint in Next.js
 
-### Example 1: Setting up Arcjet with a custom configuration
+**User request:** "Stop bots and throwaway emails from hitting /api/signup, and limit each IP to 5 attempts per 15 minutes."
 
-**User request:**
+Install `@arcjet/next`, put `ARCJET_KEY` in `.env.local`, and in `app/api/signup/route.ts` combine `shield`, `detectBot`, `validateEmail({ deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"] })` and `slidingWindow({ max: 5, interval: "15m" })` with `characteristics: ["ip.src"]`. Call `aj.protect(request, { email })`. Start every rule in `DRY_RUN`, read the decisions in the Arcjet dashboard, then switch to `LIVE`. A blocked request gets 403 (bot, shield), 422 (email) or 429 (rate limit).
 
-```
-I just installed Arcjet. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
+### Example 2: Rate limit an Express API by API key
 
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
+**User request:** "Give each API key 1000 requests a day on our Express server."
 
-### Example 2: Extending Arcjet with custom functionality
-
-**User request:**
-
-```
-I want to add a custom bot protection to Arcjet. How do I build one?
-```
-
-The agent scaffolds the extension/plugin project, implements the core functionality following Arcjet's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
+Install `@arcjet/node`, build `arcjet({ key, characteristics: ['http.request.headers["x-api-key"]'], rules: [fixedWindow({ mode: "LIVE", window: "1d", max: 1000 })] })`, and call `aj.protect(req)` in a middleware that answers 429 when `decision.reason.isRateLimit()`. Mount it with `app.use("/api", arcjetMiddleware)`.
 
 ## Guidelines
 
@@ -328,7 +293,6 @@ The agent scaffolds the extension/plugin project, implements the core functional
 2. **Layer multiple rules** — Combine shield + bot detection + rate limiting; each catches different attack types
 3. **Rate limit by the right characteristic** — Use IP for public endpoints, API key for authenticated ones, user ID for per-user limits
 4. **Allow legitimate bots** — Search engines, uptime monitors, and link previews are not attacks; whitelist them
-5. **Validate emails early** — Check email validity at signup, not after sending a verification email (saves deliverability)
-6. **Middleware for global protection** — Apply shield and bot detection in middleware; add specific rate limits per route
-7. **Monitor before enforcing** — Review Arcjet dashboard logs to understand traffic patterns and tune thresholds
-8. **Graceful degradation** — If Arcjet is unavailable, your app should still work; wrap in try/catch with a permissive fallback
+5. **Middleware for global protection** — Apply shield and bot detection in middleware; add specific rate limits per route
+6. **Graceful degradation** — A failed Arcjet call returns an errored decision (`decision.isErrored()`) rather than denying; decide deliberately whether to fail open (usual) or closed (login, payments)
+7. **Client IP** — Arcjet reads the IP from the request; behind your own proxy, configure `proxies` so spoofed `X-Forwarded-For` values are ignored
