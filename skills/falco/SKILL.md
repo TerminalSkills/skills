@@ -1,12 +1,14 @@
 ---
 name: falco
-description: Expert guidance for Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.
+description: >-
+  Falco is the CNCF runtime security tool that watches Linux system calls and Kubernetes audit events and alerts on suspicious behavior in containers and hosts. Use when installing Falco with Helm, Docker or apt, writing or tuning custom detection rules (shell in container, sensitive file read, unexpected outbound connection, crypto miner), routing alerts to Slack or a SIEM with Falcosidekick, or fixing rule load errors.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Linux kernel 5.8+ (usually) for the modern_ebpf driver (or a kernel module build); Kubernetes with Helm 3 for the chart
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/falcosecurity/falco
   tags:
   - runtime-security
   - kubernetes
@@ -17,35 +19,60 @@ metadata:
 
 # Falco — Runtime Threat Detection
 
-
 ## Overview
 
-
-Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.
-
+Falco taps the kernel (system calls through the `modern_ebpf` probe or a kernel module) and evaluates every event against YAML rules; a match becomes an alert on stdout, a file, HTTP or through Falcosidekick. It needs no change to the applications. This skill was checked against Falco 0.45.1 (October 2026), Helm chart `falcosecurity/falco` 9.2.x and Falcosidekick chart 0.14.x; rule files below were validated with `falco --validate` from the 0.45.1 image.
 
 ## Instructions
 
-### Deployment
+### Deployment on Kubernetes (Helm)
 
 ```bash
-# Helm install on Kubernetes
 helm repo add falcosecurity https://falcosecurity.github.io/charts
+helm repo update
 helm install falco falcosecurity/falco \
   --namespace falco --create-namespace \
   --set driver.kind=modern_ebpf \
+  --set tty=true \
   --set falcosidekick.enabled=true \
-  --set falcosidekick.config.slack.webhookurl="${SLACK_WEBHOOK}"
-
-# Docker (single host)
-docker run --rm -i -t \
-  --privileged \
-  -v /var/run/docker.sock:/host/var/run/docker.sock \
-  -v /proc:/host/proc:ro \
-  falcosecurity/falco:latest
+  --set falcosidekick.config.slack.webhookurl="${SLACK_WEBHOOK_URL}"
+kubectl -n falco get pods -w
+kubectl -n falco logs -l app.kubernetes.io/name=falco -c falco --tail=20
 ```
 
-### Custom Rules
+The chart runs Falco as a DaemonSet. `driver.kind` defaults to `auto`, which picks a driver for the node; `modern_ebpf` needs no kernel headers or compilation. Values are case-sensitive, and the Falcosidekick keys are all lower case (`webhookurl`, `routingkey`, `hostport`). The chart sets `json_output` for you when Falcosidekick is enabled.
+
+### Docker (single host)
+
+```bash
+docker run --rm -it \
+  --cap-drop all --cap-add sys_admin --cap-add sys_resource --cap-add sys_ptrace \
+  -v /sys/kernel/tracing:/sys/kernel/tracing:ro \
+  -v /var/run/docker.sock:/host/var/run/docker.sock \
+  -v /proc:/host/proc:ro \
+  -v /etc:/host/etc:ro \
+  falcosecurity/falco:0.45.1
+```
+
+This is the least-privilege form from the Falco docs (modern eBPF). On hosts where tracefs lives at `/sys/kernel/debug/tracing`, change the source of the first mount. Pin the tag; `latest` changes under you. Official images are signed with cosign.
+
+### Host package (Debian/Ubuntu)
+
+```bash
+curl -fsSL https://falco.org/repo/falcosecurity-packages.asc | \
+  sudo gpg --dearmor -o /usr/share/keyrings/falco-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/falco-archive-keyring.gpg] https://download.falco.org/packages/deb stable main" | \
+  sudo tee /etc/apt/sources.list.d/falcosecurity.list
+sudo apt-get update -y
+sudo FALCO_FRONTEND=noninteractive FALCO_DRIVER_CHOICE=modern_ebpf apt-get install -y falco
+sudo systemctl status falco-modern-bpf
+```
+
+`FALCO_DRIVER_CHOICE` is `kmod` or `modern_ebpf`; with `modern_ebpf` no `dkms` or headers are needed. Config lives in `/etc/falco/falco.yaml`; put your overrides in `/etc/falco/config.d/`. Falco reloads rule and config files on change.
+
+### Custom rules
+
+Keep your rules in `falco_rules.local.yaml` (loaded after the shipped `falco_rules.yaml`, which falcoctl keeps updated). With Helm put them under `customRules:` in values. Macros such as `spawned_process`, `container`, `open_read` and `outbound` come from the default rules file, so a custom file only validates together with it.
 
 ```yaml
 # falco_rules.local.yaml — Custom detection rules
@@ -69,7 +96,7 @@ docker run --rm -i -t \
   desc: A process read a sensitive file (passwords, keys, tokens)
   condition: >
     open_read and container and
-    fd.name in (/etc/shadow, /etc/passwd, /root/.ssh/id_rsa,
+    fd.name in (/etc/shadow, /root/.ssh/id_rsa,
                 /var/run/secrets/kubernetes.io/serviceaccount/token)
   output: >
     Sensitive file read (user=%user.name file=%fd.name container=%container.name
@@ -82,7 +109,7 @@ docker run --rm -i -t \
   desc: Container making outbound connection to non-allowlisted IP
   condition: >
     outbound and container and
-    not fd.sip in (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) and
+    not fd.snet in (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) and
     not fd.sport in (53, 443, 80) and
     not container.image.repository in (allowed_outbound_images)
   output: >
@@ -107,96 +134,93 @@ docker run --rm -i -t \
   priority: CRITICAL
   tags: [crypto, mitre_resource_hijacking]
 
-# Detect privilege escalation
-- rule: Privilege Escalation via setuid
-  desc: Process changed to root via setuid binary
+# Detect a setuid bit being set (classic persistence / escalation step)
+- rule: Setuid Bit Set in Container
+  desc: A process inside a container set the setuid bit on a file
   condition: >
-    spawned_process and container and
-    user.uid != 0 and proc.uid = 0 and
-    not proc.name in (sudo, su, ping)
+    evt.type in (chmod, fchmod, fchmodat) and
+    container and evt.arg.mode contains "S_ISUID" and
+    not proc.name in (apt, apt-get, dpkg)
   output: >
-    Privilege escalation detected
-    (user=%user.name container=%container.name command=%proc.cmdline)
+    Setuid bit set (user=%user.name container=%container.name file=%evt.arg.filename
+     mode=%evt.arg.mode command=%proc.cmdline)
   priority: CRITICAL
   tags: [users, mitre_privilege_escalation]
 
 # Lists referenced by rules
 - list: allowed_outbound_images
   items: [nginx, envoyproxy/envoy, haproxy]
+
+# Quiet a default rule for a known-good parent process
+- rule: Terminal shell in container
+  condition: and not proc.pname = healthcheck.sh
+  override:
+    condition: append
 ```
 
-### Falcosidekick Integration
+Validate before deploying; a bad condition stops Falco from starting:
+
+```bash
+docker run --rm -v "$PWD/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml:ro" \
+  falcosecurity/falco:0.45.1 \
+  falco --validate /etc/falco/falco_rules.yaml --validate /etc/falco/falco_rules.local.yaml
+```
+
+A good file ends with `/etc/falco/falco_rules.local.yaml: Ok`. Field names that look plausible but do not exist (`proc.uid`) or CIDR tests with `fd.sip` fail here; list valid fields with `falco --list=syscall`. To change a shipped rule use `override` with `condition: append` as in the last block, not a copy of the rule.
+
+### Falcosidekick (alert routing)
 
 ```yaml
-# Falcosidekick routes Falco alerts to 50+ outputs
-# values.yaml for Helm
+# values.yaml: helm upgrade falco falcosecurity/falco -n falco -f values.yaml
 falcosidekick:
   enabled: true
   config:
     slack:
-      webhookurl: "https://hooks.slack.com/services/xxx"
+      webhookurl: "" # pass with --set falcosidekick.config.slack.webhookurl="$SLACK_WEBHOOK_URL"
       minimumpriority: "warning"
-      messageformat: |
-        *{{ .Priority }}* — {{ .Rule }}
-        {{ .Output }}
-        Container: {{ index .OutputFields "container.name" }}
-        Image: {{ index .OutputFields "container.image.repository" }}
-    
     pagerduty:
-      routingKey: "xxx"
+      routingkey: "" # pass with --set falcosidekick.config.pagerduty.routingkey="$PAGERDUTY_ROUTING_KEY"
       minimumpriority: "critical"
-    
-    # Forward to SIEM
     elasticsearch:
-      hostPort: "https://es.example.com:9200"
-      index: "falco-alerts"
+      hostport: "https://es.logging.internal:9200"
+      index: "falco"
       minimumpriority: "warning"
 ```
 
-## Installation
-
-```bash
-# Helm (Kubernetes — recommended)
-helm repo add falcosecurity https://falcosecurity.github.io/charts
-helm install falco falcosecurity/falco -n falco --create-namespace
-
-# Linux package
-curl -fsSL https://falco.org/repo/falcosecurity-packages.asc | gpg --dearmor -o /usr/share/keyrings/falco-archive-keyring.gpg
-apt-get install falco
-```
-
+Prefer `--set` from an environment variable or an existing Secret over committing webhook URLs and keys in values files. Any non-empty output key enables that output.
 
 ## Examples
 
+### Example 1: Alert when someone opens a shell in a production pod
 
-### Example 1: Setting up Falco for a microservices project
+**User request:** "I want a Slack message whenever someone execs into a pod in the payments namespace."
 
-**User request:**
+Install with the Helm command above, then trigger and check:
 
-```
-I have a Node.js API and a React frontend running in Docker. Set up Falco for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Helm install on Kubernetes`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting custom rules issues
-
-**User request:**
-
-```
-Falco is showing errors in our custom rules. Here are the logs: [error output]
+```console
+$ kubectl exec -n payments deploy/checkout -it -- sh
+$ kubectl -n falco logs -l app.kubernetes.io/name=falco -c falco --tail=5
+18:41:07.512: Notice A shell was spawned in a container with an attached terminal | evt_type=execve user=root user_uid=0 user_loginuid=-1 process=sh parent=runc command=sh terminal=34816 container_id=... container_name=checkout ...
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Falco issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+The default rule "Terminal shell in container" fires; the custom "Shell Spawned in Container" adds non-interactive cases. Slack receives the same event through Falcosidekick.
 
+### Example 2: Falco crash-loops after adding a rule
+
+**User request:** "Falco pods are in CrashLoopBackOff since I added our rules."
+
+```console
+$ kubectl -n falco logs ds/falco -c falco | grep -A6 "Invalid"
+LOAD_ERR_COMPILE_CONDITION (Error compiling condition): unrecognized IPv4 address 10.0.0.0/8
+```
+
+The condition used `fd.sip in (10.0.0.0/8)`; `fd.sip` takes single addresses, `fd.snet` takes networks. Change the field, run the `--validate` command, then `helm upgrade`. Pods recover once the file validates.
 
 ## Guidelines
 
-1. **eBPF driver** — Use `modern_ebpf` driver for best performance and compatibility; no kernel module compilation needed
-2. **Start with default rules** — Falco ships with 100+ rules; enable them first, then add custom rules for your environment
-3. **Allowlists over blocklists** — Define what's expected (allowed images, allowed processes); flag everything else as anomalous
-4. **Falcosidekick for routing** — Route alerts to Slack, PagerDuty, SIEM; Falcosidekick supports 50+ outputs
-5. **Priority levels** — Use CRITICAL for active attacks, ERROR for policy violations, WARNING for suspicious activity
-6. **MITRE ATT&CK tags** — Tag rules with MITRE tactics; helps incident response teams understand the attack stage
-7. **Tune for noise** — Expect noise initially; add exceptions for known-good processes (health checks, init scripts)
-8. **Combine with admission control** — Falco detects at runtime; pair with OPA/Kyverno for preventive controls at deploy time
+- Start with the shipped rules, add custom ones after, and keep a rules file under version control with the `--validate` step in CI.
+- Prefer allowlists: define expected images and parent processes in lists and flag everything else.
+- Expect noise at first; tune with `override`/`append` and lists, and watch the rate for a week before paging anyone.
+- Use `modern_ebpf` on current kernels; fall back to `kmod` only for old kernels. The container needs privileges (or the capabilities above) to load the probe, so run it in its own namespace with restricted access.
+- Falco detects; it does not block. Pair it with admission control (Kyverno, OPA Gatekeeper) and with Falco Talon or your own response automation if you need action.
+- Set `minimumpriority` per Falcosidekick output so critical alerts page and warnings only log.
