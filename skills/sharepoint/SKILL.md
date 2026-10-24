@@ -10,12 +10,13 @@ description: >-
   SharePoint Framework (SPFx) development.
 license: Apache-2.0
 compatibility: >-
-  Microsoft Graph API v1.0, SharePoint REST API, SPFx 1.18+. Requires Microsoft
-  365 tenant.
+  Microsoft Graph API v1.0, @microsoft/microsoft-graph-client 3.x, SharePoint
+  REST API, SPFx 1.23 (Node.js 22). Requires Microsoft 365 tenant.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
+  repository: https://github.com/microsoftgraph/msgraph-sdk-javascript
   tags:
     - sharepoint
     - microsoft-365
@@ -30,6 +31,8 @@ metadata:
 
 This skill helps AI agents integrate with SharePoint Online for document management, list operations, site automation, and custom development. It covers Microsoft Graph API for sites/lists/files, SharePoint REST API for advanced operations, search, permissions management, and SharePoint Framework (SPFx) for custom web parts.
 
+Not covered here: the SharePoint Azure ACS app-only model (client ID and secret registered through `appregnew.aspx`) is retired; app-only access to the SharePoint REST API now requires a Microsoft Entra app with a certificate, while Microsoft Graph accepts a client secret.
+
 ## Instructions
 
 ### Step 1: Authentication
@@ -39,9 +42,10 @@ import { ClientSecretCredential } from '@azure/identity';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 
-// Permissions: Sites.ReadWrite.All, Files.ReadWrite.All, Lists.ReadWrite.All
+// App-only permissions (admin consent): Sites.ReadWrite.All covers sites, lists and libraries.
+// Prefer Sites.Selected plus a per-site grant (see Guidelines) so the app reaches only the sites it needs.
 const credential = new ClientSecretCredential(
-  process.env.AZURE_TENANT_ID, process.env.AZURE_CLIENT_ID, process.env.AZURE_CLIENT_SECRET
+  process.env.AZURE_TENANT_ID!, process.env.AZURE_CLIENT_ID!, process.env.AZURE_CLIENT_SECRET!
 );
 const authProvider = new TokenCredentialAuthenticationProvider(credential, {
   scopes: ['https://graph.microsoft.com/.default'],
@@ -72,18 +76,19 @@ await graphClient.api(`/drives/${driveId}/root/children`).post({
 ### Step 3: File Operations
 
 ```typescript
-// Upload small file (< 4MB)
+// Upload small file (simple PUT, up to 250 MB)
 await graphClient.api(`/drives/${driveId}/root:/Reports/monthly-report.pdf:/content`).putStream(fileContent);
 
-// Upload large file (> 4MB) — resumable upload session
+// Upload large file — resumable upload session (recommended above 10 MiB)
 const session = await graphClient
   .api(`/drives/${driveId}/root:/LargeFiles/dataset.csv:/createUploadSession`)
   .post({ item: { '@microsoft.graph.conflictBehavior': 'replace', name: 'dataset.csv' } });
-// Upload in 10MB chunks with Content-Range headers to session.uploadUrl
+// PUT chunks to session.uploadUrl with Content-Range headers (no Authorization header on that URL).
+// Each chunk must be a multiple of 320 KiB (327,680 bytes) and under 60 MiB; 5-10 MiB is recommended.
 
 // Download, copy, move, delete
 await graphClient.api(`/drives/${driveId}/items/${itemId}/content`).getStream();
-await graphClient.api(`/drives/${driveId}/items/${itemId}/copy`).post({ parentReference: { driveId, path: '/root:/Archive' }, name: 'backup.pdf' });
+await graphClient.api(`/drives/${driveId}/items/${itemId}/copy`).post({ parentReference: { driveId, id: archiveFolderId }, name: 'backup.pdf' }); // async: 202 Accepted
 await graphClient.api(`/drives/${driveId}/items/${itemId}`).patch({ parentReference: { id: targetFolderId } });
 await graphClient.api(`/drives/${driveId}/items/${itemId}`).delete();
 
@@ -116,7 +121,7 @@ const items = await graphClient.api(`/sites/${siteId}/lists/${listId}/items`)
 
 // Create / Update / Delete items
 await graphClient.api(`/sites/${siteId}/lists/${listId}/items`).post({
-  fields: { ProjectName: 'Website Redesign', Status: 'In Progress', DueDate: '2026-04-01', Budget: 25000 },
+  fields: { ProjectName: 'Website Redesign', Status: 'In Progress', DueDate: '2026-12-01', Budget: 25000 },
 });
 await graphClient.api(`/sites/${siteId}/lists/${listId}/items/${itemId}/fields`).patch({ Status: 'Complete' });
 await graphClient.api(`/sites/${siteId}/lists/${listId}/items/${itemId}`).delete();
@@ -140,31 +145,34 @@ const results = await graphClient.api('/search/query').post({
     entityTypes: ['driveItem', 'listItem', 'site'],
     query: { queryString: 'quarterly report 2026' },
     from: 0, size: 25,
+    region: 'EUR', // required with app-only tokens (e.g. NAM, EUR); look up your tenant's region
   }],
 });
 
 // Search with filters (file type, author, site)
 await graphClient.api('/search/query').post({
-  requests: [{ entityTypes: ['driveItem'], query: { queryString: 'filetype:pdf AND author:"John Smith"' } }],
+  requests: [{ entityTypes: ['driveItem'], region: 'EUR', query: { queryString: 'filetype:pdf AND author:"Maria Ortega"' } }],
 });
 ```
 
 ### Step 6: Webhooks
 
 ```typescript
-// Subscribe to document library changes
+// Subscribe to document library changes (drive root supports only changeType "updated";
+// your endpoint must answer Graph's validation request by echoing the validationToken)
 const subscription = await graphClient.api('/subscriptions').post({
-  changeType: 'created,updated,deleted',
+  changeType: 'updated',
   notificationUrl: 'https://your-app.com/api/sharepoint-webhook',
   resource: `/drives/${driveId}/root`,
-  expirationDateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+  expirationDateTime: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
   clientState: 'your-secret-token',
 });
 
-// Renew before expiry (max 3 days for SharePoint)
+// Renew before expiry (driveItem and list subscriptions live at most 42,300 minutes, under 30 days)
 await graphClient.api(`/subscriptions/${subscription.id}`).patch({
-  expirationDateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+  expirationDateTime: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
 });
+// A notification only says "something changed"; call /drives/{id}/root/delta to get the changes.
 ```
 
 ## Examples
@@ -177,7 +185,7 @@ The agent will:
 2. Resolve the site ID via `/sites/contoso.sharepoint.com:/sites/engineering`
 3. Get the default drive ID from `/sites/{siteId}/drives`
 4. Check if the monthly folder exists under Reports; if not, create it with `POST /drives/{driveId}/root/children`
-5. Upload the PDF using the small-file API (`PUT /drives/{driveId}/root:/Reports/2026-02/monthly-report.pdf:/content`) or a resumable upload session if the file exceeds 4MB
+5. Upload the PDF using the small-file API (`PUT /drives/{driveId}/root:/Reports/2026-10/monthly-report.pdf:/content`) or a resumable upload session for large files
 
 ### Example 2: Build a project tracker with SharePoint lists
 **User prompt:** "Create a SharePoint list called 'Project Tracker' with columns for project name, status, due date, and budget. Then add three sample projects and filter for in-progress items."
@@ -190,13 +198,15 @@ The agent will:
 
 ## Guidelines
 
-- Use Graph API over SharePoint REST API when possible — cleaner, better documented, same auth as Teams
-- Batch requests for bulk operations (`/$batch`) — max 20 requests per batch
-- Large file uploads (> 4MB) must use upload sessions — direct PUT has size limits
-- SharePoint webhooks expire after 3 days max — set up a renewal job
-- Use `$select` and `$expand` to reduce payload size — don't fetch everything
-- Delta queries (`/drives/{id}/root/delta`) for syncing — tracks changes since last check
-- Document libraries are just "drives" in Graph API — same endpoints as OneDrive
-- Column names in list APIs are internal names (no spaces) — use `fields` object for values
-- Rate limits: 10,000 API calls per minute per tenant — use batching for high-volume operations
-- Search API indexes content inside documents (Word, PDF, etc.) — not just filenames
+- Use Graph API over SharePoint REST API when possible: cleaner, better documented, same auth as Teams
+- Least privilege: grant the app `Sites.Selected`, then give it one site with `POST /sites/{siteId}/permissions` and body `{ "roles": ["write"], "grantedToIdentities": [{ "application": { "id": "3f0c1c2e-6a7b-4d58-9a1e-5b2f8c7d4e10", "displayName": "Report uploader" } }] }` (calling this needs `Sites.FullControl.All`)
+- Batch requests for bulk operations (`/$batch`): max 20 requests per batch
+- Simple PUT upload works up to 250 MB; use upload sessions for anything larger or unreliable
+- Webhooks on drives and lists expire after at most 42,300 minutes; set up a renewal job
+- Use `$select` and `$expand` to reduce payload size
+- Delta queries (`/drives/{id}/root/delta`) for syncing: tracks changes since last check
+- Document libraries are just "drives" in Graph API, same endpoints as OneDrive
+- List column names are internal names (no spaces); values go in the `fields` object
+- Throttling returns `429` with a `Retry-After` header; honor it and batch or reduce calls (SharePoint limits are per app and tenant, based on resource units, not a fixed call count)
+- The Search API indexes content inside documents (Word, PDF, etc.), not just filenames; it takes one request per call
+- SPFx (custom web parts): current release 1.23.2 needs Node.js 22; scaffold with `npm install -g yo @microsoft/generator-sharepoint` then `yo @microsoft/sharepoint`
