@@ -1,32 +1,35 @@
 ---
 name: opencv
 description: >-
-  You are an expert in OpenCV (Open Source Computer Vision Library), the most
-  popular library for real-time computer vision. You help developers build
-  image processing pipelines, object detection systems, video analysis tools,
-  augmented reality, and document processing using OpenCV's 2,500+ algorithms
-  for image manipulation, feature detection, camera calibration, 3D
-  reconstruction, and DNN inference — in Python, C++, or JavaScript.
+  OpenCV is an open-source computer vision library for image processing, video
+  analysis, feature detection, camera calibration and DNN inference, with
+  Python, C++ and JavaScript bindings. Use when asked to resize, blur, threshold
+  or detect edges in images, find contours, read or write video, run an ONNX
+  object detector, or build an OpenCV pipeline with cv2.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Python 3.6+, opencv-python 5.0.0 (tested); Linux, macOS, Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  repository: https://github.com/opencv/opencv
+  category: data-ai
   tags:
     - computer-vision
     - image-processing
     - video
     - python
-    - real-time
     - detection
 ---
 
 # OpenCV — Computer Vision Library
 
-You are an expert in OpenCV (Open Source Computer Vision Library), the most popular library for real-time computer vision. You help developers build image processing pipelines, object detection systems, video analysis tools, augmented reality, and document processing using OpenCV's 2,500+ algorithms for image manipulation, feature detection, camera calibration, 3D reconstruction, and DNN inference — in Python, C++, or JavaScript.
+## Overview
 
-## Core Capabilities
+OpenCV (`cv2` in Python) covers image filtering, geometry, feature detection, video I/O, calibration and inference of ONNX models through `cv2.dnn`. Images are NumPy arrays in BGR order. The sections below show the operations most pipelines are built from; the snippets were run against opencv-python-headless 5.0.0.
+
+## Instructions
+
+Install the package, load frames with `cv2.imread` / `cv2.VideoCapture`, process them as arrays, and write results with `cv2.imwrite` / `cv2.VideoWriter`.
 
 ### Image Processing
 
@@ -66,41 +69,35 @@ closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)  # Fill gaps
 
 ### Object Detection (DNN Module)
 
+Export a YOLOv8 model to ONNX first (`yolo export model=yolov8n.pt format=onnx` with the `ultralytics` package; the ONNX file is the only thing OpenCV needs). The exported network returns one array of shape `(1, 84, 8400)`: 4 box values (centre x, centre y, width, height in 640x640 input pixels) plus 80 class scores per candidate, with no separate objectness score. Transpose it, keep confident rows, then run non-maximum suppression.
+
 ```python
-# YOLO inference with OpenCV DNN
+import cv2
+import numpy as np
+
 net = cv2.dnn.readNetFromONNX("yolov8n.onnx")
+CLASSES = [line.strip() for line in open("coco.names")]   # 80 COCO class names, one per line
 
-def detect_objects(image, conf_threshold=0.5):
-    """Detect objects using YOLOv8 with OpenCV DNN backend.
-
-    Args:
-        image: BGR image (numpy array)
-        conf_threshold: Minimum confidence to keep detection
-
-    Returns:
-        List of (class_id, confidence, x, y, w, h) tuples
-    """
-    blob = cv2.dnn.blobFromImage(image, 1/255.0, (640, 640), swapRB=True, crop=False)
-    net.setInput(blob)
-    outputs = net.forward(net.getUnconnectedOutLayersNames())
-
-    detections = []
+def detect_objects(image, conf_threshold=0.5, nms_threshold=0.45):
+    """Return (class_id, confidence, x, y, w, h) tuples in original image pixels."""
     h, w = image.shape[:2]
+    blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (640, 640), swapRB=True, crop=False)
+    net.setInput(blob)
+    rows = np.squeeze(net.forward()).T                    # (8400, 84)
 
-    for output in outputs:
-        for detection in output[0]:
-            scores = detection[4:]
-            class_id = np.argmax(scores)
-            confidence = scores[class_id]
+    scores = rows[:, 4:].max(axis=1)
+    class_ids = rows[:, 4:].argmax(axis=1)
+    keep = scores > conf_threshold
+    boxes, confs, ids = [], scores[keep], class_ids[keep]
+    for cx, cy, bw, bh in rows[keep, :4]:
+        boxes.append([int((cx - bw / 2) * w / 640), int((cy - bh / 2) * h / 640),
+                      int(bw * w / 640), int(bh * h / 640)])
 
-            if confidence > conf_threshold:
-                cx, cy, bw, bh = detection[:4]
-                x = int((cx - bw/2) * w / 640)
-                y = int((cy - bh/2) * h / 640)
-                detections.append((class_id, float(confidence), x, y, int(bw*w/640), int(bh*h/640)))
-
-    return detections
+    kept = cv2.dnn.NMSBoxes(boxes, confs.tolist(), conf_threshold, nms_threshold)
+    return [(int(ids[i]), float(confs[i]), *boxes[i]) for i in np.array(kept).flatten()]
 ```
+
+This resizes without letterboxing, so boxes shift slightly on images that are not square; for exact boxes pad the image to a square first. Other detector models and export options use a different output layout, so print `net.forward().shape` before reusing this post-processing.
 
 ### Video Processing
 
@@ -109,9 +106,10 @@ def detect_objects(image, conf_threshold=0.5):
 cap = cv2.VideoCapture(0)                  # Webcam
 # cap = cv2.VideoCapture("video.mp4")     # File
 
-# Output video
+# Output video: the size must equal the frame size or the file stays empty
 fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-out = cv2.VideoWriter("output.mp4", fourcc, 30.0, (640, 480))
+size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+out = cv2.VideoWriter("output.mp4", fourcc, 30.0, size)
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -158,26 +156,52 @@ for contour in contours:
     approx = cv2.approxPolyDP(contour, 0.04 * peri, True)
     sides = len(approx)
 
-    shape = "circle" if sides > 8 else {3: "triangle", 4: "rectangle"}.get(sides, "polygon")
+    shape = "circle" if sides > 6 else {3: "triangle", 4: "rectangle"}.get(sides, "polygon")
     cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
     cv2.putText(img, shape, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 ```
 
 ## Installation
 
+Install exactly one of these packages in an environment (they share the `cv2` module and conflict with each other):
+
 ```bash
-pip install opencv-python                  # Core + main modules
-pip install opencv-contrib-python          # + extra modules (SIFT, face detection, tracking)
-pip install opencv-python-headless         # Without GUI (for servers)
+pip install opencv-python                  # main modules with GUI windows (cv2.imshow)
+pip install opencv-contrib-python          # main + contrib modules
+pip install opencv-python-headless         # no GUI; for servers and containers
 ```
 
-## Best Practices
+SIFT and `cv2.FaceDetectorYN` (YuNet face detector, needs a YuNet `.onnx` file) are in the main modules, so contrib is only needed for contrib-only algorithms.
+
+## Examples
+
+**"Make every photo in uploads/ 800 px wide and grayscale."**
+
+```python
+from pathlib import Path
+import cv2
+
+out = Path("thumbs"); out.mkdir(exist_ok=True)
+for p in Path("uploads").glob("*.jpg"):
+    img = cv2.imread(str(p))
+    if img is None:            # imread returns None instead of raising
+        continue
+    scale = 800 / img.shape[1]
+    small = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    cv2.imwrite(str(out / p.name), cv2.cvtColor(small, cv2.COLOR_BGR2GRAY))
+```
+
+Result: `thumbs/` holds one 800-pixel-wide grayscale JPEG per input.
+
+**"Count the round objects in coins.png."** Threshold, find external contours, and keep those that `approxPolyDP` turns into more than 6 vertices (see the contour example above); `len(coins)` after filtering by `cv2.contourArea` above 100 is the count.
+
+## Guidelines
 
 1. **BGR not RGB** — OpenCV loads images in BGR; convert with `cv2.cvtColor` when using with matplotlib or PIL
-2. **DNN for inference** — Use `cv2.dnn` for running YOLO, SSD, face detection; no PyTorch/TF dependency needed
+2. **DNN for inference** — `cv2.dnn` runs ONNX models without PyTorch or TensorFlow; always check the output shape of the model you load
 3. **Preprocessing pipeline** — Resize → blur → convert → threshold → morphology → contours; order matters
 4. **Contour hierarchy** — Use `RETR_EXTERNAL` for outermost contours only; `RETR_TREE` for nested relationships
 5. **Video with codec** — Use `mp4v` for MP4, `XVID` for AVI; check codec availability on your platform
 6. **NumPy integration** — OpenCV images are NumPy arrays; use NumPy for fast pixel-level operations
-7. **Headless for servers** — Install `opencv-python-headless`; no X11/GUI dependencies needed for processing pipelines
-8. **GPU acceleration** — Build from source with CUDA support for 10-50x speedup on GPU; or use `cv2.cuda` module
+7. **Headless for servers** — use `opencv-python-headless`; `cv2.imshow` and `cv2.waitKey` do not work there, so drop them from server code
+8. **GPU acceleration** — the pip wheels have no CUDA; `cv2.cuda` needs OpenCV built from source with CUDA
