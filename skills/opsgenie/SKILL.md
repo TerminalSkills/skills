@@ -1,15 +1,15 @@
 ---
 name: opsgenie
 description: >-
-  Configure Opsgenie for alert management, on-call scheduling, routing rules,
-  and incident response. Use when a user needs to set up alert routing,
-  create escalation policies, manage on-call rotations, integrate with
-  monitoring tools, or automate incident workflows with Opsgenie.
+  Opsgenie is Atlassian's alert and on-call management service, driven through
+  its REST API v2. Use when a user needs to set up alert routing, escalation
+  policies, on-call rotations, Alertmanager integration, or to plan the move
+  away from Opsgenie before its April 2027 end of support.
 license: Apache-2.0
 compatibility: "Opsgenie API v2"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["opsgenie", "alert-management", "on-call", "routing", "incident-response"]
 ---
@@ -18,9 +18,15 @@ metadata:
 
 ## Overview
 
-Set up Opsgenie for centralized alert management with routing rules, on-call schedules, escalation policies, and integrations. Covers alert API, team management, notification policies, and automation.
+Set up Opsgenie for centralized alert management with routing rules, on-call schedules, escalation policies, and integrations, using the REST API v2 with a `GenieKey` API key.
+
+**Lifecycle warning:** Atlassian stopped selling Opsgenie on 4 June 2025 and ends support on 5 April 2027. Existing subscriptions keep working until then. Atlassian's documented migration paths move Opsgenie into a Jira Service Management Cloud site; do not recommend Opsgenie to a team that does not already have it.
+
+Accounts in the EU region must use `https://api.eu.opsgenie.com` instead of `https://api.opsgenie.com` in every command below. Keep the key in an environment variable (`OG_API_KEY`); use a key with only the access rights the task needs.
 
 ## Instructions
+
+Create things in this order, because each refers to the previous one by name: team, schedule (Task C), escalation (Task D), routing rule (Task A, second command). Most name-based lookups need the matching `...IdentifierType=name` query parameter; without it the API treats the value as an id.
 
 ### Task A: Create Teams and Routing
 
@@ -33,16 +39,16 @@ curl -X POST "https://api.opsgenie.com/v2/teams" \
     "name": "Platform Engineering",
     "description": "Infrastructure and platform services team",
     "members": [
-      { "user": { "username": "marta@example.com" }, "role": "admin" },
-      { "user": { "username": "tom@example.com" }, "role": "user" },
-      { "user": { "username": "nina@example.com" }, "role": "user" }
+      { "user": { "username": "marta@shipfast.io" }, "role": "admin" },
+      { "user": { "username": "tom@shipfast.io" }, "role": "user" },
+      { "user": { "username": "nina@shipfast.io" }, "role": "user" }
     ]
   }'
 ```
 
 ```bash
 # Create a routing rule for the team
-curl -X POST "https://api.opsgenie.com/v2/teams/Platform%20Engineering/routing-rules" \
+curl -X POST "https://api.opsgenie.com/v2/teams/Platform%20Engineering/routing-rules?teamIdentifierType=name" \
   -H "Authorization: GenieKey ${OG_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -94,7 +100,7 @@ curl -X POST "https://api.opsgenie.com/v2/alerts" \
 curl -X POST "https://api.opsgenie.com/v2/alerts/payment-service-error-rate-prod/acknowledge?identifierType=alias" \
   -H "Authorization: GenieKey ${OG_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{ "user": "marta@example.com", "note": "Investigating — checking database connections." }'
+  -d '{ "user": "marta@shipfast.io", "note": "Investigating — checking database connections." }'
 ```
 
 ```bash
@@ -102,7 +108,7 @@ curl -X POST "https://api.opsgenie.com/v2/alerts/payment-service-error-rate-prod
 curl -X POST "https://api.opsgenie.com/v2/alerts/payment-service-error-rate-prod/close?identifierType=alias" \
   -H "Authorization: GenieKey ${OG_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{ "user": "marta@example.com", "note": "Fixed connection pool sizing. Error rate back to normal." }'
+  -d '{ "user": "marta@shipfast.io", "note": "Fixed connection pool sizing. Error rate back to normal." }'
 ```
 
 ### Task C: On-Call Schedules
@@ -123,9 +129,9 @@ curl -X POST "https://api.opsgenie.com/v2/schedules" \
         "type": "weekly",
         "startDate": "2026-02-23T09:00:00Z",
         "participants": [
-          { "type": "user", "username": "marta@example.com" },
-          { "type": "user", "username": "tom@example.com" },
-          { "type": "user", "username": "nina@example.com" }
+          { "type": "user", "username": "marta@shipfast.io" },
+          { "type": "user", "username": "tom@shipfast.io" },
+          { "type": "user", "username": "nina@shipfast.io" }
         ],
         "timeRestriction": {
           "type": "weekday-and-time-of-day",
@@ -140,9 +146,9 @@ curl -X POST "https://api.opsgenie.com/v2/schedules" \
 
 ```bash
 # Get current on-call participants
-curl -s "https://api.opsgenie.com/v2/schedules/Platform%20Primary%20On-Call/on-calls" \
+curl -s "https://api.opsgenie.com/v2/schedules/Platform%20Primary%20On-Call/on-calls?scheduleIdentifierType=name&flat=true" \
   -H "Authorization: GenieKey ${OG_API_KEY}" | \
-  jq '.data.onCallParticipants[] | {name: .name, type: .type}'
+  jq '.data.onCallRecipients'
 ```
 
 ### Task D: Escalation Policies
@@ -166,7 +172,7 @@ curl -X POST "https://api.opsgenie.com/v2/escalations" \
         "condition": "if-not-acked",
         "notifyType": "default",
         "delay": { "timeAmount": 15 },
-        "recipient": { "type": "user", "username": "marta@example.com" }
+        "recipient": { "type": "user", "username": "marta@shipfast.io" }
       },
       {
         "condition": "if-not-acked",
@@ -186,7 +192,8 @@ curl -X POST "https://api.opsgenie.com/v2/escalations" \
 receivers:
   - name: 'opsgenie-critical'
     opsgenie_configs:
-      - api_key: '<OG_API_KEY>'
+      - api_key_file: '/etc/alertmanager/secrets/opsgenie_api_key'
+        # api_url: 'https://api.eu.opsgenie.com/'   # EU accounts only
         message: '{{ .CommonLabels.alertname }}: {{ .CommonAnnotations.summary }}'
         description: '{{ .CommonAnnotations.description }}'
         priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else if eq .CommonLabels.severity "warning" }}P3{{ else }}P5{{ end }}'
@@ -201,7 +208,17 @@ receivers:
           cluster: '{{ .CommonLabels.cluster }}'
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: "Page the platform team when payments errors spike"
+
+Run Task A (team), Task C (schedule), Task D (escalation), then the routing rule. Send the alert from Task B. Result: the create call answers `202` with `"result": "Request will be processed"` and a `requestId`; the alert appears for Platform Engineering, notifies the on-call user, and escalates after 5, 15 and 30 minutes until acknowledged.
+
+### Example 2: "Who is on call right now?"
+
+Run the on-calls request from Task C with `flat=true`. Result: `{"data": {"onCallRecipients": ["marta@shipfast.io"], ...}}`.
+
+## Guidelines
 
 - Use alert aliases for deduplication so the same issue doesn't create multiple alerts
 - Configure notification policies per user — allow P1 alerts to phone at night, P3 only during work hours
