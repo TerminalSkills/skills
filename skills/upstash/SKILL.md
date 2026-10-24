@@ -1,155 +1,227 @@
 ---
 name: upstash
 description: >-
-  You are an expert in Upstash, the serverless data platform for Redis,
-  Kafka, and QStash. You help developers add caching, rate limiting, session
-  storage, message queuing, and scheduled jobs to serverless and edge
-  applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare
-  Workers, and AWS Lambda without persistent connections.
+  Upstash is a serverless data platform with HTTP-based Redis, rate limiting,
+  QStash message delivery and Workflow for durable functions. Use when adding
+  caching, sessions, rate limiting, delayed jobs, cron schedules or multi-step
+  background workflows to Vercel, Next.js, Cloudflare Workers or AWS Lambda
+  apps that cannot hold persistent connections.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Node.js or any edge runtime with fetch; Upstash account; REST and QStash tokens'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Cloud & Serverless
+  version: 1.1.0
+  category: devops
+  repository: https://github.com/upstash/redis-js
   tags:
     - redis
-    - kafka
     - qstash
     - serverless
     - edge
     - rate-limiting
-    - caching
 ---
 
-# Upstash — Serverless Redis, Kafka & QStash
+# Upstash: Serverless Redis, QStash and Workflow
 
-You are an expert in Upstash, the serverless data platform for Redis, Kafka, and QStash. You help developers add caching, rate limiting, session storage, message queuing, and scheduled jobs to serverless and edge applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare Workers, and AWS Lambda without persistent connections.
+## Overview
 
-## Core Capabilities
+Upstash sells serverless building blocks that talk HTTP, so they work from Vercel, Cloudflare Workers, Netlify, Deno and Lambda without connection pools:
 
-### Serverless Redis
+- **Redis** via `@upstash/redis` (REST client; any Redis client also works over TCP) and `@upstash/ratelimit`.
+- **QStash**: delivers an HTTP request to your endpoint with retries, delays, cron schedules and fan-out (`@upstash/qstash`).
+- **Workflow**: durable multi-step functions on top of QStash (`@upstash/workflow`).
+- Also in the current catalog: Vector, Search, Box (sandboxes) and Blob. Upstash Kafka no longer appears in the current docs or product list, so do not build on it.
+
+Pricing changes; read https://upstash.com/pricing/redis and the QStash pricing page rather than trusting numbers in code comments. At the time of checking the Redis free tier was one database with 250 MB of data and 500K commands per month.
+
+## Instructions
+
+### Step 1: Install and configure
+
+```bash
+npm install @upstash/redis @upstash/ratelimit @upstash/qstash @upstash/workflow
+```
+
+Create a database in the Upstash Console (console.upstash.com) and copy the REST credentials into the environment. Never commit them, and never expose them to browser code.
+
+```bash
+UPSTASH_REDIS_REST_URL="https://eu1-calm-lynx-12345.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="AbCdEf..."
+QSTASH_TOKEN="eyJVc2VySUQi..."
+QSTASH_CURRENT_SIGNING_KEY="sig_..."
+QSTASH_NEXT_SIGNING_KEY="sig_..."
+```
+
+### Step 2: Caching and sessions with Redis
 
 ```typescript
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();            // Uses UPSTASH_REDIS_REST_URL + TOKEN
+const redis = Redis.fromEnv();   // UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
 
-// Caching
 async function getCachedUser(userId: string): Promise<User> {
-  const cached = await redis.get<User>(`user:${userId}`);
+  const cached = await redis.get<User>(`user:${userId}`);   // JSON is (de)serialized for you
   if (cached) return cached;
 
   const user = await db.users.findById(userId);
-  await redis.set(`user:${userId}`, user, { ex: 3600 });  // 1 hour TTL
+  await redis.set(`user:${userId}`, user, { ex: 3600 });     // 1 hour TTL
   return user;
 }
 
-// Rate limiting
-import { Ratelimit } from "@upstash/ratelimit";
+// Session as a hash with a 24 h TTL
+await redis.hset(`session:${sessionId}`, { userId: "42", role: "admin" });
+await redis.expire(`session:${sessionId}`, 86400);
+const session = await redis.hgetall<{ userId: string; role: string }>(`session:${sessionId}`);
 
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, "10 s"),  // 10 requests per 10 seconds
-  analytics: true,
-});
-
-// In API route / middleware
-const { success, limit, remaining, reset } = await ratelimit.limit(userId);
-if (!success) {
-  return new Response("Too Many Requests", {
-    status: 429,
-    headers: {
-      "X-RateLimit-Limit": limit.toString(),
-      "X-RateLimit-Remaining": remaining.toString(),
-      "X-RateLimit-Reset": reset.toString(),
-    },
-  });
-}
-
-// Session storage
-await redis.hset(`session:${sessionId}`, { userId: "42", role: "admin", cart: JSON.stringify(items) });
-const session = await redis.hgetall(`session:${sessionId}`);
-await redis.expire(`session:${sessionId}`, 86400);  // 24h TTL
+// One HTTP round-trip for several commands
+const pipe = redis.pipeline();
+pipe.incr("stats:page-views");
+pipe.sadd("stats:visitors", "usr_42");
+const [views] = await pipe.exec<[number, number]>();
 ```
 
-### QStash (Serverless Message Queue)
+The client auto-deserializes JSON, so a stored string like `"123"` may come back as a number. Store plain strings only if you handle that.
+
+### Step 3: Rate limiting
+
+```typescript
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "10 s"),   // also fixedWindow, tokenBucket
+  analytics: true,
+  prefix: "ratelimit:api",
+});
+
+export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+  const { success, limit, remaining, reset, pending } = await ratelimit.limit(ip);
+  await pending;   // analytics and multi-region sync finish here; on edge use waitUntil(pending)
+
+  if (!success) {
+    return new Response("Too Many Requests", {
+      status: 429,
+      headers: {
+        "X-RateLimit-Limit": String(limit),
+        "X-RateLimit-Remaining": String(remaining),
+        "X-RateLimit-Reset": String(reset),
+      },
+    });
+  }
+  return Response.json({ ok: true });
+}
+```
+
+### Step 4: QStash messages and schedules
 
 ```typescript
 import { Client } from "@upstash/qstash";
 
 const qstash = new Client({ token: process.env.QSTASH_TOKEN! });
 
-// Publish message to endpoint
+// One-off delivery with retries and a delay
 await qstash.publishJSON({
-  url: "https://myapp.vercel.app/api/process-order",
+  url: "https://shop.vercel.app/api/process-order",   // must be publicly reachable
   body: { orderId: "ord-123", action: "fulfill" },
   retries: 3,
-  delay: "30s",                           // Delay delivery by 30s
+  delay: "30s",
+  callback: "https://shop.vercel.app/api/order-done",
+  failureCallback: "https://shop.vercel.app/api/order-failed",
 });
 
-// Schedule recurring
-await qstash.publishJSON({
-  url: "https://myapp.vercel.app/api/daily-report",
-  cron: "0 9 * * *",                     // Daily at 9 AM
-});
-
-// Batch
-await qstash.batchJSON([
-  { url: "https://myapp.vercel.app/api/send-email", body: { to: "user1@example.com" } },
-  { url: "https://myapp.vercel.app/api/send-email", body: { to: "user2@example.com" } },
-]);
-
-// Callback URL (webhook when processing completes)
-await qstash.publishJSON({
-  url: "https://myapp.vercel.app/api/long-task",
-  body: { taskId: "task-1" },
-  callback: "https://myapp.vercel.app/api/task-complete",
-  failureCallback: "https://myapp.vercel.app/api/task-failed",
+// Recurring (cron, UTC unless a timezone is set)
+await qstash.schedules.create({
+  destination: "https://shop.vercel.app/api/daily-report",
+  cron: "0 9 * * *",
 });
 ```
 
-### Upstash Workflow
+Anyone can POST to your endpoint, so verify the QStash signature before acting:
 
 ```typescript
+import { Receiver } from "@upstash/qstash";
+
+const receiver = new Receiver({
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
+});
+
+export async function POST(req: Request) {
+  const body = await req.text();   // verify the raw body, before JSON.parse
+  const valid = await receiver.verify({
+    signature: req.headers.get("upstash-signature") ?? "",
+    body,
+  });
+  if (!valid) return new Response("Invalid signature", { status: 401 });
+
+  const { orderId } = JSON.parse(body);
+  await fulfillOrder(orderId);
+  return new Response("ok");
+}
+```
+
+For Next.js there are wrappers, `verifySignatureAppRouter` from `@upstash/qstash/nextjs`.
+
+### Step 5: Workflow for multi-step jobs
+
+```typescript
+// app/api/fulfill/route.ts
 import { serve } from "@upstash/workflow/nextjs";
 
-export const { POST } = serve(async (context) => {
+export const { POST } = serve<{ orderId: string }>(async (context) => {
   const { orderId } = context.requestPayload;
 
-  // Step 1 (durable)
-  const order = await context.run("fetch-order", async () => {
-    return await db.orders.findById(orderId);
-  });
+  const order = await context.run("fetch-order", async () => db.orders.findById(orderId));
 
-  // Step 2
   await context.run("charge-payment", async () => {
-    await stripe.charges.create({ amount: order.total * 100, customer: order.customerId });
+    await stripe.paymentIntents.create({ amount: order.totalCents, currency: "usd", customer: order.customerId });
   });
 
-  // Sleep (durable)
-  await context.sleep("wait-for-fulfillment", 60 * 60);  // 1 hour
+  await context.sleep("wait-for-fulfillment", "1h");   // no compute is used while sleeping
 
-  // Step 3
   await context.run("send-shipping-notification", async () => {
-    await resend.emails.send({ to: order.email, subject: "Order Shipped" });
+    await resend.emails.send({ from: "orders@shop.example", to: order.email, subject: "Order shipped" });
   });
 });
 ```
 
-## Installation
+Start a run from server code:
 
-```bash
-npm install @upstash/redis @upstash/ratelimit @upstash/qstash
+```typescript
+import { Client } from "@upstash/workflow";
+
+const client = new Client({ token: process.env.QSTASH_TOKEN! });
+const { workflowRunId } = await client.trigger({
+  url: "https://shop.vercel.app/api/fulfill",
+  body: { orderId: "ord-123" },
+  retries: 3,
+});
 ```
 
-## Best Practices
+For local development set `QSTASH_DEV=true`; the SDK starts a local QStash server and handles signatures. Each `context.run` step is retried and memoized, so keep side effects inside steps and make them idempotent. `zod` is a peer dependency of `@upstash/workflow`.
 
-1. **HTTP-based** — Upstash Redis uses HTTP, not TCP; works on edge/serverless without connection pooling
-2. **Rate limiting** — Use `@upstash/ratelimit` with sliding window; built for API protection on edge
-3. **QStash for async** — Use QStash instead of SQS/BullMQ on serverless; delivers to any HTTP endpoint
-4. **Edge-compatible** — All Upstash SDKs work on Vercel Edge, CF Workers, Deno Deploy; no Node.js APIs needed
-5. **TTL on everything** — Set expiration on cache keys; prevent stale data and control costs
-6. **Pipeline for batch** — Use `redis.pipeline()` for multiple operations; single HTTP round-trip
-7. **Workflow for durable** — Use Upstash Workflow for multi-step processes; survives serverless timeouts
-8. **Free tier** — 10K commands/day free; great for prototyping and small projects
+## Examples
+
+### Example 1: Protect an API route from abuse
+
+**User prompt:** "Limit our /api/search endpoint to 20 requests per minute per IP, on Vercel."
+
+The agent installs `@upstash/ratelimit @upstash/redis`, adds the two env vars, creates a `Ratelimit` with `slidingWindow(20, "1 m")`, calls `limit(ip)` at the top of the handler and returns 429 with the `X-RateLimit-*` headers on failure. Result: the 21st request in a minute gets `429 Too Many Requests`, and the Upstash dashboard shows the analytics.
+
+### Example 2: Send a reminder email 24 hours after signup
+
+**User prompt:** "Email new users a tip 24 hours after they sign up, even if our server restarts."
+
+The agent adds a Workflow endpoint with `await context.sleep("wait-a-day", "24h")` followed by a `context.run("send-tip", ...)` step, triggers it from the signup handler with `client.trigger({ url, body: { userId } })`, and checks the run in the Workflow dashboard. No cron job or queue worker is needed.
+
+## Guidelines
+
+- Use the REST client (`@upstash/redis`) on edge runtimes; a long-running server can use a normal Redis client over TCP instead.
+- Every command is billed on pay-as-you-go plans: set TTLs, pipeline related commands, and set a monthly budget on the database.
+- Always verify QStash signatures (or use `serve()` from Workflow, which does it) on public endpoints.
+- QStash cannot reach `localhost`; use `QSTASH_DEV=true` with Workflow or a tunnel for local tests.
+- Delivery is at-least-once: make handlers idempotent (use the message id or an order id as a key).
+- On serverless, wait for the rate limiter's `pending` promise (or pass it to `waitUntil`) so analytics are not dropped.
+- Keep the REST token server-side; a leaked token gives full read/write to the database.
