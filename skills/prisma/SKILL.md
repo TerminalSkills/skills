@@ -37,7 +37,7 @@ What changed in Prisma 7, and what trips up code written for 6 or earlier:
 
 ```bash
 npm install --save-dev prisma@7 tsx typescript
-npm install @prisma/client@7 @prisma/adapter-pg pg dotenv
+npm install @prisma/client@7 @prisma/adapter-pg@7 pg dotenv
 npx prisma init --datasource-provider postgresql
 ```
 
