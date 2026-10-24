@@ -1,6 +1,6 @@
 ---
 title: "Build a DeFi Yield Dashboard"
-description: "Track your DeFi positions across Aave, Compound, Uniswap, and Curve in one place. Calculate total portfolio value, current APY, daily yield, impermanent loss, and get alerts when yield drops or liquidation risk rises."
+description: "Track your DeFi positions across Aave and Uniswap v3 in one place by reading the contracts directly. Calculate portfolio value, current APY and daily yield, impermanent loss, and get alerts when liquidation risk rises."
 skills: [wagmi, prisma]
 difficulty: advanced
 time_estimate: "7 hours"
@@ -13,324 +13,276 @@ $100k across 10 protocols. Six browser tabs. Three spreadsheets. **Never again.*
 
 You need a single dashboard that pulls all your positions, calculates real APY, tracks impermanent loss, and warns you before you get liquidated.
 
-## Who This Is For
-
-A DeFi power user with significant capital deployed across multiple protocols. You're not a developer by trade but you can run TypeScript. You want data, not vibes.
-
 ## What You'll Build
 
-- 📊 Position aggregator — Aave, Compound, Uniswap v3, Curve
-- 💰 Portfolio value — total in USD, broken down by protocol
-- 📈 APY calculator — current and 7-day average
-- 🔄 Historical tracking — chart yield over time
-- ⚠️ Risk metrics — liquidation health factor, impermanent loss
-- 🚨 Alerts — yield drop below threshold, liquidation risk
+- Position aggregator for Aave v3 and Uniswap v3 on Ethereum, valued in USD with the Aave oracle
+- Supply APY, daily yield, and snapshots in PostgreSQL ready to chart
+- Risk metrics (Aave health factor, impermanent loss) and a health-factor alert
 
 ## Prerequisites
 
-- Alchemy API key (for on-chain reads)
-- The Graph API key (for subgraph queries)
-- PostgreSQL database
-- Your wallet address(es)
+- An Ethereum JSON-RPC URL (Alchemy, Infura, or any provider), exported as `ETH_RPC_URL`
+- PostgreSQL (`DATABASE_URL`), Node.js 22+ and your wallet address(es)
 
----
+```bash
+npm install viem@2 @prisma/client@7 @prisma/adapter-pg@7 pg
+npm install -D prisma@7 typescript tsx @types/node @types/pg
+```
+
+## Why on-chain reads, not subgraphs
+
+The hosted Graph endpoints (`api.thegraph.com/subgraphs/name/...`) were shut down; the Graph Network needs an API key and a URL per deployment. The Aave Pool and the Uniswap position manager answer everything this dashboard needs through plain `eth_call` reads, so there is nothing else to host or pay for. The contract addresses below are the Ethereum mainnet deployments from the Aave address book and the Uniswap docs; other chains have different addresses.
 
 ## Step 1: Database Schema
 
+Prisma 7 moved the connection URL out of the schema into `prisma.config.ts`, and the client is generated into your project.
+
+```typescript
+// prisma.config.ts
+import { defineConfig, env } from 'prisma/config';
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: { url: env('DATABASE_URL') },
+});
+```
+
 ```prisma
-// schema.prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
 model WalletPosition {
-  id           String    @id @default(cuid())
-  walletAddr   String
-  protocol     String    // "aave" | "compound" | "uniswap" | "curve"
-  chain        String    // "ethereum" | "polygon" | "arbitrum"
-  poolId       String?   // Uniswap NFT token ID or Curve pool address
-  token0       String
-  token1       String?
-  valueUSD     Float
-  apy          Float
-  dailyYieldUSD Float   @default(0)
-  healthFactor Float?   // Aave liquidation health
-  ilPercent    Float?   // impermanent loss %
-  snapshotAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  walletAddr    String
+  protocol      String   // "aave" | "uniswap"
+  chain         String   @default("ethereum")
+  poolId        String?  // Uniswap NFT token ID
+  token0        String
+  token1        String?
+  valueUSD      Float
+  apy           Float    // 0.031 = 3.1 %
+  dailyYieldUSD Float    @default(0)
+  healthFactor  Float?   // Aave account-level; null = no debt
+  snapshotAt    DateTime @default(now())
+  @@index([walletAddr, snapshotAt])
 }
-
 model PortfolioSnapshot {
-  id          String   @id @default(cuid())
-  walletAddr  String
-  totalUSD    Float
-  totalApy    Float    // weighted average
-  dailyYield  Float
-  takenAt     DateTime @default(now())
+  id         String   @id @default(cuid())
+  walletAddr String
+  totalUSD   Float
+  totalApy   Float    // value-weighted
+  dailyYield Float
+  takenAt    DateTime @default(now())
 }
-
 model Alert {
-  id          String   @id @default(cuid())
-  walletAddr  String
-  type        String   // "yield_drop" | "liquidation_risk" | "il_threshold"
-  protocol    String
-  message     String
-  threshold   Float
-  currentVal  Float
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  walletAddr String
+  type       String   // "liquidation_risk" | "il_threshold"
+  protocol   String
+  message    String
+  threshold  Float
+  currentVal Float
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
 ```
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate dev --name init   # also generates the client
 ```
+Create the client in `lib/prisma.ts` with the Postgres adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) })`, importing `PrismaClient` from `../generated/prisma/client` and `PrismaPg` from `@prisma/adapter-pg`.
 
----
+## Step 2: Fetch Aave v3 Positions
 
-## Step 2: Fetch Aave Positions
+`getUserAccountData` returns USD totals (8 decimals) and the health factor (18 decimals; it is `2^256-1` when you have no debt). A supply position is your aToken balance times the Aave oracle price, and the supply rate comes from `getReserveData`.
 
 ```typescript
-// lib/protocols/aave.ts
+// lib/client.ts
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
-
-const AAVE_DATA_PROVIDER = '0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3';
-const DATA_PROVIDER_ABI = [/* abbreviated — use @aave/contract-helpers */] as const;
-
-const client = createPublicClient({
+export const client = createPublicClient({
   chain: mainnet,
-  transport: http(`https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`)
+  transport: http(process.env.ETH_RPC_URL), // Alchemy, Infura or any Ethereum RPC URL
 });
-
-export async function getAavePositions(walletAddr: string) {
-  // Use Aave subgraph for richer data
-  const query = `{
-    user(id: "${walletAddr.toLowerCase()}") {
-      reserves {
-        currentATokenBalance
-        currentVariableDebt
-        currentStableDebt
-        reserve {
-          symbol
-          underlyingAsset
-          liquidityRate
-          variableBorrowRate
-          price { priceInEth }
-        }
-      }
-      healthFactor
-    }
-  }`;
-
-  const res = await fetch('https://api.thegraph.com/subgraphs/name/aave/protocol-v3', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
-  });
-
-  const { data } = await res.json();
-  const user = data?.user;
-  if (!user) return [];
-
-  const ethPrice = await getETHPrice();
-  const healthFactor = parseFloat(user.healthFactor) / 1e18;
-
-  return user.reserves
-    .filter((r: any) => parseFloat(r.currentATokenBalance) > 0)
-    .map((r: any) => ({
-      protocol: 'aave',
-      token0: r.reserve.symbol,
-      valueUSD: parseFloat(r.currentATokenBalance) * parseFloat(r.reserve.price.priceInEth) * ethPrice / 1e18,
-      apy: parseFloat(r.reserve.liquidityRate) / 1e25, // ray to percentage
-      healthFactor,
-    }));
-}
-
-async function getETHPrice(): Promise<number> {
-  const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-  const { ethereum } = await res.json();
-  return ethereum.usd;
-}
 ```
 
----
+```typescript
+// lib/protocols/aave.ts — Aave v3 Ethereum, read straight from the contracts
+import { erc20Abi, formatUnits, maxUint256, parseAbi, type Address } from 'viem';
+import { client } from '../client';
+export const POOL = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2' as const;
+export const ORACLE = '0x54586bE62E3c3580375aE3723C145253060Ca0C2' as const;
+const poolAbi = parseAbi([
+  'function getUserAccountData(address user) view returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256 availableBorrowsBase, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor)',
+  'function getReserveData(address asset) view returns ((uint256 data) configuration, uint128 liquidityIndex, uint128 currentLiquidityRate, uint128 variableBorrowIndex, uint128 currentVariableBorrowRate, uint128 currentStableBorrowRate, uint40 lastUpdateTimestamp, uint16 id, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint128 accruedToTreasury, uint128 unbacked, uint128 isolationModeTotalDebt)',
+]);
+const oracleAbi = parseAbi(['function getAssetPrice(address asset) view returns (uint256)']);
+export async function usdPrice(asset: Address): Promise<number> {
+  const p = await client.readContract({ address: ORACLE, abi: oracleAbi, functionName: 'getAssetPrice', args: [asset] });
+  return Number(formatUnits(p, 8)); // Aave oracle prices are USD with 8 decimals
+}
+/** Account-level numbers: collateral, debt and the liquidation health factor. */
+export async function getAaveAccount(user: Address) {
+  const [collateral, debt, , , , hf] = await client.readContract({
+    address: POOL, abi: poolAbi, functionName: 'getUserAccountData', args: [user],
+  });
+  // With no debt Aave returns 2^256-1: treat that as "no liquidation risk".
+  return { collateralUSD: Number(formatUnits(collateral, 8)), debtUSD: Number(formatUnits(debt, 8)), healthFactor: hf === maxUint256 ? null : Number(formatUnits(hf, 18)) };
+}
+/** One supplied asset: aToken balance x oracle price, and the supply APR. */
+export async function getAaveSupply(user: Address, asset: Address) {
+  const r = await client.readContract({ address: POOL, abi: poolAbi, functionName: 'getReserveData', args: [asset] });
+  const [balance, decimals, symbol, price] = await Promise.all([
+    client.readContract({ address: r[8], abi: erc20Abi, functionName: 'balanceOf', args: [user] }),
+    client.readContract({ address: asset, abi: erc20Abi, functionName: 'decimals' }),
+    client.readContract({ address: asset, abi: erc20Abi, functionName: 'symbol' }),
+    usdPrice(asset),
+  ]);
+  const apr = Number(r[2]) / 1e27; // liquidity rate is a ray (1e27), a yearly rate
+  const apy = (1 + apr / 31_536_000) ** 31_536_000 - 1; // Aave compounds per second
+  return { protocol: 'aave', token0: symbol, valueUSD: Number(formatUnits(balance, decimals)) * price, apy };
+}
+```
 
 ## Step 3: Fetch Uniswap v3 Positions + Impermanent Loss
 
+Each v3 position is an NFT. Enumerate your NFTs, read the range and liquidity, read the pool price from `slot0`, and convert liquidity into token amounts. Prices come from the Aave oracle, so this version values pools whose tokens are both listed on Aave v3. Fee APY needs volume data and is left at 0 here.
+
 ```typescript
-// lib/protocols/uniswap.ts
-
-export async function getUniswapPositions(walletAddr: string) {
-  const query = `{
-    positions(where: { owner: "${walletAddr.toLowerCase()}", liquidity_gt: "0" }) {
-      id
-      pool { token0 { symbol } token1 { symbol } feeTier sqrtPrice }
-      liquidity
-      depositedToken0
-      depositedToken1
-      withdrawnToken0
-      withdrawnToken1
-      collectedFeesToken0
-      collectedFeesToken1
-      token0 { symbol decimals }
-      token1 { symbol decimals }
-      tickLower { tickIdx }
-      tickUpper { tickIdx }
-    }
-  }`;
-
-  const res = await fetch('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
-  });
-
-  const { data } = await res.json();
-
-  return (data?.positions ?? []).map((pos: any) => {
-    const deposited0 = parseFloat(pos.depositedToken0);
-    const deposited1 = parseFloat(pos.depositedToken1);
-    const current0 = parseFloat(pos.withdrawnToken0) + parseFloat(pos.collectedFeesToken0);
-    const current1 = parseFloat(pos.withdrawnToken1) + parseFloat(pos.collectedFeesToken1);
-
-    // Simplified IL estimate
-    const ratio = deposited1 > 0 ? deposited0 / deposited1 : 1;
-    const currentRatio = current1 > 0 ? current0 / current1 : ratio;
-    const priceDelta = currentRatio / ratio;
-    const ilPercent = (2 * Math.sqrt(priceDelta) / (1 + priceDelta) - 1) * 100;
-
-    return {
-      protocol: 'uniswap',
-      poolId: pos.id,
-      token0: pos.token0.symbol,
-      token1: pos.token1.symbol,
-      valueUSD: 0, // Would calculate from sqrtPrice + liquidity
-      apy: 0,      // Would estimate from fee tier + volume
-      ilPercent: Math.abs(ilPercent),
-    };
-  });
+// lib/protocols/uniswap.ts — Uniswap v3 positions (NFTs) on Ethereum, read from the contracts
+import { formatUnits, parseAbi, erc20Abi, type Address } from 'viem';
+import { client } from '../client';
+import { usdPrice } from './aave';
+const NPM = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88' as const; // NonfungiblePositionManager
+const FACTORY = '0x1F98431c8aD98523631AE4a59f267346ea31F984' as const;
+const npmAbi = parseAbi([
+  'function balanceOf(address owner) view returns (uint256)',
+  'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
+  'function positions(uint256 tokenId) view returns (uint96 nonce, address operator, address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, uint128 tokensOwed0, uint128 tokensOwed1)',
+]);
+const factoryAbi = parseAbi(['function getPool(address a, address b, uint24 fee) view returns (address)']);
+const poolAbi = parseAbi(['function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)']);
+const Q96 = 2 ** 96;
+const tickToSqrt = (tick: number) => 1.0001 ** (tick / 2);
+/** Token amounts held by a v3 position (Uniswap v3 whitepaper formulas, floating point is fine for a dashboard). */
+function amounts(liquidity: number, sqrtP: number, tickLower: number, tickUpper: number) {
+  const a = tickToSqrt(tickLower), b = tickToSqrt(tickUpper);
+  if (sqrtP <= a) return [liquidity * (1 / a - 1 / b), 0];
+  if (sqrtP >= b) return [0, liquidity * (b - a)];
+  return [liquidity * (1 / sqrtP - 1 / b), liquidity * (sqrtP - a)];
+}
+/** Full-range IL approximation from the price ratio since entry: 2*sqrt(r)/(1+r) - 1 (concentrated ranges lose more). */
+export const impermanentLossPct = (priceNow: number, priceAtEntry: number) => {
+  const r = priceNow / priceAtEntry;
+  return (2 * Math.sqrt(r) / (1 + r) - 1) * 100;
+};
+export async function getUniswapPositions(owner: Address) {
+  const count = await client.readContract({ address: NPM, abi: npmAbi, functionName: 'balanceOf', args: [owner] });
+  const out = [];
+  for (let i = 0n; i < count; i++) {
+    const id = await client.readContract({ address: NPM, abi: npmAbi, functionName: 'tokenOfOwnerByIndex', args: [owner, i] });
+    const [, , t0, t1, fee, lo, hi, liq, , , owed0, owed1] = await client.readContract({ address: NPM, abi: npmAbi, functionName: 'positions', args: [id] });
+    if (liq === 0n) continue; // closed position
+    const pool = await client.readContract({ address: FACTORY, abi: factoryAbi, functionName: 'getPool', args: [t0, t1, fee] });
+    const [sqrtPriceX96] = await client.readContract({ address: pool, abi: poolAbi, functionName: 'slot0' });
+    const dec = (address: Address) => client.readContract({ address, abi: erc20Abi, functionName: 'decimals' });
+    const sym = (address: Address) => client.readContract({ address, abi: erc20Abi, functionName: 'symbol' });
+    const [d0, d1, s0, s1] = await Promise.all([dec(t0), dec(t1), sym(t0), sym(t1)]);
+    const [raw0, raw1] = amounts(Number(liq), Number(sqrtPriceX96) / Q96, lo, hi);
+    // Prices come from the Aave oracle, so both tokens must be listed on Aave v3 (WETH, USDC, WBTC, ...).
+    const [p0, p1] = await Promise.all([usdPrice(t0), usdPrice(t1)]);
+    const amt0 = Number(formatUnits(BigInt(Math.floor(raw0)) + owed0, d0));
+    const amt1 = Number(formatUnits(BigInt(Math.floor(raw1)) + owed1, d1));
+    out.push({ protocol: 'uniswap', poolId: id.toString(), token0: s0, token1: s1, valueUSD: amt0 * p0 + amt1 * p1, apy: 0 });
+  }
+  return out;
 }
 ```
-
----
+Impermanent loss cannot be read from the chain: it depends on the price when you entered. Record the price ratio when you open a position and pass it to `impermanentLossPct`. The formula is exact for full-range liquidity and understates the loss for concentrated ranges.
 
 ## Step 4: Aggregate and Store Snapshot
 
 ```typescript
 // lib/aggregator.ts
+import type { Address } from 'viem';
 import { prisma } from './prisma';
-import { getAavePositions } from './protocols/aave';
+import { getAaveAccount, getAaveSupply } from './protocols/aave';
 import { getUniswapPositions } from './protocols/uniswap';
-
-export async function snapshotPortfolio(walletAddr: string) {
-  const [aavePositions, uniPositions] = await Promise.all([
-    getAavePositions(walletAddr),
-    getUniswapPositions(walletAddr),
+const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+export async function snapshotPortfolio(wallet: Address) {
+  const [account, supplies, uni] = await Promise.all([
+    getAaveAccount(wallet),
+    Promise.all([WETH, USDC].map((a) => getAaveSupply(wallet, a as Address))),
+    getUniswapPositions(wallet),
   ]);
-
-  const allPositions = [...aavePositions, ...uniPositions];
-
-  // Persist positions
-  for (const pos of allPositions) {
-    await prisma.walletPosition.create({
-      data: {
-        walletAddr,
-        protocol: pos.protocol,
-        chain: 'ethereum',
-        poolId: pos.poolId,
-        token0: pos.token0,
-        token1: pos.token1 ?? '',
-        valueUSD: pos.valueUSD,
-        apy: pos.apy,
-        dailyYieldUSD: pos.valueUSD * pos.apy / 365,
-        healthFactor: pos.healthFactor,
-        ilPercent: pos.ilPercent,
-      }
-    });
-  }
-
-  const totalUSD = allPositions.reduce((sum, p) => sum + p.valueUSD, 0);
-  const totalDailyYield = allPositions.reduce((sum, p) => sum + p.valueUSD * p.apy / 365, 0);
-  const weightedApy = totalUSD > 0
-    ? allPositions.reduce((sum, p) => sum + p.apy * p.valueUSD, 0) / totalUSD
-    : 0;
-
-  await prisma.portfolioSnapshot.create({
-    data: { walletAddr, totalUSD, totalApy: weightedApy, dailyYield: totalDailyYield }
+  const positions = [
+    ...supplies.filter((p) => p.valueUSD > 0.01).map((p) => ({ ...p, healthFactor: account.healthFactor })),
+    ...uni,
+  ];
+  const totalUSD = positions.reduce((s, p) => s + p.valueUSD, 0);
+  const dailyYield = positions.reduce((s, p) => s + (p.valueUSD * p.apy) / 365, 0);
+  const totalApy = totalUSD > 0 ? (dailyYield * 365) / totalUSD : 0; // value-weighted
+  await prisma.walletPosition.createMany({
+    data: positions.map((p) => ({
+      walletAddr: wallet, protocol: p.protocol, chain: 'ethereum', poolId: 'poolId' in p ? p.poolId : null,
+      token0: p.token0, token1: 'token1' in p ? p.token1 : null, valueUSD: p.valueUSD, apy: p.apy,
+      dailyYieldUSD: (p.valueUSD * p.apy) / 365, healthFactor: 'healthFactor' in p ? p.healthFactor : null,
+    })),
   });
-
-  return { totalUSD, totalApy: weightedApy, totalDailyYield, positions: allPositions };
+  await prisma.portfolioSnapshot.create({ data: { walletAddr: wallet, totalUSD, totalApy, dailyYield } });
+  return { totalUSD, totalApy, dailyYield, positions };
 }
 ```
 
----
-
 ## Step 5: Alert Engine
+
+Alert on the account-level Aave health factor. Aave liquidates positions below 1.0, so a threshold of 1.5 leaves room to react.
 
 ```typescript
 // lib/alerts.ts
 import { prisma } from './prisma';
-
-export async function checkRiskAlerts(walletAddr: string) {
-  const positions = await prisma.walletPosition.findMany({
-    where: { walletAddr },
-    orderBy: { snapshotAt: 'desc' },
-    distinct: ['protocol', 'token0'],
-    take: 20,
+export async function checkRiskAlerts(walletAddr: string, minHealth = 1.5) {
+  const latest = await prisma.walletPosition.findFirst({ where: { walletAddr, protocol: 'aave', healthFactor: { not: null } }, orderBy: { snapshotAt: 'desc' } });
+  if (!latest?.healthFactor || latest.healthFactor >= minHealth) return;
+  await prisma.alert.create({
+    data: {
+      walletAddr, type: 'liquidation_risk', protocol: 'aave',
+      message: `Aave health factor is ${latest.healthFactor.toFixed(2)}. Positions are liquidated below 1.0.`,
+      threshold: minHealth, currentVal: latest.healthFactor,
+    },
   });
-
-  for (const pos of positions) {
-    // Liquidation risk: Aave health factor < 1.2
-    if (pos.healthFactor && pos.healthFactor < 1.2) {
-      await prisma.alert.create({
-        data: {
-          walletAddr, type: 'liquidation_risk', protocol: pos.protocol,
-          message: `⚠️ Aave health factor is ${pos.healthFactor.toFixed(2)} — you may get liquidated below 1.0!`,
-          threshold: 1.2, currentVal: pos.healthFactor,
-        }
-      });
-    }
-
-    // High IL: > 5%
-    if (pos.ilPercent && pos.ilPercent > 5) {
-      await prisma.alert.create({
-        data: {
-          walletAddr, type: 'il_threshold', protocol: pos.protocol,
-          message: `Uniswap ${pos.token0}/${pos.token1} IL is ${pos.ilPercent.toFixed(1)}%`,
-          threshold: 5, currentVal: pos.ilPercent,
-        }
-      });
-    }
-  }
 }
 ```
 
----
+Run `snapshotPortfolio` then `checkRiskAlerts` from a cron job (hourly is plenty), and expose the result at `/api/portfolio?wallet=0x...` (validate the address with viem's `isAddress` first).
 
 ## Dashboard UI (React/wagmi)
 
+wagmi 3 renamed `useAccount` to `useConnection` (v2 projects keep using `useAccount`).
+
 ```typescript
 // components/YieldDashboard.tsx
-import { useAccount } from 'wagmi';
+import { useConnection } from 'wagmi';
 import { useEffect, useState } from 'react';
-
 export function YieldDashboard() {
-  const { address } = useAccount();
-  const [portfolio, setPortfolio] = useState<any>(null);
-
+  const { address } = useConnection();
+  const [p, setP] = useState<any>(null);
   useEffect(() => {
-    if (address) fetch(`/api/portfolio?wallet=${address}`).then(r => r.json()).then(setPortfolio);
+    if (address) fetch(`/api/portfolio?wallet=${address}`).then(r => r.json()).then(setP);
   }, [address]);
-
-  if (!portfolio) return <p>Loading positions...</p>;
-
+  if (!p) return <p>Loading positions...</p>;
   return (
     <div>
-      <h2>Total: ${portfolio.totalUSD.toLocaleString()}</h2>
-      <p>Weighted APY: {(portfolio.totalApy * 100).toFixed(2)}%</p>
-      <p>Daily Yield: ${portfolio.totalDailyYield.toFixed(2)}</p>
-      {portfolio.positions.map((pos: any) => (
-        <div key={`${pos.protocol}-${pos.token0}`}>
-          <strong>{pos.protocol.toUpperCase()}</strong> — {pos.token0}{pos.token1 ? `/${pos.token1}` : ''}
-          <span> ${pos.valueUSD.toFixed(0)} @ {(pos.apy * 100).toFixed(2)}% APY</span>
-          {pos.healthFactor && <span style={{ color: pos.healthFactor < 1.5 ? 'red' : 'green' }}> HF: {pos.healthFactor.toFixed(2)}</span>}
-          {pos.ilPercent && <span> IL: {pos.ilPercent.toFixed(1)}%</span>}
+      <h2>Total: ${p.totalUSD.toLocaleString()} at {(p.totalApy * 100).toFixed(2)}% APY</h2>
+      {p.positions.map((x: any) => (
+        <div key={`${x.protocol}-${x.poolId ?? x.token0}`}>
+          {x.protocol.toUpperCase()} {x.token0}{x.token1 ? `/${x.token1}` : ''}: ${x.valueUSD.toFixed(0)}
+          {x.healthFactor != null && ` (HF ${x.healthFactor.toFixed(2)})`}
         </div>
       ))}
     </div>
@@ -338,12 +290,11 @@ export function YieldDashboard() {
 }
 ```
 
----
+## Related Skills
+
+- [wagmi](/skills/wagmi): wallet connection and React hooks
+- [prisma](/skills/prisma): schema, migrations, typed client
 
 ## Next Steps
 
-- Add Curve and Convex position tracking
-- Implement historical yield charts with Recharts or Tremor
-- Schedule hourly snapshots with cron and visualize APY trends
-- Add Telegram/Discord alerts for critical risk events
-- Support Arbitrum, Optimism, and Base chains
+Add Compound and Curve readers behind the same position shape, chart `PortfolioSnapshot` with Recharts, and add other chains with their own RPC URL and contract addresses.
