@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:48a486b8e5c1269cb0a0077c6fa57c0f4b7a63ffbdd5dae927e5c2994e48d479",
+  "scoredAt": "2026-10-24T23:29:17.040Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as missing provider keys or invalid model IDs."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on Node.js and npm, limiting its applicability to environments that support these tools."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "install-and-run-script",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required commands and steps."
+      },
+      {
+        "name": "local-ollama-diff-review",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the explicit --model flag, while Response B fails to use Pi or the required configuration."
+      },
+      {
+        "name": "add-mcp-and-install-skill",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B follows the required commands and covers most rubric items, while Response A uses incorrect commands and omits key steps."
+      }
+    ]
+  }
+}
