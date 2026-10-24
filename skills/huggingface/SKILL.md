@@ -1,15 +1,17 @@
 ---
 name: huggingface
 description: |
-  Work with Hugging Face's ecosystem for machine learning — transformers library, model hub,
-  tokenizers, inference pipelines, and fine-tuning. Covers downloading pre-trained models,
-  running inference, training custom models, and publishing to the Hub.
+  Hugging Face is the hub and Python libraries (transformers, datasets, peft, huggingface_hub) for downloading,
+  running, fine-tuning and publishing machine-learning models. Use when the user asks to "load a model from
+  Hugging Face", "run a transformers pipeline", "fine-tune BERT", "LoRA fine-tune an LLM", "push a model or
+  dataset to the Hub", "download a model with hf", or "call the Inference API".
 license: Apache-2.0
-compatibility: 'python 3.8+, transformers 4.30+, Linux/macOS/Windows'
+compatibility: 'Python 3.10+, transformers 5.x, huggingface_hub 1.x/2.x, PyTorch; Linux/macOS/Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/huggingface/transformers
   tags:
     - nlp
     - transformers
@@ -20,235 +22,199 @@ metadata:
 
 # Hugging Face
 
-## Installation
+## Overview
+
+The Hugging Face Hub hosts models, datasets and Spaces. You work with it through `transformers` (models, tokenizers, `pipeline`, `Trainer`), `datasets`, `peft` (LoRA) and `huggingface_hub` (login, download/upload, `InferenceClient`). This skill targets transformers 5.x (Python 3.10+), where several v4 idioms were removed: `load_in_4bit`/`load_in_8bit` kwargs, the `question-answering`, `summarization` and `translation` pipelines (use a chat model with the `text-generation` pipeline instead), and `Trainer(tokenizer=...)` (now `processing_class=`). `torch_dtype=` still works but is deprecated in favour of `dtype=`.
+
+## Instructions
+
+### Install and authenticate
 
 ```bash
-# Install core libraries
-pip install transformers datasets tokenizers accelerate huggingface_hub
+pip install torch transformers datasets accelerate peft huggingface_hub
+hf auth login            # paste a token from https://huggingface.co/settings/tokens
+hf auth whoami           # confirm which account is active
 ```
+
+In CI or containers set `HF_TOKEN` in the environment instead of logging in. The old `huggingface-cli` command is gone from current `huggingface_hub`; use `hf`. Never print or commit the token. Gated models (Llama, Gemma, ...) need you to accept the licence on the model page first.
 
 ```bash
-# Login to Hugging Face Hub
-huggingface-cli login
-# Or set token as environment variable
-export HF_TOKEN="hf_xxxxxxxxxxxxxxxxxxxx"
+hf download Qwen/Qwen3-0.6B --local-dir ./models/qwen3-0.6b     # fetch a repo to disk
+hf upload my-username/churn-classifier ./out .                   # push a folder to a model repo
 ```
 
-## Quick Inference with Pipelines
+### Pipelines (fastest path to inference)
 
 ```python
-# quick_inference.py — Run inference using built-in pipelines
 from transformers import pipeline
 
-# Text classification
-classifier = pipeline("sentiment-analysis")
-result = classifier("I love using Hugging Face!")
-print(result)  # [{'label': 'POSITIVE', 'score': 0.9998}]
+clf = pipeline("sentiment-analysis", model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+print(clf("The checkout flow is much faster now."))   # [{'label': 'POSITIVE', 'score': 0.99...}]
 
-# Text generation
-generator = pipeline("text-generation", model="meta-llama/Llama-2-7b-chat-hf")
-output = generator("Explain transformers in one sentence:", max_new_tokens=50)
-print(output[0]["generated_text"])
+ner = pipeline("ner", aggregation_strategy="simple")  # replaces the old grouped_entities=True
+print(ner("Hugging Face is based in New York City."))
 
-# Named entity recognition
-ner = pipeline("ner", grouped_entities=True)
-entities = ner("Hugging Face is based in New York City.")
-print(entities)
+# Instruction-tuned LLM: pass chat messages, read the last message of the reply
+gen = pipeline("text-generation", model="Qwen/Qwen3-4B-Instruct-2507", dtype="auto", device_map="auto")
+out = gen([{"role": "user", "content": "Explain transformers in one sentence."}], max_new_tokens=60)
+print(out[0]["generated_text"][-1]["content"])
 ```
 
-## Loading Models and Tokenizers
+### Load a model and tokenizer yourself
 
 ```python
-# load_model.py — Load a model and tokenizer manually for more control
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
-model_name = "mistralai/Mistral-7B-Instruct-v0.2"
-
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+name = "Qwen/Qwen3-4B-Instruct-2507"
+tokenizer = AutoTokenizer.from_pretrained(name)
 model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    torch_dtype=torch.float16,
-    device_map="auto",  # Automatically distribute across GPUs
-    load_in_4bit=True,  # Quantized loading for less VRAM
+    name,
+    dtype=torch.bfloat16,                      # or "auto" to use the checkpoint's dtype
+    device_map="auto",                         # needs accelerate; spreads layers over GPUs/CPU
+    # 4-bit needs a CUDA GPU and bitsandbytes:
+    # quantization_config=BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16),
 )
 
-inputs = tokenizer("What is machine learning?", return_tensors="pt").to(model.device)
-outputs = model.generate(**inputs, max_new_tokens=100, temperature=0.7)
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+messages = [{"role": "user", "content": "What is machine learning?"}]
+inputs = tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt", return_dict=True).to(model.device)
+out = model.generate(**inputs, max_new_tokens=100, do_sample=True, temperature=0.7)
+print(tokenizer.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True))
 ```
 
-## Tokenizer Usage
+### Tokenizers
 
 ```python
-# tokenizer_basics.py — Understand tokenization for debugging and preprocessing
 from transformers import AutoTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+tok = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
+enc = tok("Hugging Face makes NLP easy!", return_tensors="pt", truncation=True, max_length=512)
+print(tok.convert_ids_to_tokens(enc["input_ids"][0]), enc["input_ids"].shape[1])
 
-text = "Hugging Face makes NLP easy!"
-encoded = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
-print(f"Input IDs: {encoded['input_ids']}")
-print(f"Tokens: {tokenizer.convert_ids_to_tokens(encoded['input_ids'][0])}")
-print(f"Token count: {len(encoded['input_ids'][0])}")
-
-# Batch encoding
-texts = ["First sentence.", "Second longer sentence here."]
-batch = tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
+batch = tok(["First sentence.", "Second, longer sentence here."], padding=True, truncation=True, return_tensors="pt")
 ```
 
-## Fine-Tuning with Trainer API
+### Fine-tune with Trainer
 
 ```python
-# fine_tune.py — Fine-tune a model on a custom dataset using the Trainer API
-from transformers import (
-    AutoTokenizer, AutoModelForSequenceClassification,
-    TrainingArguments, Trainer
-)
-from datasets import load_dataset
 import numpy as np
-from sklearn.metrics import accuracy_score
+from datasets import load_dataset
+from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
+                          DataCollatorWithPadding, Trainer, TrainingArguments)
 
-model_name = "distilbert-base-uncased"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+name = "distilbert/distilbert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(name)
+model = AutoModelForSequenceClassification.from_pretrained(name, num_labels=2)
 
-dataset = load_dataset("imdb")
-
-def tokenize(batch):
-    return tokenizer(batch["text"], padding="max_length", truncation=True, max_length=256)
-
-tokenized = dataset.map(tokenize, batched=True)
+ds = load_dataset("stanfordnlp/imdb")
+ds = ds.map(lambda b: tokenizer(b["text"], truncation=True, max_length=256), batched=True)
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
-    preds = np.argmax(logits, axis=-1)
-    return {"accuracy": accuracy_score(labels, preds)}
+    return {"accuracy": float((np.argmax(logits, axis=-1) == labels).mean())}
 
-training_args = TrainingArguments(
-    output_dir="./results",
-    num_train_epochs=3,
-    per_device_train_batch_size=16,
-    per_device_eval_batch_size=64,
-    eval_strategy="epoch",
-    save_strategy="epoch",
-    learning_rate=2e-5,
-    weight_decay=0.01,
-    logging_steps=100,
-    fp16=True,
-    push_to_hub=False,
+args = TrainingArguments(
+    output_dir="./results", num_train_epochs=3, learning_rate=2e-5, weight_decay=0.01,
+    per_device_train_batch_size=16, per_device_eval_batch_size=64,
+    eval_strategy="epoch", save_strategy="epoch", logging_steps=100,
+    bf16=True,            # use fp16=True on GPUs without bfloat16; drop both on CPU
+    report_to="none",
 )
-
 trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized["train"].select(range(5000)),
-    eval_dataset=tokenized["test"].select(range(1000)),
+    model=model, args=args,
+    train_dataset=ds["train"].shuffle(seed=42).select(range(5000)),
+    eval_dataset=ds["test"].shuffle(seed=42).select(range(1000)),
+    processing_class=tokenizer,                     # also gives dynamic padding via the default collator
+    data_collator=DataCollatorWithPadding(tokenizer),
     compute_metrics=compute_metrics,
 )
-
 trainer.train()
-trainer.evaluate()
+print(trainer.evaluate())
 ```
 
-## LoRA / PEFT Fine-Tuning
+### LoRA with PEFT
 
 ```python
-# lora_finetune.py — Parameter-efficient fine-tuning with LoRA
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import LoraConfig, get_peft_model, TaskType
 import torch
+from transformers import AutoModelForCausalLM
+from peft import LoraConfig, get_peft_model, TaskType
 
-model_name = "meta-llama/Llama-2-7b-hf"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-lora_config = LoraConfig(
-    task_type=TaskType.CAUSAL_LM,
-    r=16,
-    lora_alpha=32,
-    lora_dropout=0.05,
-    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
-)
-
-model = get_peft_model(model, lora_config)
-model.print_trainable_parameters()
-# trainable params: 4,194,304 || all params: 6,742,609,920 || trainable%: 0.062
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-4B-Instruct-2507", dtype=torch.bfloat16, device_map="auto")
+config = LoraConfig(task_type=TaskType.CAUSAL_LM, r=16, lora_alpha=32, lora_dropout=0.05,
+                    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"])
+model = get_peft_model(model, config)
+model.print_trainable_parameters()      # a small fraction (well under 1%) of all parameters
 ```
 
-## Datasets Library
+Train the wrapped model with `Trainer` (or TRL's `SFTTrainer`), then `model.save_pretrained("./adapter")` saves only the adapter weights.
+
+### Datasets
 
 ```python
-# datasets_usage.py — Load, process, and create custom datasets
-from datasets import load_dataset, Dataset
+from datasets import Dataset, load_dataset, load_from_disk
 
-# Load from Hub
-squad = load_dataset("squad", split="train[:1000]")
-print(squad[0])
+squad = load_dataset("rajpurkar/squad", split="train[:1000]")     # use the full "owner/name" id
+stream = load_dataset("stanfordnlp/imdb", split="train", streaming=True)   # no full download
 
-# Load custom CSV/JSON
-dataset = Dataset.from_dict({
-    "text": ["Hello world", "Goodbye world"],
-    "label": [1, 0],
-})
-
-# Save and load locally
-dataset.save_to_disk("./my_dataset")
-loaded = Dataset.load_from_disk("./my_dataset")
-
-# Push to Hub
-dataset.push_to_hub("my-username/my-dataset", private=True)
+ds = Dataset.from_dict({"text": ["Refund arrived in two days", "App crashes on login"], "label": [1, 0]})
+ds.save_to_disk("./support-tickets")
+ds = load_from_disk("./support-tickets")
+ds.push_to_hub("my-username/support-tickets", private=True)      # needs hf auth login / HF_TOKEN
 ```
 
-## Publishing Models to Hub
+Dataset loading scripts (`trust_remote_code`) are no longer supported; datasets must be stored as Parquet/CSV/JSON files.
+
+### Publish a model
 
 ```python
-# push_to_hub.py — Save and share your trained model on Hugging Face Hub
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+repo = "my-username/imdb-distilbert"
+trainer.model.push_to_hub(repo, private=True)
+tokenizer.push_to_hub(repo, private=True)
 
-model_name = "my-org/my-fine-tuned-model"
-
-# After training, push model and tokenizer
-model.push_to_hub(model_name, private=True)
-tokenizer.push_to_hub(model_name, private=True)
-
-# Create a model card
 from huggingface_hub import ModelCard
-card = ModelCard.from_template(
-    card_data={"license": "mit", "datasets": ["imdb"], "language": "en"},
-    template_str="# My Model\n\nFine-tuned DistilBERT on IMDB.\n\n{{ card_data }}",
-)
-card.push_to_hub(model_name)
+card = ModelCard("---\nlicense: apache-2.0\nlanguage: en\ndatasets:\n- stanfordnlp/imdb\n---\n# imdb-distilbert\n\nDistilBERT fine-tuned for sentiment on 5k IMDB reviews.\n")
+card.push_to_hub(repo)
 ```
 
-## Inference API
+### Hosted inference (Inference Providers)
+
+The old serverless "Inference API" is now Inference Providers: one client routes the call to a provider. Prefer chat completion for LLMs; availability depends on the model and provider, and usage is billed to your account.
 
 ```python
-# inference_api.py — Use the serverless Inference API for quick model access
+import os
 from huggingface_hub import InferenceClient
 
-client = InferenceClient(token="hf_xxxxxxxxxxxx")
-
-# Text generation
-response = client.text_generation(
-    "The future of AI is",
-    model="mistralai/Mistral-7B-Instruct-v0.2",
-    max_new_tokens=100,
+client = InferenceClient(provider="auto", token=os.environ["HF_TOKEN"])
+reply = client.chat_completion(
+    model="Qwen/Qwen3-4B-Instruct-2507",
+    messages=[{"role": "user", "content": "Write a one-line commit message for a typo fix."}],
+    max_tokens=60,
 )
+print(reply.choices[0].message.content)
 
-# Image generation
-image = client.text_to_image("A cat wearing a space suit")
-image.save("space_cat.png")
-
-# Embeddings
-embeddings = client.feature_extraction("Hello world", model="sentence-transformers/all-MiniLM-L6-v2")
+vectors = client.feature_extraction("Hello world", model="sentence-transformers/all-MiniLM-L6-v2")
 ```
 
-## Key Concepts
+## Examples
 
-- **AutoClasses**: `AutoModel`, `AutoTokenizer` automatically detect the right architecture
-- **device_map="auto"**: Distributes model layers across available GPUs/CPU
-- **load_in_4bit/8bit**: Quantization via bitsandbytes for reduced memory usage
-- **PEFT/LoRA**: Train only a small fraction of parameters — faster and cheaper
-- **Datasets streaming**: `load_dataset(..., streaming=True)` for huge datasets without downloading
-- **Trainer**: High-level API handling training loops, evaluation, checkpointing, and logging
+### Example 1: Classify support tickets locally
+
+**User request:** "Tag these 2,000 support tickets as positive or negative without sending them to an API."
+
+The agent installs `torch transformers`, builds `pipeline("sentiment-analysis", model="distilbert/distilbert-base-uncased-finetuned-sst-2-english", device_map="auto")`, passes the ticket texts as a list with `batch_size=32, truncation=True`, and writes the `label` and `score` of each result to a CSV. The first run downloads about 270 MB of weights into `~/.cache/huggingface`; later runs work offline.
+
+### Example 2: Fine-tune and publish a small classifier
+
+**User request:** "Fine-tune DistilBERT on IMDB and push it to my account as a private model."
+
+The agent runs `hf auth login`, executes the Trainer script above (3 epochs on a 5,000-review subset), checks that `trainer.evaluate()` reports an accuracy near 0.9, then calls `push_to_hub("my-username/imdb-distilbert", private=True)` for the model and the tokenizer and writes a model card. The result is a private repo containing `model.safetensors`, `config.json` and the tokenizer files.
+
+## Guidelines
+
+- Pin versions in production (`transformers==5.20.*`); v4 code that uses `load_in_4bit=`, `Trainer(tokenizer=)`, `grouped_entities=` or the removed pipelines breaks or warns on v5.
+- Read the model card before use: licence, gating, chat template, and required `transformers` version. Do not set `trust_remote_code=True` unless you have read the repository code, since it runs that code on your machine.
+- Prefer `safetensors` weights; never load pickle-based `.bin`/`.pt` files from untrusted repos.
+- Keep tokens in `HF_TOKEN` or the `hf auth login` store; use fine-grained, read-only tokens for downloads and write tokens only for pushing.
+- Large models need the right hardware: a 4B model in bf16 needs roughly 8 GB of GPU memory, a 7B model about 15 GB; quantization (bitsandbytes) requires CUDA.
+- Set `HF_HOME` to a disk with space; the cache can grow to tens of gigabytes.
+- For production serving use Inference Endpoints, TGI or vLLM rather than a `pipeline` in a request handler.
