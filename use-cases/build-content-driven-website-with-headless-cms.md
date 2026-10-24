@@ -2,7 +2,7 @@
 title: Build a Content-Driven Website with a Headless CMS
 slug: build-content-driven-website-with-headless-cms
 description: Build a fast marketing website using Strapi 5 as the headless CMS and Next.js with static generation and on-demand revalidation, so a marketing team can publish landing pages, blog posts and case studies without developer involvement.
-skills: [strapi, contentful]
+skills: [strapi, contentful, ghost]
 category: content
 tags: [headless-cms, jamstack, content, marketing, blog, isr, seo]
 ---
@@ -246,6 +246,36 @@ export async function getPostBySlug(slug: string) {
 
 `content_type` is the content type ID from your Contentful model (`blogPost` here), and filtering on a field needs `fields.<fieldId>`.
 
+## Using Ghost instead
+
+If the team mostly publishes blog posts and a newsletter, Ghost (self-hosted or Ghost(Pro)) can replace Strapi in Steps 1 and 2. Editors write in Ghost's own editor; Next.js reads published posts through the read-only Content API. Install `npm install @tryghost/content-api` (types: `npm install -D @types/tryghost__content-api`), create a Custom Integration in Ghost Admin -> Settings -> Integrations, and keep its Content API key and the site URL in `GHOST_CONTENT_API_KEY` and `GHOST_URL`. Only published content is returned, and Ghost documents Content API keys as safe in browsers because they only read public content.
+
+```typescript
+// lib/ghost.ts
+import GhostContentAPI from "@tryghost/content-api";
+
+const ghost = new GhostContentAPI({
+  url: process.env.GHOST_URL!,
+  key: process.env.GHOST_CONTENT_API_KEY!,
+  version: "v6.0", // minimum Ghost version your code supports
+});
+
+export function getPosts(page = 1, limit = 12) {
+  return ghost.posts.browse({ limit, page, include: ["tags", "authors"], order: "published_at DESC" });
+}
+
+export async function getPostBySlug(slug: string) {
+  try {
+    return await ghost.posts.read({ slug }, { include: ["tags", "authors"], formats: ["html"] });
+  } catch (err) {
+    if ((err as { response?: { status?: number } }).response?.status === 404) return null;
+    throw err; // the client throws on 404; return null so the page can call notFound()
+  }
+}
+```
+
+`browse` returns an array with a `meta.pagination` property, and the post body is `post.html`. In `app/blog/[slug]/page.tsx`, call `getPosts(1, 100)` in `generateStaticParams`, `getPostBySlug` in the page, and render `post.html` with `dangerouslySetInnerHTML`, which is safe only because your own editors write it. The Ghost client does not go through Next's `fetch`, so set `export const revalidate = 3600` on the page. New posts appear within that hour. Ghost also offers webhooks (event `post.published`, under Add custom integration), but they do not send Strapi's payload, so the Step 3 route does not apply to them unchanged.
+
 ## Result
 
 After setup, the marketing team creates, previews and publishes posts, case studies and landing pages from the Strapi admin without a developer. Developers only get involved to add a new section type (a new component in Strapi and a matching React component). Measure the real numbers for your own team: time from edit to live page, developer hours per week and posts per week before and after.
@@ -254,3 +284,4 @@ After setup, the marketing team creates, previews and publishes posts, case stud
 
 - [strapi](../skills/strapi/SKILL.md) -- content modeling, REST and GraphQL APIs, roles and permissions, the media library
 - [contentful](../skills/contentful/SKILL.md) -- hosted alternative: Content Delivery and Preview APIs, rich text, webhooks
+- [ghost](../skills/ghost/SKILL.md) -- blog-first alternative: Content API for headless Next.js, newsletters, members
