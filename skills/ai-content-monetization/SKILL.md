@@ -6,15 +6,15 @@ description: >-
   passive income streams with AI, automating content marketing, scaling content
   production.
 license: Apache-2.0
-compatibility: "Python 3.10+ or Node.js 18+"
+compatibility: "Python 3.10+; anthropic and requests packages; optional WordPress site and Resend account"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: [monetization, content-creation, passive-income, affiliate, ai-content]
   use-cases:
     - "Build an AI content pipeline that generates and publishes blog posts daily"
-    - "Automate YouTube faceless channel with AI scripts and voiceover"
+    - "Turn one blog post into LinkedIn, X and newsletter drafts with AI"
     - "Create affiliate marketing content at scale with AI"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
@@ -23,7 +23,7 @@ metadata:
 
 ## Overview
 
-Build automated content creation and monetization systems using AI. Cover the full pipeline from content generation to revenue collection across multiple channels: blogs, YouTube, social media, newsletters, and digital products. Inspired by [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) (25k+ stars).
+Build automated content creation and monetization systems using AI. Cover the full pipeline from content generation to revenue collection across multiple channels: blogs, social media, newsletters, and digital products. Inspired by [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2), which automates YouTube Shorts, a Twitter bot and Amazon affiliate posting. Setup: `pip install anthropic requests schedule resend`, with `ANTHROPIC_API_KEY` set in the environment. Google's spam policies treat many pages generated mainly to manipulate rankings as "scaled content abuse", whoever or whatever wrote them, so every post below goes to a human before it goes live.
 
 ## Instructions
 
@@ -40,7 +40,7 @@ def find_profitable_niche():
     """Use AI to identify profitable blog niches."""
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5-5",
         max_tokens=1000,
         messages=[{"role": "user", "content": """
             Suggest 5 blog niches that meet ALL criteria:
@@ -62,7 +62,7 @@ def generate_blog_post(title, keyword, affiliate_products):
     """Generate an SEO-optimized blog post with affiliate links."""
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5-5",
         max_tokens=4000,
         messages=[{"role": "user", "content": f"""
             Write a 2000-word blog post:
@@ -88,22 +88,22 @@ def insert_affiliate_links(content, link_map):
     return content
 ```
 
-#### Auto-Publish to WordPress
+#### Send Drafts to WordPress
 
 ```python
 import requests
 
 def publish_to_wordpress(title, content, wp_url, wp_user, wp_app_password):
-    """Publish blog post to WordPress via REST API."""
+    """Create a draft post through the WordPress REST API (Application Password auth)."""
     endpoint = f"{wp_url}/wp-json/wp/v2/posts"
     data = {
         "title": title,
         "content": content,
-        "status": "publish",
-        "meta": {"_yoast_wpseo_metadesc": content[:155]}
+        "status": "draft",  # a person reviews and publishes it
     }
-    response = requests.post(endpoint, json=data, auth=(wp_user, wp_app_password))
-    return response.json().get('link')
+    response = requests.post(endpoint, json=data, auth=(wp_user, wp_app_password), timeout=30)
+    response.raise_for_status()
+    return response.json()["link"]
 ```
 
 ### Strategy 2: AI Newsletter + Digital Products
@@ -115,7 +115,7 @@ def generate_newsletter(niche, trending_topics):
     """Generate a weekly newsletter issue."""
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5-5",
         max_tokens=2000,
         messages=[{"role": "user", "content": f"""
             Write a newsletter issue for a {niche} newsletter.
@@ -140,7 +140,7 @@ def repurpose_blog_to_social(blog_post, title):
     """Turn one blog post into 5+ social media posts."""
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5-5",
         max_tokens=2000,
         messages=[{"role": "user", "content": f"""
             Blog post: {blog_post[:2000]}
@@ -161,7 +161,7 @@ def daily_content_pipeline():
     """Run the full content pipeline daily."""
     post = generate_blog_post(today_topic, today_keyword, products)
     post = insert_affiliate_links(post, affiliate_map)
-    publish_to_wordpress(today_title, post, WP_URL, WP_USER, WP_PASS)
+    publish_to_wordpress(today_title, post, WP_URL, WP_USER, WP_PASS)  # lands as a draft
     repurpose_blog_to_social(post, today_title)
 
 schedule.every().day.at("06:00").do(daily_content_pipeline)
@@ -177,6 +177,8 @@ while True:
 A content creator in the home office niche sets up the full pipeline:
 
 ```python
+import os
+
 # 1. Find the niche and seed keywords
 niche_data = find_profitable_niche()
 # Returns: "Home Office Ergonomics" — affiliate programs: Amazon Associates,
@@ -184,7 +186,7 @@ niche_data = find_profitable_niche()
 
 # 2. Generate first batch of posts
 posts = [
-    ("Best Standing Desks Under $500 in 2025", "best standing desks", ["Autonomous SmartDesk", "FlexiSpot E7"]),
+    ("Best Standing Desks Under $500 in 2026", "best standing desks", ["Autonomous SmartDesk", "FlexiSpot E7"]),
     ("Herman Miller Aeron vs Secretlab Titan: Honest Review", "aeron vs titan", ["Herman Miller Aeron", "Secretlab Titan"]),
 ]
 for title, keyword, products in posts:
@@ -193,9 +195,9 @@ for title, keyword, products in posts:
         "Autonomous SmartDesk": "https://autonomous.ai/?ref=myblog",
         "Secretlab Titan": "https://secretlab.co/?ref=myblog",
     })
-    url = publish_to_wordpress(title, content, "https://ergodesk.blog", "admin", "xxxx-xxxx")
-    print(f"Published: {url}")
-    repurpose_blog_to_social(content, title)
+    url = publish_to_wordpress(title, content, "https://ergodesk.blog", "editor-bot", os.environ["WP_APP_PASSWORD"])
+    print(f"Draft ready for review: {url}")
+    # repurpose_blog_to_social(content, title) runs after a human approves the draft
 ```
 
 ### Example 2: Weekly AI Tools Newsletter with Sponsorship Revenue
@@ -206,35 +208,38 @@ A solo creator runs a 5,000-subscriber newsletter monetized through sponsorships
 # Generate this week's issue
 newsletter = generate_newsletter(
     niche="AI productivity tools",
-    trending_topics=["Claude Code launch, Cursor 1.0 release, NotebookLM updates"]
+    trending_topics=["new coding-agent releases", "NotebookLM updates", "MCP connector launches"]
 )
-# Output includes: subject line, personal intro, deep-dive on Claude Code,
-# quick hits on Cursor and NotebookLM, tool-of-the-week (Granola AI, $25/mo
-# with 20% affiliate commission), actionable prompt engineering tip, CTA.
-
-# Send via Resend
-import resend
+# Output: subject line, personal intro, deep-dive, quick hits, tool of the week,
+# one actionable tip, CTA. Edit it, then send it as a Resend broadcast
+# (a broadcast goes to a segment of contacts; "to" is not used).
+import os, resend
 resend.api_key = os.environ["RESEND_API_KEY"]
-resend.Emails.send({
-    "from": "newsletter@aitools-weekly.com",
-    "to": "audience_list_id",
-    "subject": newsletter.split('\n')[0],
-    "html": newsletter
+resend.Broadcasts.create({
+    "segment_id": os.environ["RESEND_SEGMENT_ID"],
+    "from": "AI Tools Weekly <news@aitools-weekly.com>",
+    "subject": "This week in AI productivity tools",
+    "html": newsletter,  # convert the model's text to HTML first
+    "send": True,
 })
-# Revenue: $300/issue sponsorship + ~$150/month affiliate = ~$1,500/month
+# Illustrative economics only: one $300 sponsorship per issue plus affiliate
+# clicks is a plausible target for a few thousand engaged subscribers, not a promise.
 ```
 
 ## Guidelines
 
 - **Disclose affiliate relationships** — always mark sponsored content and affiliate links per FTC guidelines
-- **Quality over quantity** — AI-generated content still needs human review for accuracy and brand voice
+- **Quality over quantity** — AI-generated content needs human review for accuracy and brand voice; unreviewed bulk output risks Google's scaled-content-abuse policy and deindexing
+- **Revenue figures are illustrative** — RPMs and commissions in this skill vary widely by niche; measure your own
 - **Diversify revenue streams** — do not rely on a single channel; combine blog + newsletter + social
 - **Track ROI per channel** — use UTM parameters and a simple revenue database to measure what works
-- **Respect platform terms** — YouTube, TikTok, and Reddit each have rules about AI-generated content
+- **Respect platform terms** — YouTube, TikTok, and Reddit each have rules about AI-generated and reposted content; do not auto-post to them without checking current policy
+- **Newsletter law** — include a working unsubscribe link and your postal address (CAN-SPAM), and get consent before emailing people in the EU or UK (GDPR)
 - **Build an email list early** — owned audience is more valuable than platform-dependent traffic
 
 ## References
 
-- [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) — original inspiration (25k stars)
-- [Resend](https://resend.com/) — email API for newsletters
+- [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) — original inspiration
+- [Resend broadcasts](https://resend.com/docs/api-reference/broadcasts/create-broadcast) — email API for newsletters
+- [Google spam policies](https://developers.google.com/search/docs/essentials/spam-policies) — scaled content abuse
 - [WordPress REST API](https://developer.wordpress.org/rest-api/) — auto-publishing
