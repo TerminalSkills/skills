@@ -2,7 +2,7 @@
 title: "Set Up Canary Deployments with Automated Rollback Using AI"
 slug: set-up-canary-deployments-with-automated-rollback
 description: "Configure canary deployment pipelines that gradually roll out changes and automatically roll back on error spikes."
-skills: [cicd-pipeline, coding-agent, analytics-tracking]
+skills: [cicd-pipeline, coding-agent]
 category: devops
 tags: [canary-deployment, rollback, ci-cd, reliability]
 ---
@@ -11,124 +11,231 @@ tags: [canary-deployment, rollback, ci-cd, reliability]
 
 ## The Problem
 
-Tomas runs DevOps at a 20-person fintech startup. They deploy straight to production with a basic blue-green setup, and every other week a deploy causes a spike in 5xx errors. It takes 15-30 minutes for someone to notice, then another 10 minutes to roll back manually. During the last incident, a bad deploy ran for 25 minutes before anyone realized the error rate had tripled -- 40% of active users hit payment processing errors. For a fintech app that handles payments, 25 minutes of elevated errors means failed transactions, confused customers, and support tickets that take days to resolve.
+Tomas runs DevOps at a 20-person fintech startup. They deploy straight to production with a basic blue-green setup, and about every other week a deploy causes a spike in 5xx errors. It takes 15-30 minutes for someone to notice, then another 10 minutes to roll back manually. During the last incident, a bad deploy ran for 25 minutes before anyone realized the error rate had tripled -- 40% of active users hit payment processing errors. For a fintech app that handles payments, 25 minutes of elevated errors means failed transactions, confused customers, and support tickets that take days to resolve.
 
 The team knows they need gradual rollouts with automatic rollback. But between researching service mesh traffic splitting, configuring health checks with the right Prometheus queries, writing rollback triggers that do not false-alarm on normal traffic noise, and wiring it all into the CI pipeline, nobody has the bandwidth to set it up from scratch. The irony is that every bad deploy makes the team more cautious, which slows down releases, which means bigger batches of changes per deploy, which makes each deploy riskier.
 
 ## The Solution
 
-Using the **cicd-pipeline**, **coding-agent**, and **analytics-tracking** skills, this walkthrough builds a canary deployment system on Kubernetes: traffic shifts from 5% to 25% to 100% over defined hold periods, with Prometheus health checks that trigger automatic rollback if error rates or latency cross thresholds.
+Use [Argo Rollouts](https://argo-rollouts.readthedocs.io/): a Kubernetes controller whose `Rollout` resource replaces the `Deployment`, shifts traffic in steps, and runs Prometheus queries (an `AnalysisTemplate`) in the background. A failed analysis aborts the rollout and sends traffic back to the stable version without anyone being paged. Exact percentages such as 5% need a traffic router; this page uses the Kubernetes Gateway API plugin, which works with any Gateway API implementation. Without a router the controller only approximates the weight by pod counts (5% of 10 pods is rounded to 1 pod, i.e. 10%). The [coding-agent](/skills/coding-agent) skill drafts the manifests and the [cicd-pipeline](/skills/cicd-pipeline) skill wires the release job into GitLab CI.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Define the Canary Strategy
-
-Tomas starts by describing what he needs:
+### Step 1: Describe the strategy to the coding agent
 
 ```text
-Set up canary deployments for our Node.js API running on Kubernetes. I want traffic to shift gradually: 5% for 5 minutes, 25% for 10 minutes, then 100%. Auto-rollback if error rate exceeds 1% or p99 latency goes above 500ms during any canary phase. We use Prometheus for metrics.
+Set up canary deployments for our Node.js API on Kubernetes with Argo Rollouts and the Gateway API plugin. Traffic: 5% for 5 minutes, 25% for 10 minutes, then 100%. Abort automatically if the canary's 5xx rate exceeds 1% or its p99 latency exceeds 500 ms. Metrics come from Prometheus. Generate the Rollout, the two Services, the HTTPRoute, the AnalysisTemplate and a GitLab CI release job.
 ```
 
-Four files come out of this:
+Check what comes back against the documentation: agents routinely invent fields. The sections below are the verified shape.
 
-| File | Purpose |
-|------|---------|
-| `k8s/canary-deployment.yaml` | Canary pod spec with resource limits matching production |
-| `k8s/canary-service.yaml` | Service mesh traffic splitting rules |
-| `k8s/canary-analysis-template.yaml` | Prometheus metric queries for health checks |
-| `.github/workflows/canary-deploy.yml` | CI pipeline with staged rollout |
+### Step 2: Install the controller and the traffic plugin
 
-The traffic schedule is deliberately conservative:
+Pin versions, and check the CLI binary against the checksum file published with the release.
 
-- **Stage 1:** 5% of traffic for 5 minutes, then check metrics
-- **Stage 2:** 25% of traffic for 10 minutes, then check metrics
-- **Stage 3:** 100% -- promoted to stable
+```bash
+kubectl create namespace argo-rollouts
+kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/download/v1.10.1/install.yaml
 
-If anything goes wrong at Stage 1, only 5% of users are affected, and rollback happens in under 90 seconds. Compare that to the current state: 100% of users affected for 25+ minutes.
-
-An important detail in the canary deployment spec: the canary pods have the exact same resource limits as production pods. If the canary runs with different CPU or memory limits, latency measurements are meaningless -- a canary that looks fine with generous resources might fall over under production constraints.
-
-### Step 2: Configure Health Metric Queries
-
-The canary needs to know what "healthy" looks like. Three Prometheus queries evaluate canary health at each stage:
-
-**Error rate** -- the percentage of 5xx responses over a 2-minute window:
-
-```promql
-rate(http_requests_total{status=~"5.."}[2m]) / rate(http_requests_total[2m])
+curl -sLO https://github.com/argoproj/argo-rollouts/releases/download/v1.10.1/kubectl-argo-rollouts-linux-amd64
+curl -sLO https://github.com/argoproj/argo-rollouts/releases/download/v1.10.1/argo-rollouts-checksums.txt
+sha256sum --ignore-missing -c argo-rollouts-checksums.txt
+sudo install kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 ```
 
-Threshold: must stay below 1%.
+Register the Gateway API plugin (the ConfigMap must have exactly this name and namespace), give the controller permission to edit routes, and restart it:
 
-**Latency p99** -- the 99th percentile response time:
-
-```promql
-histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[2m]))
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argo-rollouts-config
+  namespace: argo-rollouts
+data:
+  trafficRouterPlugins: |-
+    - name: "argoproj-labs/gatewayAPI"
+      location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi/releases/download/v0.17.0/gatewayapi-plugin-linux-amd64"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argo-rollouts-gateway-api-plugin
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-rollouts-gateway-api-plugin
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: argo-rollouts-gateway-api-plugin }
+subjects:
+  - { kind: ServiceAccount, name: argo-rollouts, namespace: argo-rollouts }
 ```
 
-Threshold: must stay below 500ms.
-
-**Success rate** -- the inverse of error rate, as a sanity check:
-
-```promql
-1 - (rate(http_requests_total{status=~"5.."}[2m]) / rate(http_requests_total[2m]))
+```bash
+kubectl rollout restart deployment -n argo-rollouts argo-rollouts
+kubectl logs -n argo-rollouts deploy/argo-rollouts | grep -i plugin   # expect "Download complete"
 ```
 
-Threshold: must stay above 99%.
+### Step 3: Health queries as an AnalysisTemplate
 
-Evaluation runs every 60 seconds during canary phases. If any threshold is breached for 2 consecutive checks, rollback triggers automatically. The 2-consecutive-check requirement is important -- a single noisy data point (a spike from one slow downstream call, for example) should not trigger a false rollback. But two consecutive breaches indicate a real problem.
+Both queries are limited to the canary pods through the pod-template hash, which the Rollout passes in. Without that filter the stable version's good numbers dilute a bad canary. Argo Rollouts labels every pod with `rollouts-pod-template-hash`, but Prometheus only attaches it to your series if the scrape job copies it. With `kubernetes_sd_configs` (role `pod`) add this relabeling; Prometheus exposes pod labels as `__meta_kubernetes_pod_label_<name>` with invalid characters turned into `_` ([relabeling docs](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config)):
 
-The 2-minute query window (`[2m]`) is calibrated for the 5% traffic stage. At low traffic volumes, a wider window smooths out noise. At the 25% stage, the same window provides more statistical significance because more requests flow through.
-
-### Step 3: Validate with a Dry Run
-
-Before trusting this with a real release, Tomas runs the pipeline with the current stable version:
-
-```text
-Run a dry-run canary deployment using our current stable version to validate the pipeline works end-to-end without risk.
+```yaml
+relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
+    target_label: rollouts_pod_template_hash
 ```
 
-The dry run deploys the exact same version as a "canary" to verify three things: traffic splitting works correctly (5% of requests actually hit the canary pods), metrics flow into the analysis template and evaluate correctly, and the rollback trigger fires when manually provoked by injecting artificial errors.
+(With the Prometheus Operator, list `rollouts-pod-template-hash` under `podTargetLabels` in the PodMonitor or ServiceMonitor instead.) Your app must export `http_requests_total{status}` and `http_request_duration_seconds_bucket`.
 
-This step catches configuration issues before they matter. In Tomas's case, the dry run reveals that the Prometheus service discovery labels don't match the canary pod labels -- the health checks were evaluating against zero data points and silently passing. Without the dry run, the first real canary deploy would have had no health protection at all.
+`failureLimit: 1` means the analysis fails on the second failed measurement, so one noisy sample does not abort a release. Failures are counted in total, not only consecutively.
 
-### Step 4: Wire Up Deployment Notifications
-
-Every stage transition posts to Slack so the team knows what is happening without watching a dashboard:
-
-- **Canary started:** "Deploying v2.4.1 -- canary at 5%"
-- **Stage promoted:** "Canary v2.4.1 promoted to 25% -- metrics healthy"
-- **Rollback triggered:** "Canary v2.4.1 rolled back -- p99 latency 720ms exceeds 500ms threshold"
-- **Deployment complete:** "v2.4.1 fully promoted to production"
-
-The rollback notification includes the specific metric that triggered it, the value at the time, and a link to the Grafana dashboard for the canary analysis period. No digging through dashboards to figure out what happened -- the notification tells the whole story.
-
-### Step 5: Review Rollback History
-
-After a few weeks of running, Tomas wants to spot patterns in what goes wrong:
-
-```text
-Show me all canary rollbacks from the last 30 days with the metric that triggered each one and how long the canary ran before rollback.
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: canary-health
+spec:
+  args:
+    - name: canary-hash
+      valueFrom:
+        podTemplateHashValue: Latest
+  metrics:
+    - name: error-rate
+      interval: 60s
+      failureLimit: 1
+      successCondition: len(result) > 0 && result[0] < 0.01
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc:9090
+          query: |
+            sum(rate(http_requests_total{app="api",rollouts_pod_template_hash="{{args.canary-hash}}",status=~"5.."}[2m]))
+            /
+            sum(rate(http_requests_total{app="api",rollouts_pod_template_hash="{{args.canary-hash}}"}[2m]))
+    - name: p99-latency
+      interval: 60s
+      failureLimit: 1
+      successCondition: len(result) > 0 && result[0] < 0.5
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc:9090
+          query: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(http_request_duration_seconds_bucket{app="api",rollouts_pod_template_hash="{{args.canary-hash}}"}[2m])))
 ```
 
-The deployment logs produce a summary like this:
+The `len(result) > 0` guard makes an empty result (no canary traffic, or a label mismatch) count as a failed measurement instead of a pass, as described in the [analysis docs](https://argo-rollouts.readthedocs.io/en/stable/features/analysis/).
 
-| Date | Version | Rollback Stage | Trigger Metric | Time to Rollback |
-|------|---------|---------------|----------------|-----------------|
-| Feb 3 | v2.3.8 | Stage 1 (5%) | p99 latency 720ms | 3m 12s |
-| Feb 10 | v2.4.0 | Stage 1 (5%) | Error rate 2.3% | 1m 48s |
-| Feb 14 | v2.4.2 | Stage 2 (25%) | Error rate 1.4% | 6m 30s |
+### Step 4: The Rollout
 
-The summary reveals which types of changes tend to fail, which health metrics catch problems first, and whether the hold times are calibrated correctly. If most rollbacks happen in the first 2 minutes, the 5-minute hold at Stage 1 is providing plenty of safety margin. If they happen at Stage 2 (like the Feb 14 deploy), it means some issues only surface under higher traffic -- and the 10-minute hold is earning its keep.
+Replace the `Deployment` with this `Rollout`. The two Services select the same pods; the controller adds the hash selector to each. The HTTPRoute lists both as backends and the plugin edits their weights.
 
-The rollback history also becomes a feedback loop for the development team. A pattern of latency regressions from a particular service component points to an architectural issue worth addressing, not just a series of individual bad deploys.
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: api
+spec:
+  replicas: 10
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels: { app: api }
+  strategy:
+    canary:
+      stableService: api-stable
+      canaryService: api-canary
+      trafficRouting:
+        plugins:
+          argoproj-labs/gatewayAPI:
+            httpRoute: api-route
+      analysis:
+        templates:
+          - templateName: canary-health
+      steps:
+        - setWeight: 5
+        - pause: { duration: 5m }
+        - setWeight: 25
+        - pause: { duration: 10m }
+        # after the last step the controller promotes to 100%
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: registry.example.com/api:2.4.0
+          ports: [{ name: http, containerPort: 3000 }]
+          resources:   # same as the old Deployment: latency numbers are only valid with identical limits
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api-stable }
+spec:
+  selector: { app: api }
+  ports: [{ port: 80, targetPort: http, name: http }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api-canary }
+spec:
+  selector: { app: api }
+  ports: [{ port: 80, targetPort: http, name: http }]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: { name: api-route }
+spec:
+  parentRefs: [{ name: public-gateway }]
+  rules:
+    - backendRefs:
+        - { name: api-stable, kind: Service, port: 80 }
+        - { name: api-canary, kind: Service, port: 80 }
+```
+
+Because `analysis` sits directly under `canary`, it starts with the first step and runs in the background until the rollout ends or fails. To skip the first minutes of warm-up, add `startingStep: 1`.
+
+### Step 5: Release from CI
+
+The pipeline only changes the image and waits for the controller's verdict. `status` exits non-zero when the rollout is aborted, so a rolled-back release fails the job.
+
+```yaml
+# .gitlab-ci.yml
+deploy:
+  stage: deploy
+  image: { name: registry.example.com/ci/kubectl-argo-rollouts:1.10.1, entrypoint: [""] }  # image you build with kubectl and the plugin
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - kubectl argo rollouts set image api api=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - kubectl argo rollouts status api --timeout 30m
+```
+
+### Step 6: Dry run, notifications, history
+
+First dry run: deploy the stable image again with a changed environment variable (so the template hash changes) and watch it:
+
+```bash
+kubectl argo rollouts get rollout api --watch
+```
+
+Confirm in the output that an `AnalysisRun` appears and its measurements are numbers, not errors. Then provoke a failure on purpose, for instance a canary image that returns 500 on every request, and check the rollout turns `Degraded` and weight returns to 0. Run `kubectl argo rollouts abort api` for a manual stop. A dry run like this is where label mismatches show up, such as a scrape config without the hash label.
+
+For Slack, configure the Argo Rollouts notification engine and subscribe the Rollout with annotations such as `notifications.argoproj.io/subscribe.on-rollout-aborted.slack: deploys`. The built-in triggers include `on-rollout-aborted`, `on-rollout-completed`, `on-rollout-paused` and `on-rollout-step-completed`. To review past failures, run `kubectl get analysisrun` (failed runs keep the measured values in `status`) or chart `rollout_info` and the controller metrics in Grafana.
 
 ## Real-World Example
 
-On the first real canary deploy after setup, the new version shows elevated p99 latency at the 5% stage -- 720ms against a 500ms threshold. The system automatically rolls back in under 90 seconds. Instead of 40% of users hitting payment errors for 25 minutes (like the last incident), only 5% of users experienced slightly slow responses for less than 2 minutes.
+On the first real release, the new version's p99 latency at the 5% step is 720 ms against the 500 ms limit. Two measurements later the analysis fails, the rollout aborts and the canary receives no traffic. Instead of the last incident, where 40% of active users hit payment errors for 25 minutes, a small share of requests was slow for a few minutes. Tomas finds a missing database index from the `AnalysisRun` details, the developer fixes it, and the next release passes both steps. The numbers here are the example team's own; your thresholds should come from your service's normal p99 and error rate.
 
-Tomas reviews the rollback report, identifies a missing database index in the new code path, and the developer fixes it in an hour. The next deploy sails through all three stages cleanly.
+## Related Skills
 
-Over the following month, two more bad deploys are caught at the 5% stage. The first is a memory leak that would have eventually crashed the pods -- caught because the canary pod's memory usage climbed during the hold period, triggering a resource alert. The second is an error rate spike from a misconfigured feature flag. Both are caught before they reach more than 5% of users.
-
-User-facing incidents drop from biweekly to zero. The team deploys with confidence instead of dread -- and the on-call engineer stops waking up at 2 AM to manually roll back broken releases. Perhaps most importantly, the team starts deploying more frequently. Smaller, more frequent deploys mean less risk per deploy, which means fewer rollbacks, which means more confidence. The canary system breaks the vicious cycle of "big scary deploys" that was slowing the team down.
+- [cicd-pipeline](/skills/cicd-pipeline) - the GitLab CI release job
+- [coding-agent](/skills/coding-agent) - drafts the manifests; review them against the docs
