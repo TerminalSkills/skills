@@ -1,59 +1,47 @@
 {
   "version": "1.1.0",
-  "skillHash": "sha256:41261502a9d77a8926b9a9efd0917126eaa42df4c05e2351e75ece02e293a7b5",
-  "scoredAt": "2026-10-24T19:34:17.365Z",
+  "skillHash": "sha256:45656764ed1c173a4c7faf3793050b9dbb5398ecb9eef9dd8b45d75e8588d244",
+  "scoredAt": "2026-10-24T20:23:10.283Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions specify specific driver versions and Neo4j releases, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "MALICIOUS",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "credential",
-        "detail": "Hardcoded Neo4j password in Docker run command exposes credentials."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 2.52,
-    "baselineAvg": 33,
-    "treatmentAvg": 83,
+    "multiplier": 4.2,
+    "baselineAvg": 15,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "bulk-import-with-unique-constraint",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response A meets all rubric items, while Response B omits the required UNWIND clause."
-      },
-      {
-        "name": "friend-recommendations-by-mutual-friends",
-        "baseline": 30,
-        "treatment": 50,
-        "rationale": "Response A uses the correct KNOWS relationship and overall structure, though it lacks parameterization and the exact limit, whereas Response B uses an incorrect relationship type and also lacks parameterization."
-      },
-      {
-        "name": "vector-search-top-5-similar-documents",
+        "name": "import-users-with-unique-constraint",
         "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially covers the required Cypher statements but omits the name index and uses a different label; Response B does not provide any of the required Neo4j Cypher code."
+      },
+      {
+        "name": "friend-recommendation-query",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "Response A provides a query but fails to use the $name parameter and mismatches the required alias and limit, whereas Response B offers no query at all."
+      },
+      {
+        "name": "nodejs-create-friendship",
+        "baseline": 45,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet the specified index name, options, and query syntax."
+        "rationale": "Response B meets all rubric requirements, while Response A omits the required use of driver.executeQuery."
       }
     ]
   }
