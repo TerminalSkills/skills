@@ -1,18 +1,12 @@
 ---
 name: llm-cost-optimizer
 description: >-
-  Track, analyze, and reduce LLM API costs — model routing, prompt caching,
-  semantic caching, and budget alerts. Use when someone asks to "reduce AI
-  costs", "track LLM spending", "optimize API costs", "set up model routing",
-  "cache LLM responses", "compare model costs", "set budget limits for AI",
-  or "my OpenAI bill is too high". Covers cost tracking per feature/user,
-  smart model routing (expensive model for hard tasks, cheap for easy),
-  semantic caching, prompt compression, and budget alerting.
+  Cuts LLM API spend by measuring cost per feature and user, routing easy requests to cheaper models, using provider prompt caching, adding a semantic response cache, and using the batch APIs. Use when someone asks to "reduce AI costs", "track LLM spending", "my OpenAI or Anthropic bill is too high", "set up model routing", "cache LLM responses", "compare model costs", or "set budget alerts for AI".
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.10+. Any LLM provider."
+compatibility: "Node.js 18+ or Python 3.10+. Examples use Anthropic and OpenAI model IDs and pricing checked 2026-10-24."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["cost", "optimization", "llm", "caching", "routing"]
 ---
@@ -21,324 +15,182 @@ metadata:
 
 ## Overview
 
-LLM API costs grow fast — a chatbot doing 10K conversations/day at $0.01 each is $3K/month. This skill builds cost controls: track spending per feature and user, route simple tasks to cheap models, cache repeated queries, compress prompts, and alert before budgets blow up.
+LLM bills grow with traffic, prompt length and model tier. Work in this order: measure, cache the stable prefix, move easy work to a cheaper model, defer non-urgent work to batch, then add a response cache. Prices and model IDs change often; the figures below are from the vendors' pricing pages on 2026-10-24 and belong in a config file you update, not in code you forget.
 
-## When to Use
+Checked facts that matter for the code below:
 
-- Monthly LLM bill is growing and you need visibility into what's driving it
-- Some features use GPT-4o when GPT-4o-mini would work fine
-- Users ask the same questions repeatedly — cache those responses
-- Need budget limits per team, feature, or API key
-- Comparing total cost of ownership between providers
+- Anthropic (platform.claude.com pricing): `claude-sonnet-5-5` $2 input / $10 output per million tokens (MTok), cache reads $0.10, 5-minute cache writes $2.50; `claude-haiku-5-5` $0.10 / $0.50 for prompts up to 100,000 tokens (higher above that), cache reads $0.01, writes $0.125. Cache writes cost 1.25x (5 min) or 2x (1 h) base input; reads cost 0.1x on most models and 0.05x on Sonnet 5.5 and Opus 5.5. The Batch API is 50% off input and output.
+- Anthropic usage fields: `input_tokens` counts only tokens after the last cache breakpoint. Total input is `cache_read_input_tokens + cache_creation_input_tokens + input_tokens`.
+- Anthropic minimum cacheable prompt: 512 tokens for the 5.x models above, 1,024 for Sonnet 5, 4,096 for Haiku 4.5. Shorter prompts are processed uncached with no error; both cache fields read 0.
+- OpenAI (developers.openai.com pricing): `gpt-6-luna` $0.10 / $0.50 per MTok (cached input $0.01), `gpt-6.1-sol` $2 / $10 (cached $0.10). `gpt-4o`, `gpt-4o-mini`, `gpt-4.1` and `gpt-4.1-mini` snapshots are on the deprecation list with removal on 2027-01-14 (suggested replacement `gpt-6-luna`). OpenAI's Batch API is 50% cheaper with a 24-hour completion window. OpenAI caches automatically, but on GPT-5.6 and later (including both models above) a cache write costs 1.25x the input price for the default 30-minute lifetime (2.5x for `12h`), so cached input is billed as write, read or plain input. The prices above are the short-context rates; input over the long-context threshold costs about double.
+- Retired Anthropic IDs that old code still uses: `claude-sonnet-4-20250514`, `claude-opus-4-20250514` (both retired 2026-06-15), `claude-3-5-haiku-20241022`, `claude-3-haiku-20240307`. `claude-sonnet-4-5-20250929` retires 2026-11-30.
 
 ## Instructions
 
-### Strategy 1: Cost Tracking Middleware
+### Strategy 1: Cost tracking
 
-Wrap every LLM call to log tokens, cost, model, and feature. Know exactly where money goes.
+Wrap every call and record normalised usage. Providers report differently, so convert first:
+
+- Anthropic: `input_tokens` -> `inputTokens`, `cache_read_input_tokens` -> `cacheReadTokens`, `cache_creation_input_tokens` -> `cacheWriteTokens`.
+- OpenAI Responses API: `input_tokens` includes cached tokens, so `inputTokens = input_tokens - cached_tokens - cache_write_tokens` (fields under `input_tokens_details`).
 
 ```typescript
-// cost-tracker.ts — Track LLM costs per feature, model, and user
-/**
- * Middleware that wraps LLM API calls, logs token usage
- * and estimated cost, and enforces budget limits.
- * Drop-in replacement for direct API calls.
- */
+// cost-tracker.ts
+interface Price { input: number; output: number; cacheRead: number; cacheWrite: number } // USD per 1M tokens
 
-interface CostEntry {
-  timestamp: string;
-  model: string;
-  feature: string;         // Which product feature made this call
-  userId?: string;
-  inputTokens: number;
-  outputTokens: number;
-  cachedTokens: number;
-  costUsd: number;
-  latencyMs: number;
-}
-
-// Pricing per 1M tokens (input / output) — update as providers change
-const PRICING: Record<string, { input: number; output: number; cached?: number }> = {
-  "gpt-4o":                  { input: 2.50,  output: 10.00, cached: 1.25 },
-  "gpt-4o-mini":             { input: 0.15,  output: 0.60,  cached: 0.075 },
-  "claude-sonnet-4-20250514":   { input: 3.00,  output: 15.00, cached: 0.30 },
-  "claude-haiku-3-20250722": { input: 0.25,  output: 1.25,  cached: 0.025 },
-  "llama-3.1-8b":            { input: 0.05,  output: 0.05 },  // Self-hosted estimate
+// Source: vendor pricing pages, 2026-10-24. Update when prices change.
+export const PRICING: Record<string, Price> = {
+  "claude-sonnet-5-5": { input: 2.0, output: 10.0, cacheRead: 0.1, cacheWrite: 2.5 },
+  "claude-haiku-5-5":  { input: 0.1, output: 0.5,  cacheRead: 0.01, cacheWrite: 0.125 }, // prompts <= 100k tokens
+  "gpt-6.1-sol":       { input: 2.0, output: 10.0, cacheRead: 0.1, cacheWrite: 2.5 },  // short-context rates, 30m cache write
+  "gpt-6-luna":        { input: 0.1, output: 0.5,  cacheRead: 0.01, cacheWrite: 0.125 },
 };
 
+export interface Usage {
+  model: string; feature: string; userId?: string;
+  inputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; outputTokens: number;
+}
+
 export class CostTracker {
-  private entries: CostEntry[] = [];
-  private budgets: Map<string, number> = new Map();  // feature → monthly limit USD
+  private entries: (Usage & { costUsd: number; at: Date })[] = [];
+  private budgets = new Map<string, number>();            // feature -> monthly USD
+  private alerted = new Set<string>();
 
-  /**
-   * Calculate cost for a single LLM call.
-   */
-  calculateCost(model: string, inputTokens: number, outputTokens: number, cachedTokens: number = 0): number {
-    const pricing = PRICING[model];
-    if (!pricing) return 0;
+  constructor(private onAlert: (msg: string) => void = console.warn) {}
 
-    const inputCost = ((inputTokens - cachedTokens) * pricing.input) / 1_000_000;
-    const cachedCost = pricing.cached
-      ? (cachedTokens * pricing.cached) / 1_000_000
-      : 0;
-    const outputCost = (outputTokens * pricing.output) / 1_000_000;
-
-    return inputCost + cachedCost + outputCost;
+  cost(u: Usage): number {
+    const p = PRICING[u.model];
+    if (!p) throw new Error(`No price for model ${u.model}`);  // fail loudly: a missing price hides spend
+    return (u.inputTokens * p.input + u.cacheReadTokens * p.cacheRead +
+            u.cacheWriteTokens * p.cacheWrite + u.outputTokens * p.output) / 1_000_000;
   }
 
-  /**
-   * Log an LLM call and check budget.
-   */
-  track(entry: Omit<CostEntry, "costUsd" | "timestamp">): CostEntry {
-    const costUsd = this.calculateCost(
-      entry.model, entry.inputTokens, entry.outputTokens, entry.cachedTokens
-    );
+  setBudget(feature: string, monthlyUsd: number) { this.budgets.set(feature, monthlyUsd); }
 
-    const full: CostEntry = {
-      ...entry,
-      costUsd,
-      timestamp: new Date().toISOString(),
-    };
-
-    this.entries.push(full);
-
-    // Check budget
-    const monthlySpend = this.getMonthlySpend(entry.feature);
-    const budget = this.budgets.get(entry.feature);
-    if (budget && monthlySpend > budget) {
-      console.warn(`⚠️ Budget exceeded for "${entry.feature}": $${monthlySpend.toFixed(2)} / $${budget}`);
+  track(u: Usage, now = new Date()): number {
+    const costUsd = this.cost(u);
+    this.entries.push({ ...u, costUsd, at: now });
+    const budget = this.budgets.get(u.feature);
+    if (budget) {
+      const spent = this.monthlySpend(u.feature, now);
+      for (const level of [0.8, 1.0]) {
+        const key = `${u.feature}:${level}:${now.getUTCFullYear()}-${now.getUTCMonth()}`;
+        if (spent >= budget * level && !this.alerted.has(key)) {
+          this.alerted.add(key);
+          this.onAlert(`${u.feature} reached ${level * 100}% of $${budget} (spent $${spent.toFixed(2)})`);
+        }
+      }
     }
-
-    return full;
+    return costUsd;
   }
 
-  setBudget(feature: string, monthlyLimitUsd: number): void {
-    this.budgets.set(feature, monthlyLimitUsd);
-  }
-
-  getMonthlySpend(feature?: string): number {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
+  monthlySpend(feature?: string, now = new Date()): number {
     return this.entries
-      .filter((e) => new Date(e.timestamp) >= monthStart)
+      .filter((e) => e.at.getUTCFullYear() === now.getUTCFullYear() && e.at.getUTCMonth() === now.getUTCMonth())
       .filter((e) => !feature || e.feature === feature)
-      .reduce((sum, e) => sum + e.costUsd, 0);
-  }
-
-  /**
-   * Generate a cost report grouped by feature and model.
-   */
-  report(): Record<string, { calls: number; tokens: number; cost: number }> {
-    const groups: Record<string, { calls: number; tokens: number; cost: number }> = {};
-
-    for (const entry of this.entries) {
-      const key = `${entry.feature} → ${entry.model}`;
-      if (!groups[key]) groups[key] = { calls: 0, tokens: 0, cost: 0 };
-      groups[key].calls++;
-      groups[key].tokens += entry.inputTokens + entry.outputTokens;
-      groups[key].cost += entry.costUsd;
-    }
-
-    return groups;
+      .reduce((s, e) => s + e.costUsd, 0);
   }
 }
 ```
 
-### Strategy 2: Smart Model Router
+Persist entries to a database in production (this class keeps them in memory) and have the backend aggregate by feature, model and user.
 
-Route tasks to the cheapest model that can handle them. Hard tasks → expensive model. Easy tasks → cheap model.
+### Strategy 2: Cache the stable prefix
+
+Put the long, unchanging part (tool definitions, system prompt, reference documents) first and the variable user turn last. With Anthropic, add a top-level `cache_control: {"type": "ephemeral"}` to the request (automatic caching) or put it on a specific content block; use the 1-hour TTL (`"ttl": "1h"`, 2x write price) when requests are more than five minutes apart. Check `cache_read_input_tokens` on the response: if both cache fields are 0 the prompt was below the minimum or the prefix changed (a timestamp or request ID inside the system prompt is the usual cause). OpenAI enables caching by default; keep the prefix identical and read `cached_tokens` and `cache_write_tokens` under `input_tokens_details` (GPT-5.6 and later bill the write, so a prefix that never repeats costs 1.25x instead of saving money).
+
+### Strategy 3: Route by task, validated on your data
 
 ```typescript
-// model-router.ts — Route LLM calls to the cheapest capable model
-/**
- * Analyzes task complexity and routes to the appropriate model.
- * Simple classification/extraction → mini model (~95% cheaper).
- * Complex reasoning/coding → full model.
- */
+// model-router.ts
+export type Tier = "cheap" | "strong";
+const MODELS = { cheap: "claude-haiku-5-5", strong: "claude-sonnet-5-5" } as const;
 
-interface RouteDecision {
-  model: string;
-  reason: string;
-  estimatedCostRatio: number;  // 1.0 = full price, 0.1 = 10% of full price
-}
+const CHEAP_TASKS = new Set(["classify", "extract", "summarize", "translate", "format", "route"]);
 
-export function routeModel(task: string, context?: string): RouteDecision {
-  const taskLower = task.toLowerCase();
-  const contextLength = (context || "").length;
-
-  // Simple extraction / classification → mini model
-  if (
-    taskLower.includes("extract") ||
-    taskLower.includes("classify") ||
-    taskLower.includes("categorize") ||
-    taskLower.includes("summarize") ||
-    taskLower.includes("translate") ||
-    taskLower.includes("format")
-  ) {
-    return {
-      model: "gpt-4o-mini",
-      reason: "Simple extraction/classification task",
-      estimatedCostRatio: 0.06,  // ~6% of GPT-4o cost
-    };
-  }
-
-  // Short context + simple question → mini
-  if (contextLength < 2000 && !requiresReasoning(taskLower)) {
-    return {
-      model: "gpt-4o-mini",
-      reason: "Short context, simple task",
-      estimatedCostRatio: 0.06,
-    };
-  }
-
-  // Code generation / debugging → full model
-  if (
-    taskLower.includes("write code") ||
-    taskLower.includes("debug") ||
-    taskLower.includes("refactor") ||
-    taskLower.includes("architect")
-  ) {
-    return {
-      model: "claude-sonnet-4-20250514",
-      reason: "Code generation requires strong reasoning",
-      estimatedCostRatio: 1.0,
-    };
-  }
-
-  // Complex reasoning → full model
-  return {
-    model: "gpt-4o",
-    reason: "Complex task requiring strong reasoning",
-    estimatedCostRatio: 0.8,
-  };
-}
-
-function requiresReasoning(task: string): boolean {
-  const reasoningKeywords = [
-    "analyze", "compare", "evaluate", "design", "architect",
-    "debug", "optimize", "explain why", "trade-off", "recommend",
-  ];
-  return reasoningKeywords.some((k) => task.includes(k));
+export function pickModel(task: string, promptChars: number, opts: { needsTools?: boolean } = {}) {
+  const tier: Tier =
+    CHEAP_TASKS.has(task) && promptChars < 40_000 && !opts.needsTools ? "cheap" : "strong";
+  return { tier, model: MODELS[tier] };
 }
 ```
 
-### Strategy 3: Semantic Cache
+Route on an explicit `task` label your code assigns, not on keywords in user text. Before sending a task class to the cheap tier, run 50-100 real examples through both models and compare quality; keep the strong model as the fallback when a cheap-tier answer fails validation (schema check, low-confidence flag).
 
-Cache LLM responses by meaning, not exact match. "What's the weather?" and "How's the weather today?" should hit the same cache.
+### Strategy 4: Semantic cache for repeated questions
 
 ```python
-# semantic_cache.py — Cache LLM responses by semantic similarity
-"""
-Caches LLM responses using embedding similarity.
-If a new query is semantically similar to a cached one,
-return the cached response instead of calling the API.
-Saves 30-60% on repetitive workloads.
-"""
-import hashlib
-import json
+# semantic_cache.py
 import time
-from typing import Optional
+from typing import Callable, Optional
 import numpy as np
-import openai
 
 class SemanticCache:
-    """LLM response cache using embedding similarity."""
+    """Reuse answers to near-identical questions. embed() is injected: any embedding API."""
 
-    def __init__(self, similarity_threshold: float = 0.92, ttl_seconds: int = 3600):
-        """
-        Args:
-            similarity_threshold: Min cosine similarity to consider a cache hit (0.92 = very similar)
-            ttl_seconds: Cache entry expiration time
-        """
-        self.threshold = similarity_threshold
-        self.ttl = ttl_seconds
-        self.cache: list[dict] = []  # In production, use Redis or a vector DB
-        self.client = openai.OpenAI()
+    def __init__(self, embed: Callable[[str], list[float]], threshold: float = 0.95, ttl_seconds: int = 3600):
+        self.embed, self.threshold, self.ttl = embed, threshold, ttl_seconds
+        self.items: list[dict] = []   # use Redis or a vector database in production
         self.stats = {"hits": 0, "misses": 0, "saved_usd": 0.0}
 
-    def get(self, query: str) -> Optional[str]:
-        """Check cache for a semantically similar query.
-
-        Args:
-            query: The user's query
-
-        Returns:
-            Cached response if found, None otherwise
-        """
-        query_embedding = self._embed(query)
-        now = time.time()
-
-        best_match = None
-        best_score = 0.0
-
-        for entry in self.cache:
-            # Skip expired entries
-            if now - entry["timestamp"] > self.ttl:
+    def get(self, query: str, scope: str) -> Optional[str]:
+        """scope isolates tenants/users so one customer never receives another's answer."""
+        q = np.asarray(self.embed(query), dtype=float)
+        now, best, best_score = time.time(), None, 0.0
+        for it in self.items:
+            if it["scope"] != scope or now - it["at"] > self.ttl:
                 continue
-
-            score = self._cosine_similarity(query_embedding, entry["embedding"])
+            score = float(q @ it["vec"] / (np.linalg.norm(q) * np.linalg.norm(it["vec"])))
             if score > best_score:
-                best_score = score
-                best_match = entry
-
-        if best_match and best_score >= self.threshold:
+                best, best_score = it, score
+        if best and best_score >= self.threshold:
             self.stats["hits"] += 1
-            self.stats["saved_usd"] += best_match.get("cost_usd", 0.01)
-            return best_match["response"]
-
+            self.stats["saved_usd"] += best["cost_usd"]
+            return best["response"]
         self.stats["misses"] += 1
         return None
 
-    def set(self, query: str, response: str, cost_usd: float = 0.01) -> None:
-        """Store a query-response pair in the cache."""
-        self.cache.append({
-            "query": query,
-            "response": response,
-            "embedding": self._embed(query),
-            "cost_usd": cost_usd,
-            "timestamp": time.time(),
-        })
-
-    def _embed(self, text: str) -> list[float]:
-        response = self.client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text
-        )
-        return response.data[0].embedding
-
-    def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
-        a_arr, b_arr = np.array(a), np.array(b)
-        return float(np.dot(a_arr, b_arr) / (np.linalg.norm(a_arr) * np.linalg.norm(b_arr)))
+    def set(self, query: str, scope: str, response: str, cost_usd: float) -> None:
+        self.items.append({"scope": scope, "vec": np.asarray(self.embed(query), dtype=float),
+                           "response": response, "cost_usd": cost_usd, "at": time.time()})
 ```
+
+Only cache answers that do not depend on live data or the individual user. For embeddings, `text-embedding-3-small` costs $0.02 per MTok on OpenAI's price list.
+
+### Strategy 5: Batch the non-urgent work
+
+Nightly classification, evaluation runs, backfills and report generation do not need an instant answer. Anthropic's Message Batches API and OpenAI's Batch API (`completion_window: "24h"`) both charge 50% less. Batch and caching discounts stack on Anthropic.
 
 ## Examples
 
-### Example 1: Cut chatbot costs by 60%
+### Example 1: "Our support bot costs $3K/month on one big model. Most questions are the same 40 FAQs."
 
-**User prompt:** "Our support chatbot costs $3K/month on GPT-4o. Most questions are FAQs. Help me reduce costs without hurting quality."
+1. Add `CostTracker.track()` around the call with `feature: "support-bot"` and log a week of traffic.
+2. Move the 6,000-token policy text into a cached system prefix; check `cache_read_input_tokens` is non-zero from the second request.
+3. Add `SemanticCache` with `scope` set to the customer's tenant ID and threshold 0.95; review the first 100 hits by hand.
+4. Send `classify`/`extract` steps to `claude-haiku-5-5` via `pickModel`.
 
-The agent will:
-- Add cost tracking middleware to identify which question types cost the most
-- Set up semantic cache for FAQ-type questions (covers ~40% of volume)
-- Route simple questions to GPT-4o-mini (covers ~30% more)
-- Keep GPT-4o only for complex, novel questions
-- Result: ~60% cost reduction while maintaining quality on hard questions
+Measure the result from your own tracker: the savings depend on how repetitive the traffic is, so report the measured before/after cost per conversation rather than a promised percentage.
 
-### Example 2: Set up budget alerts
+### Example 2: "Cap each team at $500/month and warn me at 80%"
 
-**User prompt:** "I want to cap our AI spending at $500/month per team and get alerts at 80%."
+```typescript
+const tracker = new CostTracker((msg) => fetch(process.env.SLACK_WEBHOOK_URL!, {
+  method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: msg }),
+}));
+tracker.setBudget("team-growth", 500);
+tracker.track({ model: "claude-sonnet-5-5", feature: "team-growth", inputTokens: 1200,
+                cacheReadTokens: 8000, cacheWriteTokens: 0, outputTokens: 600 });
+```
 
-The agent will use CostTracker with per-team budgets, add webhook alerts at 80% threshold, and generate weekly cost reports broken down by team and feature.
+That call costs (1200 x 2.0 + 8000 x 0.1 + 600 x 10) / 1,000,000 = $0.0092. The alert fires once at 80% and once at 100% per month. To enforce the cap rather than only warn, check `monthlySpend` before the call and refuse or downgrade the model.
 
 ## Guidelines
 
-- **Track before optimizing** — you can't reduce what you don't measure
-- **Mini models handle 70% of tasks** — GPT-4o-mini and Haiku are dramatically cheaper
-- **Semantic cache threshold 0.92+** — lower risks returning wrong answers
-- **Cache TTL depends on data freshness** — static FAQs: hours. Dynamic data: minutes.
-- **Prompt caching is free money** — OpenAI and Anthropic cache system prompts automatically
-- **Batch API = 50% off** — OpenAI's Batch API halves cost for non-realtime workloads
-- **Shorter prompts = lower costs** — remove examples and instructions the model already knows
-- **Monitor cost per user** — detect abuse early, especially on free tiers
-- **Self-hosted models for high volume** — at 1M+ calls/month, Llama on your own GPU can be cheaper
+- Measure first; a tracker with real per-feature numbers beats any rule of thumb.
+- Look up prices on the vendor pricing page each quarter and update `PRICING`; throw on unknown models instead of returning $0.
+- Do not hard-code retired model IDs; check the vendor's deprecations page when you pin a model.
+- Newer Claude tokenizers produce about 30% more tokens for the same text than older ones (Anthropic pricing page), so re-measure cost per request after a model upgrade.
+- Cache scope matters for privacy: never share a response cache across users or tenants unless the answers are public.
+- Do not route safety-critical, legal or medical answers to the cheap tier without evaluation.
+- Self-hosting open models only pays off at sustained high volume once GPU, ops and quality costs are counted.
