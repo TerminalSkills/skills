@@ -14,402 +14,287 @@ tags: [directory, saas, nextjs, prisma, stripe, seo, json-ld, sitemap]
 
 ## The Problem
 
-You've identified a gap: no one has built a proper directory for [remote dev tools / indie SaaS products / boutique design agencies / AI startups in your city]. You want to build it, grow it to 10K monthly visitors via SEO, and monetize with $99/month featured spots. The directory needs a submission form, a review queue so spam stays out, and excellent SEO so Google ranks individual listing pages.
+You have spotted a gap: nobody has built a proper directory for remote dev tools, indie SaaS products, boutique design agencies or AI startups in your city. You want to build it, earn search traffic, and charge for featured spots. The directory needs a submission form, a review queue that keeps spam out, and listing pages that search engines can understand.
 
 ## The Solution
 
-Next.js App Router with Prisma + PostgreSQL for listings, a submission form that puts new entries in a review queue, search and filtering by category/tags/location, featured spots paid via Stripe, and programmatic SEO: dynamic meta tags, JSON-LD structured data, and an auto-generated sitemap.
+Next.js (App Router) with Prisma and PostgreSQL for listings, a submission form that puts entries in a review queue, search and filtering, featured spots paid through Stripe Checkout, and the SEO basics: per-page metadata, JSON-LD and a generated sitemap. The code targets Next.js 16 and Prisma ORM 7 (Prisma 8 is still a release candidate with a different schema format).
+
+## Setup
+
+```bash
+npx create-next-app@latest niche-directory --yes   # TypeScript, Tailwind, App Router
+cd niche-directory
+npm install @prisma/client@7 @prisma/adapter-pg pg stripe zod slugify
+npm install -D prisma@7 @types/pg dotenv
+npx prisma init --datasource-provider postgresql --output ../generated/prisma
+```
+
+Put these in `.env` (never in git): `DATABASE_URL`, `STRIPE_SECRET_KEY` (a `sk_test_` key while developing), `STRIPE_WEBHOOK_SECRET` (printed by `stripe listen` locally) and `SITE_URL` (public URL, no trailing slash; `http://127.0.0.1:3000` locally).
 
 ## Database Schema
 
+`prisma init` writes the `generator client` (provider `prisma-client`, output `../generated/prisma`) and `datasource db` blocks. Add the model below them; the connection URL lives in the generated Prisma config, which reads `DATABASE_URL`.
+
 ```prisma
-// prisma/schema.prisma
-
+// prisma/schema.prisma (after the generated blocks)
+enum ListingStatus { PENDING APPROVED REJECTED }
 model Listing {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
-  slug        String   @unique
-  description String   @db.Text
+  slug        String        @unique
+  description String
   website     String
-  logo        String?
   category    String
-  tags        String[] @default([])
-  location    String?  // null = global/remote
-  email       String   // submitter email, not public
-  status      String   @default("pending")  // pending, approved, rejected
-  featured    Boolean  @default(false)
-  featuredAt  DateTime?
-  featuredEnd DateTime?
-  clicks      Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([category, status, featured])
-  @@index([slug])
+  tags        String[]      @default([])
+  location    String?       // null = global/remote
+  email       String        // submitter email, never public
+  status      ListingStatus @default(PENDING)
+  featuredEnd DateTime?     // featured while this is in the future
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
+```
+
+Then run `npx prisma migrate dev --name init && npx prisma generate` to create the table and the client.
+
+```typescript
+// lib/prisma.ts — one client per process (dev reloads would otherwise open many)
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@/generated/prisma/client';
+const g = globalThis as unknown as { prisma?: PrismaClient };
+export const prisma = (g.prisma ??= new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) }));
 ```
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Submission Form with Validation
+### Step 1: Submission form with server-side validation
+
+A Server Action is a public POST endpoint, so it validates everything itself. The website must be http(s), since `z.url()` alone also accepts `javascript:` links.
 
 ```tsx
-// app/submit/page.tsx — Listing submission form
-
-'use client';
-import { useState } from 'react';
+// app/submit/page.tsx — form, validation and insert in one file
+import { randomBytes } from 'node:crypto';
+import { redirect } from 'next/navigation';
+import slugify from 'slugify';
 import { z } from 'zod';
-
+import { prisma } from '@/lib/prisma';
+const CATEGORIES = ['tool', 'agency', 'product', 'community', 'resource'] as const;
 const submitSchema = z.object({
-  name: z.string().min(2).max(100),
-  website: z.string().url(),
-  description: z.string().min(50).max(500),
-  category: z.enum(['tool', 'agency', 'product', 'community', 'resource']),
-  tags: z.string(),  // comma-separated
-  location: z.string().optional(),
-  email: z.string().email(),
+  name: z.string().trim().min(2).max(100),
+  website: z.url().refine(u => /^https?:\/\//i.test(u), 'must be an http(s) URL'),
+  description: z.string().trim().min(50).max(500),
+  category: z.enum(CATEGORIES),
+  tags: z.string().max(200), // comma-separated
+  location: z.string().trim().max(100).optional(),
+  email: z.email(),
 });
-
-export default function SubmitPage() {
-  const [form, setForm] = useState({ name: '', website: '', description: '',
-    category: 'tool', tags: '', location: '', email: '' });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const result = submitSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
-        fieldErrors[err.path[0]] = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    const res = await fetch('/api/listings/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(result.data),
-    });
-
-    if (res.ok) setSubmitted(true);
+async function submit(form: FormData) {
+  'use server';
+  const parsed = submitSchema.safeParse(Object.fromEntries(form));
+  if (!parsed.success) {
+    redirect(`/submit?error=${encodeURIComponent(parsed.error.issues.map(i => `${String(i.path[0])}: ${i.message}`).join('; '))}`);
   }
-
-  if (submitted) return (
-    <div className="text-center py-16">
-      <h2 className="text-2xl font-bold">Submission received!</h2>
-      <p className="text-gray-500 mt-2">We'll review your listing within 48 hours.</p>
-    </div>
-  );
-
+  const d = parsed.data;
+  const base = slugify(d.name, { lower: true, strict: true }) || 'listing';
+  const taken = await prisma.listing.findUnique({ where: { slug: base }, select: { id: true } });
+  await prisma.listing.create({
+    data: {
+      name: d.name, description: d.description, website: d.website, category: d.category,
+      slug: taken ? `${base}-${randomBytes(3).toString('hex')}` : base,
+      tags: d.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).slice(0, 8),
+      location: d.location || null, email: d.email, // status defaults to PENDING
+    },
+  });
+  redirect('/submit?ok=1');
+}
+export default async function SubmitPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const { error, ok } = await searchParams;
+  if (ok) return <p className="p-16 text-center">Thanks! We review new listings within 48 hours.</p>;
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 space-y-4">
+    <form action={submit} className="mx-auto max-w-lg space-y-3 p-6">
       <h1 className="text-2xl font-bold">Submit a listing</h1>
-      {(['name', 'website', 'email'] as const).map(field => (
-        <div key={field}>
-          <input
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-            value={form[field]}
-            onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
-            className="w-full border rounded px-3 py-2"
-          />
-          {errors[field] && <p className="text-red-500 text-sm">{errors[field]}</p>}
-        </div>
+      {['name', 'website', 'email', 'location', 'tags', 'description'].map(f => (
+        <input key={f} name={f} placeholder={f} className="w-full rounded border px-3 py-2" />
       ))}
-      <textarea
-        placeholder="Description (50–500 characters)"
-        value={form.description}
-        onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-        className="w-full border rounded px-3 py-2 h-28"
-      />
-      <input
-        placeholder="Tags (comma-separated: ai, productivity, design)"
-        value={form.tags}
-        onChange={e => setForm(p => ({ ...p, tags: e.target.value }))}
-        className="w-full border rounded px-3 py-2"
-      />
-      <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded font-medium">
-        Submit listing (free)
-      </button>
+      <select name="category" className="w-full rounded border px-3 py-2">
+        {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+      </select>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <button className="w-full rounded bg-indigo-600 py-2 text-white">Submit listing (free)</button>
     </form>
   );
 }
 ```
 
-### Step 2: Review Queue API + Slug Generation
+### Step 2: Review queue and approval
 
-```typescript
-// app/api/listings/submit/route.ts — Save listing to review queue
+New rows start as `PENDING` and are invisible everywhere. Before launch, add a notification (an email or Slack incoming webhook) after the `create`, and rate limiting.
 
-import { prisma } from '@/lib/prisma';
-import slugify from 'slugify';
+Until you build a review screen, approve listings by hand: run `npx prisma studio` and set a row's `status` to `APPROVED`. A review screen must sit behind real authentication (your auth provider's session check, not a shared URL or token); never expose an unauthenticated approve endpoint.
 
-export async function POST(req: Request) {
-  const body = await req.json();
+### Step 3: Search and filter
 
-  // Generate unique slug
-  let slug = slugify(body.name, { lower: true, strict: true });
-  const existing = await prisma.listing.findUnique({ where: { slug } });
-  if (existing) slug = `${slug}-${Date.now()}`;
-
-  await prisma.listing.create({
-    data: {
-      name: body.name,
-      slug,
-      description: body.description,
-      website: body.website,
-      category: body.category,
-      tags: body.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
-      location: body.location || null,
-      email: body.email,
-      status: 'pending',  // Goes to review queue
-    },
-  });
-
-  // Notify admin
-  await fetch(`${process.env.SLACK_WEBHOOK_URL}`, {
-    method: 'POST',
-    body: JSON.stringify({ text: `New listing submitted: ${body.name} (${body.website})` }),
-  });
-
-  return Response.json({ ok: true });
-}
-
-// app/api/admin/listings/[id]/approve/route.ts — Admin: approve listing
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  // In production: add admin auth here
-  await prisma.listing.update({
-    where: { id: params.id },
-    data: { status: 'approved' },
-  });
-  return Response.json({ ok: true });
-}
-```
-
-### Step 3: Search and Filter
+A listing is featured while `featuredEnd` is in the future, so spots expire by themselves with no cron job. Search and `?category=tool` are plain GET parameters, so every view is a shareable URL.
 
 ```tsx
-// app/page.tsx — Directory homepage with search and filters
-
+// app/page.tsx
+import Link from 'next/link';
+import type { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
-
-interface SearchParams {
-  q?: string;
-  category?: string;
-  location?: string;
-}
-
-export default async function DirectoryPage({ searchParams }: { searchParams: SearchParams }) {
-  const listings = await prisma.listing.findMany({
-    where: {
-      status: 'approved',
-      ...(searchParams.q && {
-        OR: [
-          { name: { contains: searchParams.q, mode: 'insensitive' } },
-          { description: { contains: searchParams.q, mode: 'insensitive' } },
-          { tags: { has: searchParams.q.toLowerCase() } },
-        ],
-      }),
-      ...(searchParams.category && { category: searchParams.category }),
-      ...(searchParams.location && { location: { contains: searchParams.location, mode: 'insensitive' } }),
-    },
-    orderBy: [
-      { featured: 'desc' },  // Featured first
-      { createdAt: 'desc' },
-    ],
-  });
-
+export default async function DirectoryPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }) {
+  const { q, category } = await searchParams; // a Promise in Next.js 15+
+  const now = new Date();
+  const filters: Prisma.ListingWhereInput = {
+    status: 'APPROVED',
+    ...(q && { OR: [
+      { name: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+      { tags: { has: q.toLowerCase() } },
+    ] }),
+    ...(category && { category }),
+  };
+  const [featured, regular] = await Promise.all([
+    prisma.listing.findMany({ where: { AND: [filters, { featuredEnd: { gt: now } }] }, orderBy: { featuredEnd: 'desc' } }),
+    prisma.listing.findMany({
+      where: { AND: [filters, { OR: [{ featuredEnd: null }, { featuredEnd: { lte: now } }] }] },
+      orderBy: { createdAt: 'desc' }, take: 24,
+    }),
+  ]);
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">The best tools for indie hackers</h1>
-      <form className="flex gap-3 mb-8">
-        <input name="q" placeholder="Search..." defaultValue={searchParams.q}
-          className="flex-1 border rounded px-3 py-2" />
-        <select name="category" defaultValue={searchParams.category}
-          className="border rounded px-3 py-2">
-          <option value="">All categories</option>
-          <option value="tool">Tools</option>
-          <option value="agency">Agencies</option>
-          <option value="product">Products</option>
-        </select>
-        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded">Search</button>
+    <div className="mx-auto max-w-4xl p-6">
+      <form className="mb-8">
+        <input name="q" placeholder="Search..." defaultValue={q} className="w-full rounded border px-3 py-2" />
       </form>
-
-      <div className="grid gap-4">
-        {listings.map(listing => (
-          <a key={listing.id} href={`/${listing.slug}`}
-            className={`border rounded-lg p-4 flex gap-4 hover:shadow-md transition ${listing.featured ? 'border-yellow-400 bg-yellow-50' : ''}`}>
-            {listing.featured && (
-              <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded font-bold self-start">
-                ⭐ Featured
-              </span>
-            )}
-            <div>
-              <h2 className="font-semibold text-lg">{listing.name}</h2>
-              <p className="text-gray-600 text-sm">{listing.description}</p>
-              <div className="flex gap-2 mt-2">
-                {listing.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded">{tag}</span>
-                ))}
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
+      {[...featured, ...regular].map(l => (
+        <Link key={l.id} href={`/listing/${l.slug}`} className="mb-4 block rounded-lg border p-4">
+          <h2 className="text-lg font-semibold">{l.featuredEnd && l.featuredEnd > now && '★ '}{l.name}</h2>
+          <p className="text-sm text-gray-600">{l.description}</p>
+        </Link>
+      ))}
     </div>
   );
 }
 ```
 
-### Step 4: Featured Listings with Stripe
+### Step 4: Paid featured spots with Stripe Checkout
 
 ```typescript
-// app/api/listings/[id]/feature/route.ts — Create Stripe checkout for featured spot
-
+// app/api/listings/[id]/feature/route.ts
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const listing = await prisma.listing.findUnique({ where: { id: params.id } });
-  if (!listing || listing.status !== 'approved') {
-    return Response.json({ error: 'Listing not found or not approved' }, { status: 404 });
-  }
-
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const listing = await prisma.listing.findFirst({ where: { id, status: 'APPROVED' } });
+  if (!listing) return Response.json({ error: 'Not found' }, { status: 404 });
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [{
       price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Featured Listing — 30 days',
-          description: `"${listing.name}" featured at the top of the directory`,
-        },
-        unit_amount: 9900,  // $99.00
+        currency: 'usd', unit_amount: 9900, // $99.00 in cents
+        product_data: { name: 'Featured listing, 30 days', description: listing.name },
       },
       quantity: 1,
     }],
     metadata: { listingId: listing.id },
-    success_url: `${process.env.NEXT_PUBLIC_URL}/${listing.slug}?featured=success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_URL}/${listing.slug}`,
+    success_url: `${process.env.SITE_URL}/listing/${listing.slug}?featured=success`,
+    cancel_url: `${process.env.SITE_URL}/listing/${listing.slug}`,
   });
-
   return Response.json({ checkoutUrl: session.url });
 }
-
-// app/api/webhooks/stripe/route.ts (addition)
-// Handle checkout.session.completed → mark listing as featured
-async function handleFeaturedPayment(session: Stripe.Checkout.Session) {
-  const listingId = session.metadata?.listingId;
-  if (!listingId) return;
-
-  await prisma.listing.update({
-    where: { id: listingId },
-    data: {
-      featured: true,
-      featuredAt: new Date(),
-      featuredEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-  });
-}
 ```
 
-### Step 5: SEO — Dynamic Meta, JSON-LD, Sitemap
+Only the webhook may mark a listing as featured, because anyone can open the success URL:
 
 ```typescript
-// app/[slug]/page.tsx — Listing detail page with full SEO
-
+// app/api/webhooks/stripe/route.ts
+import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const listing = await prisma.listing.findUnique({ where: { slug: params.slug } });
-  if (!listing) return {};
-
-  return {
-    title: `${listing.name} — IndieDirectory`,
-    description: listing.description,
-    openGraph: {
-      title: listing.name,
-      description: listing.description,
-      url: `https://yoursite.com/${listing.slug}`,
-      images: listing.logo ? [{ url: listing.logo }] : [],
-    },
-  };
-}
-
-export default async function ListingPage({ params }: { params: { slug: string } }) {
-  const listing = await prisma.listing.findUnique({
-    where: { slug: params.slug, status: 'approved' },
-  });
-  if (!listing) notFound();
-
-  // Track click
-  await prisma.listing.update({
-    where: { id: listing.id },
-    data: { clicks: { increment: 1 } },
-  });
-
-  // JSON-LD structured data for Google
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: listing.name,
-    url: listing.website,
-    description: listing.description,
-  };
-
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-3xl font-bold">{listing.name}</h1>
-        <p className="text-gray-600 mt-2">{listing.description}</p>
-        <div className="flex gap-2 mt-4">
-          {listing.tags.map(tag => (
-            <span key={tag} className="bg-gray-100 px-3 py-1 rounded-full text-sm">{tag}</span>
-          ))}
-        </div>
-        <a href={listing.website} target="_blank" rel="noopener noreferrer"
-          className="mt-6 inline-block bg-indigo-600 text-white px-6 py-2 rounded font-medium">
-          Visit {listing.name} →
-        </a>
-      </div>
-    </>
-  );
-}
-
-// app/sitemap.ts — Auto-generated sitemap
-export default async function sitemap() {
-  const listings = await prisma.listing.findMany({
-    where: { status: 'approved' },
-    select: { slug: true, updatedAt: true },
-  });
-
-  return listings.map(l => ({
-    url: `https://yoursite.com/${l.slug}`,
-    lastModified: l.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+export async function POST(req: Request) {
+  let event: Stripe.Event;
+  try { // req.text(), not req.json(): the signature covers the raw bytes
+    event = stripe.webhooks.constructEvent(
+      await req.text(), req.headers.get('stripe-signature') ?? '', process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch {
+    return Response.json({ error: 'Bad signature' }, { status: 400 });
+  }
+  if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
+    const session = event.data.object;
+    const id = session.metadata?.listingId;
+    const l = id && session.payment_status === 'paid' ? await prisma.listing.findUnique({ where: { id } }) : null;
+    if (l) { // renewing early extends the current period
+      const from = l.featuredEnd && l.featuredEnd > new Date() ? +l.featuredEnd : Date.now();
+      await prisma.listing.update({ where: { id: l.id }, data: { featuredEnd: new Date(from + THIRTY_DAYS) } });
+    }
+  }
+  return Response.json({ received: true });
 }
 ```
 
-## Revenue Model
+Locally, forward events with `stripe listen --forward-to 127.0.0.1:3000/api/webhooks/stripe`; in production, add the endpoint in the dashboard for both event types. Stripe can deliver an event twice, so record processed `event.id`s before taking real money.
 
-- Free submission: listed in standard order
-- Featured spot: $99/month for top placement with yellow highlight badge
-- Sponsored category: $199/month to be the top listing in a category
-- Newsletter feature: $49 to be included in the weekly digest email
+### Step 5: SEO — metadata, JSON-LD, sitemap
 
-With 50 featured listings at $99 = $4,950/month. That's a real business from a simple directory.
+```tsx
+// app/listing/[slug]/page.tsx
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { cache } from 'react';
+import { prisma } from '@/lib/prisma';
+// One cached query for metadata and page; only approved listings are public
+const getListing = cache((slug: string) => prisma.listing.findFirst({ where: { slug, status: 'APPROVED' } }));
+type Props = { params: Promise<{ slug: string }> };
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const l = await getListing((await params).slug);
+  if (!l) return {};
+  return {
+    title: `${l.name} — Niche Directory`, description: l.description,
+    alternates: { canonical: `${process.env.SITE_URL}/listing/${l.slug}` },
+  };
+}
+export default async function ListingPage({ params }: Props) {
+  const l = await getListing((await params).slug);
+  if (!l) notFound();
+  const jsonLd = {
+    '@context': 'https://schema.org', '@type': 'WebPage', name: l.name, description: l.description,
+    url: `${process.env.SITE_URL}/listing/${l.slug}`, about: { '@type': 'Thing', name: l.name, url: l.website },
+  };
+  return (
+    <div className="mx-auto max-w-2xl p-6">
+      {/* escape "<" so a listing name can never close the script tag */}
+      <script type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <h1 className="text-3xl font-bold">{l.name}</h1>
+      <p className="mt-2 text-gray-600">{l.description}</p>
+      <a href={l.website} target="_blank" rel={l.featuredEnd && l.featuredEnd > new Date() ? 'sponsored noopener' : 'nofollow ugc noopener'}
+        className="mt-6 inline-block rounded bg-indigo-600 px-6 py-2 text-white">Visit {l.name} →</a>
+    </div>
+  );
+}
+```
+
+Links to user-submitted sites carry `rel="nofollow ugc"` and paid featured links `rel="sponsored"`, as Google's link guidelines ask. A pending listing returns 404 for both the page and its metadata.
+
+```typescript
+// app/sitemap.ts
+import type { MetadataRoute } from 'next';
+import { prisma } from '@/lib/prisma';
+export const dynamic = 'force-dynamic'; // read the database per request, not at build time
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const listings = await prisma.listing.findMany({ where: { status: 'APPROVED' }, select: { slug: true, updatedAt: true } });
+  return listings.map(l => ({ url: `${process.env.SITE_URL}/listing/${l.slug}`, lastModified: l.updatedAt }));
+}
+```
+
+## Real-World Example
+
+Mira builds "Remote Dev Tools", a directory for tools used by distributed teams. She seeds 60 listings by hand, opens submissions, and approves new ones in batches. After a few months of indexed pages, tool makers ask how to be placed first, and she sends them the featured link: a $99 Checkout payment that keeps the listing at the top for 30 days. The price and period are Mira's own choices; change them to fit your niche.
 
 ## Related Skills
 
-- [prisma](../skills/prisma/) — Database schema and full-text search
-- [stripe-billing](../skills/stripe-billing/) — One-time featured listing payments
-- [nextjs](../skills/nextjs/) — App Router, metadata API, dynamic sitemap
+- [prisma](../skills/prisma/) — Schema, migrations and typed queries for the listing table
+- [stripe-billing](../skills/stripe-billing/) — Stripe Checkout, webhooks and billing concepts for featured spots
+- [nextjs](../skills/nextjs/) — App Router, async params, metadata API and the generated sitemap
