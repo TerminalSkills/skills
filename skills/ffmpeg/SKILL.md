@@ -8,17 +8,16 @@ description: >-
   re-encode media, create GIFs from video, add watermarks, normalize audio,
   stream media, or build automated media processing pipelines.
 license: Apache-2.0
-compatibility: 'Linux, macOS, Windows'
+compatibility: 'Linux, macOS, Windows. FFmpeg 6 or newer (9.0 current as of October 2026)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: content
   tags:
     - ffmpeg
     - video
     - audio
     - transcode
-    - convert
     - media
 ---
 
@@ -26,7 +25,7 @@ metadata:
 
 ## Overview
 
-FFmpeg is the Swiss Army knife of media processing. It handles virtually every audio and video format, codec, and container in existence. This skill covers format conversion, codec transcoding, trimming, concatenation, filtering, compression, thumbnail extraction, subtitle embedding, audio normalization, GIF creation, watermarking, and pipeline integration with tools like yt-dlp and gallery-dl.
+FFmpeg is the Swiss Army knife of media processing. It handles virtually every audio and video format, codec, and container in existence. This skill covers format conversion, codec transcoding, trimming, concatenation, filtering, compression, thumbnail extraction, subtitle embedding, audio normalization, GIF creation, watermarking, and and batch loops. Every command below was run against FFmpeg 6.1.
 
 ## Instructions
 
@@ -64,9 +63,14 @@ ffmpeg -i input.avi -c:v libx264 -crf 23 -c:a aac -b:a 128k output.mp4
 # MOV → MP4 (Apple ProRes to H.264)
 ffmpeg -i input.mov -c:v libx264 -crf 18 -preset slow -c:a aac output.mp4
 
-# Any format → MP4 with web-optimized fast start
-ffmpeg -i input.* -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart output.mp4
+# Web/phone-safe MP4: faststart plus 4:2:0 pixels
+ffmpeg -i input.mov -c:v libx264 -crf 23 -preset medium -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
+
+# H.265 (about half the size; -tag:v hvc1 makes it play in QuickTime and on iPhones)
+ffmpeg -i input.mp4 -c:v libx265 -crf 28 -tag:v hvc1 -c:a aac output-hevc.mp4
 ```
+
+Add `-pix_fmt yuv420p` whenever the file must play on phones, Safari or TVs: libx264 keeps the source pixel format, and a 4:4:4 or 10-bit source gives an H.264 file many players refuse. Stream copy (`-c copy`) from WebM only works for the container; WebM almost always holds VP9/Opus, which iPhones and many TVs cannot play, so re-encode for those targets.
 
 **CRF (Constant Rate Factor):** Controls quality. Lower = better quality, larger file.
 - 18: Visually lossless
@@ -78,7 +82,8 @@ ffmpeg -i input.* -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +fastst
 
 ```bash
 # Extract audio from video
-ffmpeg -i video.mp4 -vn -c:a copy audio.aac          # Copy codec (fast)
+ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 video.mp4  # aac?
+ffmpeg -i video.mp4 -vn -c:a copy audio.aac          # Copy codec (fast, only if the source audio is AAC)
 ffmpeg -i video.mp4 -vn -c:a libmp3lame -q:a 2 audio.mp3  # Convert to MP3
 ffmpeg -i video.mp4 -vn -c:a flac audio.flac          # Lossless FLAC
 
@@ -87,8 +92,10 @@ ffmpeg -i input.wav -c:a libmp3lame -b:a 320k output.mp3
 ffmpeg -i input.mp3 -c:a libopus -b:a 128k output.opus
 ffmpeg -i input.flac -c:a aac -b:a 256k output.m4a
 
-# Normalize audio volume
+# Normalize loudness (single pass is dynamic; for accurate two-pass, first run with
+# print_format=json -f null - and feed the measured_* values back as measured_I=… etc.)
 ffmpeg -i input.mp3 -af loudnorm=I=-16:LRA=11:TP=-1.5 output.mp3
+ffmpeg -i input.mp3 -af loudnorm=I=-16:LRA=11:TP=-1.5:print_format=json -f null -
 
 # Change sample rate
 ffmpeg -i input.wav -ar 44100 output.wav
@@ -100,15 +107,19 @@ ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output
 ### Step 4: Trim, Cut, and Concatenate
 
 ```bash
-# Trim from timestamp to duration
-ffmpeg -i input.mp4 -ss 00:01:30 -t 00:00:45 -c copy clip.mp4    # 45s starting at 1:30
+# Fast cut (stream copy): the start snaps to a keyframe, so it can be off by seconds
+ffmpeg -ss 00:01:30 -i input.mp4 -t 00:00:45 -c copy clip.mp4    # 45s starting near 1:30
 
-# Trim from start to end timestamp
-ffmpeg -i input.mp4 -ss 00:05:00 -to 00:10:00 -c copy clip.mp4   # 5:00 to 10:00
+# Frame-accurate cut: re-encode
+ffmpeg -ss 00:05:00 -to 00:10:00 -i input.mp4 -c:v libx264 -crf 23 -c:a aac clip.mp4   # 5:00 to 10:00
 
 # First 30 seconds
 ffmpeg -i input.mp4 -t 30 -c copy first30.mp4
+```
 
+With `-ss` before `-i` the seek is fast. In FFmpeg 6.1 `-to` then still means a position in the source, so `-ss 00:05:00 -to 00:10:00` writes 5 minutes; use `-t` for a duration. Put `-ss` after `-i` only if you need to decode up to that point.
+
+```bash
 # Concatenate files (create file list first)
 cat > filelist.txt << 'EOF'
 file 'clip1.mp4'
@@ -139,6 +150,7 @@ ffmpeg -i input.mp4 -c:v libx264 -crf 28 -preset faster -c:a aac -b:a 96k small.
 # Two-pass encoding for target file size
 ffmpeg -i input.mp4 -c:v libx264 -b:v 1M -pass 1 -an -f null /dev/null
 ffmpeg -i input.mp4 -c:v libx264 -b:v 1M -pass 2 -c:a aac -b:a 128k output.mp4
+rm -f ffmpeg2pass-0.log ffmpeg2pass-0.log.mbtree   # pass logs are left in the current directory
 
 # Change framerate
 ffmpeg -i input.mp4 -r 30 output.mp4
@@ -150,8 +162,8 @@ ffmpeg -i input.mp4 -r 30 output.mp4
 # Single screenshot at timestamp
 ffmpeg -i input.mp4 -ss 00:01:30 -frames:v 1 thumb.jpg
 
-# Screenshot every 10 seconds
-ffmpeg -i input.mp4 -vf "fps=1/10" thumbs/frame_%04d.jpg
+# Screenshot every 10 seconds (create the thumbs/ directory first)
+mkdir -p thumbs && ffmpeg -i input.mp4 -vf "fps=1/10" thumbs/frame_%04d.jpg
 
 # Thumbnail grid (4x4 contact sheet)
 ffmpeg -i input.mp4 -vf "select='not(mod(n,300))',scale=320:-1,tile=4x4" -frames:v 1 grid.jpg
@@ -172,24 +184,25 @@ ffmpeg -i input.mp4 -vf "ass=subs.ass" output.mp4
 # Add subtitle track (soft subs, user can toggle)
 ffmpeg -i input.mp4 -i subs.srt -c copy -c:s mov_text output.mp4
 
-# Extract subtitles from video
+# Extract a text subtitle track (image-based tracks such as PGS cannot become .srt)
 ffmpeg -i input.mkv -map 0:s:0 subs.srt
 ```
 
 ### Step 8: Filters and Effects
 
 ```bash
-# Create GIF from video segment
-ffmpeg -i input.mp4 -ss 5 -t 3 -vf "fps=15,scale=480:-1:flags=lanczos" output.gif
+# GIF from a video segment, with a generated palette in one command
+ffmpeg -ss 5 -t 3 -i input.mp4 -vf "fps=15,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" output.gif
+```
 
-# High-quality GIF with palette
-ffmpeg -i input.mp4 -ss 5 -t 3 -vf "fps=15,scale=480:-1:flags=lanczos,palettegen" palette.png
-ffmpeg -i input.mp4 -i palette.png -ss 5 -t 3 -lavfi "fps=15,scale=480:-1:flags=lanczos[v];[v][1:v]paletteuse" output.gif
+Put `-ss`/`-t` before `-i` for GIFs so the filter graph only processes the clip.
 
+```bash
 # Add watermark
 ffmpeg -i input.mp4 -i watermark.png -filter_complex "overlay=W-w-10:H-h-10" output.mp4
 
 # Speed up / slow down
+# (files without an audio track: use only -vf "setpts=0.5*PTS" and add -an)
 ffmpeg -i input.mp4 -filter_complex "[0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a]" -map "[v]" -map "[a]" fast.mp4
 ffmpeg -i input.mp4 -filter_complex "[0:v]setpts=2.0*PTS[v];[0:a]atempo=0.5[a]" -map "[v]" -map "[a]" slow.mp4
 
@@ -200,8 +213,8 @@ ffmpeg -i input.mp4 -vf "transpose=2" rotated.mp4    # 90° counter-clockwise
 # Crop video (width:height:x:y)
 ffmpeg -i input.mp4 -vf "crop=1280:720:0:180" cropped.mp4
 
-# Fade in/out
-ffmpeg -i input.mp4 -vf "fade=in:0:30,fade=out:870:30" -af "afade=in:0:30,afade=out:870:30" output.mp4
+# Fade in over 1 s, fade out over the last second of a 12-second clip (st = start second, d = duration)
+ffmpeg -i input.mp4 -vf "fade=in:st=0:d=1,fade=out:st=11:d=1" -af "afade=in:st=0:d=1,afade=out:st=11:d=1" output.mp4
 ```
 
 ### Step 9: Media Information
@@ -223,19 +236,20 @@ ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name -of csv=p=0
 ### Step 10: Batch Processing
 
 ```bash
-# Convert all WebM files to MP4
+# Convert all WebM files to MP4 (-nostdin stops ffmpeg from swallowing the loop's input)
 for f in *.webm; do
-  ffmpeg -i "$f" -c:v libx264 -crf 23 -c:a aac "${f%.webm}.mp4"
+  ffmpeg -nostdin -i "$f" -c:v libx264 -crf 23 -pix_fmt yuv420p -c:a aac "${f%.webm}.mp4"
 done
 
 # Compress all MP4 files in directory
+mkdir -p compressed
 for f in *.mp4; do
-  ffmpeg -i "$f" -c:v libx264 -crf 28 -preset fast -c:a aac "compressed_${f}"
+  ffmpeg -nostdin -i "$f" -c:v libx264 -crf 28 -preset fast -c:a aac "compressed/$f"
 done
 
 # Extract audio from all videos
 for f in *.mp4; do
-  ffmpeg -i "$f" -vn -c:a libmp3lame -q:a 2 "${f%.mp4}.mp3"
+  ffmpeg -nostdin -i "$f" -vn -c:a libmp3lame -q:a 2 "${f%.mp4}.mp3"
 done
 ```
 
@@ -246,7 +260,7 @@ done
 
 The agent will:
 1. Check if the WebM files contain H.264+AAC (stream copy possible) or VP9+Opus (re-encode needed) using `ffprobe`.
-2. For VP9/Opus files, run: `for f in *.webm; do ffmpeg -i "$f" -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart "${f%.webm}.mp4"; done`
+2. For VP9/Opus files, run: `for f in *.webm; do ffmpeg -nostdin -i "$f" -c:v libx264 -crf 23 -preset medium -pix_fmt yuv420p -c:a aac -movflags +faststart "${f%.webm}.mp4"; done`
 3. The `-movflags +faststart` flag moves metadata to the beginning of the file, enabling instant playback on mobile devices and web browsers.
 4. Report conversion results with file sizes before and after.
 
@@ -255,7 +269,7 @@ The agent will:
 
 The agent will:
 1. Trim each clip to the specified timestamps using `-ss` and `-to` flags.
-2. Re-encode all clips to matching codec/resolution: `ffmpeg -i clip.mp4 -c:v libx264 -crf 23 -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1,fade=in:0:15,fade=out:st=DURATION:d=0.5" -c:a aac -ar 44100 segment_N.mp4`
+2. Re-encode all clips to matching codec/resolution: `ffmpeg -i clip.mp4 -c:v libx264 -crf 23 -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fade=in:st=0:d=0.5,fade=out:st=11.5:d=0.5" -c:a aac -ar 44100 segment_1.mp4` (set `st` to the clip length minus 0.5, read with `ffprobe`)
 3. Create a concat file list and merge: `ffmpeg -f concat -safe 0 -i filelist.txt -c copy highlight_reel.mp4`
 
 ## Guidelines
@@ -263,6 +277,7 @@ The agent will:
 - When converting yt-dlp downloads (typically WebM/VP9+Opus), always re-encode to H.264+AAC for maximum device compatibility. Use `-c:v libx264 -crf 23 -c:a aac -movflags +faststart`.
 - Use stream copy (`-c copy`) whenever possible to avoid re-encoding — it is instant and lossless. Only re-encode when changing codecs, applying filters, or when source and target containers are incompatible.
 - Always add `-movflags +faststart` when creating MP4 files for web or mobile playback; it moves the moov atom to the beginning of the file for instant streaming.
+- When an output file already exists ffmpeg asks for confirmation, which hangs scripts; add `-n` (never overwrite) or `-y` (always overwrite) in automation.
 - Use `ffprobe` before processing to understand the input format, avoiding unnecessary re-encoding.
 - For batch operations, always test the command on a single file first before running on the entire directory.
 - Prefer CRF mode over bitrate mode for single-pass encoding; it produces consistent quality across different content types.
