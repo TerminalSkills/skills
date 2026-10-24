@@ -1,13 +1,12 @@
 ---
 title: Build a Rich Text Editor with Collaboration
 slug: build-rich-text-editor-with-collaboration
-description: Build a Notion-style rich text editor with block-based content, slash commands, inline formatting, image embeds, @mentions, and real-time collaboration using Tiptap and Y.js.
+description: Build a Notion-style rich text editor with slash commands, tables, code blocks, and real-time collaboration with live cursors using Tiptap 3, Yjs, and a Hocuspocus server that stores documents in PostgreSQL.
 skills:
   - typescript
   - nextjs
-  - redis
   - postgresql
-  - hono
+  - yjs
 category: development
 tags:
   - rich-text
@@ -21,238 +20,188 @@ tags:
 
 ## The Problem
 
-Olga leads product at a 30-person knowledge base company. Their editor is a plain `<textarea>` with markdown preview. Users want WYSIWYG editing — bold, headers, images, code blocks, tables — without learning markdown. Two people editing the same document overwrite each other. They lose content when the browser crashes mid-edit. They need a modern editor with rich formatting, slash commands for power users, autosave, and real-time collaboration where multiple editors see each other's cursors.
+Olga leads product at a 30-person knowledge base company. Their editor is a plain `<textarea>` with markdown preview. Users want WYSIWYG editing (bold, headers, code blocks, tables) without learning markdown. Two people editing the same document overwrite each other, and a browser crash mid-edit loses content. They need a rich editor with slash commands for power users, and real-time collaboration where editors see each other's cursors.
 
-## Step 1: Build the Collaborative Editor
+## The Solution
+
+Use Tiptap 3 (a headless editor on ProseMirror) for the editing surface, Yjs for conflict-free merging of concurrent edits, and a Hocuspocus WebSocket server that persists the Yjs document state to PostgreSQL. Because every change is synced to the server as it happens, there is no separate "autosave" step: a crash loses nothing that reached the server, and a reconnecting client merges its offline edits instead of overwriting.
+
+Tiptap 3 renamed several things the older tutorials still use: `history: false` is now `undoRedo: false`, `CollaborationCursor` is now `CollaborationCaret`, Link and Underline ship inside StarterKit, and task lists live in `@tiptap/extension-list`.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install the packages
+
+```bash
+npm install @tiptap/react @tiptap/pm @tiptap/core @tiptap/starter-kit @tiptap/extensions   @tiptap/extension-image @tiptap/extension-list @tiptap/extension-table   @tiptap/extension-code-block-lowlight @tiptap/extension-collaboration   @tiptap/extension-collaboration-caret @tiptap/suggestion   @hocuspocus/provider yjs lowlight
+npm install @hocuspocus/server @hocuspocus/extension-database pg   # collaboration server
+```
+
+### Step 2: Add slash commands
+
+Typing `/` opens a filtered command list. Tiptap's `Suggestion` utility handles the trigger, query, and keyboard events; you supply the popup (`render`) with whatever UI library you already use.
 
 ```typescript
-// src/editor/collaborative-editor.tsx — Tiptap + Y.js collaborative rich text editor
-"use client";
+// src/slash-command.ts
+import { Extension, type Editor, type Range } from "@tiptap/core";
+import Suggestion from "@tiptap/suggestion";
 
-import { useEditor, EditorContent, BubbleMenu, FloatingMenu } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import Mention from "@tiptap/extension-mention";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
-import { HocuspocusProvider } from "@hocuspocus/provider";
-import * as Y from "yjs";
-import { useState, useEffect, useCallback, useRef } from "react";
-
-interface EditorProps {
-  documentId: string;
-  userId: string;
-  userName: string;
-  userColor: string;
-  onSave?: (content: any) => void;
+export interface SlashItem {
+  title: string;
+  run: (editor: Editor, range: Range) => void;
 }
 
-// Slash command menu items
-const SLASH_COMMANDS = [
-  { title: "Heading 1", command: "heading", attrs: { level: 1 }, icon: "H1" },
-  { title: "Heading 2", command: "heading", attrs: { level: 2 }, icon: "H2" },
-  { title: "Heading 3", command: "heading", attrs: { level: 3 }, icon: "H3" },
-  { title: "Bullet List", command: "bulletList", icon: "•" },
-  { title: "Numbered List", command: "orderedList", icon: "1." },
-  { title: "Task List", command: "taskList", icon: "☑" },
-  { title: "Code Block", command: "codeBlock", icon: "</>" },
-  { title: "Blockquote", command: "blockquote", icon: "❝" },
-  { title: "Table", command: "table", icon: "▦" },
-  { title: "Image", command: "image", icon: "🖼" },
-  { title: "Divider", command: "horizontalRule", icon: "—" },
+export const SLASH_ITEMS: SlashItem[] = [
+  { title: "Heading 1", run: (e, r) => e.chain().focus().deleteRange(r).setNode("heading", { level: 1 }).run() },
+  { title: "Heading 2", run: (e, r) => e.chain().focus().deleteRange(r).setNode("heading", { level: 2 }).run() },
+  { title: "Bullet list", run: (e, r) => e.chain().focus().deleteRange(r).toggleBulletList().run() },
+  { title: "Task list", run: (e, r) => e.chain().focus().deleteRange(r).toggleTaskList().run() },
+  { title: "Code block", run: (e, r) => e.chain().focus().deleteRange(r).toggleCodeBlock().run() },
+  { title: "Table", run: (e, r) => e.chain().focus().deleteRange(r).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+  { title: "Divider", run: (e, r) => e.chain().focus().deleteRange(r).setHorizontalRule().run() },
 ];
 
-export function CollaborativeEditor({ documentId, userId, userName, userColor, onSave }: EditorProps) {
-  const [showSlashMenu, setShowSlashMenu] = useState(false);
-  const [slashFilter, setSlashFilter] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+// Typing "/" opens the menu. `render` is where you mount your popup (tippy, Radix, plain DOM).
+export const SlashCommand = Extension.create({
+  name: "slashCommand",
+  addProseMirrorPlugins() {
+    return [
+      Suggestion<SlashItem, SlashItem>({
+        editor: this.editor,
+        char: "/",
+        items: ({ query }) => SLASH_ITEMS.filter((i) => i.title.toLowerCase().includes(query.toLowerCase())),
+        command: ({ editor, range, props }) => props.run(editor, range),
+        render: () => ({
+          onStart: (props) => { /* show popup at props.clientRect?.(), list props.items */ },
+          onUpdate: (props) => { /* refresh the list */ },
+          onKeyDown: ({ event }) => event.key === "Escape", // true = handled
+          onExit: () => { /* hide popup */ },
+        }),
+      }),
+    ];
+  },
+});
+```
 
-  // Y.js document for collaboration
-  const ydoc = useRef(new Y.Doc());
+### Step 3: Build the collaborative editor hook
 
-  // Connect to collaboration server
-  const provider = useRef(
-    new HocuspocusProvider({
-      url: process.env.NEXT_PUBLIC_COLLAB_URL || "ws://localhost:8080",
-      name: documentId,
-      document: ydoc.current,
-      token: userId,
-    })
-  );
+The hook creates one Yjs document and one provider per document id, wires them into the `Collaboration` and `CollaborationCaret` extensions, and cleans up on unmount. `immediatelyRender: false` is required when the component renders on the server in Next.js.
 
-  const editor = useEditor({
+```typescript
+// src/use-collab-editor.ts
+"use client";
+import { useEffect, useMemo } from "react";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";           // v3 already bundles Link and Underline
+import Image from "@tiptap/extension-image";
+import { Placeholder } from "@tiptap/extensions";
+import { TaskList, TaskItem } from "@tiptap/extension-list";
+import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { HocuspocusProvider } from "@hocuspocus/provider";
+import { createLowlight, common } from "lowlight";
+import * as Y from "yjs";
+import { SlashCommand } from "./slash-command";
+
+const lowlight = createLowlight(common);
+
+export function useCollabEditor(opts: { documentId: string; token: string; userName: string; userColor: string }) {
+  const { ydoc, provider } = useMemo(() => {
+    const ydoc = new Y.Doc();
+    const provider = new HocuspocusProvider({
+      url: process.env.NEXT_PUBLIC_COLLAB_URL ?? "ws://127.0.0.1:1234",
+      name: opts.documentId,
+      document: ydoc,
+      token: opts.token,
+    });
+    return { ydoc, provider };
+  }, [opts.documentId, opts.token]);
+
+  useEffect(() => () => { provider.destroy(); ydoc.destroy(); }, [provider, ydoc]);
+
+  return useEditor({
+    immediatelyRender: false,          // required with Next.js SSR
     extensions: [
       StarterKit.configure({
-        history: false,          // Y.js handles undo/redo
+        undoRedo: false,               // v3 name for `history`; Yjs provides undo/redo
+        link: { openOnClick: false },
       }),
-      Image.configure({
-        allowBase64: false,
-        HTMLAttributes: { class: "editor-image" },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { class: "editor-link" },
-      }),
-      Placeholder.configure({
-        placeholder: 'Type "/" for commands...',
-      }),
+      Image.configure({ allowBase64: false }),
+      Placeholder.configure({ placeholder: 'Type "/" for commands...' }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      CodeBlockLowlight,
+      CodeBlockLowlight.configure({ lowlight }),
       Table.configure({ resizable: true }),
-      TableRow, TableCell, TableHeader,
-      Mention.configure({
-        HTMLAttributes: { class: "mention" },
-        suggestion: {
-          items: ({ query }: any) => searchUsers(query),
-          render: () => ({
-            onStart: (props: any) => { /* show mention popup */ },
-            onUpdate: (props: any) => { /* update popup */ },
-            onExit: () => { /* hide popup */ },
-          }),
-        },
-      }),
-      // Real-time collaboration
-      Collaboration.configure({
-        document: ydoc.current,
-      }),
-      CollaborationCursor.configure({
-        provider: provider.current,
-        user: { name: userName, color: userColor },
-      }),
+      TableRow, TableHeader, TableCell,
+      SlashCommand,
+      Collaboration.configure({ document: ydoc }),
+      CollaborationCaret.configure({ provider, user: { name: opts.userName, color: opts.userColor } }),
     ],
-    onUpdate: ({ editor }) => {
-      // Debounced autosave
-      debouncedSave(editor.getJSON());
-    },
-  });
-
-  // Autosave every 3 seconds of inactivity
-  const debouncedSave = useCallback(
-    debounce(async (content: any) => {
-      setSaving(true);
-      try {
-        await fetch(`/api/documents/${documentId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
-        });
-        setLastSaved(new Date());
-      } finally {
-        setSaving(false);
-      }
-    }, 3000),
-    [documentId]
-  );
-
-  // Handle slash command execution
-  const executeSlashCommand = useCallback((command: typeof SLASH_COMMANDS[0]) => {
-    if (!editor) return;
-
-    // Delete the "/" trigger
-    editor.chain().focus().deleteRange({
-      from: editor.state.selection.from - slashFilter.length - 1,
-      to: editor.state.selection.from,
-    }).run();
-
-    switch (command.command) {
-      case "heading":
-        editor.chain().focus().toggleHeading(command.attrs as any).run();
-        break;
-      case "bulletList":
-        editor.chain().focus().toggleBulletList().run();
-        break;
-      case "orderedList":
-        editor.chain().focus().toggleOrderedList().run();
-        break;
-      case "taskList":
-        editor.chain().focus().toggleTaskList().run();
-        break;
-      case "codeBlock":
-        editor.chain().focus().toggleCodeBlock().run();
-        break;
-      case "blockquote":
-        editor.chain().focus().toggleBlockquote().run();
-        break;
-      case "table":
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-        break;
-      case "image":
-        const url = prompt("Image URL:");
-        if (url) editor.chain().focus().setImage({ src: url }).run();
-        break;
-      case "horizontalRule":
-        editor.chain().focus().setHorizontalRule().run();
-        break;
-    }
-
-    setShowSlashMenu(false);
-  }, [editor, slashFilter]);
-
-  // Image upload via drag & drop
-  const handleDrop = useCallback(async (event: DragEvent) => {
-    if (!editor) return;
-    const files = event.dataTransfer?.files;
-    if (!files?.length) return;
-
-    event.preventDefault();
-
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith("image/")) continue;
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const { url } = await res.json();
-
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
-
-  const filteredCommands = SLASH_COMMANDS.filter((cmd) =>
-    cmd.title.toLowerCase().includes(slashFilter.toLowerCase())
-  );
-
-  if (!editor) return null;
-
-  return {
-    editor,
-    showSlashMenu,
-    filteredCommands,
-    saving,
-    lastSaved,
-    executeSlashCommand,
-    handleDrop,
-  };
-}
-
-async function searchUsers(query: string): Promise<Array<{ id: string; label: string }>> {
-  const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&limit=5`);
-  const users = await res.json();
-  return users.map((u: any) => ({ id: u.id, label: u.name }));
-}
-
-function debounce<T extends (...args: any[]) => void>(fn: T, ms: number): T {
-  let timer: any;
-  return ((...args: any[]) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); }) as T;
+  }, [ydoc, provider]);
 }
 ```
 
-## Results
+Render it with `<EditorContent editor={editor} />` from `@tiptap/react`. Pass a short-lived session token as `token`, never a bare user id in production.
 
-- **Markdown barrier eliminated** — WYSIWYG editing means non-technical team members create content without learning syntax; adoption across the company tripled
-- **Slash commands for power users** — type "/" to see all formatting options; experienced users insert tables, code blocks, and images without touching the toolbar
-- **No more content loss** — autosave every 3 seconds means browser crashes lose at most 3 seconds of work; Y.js preserves document state across reconnections
-- **Real-time collaboration** — multiple editors see each other's cursors and changes instantly; no more "someone else was editing this document" conflicts
-- **@mentions drive engagement** — mentioning a teammate in a document sends them a notification; document discussions happen in context instead of Slack
+### Step 4: Run the collaboration server
+
+Hocuspocus loads a document's Yjs state when the first client opens it and stores it (debounced) as clients edit. The server binds to 127.0.0.1; put a TLS-terminating reverse proxy in front of it for `wss://` in production. `onAuthenticate` runs before any document is served: throw to reject the connection.
+
+```sql
+CREATE TABLE documents (
+  id         text PRIMARY KEY,
+  ydoc       bytea NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+```typescript
+// src/server.ts
+import { Server } from "@hocuspocus/server";
+import { Database } from "@hocuspocus/extension-database";
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+const server = new Server({
+  address: "127.0.0.1",
+  port: 1234,
+  async onAuthenticate({ token }) {
+    const user = await verifySession(token);     // your own check; throw to reject
+    return { user };
+  },
+  extensions: [
+    new Database({
+      fetch: async ({ documentName }) => {
+        const { rows } = await pool.query("SELECT ydoc FROM documents WHERE id = $1", [documentName]);
+        return rows[0]?.ydoc ?? null;            // bytea -> Buffer/Uint8Array
+      },
+      store: async ({ documentName, state }) => {
+        await pool.query(
+          `INSERT INTO documents (id, ydoc) VALUES ($1, $2)
+           ON CONFLICT (id) DO UPDATE SET ydoc = EXCLUDED.ydoc, updated_at = now()`,
+          [documentName, state],
+        );
+      },
+    }),
+  ],
+});
+
+async function verifySession(token: string) { if (!token) throw new Error("unauthorized"); return { id: token }; }
+server.listen();
+```
+
+`DATABASE_URL` comes from the environment. Replace the placeholder `verifySession` with a real check of your session token.
+
+## Real-World Example
+
+Olga's team ships the editor behind their existing document pages. Within the first week support stops getting "my changes disappeared" tickets: two editors in the same page now see each other's colored carets, and reopening a page after a tab crash shows the last text that reached the server. Power users pick up `/table` and `/code` within a day, while non-technical teammates use the toolbar and never touch markdown.
+
+## Related Skills
+
+- [typescript](/skills/typescript): types for the editor hook and server
+- [nextjs](/skills/nextjs): hosts the editor page and server-renders the shell
+- [postgresql](/skills/postgresql): stores the Yjs document state
+- [yjs](/skills/yjs): the CRDT layer, awareness, and persistence options
