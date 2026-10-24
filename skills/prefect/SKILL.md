@@ -1,216 +1,160 @@
 ---
 name: prefect
-description: |
-  Prefect is a modern workflow orchestration framework for Python data pipelines.
-  Learn to define flows and tasks with decorators, handle retries and scheduling,
-  create deployments, and monitor via the Prefect UI.
+description: >-
+  Prefect is a Python workflow orchestration framework that turns functions
+  into observable, retryable, schedulable data pipelines. Use when asked to
+  "orchestrate a Python pipeline", "schedule a flow with cron", "add retries
+  and caching to tasks", "deploy a Prefect flow", "run a worker" or "alert
+  when a flow fails". Covers Prefect 3.x flows and tasks, cache policies,
+  flow.serve, work pools with workers, the prefect deploy CLI, blocks,
+  variables and failure hooks.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: "Python 3.11-3.15; prefect 3.x (tested with 3.9.0); Linux, macOS, Windows"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
-  tags:
-    - prefect
-    - workflow-orchestration
-    - python
-    - data-pipeline
-    - scheduling
+  tags: ["prefect", "workflow-orchestration", "python", "data-pipeline", "scheduling"]
+  repository: https://github.com/PrefectHQ/prefect
 ---
 
 # Prefect
 
-Prefect turns Python functions into observable, schedulable workflows with minimal boilerplate. Add `@flow` and `@task` decorators to get retries, logging, caching, and a monitoring UI.
+## Overview
 
-## Installation
+Prefect 3 turns Python functions into flows (`@flow`) made of tasks (`@task`), with retries, caching, logging, a UI and scheduled deployments. Two ways to run on a schedule: `flow.serve(...)` starts one long-running process that executes runs itself, and work pools plus workers (`prefect deploy` and `prefect worker start`) execute runs in managed infrastructure. Agents and `prefect.deployments.Deployment` from Prefect 2 are removed: importing `Deployment` raises an error.
+
+## Instructions
+
+### Install and run a server
 
 ```bash
-# Install Prefect
-pip install prefect
+python3 -m venv .venv && source .venv/bin/activate
+pip install prefect httpx            # needs Python 3.11 or newer
+prefect version
 
-# Start the local Prefect server (UI + API)
-prefect server start
-# UI at http://localhost:4200
-
-# Or use Prefect Cloud (managed)
-prefect cloud login
+prefect server start                 # UI and API at http://127.0.0.1:4200
+# In another shell, point clients at it:
+prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
 ```
 
-## Basic Flow
+Running a flow without any server also works: Prefect starts a temporary local server for the run. For Prefect Cloud use `prefect cloud login`.
+
+### Flows and tasks
 
 ```python
-# flows/hello.py: Simple flow with tasks
-from prefect import flow, task, get_run_logger
+# flows/orders_etl.py
 from datetime import timedelta
+import httpx
+from prefect import flow, task, get_run_logger
+from prefect.cache_policies import INPUTS
+from prefect.tasks import exponential_backoff
 
-@task(retries=3, retry_delay_seconds=10)
-def fetch_data(url: str) -> dict:
-    import httpx
-    logger = get_run_logger()
-    logger.info(f"Fetching {url}")
-    response = httpx.get(url)
-    response.raise_for_status()
-    return response.json()
+@task(retries=3, retry_delay_seconds=exponential_backoff(backoff_factor=10),
+      retry_jitter_factor=0.5, timeout_seconds=120)
+def fetch_orders(day: str) -> list[dict]:
+    r = httpx.get("https://api.northwind-shop.dev/orders", params={"date": day}, timeout=30)
+    r.raise_for_status()
+    return r.json()["results"]
 
-@task(cache_expiration=timedelta(hours=1))
-def transform(data: dict) -> list:
-    return [
-        {"id": item["id"], "value": item["amount"] * 100}
-        for item in data["results"]
-    ]
+@task(cache_policy=INPUTS, cache_expiration=timedelta(hours=1))
+def to_cents(order: dict) -> dict:
+    return {"id": order["id"], "cents": round(order["amount"] * 100)}
 
 @task
-def load(records: list) -> int:
-    logger = get_run_logger()
-    logger.info(f"Loading {len(records)} records")
-    # Insert into database...
-    return len(records)
+def load(rows: list[dict]) -> int:
+    get_run_logger().info("loading %d rows", len(rows))
+    return len(rows)
 
-@flow(name="etl-pipeline", log_prints=True)
-def etl_pipeline(api_url: str = "https://api.example.com/data"):
-    raw = fetch_data(api_url)
-    cleaned = transform(raw)
-    count = load(cleaned)
-    print(f"Processed {count} records")
+@flow(name="orders-etl", log_prints=True)
+def orders_etl(day: str = "2026-10-23") -> int:
+    orders = fetch_orders(day)
+    rows = [f.result() for f in to_cents.map(orders)]   # runs the tasks concurrently
+    count = load(rows)
+    print(f"loaded {count} rows")
     return count
 
 if __name__ == "__main__":
-    etl_pipeline()
+    orders_etl()
 ```
 
-## Scheduling and Deployments
+Key points: `retry_delay_seconds` takes a number, a list (one delay per retry) or `exponential_backoff(...)`. Caching is configured with `cache_policy` (`INPUTS`, `TASK_SOURCE`, `DEFAULT`, from `prefect.cache_policies`); the old `task_input_hash` import is deprecated. `task.submit(...)` and `task.map(...)` return futures; call `.result()` or `wait(futures)` from `prefect.futures`. Tasks and flows may be `async def`; use `await` or `asyncio.gather` inside an async flow.
+
+### Schedule with `flow.serve`
+
+Simplest deployment: one Python process that stays running and executes scheduled and manual runs.
 
 ```python
-# flows/deploy.py: Create a deployment with schedule
+# flows/daily_report.py
 from prefect import flow
-from prefect.deployments import Deployment
-from prefect.server.schemas.schedules import CronSchedule
 
-@flow
-def daily_report():
-    print("Generating daily report...")
+@flow(log_prints=True)
+def daily_report(region: str = "emea"):
+    print(f"report for {region}")
 
 if __name__ == "__main__":
-    # Deploy via Python
-    daily_report.serve(
-        name="daily-report-deployment",
-        cron="0 8 * * *",  # Every day at 8 AM
-        tags=["reporting"],
-        parameters={"param1": "value1"},
-    )
+    daily_report.serve(name="daily-report", cron="0 8 * * *",
+                       tags=["reporting"], parameters={"region": "emea"})
 ```
+
+Run `python flows/daily_report.py` (keep it alive with systemd or a container), then trigger a run manually:
 
 ```bash
-# deploy.sh: Deploy and manage via CLI
-# Create deployment from flow file
-prefect deploy flows/hello.py:etl_pipeline \
-  --name etl-prod \
-  --pool default-agent-pool \
-  --cron "*/30 * * * *"
-
-# Start a worker to execute deployments
-prefect worker start --pool default-agent-pool
-
-# Trigger a deployment run
-prefect deployment run "etl-pipeline/etl-prod" --param api_url=https://api.example.com
-```
-
-## Error Handling and Concurrency
-
-```python
-# flows/advanced.py: Concurrent tasks, error handling, and sub-flows
-from prefect import flow, task
-from prefect.tasks import task_input_hash
-import asyncio
-
-@task(
-    retries=2,
-    retry_delay_seconds=[10, 60],  # Exponential backoff
-    cache_key_fn=task_input_hash,
-    timeout_seconds=300,
-)
-def process_item(item_id: int) -> dict:
-    # Process a single item
-    return {"id": item_id, "status": "done"}
-
-@flow
-def batch_process(item_ids: list[int]):
-    # Submit tasks concurrently
-    futures = [process_item.submit(id) for id in item_ids]
-    results = [f.result() for f in futures]
-
-    succeeded = [r for r in results if r["status"] == "done"]
-    print(f"Processed {len(succeeded)}/{len(item_ids)} items")
-
-@flow
-async def async_pipeline():
-    # Async flow for I/O-bound work
-    results = await asyncio.gather(
-        fetch_from_api("source_a"),
-        fetch_from_api("source_b"),
-    )
-    return results
-```
-
-## Blocks and Infrastructure
-
-```python
-# flows/blocks.py: Use blocks for reusable configuration
-from prefect.blocks.system import Secret, JSON
-from prefect_sqlalchemy import SqlAlchemyConnector
-
-# Store secrets (set via UI or CLI)
-# prefect block register -m prefect_sqlalchemy
-# Then configure in UI at http://localhost:4200/blocks
-
-# Use in flows
-@flow
-def db_flow():
-    api_key = Secret.load("my-api-key").get()
-    config = JSON.load("pipeline-config").value
-
-    with SqlAlchemyConnector.load("prod-db") as conn:
-        result = conn.fetch_all("SELECT count(*) FROM users")
-        print(result)
-```
-
-## Notifications
-
-```python
-# flows/notifications.py: Send alerts on failure
-from prefect import flow
-from prefect.blocks.notifications import SlackWebhook
-
-@flow
-def monitored_flow():
-    try:
-        # ... do work
-        pass
-    except Exception as e:
-        slack = SlackWebhook.load("alerts-channel")
-        slack.notify(f"❌ Pipeline failed: {e}")
-        raise
-
-# Or use automations in Prefect UI:
-# Automations → Create → Trigger: Flow run failed → Action: Send Slack notification
-```
-
-## CLI Reference
-
-```bash
-# cli.sh: Common Prefect CLI commands
-# Check connection
-prefect version
-prefect config view
-
-# List flows and deployments
-prefect flow-run ls
+prefect deployment run "daily-report/daily-report" --param region=apac --watch
 prefect deployment ls
-
-# View logs
-prefect flow-run logs <flow-run-id>
-
-# Manage work pools
-prefect work-pool create my-pool --type process
-prefect work-pool ls
 ```
+
+`serve` also accepts `interval` (seconds or `timedelta`), `rrule`, `schedules`, `paused` and `limit` (concurrent runs).
+
+### Work pools, workers and `prefect deploy`
+
+Use this when runs must execute on separate infrastructure (Docker, Kubernetes, cloud).
+
+```bash
+prefect work-pool create etl-process --type process
+prefect deploy flows/orders_etl.py:orders_etl --name etl-prod --pool etl-process --cron "*/30 * * * *"
+prefect worker start --pool etl-process
+prefect deployment run "orders-etl/etl-prod" --param day=2026-10-22
+```
+
+`prefect deploy` also accepts `--interval`, `--tag`, `--param` and `--job-variable`, and can save the deployment definition to `prefect.yaml` (`prefect init` creates one); without that file it deploys straight from the command-line options. There is no default pool called `default-agent-pool`: create a pool first. Workers need access to the flow's source code, so use a shared path, a Git source (`flow.from_source(...).deploy(...)` in Python) or a built image. Read logs with `prefect flow-run logs <id>` and list runs with `prefect flow-run ls`.
+
+### Secrets, variables and failure alerts
+
+```python
+# flows/with_config.py
+from prefect import flow
+from prefect.blocks.system import Secret
+from prefect.blocks.notifications import SlackWebhook
+from prefect.variables import Variable
+
+def alert_slack(flow, flow_run, state):
+    SlackWebhook.load("ops-alerts").notify(f"Flow {flow.name} run {flow_run.name} ended {state.type.value}")
+
+@flow(on_failure=[alert_slack])
+def sync_stripe():
+    api_key = Secret.load("stripe-api-key").get()
+    batch_size = Variable.get("stripe_batch_size", default="500")
+    ...
+```
+
+Create the blocks once, in the UI (Blocks page) or in Python (`Secret(value=os.environ["STRIPE_API_KEY"]).save("stripe-api-key")`). `on_failure` and `on_completion` are hook lists on flows and tasks; `on_crashed` and `on_cancellation` exist on flows only. Automations in the UI (trigger: flow run failed, action: send notification) work without code. Integration blocks such as SQLAlchemy live in separate packages (`pip install prefect-sqlalchemy`, then `prefect block register -m prefect_sqlalchemy`).
+
+## Examples
+
+### Example 1: "Run my ETL every 30 minutes and retry the API call"
+
+Save `flows/orders_etl.py` from above, start `prefect server start`, then `python -c "from flows.orders_etl import orders_etl; orders_etl.serve(name='etl-prod', cron='*/30 * * * *')"` from the project root. The UI shows a scheduled run every half hour; a failed `fetch_orders` is retried up to three times with growing delays before the flow run is marked Failed.
+
+### Example 2: "Page the team when the nightly job fails"
+
+Create a `SlackWebhook` block named `ops-alerts` in the UI with the webhook URL, add the `on_failure=[alert_slack]` hook from the previous section, deploy with `prefect deploy ... --cron "0 2 * * *"`. When a run fails, the hook posts the flow and run name to Slack.
+
+## Guidelines
+
+- Pin the major version (`prefect>=3,<4`); Prefect 2 code using agents, `Deployment.build_from_flow` or `task_input_hash` as the main cache needs migration.
+- Keep secrets in Secret blocks or environment variables, never in flow parameters, which appear in the UI.
+- Bind the server to `127.0.0.1` (the default for local use) unless it sits behind authentication; the open-source server has no built-in login.
+- Make tasks idempotent: a retry or a re-run repeats side effects such as inserts.
+- Do not put large datasets through task return values; write to storage and pass paths.
+- Workers pick up runs only for the pool they poll; a run stuck in Late or Pending usually means no worker is running for that pool.
