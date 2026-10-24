@@ -1,14 +1,17 @@
 ---
 name: modal
-description: |
-  Serverless GPU compute platform for running Python functions in the cloud. Deploy ML models,
-  run training jobs, and serve inference endpoints without managing infrastructure. Supports
-  A100/H100 GPUs, custom container images, and scales to zero automatically.
+description: >-
+  Run Python functions on cloud GPUs and CPUs with Modal, a serverless platform that builds
+  containers from Python code, scales to zero and bills per second. Use when a user asks to
+  "run this on a GPU", "deploy a model endpoint", "serve an LLM with vLLM", "run a nightly
+  training job", "fan out a batch job across many containers", or "cache model weights in a
+  volume" without managing servers or Kubernetes.
 license: Apache-2.0
-compatibility: 'python 3.9+, modal-client 0.50+, Linux/macOS'
+compatibility: "Python 3.10+ (modal 1.x, 1.6 at the time of writing), Linux/macOS/Windows, a Modal account"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: "https://github.com/modal-labs/modal-client"
   category: data-ai
   tags:
     - serverless
@@ -20,27 +23,41 @@ metadata:
 
 # Modal
 
-## Installation
+## Overview
+
+Modal runs ordinary Python functions in containers it builds and schedules for you. You declare the image, GPU, secrets and volumes in Python decorators; `modal run` executes once, `modal deploy` keeps an app live, and idle containers scale to zero. Requires a Modal account and authentication with `modal setup`, which opens a browser. Do not run `modal setup` on the user's behalf in an unattended session; ask them to authenticate, or use `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET` created in the dashboard.
+
+Modal 1.0 renamed several parameters. Code written for 0.x fails with a `DeprecationError`:
+
+| Old (0.x) | Now |
+|---|---|
+| `container_idle_timeout=` | `scaledown_window=` |
+| `concurrency_limit=` | `max_containers=` |
+| `@modal.web_endpoint` | `@modal.fastapi_endpoint` (needs `fastapi[standard]` in the image) |
+| `allow_concurrent_inputs=` | `@modal.concurrent(max_inputs=N)` |
+
+## Instructions
+
+### Step 1: Install and authenticate
 
 ```bash
-# Install Modal client and authenticate
 pip install modal
-modal setup  # Opens browser for authentication
+modal setup                  # browser login, writes ~/.modal.toml
+modal run --help             # sanity check
 ```
 
-## Hello World — Run a Function on GPU
+### Step 2: Run a function on a GPU
 
 ```python
-# hello_gpu.py — Run a simple function on a cloud GPU
+# hello_gpu.py
 import modal
 
 app = modal.App("hello-gpu")
 
 @app.function(gpu="T4")
-def gpu_info():
+def gpu_info() -> str:
     import subprocess
-    result = subprocess.run(["nvidia-smi"], capture_output=True, text=True)
-    return result.stdout
+    return subprocess.run(["nvidia-smi"], capture_output=True, text=True).stdout
 
 @app.local_entrypoint()
 def main():
@@ -48,157 +65,144 @@ def main():
 ```
 
 ```bash
-# Run it
 modal run hello_gpu.py
 ```
 
-## Custom Container Images
+GPU strings: `T4`, `L4`, `A10`, `L40S`, `A100` (`A100-40GB`, `A100-80GB`), `RTX-PRO-6000`, `H100`, `H200`, `B200`, `B300`. Add a count with `"H100:8"`, or a fallback list with `gpu=["H100", "A100-80GB"]`.
+
+### Step 3: Define the image
 
 ```python
-# custom_image.py — Define a custom container with ML dependencies
-import modal
-
-image = modal.Image.debian_slim(python_version="3.11").pip_install(
-    "torch==2.1.0",
-    "transformers==4.36.0",
-    "accelerate",
-    "bitsandbytes",
+image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .pip_install("torch", "transformers", "accelerate")
+    .env({"HF_HOME": "/models"})
 )
-
 app = modal.App("ml-inference", image=image)
-
-@app.function(gpu="A100", timeout=300)
-def generate(prompt: str) -> str:
-    from transformers import pipeline
-    pipe = pipeline("text-generation", model="mistralai/Mistral-7B-v0.1", device=0)
-    result = pipe(prompt, max_new_tokens=200)
-    return result[0]["generated_text"]
-
-@app.local_entrypoint()
-def main():
-    print(generate.remote("The meaning of life is"))
 ```
 
-## Model Serving with Web Endpoints
+Pin versions of packages that break often. Import heavy libraries inside the function body, because the local machine does not have them. `Image.uv_pip_install` is a faster drop-in for `pip_install`.
+
+### Step 4: Cache model weights in a Volume
 
 ```python
-# serve_model.py — Deploy an inference API with automatic scaling
+volume = modal.Volume.from_name("model-cache", create_if_missing=True)
+
+@app.function(gpu="L40S", volumes={"/models": volume}, timeout=900)
+def generate(prompt: str) -> str:
+    from transformers import pipeline
+    pipe = pipeline("text-generation", model="Qwen/Qwen2.5-7B-Instruct", device_map="auto")
+    out = pipe(prompt, max_new_tokens=120)[0]["generated_text"]
+    volume.commit()          # persist weights downloaded into /models/hub
+    return out
+```
+
+With `HF_HOME=/models` the first call downloads weights to the volume and later containers reuse them. Call `volume.commit()` after writing; other containers see new files after `volume.reload()`.
+
+### Step 5: Serve an endpoint
+
+```python
 import modal
 
-app = modal.App("llm-server")
+image = modal.Image.debian_slim(python_version="3.12").pip_install("vllm", "fastapi[standard]")
+app = modal.App("llm-server", image=image)
+MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
-image = modal.Image.debian_slim().pip_install("vllm")
-
-@app.cls(gpu="A100", image=image, container_idle_timeout=300)
+@app.cls(gpu="L40S", scaledown_window=300, timeout=600)
+@modal.concurrent(max_inputs=8)
 class LLMServer:
     @modal.enter()
     def load_model(self):
         from vllm import LLM
-        self.llm = LLM(model="mistralai/Mistral-7B-Instruct-v0.2")
+        self.llm = LLM(model=MODEL)
 
-    @modal.web_endpoint(method="POST")
+    @modal.fastapi_endpoint(method="POST")
     def generate(self, request: dict):
         from vllm import SamplingParams
         params = SamplingParams(temperature=0.7, max_tokens=request.get("max_tokens", 200))
-        outputs = self.llm.generate([request["prompt"]], params)
-        return {"text": outputs[0].outputs[0].text}
+        out = self.llm.generate([request["prompt"]], params)
+        return {"text": out[0].outputs[0].text}
 ```
 
 ```bash
-# Deploy the endpoint
-modal deploy serve_model.py
-# Returns: https://your-username--llm-server-llmserver-generate.modal.run
+modal serve serve_model.py     # temporary URL with hot reload, stops on Ctrl-C
+modal deploy serve_model.py    # persistent; prints the *.modal.run URL
 ```
 
-## Volumes for Persistent Storage
+`@modal.enter()` runs once per container start, so weights load once, not per request. Endpoints are public unless you add auth (`requires_proxy_auth=True` on the decorator, with proxy auth tokens from the dashboard, or check a header against a secret in the function).
+
+### Step 6: Batch, schedule, secrets
 
 ```python
-# volume_cache.py — Cache model weights across function invocations
-import modal
-
-volume = modal.Volume.from_name("model-cache", create_if_missing=True)
-app = modal.App("cached-model")
-
-image = modal.Image.debian_slim().pip_install("huggingface_hub", "torch", "transformers")
-
-@app.function(gpu="A100", volumes={"/models": volume}, image=image, timeout=600)
-def run_inference(prompt: str) -> str:
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    import torch
-
-    model_path = "/models/mistral-7b"
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, device_map="auto")
-
-    inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-    outputs = model.generate(**inputs, max_new_tokens=100)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
-```
-
-## Parallel Map (Batch Processing)
-
-```python
-# batch_process.py — Process many items in parallel across GPUs
-import modal
-
-app = modal.App("batch-embeddings")
-image = modal.Image.debian_slim().pip_install("sentence-transformers")
-
-@app.function(gpu="T4", image=image, concurrency_limit=10)
-def embed(text: str) -> list[float]:
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    return model.encode(text).tolist()
+@app.function(image=image, max_containers=10)
+def embed(text: str) -> int:
+    return len(text)
 
 @app.local_entrypoint()
 def main():
-    texts = [f"Document {i}: This is sample text." for i in range(100)]
-    # Process all texts in parallel
-    results = list(embed.map(texts))
-    print(f"Generated {len(results)} embeddings of dim {len(results[0])}")
+    results = list(embed.map([f"Ticket {i}: printer offline" for i in range(100)]))
+
+@app.function(schedule=modal.Cron("0 2 * * *"), gpu="A100", timeout=3600)   # 02:00 UTC
+def nightly_finetune(): ...
+
+@app.function(secrets=[modal.Secret.from_name("huggingface")])
+def private_model():
+    import os; token = os.environ["HF_TOKEN"]
 ```
 
-## Scheduled Jobs (Cron)
+Create secrets from the CLI: `modal secret create huggingface HF_TOKEN="$HF_TOKEN"`. `modal deploy` is required for a schedule to run; `modal run` does not start it.
+
+## Examples
+
+### Example 1: Run a batch embedding job on GPUs
+
+Request: "Embed these 5,000 support tickets on a GPU, in parallel."
 
 ```python
-# scheduled_job.py — Run a function on a schedule
 import modal
 
-app = modal.App("daily-training")
+image = modal.Image.debian_slim(python_version="3.12").pip_install("sentence-transformers")
+app = modal.App("ticket-embeddings", image=image)
 
-@app.function(schedule=modal.Cron("0 2 * * *"), gpu="A100", timeout=3600)
-def nightly_finetune():
-    """Runs every night at 2 AM UTC"""
-    print("Starting nightly fine-tuning job...")
-    # training logic here
+@app.function(gpu="T4", max_containers=10)
+def embed(batch: list[str]) -> list[list[float]]:
+    from sentence_transformers import SentenceTransformer
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    return model.encode(batch).tolist()
+
+@app.local_entrypoint()
+def main():
+    tickets = [f"Ticket {i}: customer cannot reset password" for i in range(5000)]
+    batches = [tickets[i:i + 100] for i in range(0, len(tickets), 100)]
+    vectors = [v for part in embed.map(batches) for v in part]
+    print(len(vectors), len(vectors[0]))
 ```
 
-## Secrets Management
+`modal run ticket_embeddings.py` prints `5000 384`, using up to 10 T4 containers at once. Batches of 100 amortize the model load.
 
-```python
-# secrets.py — Access API keys and secrets securely
-import modal
+### Example 2: Deploy a private LLM endpoint
 
-app = modal.App("with-secrets")
+Request: "Put Qwen 7B behind an HTTP API that costs nothing when idle."
 
-@app.function(secrets=[modal.Secret.from_name("my-openai-secret")])
-def call_openai():
-    import os
-    from openai import OpenAI
-    # OPENAI_API_KEY is injected from the secret
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    return client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": "Hello"}],
-    ).choices[0].message.content
+Use the Step 5 code, then:
+
+```console
+$ modal deploy serve_model.py
+✓ Created web function LLMServer.generate => my-workspace--llm-server-llmserver-generate.modal.run
+$ HOST=my-workspace--llm-server-llmserver-generate.modal.run
+$ curl -s -X POST "https://$HOST" -H 'Content-Type: application/json' \
+    -d '{"prompt": "Explain DNS in one line.", "max_tokens": 60}'
+{"text": "DNS translates domain names into IP addresses."}
 ```
 
-## Key Concepts
+The container stops 300 seconds after the last request; the next request pays a cold start while vLLM loads the model.
 
-- **Scales to zero**: No cost when idle; containers spin up on demand
-- **GPU selection**: `"T4"`, `"A10G"`, `"A100"`, `"H100"` — pick by workload
-- **`@modal.enter()`**: Runs once when container starts — ideal for loading models
-- **Volumes**: Persistent storage shared across function calls for model caching
-- **`.map()`**: Fan out work across many containers in parallel
-- **Web endpoints**: Auto-generated HTTPS URLs with authentication
-- **`modal deploy`** for persistent endpoints, `modal run` for one-off execution
+## Guidelines
+
+- Check parameter names against the table above; 0.x tutorials on the web still use removed arguments.
+- `@modal.enter()` for model loading, Volumes for weights; otherwise every cold start re-downloads gigabytes.
+- Set `timeout` (default 300 seconds) high enough for training and long generations; a function that exceeds it is killed.
+- Cost control: set `max_containers`, keep `scaledown_window` short unless cold starts hurt, and use the smallest GPU that fits the model.
+- Never put secrets in the image or the source; use `modal.Secret`.
+- Public endpoints are open to the internet unless you add authentication.
+- Modal is not for always-on stateful servers or code that needs a specific host kernel; use it for bursty and batch compute.
