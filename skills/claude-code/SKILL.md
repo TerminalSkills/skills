@@ -1,12 +1,12 @@
 ---
 name: claude-code
 description: >-
-  Build software with Claude Code, the AI-powered CLI coding agent. Use when a user asks to set up Claude Code, configure CLAUDE.md project files, use slash commands, manage permissions, create hooks, or optimize agentic coding workflows.
+  Claude Code is Anthropic's AI coding agent for the terminal, IDEs, desktop and web: it reads a codebase, edits files, runs commands and tests, and iterates. Use when a user asks to install or set up Claude Code, write CLAUDE.md or rules, set permissions, add MCP servers, create hooks, or run claude -p in scripts and CI.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "macOS 13+, Windows 10 1809+, Ubuntu 20.04+, Debian 10+, Alpine 3.19+; 4 GB RAM; Claude account or API key"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["ai-coding", "cli", "terminal", "pair-programming", "agentic"]
 ---
@@ -14,38 +14,43 @@ metadata:
 
 ## Overview
 
-You are an expert in Claude Code, Anthropic's agentic coding assistant that runs in the terminal. You help developers configure CLAUDE.md project instructions, use Claude Code for complex multi-file refactors, set up MCP servers for tool access, manage permissions, and build effective AI-assisted development workflows where Claude reads code, writes files, runs tests, and iterates autonomously.
+Claude Code (v2.1.310 at the time of writing) is Anthropic's agentic coding tool. In a project directory it reads and edits files, runs shell commands and tests, and keeps going until the task is done, asking before risky steps. This skill covers installing it, giving it project instructions (CLAUDE.md and `.claude/rules/`), controlling permissions, connecting MCP servers, adding hooks, and running it non-interactively. Current docs: https://code.claude.com/docs.
 
 ## Instructions
 
-### Setup and Configuration
+### Install and start
+
+Use a package manager; auto-updates are off for these, so upgrade them yourself:
 
 ```bash
-# Install
-npm install -g @anthropic-ai/claude-code
-
-# Start in any project directory
-cd my-project
-claude
-
-# Claude reads the codebase, understands the project structure,
-# and enters an interactive conversation where it can:
-# - Read and write files
-# - Run shell commands
-# - Search the codebase
-# - Create and apply diffs
-# - Run tests and fix failures
+brew install --cask claude-code          # macOS/Linux Homebrew (stable channel; claude-code@latest for newest)
+winget install Anthropic.ClaudeCode      # Windows
+npm install -g @anthropic-ai/claude-code # needs Node.js 22+; same native binary, never with sudo
 ```
+
+Debian, Fedora, RHEL and Alpine have signed apt, dnf and apk repositories (see https://code.claude.com/docs/en/setup). Anthropic also publishes a native installer script; read the setup page and verify what you run before using it. Then:
+
+```bash
+cd newsroom-api
+claude                 # first run asks you to sign in (Claude account, Console API key, or a cloud provider)
+claude --version       # 2.1.310
+claude doctor          # checks installation, updates and settings
+claude update          # upgrade a native install
+```
+
+Useful session commands: `/init` drafts a CLAUDE.md from the codebase, `/memory` edits memory files, `/permissions`, `/mcp`, `/hooks` open the matching managers, `claude -c` continues the last session in this directory and `claude -r` picks an earlier one.
+
+### CLAUDE.md and rules
+
+Claude loads `./CLAUDE.md` (or `./.claude/CLAUDE.md`) and your `~/.claude/CLAUDE.md` at the start of every session, plus `CLAUDE.md` files in parent directories. A `CLAUDE.md` in a subdirectory loads on demand, when Claude reads files there. `CLAUDE.local.md` holds personal notes (add it to `.gitignore`). If a repo only has an `AGENTS.md`, Claude reads that instead; if both exist, only CLAUDE.md is used, so import it with `@AGENTS.md`. Keep each file under about 200 lines: longer files are followed less reliably. Import other files with `@docs/git-instructions.md`; move topic- or path-specific guidance into `.claude/rules/*.md`.
 
 ### CLAUDE.md — Project Instructions
 
 ```markdown
-<!-- CLAUDE.md at project root — Claude reads this automatically -->
-
 # Project: FinPay API
 
 ## Architecture
-- Next.js 15 App Router, TypeScript strict
+- Next.js App Router, TypeScript strict
 - Drizzle ORM + PostgreSQL
 - Stripe for payments
 - BullMQ for background jobs
@@ -99,117 +104,94 @@ event IDs in the stripe_events table.
 - 4000000000009995 — insufficient funds
 ```
 
-### Usage Patterns
+### Permissions and safety
 
-```bash
-# Complex refactor — Claude reads, plans, edits, tests
-$ claude
-> Refactor the payment webhook handler. It's currently a 400-line
-> switch statement in src/app/api/webhooks/stripe/route.ts. Extract
-> each event type into a separate handler in src/lib/stripe/handlers/.
-> Each handler should validate with Zod, update the DB, and queue
-> side effects. Then update the tests.
-
-# Claude will:
-# 1. Read the current webhook handler
-# 2. Read existing test files
-# 3. Create handler files for each event type
-# 4. Write Zod schemas for event data
-# 5. Update the main route to dispatch to handlers
-# 6. Write tests for each handler
-# 7. Run typecheck + tests, fix any issues
-
-# Bug investigation — Claude reads logs, traces code, finds root cause
-$ claude
-> Users report that subscription upgrades aren't applying immediately.
-> Check the upgrade flow in src/lib/stripe/handlers/subscription-updated.ts
-> and the webhook logs in our Sentry MCP server.
-
-# One-shot mode — no interactive session
-$ claude -p "Add input validation to all API routes in src/app/api/ that
-  are missing Zod schema validation. Run typecheck when done."
-
-# Pipe input
-$ cat error.log | claude -p "Analyze this error log and suggest a fix"
-```
-
-### MCP Servers
+In `default` mode (shown as Manual) Claude asks before editing files or running commands; since v2.1.283 interactive terminal sessions start in `auto` unless a setting says otherwise. Modes (`--permission-mode`, or Shift+Tab in the session): `default`, `acceptEdits`, `plan` (read-only exploration), `auto` (a classifier checks actions), `dontAsk`, `bypassPermissions`. Allow and deny rules go in `.claude/settings.json` (shared) or `.claude/settings.local.json` (yours):
 
 ```json
-// ~/.claude/mcp.json — Global MCP servers
 {
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/dev/projects"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": { "GITHUB_TOKEN": "ghp_xxx" }
-    }
+  "permissions": {
+    "allow": ["Bash(pnpm test *)", "Bash(pnpm typecheck)", "Bash(git commit *)"],
+    "deny": ["Bash(git push *)", "Read(./.env)"]
   }
 }
 ```
 
+Put the `*` after the subcommand (`Bash(git commit *)`). On the command line: `claude --allowedTools "Edit" "Bash(pnpm test *)"`. `--dangerously-skip-permissions` (not `--dangerouslySkipPermissions`) bypasses prompts; use it only in a sandbox or container with no internet access and no secrets.
+
+### MCP servers
+
+Add servers with the CLI; scopes are `local` (default, only you in this project), `project` (writes `.mcp.json` for the team) and `user` (all your projects, in `~/.claude.json`):
+
+```bash
+claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+claude mcp add --scope project --transport stdio database -e DATABASE_URL=postgresql://localhost:5432/finpay_dev -- npx tsx mcp-servers/database/index.ts
+claude mcp list
+```
+
+Put the server name before `-e`/`--env` (they take several values) and the server command after `--`. A project `.mcp.json` server needs approval in the session before it runs. Remote servers that use OAuth are authorised from `/mcp`.
+
+### Hooks
+
+Hooks run your command at lifecycle points (`PreToolUse`, `PostToolUse`, `Notification`, `Stop`, and others). The hook receives JSON on stdin. This one formats every file Claude edits; put it in `.claude/settings.json` and check it in `/hooks`:
+
 ```json
-// .mcp.json — Project-specific MCP servers (committed to repo)
 {
-  "mcpServers": {
-    "database": {
-      "command": "npx",
-      "args": ["tsx", "mcp-servers/database/index.ts"],
-      "env": { "DATABASE_URL": "postgresql://localhost:5432/finpay_dev" }
-    }
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }]
+      }
+    ]
   }
 }
 ```
 
-### Permissions and Safety
+### Non-interactive use
 
 ```bash
-# Claude asks permission before:
-# - Writing or deleting files
-# - Running shell commands
-# - Making network requests
-
-# Permission modes:
-claude --allowedTools "Edit,Read,Bash(pnpm test*)"  # Whitelist specific tools
-claude --dangerouslySkipPermissions                   # Skip all permission checks (CI only)
-
-# In CI/CD:
-# CLAUDE.md + --dangerouslySkipPermissions + trust boundary = automated code review
+claude -p "Add Zod validation to every route in src/app/api that lacks it, then run pnpm typecheck" \
+  --allowedTools "Edit" "Bash(pnpm typecheck)" --output-format json
+cat error.log | claude -p "Explain this error and suggest a fix"
 ```
+
+`--max-budget-usd 5` caps spend, `--json-schema` forces structured output, `--bare` skips hooks, CLAUDE.md discovery and OAuth for reproducible CI runs (authenticate with `ANTHROPIC_API_KEY`).
 
 ## Examples
 
-**Example 1: User asks to set up claude-code**
+### Example 1: "Set up Claude Code for my Next.js project"
 
-User: "Help me set up claude-code for my project"
+```console
+$ brew install --cask claude-code
+$ cd finpay-api && claude
+> /init
+```
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure claude-code
-3. Set up initial project structure
-4. Verify the setup works correctly
+Claude drafts `CLAUDE.md` with the commands it found in `package.json`. Edit it to state the real test and typecheck commands and the rules above (no new dependencies without asking), commit it, and add `CLAUDE.local.md` to `.gitignore`.
 
-**Example 2: User asks to build a feature with claude-code**
+### Example 2: "Refactor the Stripe webhook handler"
 
-User: "Create a dashboard using claude-code"
+```text
+> Split the 400-line switch in src/app/api/webhooks/stripe/route.ts into one handler per
+> event type under src/lib/stripe/handlers/. Validate each payload with Zod, then run
+> pnpm typecheck && pnpm test:unit and fix failures.
+```
 
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+Press Shift+Tab to `plan` mode first to review the plan, then switch back to `acceptEdits`. Claude reads the handler and its tests, creates the files, runs the checks and reports what changed.
+
+### Example 3: "Run a review in CI"
+
+```bash
+claude -p "Review this branch against main for bugs and missing tests. Output a markdown list." \
+  --bare --allowedTools "Read" "Bash(git diff *)" --max-budget-usd 3
+```
 
 ## Guidelines
 
-1. **CLAUDE.md is critical** — Write detailed project instructions; Claude reads them before every session; this is your leverage
-2. **Nested CLAUDE.md** — Place module-specific instructions in subdirectories; Claude reads the nearest CLAUDE.md for context
-3. **Verify with tests** — End instructions with "run typecheck and tests"; Claude iterates until everything passes
-4. **MCP for context** — Connect databases, GitHub, Sentry via MCP; Claude makes better decisions with real data
-5. **One-shot for CI** — Use `claude -p` in CI pipelines for automated code review, migration generation, and test writing
-6. **Branch workflow** — Instruct Claude to create branches and PRs; never commit directly to main
-7. **Incremental trust** — Start with full permission prompts; whitelist tools as you build confidence in the workflow
-8. **Session continuity** — Claude remembers the conversation within a session; build context before asking for complex changes
+- Tell Claude how to verify its work (test and typecheck commands) in CLAUDE.md; it iterates until they pass.
+- Keep CLAUDE.md short and specific; contradicting instructions across files are resolved arbitrarily.
+- Allow narrow command patterns instead of bypassing permissions; deny `.env` and secrets files.
+- Do not put tokens in `.mcp.json`; reference environment variables such as `${GITHUB_TOKEN}`.
+- A project's `.claude/settings.json` can grant permissions and run hooks, so review it in unfamiliar repositories before trusting the folder.
+- Ask for a branch and a pull request rather than commits on `main`.
