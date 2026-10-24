@@ -1,11 +1,12 @@
 ---
 name: porter
-description: Expert guidance for Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
+description: >-
+  Porter is a platform as a service that gives a Heroku-style deploy experience on your own AWS, GCP or Azure account, running apps on a managed Kubernetes cluster it provisions for you. Use when someone asks to deploy an app on Porter, write a porter.yaml, run `porter apply`, tail logs, run a one-off command, set environment groups, add Postgres or Redis, set up preview environments, or deploy from CI.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Porter CLI (Homebrew) and a Porter project with a linked AWS, GCP or Azure account; datastores are AWS only"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
   - paas
@@ -17,180 +18,138 @@ metadata:
 
 # Porter — PaaS on Your Own Cloud
 
-
 ## Overview
 
-
-Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
-
+Porter runs applications in your own AWS, GCP or Azure account while managing the Kubernetes cluster underneath. You connect a cloud account, create a cluster in the dashboard (dashboard.porter.run), then deploy apps from a GitHub repository or a container registry. Apps are made of services of three types: `web` (HTTP), `worker` (background) and `job` (cron or on demand). Configuration as code lives in a `porter.yaml` (schema `version: v2`) applied with `porter apply`. Docs: https://docs.porter.run.
 
 ## Instructions
 
-### Getting Started
+### Setup and CLI basics
 
 ```bash
-# Porter provisions a Kubernetes cluster in YOUR cloud account
-# 1. Sign up at dashboard.porter.run
-# 2. Connect your AWS/GCP/Azure account
-# 3. Porter creates a managed EKS/GKE/AKS cluster
-# 4. Deploy apps through the dashboard or CLI
-
-# Install Porter CLI
-brew install porter-dev/porter/porter
-
-# Login
-porter auth login
-
-# Set context
-porter config set-project --project <project-id>
-porter config set-cluster --cluster <cluster-id>
+brew install porter-dev/porter/porter     # macOS (Homebrew)
+porter version
+porter auth login                          # opens the browser, sets default project and cluster
+porter config                              # show current project and cluster
+porter projects list
+porter clusters list --json                # the table hides cluster IDs
+porter config set-project 12345
+porter config set-cluster 67890
 ```
 
-### Application Deployment
+Global flags `--project`, `--cluster`, `--token` and the variables `PORTER_PROJECT`, `PORTER_CLUSTER`, `PORTER_TOKEN`, `PORTER_HOST`, `PORTER_APP_NAME` override the config file (flags win over variables). Create the cloud account link and the cluster in the dashboard first; the CLI can also manage them with `porter cloud-accounts` and `porter clusters`.
+
+### porter.yaml
+
+`services` is a list. Each service needs `name`, `type`, `run`, `cpuCores` and `ramMegabytes`; `web` also needs `port`. Use either `build` or `image`, never both. The app name is `name` (max 31 chars, lowercase, digits, `-`) or `PORTER_APP_NAME`.
 
 ```yaml
-# porter.yaml — Application configuration
 version: v2
-
-apps:
-  api:
-    build:
-      method: pack                 # pack (buildpacks) | docker | registry
-      context: .
-      builder: heroku/builder:22
-    
-    services:
-      web:
-        type: web
-        port: 3000
-        cpus: 0.5
-        memory: 512Mi
-        replicas:
-          min: 2
-          max: 10
-        autoscaling:
-          enabled: true
-          targetCPU: 60
-          targetMemory: 70
-        health_check:
-          enabled: true
-          path: /health
-        domains:
-          - name: api.myapp.com
-
-      worker:
-        type: worker
-        cpus: 1
-        memory: 1Gi
-        replicas:
-          min: 1
-          max: 5
-        command: "node dist/worker.js"
-
-      cron:
-        type: job
-        cpus: 0.25
-        memory: 256Mi
-        command: "node dist/cron/daily-report.js"
-        schedule: "0 8 * * *"
-        timeout: 300
-
-    env:
-      NODE_ENV: production
-      # Secrets managed via Porter dashboard or CLI
-      DATABASE_URL:
-        secret: true
-      REDIS_URL:
-        secret: true
-
-    predeploy:
-      - "npx prisma migrate deploy"
-```
-
-### CLI Deployment
-
-```bash
-# Deploy from current directory
-porter app update api
-
-# Deploy a specific service
-porter app update api --service web
-
-# Run a one-off command (like Heroku run)
-porter app run api -- npm run seed
-
-# View logs
-porter app logs api --service web --follow
-
-# Scale a service
-porter app update api --service web --replicas 5
-
-# Set environment variables
-porter app env set api DATABASE_URL=postgres://...
-porter app env set api --secret API_KEY=sk-xxx
-
-# List apps
-porter app list
-
-# Get app status
-porter app get api
-```
-
-### Database Addons
-
-```bash
-# Deploy managed databases (provisioned in your cloud account)
-porter addon create postgresql \
-  --name main-db \
-  --version 16 \
-  --plan db.t4g.medium \
-  --storage 50
-
-# Porter provisions RDS/Cloud SQL/Azure Database in YOUR account
-# Connection strings auto-injected into linked apps
-
-porter addon create redis \
-  --name cache \
-  --version 7 \
-  --plan cache.t4g.micro
-
-# Link addon to app
-porter app env set api DATABASE_URL=$(porter addon get main-db --connection-string)
-```
-
-### Preview Environments
-
-```yaml
-# porter.yaml — Preview environment configuration
-version: v2
-
-previews:
+name: billing-api
+build:
+  method: docker            # docker | pack
+  context: .
+  dockerfile: ./Dockerfile  # Porter recommends a Dockerfile over buildpacks
+env:
+  NODE_ENV: production
+  PORT: "8080"              # values must be strings
+envGroups:
+  - billing-secrets         # project-wide group, must already exist
+predeploy:
+  run: npx prisma migrate deploy
+services:
+  - name: api
+    type: web
+    run: node dist/server.js
+    port: 8080
+    cpuCores: 0.5
+    ramMegabytes: 512
+    domains:
+      - name: api.billing-demo.dev
+    healthCheck:
+      enabled: true
+      httpPath: /health
+    autoscaling:
+      enabled: true         # while enabled, `instances` is ignored
+      minInstances: 2
+      maxInstances: 10
+      cpuThresholdPercent: 60
+      memoryThresholdPercent: 70
+  - name: queue-worker
+    type: worker
+    run: node dist/worker.js
+    cpuCores: 1
+    ramMegabytes: 1024
+    instances: 2
+  - name: daily-report
+    type: job
+    run: node dist/cron/daily-report.js
+    cpuCores: 0.25
+    ramMegabytes: 256
+    cron: "0 8 * * *"       # default is every 5 minutes if omitted
+    timeoutSeconds: 300
+autoRollback:
   enabled: true
-  # Every PR gets its own environment with isolated database
-  apps:
-    api:
-      build:
-        method: pack
-      services:
-        web:
-          type: web
-          port: 3000
-          cpus: 0.25
-          memory: 256Mi
-          replicas:
-            min: 1
-            max: 1
-      predeploy:
-        - "npx prisma migrate deploy"
-        - "npx prisma db seed"
-
-  addons:
-    - type: postgresql
-      name: preview-db
-      plan: db.t4g.micro
 ```
 
-### GitHub Actions Integration
+Other top-level fields: `image: {repository, tag}` for a pre-built image, `initialDeploy` (runs once on the first deploy of a preview environment, for seeding), `efsStorage` (AWS). Web services default to the cluster's public load balancer; `loadBalancers: [private_lb]` or `private: true` (no load balancer, cluster-internal) change that. Secrets belong in environment groups, not in `porter.yaml`.
+
+### Deploy and operate from the CLI
+
+```bash
+porter apply -f porter.yaml --validate     # YAML syntax only
+porter apply -f porter.yaml --dry-run      # server-side validation, nothing applied
+porter apply -f porter.yaml --wait         # build, deploy, wait for rollout
+porter apply -f porter.yaml --no-build --tag v1.4.2   # redeploy an existing image
+
+porter app list
+porter app yaml billing-api > porter.yaml  # export the live config
+porter app logs billing-api --service api  # stream; add --since 1h, --search "error", --limit 500
+porter app run billing-api -- npm run seed # one-off command in a copy of the app
+porter app run billing-api -e -- bash      # shell in an existing replica
+porter app run billing-api --job daily-report --wait   # trigger a job service
+porter app update billing-api --tag v1.4.2 --wait     # config/tag only, no build
+porter app rollback billing-api            # back to the last successful revision
+```
+
+### Environment groups and secrets
+
+```bash
+porter env list
+porter env create --name billing-secrets --variables LOG_LEVEL=info --secrets STRIPE_API_KEY="$STRIPE_API_KEY"
+porter env set billing-secrets -v LOG_LEVEL=debug -s SENDGRID_API_KEY="$SENDGRID_API_KEY"
+porter env pull billing-secrets -f .env.local
+porter env pull --app billing-api --merged
+```
+
+Updating an environment group redeploys every app attached to it. Secrets are not readable after creation.
+
+### Datastores and multi-app files
+
+Managed Postgres and Redis datastores are provisioned from Add-ons in the dashboard, on AWS only, in a separate VPC peered to the cluster. Porter creates an environment group named after the datastore with the connection variables; attach it with `envGroups`. For a local tunnel: `porter datastore connect billing-db --port 5433`, then `psql -h 127.0.0.1 -p 5433 -U postgres`.
+
+A single file can hold several apps and in-cluster datastores (needs CLI 0.68.30+; apply with `--wait` so the datastore exists before the apps start):
+
+```yaml
+apps:
+  - version: v2
+    name: backend
+    image: {repository: ghcr.io/acme-demo/backend, tag: "1.4.2"}
+    envGroups: [cache]
+    services:
+      - {name: server, type: web, run: node server.js, port: 8080, cpuCores: 0.5, ramMegabytes: 512}
+addons:
+  - name: cache
+    type: redis
+    kind: in-cluster
+    config: {storageGigabytes: 2, cpuCores: 0.1, ramMegabytes: 110}
+```
+
+### Preview environments
+
+Configured in the dashboard (Preview environments > preview template). Porter opens a pull request that adds a GitHub Actions workflow; once merged, every PR gets an isolated environment that is deleted when the PR closes. The template sets addons and per-service overrides. From CI, `porter apply -f porter.yaml --preview` deploys the current branch as a preview. Use `initialDeploy` for seeding.
+
+### Deploying from CI
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -198,55 +157,45 @@ name: Deploy to Porter
 on:
   push:
     branches: [main]
-
 jobs:
-  deploy:
+  porter-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy to Porter
-        uses: porter-dev/porter-cli-action@v0.1.0
-        with:
-          command: app update api
+      - uses: porter-dev/setup-porter@v0.2.0
+      - run: porter apply -f porter.yaml --wait
+        timeout-minutes: 30
         env:
-          PORTER_TOKEN: ${{ secrets.PORTER_TOKEN }}
+          PORTER_HOST: https://dashboard.porter.run
           PORTER_PROJECT: ${{ secrets.PORTER_PROJECT }}
           PORTER_CLUSTER: ${{ secrets.PORTER_CLUSTER }}
+          PORTER_TOKEN: ${{ secrets.PORTER_TOKEN }}
+          PORTER_APP_NAME: billing-api
+          PORTER_TAG: ${{ github.sha }}
 ```
 
+Other CI systems can run the `ghcr.io/porter-dev/releases/porter-cli` image with the same variables.
 
 ## Examples
 
+### Example 1: Deploy a Node API with a worker and nightly job
 
-### Example 1: Setting up Porter for a microservices project
+**User request:** "Put our Express API and queue worker on Porter, run migrations before each deploy, and send a report every morning."
 
-**User request:**
+Write the `porter.yaml` above (web, worker and job services, `predeploy.run` for the migration), create the `billing-secrets` environment group with the database URL as a secret, then run `porter apply -f porter.yaml --dry-run` followed by `porter apply -f porter.yaml --wait`. Check the result with `porter app logs billing-api --service api --since 15m`.
 
-```
-I have a Node.js API and a React frontend running in Docker. Set up Porter for monitoring/deployment.
-```
+### Example 2: Debug a crash-looping service
 
-The agent creates the necessary configuration files based on patterns like `# Porter provisions a Kubernetes cluster in YOUR cloud accou`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+**User request:** "The worker keeps restarting after the last deploy."
 
-### Example 2: Troubleshooting application deployment issues
-
-**User request:**
-
-```
-Porter is showing errors in our application deployment. Here are the logs: [error output]
-```
-
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Porter issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
-
+Run `porter app logs billing-api --service queue-worker --since 1h --search "error"` and compare memory use in the dashboard; out-of-memory kills, wrong `run` commands and failing health checks are the usual causes. Raise `ramMegabytes`, fix the command, and redeploy with `porter apply -f porter.yaml --wait`. If the new revision is bad, `autoRollback.enabled: true` rolls all services back, or run `porter app rollback billing-api`.
 
 ## Guidelines
 
-1. **Your cloud, Porter's UX** — Infrastructure runs in your AWS/GCP/Azure account; you own the data and the bill
-2. **Use porter.yaml** — Define services, scaling, and env vars in code; avoid dashboard-only configuration
-3. **Predeploy for migrations** — Run database migrations in the `predeploy` step; they execute before the new version goes live
-4. **Preview environments for PRs** — Each PR gets isolated resources including databases; reviewers test real deployments
-5. **Autoscaling with CPU targets** — Set `targetCPU: 60` for web services; Porter handles HPA configuration on Kubernetes
-6. **Secrets through CLI/dashboard** — Mark sensitive values with `secret: true`; they're stored as Kubernetes secrets
-7. **One-off commands with `app run`** — Use for database seeding, REPL access, or debugging; runs in the same environment as your app
-8. **Monitor cloud costs** — Porter creates real cloud resources (EKS, RDS, EC2); monitor your cloud bill directly
+- Porter creates real cloud resources (Kubernetes cluster, load balancers, datastores) that you pay for to your cloud provider; check that bill, and delete clusters through Porter so dependent resources are cleaned up.
+- Keep `porter.yaml` in the repository and prefer it over dashboard-only edits; `porter apply` merges with the existing config unless you pass `--exact`.
+- Run migrations in `predeploy`, not in the service start command.
+- Set `minInstances` to at least 2 for web services that must not drop during a deploy, and define a `healthCheck`.
+- Use environment groups for secrets; never put them in `porter.yaml` or in the workflow file.
+- Datastores are AWS only. Do not install the CLI by piping a script into a shell; use Homebrew on macOS, or the CI image (`ghcr.io/porter-dev/releases/porter-cli`); on Linux workstations download the installer from docs.porter.run/cli/installation, read it and check it before you run it.
+- A browser-based login does not work in CI: use `PORTER_TOKEN`.
