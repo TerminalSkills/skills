@@ -1,35 +1,70 @@
 ---
 name: drei
 description: >-
-  You are an expert in @react-three/drei, the companion library for React
-  Three Fiber that provides 100+ ready-made components and hooks for common 3D
-  patterns. You help developers add orbit controls, environment maps, text
-  rendering, HTML overlays, loaders, performance utilities, shaders, and
-  abstractions — eliminating boilerplate and letting teams focus on creative
-  work instead of Three.js plumbing.
+  Drei (@react-three/drei) is the helper library for React Three Fiber with
+  ready-made 3D components: orbit controls, environment lighting, text, HTML
+  overlays, model and texture loaders, instancing and performance tools. Use
+  when someone asks to "add OrbitControls", "load a GLTF model in React Three
+  Fiber", "add an HDR environment", "put HTML labels in a 3D scene", "render 3D
+  text", or "speed up a three.js scene in React".
 license: Apache-2.0
-compatibility: ''
+compatibility: 'React 19, @react-three/fiber 9, three r159 or newer (drei 10)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: 3D & Creative
+  version: 1.1.0
+  category: design
+  repository: https://github.com/pmndrs/drei
   tags:
     - 3d
     - react
     - threejs
-    - helpers
-    - controls
-    - abstractions
     - r3f
+    - helpers
 ---
 
 # Drei — Essential Helpers for React Three Fiber
 
-You are an expert in @react-three/drei, the companion library for React Three Fiber that provides 100+ ready-made components and hooks for common 3D patterns. You help developers add orbit controls, environment maps, text rendering, HTML overlays, loaders, performance utilities, shaders, and abstractions — eliminating boilerplate and letting teams focus on creative work instead of Three.js plumbing.
+## Overview
 
-## Core Capabilities
+Drei is the companion library of React Three Fiber (R3F). It adds controls, environment and lighting helpers, text, HTML in 3D, loaders and performance utilities as components and hooks, so you skip the Three.js plumbing. Checked against `@react-three/drei` 10.7.9 and `@react-three/fiber` 9.8.2: drei 10 needs React 19 and fiber 9; for React 18 and fiber 8 stay on drei 9.
 
-### Controls
+## Instructions
+
+### Install
+
+```bash
+npm install three @react-three/fiber @react-three/drei
+npm install -D @types/three
+```
+
+Every drei component must render inside a fiber `<Canvas>`. Components that load files (`useGLTF`, `useTexture`, `Environment`, `Text`) suspend, so wrap the scene in `<Suspense>`.
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
+import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
+
+function Sneaker() {
+  const { scene } = useGLTF("/models/sneaker.glb");
+  return <primitive object={scene} />;
+}
+
+export default function Viewer() {
+  return (
+    <Canvas camera={{ position: [0, 1, 4], fov: 45 }}>
+      <Suspense fallback={null}>
+        <Sneaker />
+        <Environment preset="studio" />
+      </Suspense>
+      <OrbitControls makeDefault enablePan={false} />
+    </Canvas>
+  );
+}
+```
+
+### Components by task
+
+#### Controls
 
 ```tsx
 import { OrbitControls, MapControls, FlyControls, ScrollControls } from "@react-three/drei";
@@ -49,7 +84,7 @@ import { OrbitControls, MapControls, FlyControls, ScrollControls } from "@react-
 </ScrollControls>
 ```
 
-### Environment and Lighting
+#### Environment and Lighting
 
 ```tsx
 import { Environment, Lightformer, Sky, Stars, Stage } from "@react-three/drei";
@@ -74,17 +109,17 @@ import { Environment, Lightformer, Sky, Stars, Stage } from "@react-three/drei";
 <Stars radius={100} depth={50} count={5000} />
 ```
 
-### Text and HTML
+#### Text and HTML
 
 ```tsx
 import { Text, Text3D, Html, Billboard } from "@react-three/drei";
 
 // 2D text in 3D space (SDF rendering, crisp at any distance)
-<Text fontSize={0.5} color="white" anchorX="center" font="/fonts/Inter.woff">
+<Text fontSize={0.5} color="white" anchorX="center" font="/fonts/Inter.woff">  {/* .woff/.ttf/.otf; woff2 is not supported */}
   Hello World
 </Text>
 
-// Extruded 3D text (geometry)
+// Extruded 3D text (needs a typeface.js JSON font, not a .woff/.ttf)
 <Text3D font="/fonts/Inter_Bold.json" size={1} height={0.2} bevelEnabled bevelSize={0.02}>
   3D TEXT
   <meshStandardMaterial color="gold" metalness={0.8} />
@@ -102,7 +137,7 @@ import { Text, Text3D, Html, Billboard } from "@react-three/drei";
 <Billboard><Text>Always visible</Text></Billboard>
 ```
 
-### Loaders and Assets
+#### Loaders and Assets
 
 ```tsx
 import { useGLTF, useTexture, useVideoTexture, useFBX, Preload } from "@react-three/drei";
@@ -110,7 +145,7 @@ import { useGLTF, useTexture, useVideoTexture, useFBX, Preload } from "@react-th
 // GLTF model
 const { scene, nodes, materials } = useGLTF("/model.glb");
 
-// Textures (with auto-disposal)
+// Textures (cached; suspends until loaded)
 const [colorMap, normalMap, roughnessMap] = useTexture([
   "/textures/color.jpg",
   "/textures/normal.jpg",
@@ -120,11 +155,14 @@ const [colorMap, normalMap, roughnessMap] = useTexture([
 // Video as texture (for screens, billboards)
 const videoTexture = useVideoTexture("/video/demo.mp4");
 
-// Preload all assets inside Canvas
+// Preload everything inside the Canvas's Suspense boundary
 <Preload all />
+
+// Optional: start fetching a model before the component mounts
+useGLTF.preload("/model.glb");
 ```
 
-### Shapes and Helpers
+#### Shapes and Helpers
 
 ```tsx
 import {
@@ -155,14 +193,17 @@ import {
 <Grid infiniteGrid fadeDistance={30} cellColor="#6f6f6f" />
 ```
 
-### Performance
+#### Performance
 
 ```tsx
-import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Instances, Detailed } from "@react-three/drei";
+import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Instances, Instance, Detailed } from "@react-three/drei";
 
-// Auto-adjust quality
-<AdaptiveDpr pixelated />
-<PerformanceMonitor onDecline={() => setDpr(0.5)} onIncline={() => setDpr(1)} />
+// Auto-adjust quality: PerformanceMonitor reports, you lower the Canvas dpr
+const [dpr, setDpr] = useState(1.5)
+<Canvas dpr={dpr}>
+  <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
+  <AdaptiveDpr pixelated />   {/* lowers dpr while the camera moves */}
+</Canvas>
 
 // LOD (Level of Detail)
 <Detailed distances={[0, 20, 50]}>
@@ -175,24 +216,29 @@ import { AdaptiveDpr, AdaptiveEvents, PerformanceMonitor, Instances, Detailed } 
 <Instances limit={1000}>
   <boxGeometry />
   <meshStandardMaterial />
-  {positions.map((pos, i) => <Instance key={i} position={pos} />)}
+  {positions.map((pos, i) => <Instance key={i} position={pos} />)}  {/* limit must be >= number of instances */}
 </Instances>
 ```
 
-## Installation
+## Examples
 
-```bash
-npm install @react-three/drei
-# Peer dependency: @react-three/fiber three
-```
+### Example 1: Product viewer
+**User:** "Show our sneaker.glb in a React page that people can rotate, with soft lighting and a shadow under it."
 
-## Best Practices
+Use the `Viewer` above and wrap the model in `<Stage environment="city" intensity={0.5} shadows adjustCamera>`, which adds lighting, a contact shadow and camera framing. `OrbitControls` with `makeDefault` handles rotation; `enablePan={false}` keeps the product centered. Run `npx tsc --noEmit` to confirm the imports resolve; at runtime the model appears centered with a soft ground shadow.
 
-1. **Stage for quick setup** — Use `<Stage>` to get instant professional lighting and shadows for product shots
-2. **Environment for reflections** — Always add `<Environment>`; PBR materials look flat without it
-3. **Html for UI in 3D** — Use `<Html>` for tooltips, labels, buttons; `occlude` hides them behind 3D objects
-4. **Float for motion** — Wrap any object in `<Float>` for gentle floating animation; great for hero sections
-5. **ContactShadows** — Cheaper than real shadows; place below objects for grounding effect
-6. **Instances for performance** — Use `<Instances>` for forests, particle fields, city blocks; 100x faster than individual meshes
-7. **Preload assets** — Add `<Preload all />` inside Canvas; assets load before scene renders
-8. **ScrollControls for landing pages** — Scroll-linked 3D animations without external libraries; `useScroll()` gives normalized progress
+### Example 2: Labels and many objects in one scene
+**User:** "Put clickable price tags over 500 boxes in a warehouse scene and keep it at 60 fps."
+
+Render the boxes with one `<Instances limit={500}>` and 500 `<Instance>` children (one draw call). Add a single `<Html>` tag only for the hovered or selected box rather than 500 DOM overlays, and add `<PerformanceMonitor>` plus `<AdaptiveDpr pixelated />` to lower resolution when the frame rate drops.
+
+## Guidelines
+
+- Presets (`<Environment preset="sunset" />`) download their HDR from a public CDN at runtime, and `useGLTF` fetches the Draco decoder from `gstatic.com` unless you configure your own. For offline, privacy-restricted or production-critical sites, self-host an HDR and pass `files="/hdri/warehouse.hdr"`, and call `useGLTF.setDecoderPath("/draco/")`.
+- Always add an `<Environment>`; PBR materials look flat without one.
+- `Html` creates real DOM nodes: fine for a few labels, wasteful for hundreds. `occlude` hides them behind meshes.
+- Use `<Instances>` for many copies of one geometry; `limit` must be at least the instance count.
+- `ContactShadows` is much cheaper than real shadow maps; use it to ground objects.
+- Put `<Preload all />` inside the Suspense boundary so assets load before first render.
+- Import from `@react-three/drei`, not its internal paths; React Native projects use `@react-three/drei/native`.
+- Do not mix drei 10 with React 18; install a matching pair or you get peer-dependency errors.
