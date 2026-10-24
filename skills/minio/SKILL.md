@@ -5,14 +5,15 @@ description: >-
   set up self-hosted object storage, create an S3-compatible API on their own
   server, store files without AWS, set up a private cloud storage, manage
   buckets and objects, configure storage for backups, host static assets, or
-  replace AWS S3 with a self-hosted solution. Covers single-node and distributed
-  deployment, bucket management, presigned URLs, lifecycle policies, and
+  replace AWS S3 with a self-hosted solution. Covers single-node deployment from
+  source, bucket management, presigned URLs, lifecycle policies, and
   integration with apps via the S3 API.
 license: Apache-2.0
 compatibility: 'Linux, macOS, Docker'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/minio/minio
+  version: 1.1.0
   category: devops
   tags:
     - minio
@@ -26,62 +27,56 @@ metadata:
 
 ## Overview
 
-MinIO is a high-performance, S3-compatible object storage server you can self-host. Any tool or SDK that works with AWS S3 works with MinIO — same API, same client libraries, zero lock-in. Use it for file uploads, backup storage (restic, pg_dump), static asset hosting, data lake storage, and anywhere you'd use S3 but want to keep data on your own infrastructure.
+MinIO is an S3-compatible object storage server you can self-host. Any tool or SDK that works with AWS S3 works with MinIO: same API, same client libraries. Use it for file uploads, backup storage (restic, pg_dump), static asset hosting, and anywhere you'd use S3 but want the data on your own infrastructure.
+
+**Project status (checked October 2026):** the community repository `minio/minio` is marked "THIS REPOSITORY IS NO LONGER MAINTAINED" (its README points to the commercial AIStor editions). Its last tagged release is `RELEASE.2025-10-15T17-29-55Z`, and the community edition is distributed as source only. The Docker Hub repositories `minio/minio` and `minio/mc` no longer serve anonymous pulls (every tag, including `latest`, is denied), so the repository `Dockerfile` (which starts `FROM minio/minio:latest`) cannot be built either. A server built from source works but gets no fixes, so for a new production deployment weigh that (and the AGPLv3 license) against MinIO's commercial AIStor edition or another S3-compatible server. The S3 usage in Steps 3 to 6 is the same on all of them.
 
 ## Instructions
 
 ### Step 1: Deployment
 
+Build the server from source (Go 1.24 or newer) and run the binary; to run it in a container, wrap the binary in your own small image. Credentials come from the environment (8 characters minimum for the password).
+
 ```bash
-# Docker (single-node, quick start)
-docker run -d --name minio \
-  -p 9000:9000 \
-  -p 9001:9001 \
-  -v minio_data:/data \
-  -e MINIO_ROOT_USER=minioadmin \
-  -e MINIO_ROOT_PASSWORD=minioadmin123 \
-  minio/minio server /data --console-address ":9001"
+# Build a static binary (it also runs in Alpine) into ./bin
+CGO_ENABLED=0 GOBIN="$PWD/bin" go install github.com/minio/minio@latest
 
-# Console UI: http://localhost:9001
-# API endpoint: http://localhost:9000
+# Single node, ports bound to localhost only
+export MINIO_ROOT_USER=minio-admin MINIO_ROOT_PASSWORD   # export the password from your secret store first
+mkdir -p /srv/minio-data
+./bin/minio server /srv/minio-data --address 127.0.0.1:9000 --console-address 127.0.0.1:9001
 
-# Docker Compose (production)
-# docker-compose.yml
+# Console UI: http://127.0.0.1:9001   API endpoint: http://127.0.0.1:9000
+# Readiness: curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:9000/minio/health/ready   (200)
 ```
 
-```yaml
-# docker-compose.yml — MinIO with persistent storage and custom credentials
-services:
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"    # S3 API
-      - "9001:9001"    # Web console
-    volumes:
-      - minio_data:/data
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-in-production}
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+The same binary in a container:
 
-volumes:
-  minio_data:
+```dockerfile
+# Dockerfile (next to the static ./minio binary)
+FROM alpine:3
+COPY minio /usr/bin/minio
+VOLUME ["/data"]
+ENTRYPOINT ["/usr/bin/minio"]
+```
+
+```bash
+docker build -t myminio:local .
+docker run -d --name minio -p 127.0.0.1:9000:9000 -p 127.0.0.1:9001:9001 \
+  -v minio_data:/data -e MINIO_ROOT_USER=minio-admin -e MINIO_ROOT_PASSWORD="$MINIO_ROOT_PASSWORD" \
+  myminio:local server /data --console-address ":9001"
 ```
 
 ### Step 2: MinIO Client (mc)
 
 ```bash
-# Install mc (MinIO Client CLI)
-curl -L https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-chmod +x /usr/local/bin/mc
+# Install mc (MinIO Client CLI) from source (Go 1.24+); the mc repository is archived too
+go install github.com/minio/mc@latest
+mc --version
 
-# Configure alias
-mc alias set local http://localhost:9000 minioadmin minioadmin123
+# Configure alias; the secret comes from the environment, not the command line
+mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+mc ready local                     # prints: The cluster 'local' is ready
 
 # Bucket operations
 mc mb local/uploads                # create bucket
@@ -95,7 +90,7 @@ mc cp local/uploads/file.txt .     # download file
 mc cp -r ./data/ local/uploads/    # upload directory recursively
 
 # Sync (like rsync for S3)
-mc mirror ./local-dir local/uploads/     # sync local → MinIO
+mc mirror ./local-dir local/uploads/     # sync local → MinIO (source must be a folder)
 mc mirror local/uploads/ ./local-dir     # sync MinIO → local
 
 # Remove
@@ -111,7 +106,7 @@ mc rm -r --force local/uploads/old/      # remove recursively
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-const s3 = new S3Client({
+export const s3 = new S3Client({
   endpoint: process.env.MINIO_ENDPOINT || 'http://localhost:9000',
   region: 'us-east-1',              // required by SDK, MinIO ignores it
   credentials: {
@@ -161,8 +156,9 @@ export async function deleteFile(key) {
 ```javascript
 // api/upload-url.js — Generate presigned PUT URL for client-side uploads
 // Clients upload directly to MinIO, bypassing your app server
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { s3 } from './lib/storage.js' // the client exported in Step 3
 
 export async function generateUploadUrl(filename, contentType) {
   const key = `uploads/${Date.now()}-${filename}`
@@ -198,14 +194,28 @@ mc anonymous set none local/uploads
 mc version enable local/documents
 ```
 
+Scoped credentials for one application or server (verified: the key reads and writes only its own bucket and gets `AccessDenied` on others):
+
+```bash
+cat > backup-web-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow", "Action": ["s3:ListBucket", "s3:GetBucketLocation"], "Resource": ["arn:aws:s3:::backup-web"] },
+    { "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], "Resource": ["arn:aws:s3:::backup-web/*"] }
+  ]
+}
+EOF
+mc admin policy create local backup-web-rw backup-web-policy.json
+mc admin user add local backupweb "$BACKUP_WEB_SECRET"
+mc admin policy attach local backup-web-rw --user backupweb
+```
+
 ### Step 6: Lifecycle Rules
 
 ```bash
 # Auto-delete objects after 30 days
 mc ilm rule add local/temp-uploads --expiry-days 30
-
-# Move to lower tier after 90 days (multi-tier setups)
-mc ilm rule add local/archives --transition-days 90 --storage-class GLACIER
 
 # List lifecycle rules
 mc ilm rule ls local/temp-uploads
@@ -217,7 +227,7 @@ mc ilm rule ls local/temp-uploads
 **User prompt:** "I need file upload/download for my app. I don't want to use AWS. Set up MinIO on my server with presigned URLs for secure uploads."
 
 The agent will:
-1. Deploy MinIO with Docker Compose and persistent volume.
+1. Build and run MinIO (localhost-bound ports, persistent data directory or volume).
 2. Create an uploads bucket with appropriate access policies.
 3. Write a storage module using the AWS S3 SDK with MinIO endpoint.
 4. Implement presigned URL generation for browser-direct uploads.
@@ -236,8 +246,8 @@ The agent will:
 ## Guidelines
 
 - Always set `forcePathStyle: true` in the S3 SDK when connecting to MinIO — MinIO uses path-style URLs (`http://host/bucket/key`), not virtual-hosted style (`http://bucket.host/key`).
-- Change default credentials immediately in production. MinIO's default `minioadmin/minioadmin` is well-known and will be targeted by scanners.
+- Never run with the default `minioadmin/minioadmin` credentials outside a throwaway test; they are well known and scanners try them. Create scoped users and keys for applications instead of sharing the root account.
 - Put MinIO behind a reverse proxy (Caddy, nginx, Traefik) with TLS for production. Never expose the S3 API over plain HTTP on the internet.
-- MinIO on a single node with a single drive has no redundancy — if the disk fails, data is lost. For production, use MinIO's erasure coding (minimum 4 drives) or ensure external backups exist.
+- MinIO on a single node with a single drive has no redundancy (the server logs a warning at start): if the disk fails, data is lost. Use erasure coding across at least 4 drives, or keep external backups.
 - Presigned URLs are the recommended pattern for file uploads — clients upload directly to MinIO, avoiding the overhead of proxying large files through your application server.
 - Any S3-compatible tool works with MinIO: restic, rclone, s3cmd, AWS CLI, Terraform, and every AWS SDK. Set the endpoint URL and it just works.
