@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:fc663e6edd274fa1c9169c1b79476fde26f6b29bc7c93c8ab3a734d2276bd580",
-  "scoredAt": "2026-10-13T11:13:55.301Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:274e38d1f612140223251f32044421b0385ade9847bef7b470a66b3159071154",
+  "scoredAt": "2026-10-24T23:04:20.785Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -17,8 +17,18 @@
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover handling of permission errors, network failures, or agent crashes, leaving edge cases unaddressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed without losing essential information."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Most examples and the monitoring workflow are written around Claude Code flags (--permission-mode, --allowedTools, --max-turns), with Codex and Gemini only briefly covered and no full examples for them."
+        "detail": "The skill assumes specific CLI tools (claude, codex, gemini) and npm installation, limiting portability across different agent environments."
       }
     ]
   },
@@ -27,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.25,
-    "baselineAvg": 65,
-    "treatmentAvg": 81,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "parallel-agents-non-overlapping-scopes",
-        "baseline": 62,
-        "treatment": 82,
-        "rationale": "A delivers a runnable script that launches two `claude -p` processes with `&`, captures PIDs via `$!`, writes each to its own log, waits on both, and pre-approves only the needed tools with `--permission-mode acceptEdits` and `--allowedTools` plus `--worktree`; B declines to launch and offers an in-session Agent option, and its shell option has the background/PID/log/wait pattern and acceptEdits but omits `--allowedTools`."
+        "name": "delegate-test-writing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while A does not."
       },
       {
-        "name": "codex-background-unit-tests",
-        "baseline": 68,
-        "treatment": 80,
-        "rationale": "A uses codex exec with workspace-write, & with $!, -o file, log redirect, and a follow-up to check exit code and run tests; B has most of the same but uses nohup and echoes pid, and its follow-up lacks an explicit exit-code check or independent test run (it asks Codex to run tests), plus it spends effort on not being able to run it."
+        "name": "parallel-type-and-docs",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not spawn any Claude commands as required."
       },
       {
-        "name": "safe-agent-runaway-guard-and-monitor",
-        "baseline": 66,
-        "treatment": 82,
-        "rationale": "Response A hits nearly every rubric item: `timeout` plus `--max-turns` and `--max-budget-usd`, `--allowedTools`, a log capturing stdout and stderr, `ps -p`, `wait` with the exit code, kill by PID, and a post-run review. Response B has strong limits, logging and review but omits `wait`, checks liveness with `ps -o ... -p` rather than plain `ps -p`, kills the process group via `kill -- -PID` instead of plain `kill $AGENT_PID`, and only weakly mentions verifying the CLI (via `claude --help`)."
+        "name": "structured-todo-analysis",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
       }
     ]
   }
