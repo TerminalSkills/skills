@@ -2,9 +2,9 @@
 title: Build a SvelteKit SaaS with Auth and Payments
 slug: build-sveltekit-saas-with-auth-and-payments
 description: >-
-  Build a production SaaS app with SvelteKit — authentication with Lucia,
-  Stripe subscriptions, server-side load functions, form actions, and
-  progressive enhancement for a fast, accessible app.
+  Build a production SaaS app with SvelteKit 3 -- email and password sessions
+  you own, Stripe subscriptions with a verified webhook, Drizzle on
+  PostgreSQL, form actions, and progressive enhancement.
 skills:
   - sveltekit
   - lucia-auth
@@ -22,237 +22,278 @@ tags:
 
 # Build a SvelteKit SaaS with Auth and Payments
 
-Maren wants to build a SaaS with SvelteKit because she's tired of React's complexity. Svelte compiles away the framework — no virtual DOM, no hooks rules, no `useEffect` foot-guns. SvelteKit gives her server-side rendering, form actions that work without JavaScript, and load functions for type-safe data fetching. Combined with Lucia for auth and Stripe for payments, she has a production SaaS stack.
+## The Problem
 
-## Step 1: Project Setup
+Maren wants to build a SaaS with SvelteKit because she is tired of React's complexity. She needs sign-up and sign-in, a paid plan billed through Stripe, and a dashboard that only paying or signed-in users can reach. The tutorials she finds import the `lucia` package (deprecated on npm in March 2025), and upgrade the user to the paid plan from the checkout success redirect instead of from Stripe's signed webhook, which lets anyone who opens the success URL grant themselves Pro.
+
+## The Solution
+
+Use **sveltekit** for routing, load functions, form actions and hooks (this page targets SvelteKit 3), **lucia-auth** for the hand-written session pattern that replaced the Lucia library, **drizzle-orm** for the PostgreSQL schema, **stripe-billing** for Checkout, the customer portal and the webhook, and **tailwindcss** for styling.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Project setup
 
 ```bash
-npx sv create my-saas --template minimal --types ts
-cd my-saas
-npm install lucia @lucia-auth/adapter-drizzle drizzle-orm stripe
-npm install -D drizzle-kit
+npx sv create my-saas --template minimal --types ts --no-add-ons --install npm
+cd my-saas || exit 1
+npx sv add 'tailwindcss=plugins:none' --install npm
+npm install drizzle-orm pg stripe @node-rs/argon2
+npm install -D drizzle-kit @types/pg
 ```
 
-## Step 2: Authentication with Lucia
+SvelteKit 3 needs Node.js 22.17 or newer. Environment variables are declared once in `src/env.ts` and imported from `$app/env/private` (the older `$env/*` modules are deprecated). The build fails if one is missing, which is what you want:
+
+```typescript
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/env';
+
+export const variables = defineEnvVars({
+	DATABASE_URL: {}, APP_URL: {}, STRIPE_SECRET_KEY: {},
+	STRIPE_WEBHOOK_SECRET: {}, STRIPE_PRO_PRICE_ID: {}
+});
+```
+Put real values in `.env` (git-ignored) and use `sk_test_` keys until launch. `STRIPE_PRO_PRICE_ID` is a recurring Price created in the Stripe dashboard, and `STRIPE_WEBHOOK_SECRET` comes from `stripe listen` in development.
+
+### Step 2: Schema and sessions
+
+Lucia's author deprecated the `lucia` package and its adapters in March 2025 and now recommends owning about fifty lines of session code. The `lucia-auth` skill explains the pattern: the cookie holds a random token, the database stores only its SHA-256 hash, so a leaked table cannot be replayed as cookies. This version uses a fixed 30-day lifetime; add a sliding renewal if you want one, and call `invalidateSession` from a sign-out action.
+
+```typescript
+// src/lib/server/db/schema.ts
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('app_user', {
+	id: text('id').primaryKey(),
+	email: text('email').notNull().unique(),
+	name: text('name').notNull(),
+	passwordHash: text('password_hash').notNull(),
+	plan: text('plan').notNull().default('free'),
+	stripeCustomerId: text('stripe_customer_id'),
+	stripeSubscriptionId: text('stripe_subscription_id')
+});
+
+export const sessions = pgTable('session', {
+	id: text('id').primaryKey(), // SHA-256 of the cookie token, never the token itself
+	userId: text('user_id').notNull().references(() => users.id),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
+});
+```
+`src/lib/server/db/index.ts` exports `db = drizzle(DATABASE_URL, { schema })` from `drizzle-orm/node-postgres`. Generate and apply the migration with `npx drizzle-kit generate` then `npx drizzle-kit migrate` (`drizzle.config.ts` points at the schema and reads `DATABASE_URL`).
 
 ```typescript
 // src/lib/server/auth.ts
-import { Lucia } from "lucia";
-import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
-import { db } from "./db";
-import { users, sessions } from "./db/schema";
+import { createHash, randomBytes } from 'node:crypto';
+import { eq } from 'drizzle-orm';
+import type { Cookies } from '@sveltejs/kit';
+import { db } from './db/index.js';
+import { sessions, users } from './db/schema.js';
 
-const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
+const DAY = 24 * 60 * 60 * 1000;
+const COOKIE = 'session';
+const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 
-export const lucia = new Lucia(adapter, {
-  sessionCookie: { attributes: { secure: process.env.NODE_ENV === "production" } },
-  getUserAttributes: (attrs) => ({
-    email: attrs.email,
-    name: attrs.name,
-    plan: attrs.plan,
-  }),
-});
-
-declare module "lucia" {
-  interface Register {
-    Lucia: typeof lucia;
-    DatabaseUserAttributes: { email: string; name: string; plan: string };
-  }
+export async function createSession(userId: string, cookies: Cookies) {
+	const token = randomBytes(24).toString('base64url');
+	const expiresAt = new Date(Date.now() + 30 * DAY);
+	await db.insert(sessions).values({ id: hashToken(token), userId, expiresAt });
+	setCookie(cookies, token, expiresAt);
 }
+
+export async function validateSession(token: string) {
+	const id = hashToken(token);
+	const [row] = await db
+		.select({ session: sessions, user: users })
+		.from(sessions)
+		.innerJoin(users, eq(sessions.userId, users.id))
+		.where(eq(sessions.id, id));
+	if (!row) return null;
+	if (row.session.expiresAt.getTime() <= Date.now()) {
+		await db.delete(sessions).where(eq(sessions.id, id));
+		return null;
+	}
+	const { id: userId, email, name, plan } = row.user;
+	return { user: { id: userId, email, name, plan } };
+}
+
+export async function invalidateSession(token: string) {
+	await db.delete(sessions).where(eq(sessions.id, hashToken(token)));
+}
+
+export function setCookie(cookies: Cookies, token: string, expires: Date) {
+	cookies.set(COOKIE, token, { path: '/', httpOnly: true, sameSite: 'lax', secure: true, expires });
+}
+export const getToken = (cookies: Cookies) => cookies.get(COOKIE);
+export const clearCookie = (cookies: Cookies) => cookies.delete(COOKIE, { path: '/' });
 ```
+Wire it into the request with a hook and type `event.locals`. In SvelteKit 3 the `Handle` type comes from `@sveltejs/kit/hooks`:
 
 ```typescript
 // src/hooks.server.ts
-import { lucia } from "$lib/server/auth";
-import type { Handle } from "@sveltejs/kit";
+import type { Handle } from '@sveltejs/kit/hooks';
+import { clearCookie, getToken, validateSession } from '#lib/server/auth.js';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  const sessionId = event.cookies.get(lucia.sessionCookieName);
-
-  if (sessionId) {
-    const { session, user } = await lucia.validateSession(sessionId);
-    if (session?.fresh) {
-      const cookie = lucia.createSessionCookie(session.id);
-      event.cookies.set(cookie.name, cookie.value, { path: ".", ...cookie.attributes });
-    }
-    if (!session) {
-      const cookie = lucia.createBlankSessionCookie();
-      event.cookies.set(cookie.name, cookie.value, { path: ".", ...cookie.attributes });
-    }
-    event.locals.user = user;
-    event.locals.session = session;
-  }
-
-  return resolve(event);
+	event.locals.user = null;
+	const token = getToken(event.cookies);
+	const result = token ? await validateSession(token) : null;
+	if (result) event.locals.user = result.user;
+	else if (token) clearCookie(event.cookies);
+	return resolve(event);
 };
 ```
+Add `user: { id: string; email: string; name: string; plan: string } | null` to `App.Locals` in `src/app.d.ts`. SvelteKit 3 always checks the `Origin` of cross-site form posts, so the form actions below are protected against CSRF without extra code. Never change state in a `GET` handler.
 
-## Step 3: Login Page with Form Actions
+### Step 3: Sign-up and sign-in with form actions
 
-```svelte
-<!-- src/routes/login/+page.svelte -->
-<script lang="ts">
-  import { enhance } from "$app/forms";
-  let { form } = $props();
-</script>
-
-<div class="max-w-sm mx-auto mt-20">
-  <h1 class="text-2xl font-bold mb-6">Sign In</h1>
-
-  <!-- Works without JavaScript! Progressive enhancement. -->
-  <form method="POST" action="?/login" use:enhance class="space-y-4">
-    {#if form?.error}
-      <div class="bg-red-50 text-red-600 p-3 rounded">{form.error}</div>
-    {/if}
-
-    <div>
-      <label for="email" class="block text-sm font-medium">Email</label>
-      <input id="email" name="email" type="email" required
-        class="w-full px-3 py-2 border rounded mt-1" />
-    </div>
-
-    <div>
-      <label for="password" class="block text-sm font-medium">Password</label>
-      <input id="password" name="password" type="password" required minlength="10"
-        class="w-full px-3 py-2 border rounded mt-1" />
-    </div>
-
-    <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-      Sign In
-    </button>
-  </form>
-
-  <p class="text-center text-sm text-gray-600 mt-4">
-    No account? <a href="/signup" class="text-blue-600">Sign up</a>
-  </p>
-</div>
-```
+Passwords are hashed with Argon2id through `@node-rs/argon2`. Unknown email and wrong password return the same message, and sign-up does not reveal whether an email is taken.
 
 ```typescript
 // src/routes/login/+page.server.ts
-import { fail, redirect } from "@sveltejs/kit";
-import { lucia } from "$lib/server/auth";
-import { verify } from "@node-rs/argon2";
-import type { Actions } from "./$types";
+import { fail, redirect } from '@sveltejs/kit';
+import { verify } from '@node-rs/argon2';
+import { eq } from 'drizzle-orm';
+import { createSession } from '#lib/server/auth.js';
+import { db } from '#lib/server/db/index.js';
+import { users } from '#lib/server/db/schema.js';
+import type { Actions } from './$types';
 
 export const actions: Actions = {
-  login: async ({ request, cookies }) => {
-    const data = await request.formData();
-    const email = data.get("email") as string;
-    const password = data.get("password") as string;
-
-    const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-    if (!user) return fail(400, { error: "Invalid email or password" });
-
-    const valid = await verify(user.passwordHash, password);
-    if (!valid) return fail(400, { error: "Invalid email or password" });
-
-    const session = await lucia.createSession(user.id, {});
-    const cookie = lucia.createSessionCookie(session.id);
-    cookies.set(cookie.name, cookie.value, { path: ".", ...cookie.attributes });
-
-    redirect(302, "/dashboard");
-  },
+	login: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const email = String(data.get('email') ?? '').trim().toLowerCase();
+		const password = String(data.get('password') ?? '');
+		const [user] = await db.select().from(users).where(eq(users.email, email));
+		if (!user || !(await verify(user.passwordHash, password))) {
+			return fail(400, { error: 'Invalid email or password' });
+		}
+		await createSession(user.id, cookies);
+		redirect(303, '/dashboard');
+	}
 };
 ```
+The sign-up action is the same shape: validate the fields, hash the password with `hash(password, { memoryCost: 19456, timeCost: 3, parallelism: 1 })`, `insert(users).onConflictDoNothing().returning()`, answer with one generic error if nothing was inserted, then `createSession` and redirect. The pages are plain `<form method="POST" action="?/login" use:enhance>` elements with Tailwind classes, so they post without JavaScript; `stripe.ts` exports `new Stripe(STRIPE_SECRET_KEY)`. In SvelteKit 3 an enhanced submission reports the status code you pass to `fail()`.
 
-## Step 4: Stripe Subscription Billing
-
-```typescript
-// src/routes/dashboard/billing/+page.server.ts
-import Stripe from "stripe";
-import type { PageServerLoad, Actions } from "./$types";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-export const load: PageServerLoad = async ({ locals }) => {
-  if (!locals.user) redirect(302, "/login");
-
-  const user = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
-
-  let subscription = null;
-  if (user?.stripeSubscriptionId) {
-    subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-  }
-
-  return { plan: user?.plan || "free", subscription };
-};
-
-export const actions: Actions = {
-  upgrade: async ({ locals }) => {
-    if (!locals.user) return fail(401);
-
-    const user = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
-
-    // Create or get Stripe customer
-    let customerId = user?.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({ email: user!.email, name: user!.name });
-      customerId = customer.id;
-      await db.update(users).set({ stripeCustomerId: customerId }).where(eq(users.id, locals.user.id));
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: "subscription",
-      line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID!, quantity: 1 }],
-      success_url: `${process.env.APP_URL}/dashboard/billing?success=true`,
-      cancel_url: `${process.env.APP_URL}/dashboard/billing`,
-    });
-
-    redirect(303, session.url!);
-  },
-
-  cancelSubscription: async ({ locals }) => {
-    if (!locals.user) return fail(401);
-    const user = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
-    if (user?.stripeSubscriptionId) {
-      await stripe.subscriptions.update(user.stripeSubscriptionId, { cancel_at_period_end: true });
-    }
-    return { success: true };
-  },
-};
-```
-
-## Step 5: Protected Dashboard Layout
+### Step 4: Protected dashboard
 
 ```typescript
 // src/routes/dashboard/+layout.server.ts
-import { redirect } from "@sveltejs/kit";
-import type { LayoutServerLoad } from "./$types";
-
+import { redirect } from '@sveltejs/kit';
+import type { LayoutServerLoad } from './$types';
 export const load: LayoutServerLoad = async ({ locals }) => {
-  if (!locals.user) redirect(302, "/login");
-  return { user: locals.user };
+	if (!locals.user) redirect(303, '/login');
+	return { user: locals.user };
 };
 ```
+The layout's `+layout.svelte` shows `data.user.name`, `data.user.email` and a plan badge, renders `{@render children()}` and links to `/dashboard/billing`.
 
-```svelte
-<!-- src/routes/dashboard/+layout.svelte -->
-<script lang="ts">
-  let { data, children } = $props();
-</script>
+### Step 5: Stripe Checkout and the customer portal
 
-<div class="flex min-h-screen">
-  <nav class="w-64 bg-gray-900 text-white p-4">
-    <div class="mb-8">
-      <p class="font-semibold">{data.user.name}</p>
-      <p class="text-sm text-gray-400">{data.user.email}</p>
-      <span class="text-xs bg-blue-600 px-2 py-0.5 rounded mt-1 inline-block">
-        {data.user.plan}
-      </span>
-    </div>
-    <a href="/dashboard" class="block py-2 px-3 rounded hover:bg-gray-800">Dashboard</a>
-    <a href="/dashboard/billing" class="block py-2 px-3 rounded hover:bg-gray-800">Billing</a>
-    <a href="/dashboard/settings" class="block py-2 px-3 rounded hover:bg-gray-800">Settings</a>
-  </nav>
+The billing actions create the Stripe customer once, start a subscription Checkout session, and send paying users to Stripe's hosted customer portal to cancel or change their card. They do **not** change the plan: the webhook does.
 
-  <main class="flex-1 p-6">
-    {@render children()}
-  </main>
-</div>
+```typescript
+// src/routes/dashboard/billing/+page.server.ts
+import { fail, redirect } from '@sveltejs/kit';
+import { APP_URL, STRIPE_PRO_PRICE_ID } from '$app/env/private';
+import { eq } from 'drizzle-orm';
+import { db } from '#lib/server/db/index.js';
+import { users } from '#lib/server/db/schema.js';
+import { stripe } from '#lib/server/stripe.js';
+import type { Actions, PageServerLoad } from './$types';
+
+const getUser = async (id: string) => (await db.select().from(users).where(eq(users.id, id)))[0];
+
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.user) redirect(303, '/login');
+	return { plan: (await getUser(locals.user.id)).plan };
+};
+
+export const actions: Actions = {
+	upgrade: async ({ locals }) => {
+		if (!locals.user) return fail(401);
+		const user = await getUser(locals.user.id);
+		let customerId = user.stripeCustomerId;
+		if (!customerId) {
+			customerId = (await stripe.customers.create({ email: user.email, name: user.name })).id;
+			await db.update(users).set({ stripeCustomerId: customerId }).where(eq(users.id, user.id));
+		}
+		const session = await stripe.checkout.sessions.create({
+			customer: customerId,
+			mode: 'subscription',
+			line_items: [{ price: STRIPE_PRO_PRICE_ID, quantity: 1 }],
+			client_reference_id: user.id,
+			success_url: `${APP_URL}/dashboard/billing?success=true`,
+			cancel_url: `${APP_URL}/dashboard/billing`
+		});
+		redirect(303, session.url!);
+	},
+
+	portal: async ({ locals }) => {
+		if (!locals.user) return fail(401);
+		const { stripeCustomerId } = await getUser(locals.user.id);
+		if (!stripeCustomerId) return fail(400);
+		const portal = await stripe.billingPortal.sessions.create({
+			customer: stripeCustomerId,
+			return_url: `${APP_URL}/dashboard/billing`
+		});
+		redirect(303, portal.url);
+	}
+};
 ```
+Enable the customer portal once in the Stripe dashboard (Settings, Billing, Customer portal) or `billingPortal.sessions.create` fails.
 
-## Summary
+### Step 6: The webhook that grants the plan
 
-Maren's SaaS loads instantly with SvelteKit's SSR and works without JavaScript (forms submit natively, pages render on the server). Lucia handles authentication with type-safe sessions — the user object is available in every server load function and form action. Stripe Checkout handles upgrade flows with a single form submission. The auth guard in the dashboard layout protects all nested routes. Svelte's reactivity is simpler than React: `$state` instead of `useState`, no dependency arrays, no stale closures. The compiled output is 40% smaller than the equivalent React app.
+Stripe signs every event. The handler must read the raw body with `request.text()`, because `request.json()` changes the bytes and breaks the signature.
+
+```typescript
+// src/routes/api/stripe/webhook/+server.ts
+import { error } from '@sveltejs/kit';
+import { STRIPE_WEBHOOK_SECRET } from '$app/env/private';
+import { eq } from 'drizzle-orm';
+import { db } from '#lib/server/db/index.js';
+import { users } from '#lib/server/db/schema.js';
+import { stripe } from '#lib/server/stripe.js';
+import type { RequestHandler } from './$types';
+
+export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.text(); // raw bytes: never request.json()
+	let event;
+	try {
+		event = stripe.webhooks.constructEvent(body, request.headers.get('stripe-signature') ?? '', STRIPE_WEBHOOK_SECRET);
+	} catch {
+		error(400, 'Invalid signature');
+	}
+
+	if (event.type === 'checkout.session.completed') {
+		const s = event.data.object;
+		if (s.mode === 'subscription' && s.client_reference_id) {
+			await db.update(users)
+				.set({ plan: 'pro', stripeCustomerId: s.customer as string, stripeSubscriptionId: s.subscription as string })
+				.where(eq(users.id, s.client_reference_id));
+		}
+	} else if (event.type === 'customer.subscription.deleted') {
+		await db.update(users)
+			.set({ plan: 'free', stripeSubscriptionId: null })
+			.where(eq(users.stripeSubscriptionId, event.data.object.id));
+	}
+	return Response.json({ received: true });
+};
+```
+In development run `stripe listen --forward-to 127.0.0.1:5173/api/stripe/webhook` and copy the printed `whsec_` secret into `.env`. In production add the endpoint under Developers, Webhooks and subscribe to `checkout.session.completed` and `customer.subscription.deleted`. Stripe retries failed deliveries, so make handlers idempotent (the updates above are).
+
+### Step 7: Check it
+
+Run `npm run check` (svelte-check over routes, hooks, env and the Stripe event types) and `npm run build` (needs the five variables from `src/env.ts` set). Sign up, open `/dashboard/billing`, pay with Stripe's test card `4242 4242 4242 4242`, and confirm the plan badge changes only after the webhook arrives. For production, replace `adapter-auto` in `vite.config.ts` with `adapter-node` (self-hosting) or your platform's adapter.
+
+## Real-World Example
+
+Maren ships the app to a small VPS with `adapter-node`. Her first test customer closes the Checkout tab before the redirect and still ends up on Pro a few seconds later, because the plan change comes from Stripe's webhook rather than from the browser. When another tester cancels in the customer portal, the `customer.subscription.deleted` event drops the account back to the free plan with no code path of her own to maintain. She adds a nightly job that deletes expired rows from the `session` table.
+
+## Related Skills
+
+- **sveltekit** -- routes, form actions, hooks and adapters for SvelteKit 3
+- **lucia-auth** -- the session pattern that replaced the deprecated Lucia library
+- **stripe-billing** -- Checkout, customer portal and webhook handling
+- **drizzle-orm** -- typed PostgreSQL schema and migrations
+- **tailwindcss** -- styling, installed with `sv add`
