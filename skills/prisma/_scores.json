@@ -1,7 +1,7 @@
 {
   "version": "1.1.0",
-  "skillHash": "sha256:5a4d6d11b277b6a4750f9c5fa50fba12523923002a6961a1e8bb1455f70e69aa",
-  "scoredAt": "2026-10-24T15:51:26.127Z",
+  "skillHash": "sha256:d4c276d5ec152a83f03fde3dbbeb81a27b091a481ce71932368a8571bf0189e0",
+  "scoredAt": "2026-10-24T22:25:18.935Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 62,
-    "treatmentAvg": 88,
-    "multiplier": 1.42,
+    "multiplier": 3.8,
+    "baselineAvg": 25,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Atomic publish-and-notify across two tables",
-        "baseline": 60,
-        "treatment": 88,
-        "rationale": "Treatment used prisma.$transaction with an array of prisma.post.update and prisma.notification.create so both succeed or roll back together; baseline issued two sequential awaits without transactional rollback."
+        "name": "setup-postgres-prisma-project",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement; Response B omits key steps and dependencies."
       },
       {
-        "name": "Model blog schema with relations and ship migration",
-        "baseline": 65,
-        "treatment": 88,
-        "rationale": "Treatment delivered Prisma Schema Language with @relation, @@index on filtered fields, @@map, enum for Role, and the documented migrate dev / migrate deploy / generate sequence; baseline gave a usable schema but skipped @@index, @@map, and the dev-vs-deploy migration distinction."
+        "name": "upgrade-prisma-client-js-to-prisma7",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers all required steps except the explicit removal of prisma-client-js, while Response B lacks most of the detailed Prisma 7 setup."
+      },
+      {
+        "name": "run-migration-and-complex-query",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A misses several key elements."
       }
     ]
   }
