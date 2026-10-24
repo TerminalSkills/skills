@@ -1,7 +1,7 @@
 ---
 name: log-analyzer
 description: >-
-  Analyze application logs, server logs, and error traces to identify root causes,
+  Analyzes application logs, server logs, and error traces to identify root causes,
   patterns, and anomalies. Use when debugging production incidents, investigating
   error spikes, parsing crash reports, or correlating events across multiple log
   sources. Trigger words: logs, errors, stack trace, crash, exception, debug,
@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with any text-based log format (JSON, plaintext, syslog, structured)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["logs", "debugging", "incident-response", "observability"]
 ---
@@ -71,11 +71,29 @@ Present results as:
 
 ### 5. Handle large log files
 
-For files too large to read at once:
-- Start with the last 500 lines to see recent state
-- Search for ERROR/FATAL/EXCEPTION keywords
-- Use grep patterns to narrow scope before deep reading
-- Sample periodically to detect patterns over time
+For files too large to read at once, narrow with command-line tools before reading:
+
+```bash
+# Count distinct errors: drop timestamp, thread and ids so identical failures group together
+grep ' ERROR ' app.log | sed -E 's/^[^ ]+ [^ ]+ //; s/\[[^]]*\] //; s/#[0-9]+/#N/' | sort | uniq -c | sort -rn | head
+
+# Errors per minute (spike detection) for plaintext logs
+grep ' ERROR ' app.log | cut -c1-16 | uniq -c
+
+# JSON lines: error messages grouped, then everything for one request
+jq -r 'select(.level=="ERROR") | .message' app.jsonl | sort | uniq -c | sort -rn
+jq -c 'select(.request_id=="r-1")' app.jsonl
+
+# Rotated and compressed logs
+zgrep -h ' ERROR ' app.log.*.gz | head
+
+# systemd service and Kubernetes pod
+journalctl -u payment-service -p err --since "30 min ago" --no-pager
+kubectl logs deploy/payment-service --since=30m
+kubectl logs pod/payment-service-7d9c --previous   # the crashed container
+```
+
+Also: read the last 500 lines first to see current state, and sample at intervals to see trends. `uniq -c` only merges adjacent lines, so the first command sorts before counting; the per-minute one relies on log order being chronological.
 
 ## Examples
 
@@ -100,7 +118,7 @@ For files too large to read at once:
 - 13:58:23 — Circuit breaker tripped
 
 ## Root Cause
-payment-service became unreachable at port 8443, causing all order processing
+payment-service became unreachable at port 8443, causing order processing
 to fail with ConnectionRefused errors. The circuit breaker opened after 3
 consecutive health check failures.
 
@@ -127,24 +145,29 @@ consecutive health check failures.
 **Output:**
 ```
 ## Root Cause
-Memory leak in SessionCache — heap grows linearly from 25% to 97% over ~6 hours
-before OOM kill. The SessionCache.put() method at line 142 is the allocation hotspot.
+Memory leak in SessionCache — heap grows from 25% to 97% over ~6 hours and the
+JVM then throws OutOfMemoryError. The growth is not linear (the rate rises from
+~256MB/hour to ~350MB/hour), which points to a cache whose entries are never
+evicted. SessionCache.put() at line 142 is where the failed allocation happened;
+confirm it is the owner of the retained memory with a heap dump.
 
 ## Error Distribution
 | Metric | Value |
 |--------|-------|
-| Growth rate | ~250MB/hour |
+| Growth rate | ~256MB/hour at first, ~350MB/hour later |
 | Time to OOM | ~6 hours |
-| Leak source | SessionCache.put (line 142) |
+| Suspected source | SessionCache.put (line 142), confirm with a heap dump |
 
 ## Recommended Actions
 1. Review SessionCache eviction policy — entries may not be expiring
 2. Add max-size bound to the cache (e.g., Caffeine with maximumSize)
-3. Enable heap dump on OOM: -XX:+HeapDumpOnOutOfMemoryError
+3. Enable heap dump on OOM: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/heapdumps/
 ```
 
 ## Guidelines
 
+- Logs can contain tokens, emails and card numbers: do not paste them into external tools or reports unredacted
+- A stack trace shows where an allocation or call failed, not necessarily who owns the leaked memory or caused the fault
 - Always establish a timeline first — chronological order reveals causality
 - Look for the FIRST error, not the most frequent — cascading failures amplify
 - Correlation IDs and request IDs are your best friend for distributed systems
