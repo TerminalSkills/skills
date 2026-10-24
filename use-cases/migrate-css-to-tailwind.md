@@ -2,7 +2,7 @@
 title: Migrate a React App from CSS Modules to Tailwind
 slug: migrate-css-to-tailwind
 description: "Systematically convert a React codebase from CSS Modules to Tailwind CSS — audit existing styles, map custom properties to Tailwind config, convert components incrementally, and remove dead CSS."
-skills: [tailwindcss]
+skills: [tailwindcss, frontend-design]
 category: development
 tags: [tailwindcss, css, react, migration, refactoring, frontend]
 ---
@@ -23,7 +23,7 @@ The team wants to move to Tailwind CSS for its utility-first approach, constrain
 
 ## The Solution
 
-Use the **tailwindcss** skill to set up Tailwind alongside existing CSS Modules and migrate incrementally — one component at a time. The migration follows four phases: audit existing styles, configure Tailwind with the design system's tokens, convert components starting from leaf components (buttons, badges) up to page layouts, and clean up dead CSS as components are converted.
+Use the **tailwindcss** skill (Tailwind CSS v4) to set up Tailwind alongside existing CSS Modules and migrate incrementally — one component at a time. The migration follows four phases: audit existing styles, configure Tailwind with the design system's tokens, convert components starting from leaf components (buttons, badges) up to page layouts, and clean up dead CSS as components are converted.
 
 ## Step-by-Step Walkthrough
 
@@ -32,235 +32,137 @@ Use the **tailwindcss** skill to set up Tailwind alongside existing CSS Modules 
 ```text
 Audit the CSS in our React app. I need to know: how many unique colors, font sizes, 
 spacing values, breakpoints, and shadows we use across all CSS Module files. Map 
-them to the closest Tailwind defaults so I can build the tailwind.config.
+them to the closest Tailwind defaults so I can write the @theme block.
 ```
 
-The audit script scans all CSS files and extracts every unique design value:
+The audit script scans all CSS Module files and extracts every unique design value:
 
 ```python
 """audit_styles.py — Extract all design tokens from CSS Module files."""
-import re, json
-from pathlib import Path
+import json, re, sys
 from collections import Counter
+from pathlib import Path
 
 def audit_css_directory(css_dir: str) -> dict:
-    """Scan all CSS files and extract unique design values.
+    files = list(Path(css_dir).rglob("*.module.css"))
+    colors, font_sizes, spacings = Counter(), Counter(), Counter()
+    shadows, radii, breakpoints = Counter(), Counter(), set()
 
-    Args:
-        css_dir: Path to the source directory containing CSS files.
-
-    Returns:
-        Dict of token categories with counts and values.
-    """
-    colors = Counter()
-    font_sizes = Counter()
-    spacings = Counter()
-    breakpoints = set()
-    shadows = Counter()
-    border_radii = Counter()
-
-    for css_file in Path(css_dir).rglob("*.module.css"):
+    for css_file in files:
         content = css_file.read_text()
-
-        # Colors (hex, rgb, hsl)
-        for match in re.findall(r'#[0-9a-fA-F]{3,8}\b', content):
-            colors[match.lower()] += 1
-        for match in re.findall(r'rgba?\([^)]+\)', content):
-            colors[match] += 1
-
-        # Font sizes
-        for match in re.findall(r'font-size:\s*(\d+(?:\.\d+)?(?:px|rem|em))', content):
-            font_sizes[match] += 1
-
-        # Spacing (margin, padding, gap)
-        for match in re.findall(r'(?:margin|padding|gap)(?:-\w+)?:\s*(\d+(?:\.\d+)?px)', content):
-            spacings[match] += 1
-
-        # Media queries
-        for match in re.findall(r'@media[^{]+min-width:\s*(\d+px)', content):
-            breakpoints.add(match)
-
-        # Box shadows
-        for match in re.findall(r'box-shadow:\s*([^;]+)', content):
-            shadows[match.strip()] += 1
-
-        # Border radius
-        for match in re.findall(r'border-radius:\s*(\d+(?:\.\d+)?(?:px|rem|%))', content):
-            border_radii[match] += 1
+        for m in re.findall(r"#[0-9a-fA-F]{3,8}\b|rgba?\([^)]+\)|hsla?\([^)]+\)", content):
+            colors[m.lower()] += 1
+        for m in re.findall(r"font-size:\s*(\d+(?:\.\d+)?(?:px|rem|em))", content):
+            font_sizes[m] += 1
+        # Shorthands such as "padding: 6px 12px" hold several values: take them all
+        for decl in re.findall(r"(?:margin|padding|gap)(?:-[\w-]+)?:\s*([^;}]+)", content):
+            for px in re.findall(r"(?<![\w.])(\d+(?:\.\d+)?)px", decl):
+                spacings[px + "px"] += 1
+        for m in re.findall(r"@media[^{]*?(?:min|max)-width:\s*(\d+px)", content):
+            breakpoints.add(m)
+        for m in re.findall(r"box-shadow:\s*([^;}]+)", content):
+            shadows[m.strip()] += 1
+        for m in re.findall(r"border-radius:\s*(\d+(?:\.\d+)?(?:px|rem|%))", content):
+            radii[m] += 1
 
     return {
+        "totals": {"css_files": len(files), "unique_colors": len(colors),
+                   "unique_font_sizes": len(font_sizes), "unique_spacings": len(spacings),
+                   "unique_radii": len(radii)},
         "colors": dict(colors.most_common()),
         "font_sizes": dict(font_sizes.most_common()),
         "spacings": dict(spacings.most_common()),
         "breakpoints": sorted(breakpoints),
         "shadows": dict(shadows.most_common(10)),
-        "border_radii": dict(border_radii.most_common()),
-        "totals": {
-            "unique_colors": len(colors),
-            "unique_font_sizes": len(font_sizes),
-            "unique_spacings": len(spacings),
-            "css_files": len(list(Path(css_dir).rglob("*.module.css"))),
-        },
+        "border_radii": dict(radii.most_common()),
     }
 
 if __name__ == "__main__":
-    import sys
-    result = audit_css_directory(sys.argv[1])
-    print(json.dumps(result, indent=2))
+    print(json.dumps(audit_css_directory(sys.argv[1]), indent=2))
 ```
 
-A typical result reveals the chaos:
+Run it with `python3 audit_styles.py src`. A typical result reveals the chaos:
 
 | Token | Count | Issue |
 |---|---|---|
 | Unique colors | 47 | Design system specifies 12 |
 | Font sizes | 11 | Should be 6 (xs through 2xl) |
-| Spacing values | 23 | Should follow 4px scale |
+| Spacing values | 23 | Should follow the 4px scale |
 | Border radii | 8 | Should be 3 (sm, md, lg) |
 
 ### Step 2: Configure Tailwind with Design Tokens
 
-The audit maps to a Tailwind config that constrains the design system. Every unique value from the audit gets mapped to the nearest Tailwind-compatible token:
+Tailwind v4 has no `tailwind.config.js` and no `content` list by default. Configuration lives in CSS, in an `@theme` block, and source files are detected automatically. Install the PostCSS plugin (Next.js and most bundlers) or the Vite plugin (`@tailwindcss/vite`):
 
 ```text
-Based on the style audit, set up Tailwind CSS in the project alongside existing 
+Based on the style audit, set up Tailwind CSS v4 in the project alongside existing 
 CSS Modules. Map our 47 colors to a cleaned-up palette of 12 (with semantic names), 
-standardize spacing to a 4px grid, and set up responsive breakpoints matching 
-our existing media queries.
+keep the 4px spacing grid, and keep breakpoints matching our existing media queries.
 ```
 
 ```bash
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+npm install tailwindcss @tailwindcss/postcss
 ```
 
-```typescript
-// tailwind.config.ts — Design system from the audit
-
-import type { Config } from 'tailwindcss';
-
-export default {
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
-
-  // Run alongside CSS Modules — no conflicts
-  // Tailwind classes don't collide with CSS Module hashed class names
-  important: false,
-
-  theme: {
-    // Override defaults with the design system
-    colors: {
-      transparent: 'transparent',
-      current: 'currentColor',
-      white: '#ffffff',
-      black: '#1a1a1a',
-
-      // Primary brand colors (mapped from audit's most-used blues)
-      primary: {
-        50: '#eff6ff',
-        100: '#dbeafe',
-        200: '#bfdbfe',
-        300: '#93c5fd',
-        400: '#60a5fa',
-        500: '#3b82f6',    // Main brand blue (was #3a7ff5, #3b82f6, #4285f4)
-        600: '#2563eb',
-        700: '#1d4ed8',
-        800: '#1e40af',
-        900: '#1e3a8a',
-      },
-
-      // Neutral grays (consolidated from 15 unique grays)
-      gray: {
-        50: '#f9fafb',
-        100: '#f3f4f6',
-        200: '#e5e7eb',
-        300: '#d1d5db',
-        400: '#9ca3af',
-        500: '#6b7280',
-        600: '#4b5563',
-        700: '#374151',
-        800: '#1f2937',
-        900: '#111827',
-      },
-
-      // Semantic colors
-      success: { light: '#d1fae5', DEFAULT: '#10b981', dark: '#065f46' },
-      warning: { light: '#fef3c7', DEFAULT: '#f59e0b', dark: '#92400e' },
-      error:   { light: '#fee2e2', DEFAULT: '#ef4444', dark: '#991b1b' },
-      info:    { light: '#dbeafe', DEFAULT: '#3b82f6', dark: '#1e40af' },
-    },
-
-    // Spacing: 4px grid (replaces the 23 random values from audit)
-    spacing: {
-      0: '0',
-      0.5: '2px',
-      1: '4px',
-      1.5: '6px',
-      2: '8px',
-      2.5: '10px',
-      3: '12px',
-      4: '16px',
-      5: '20px',
-      6: '24px',
-      8: '32px',
-      10: '40px',
-      12: '48px',
-      16: '64px',
-      20: '80px',
-      24: '96px',
-    },
-
-    // Font sizes (6 sizes instead of 11)
-    fontSize: {
-      xs: ['12px', { lineHeight: '16px' }],
-      sm: ['14px', { lineHeight: '20px' }],
-      base: ['16px', { lineHeight: '24px' }],
-      lg: ['18px', { lineHeight: '28px' }],
-      xl: ['20px', { lineHeight: '28px' }],
-      '2xl': ['24px', { lineHeight: '32px' }],
-      '3xl': ['30px', { lineHeight: '36px' }],
-    },
-
-    // Breakpoints (matching existing media queries)
-    screens: {
-      sm: '640px',
-      md: '768px',
-      lg: '1024px',
-      xl: '1280px',
-    },
-
-    borderRadius: {
-      none: '0',
-      sm: '4px',
-      DEFAULT: '8px',
-      lg: '12px',
-      full: '9999px',
-    },
-
-    extend: {
-      boxShadow: {
-        card: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        dropdown: '0 4px 12px rgba(0, 0, 0, 0.12)',
-        modal: '0 20px 60px rgba(0, 0, 0, 0.2)',
-      },
-    },
-  },
-
-  plugins: [],
-} satisfies Config;
+```js
+// postcss.config.mjs
+export default { plugins: { "@tailwindcss/postcss": {} } };
 ```
-
-Add the Tailwind directives to the global CSS:
 
 ```css
-/* src/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* src/globals.css — import it once, from your app entry point */
+@import "tailwindcss";
+
+@theme {
+  /* Drop the default palette so only the design system's colors exist */
+  --color-*: initial;
+
+  --color-white: #ffffff;
+  --color-black: #1a1a1a;
+
+  /* Brand blue, mapped from the audit's most-used blues (#3a7ff5, #3b82f6, #4285f4) */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+
+  /* Neutral grays, consolidated from 15 unique grays */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-500: #6b7280;
+  --color-gray-700: #374151;
+  --color-gray-900: #111827;
+
+  /* Semantic colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+
+  /* Radii: three sizes instead of eight */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-dropdown: 0 4px 12px rgb(0 0 0 / 0.12);
+}
 ```
+
+Each variable name decides which utilities exist: `--color-primary-500` gives `bg-primary-500` and `text-primary-500`, `--radius-md` gives `rounded-md`, `--shadow-card` gives `shadow-card`. Two things need no configuration:
+
+- **Spacing** is already a 4px grid: `p-1` is 4px, `p-4` is 16px, `p-6` is 24px, and `px-1.5` is 6px. An off-grid value such as 5px or 15px has to be rounded to the nearest step in the component it appears in; that is the point of the migration.
+- **Breakpoints** default to `sm` 640px, `md` 768px, `lg` 1024px and `xl` 1280px. Only if the audit shows different media queries, add `--breakpoint-md: 56rem;` style overrides to `@theme`.
+
+With `--color-*: initial` a stray `bg-blue-500` generates no CSS, so a leftover default color shows up as a missing style instead of silently passing review.
+
+**Coexistence caveat.** Tailwind v4 places its utilities in a CSS cascade layer, and CSS Module rules are not in a layer, so an unlayered CSS Module rule beats a Tailwind utility on the same element regardless of specificity. Do not put both a module class and a conflicting utility on one element: convert the whole component, then delete its module. Tailwind's preflight also resets default element styles app-wide, so check pages that rely on browser defaults (headings, lists, buttons) after adding it.
 
 ### Step 3: Convert Components Incrementally
 
-Start from leaf components (smallest, most reused) and work up to page layouts. Each component is a self-contained migration — the CSS Module and Tailwind coexist during the transition:
+Start from leaf components (smallest, most reused) and work up to page layouts. Each component is a self-contained migration:
 
 ```text
 Convert the Button component from CSS Modules to Tailwind. Keep the same 
@@ -286,7 +188,7 @@ export function Button({ variant = 'primary', size = 'md', children, ...props })
 ```
 
 ```css
-/* components/Button/Button.module.css — 45 lines of CSS */
+/* components/Button/Button.module.css */
 .button {
   display: inline-flex;
   align-items: center;
@@ -309,15 +211,16 @@ export function Button({ variant = 'primary', size = 'md', children, ...props })
 .lg { padding: 12px 24px; font-size: 16px; }
 ```
 
-After (Tailwind):
+After (Tailwind). Class names must appear in full in the source for Tailwind to find them, so keep them in lookup objects rather than building them with string interpolation:
 
 ```tsx
 // components/Button/Button.tsx — AFTER (no CSS file needed)
+import type { ButtonHTMLAttributes } from 'react';
 
 const variants = {
   primary: 'bg-primary-500 text-white hover:bg-primary-600',
   secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-  danger: 'bg-error text-white hover:bg-red-600',
+  danger: 'bg-error text-white hover:bg-error-dark',
 } as const;
 
 const sizes = {
@@ -326,16 +229,15 @@ const sizes = {
   lg: 'px-6 py-3 text-base',
 } as const;
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  className = '',
-  children,
-  ...props
-}: ButtonProps) {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+};
+
+export function Button({ variant = 'primary', size = 'md', className = '', children, ...props }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded font-medium transition-colors
+      className={`inline-flex items-center justify-center rounded-md font-medium transition-colors
         disabled:opacity-50 disabled:cursor-not-allowed
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
@@ -346,49 +248,40 @@ export function Button({
 }
 ```
 
-Delete `Button.module.css` — that's 45 lines of CSS gone with no separate file to maintain.
+The font sizes shift slightly (13px becomes `text-xs`, 12px; 16px stays `text-base`) because the design system has fewer sizes than the old CSS; that is a design decision to confirm with whoever owns the design system, not a bug. Delete `Button.module.css` once nothing imports it.
 
 ### Step 4: Handle Complex Components
 
-Some components have styles that don't map cleanly to Tailwind utilities — complex selectors, animations, or pseudo-element tricks. Use `@apply` as a bridge:
+Some styles do not map cleanly to utilities, such as selectors that target markup you do not control (rendered Markdown, CMS output). Use `@apply` inside `@layer components` in the global stylesheet:
 
 ```css
-/* For truly complex cases, use @apply in a utility layer */
 @layer components {
-  .prose-content h2 {
-    @apply text-2xl font-bold text-gray-900 mt-8 mb-4;
-  }
-  .prose-content p {
-    @apply text-base text-gray-600 leading-relaxed mb-4;
-  }
-  .prose-content a {
-    @apply text-primary-500 underline hover:text-primary-700;
-  }
+  .prose-content h2 { @apply mt-8 mb-4 text-2xl font-bold text-gray-900; }
+  .prose-content p  { @apply mb-4 text-base leading-relaxed text-gray-700; }
+  .prose-content a  { @apply text-primary-500 underline hover:text-primary-700; }
 }
 ```
 
+In a CSS Module, `@apply` does not see your theme unless the file starts with `@reference "../../globals.css";` (adjust the path). Prefer utilities in the markup and keep `@apply` for cases like the above.
+
+For a mechanical first pass over a codebase that already uses Tailwind v3, `npx @tailwindcss/upgrade` converts config and renamed utilities; it does not convert CSS Modules to utilities, so that work stays manual.
+
 ### Step 5: Remove Dead CSS
 
-After converting a batch of components, remove the orphaned CSS Module files:
+A CSS Module file that no source file imports is dead. Check for the file name in the source, not the component name:
 
 ```bash
-# Find CSS Module files with no corresponding import
-grep -rL "\.module\.css" src/components/ --include="*.tsx" --include="*.ts" | \
-  while read component; do
-    dir=$(dirname "$component")
-    css_file="$dir/$(basename "$component" .tsx).module.css"
-    if [ -f "$css_file" ]; then
-      echo "Potentially dead: $css_file"
-    fi
-  done
+find src -name '*.module.css' | while read -r css; do
+  grep -rqF "$(basename "$css")" src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+    || echo "unused: $css"
+done
 ```
 
-Track migration progress:
+This finds whole files with no importer. It cannot find unused classes inside a file that is still imported; those disappear when the component is converted. Track progress with:
 
 ```bash
-# Count remaining CSS Module files vs total components
 echo "CSS Modules remaining: $(find src -name '*.module.css' | wc -l)"
-echo "Total components: $(find src -name '*.tsx' | wc -l)"
+echo "Components: $(find src -name '*.tsx' | wc -l)"
 ```
 
 ## Real-World Example
@@ -397,7 +290,7 @@ A four-person frontend team starts the migration on a Monday. Phase 1 (setup + c
 
 By week two, they've established a rhythm: one developer converts 2-3 components per day alongside feature work. The CSS Module files count drops from 85 to 60. New components are written in Tailwind exclusively.
 
-At the end of the first month, 65 of 85 CSS files are deleted. Total CSS dropped from 12,000 lines to 3,200 — and 2,800 of those remaining lines are in the 20 most complex components still awaiting conversion. The design inconsistency issue vanished: every component now uses the same 12 colors, 6 font sizes, and 4px spacing grid because Tailwind enforces it.
+At the end of the first month, 65 of 85 CSS files are deleted. Total CSS dropped from 12,000 lines to 3,200 — and 2,800 of those remaining lines are in the 20 most complex components still awaiting conversion. The design inconsistency issue vanished: every component now draws on the same 12 colors, the theme's font sizes, and the 4px spacing scale, because the `@theme` block is the only source of colors.
 
 The team finishes the last 20 components in month two. Final CSS: 0 Module files. The entire visual layer lives in component markup with constrained design tokens. New developer onboarding no longer includes "here's how our CSS conventions work" — it's "use Tailwind classes from the config."
 
