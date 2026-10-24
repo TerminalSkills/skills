@@ -3,8 +3,8 @@ title: Optimize AI Coding Agent for Production Team Use
 slug: optimize-ai-coding-agent-for-production
 description: Standardize Claude Code across a 12-person dev team — shared CLAUDE.md templates, skills library, cross-session memory, and security guardrails — boosting task completion by 40% and eliminating accidental destructive operations.
 skills:
-  - claude-subconscious
   - claude-code
+  - ecc
 category: development
 tags:
   - claude-code
@@ -30,7 +30,7 @@ The team needs Claude Code to feel like a single, well-trained senior engineer t
 
 Use **everything-claude-code** to implement a complete agent harness system: standardized CLAUDE.md templates, a shared skills library, memory persistence hooks, security guardrails, and measurement infrastructure.
 
-Optional: Add **claude-subconscious** for persistent cross-session memory that builds up automatically over time.
+Optional: Add the Claude Subconscious plugin from Letta for a background agent that builds cross-session memory over time.
 
 ## Step-by-Step Walkthrough
 
@@ -39,12 +39,13 @@ Optional: Add **claude-subconscious** for persistent cross-session memory that b
 Create a CLAUDE.md template that every repo must have. Add it to the company's repo template and backfill existing repos.
 
 ```bash
-# Install ECC for the scaffolding tools
-npm install -g ecc-universal
+# Preview, then install ECC's rules, agents and commands (no hooks yet)
+npx ecc-universal@2.2.3 install --dry-run --profile minimal --target claude
+npx ecc-universal@2.2.3 install --profile minimal --target claude
+npx ecc-universal@2.2.3 doctor
 
-# Generate a CLAUDE.md for an existing repo
+# Write the CLAUDE.md for each repo by hand from the template below
 cd your-repo
-ecc init  # Interactive wizard
 ```
 
 **Standard team CLAUDE.md structure:**
@@ -207,83 +208,27 @@ EOF
 - No client-side data fetching (use React Query or server components)
 ```
 
-**Layer 3: claude-subconscious (automatic cross-session memory)**
+**Layer 3: Claude Subconscious (optional automatic cross-session memory)**
+
+Letta's Claude Subconscious plugin runs a background agent that reads each session transcript and whispers guidance back before the next prompt. Install it from inside Claude Code and give it a Letta API key from app.letta.com:
 
 ```bash
-# Install the plugin for all team members
 /plugin marketplace add letta-ai/claude-subconscious
 /plugin install claude-subconscious@claude-subconscious
-
-# Set team Letta API key (shared agent per repo)
-export LETTA_API_KEY="team-api-key"
-export LETTA_MODE="whisper"
+export LETTA_API_KEY="your-letta-api-key"
 ```
 
-After a few weeks, the subconscious agent builds up a rich model of the codebase and team patterns — automatically. No manual updates needed.
+Its README calls it a demo app that is not intended for production, so pilot it on one repo before offering it to the team. Transcripts are sent to Letta's service unless you self-host.
 
 ### Step 4: Security Guardrails
 
-Install AgentShield (included in ECC) and configure team-specific rules:
+Scan the agent configuration (CLAUDE.md, settings, MCP config, hooks, permissions) with AgentShield, ECC's separate `ecc-agentshield` package. Review the release you install first, then run it from each repo root:
 
 ```bash
-# Install AgentShield
-npm install -g ecc-agentshield
-
-# Initialize security config
-ecc security-init
+agentshield scan --path .
 ```
 
-**Team security rules (`.claude/security/rules.yaml`):**
-
-```yaml
-rules:
-  # Git safety
-  - id: no-force-push
-    description: "Never force push to protected branches"
-    pattern: "git push.*--force"
-    branches: [main, develop, staging, production]
-    severity: critical
-    action: block
-
-  - id: require-branch
-    description: "Always work on a branch, never commit to main"
-    pattern: "git commit.*"
-    check: "git branch --show-current | grep -qvE '^(main|develop|staging|production)$'"
-    severity: high
-    action: warn
-
-  # File operations
-  - id: protect-env
-    description: "Never read or display .env files"
-    pattern: "(cat|read|display|show).*\\.env"
-    severity: critical
-    action: block
-
-  - id: no-mass-delete
-    description: "Require confirmation for directory deletion"
-    pattern: "rm -rf [a-zA-Z/]"
-    severity: high
-    action: require-confirmation
-
-  # Secrets
-  - id: no-commit-secrets
-    description: "Block commits containing API keys or tokens"
-    pre_commit: true
-    patterns:
-      - "sk-[a-zA-Z0-9]{48}"   # OpenAI
-      - "ghp_[a-zA-Z0-9]{36}"  # GitHub PAT
-      - "AKIA[0-9A-Z]{16}"     # AWS
-    severity: critical
-    action: block
-```
-
-**Distribute via repo template or onboarding script:**
-
-```bash
-# onboarding.sh — run once per developer
-ecc security-install --rules company-security-rules.yaml
-echo "Security rules installed. Claude Code will now enforce team guardrails."
-```
+Express team rules such as "never force-push to protected branches" or "never read .env files" in `.claude/settings.json` permission rules and in your CLAUDE.md, and test that they trigger before announcing them. ECC's optional hook runtime adds a guard that gates destructive shell commands; enable it later with `npx ecc-universal@2.2.3 install --target claude --modules hooks-runtime --enable-hooks`.
 
 ### Step 5: Research-First Methodology
 
@@ -367,7 +312,7 @@ curl -X POST "https://metrics.company.internal/claude-sessions" \
 - **Don't over-engineer skills** — Start with 3-5 skills covering your most common patterns; expand from there
 - **Review and prune quarterly** — Stale CLAUDE.md content is worse than no CLAUDE.md (wrong context)
 - **Security rules need testing** — Test that guardrails actually trigger before announcing them to the team
-- **claude-subconscious is optional but powerful** — Requires Letta API key; worth it for long-running projects
+- **Claude Subconscious is optional** — Needs a Letta API key and is labelled a demo by its authors; pilot it before rolling it out
 - **Measure before rolling out** — Baseline metrics make it easy to demonstrate ROI to management
 
 ## What's Next
@@ -378,3 +323,7 @@ Once the foundation is stable:
 - Build a `/deploy` skill that walks through your deployment checklist
 - Set up team-wide instinct extraction: weekly review of session transcripts to identify new patterns worth capturing
 - Create a `/harness-audit` baseline score and track improvement over time
+
+## Related Skills
+
+- [ecc](/skills/ecc) — choose it when the team wants ready-made agents, rules, slash commands, optional hooks and a shared memory vault installed with one pinned `ecc-universal` command, instead of writing each piece by hand

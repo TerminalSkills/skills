@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8f701410a92d6815e7ce594e887d7c281aaf6f80c1958e1432dd4f2bdfe74cc7",
+  "scoredAt": "2026-10-24T23:14:05.006Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume Unix shell syntax for environment variables, which may not work on Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "install-minimal-profile-no-hooks",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers the required install commands and notes no hooks, but omits the /code-review slash command mention, while Response A provides no content."
+      },
+      {
+        "name": "handoff-memory-codex-to-claude",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, A does not."
+      },
+      {
+        "name": "scan-agent-config-with-agentshield",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers installation, scan command, and key scan targets, missing only the explicit error count; Response B omits installation, uses a different scan flag, and lacks mention of hooks, MCP settings, permissions, and error count."
+      }
+    ]
+  }
+}
