@@ -1,16 +1,15 @@
 ---
 name: rolldown
 description: >-
-  Bundle JavaScript with Rolldown — Rust-based Rollup replacement, future Vite
-  bundler. Use when someone asks to "Rolldown", "Rust Rollup", "fast Rollup
-  alternative", "future Vite bundler", "Rolldown bundler", or "OXC bundler".
-  Covers Rollup-compatible config, Vite integration roadmap, performance
-  comparison, and migration from Rollup.
+  Bundle JavaScript with Rolldown, the Rust-based Rollup-compatible bundler
+  that powers Vite 8. Use when someone asks for "Rolldown", "Rust Rollup",
+  "fast Rollup alternative", "Vite 8 bundler", or "OXC bundler". Covers config, CLI, library builds, built-in TypeScript and CommonJS handling, and migration from Rollup.
 license: Apache-2.0
-compatibility: "Node.js 18+. Rollup-compatible API."
+compatibility: "Node.js 20.19+ or 22.12+ (rolldown 1.x engines field)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/rolldown/rolldown
   category: devops
   tags: ["bundling", "rolldown", "rollup", "rust", "vite"]
 ---
@@ -19,15 +18,7 @@ metadata:
 
 ## Overview
 
-Rolldown is a Rust-based JavaScript bundler designed to replace Rollup — and eventually become Vite's production bundler. Built on OXC (the Rust toolchain behind oxlint), it aims for full Rollup API compatibility with 10-100x better performance. Currently in active development; when stable, Vite will use Rolldown instead of Rollup for production builds, unifying dev and prod bundling.
-
-## When to Use
-
-- Rollup builds are slow on large projects
-- Want to prepare for Vite's future bundler
-- Building libraries where Rollup-compatible output matters
-- Need faster bundling than Rollup without switching to webpack/esbuild
-- Following the OXC ecosystem (oxlint → Rolldown → OXC resolver)
+Rolldown is a Rust bundler with a Rollup-compatible plugin and config API, built on the OXC toolchain. It reached 1.x (1.2.15 checked on 2026-10-24) and is the bundler inside Vite 8 (`vite@8.3.5` depends on `rolldown ~1.2`). Use it directly for library and app builds when Rollup is slow. It handles TypeScript, JSX, Node module resolution and CommonJS dependencies without extra plugins. The npm package needs Node `^20.19.0 || >=22.12.0`.
 
 ## Instructions
 
@@ -37,10 +28,12 @@ Rolldown is a Rust-based JavaScript bundler designed to replace Rollup — and e
 npm install -D rolldown
 ```
 
-### Basic Configuration
+The config file is loaded as an ES module. Set `"type": "module"` in `package.json` or name the file `rolldown.config.mjs`; with a plain `.js` file in a CommonJS package the build fails with "Failed to load the ES module".
+
+### Basic configuration
 
 ```javascript
-// rolldown.config.js — Rollup-compatible config format
+// rolldown.config.js
 import { defineConfig } from "rolldown";
 
 export default defineConfig({
@@ -53,108 +46,67 @@ export default defineConfig({
 });
 ```
 
-### Library Build
+### Library build with two formats
 
 ```javascript
-// rolldown.config.js — Build a library with multiple outputs
+// rolldown.config.js
 import { defineConfig } from "rolldown";
 
 export default defineConfig({
   input: "src/index.ts",
-  external: ["react", "react-dom"],  // Don't bundle peer deps
+  external: ["react", "react-dom"], // peer dependencies stay out of the bundle
   output: [
-    {
-      dir: "dist",
-      format: "esm",
-      entryFileNames: "[name].js",
-      sourcemap: true,
-    },
-    {
-      dir: "dist",
-      format: "cjs",
-      entryFileNames: "[name].cjs",
-      sourcemap: true,
-    },
+    { dir: "dist", format: "esm", entryFileNames: "[name].js", sourcemap: true },
+    { dir: "dist", format: "cjs", entryFileNames: "[name].cjs", sourcemap: true },
   ],
 });
 ```
 
-### With Plugins
+### Plugins
 
-```javascript
-// rolldown.config.js — Using Rollup-compatible plugins
-import { defineConfig } from "rolldown";
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
+Rollup plugins that use standard hooks usually work; the plugin object is passed in `plugins`. Rolldown warns (`checks.preferBuiltinFeature`) when you use a plugin that duplicates a built-in feature, so drop `@rollup/plugin-node-resolve`, `@rollup/plugin-commonjs` and `@rollup/plugin-typescript` first. Type declarations (`.d.ts`) are not produced by the bundler core; add the separate `rolldown-plugin-dts` package for that (it needs Rolldown 1.2+ and Node 22.18+).
 
-export default defineConfig({
-  input: "src/index.ts",
-  plugins: [
-    resolve(),       // Resolve node_modules
-    commonjs(),      // Convert CommonJS to ESM
-  ],
-  output: {
-    dir: "dist",
-    format: "esm",
-  },
-});
-```
-
-### Build Commands
+### CLI
 
 ```bash
-# Build
-npx rolldown -c
-
-# Build with specific config
-npx rolldown -c rolldown.config.js
-
-# Watch mode
-npx rolldown -c --watch
+npx rolldown -c                       # use rolldown.config.js
+npx rolldown -c rolldown.config.mjs   # explicit config file
+npx rolldown -c --watch               # rebuild on change
+npx rolldown src/index.ts -d dist -f esm -m   # no config: input, out dir, format, minify
 ```
 
-### Migration from Rollup
+Other flags from `rolldown --help`: `-o/--file` (single file), `-e/--external`, `-s/--sourcemap`, `-p/--platform` (node, browser, neutral), `--tsconfig`, `--cleanDir`.
 
-```diff
-// package.json — Swap the dependency
-- "rollup": "^4.0.0"
-+ "rolldown": "^1.0.0"
+### Migrating from Rollup
 
-// Config is compatible — rename if needed
-// rollup.config.js → rolldown.config.js (optional)
-```
+1. `npm uninstall rollup @rollup/plugin-node-resolve @rollup/plugin-commonjs @rollup/plugin-typescript` and `npm install -D rolldown`.
+2. Rename `rollup.config.js` to `rolldown.config.js` (or `.mjs`) and change the import to `import { defineConfig } from "rolldown"`.
+3. Change scripts from `rollup -c` to `rolldown -c`.
+4. Build and compare the output; check any plugin that relies on unusual hooks.
 
-```javascript
-// Most Rollup configs work unchanged. Key differences:
-// ✅ TypeScript built-in — no @rollup/plugin-typescript needed
-// ✅ Node resolve built-in — @rollup/plugin-node-resolve often unnecessary
-// ✅ Most Rollup plugins compatible — plugin API is the same
-// ⚠️ Some advanced plugin hooks may differ — check docs
-```
+### Vite
+
+Vite 8 already uses Rolldown for both dev dependency optimization and production builds, so a Vite project needs no separate install. Put bundler options under `build.rolldownOptions` in `vite.config.ts` and check your plugins against the Vite 8 migration guide.
 
 ## Examples
 
 ### Example 1: Migrate a Rollup library build
 
-**User prompt:** "My library uses Rollup and builds are slow. Migrate to Rolldown."
+**User prompt:** "My library uses Rollup with the typescript and commonjs plugins and builds take 40 seconds. Move it to Rolldown."
 
-The agent will swap rollup for rolldown, remove unnecessary plugins (TypeScript and node-resolve are built-in), and benchmark the improvement.
+The agent removes `rollup` and the three `@rollup/plugin-*` packages, installs `rolldown`, writes the two-format config above with `external: ["react"]`, and sets `"type": "module"`. It runs `npx rolldown -c`; the result is `dist/index.js` and `dist/index.cjs` with `.map` files, and the console prints each chunk with its size and a line like `Finished in 7 ms` for a small project. It then asks whether `.d.ts` files are needed and adds `rolldown-plugin-dts` if so.
 
-### Example 2: Prepare a Vite project for Rolldown
+### Example 2: Bundle a script with a CommonJS dependency, no config
 
-**User prompt:** "I want to be ready when Vite switches to Rolldown. What should I do?"
+**User prompt:** "Bundle src/b.ts, which imports left-pad, into one minified ESM file."
 
-The agent will audit the current Vite config for Rollup-specific plugin usage, identify potential compatibility issues, and suggest config changes.
+The agent runs `npx rolldown src/b.ts -d out -f esm -m`. The CommonJS dependency is resolved from `node_modules` and converted without plugins, and the output appears in `out/b.js`.
 
 ## Guidelines
 
-- **Rollup-compatible config** — same format, most plugins work
-- **TypeScript built-in** — no separate TypeScript plugin needed
-- **Still in development** — API may change; check compatibility for production use
-- **Vite integration coming** — Rolldown will replace Rollup in Vite's production builds
-- **OXC ecosystem** — part of the Rust JS toolchain (oxlint, oxc-resolver, Rolldown)
-- **10-100x faster than Rollup** — Rust parallelism over JavaScript
-- **Tree shaking built-in** — same quality as Rollup
-- **ESM-first** — designed for modern JavaScript output
-- **Watch mode supported** — `--watch` for development
-- **Plugin compatibility** — @rollup/plugin-* packages generally work
+- The config is an ES module; a CommonJS package needs `.mjs` or `"type": "module"`.
+- Do not carry over Rollup's resolve, commonjs or TypeScript plugins; they are built in.
+- Declaration files need `rolldown-plugin-dts`; the bundler alone does not emit them.
+- Mark peer dependencies as `external` in library builds, or they get bundled.
+- Plugins that depend on Rollup internals outside the documented hooks may fail; test the build output.
+- Inside a Vite project, configure through Vite instead of running Rolldown separately.
