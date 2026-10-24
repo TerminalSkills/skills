@@ -1,11 +1,12 @@
 ---
 name: product-analytics
-description: Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. Applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+description: >-
+  Frameworks and queries for measuring a software product: North Star and input metrics, AARRR funnels, retention cohorts, and A/B test design with sample-size math. Use when someone asks to "define product metrics", "find our aha moment", "analyze retention", "build a funnel", "size an A/B test" or "why are users churning".
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
   - analytics
@@ -21,7 +22,7 @@ metadata:
 ## Overview
 
 
-Product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. This skill applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+This skill is a method, not a tool: it helps a product team pick metrics, build funnels, read retention cohorts and run experiments. It works with whatever analytics store holds the events (a warehouse, PostgreSQL, or a product-analytics service). The agent supplies the framework and writes the queries; the numbers in the examples are illustrative, so replace them with the team's own data.
 
 
 ## Instructions
@@ -42,12 +43,12 @@ what matters most.
 4. Every team can influence it
 
 ### Examples by Product Type
-- **Marketplace**: Weekly transactions (Airbnb: nights booked)
-- **SaaS Productivity**: Weekly active users completing core action
-  (Slack: messages sent in channels with 3+ participants)
-- **Subscription Media**: Weekly engaged time (Spotify: listening hours)
+- **Marketplace**: Weekly transactions (for lodging: nights booked)
+- **SaaS Productivity**: Weekly active users completing the core action
+  (for a chat product, messages sent by teams)
+- **Subscription Media**: Weekly engaged time (listening or watching hours)
 - **E-commerce**: Weekly purchases from repeat customers
-- **Developer Tool**: Weekly API calls in production (Stripe, Twilio)
+- **Developer Tool**: Weekly API calls in production
 
 ### North Star Framework
 Your North Star has 3-5 input metrics that drive it:
@@ -96,7 +97,7 @@ Focus there — don't optimize acquisition if nobody activates.
 
 ### Retention Analysis
 
-```markdown
+````markdown
 ## Analyze Retention
 
 ### Retention Curve
@@ -122,6 +123,23 @@ Break retention by:
 - **Activation actions**: Did they complete onboarding? Use feature X?
 - **Company size**: Do small teams churn more than large?
 
+### Compute D7 retention in SQL
+
+Assumes `users(id, signup_date)` and `events(user_id, ts)`; the query counts users who were active exactly 7 days after signup (SQLite syntax, run against a sample table; in PostgreSQL use `signup_date + 7` and `ts::date`):
+
+```sql
+SELECT u.signup_date AS cohort,
+       COUNT(DISTINCT u.id) AS users,
+       COUNT(DISTINCT CASE WHEN date(e.ts) = date(u.signup_date, '+7 day')
+                           THEN u.id END) AS d7_users
+FROM users u
+LEFT JOIN events e ON e.user_id = u.id
+GROUP BY u.signup_date
+ORDER BY u.signup_date;
+```
+
+Divide `d7_users` by `users` for the rate. "Exactly day 7" is strict; for products used less often, count activity in days 7 to 13 instead.
+
 ### Find the "Aha Moment"
 The aha moment is the action that predicts retention.
 
@@ -136,7 +154,7 @@ Example findings:
 - Users who create 0-2 projects: 18% D30 retention
 → Aha moment: creating the 3rd project
 → Action: optimize onboarding to drive users to create 3 projects
-```
+````
 
 ### A/B Testing
 
@@ -150,6 +168,7 @@ Example findings:
    - Baseline conversion: current rate
    - Minimum detectable effect: smallest change worth detecting
    - Statistical power: 80% (standard)
+   - Worked example: baseline 4%, smallest lift worth detecting 4.0% to 4.8% (20% relative), two-sided 5% significance, 80% power needs about 10,300 users per variant (two-proportion z-test), roughly 20,600 in total. If the page gets 1,500 eligible visitors a day, that is about two weeks
    - Significance level: 95% (standard)
 4. Estimate duration: sample size ÷ daily traffic
 
@@ -210,6 +229,20 @@ In the example above: 75% drop at Signup → fix the landing page first.
 - **Activation → Retention**: Habit loops, notifications, value reminders
 - **Retention → Revenue**: Upgrade triggers, usage limits, feature gating
 ```
+
+## Examples
+
+### Example 1: Find the aha moment
+
+**User prompt:** "Our signups are fine but half leave in the first week. What predicts people staying?"
+
+The agent asks for an events table, lists first-week actions per user, and for each action compares 30-day retention between users who did it and users who did not. It reports the action with the largest gap and a minimum count, for example "created 3+ projects in week 1: 72% D30 vs 18%", and warns that this is correlation. It then proposes an onboarding change that pushes users toward that action and an A/B test to confirm the effect.
+
+### Example 2: Size and judge an experiment
+
+**User prompt:** "We want to test a shorter signup form. Current signup rate is 4%. How long do we run it?"
+
+The agent fixes one primary metric (signup completion), picks a minimum detectable effect with the user (4.0% to 4.8%), computes about 10,300 users per variant, divides by daily traffic to get the duration, rounds up to full weeks, and writes the stopping rule down before launch. At the end it reports the lift with its confidence interval and per-segment results, not just the p-value.
 
 ## Guidelines
 
