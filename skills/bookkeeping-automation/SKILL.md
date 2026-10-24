@@ -2,15 +2,15 @@
 name: bookkeeping-automation
 description: >-
   Automate bookkeeping workflows by parsing bank statements (CSV/OFX/QIF),
-  categorizing transactions using rules or AI, reconciling accounts, generating
-  expense reports, and detecting duplicates. Use when: automating transaction
-  categorization, building reconciliation pipelines, processing bank exports,
-  or generating expense summaries without manual data entry.
+  categorizing transactions using rules or an LLM, reconciling accounts,
+  generating expense reports, and detecting duplicates. Use when: automating
+  transaction categorization, building reconciliation pipelines, processing
+  bank exports, or generating expense summaries without manual data entry.
 license: Apache-2.0
-compatibility: "Python 3.9+"
+compatibility: "Python 3.10+; ofxtools 1.1 for OFX/QFX files (pip install ofxtools)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["bookkeeping", "bank-statements", "reconciliation", "categorization", "accounting"]
   use-cases:
@@ -25,465 +25,264 @@ metadata:
 
 ## Overview
 
-Automate the manual parts of bookkeeping: importing bank statements in multiple formats, categorizing transactions using keyword rules or AI, deduplicating entries, reconciling account balances, and producing expense reports. This skill is format-agnostic — it handles CSV exports from most banks, OFX/QFX files (used by most US banks and Mint), and QIF files (legacy Quicken format).
+Automate the repetitive parts of bookkeeping: import bank statements (CSV, OFX/QFX, QIF), categorize transactions with ordered keyword rules and an optional LLM for the leftovers, remove repeated rows safely, reconcile against the statement balance, and print an expense report. Money is always `Decimal`, never `float`. The code below was run on sample CSV, OFX (SGML, version 1.02) and QIF files with Python 3.12 and ofxtools 1.1.1. The output is a draft for a human to review before anything is posted to Xero, QuickBooks or a ledger; it is not tax or accounting advice.
 
 ## Instructions
 
-### Step 1: Parse bank statements
+1. Save the two modules below as `parser.py` and `pipeline.py` in a scratch folder and install the one dependency: `pip install ofxtools` (inside a virtual environment). The imports below assume those file names (the stdlib `parser` module was removed in Python 3.10, so there is no clash).
+2. Look at the header row of the CSV export and pass its real column names, date format and (if the bank uses separate debit and credit columns) `debit_col`/`credit_col`. Banks differ and change their exports, so never assume a layout; check one row by eye.
+3. Run `categorize_by_rules` first (free and deterministic). Rules are ordered and the first match wins, so list specific phrases above general ones. Rules only match whole words and respect direction (money in vs out).
+4. Send only the remaining "Uncategorized" rows to a model with `categorize_with_llm`. It takes any `ask(prompt) -> str` function, so it works with any provider; read the model name from an environment variable instead of hard-coding one, because model names are retired regularly (OpenAI, for instance, lists `gpt-4o-mini` for shutdown on 14 January 2027). Sending descriptions to a third-party API is a privacy decision: strip account numbers and names first, or use a local model.
+5. Deduplicate with `drop_repeated_ids` (same bank id, date and amount twice, typical of overlapping exports). Use `possible_duplicates` only to produce a list for a person to review: identical rows without bank ids can be genuine (two coffees on one day).
+6. Reconcile with `reconcile`: opening balance plus the transactions in the statement period must equal the closing balance exactly. Take the balances from the statement, never from the transaction file itself.
+7. Print `expense_report`, export the categorized rows for review, and only then import into the accounting system.
+
+### parser.py
 
 ```python
-# parser.py — Parse CSV, OFX, and QIF bank statement formats
-
+# parser.py - bank statement parsers (CSV, OFX/QFX via ofxtools, QIF)
 import csv
-import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import List
+
 
 @dataclass
 class Transaction:
     date: datetime
     description: str
-    amount: Decimal          # Negative = debit, Positive = credit
-    raw_id: str = ""         # Bank's transaction ID (for dedup)
+    amount: Decimal              # negative = money out, positive = money in
+    raw_id: str = ""             # bank's transaction id (OFX FITID), used for dedup
     category: str = "Uncategorized"
-    notes: str = ""
 
-def parse_csv(filepath: str, date_col: str = "Date", desc_col: str = "Description",
-              amount_col: str = "Amount", date_fmt: str = "%m/%d/%Y") -> List[Transaction]:
-    """
-    Parse a bank CSV export. Column names vary by bank — adjust defaults.
 
-    Common variants:
-      Chase:    Date, Description, Amount
-      Bank of America: Date, Description, Amount, Running Bal.
-      Wells Fargo: date, description, deposits, withdrawals, balance
-    """
-    transactions = []
-    with open(filepath, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            # Handle split debit/credit columns (e.g., Wells Fargo)
-            if "deposits" in [k.lower() for k in row]:
-                credit = Decimal(row.get("deposits", "0").replace(",", "") or "0")
-                debit = Decimal(row.get("withdrawals", "0").replace(",", "") or "0")
-                amount = credit - debit
+def money(text: str) -> Decimal:
+    """'1,234.50', '$12.00', '(45.10)' and '-45.10' all become Decimal."""
+    t = text.replace(",", "").replace("$", "").strip()
+    if t.startswith("(") and t.endswith(")"):
+        t = "-" + t[1:-1]
+    return Decimal(t or "0")
+
+
+def parse_csv(path, date_col="Date", desc_col="Description", amount_col="Amount",
+              date_fmt="%m/%d/%Y", debit_col=None, credit_col=None, id_col=None):
+    """Column names and date formats differ per bank: pass what the header row says.
+    Banks that export separate debit and credit columns: set debit_col and credit_col."""
+    rows = []
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            if debit_col:
+                amount = money(row[credit_col]) - money(row[debit_col])
             else:
-                raw = row[amount_col].replace(",", "").replace("$", "").strip()
-                amount = Decimal(raw)
+                amount = money(row[amount_col])
+            rows.append(Transaction(datetime.strptime(row[date_col].strip(), date_fmt),
+                                    row[desc_col].strip(), amount,
+                                    row.get(id_col, "") if id_col else ""))
+    return rows
 
-            transactions.append(Transaction(
-                date=datetime.strptime(row[date_col].strip(), date_fmt),
-                description=row[desc_col].strip(),
-                amount=amount,
-                raw_id=row.get("Transaction ID", ""),
-            ))
-    return transactions
 
-def parse_ofx(filepath: str) -> List[Transaction]:
-    """Parse OFX/QFX files (Open Financial Exchange — used by most US banks)."""
-    transactions = []
-    with open(filepath, encoding="utf-8", errors="ignore") as f:
-        content = f.read()
+def parse_ofx(path):
+    """OFX 1.x (SGML) and 2.x (XML), .ofx and .qfx. Hand-written regexes break on
+    SGML files, whose leaf tags have no closing tag, so use ofxtools."""
+    from ofxtools.Parser import OFXTree
+    tree = OFXTree()
+    tree.parse(path)
+    out = []
+    for stmt in tree.convert().statements:
+        for t in stmt.transactions:
+            out.append(Transaction(t.dtposted.replace(tzinfo=None),
+                                   t.memo or t.name or "", Decimal(t.trnamt), t.fitid or ""))
+    return out
 
-    # Extract STMTTRN blocks
-    pattern = re.compile(r"<STMTTRN>(.*?)</STMTTRN>", re.DOTALL)
-    for match in pattern.finditer(content):
-        block = match.group(1)
 
-        def extract(tag):
-            m = re.search(rf"<{tag}>(.*?)(?:<|$)", block)
-            return m.group(1).strip() if m else ""
-
-        date_str = extract("DTPOSTED")[:8]  # YYYYMMDD
-        transactions.append(Transaction(
-            date=datetime.strptime(date_str, "%Y%m%d"),
-            description=extract("MEMO") or extract("NAME"),
-            amount=Decimal(extract("TRNAMT")),
-            raw_id=extract("FITID"),
-        ))
-    return transactions
-
-def parse_qif(filepath: str) -> List[Transaction]:
-    """Parse QIF files (Quicken Interchange Format — legacy but still common)."""
-    transactions = []
-    current = {}
-
-    with open(filepath, encoding="utf-8") as f:
+def parse_qif(path):
+    """QIF has no standard date format: try the common ones, fail loudly otherwise."""
+    out, cur = [], {}
+    with open(path, encoding="utf-8-sig") as f:
         for line in f:
             line = line.strip()
-            if line.startswith("D"):   # Date
-                current["date"] = line[1:]
-            elif line.startswith("T"): # Amount
-                current["amount"] = line[1:].replace(",", "")
-            elif line.startswith("P"): # Payee
-                current["description"] = line[1:]
-            elif line.startswith("N"): # Check number / ID
-                current["raw_id"] = line[1:]
-            elif line == "^":          # Record separator
-                if "date" in current and "amount" in current:
-                    # QIF dates vary: M/D/Y, M/D'YY, etc.
-                    for fmt in ("%m/%d/%Y", "%m/%d'%y", "%d/%m/%Y"):
-                        try:
-                            parsed_date = datetime.strptime(current["date"], fmt)
-                            break
-                        except ValueError:
-                            continue
-                    transactions.append(Transaction(
-                        date=parsed_date,
-                        description=current.get("description", ""),
-                        amount=Decimal(current["amount"]),
-                        raw_id=current.get("raw_id", ""),
-                    ))
-                current = {}
+            if line == "^":
+                if "D" in cur and "T" in cur:
+                    out.append(Transaction(_qif_date(cur["D"]), cur.get("P", ""),
+                                           money(cur["T"]), cur.get("N", "")))
+                cur = {}
+            elif line and line[0] in "DTPN":
+                cur[line[0]] = line[1:]
+    return out
 
-    return transactions
-```
 
-### Step 2: Categorize transactions
-
-```python
-# categorizer.py — Rule-based and AI-powered transaction categorization
-
-import re
-from typing import List
-from parser import Transaction
-
-# Rule-based categorization — extend this dict for your business
-CATEGORY_RULES = {
-    "Software & SaaS": [
-        "aws", "amazon web services", "digitalocean", "cloudflare", "github",
-        "vercel", "heroku", "stripe", "twilio", "sendgrid", "datadog",
-        "notion", "linear", "figma", "zapier", "openai",
-    ],
-    "Advertising": [
-        "google ads", "facebook ads", "meta ads", "twitter ads", "linkedin ads",
-        "reddit ads", "bing ads",
-    ],
-    "Payroll & Contractors": [
-        "gusto", "rippling", "deel", "remote.com", "paylocity", "payroll",
-        "wise", "transferwise",
-    ],
-    "Office & Supplies": [
-        "staples", "office depot", "amazon", "best buy",
-    ],
-    "Travel": [
-        "airbnb", "marriott", "hilton", "delta", "united", "american airlines",
-        "southwest", "uber", "lyft", "expedia",
-    ],
-    "Meals & Entertainment": [
-        "restaurant", "cafe", "coffee", "starbucks", "doordash", "grubhub",
-        "ubereats",
-    ],
-    "Banking & Fees": [
-        "bank fee", "service charge", "wire fee", "monthly fee", "overdraft",
-    ],
-    "Revenue": [
-        "stripe payment", "paypal transfer", "square payment",
-    ],
-}
-
-def categorize_by_rules(transactions: List[Transaction]) -> List[Transaction]:
-    """Apply keyword rules to categorize transactions."""
-    for tx in transactions:
-        desc_lower = tx.description.lower()
-        matched = False
-        for category, keywords in CATEGORY_RULES.items():
-            if any(kw in desc_lower for kw in keywords):
-                tx.category = category
-                matched = True
-                break
-        if not matched:
-            tx.category = "Uncategorized"
-    return transactions
-
-def categorize_with_ai(transactions: List[Transaction], api_key: str,
-                       model: str = "gpt-4o-mini") -> List[Transaction]:
-    """
-    Use an LLM to categorize transactions that rules couldn't match.
-    Only sends uncategorized transactions to reduce API costs.
-    """
-    import json
-    import openai
-
-    client = openai.OpenAI(api_key=api_key)
-    uncategorized = [tx for tx in transactions if tx.category == "Uncategorized"]
-
-    if not uncategorized:
-        return transactions
-
-    # Batch up to 50 transactions per request
-    batch_size = 50
-    categories = list(CATEGORY_RULES.keys()) + ["Personal", "Tax", "Insurance", "Other"]
-
-    for i in range(0, len(uncategorized), batch_size):
-        batch = uncategorized[i:i + batch_size]
-        tx_list = [
-            {"id": j, "description": tx.description, "amount": str(tx.amount)}
-            for j, tx in enumerate(batch)
-        ]
-
-        prompt = f"""Categorize these bank transactions into one of these categories:
-{json.dumps(categories, indent=2)}
-
-Transactions:
-{json.dumps(tx_list, indent=2)}
-
-Return a JSON array of {{"id": <int>, "category": "<category>"}} objects only."""
-
-        response = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
-
+def _qif_date(text):
+    for fmt in ("%m/%d/%Y", "%m/%d'%Y", "%m/%d'%y", "%d/%m/%Y", "%Y-%m-%d"):
         try:
-            results = json.loads(response.choices[0].message.content)
-            # Handle both {"results": [...]} and [...] formats
-            if isinstance(results, dict):
-                results = next(iter(results.values()))
-            for r in results:
-                batch[r["id"]].category = r["category"]
-        except (json.JSONDecodeError, KeyError, IndexError):
-            pass  # Keep "Uncategorized" if AI fails
-
-    return transactions
+            return datetime.strptime(text.replace(" ", ""), fmt)
+        except ValueError:
+            pass
+    raise ValueError(f"Unrecognised QIF date: {text!r}")
 ```
 
-### Step 3: Detect and remove duplicates
+### pipeline.py
 
 ```python
-# dedup.py — Detect duplicate transactions
-from typing import List, Tuple
-from parser import Transaction
-from datetime import timedelta
-from decimal import Decimal
-
-def detect_duplicates(transactions: List[Transaction],
-                      date_window_days: int = 3,
-                      amount_tolerance: Decimal = Decimal("0.01")) -> List[Tuple]:
-    """
-    Find likely duplicate transactions based on:
-    - Same amount (within tolerance)
-    - Similar description (fuzzy match)
-    - Date within a rolling window
-
-    Returns list of (tx_a, tx_b) duplicate pairs.
-    """
-    duplicates = []
-    sorted_txs = sorted(transactions, key=lambda t: (t.amount, t.date))
-
-    for i, tx_a in enumerate(sorted_txs):
-        for tx_b in sorted_txs[i + 1:]:
-            # Stop early — sorted by amount, no point checking further
-            if abs(tx_b.amount - tx_a.amount) > amount_tolerance:
-                break
-
-            # Check date proximity
-            date_diff = abs((tx_b.date - tx_a.date).days)
-            if date_diff > date_window_days:
-                continue
-
-            # If both have bank IDs, use them for exact match
-            if tx_a.raw_id and tx_b.raw_id and tx_a.raw_id == tx_b.raw_id:
-                duplicates.append((tx_a, tx_b))
-                continue
-
-            # Fuzzy description match (Jaccard similarity on word sets)
-            words_a = set(tx_a.description.lower().split())
-            words_b = set(tx_b.description.lower().split())
-            if words_a and words_b:
-                jaccard = len(words_a & words_b) / len(words_a | words_b)
-                if jaccard > 0.6:
-                    duplicates.append((tx_a, tx_b))
-
-    return duplicates
-
-def remove_duplicates(transactions: List[Transaction]) -> List[Transaction]:
-    """Return deduplicated list, keeping the first occurrence of each duplicate pair."""
-    duplicates = detect_duplicates(transactions)
-    to_remove = set(id(pair[1]) for pair in duplicates)
-    return [tx for tx in transactions if id(tx) not in to_remove]
-```
-
-### Step 4: Reconcile accounts
-
-```python
-# reconciler.py — Reconcile parsed transactions against a known closing balance
-from typing import List
-from decimal import Decimal
-from parser import Transaction
-from datetime import datetime
-
-def reconcile(transactions: List[Transaction],
-              opening_balance: Decimal,
-              expected_closing_balance: Decimal,
-              statement_date: datetime) -> dict:
-    """
-    Reconcile a list of transactions against a bank statement.
-
-    Returns a dict with reconciliation status and any discrepancy.
-    """
-    # Filter to transactions on or before statement date
-    in_scope = [tx for tx in transactions if tx.date <= statement_date]
-    computed_balance = opening_balance + sum(tx.amount for tx in in_scope)
-    discrepancy = computed_balance - expected_closing_balance
-
-    result = {
-        "opening_balance": float(opening_balance),
-        "total_transactions": len(in_scope),
-        "total_debits": float(sum(tx.amount for tx in in_scope if tx.amount < 0)),
-        "total_credits": float(sum(tx.amount for tx in in_scope if tx.amount > 0)),
-        "computed_closing_balance": float(computed_balance),
-        "expected_closing_balance": float(expected_closing_balance),
-        "discrepancy": float(discrepancy),
-        "reconciled": abs(discrepancy) < Decimal("0.01"),
-    }
-
-    if result["reconciled"]:
-        print(f"✓ Reconciled — closing balance: ${computed_balance:.2f}")
-    else:
-        print(f"✗ Discrepancy of ${discrepancy:.2f} found")
-        print(f"  Computed: ${computed_balance:.2f}")
-        print(f"  Expected: ${expected_closing_balance:.2f}")
-
-    return result
-```
-
-### Step 5: Generate expense reports
-
-```python
-# reports.py — Generate expense summaries
-from typing import List
-from parser import Transaction
+# pipeline.py - categorize, deduplicate, reconcile, report
+import json
+import re
 from collections import defaultdict
 from decimal import Decimal
-import json
+from parser import Transaction
 
-def monthly_summary(transactions: List[Transaction]) -> dict:
-    """Group transactions by month and category, return summary."""
-    summary = defaultdict(lambda: defaultdict(Decimal))
+# Ordered: the FIRST matching rule wins, so put specific rules above general ones
+# ("stripe payment" before "stripe", "uber eats" before "uber").
+RULES = [
+    ("Revenue", ["stripe payment", "stripe payout", "paypal transfer", "square deposit"], "in"),
+    ("Meals & Entertainment", ["uber eats", "doordash", "grubhub", "starbucks", "cafe", "coffee"], "out"),
+    ("Travel", ["airbnb", "marriott", "hilton", "delta air", "united airlines", "uber", "lyft"], "out"),
+    ("Software & SaaS", ["aws", "amazon web services", "digitalocean", "cloudflare", "github",
+                         "vercel", "stripe", "twilio", "datadog", "notion", "figma", "zapier"], "out"),
+    ("Advertising", ["google ads", "meta ads", "linkedin ads", "reddit ads"], "out"),
+    ("Payroll & Contractors", ["gusto", "rippling", "deel", "payroll"], "out"),
+    ("Banking & Fees", ["bank fee", "service charge", "wire fee", "monthly fee", "overdraft"], "out"),
+]
+CATEGORIES = [r[0] for r in RULES] + ["Insurance", "Professional Services", "Other"]
 
-    for tx in transactions:
-        month_key = tx.date.strftime("%Y-%m")
-        summary[month_key][tx.category] += tx.amount
 
-    return {month: dict(cats) for month, cats in sorted(summary.items())}
+def categorize_by_rules(txs):
+    for tx in txs:
+        text = tx.description.lower()
+        direction = "in" if tx.amount > 0 else "out"
+        for category, words, only in RULES:
+            if only == direction and any(re.search(rf"\b{re.escape(w)}\b", text) for w in words):
+                tx.category = category
+                break
+    return txs
 
-def expense_report(transactions: List[Transaction], title: str = "Expense Report") -> str:
-    """Generate a human-readable expense report."""
-    debits = [tx for tx in transactions if tx.amount < 0]
-    by_category = defaultdict(Decimal)
-    for tx in debits:
-        by_category[tx.category] += abs(tx.amount)
 
-    total = sum(by_category.values())
-    lines = [f"\n{'=' * 50}", f"  {title}", f"{'=' * 50}"]
+def categorize_with_llm(txs, ask, batch_size=40):
+    """ask(prompt: str) -> str must return JSON text. Pass any provider's client call;
+    only descriptions and amounts leave your machine, never account numbers.
+    Output is validated: unknown ids or categories are ignored and stay Uncategorized."""
+    todo = [t for t in txs if t.category == "Uncategorized"]
+    for i in range(0, len(todo), batch_size):
+        batch = todo[i:i + batch_size]
+        items = [{"id": n, "description": t.description, "amount": str(t.amount)}
+                 for n, t in enumerate(batch)]
+        reply = ask(f"Assign each bank transaction one category from {json.dumps(CATEGORIES)}. "
+                    f'Reply with JSON only: {{"results": [{{"id": 0, "category": "..."}}]}}\n'
+                    f"{json.dumps(items)}")
+        try:
+            for r in json.loads(reply)["results"]:
+                if r["category"] in CATEGORIES and 0 <= r["id"] < len(batch):
+                    batch[r["id"]].category = r["category"]
+        except (ValueError, KeyError, TypeError):
+            pass
+    return txs
 
-    for category, amount in sorted(by_category.items(), key=lambda x: -x[1]):
-        pct = (amount / total * 100) if total else 0
-        lines.append(f"  {category:<30} ${amount:>10.2f}  ({pct:.1f}%)")
 
-    lines.append(f"{'─' * 50}")
-    lines.append(f"  {'TOTAL':<30} ${total:>10.2f}")
-    lines.append(f"{'=' * 50}\n")
+def drop_repeated_ids(txs):
+    """Safe automatic dedup: the same bank id appearing twice (overlapping exports)."""
+    seen, out = set(), []
+    for t in txs:
+        if t.raw_id:
+            key = (t.raw_id, t.date.date(), t.amount)
+            if key in seen:
+                continue
+            seen.add(key)
+        out.append(t)
+    return out
+
+
+def possible_duplicates(txs):
+    """Same day, amount and description but no bank id to prove it: REVIEW, never auto-delete
+    (two coffees on one day are legitimate)."""
+    groups = defaultdict(list)
+    for t in txs:
+        if not t.raw_id:
+            groups[(t.date.date(), t.amount, t.description.lower())].append(t)
+    return [g for g in groups.values() if len(g) > 1]
+
+
+def reconcile(txs, opening, closing, start, end):
+    """Opening balance + transactions dated start..end (inclusive) should equal the closing balance."""
+    scope = [t for t in txs if start <= t.date <= end]
+    computed = opening + sum((t.amount for t in scope), Decimal("0"))
+    diff = computed - closing
+    return {"transactions": len(scope), "computed_closing": computed,
+            "expected_closing": closing, "difference": diff, "reconciled": diff == 0}
+
+
+def expense_report(txs, title):
+    spend = defaultdict(Decimal)
+    for t in txs:
+        if t.amount < 0:
+            spend[t.category] += -t.amount
+    total = sum(spend.values(), Decimal("0"))
+    lines = [title, "=" * 52]
+    for cat, amt in sorted(spend.items(), key=lambda kv: -kv[1]):
+        lines.append(f"{cat:<26}{amt:>12,.2f}  {amt / total * 100:5.1f}%")
+    lines += ["-" * 52, f"{'TOTAL':<26}{total:>12,.2f}"]
     return "\n".join(lines)
-
-def export_to_csv(transactions: List[Transaction], output_path: str):
-    """Export categorized transactions to CSV for review or import."""
-    import csv
-    with open(output_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "description", "amount", "category", "notes"])
-        writer.writeheader()
-        for tx in transactions:
-            writer.writerow({
-                "date": tx.date.strftime("%Y-%m-%d"),
-                "description": tx.description,
-                "amount": str(tx.amount),
-                "category": tx.category,
-                "notes": tx.notes,
-            })
-    print(f"Exported {len(transactions)} transactions to {output_path}")
 ```
 
 ## Examples
 
-### Example 1: Full pipeline — CSV → categorize → report
+### Example 1: Categorize a March export and see what is left
+
+**User request:** "Categorize march_bank_statement.csv and give me a spending breakdown."
 
 ```python
 from parser import parse_csv
-from categorizer import categorize_by_rules, categorize_with_ai
-from dedup import remove_duplicates
-from reports import expense_report, export_to_csv
-import os
+from pipeline import (categorize_by_rules, drop_repeated_ids, expense_report,
+                      possible_duplicates)
 
-# 1. Parse bank CSV
-transactions = parse_csv("march_bank_statement.csv")
-print(f"Parsed {len(transactions)} transactions")
-
-# 2. Apply rules first (free, fast)
-transactions = categorize_by_rules(transactions)
-
-# 3. AI for remaining unknowns (paid, slower)
-transactions = categorize_with_ai(transactions, api_key=os.environ["OPENAI_API_KEY"])
-
-# 4. Remove duplicates
-transactions = remove_duplicates(transactions)
-
-# 5. Print expense report
-print(expense_report(transactions, title="March 2025 Expenses"))
-
-# 6. Export for review / accounting system import
-export_to_csv(transactions, "march_2025_categorized.csv")
+txs = parse_csv("march_bank_statement.csv", id_col="Transaction ID")
+print(f"Parsed {len(txs)} rows")
+txs = categorize_by_rules(drop_repeated_ids(txs))
+left = [t for t in txs if t.category == "Uncategorized"]
+print(f"{len(left)} of {len(txs)} need review or an LLM")
+print(expense_report(txs, "March 2025 expenses"))
+print(possible_duplicates(txs))
 ```
 
-**Output:**
-```
-Parsed 143 transactions
+**Output** (ten sample rows, one of them a repeated bank id):
 
-==================================================
-  March 2025 Expenses
-==================================================
-  Software & SaaS                $   4,230.00  (41.2%)
-  Payroll & Contractors          $   3,800.00  (37.0%)
-  Advertising                    $   1,200.00  (11.7%)
-  Meals & Entertainment          $     420.00   (4.1%)
-  Travel                         $     320.00   (3.1%)
-  Other                          $     300.00   (2.9%)
-──────────────────────────────────────────────────
-  TOTAL                          $  10,270.00
-==================================================
 ```
+Parsed 10 rows
+2 of 9 need review or an LLM
+March 2025 expenses
+====================================================
+Uncategorized                 1,210.00   92.0%
+Software & SaaS                  49.00    3.7%
+Meals & Entertainment            38.55    2.9%
+Travel                           18.00    1.4%
+----------------------------------------------------
+TOTAL                         1,315.55
+[]
+```
+
+"UNITED HEALTHCARE" and "ACME LEGAL LLP" stay uncategorized until a rule is added or `categorize_with_llm(txs, ask)` is called with, for example, an `ask` that wraps your provider's chat call, returns the JSON string, and reads the model from `os.environ["CATEGORIZER_MODEL"]`. Anything the model returns outside `CATEGORIES` is ignored.
 
 ### Example 2: Reconcile an OFX statement
 
+**User request:** "Check that march_checking.ofx adds up to the closing balance on the statement."
+
 ```python
-from parser import parse_ofx
-from dedup import remove_duplicates
-from reconciler import reconcile
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
+from parser import parse_ofx
+from pipeline import drop_repeated_ids, reconcile
 
-transactions = parse_ofx("march_checking.ofx")
-transactions = remove_duplicates(transactions)
-
-result = reconcile(
-    transactions=transactions,
-    opening_balance=Decimal("12,450.00"),
-    expected_closing_balance=Decimal("8,930.00"),
-    statement_date=datetime(2025, 3, 31),
-)
-# ✓ Reconciled — closing balance: $8,930.00
+txs = drop_repeated_ids(parse_ofx("march_checking.ofx"))
+print(reconcile(txs, opening=Decimal("12450.00"), closing=Decimal("19701.00"),
+                start=datetime(2025, 3, 1), end=datetime(2025, 3, 31, 23, 59, 59)))
 ```
+
+**Output:** `{'transactions': 3, 'computed_closing': Decimal('19701.00'), 'expected_closing': Decimal('19701.00'), 'difference': Decimal('0.00'), 'reconciled': True}`. With the wrong opening balance of 11450.00 it prints `difference: Decimal('-1000.00')` and `reconciled: False`, which points at a missing or extra transaction of that size.
 
 ## Guidelines
 
-- Always run deduplication before categorization and reconciliation — bank exports sometimes include the same transaction twice (pending + cleared).
-- Use rule-based categorization first; send only unmatched transactions to AI to keep costs low. 70–80% of transactions typically match keyword rules.
-- For AI categorization, batch 50 transactions per request and request JSON output to avoid parsing errors.
-- When reconciling, sort transactions by date and check for off-by-one errors around the statement cutoff date.
-- Preserve the original `raw_id` (FITID in OFX, Num in QIF) for reliable deduplication even if descriptions vary.
-- Export to CSV after categorization for a human review step before pushing to Xero or QuickBooks.
-- For recurring reports, store processed transaction IDs in a local SQLite database to avoid reprocessing already-imported entries.
+- Keep rules ordered from specific to general: "stripe payment" must come before "stripe", "uber eats" before "uber", or the wrong category wins silently.
+- Never auto-delete rows that merely look alike. Delete only on proof (same bank id); list the rest for review.
+- Parse OFX with ofxtools, not regular expressions: OFX 1.x is SGML and its leaf tags have no closing tag.
+- Treat LLM output as untrusted input: validate ids and categories, keep failures as "Uncategorized", and spot-check a sample.
+- Do not put bank statements, account numbers or API keys in prompts, logs or the repository; read keys from environment variables.
+- A reconciliation that is off by exactly one transaction amount usually means a missing or duplicated row; off by a few cents means rounding or a float slipped in.
+- For recurring imports, keep processed bank ids in SQLite so re-imports do not double count.
