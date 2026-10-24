@@ -1,17 +1,12 @@
 ---
 name: load-balancer
 description: >-
-  Configure and optimize load balancers and reverse proxies using Nginx,
-  HAProxy, and cloud ALBs. Use when someone asks to "set up load balancing",
-  "configure Nginx reverse proxy", "set up HAProxy", "add SSL termination",
-  "configure health checks", "proxy WebSocket connections", "rate limit
-  traffic", or "set up failover". Covers L4/L7 balancing, SSL, rate limiting,
-  caching, WebSocket proxying, and health checks.
+  Configures load balancers and reverse proxies with Nginx and HAProxy: upstream pools, least-connections balancing, HTTPS termination, health checks, rate limiting, sticky sessions and WebSocket proxying. Use when someone asks to "set up load balancing", "configure an Nginx reverse proxy", "set up HAProxy", "add SSL termination", "configure health checks", "proxy WebSocket connections", "rate limit traffic", or "set up failover".
 license: Apache-2.0
-compatibility: 'Nginx 1.25+, HAProxy 2.8+, AWS ALB/NLB, Traefik'
+compatibility: 'Nginx 1.25.1+ (tested on 1.30 stable), HAProxy 2.8+ (tested on 3.4 LTS); Docker optional for testing configs'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - load-balancer
@@ -25,178 +20,150 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents configure production-grade load balancers and reverse proxies. It covers Nginx and HAProxy setup, SSL termination, rate limiting, WebSocket proxying, health checks, and traffic routing strategies for web applications and APIs.
+Covers production setups for two proxies. Nginx is the default choice for HTTPS termination, simple pools and static content. HAProxy is the better fit for active health checks, stick tables, cookie persistence and a stats page. Cloud balancers (AWS ALB/NLB) and Kubernetes ingress controllers are configured with their own APIs and are out of scope here. The configs below pass `nginx -t` on nginx 1.30 and `haproxy -c` on HAProxy 3.4.
 
 ## Instructions
 
-### Step 1: Choose Architecture
+### Step 1: Choose the architecture
 
-Determine the right setup based on requirements:
-- **Single service, HTTPS needed** → Nginx reverse proxy with SSL
-- **Multiple backends, different routing rules** → Nginx with upstream groups or HAProxy with ACLs
-- **TCP/UDP traffic (databases, Redis)** → Nginx stream module or HAProxy TCP mode
-- **Need advanced health checks, circuit breaking** → HAProxy (more powerful health check DSL)
-- **Kubernetes** → Ingress controller (nginx-ingress or Traefik)
+- Single service, HTTPS needed: Nginx reverse proxy.
+- Several backends with different routing rules: Nginx `upstream` groups, or HAProxy ACLs.
+- TCP/UDP traffic (databases, Redis): Nginx `stream` block, or HAProxy `mode tcp`.
+- Active health checks, stick tables, a live stats page: HAProxy. Open-source Nginx only has passive checks.
+- Kubernetes: use an ingress controller instead of hand-written configs.
 
-### Step 2: Configure Nginx Reverse Proxy
+### Step 2: Nginx main config
 
-Basic reverse proxy with load balancing:
+`/etc/nginx/nginx.conf`:
 
 ```nginx
-# /etc/nginx/nginx.conf
 user nginx;
 worker_processes auto;
 worker_rlimit_nofile 65535;
 
 events {
     worker_connections 4096;
-    multi_accept on;
 }
 
 http {
     sendfile on;
     tcp_nopush on;
-    tcp_nodelay on;
     keepalive_timeout 65;
     server_tokens off;
 
-    # Logging with upstream timing
+    # Log upstream timing next to total request time
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" $request_time $upstream_response_time';
+                    '"$http_user_agent" rt=$request_time urt=$upstream_response_time';
+    access_log /var/log/nginx/access.log main;
 
-    # Gzip compression
     gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css application/json application/javascript
-               text/xml application/xml image/svg+xml;
+    gzip_types text/plain text/css application/json application/javascript image/svg+xml;
 
-    # Rate limiting zones
+    # Rate limiting zones: 10 MB holds roughly 160k client addresses
     limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
     limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+    limit_req_status 429;
 
-    # Upstream backends
-    upstream app_servers {
+    # Upgrade header handling for WebSocket and plain requests
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      '';
+    }
+
+    upstream api_backends {
         least_conn;
         keepalive 32;
-
-        server app1:8080 weight=3 max_fails=3 fail_timeout=30s;
-        server app2:8080 weight=3 max_fails=3 fail_timeout=30s;
-        server app3:8080 backup;
+        server api1.internal:3000 weight=3 max_fails=3 fail_timeout=30s;
+        server api2.internal:3000 weight=3 max_fails=3 fail_timeout=30s;
+        server api3.internal:3000 backup;
     }
 
-    upstream websocket_servers {
+    upstream ws_backends {
         ip_hash;
-        server ws1:8080;
-        server ws2:8080;
+        server ws1.internal:8080;
+        server ws2.internal:8080;
     }
-
-    # Cache for static assets
-    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=static_cache:10m
-                     max_size=1g inactive=60m use_temp_path=off;
 
     include /etc/nginx/conf.d/*.conf;
 }
 ```
 
-### Step 3: Configure HTTPS and Security
+### Step 3: Nginx HTTPS server
+
+`/etc/nginx/conf.d/app.conf`. Since nginx 1.25.1 `listen 443 ssl http2;` is deprecated and prints a warning; use the separate `http2 on;` directive.
 
 ```nginx
-# /etc/nginx/conf.d/app.conf
 server {
     listen 80;
-    server_name example.com;
+    server_name api.shopwise.io;
     return 301 https://$host$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
-    server_name example.com;
+    listen 443 ssl;
+    http2 on;
+    server_name api.shopwise.io;
 
-    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/api.shopwise.io/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.shopwise.io/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers off;
 
-    # Security headers
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
-    add_header X-Frame-Options DENY always;
     add_header X-Content-Type-Options nosniff always;
 
-    # Static files with caching
-    location /static/ {
-        alias /var/www/static/;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        proxy_cache static_cache;
-    }
+    # Settings shared by every proxied location (a location with its own proxy_set_header must repeat them)
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Connection        "";   # keeps upstream keepalive working
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
 
-    # API with rate limiting
-    location /api/ {
+    location / {
         limit_req zone=api burst=20 nodelay;
-
-        proxy_pass http://app_servers;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Connection "";
-
-        proxy_connect_timeout 5s;
-        proxy_read_timeout 30s;
+        proxy_pass http://api_backends;
+        # Retry another server on errors, but never replay POST/PATCH (non-idempotent)
         proxy_next_upstream error timeout http_502 http_503;
         proxy_next_upstream_tries 2;
     }
 
-    # Auth — strict rate limit
     location /api/auth/login {
         limit_req zone=login burst=3 nodelay;
-        proxy_pass http://app_servers;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://api_backends;
     }
 
-    # WebSocket
     location /ws/ {
-        proxy_pass http://websocket_servers;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
+        proxy_pass http://ws_backends;
+        # proxy_set_header here replaces the server-level set, so repeat the shared ones
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
         proxy_read_timeout 3600s;
     }
 
-    # Default
-    location / {
-        proxy_pass http://app_servers;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Block attack paths
     location ~ /\.(git|env|htaccess) {
-        deny all;
         return 404;
     }
 }
 ```
 
-### Step 4: Configure HAProxy (Alternative)
+Always run `nginx -t` before `nginx -s reload`. Nginx resolves upstream hostnames only at startup, so a name that does not resolve stops the test.
 
-Use HAProxy when you need advanced health checks, stick tables for rate limiting, or a stats dashboard:
+### Step 4: HAProxy
+
+`/etc/haproxy/haproxy.cfg`. The PEM file must contain the certificate chain followed by the private key. Export the stats password as `HAPROXY_STATS_PASSWORD` in the service environment.
 
 ```haproxy
-# /etc/haproxy/haproxy.cfg
 global
     maxconn 50000
     log stdout format raw local0
-    stats socket /var/run/haproxy.sock mode 660 level admin
+    stats socket /var/run/haproxy.sock mode 600 level admin
     ssl-default-bind-options ssl-min-ver TLSv1.2
 
 defaults
@@ -210,22 +177,24 @@ defaults
     timeout server 30s
     timeout http-request 10s
 
+# Stats page: loopback only, with a login
 frontend stats
-    bind *:8404
+    bind 127.0.0.1:8404
     stats enable
     stats uri /stats
     stats refresh 10s
+    stats auth "admin:${HAPROXY_STATS_PASSWORD}"
 
 frontend https_front
-    bind *:443 ssl crt /etc/haproxy/certs/example.com.pem alpn h2,http/1.1
-    http-request set-header X-Forwarded-Proto https
+    bind :80
+    bind :443 ssl crt /etc/haproxy/certs/store.greenleaf.com.pem alpn h2,http/1.1
+    http-request redirect scheme https unless { ssl_fc }
+    http-request set-header X-Forwarded-Proto https if { ssl_fc }
 
-    # ACL-based routing
     acl is_api path_beg /api/
     acl is_websocket hdr(Upgrade) -i websocket
-    acl is_static path_beg /static/ /assets/
 
-    # Rate limiting with stick tables
+    # Per-client request rate: more than 100 requests in 10 s gets a 429
     stick-table type ip size 100k expire 30s store http_req_rate(10s)
     http-request track-sc0 src
     http-request deny deny_status 429 if { sc_http_req_rate(0) gt 100 }
@@ -236,65 +205,71 @@ frontend https_front
 
 backend app_servers
     balance leastconn
-    option httpchk GET /health
+    option httpchk
+    http-check send meth GET uri /health
     http-check expect status 200
     cookie SERVERID insert indirect nocache
-
-    server app1 app1:8080 check inter 5s fall 3 rise 2 cookie app1
-    server app2 app2:8080 check inter 5s fall 3 rise 2 cookie app2
-    server app3 app3:8080 check inter 5s fall 3 rise 2 backup
+    server web1 web1.internal:8080 check inter 5s fall 3 rise 2 cookie web1
+    server web2 web2.internal:8080 check inter 5s fall 3 rise 2 cookie web2
+    server web3 web3.internal:8080 check inter 5s fall 3 rise 2 backup
 
 backend api_servers
     balance leastconn
-    option httpchk GET /api/health
+    option httpchk
+    http-check send meth GET uri /api/health
     default-server inter 3s fall 3 rise 2 slowstart 60s
     retry-on conn-failure empty-response response-timeout
     retries 2
-
-    server api1 api1:3000 check
-    server api2 api2:3000 check
+    server api1 api1.internal:3000 check
+    server api2 api2.internal:3000 check
 
 backend ws_servers
     balance source
-    timeout tunnel 3600s
-    server ws1 ws1:8080 check
-    server ws2 ws2:8080 check
+    timeout tunnel 1h
+    server ws1 ws1.internal:8080 check
+    server ws2 ws2.internal:8080 check
 ```
 
-### Step 5: Set Up SSL with Let's Encrypt
+Validate with `haproxy -c -f /etc/haproxy/haproxy.cfg` and apply with `systemctl reload haproxy`.
 
-Install certbot (`apt install certbot python3-certbot-nginx`), run `certbot --nginx -d example.com`, and add a cron for auto-renewal: `0 3 * * * certbot renew --quiet --post-hook 'nginx -s reload'`.
+### Step 5: Certificates with Let's Encrypt
 
-### Step 6: TCP/UDP Load Balancing and Algorithms
+Install certbot from the distribution package or snap (both set up automatic renewal; check with `systemctl list-timers | grep certbot`), then:
 
-For databases or Redis, use the Nginx `stream` block (outside `http`) with `proxy_pass` to upstream groups. Choose algorithms based on workload:
+```bash
+sudo certbot --nginx -d api.shopwise.io
+sudo certbot renew --dry-run
+```
 
-- **round-robin** (default) — Equal distribution for stateless servers
-- **least_conn** — Fewest active connections, best for variable request durations
-- **ip_hash** — Sticky sessions by client IP for in-memory sessions
-- **hash $key consistent** — Minimizes redistribution when servers change (good for caches)
+For HAProxy, request the certificate with `certbot certonly --standalone` (or the webroot plugin) and add a deploy hook in `/etc/letsencrypt/renewal-hooks/deploy/` that rebuilds the combined PEM (`cat fullchain.pem privkey.pem`) and reloads HAProxy.
 
-Health checks: Nginx uses passive checks (`max_fails=3 fail_timeout=30s`), while HAProxy uses active probes (`option httpchk GET /health` with `inter 5s fall 3 rise 2`).
+### Step 6: Algorithms and TCP balancing
+
+- round-robin (default): stateless servers.
+- `least_conn` / `balance leastconn`: variable request durations.
+- `ip_hash` / `balance source`: affinity by client address, needed for in-memory WebSocket state. Clients behind one NAT land on the same server.
+- `hash $request_uri consistent` (Nginx) / `balance uri` (HAProxy): caches, so servers can change with little reshuffling.
+
+For databases or Redis, put a `stream { upstream ... server { listen 6379; proxy_pass ...; } }` block at the top level of `nginx.conf` (it needs the stream module, present in the official packages).
 
 ## Examples
 
-### Example 1: Set up Nginx reverse proxy with SSL for a Node.js app
-**User prompt:** "Configure Nginx as a reverse proxy for my Node.js API running on ports 3000 and 3001 on two servers. Add SSL with Let's Encrypt for api.shopwise.io, rate limit the /api/auth endpoints to 5 requests per minute, and proxy WebSocket connections on /ws/."
+### Example 1: Nginx reverse proxy with SSL for a Node.js API
+**User prompt:** "Configure Nginx as a reverse proxy for my Node.js API on two servers, port 3000. Add SSL with Let's Encrypt for api.shopwise.io, rate limit the login endpoint to 5 requests per minute, and proxy WebSocket connections on /ws/."
 
-The agent will create an Nginx config with an `upstream api_backends` block using `least_conn` balancing across both servers. It will set up a server block listening on 443 with SSL certificates from Let's Encrypt, configure `proxy_pass` to the upstream with proper `X-Real-IP` and `X-Forwarded-For` headers, add a `limit_req_zone` for auth endpoints at 5r/m with burst of 3, and configure the `/ws/` location with `proxy_set_header Upgrade` and `Connection "upgrade"` for WebSocket support. It will also add an HTTP-to-HTTPS redirect on port 80 and install a certbot renewal cron job.
+The agent writes the two files from Steps 2 and 3 with its own host names, runs `nginx -t`, reloads, and runs certbot. Result: HTTP redirects to HTTPS, `/api/auth/login` answers 429 from the fifth request in quick succession from one address (1 plus a burst of 3), `/ws/` upgrades to WebSocket with a one-hour read timeout, and a failed server is skipped for 30 s after 3 errors.
 
-### Example 2: Configure HAProxy with health checks and a stats dashboard
-**User prompt:** "Set up HAProxy to load balance three backend servers for our e-commerce site at store.greenleaf.com. I need active health checks hitting /health every 5 seconds, sticky sessions for the cart, and access to the HAProxy stats page on port 8404."
+### Example 2: HAProxy with active health checks and a stats page
+**User prompt:** "Set up HAProxy to load balance three servers for store.greenleaf.com. Health check /health every 5 seconds, sticky sessions for the cart, stats page on 8404."
 
-The agent will write an HAProxy config with a `frontend https_front` bound to port 443 with SSL, routing to a `backend app_servers` using `leastconn` balancing. It will add `option httpchk GET /health` with `http-check expect status 200` and configure each server with `check inter 5s fall 3 rise 2`. For sticky sessions, it will add `cookie SERVERID insert indirect nocache` and assign cookie values to each server. The stats frontend will bind to port 8404 with `stats enable`, `stats uri /stats`, and `stats refresh 10s`.
+The agent writes the Step 4 config: the `app_servers` backend with `http-check send meth GET uri /health`, `check inter 5s fall 3 rise 2` and a `SERVERID` cookie per server. A server leaves rotation after 3 failed probes and returns after 2 good ones. The stats page is on `127.0.0.1:8404/stats` behind a password; reach it through an SSH tunnel.
 
 ## Guidelines
 
-- Terminate SSL at the load balancer — simpler cert management, offloads crypto from backends
-- Always set `X-Real-IP` and `X-Forwarded-For` headers — backends need real client IPs
-- Use `least_conn` for APIs with variable response times
-- Configure `proxy_next_upstream` for transparent failover on 502/503
-- Use keepalive connections to backends (`keepalive 32`) to reduce TCP overhead
-- Rate limit auth endpoints much more aggressively than general API endpoints
-- Log `$upstream_response_time` separately from `$request_time` to isolate backend vs network latency
-- Health check endpoints should test real dependencies (DB, cache), not just return 200
+- Do not bind the stats page to a public address without authentication; it can expose server state and, with `stats admin`, control it.
+- Trust `X-Forwarded-For` in the backend only from the proxy's address; the header can be forged by clients.
+- `proxy_next_upstream` retries only idempotent requests by default; do not add `non_idempotent` unless the backend deduplicates.
+- `proxy_http_version 1.1` plus `Connection ""` is required for `keepalive` to the upstream; the WebSocket location overrides `Connection`.
+- A health endpoint should check real dependencies (database, cache), but keep it fast and cheap, or the checks themselves cause load.
+- Rate limits keyed on client address misbehave behind a CDN: restore the real address first (`real_ip_header` in Nginx).
+- Terminate TLS at the balancer and re-encrypt to backends if the network between them is not private.
