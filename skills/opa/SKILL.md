@@ -2,10 +2,11 @@
 name: opa
 description: Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "OPA 1.x (checked against v1.21.4); Gatekeeper 3.x for Kubernetes; Docker or kubectl optional"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/open-policy-agent/opa
+  version: 1.1.0
   category: devops
   tags:
   - policy
@@ -17,12 +18,9 @@ metadata:
 
 # OPA — Open Policy Agent
 
-
 ## Overview
 
-
 OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
-
 
 ## Instructions
 
@@ -36,12 +34,10 @@ import rego.v1
 
 default allow := false
 
-# Admin users can do anything
 allow if {
     input.user.role == "admin"
 }
 
-# Users can read their own data
 allow if {
     input.method == "GET"
     input.path[0] == "users"
@@ -56,14 +52,6 @@ allow if {
     not input.body.role                   # Can't change own role
 }
 
-# Team members can read team resources
-allow if {
-    input.method == "GET"
-    input.path[0] == "teams"
-    team_id := input.path[1]
-    team_id in input.user.teams
-}
-
 # Managers can approve expenses under $10,000
 allow if {
     input.method == "POST"
@@ -72,13 +60,6 @@ allow if {
     input.body.amount < 10000
 }
 
-# Deny reasons for audit trail
-reasons contains msg if {
-    not allow
-    input.user.role != "admin"
-    msg := sprintf("User %s with role %s denied access to %s %s",
-        [input.user.id, input.user.role, input.method, concat("/", input.path)])
-}
 ```
 
 ### Kubernetes Admission Control (Gatekeeper)
@@ -131,12 +112,12 @@ spec:
   parameters:
     labels:
       - "app.kubernetes.io/name"
-      - "app.kubernetes.io/managed-by"
       - "team"
 ```
 
 ```yaml
-# Block containers running as root
+# Block containers running as root. Match Pod, not Deployment: this rule reads
+# spec.containers, and a Deployment keeps them under spec.template.spec.
 apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
@@ -159,25 +140,20 @@ spec:
           msg := sprintf("Container %s must set runAsNonRoot: true", [container.name])
         }
 
-        violation contains {"msg": msg} if {
-          container := input.review.object.spec.containers[_]
-          container.securityContext.runAsUser == 0
-          msg := sprintf("Container %s must not run as root (UID 0)", [container.name])
-        }
-
 ---
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sNoRoot
 metadata:
   name: no-root-containers
 spec:
+  enforcementAction: dryrun   # audit first; change to deny once the report is clean
   match:
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
-      - apiGroups: ["apps"]
-        kinds: ["Deployment", "StatefulSet"]
 ```
+
+Gatekeeper defaults to `enforcementAction: deny`. Start with `dryrun` (violations appear in the constraint's `status.violations`), then switch to `deny`.
 
 ### API Integration
 
@@ -199,18 +175,21 @@ export async function authorize(req: Request, res: Response, next: NextFunction)
     body: req.body,
   };
 
-  const response = await fetch(`${OPA_URL}/v1/data/authz/allow`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ input }),
-  });
-
-  const { result } = await response.json();
-
-  if (result) {
-    next();
-  } else {
-    res.status(403).json({ error: "Forbidden" });
+  try {
+    const response = await fetch(`${OPA_URL}/v1/data/authz/allow`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input }),
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!response.ok) throw new Error(`OPA answered ${response.status}`);
+    const { result } = await response.json();
+    // A missing result means the rule was undefined: treat it as denied.
+    if (result === true) return next();
+    return res.status(403).json({ error: "Forbidden" });
+  } catch (err) {
+    // Fail closed: if OPA is unreachable, nobody gets in.
+    return res.status(503).json({ error: "Authorization service unavailable" });
   }
 }
 
@@ -225,20 +204,13 @@ package terraform
 
 import rego.v1
 
-# Deny public S3 buckets
+# Deny public S3 buckets. AWS provider v4+ sets the ACL on a separate
+# aws_s3_bucket_acl resource; older plans put it on aws_s3_bucket itself.
 deny contains msg if {
   resource := input.resource_changes[_]
-  resource.type == "aws_s3_bucket"
-  resource.change.after.acl == "public-read"
+  resource.type in {"aws_s3_bucket", "aws_s3_bucket_acl"}
+  resource.change.after.acl in {"public-read", "public-read-write"}
   msg := sprintf("S3 bucket %s must not be public", [resource.address])
-}
-
-# Require encryption on RDS instances
-deny contains msg if {
-  resource := input.resource_changes[_]
-  resource.type == "aws_db_instance"
-  not resource.change.after.storage_encrypted
-  msg := sprintf("RDS instance %s must have encryption enabled", [resource.address])
 }
 
 # Limit instance sizes
@@ -253,58 +225,75 @@ deny contains msg if {
 allowed_instance_types := {"t3.micro", "t3.small", "t3.medium", "m5.large"}
 ```
 
-```bash
-# Validate Terraform plan with OPA
-terraform plan -out=plan.tfplan
-terraform show -json plan.tfplan > plan.json
-opa eval -d policy/ -i plan.json "data.terraform.deny"
-```
-
 ## Installation
 
 ```bash
-# CLI
+# CLI (macOS / Linux with Homebrew)
 brew install opa
+opa version
 
-# Docker
-docker run -p 8181:8181 openpolicyagent/opa run --server
+# Server in Docker, reachable only from this machine
+docker run --rm -p 127.0.0.1:8181:8181 -v "$PWD/policy:/policy:ro" \
+  openpolicyagent/opa:latest run --server --addr 0.0.0.0:8181 /policy
 
-# Kubernetes (Gatekeeper)
-kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/v3.15.0/deploy/gatekeeper.yaml
+# Kubernetes: Gatekeeper via Helm
+helm repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
+helm install gatekeeper gatekeeper/gatekeeper --namespace gatekeeper-system --create-namespace
 ```
 
+Pin the image to a release tag in production instead of `latest`. Without `--addr`, `opa run --server` listens on `localhost:8181` only. A static binary from the GitHub releases page comes with a `.sha256` file; verify it before use.
 
 ## Examples
 
+### Example 1: Test an authorization policy before wiring it into the API
 
-### Example 1: Setting up Opa for a microservices project
+**User request:** "Write unit tests for my authz.rego and show me a manager approving a $500 expense."
 
-**User request:**
+Add `policy/authz_test.rego`:
 
+```rego
+package authz_test
+
+import rego.v1
+
+import data.authz
+
+test_manager_approves_small_expense if {
+    authz.allow with input as {"method": "POST", "path": ["expenses", "approve"],
+        "user": {"id": "m7", "role": "manager"}, "body": {"amount": 500}}
+}
+
+test_user_cannot_change_own_role if {
+    not authz.allow with input as {"method": "PATCH", "path": ["users", "u1"],
+        "user": {"id": "u1", "role": "dev"}, "body": {"role": "admin"}}
+}
 ```
-I have a Node.js API and a React frontend running in Docker. Set up Opa for monitoring/deployment.
+
+```console
+$ opa test policy/ -v
+data.authz_test.test_manager_approves_small_expense: PASS
+data.authz_test.test_user_cannot_change_own_role: PASS
+PASS: 2/2
 ```
 
-The agent creates the necessary configuration files based on patterns like `# Gatekeeper ConstraintTemplate — define reusable policy tem`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+### Example 2: Block a Terraform plan with an oversized instance
 
-### Example 2: Troubleshooting kubernetes admission control issues
+**User request:** "Fail CI if the Terraform plan creates an instance type outside our allowed list."
 
-**User request:**
-
+```bash
+terraform plan -out=plan.tfplan
+terraform show -json plan.tfplan > plan.json
+opa eval -d policy/ -i plan.json --fail-defined "data.terraform.deny[_]"
 ```
-Opa is showing errors in our kubernetes admission control. Here are the logs: [error output]
-```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Opa issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
-
+`--fail-defined` makes `opa eval` exit with status 1 when any deny message exists, so CI stops. The output names the offender, for example `Instance aws_instance.web uses c5.4xlarge, allowed: {"m5.large", "t3.medium", "t3.micro", "t3.small"}`.
 
 ## Guidelines
 
 1. **Policy as code** — Store policies in Git alongside application code; review policy changes in PRs
-2. **Rego testing** — Write unit tests for policies: `opa test policy/ -v`; catch policy bugs before deployment
+2. **Rego testing** — Write unit tests for policies: `opa test policy/ -v`; check syntax with `opa check --strict policy/`; format with `opa fmt -w policy/`
 3. **Gatekeeper for K8s** — Use OPA Gatekeeper for admission control; enforce policies at deploy time, not just at runtime
-4. **Centralize authorization** — Move authorization logic from application code to OPA; one policy engine across all services
-5. **Deny by default** — Start with `default allow := false`; explicitly grant access rather than revoking
-6. **Bundle for distribution** — Package policies as OPA bundles; deploy to OPA instances via bundle server
-7. **Terraform validation** — Validate `terraform plan` output with OPA before `terraform apply`; prevent misconfigurations
-8. **Audit logging** — Log OPA decisions for compliance; track who accessed what and which policy allowed/denied it
+4. **Deny by default** — Start with `default allow := false`; explicitly grant access rather than revoking
+5. **Audit logging** — Log OPA decisions for compliance; track who accessed what and which policy allowed/denied it
+6. **Rego v1** — OPA 1.x parses Rego v1 by default (`if` and `contains` are required); `import rego.v1` is accepted and harmless, and keeps the files working on 0.x
+7. **Fail closed** — An undefined rule returns no `result`; treat a missing result and an unreachable OPA as a denial
