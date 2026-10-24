@@ -7,8 +7,6 @@ description: >-
   animations rendered to MP4 at scale.
 skills:
   - remotion-video-toolkit
-  - tailwindcss
-  - ffmpeg
 category: content
 tags:
   - video
@@ -20,29 +18,36 @@ tags:
 
 # Build Programmatic Videos with Remotion
 
-Nora's marketing team creates 50 social media video clips per week — same template, different text and images. A designer spends hours in After Effects for each variation. With Remotion, she builds video templates in React, feeds in data (JSON/API), and renders hundreds of personalized videos automatically. Same quality, 100x faster.
+Nora's marketing team creates 50 social media video clips per week — same template, different text and images. A designer spends hours in After Effects for each variation. With Remotion, she builds video templates in React, feeds in data (JSON/API), and renders hundreds of personalized videos automatically. Same template, no manual editing per variation.
 
 ## Step 1: Set Up Remotion Project
 
 ```bash
 npx create-video@latest my-videos
 cd my-videos
-npm start  # Opens Remotion Studio at localhost:3000
+npm run dev  # opens Remotion Studio, by default at http://localhost:3000
 ```
+
+Pick the blank TypeScript template. Put the background images and the logo in `public/`: the code below refers to them as `bg1.jpg` and `logo.png`. Remotion is free for individuals, non-profits and for-profit companies with up to 3 employees; larger companies need a paid company license (see the Remotion license page).
 
 ## Step 2: Social Media Clip Template
 
+Props are declared with `type`, not `interface`: Remotion requires props to be assignable to `Record<string, unknown>`, and an interface fails that check.
+
 ```tsx
 // src/compositions/SocialClip.tsx
-import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig, Audio } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 
-interface SocialClipProps {
+type SocialClipProps = {
   title: string;
   subtitle: string;
   backgroundImage: string;
   accentColor: string;
   logoUrl: string;
-}
+};
+
+// Bare file names resolve against public/; full URLs are used as they are
+const asset = (src: string) => (src.startsWith("http") ? src : staticFile(src));
 
 export function SocialClip({ title, subtitle, backgroundImage, accentColor, logoUrl }: SocialClipProps) {
   const frame = useCurrentFrame();
@@ -65,7 +70,7 @@ export function SocialClip({ title, subtitle, backgroundImage, accentColor, logo
     <AbsoluteFill>
       {/* Background with slow zoom */}
       <AbsoluteFill style={{ transform: `scale(${bgScale})` }}>
-        <Img src={backgroundImage} style={{ width, height, objectFit: "cover" }} />
+        <Img src={asset(backgroundImage)} style={{ width, height, objectFit: "cover" }} />
       </AbsoluteFill>
 
       {/* Dark overlay */}
@@ -106,7 +111,7 @@ export function SocialClip({ title, subtitle, backgroundImage, accentColor, logo
       </AbsoluteFill>
 
       {/* Logo watermark */}
-      <Img src={logoUrl} style={{
+      <Img src={asset(logoUrl)} style={{
         position: "absolute",
         bottom: 30,
         right: 30,
@@ -120,54 +125,47 @@ export function SocialClip({ title, subtitle, backgroundImage, accentColor, logo
 
 ## Step 3: Register Compositions
 
+The entry file calls `registerRoot`:
+
+```ts
+import { registerRoot } from "remotion";
+import { RemotionRoot } from "./Root";
+registerRoot(RemotionRoot);
+```
+
 ```tsx
 // src/Root.tsx
 import { Composition } from "remotion";
 import { SocialClip } from "./compositions/SocialClip";
-import { ProductDemo } from "./compositions/ProductDemo";
+
+const defaultProps = {
+  title: "Build apps 10x faster",
+  subtitle: "with the power of AI",
+  backgroundImage: "bg1.jpg",
+  accentColor: "#60a5fa",
+  logoUrl: "logo.png",
+};
 
 export function RemotionRoot() {
   return (
     <>
       {/* Instagram Reel / TikTok (9:16) */}
-      <Composition
-        id="SocialClip-vertical"
-        component={SocialClip}
-        durationInFrames={150}
-        fps={30}
-        width={1080}
-        height={1920}
-        defaultProps={{
-          title: "Build apps 10x faster",
-          subtitle: "with the power of AI",
-          backgroundImage: "https://images.unsplash.com/photo-abc",
-          accentColor: "#60a5fa",
-          logoUrl: "/logo.png",
-        }}
-      />
+      <Composition id="SocialClip-vertical" component={SocialClip} durationInFrames={150}
+        fps={30} width={1080} height={1920} defaultProps={defaultProps} />
 
       {/* Twitter / LinkedIn (16:9) */}
-      <Composition
-        id="SocialClip-horizontal"
-        component={SocialClip}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title: "Build apps 10x faster",
-          subtitle: "with the power of AI",
-          backgroundImage: "https://images.unsplash.com/photo-abc",
-          accentColor: "#60a5fa",
-          logoUrl: "/logo.png",
-        }}
-      />
+      <Composition id="SocialClip-horizontal" component={SocialClip} durationInFrames={150}
+        fps={30} width={1920} height={1080} defaultProps={defaultProps} />
     </>
   );
 }
 ```
 
+One component, two compositions: the same template renders at 9:16 and 16:9.
+
 ## Step 4: Batch Render from Data
+
+Run the script with a TypeScript runner, for example `npx tsx scripts/render-batch.ts`. The bundle is built once and reused for every render. Image names resolve against `public/`; pass a full `https://` URL to use a remote image.
 
 ```typescript
 // scripts/render-batch.ts
@@ -175,36 +173,31 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import path from "path";
 
-interface VideoData {
+type VideoData = {
   id: string;
   title: string;
   subtitle: string;
   backgroundImage: string;
-}
+};
 
 const videos: VideoData[] = [
-  { id: "launch", title: "We just launched v2.0", subtitle: "50% faster, 100% better", backgroundImage: "/bg1.jpg" },
-  { id: "feature", title: "New: AI Code Review", subtitle: "Catch bugs before they ship", backgroundImage: "/bg2.jpg" },
-  { id: "stats", title: "10,000 developers", subtitle: "trust us with their code", backgroundImage: "/bg3.jpg" },
+  { id: "launch", title: "We just launched v2.0", subtitle: "50% faster, 100% better", backgroundImage: "bg1.jpg" },
+  { id: "feature", title: "New: AI Code Review", subtitle: "Catch bugs before they ship", backgroundImage: "bg2.jpg" },
+  { id: "stats", title: "10,000 developers", subtitle: "trust us with their code", backgroundImage: "bg3.jpg" },
 ];
 
 async function main() {
-  console.log("Bundling...");
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts") });
 
   for (const video of videos) {
     console.log(`Rendering: ${video.id}`);
 
     for (const format of ["vertical", "horizontal"] as const) {
-      const compositionId = `SocialClip-${format}`;
+      const inputProps = { ...video, accentColor: "#60a5fa", logoUrl: "logo.png" };
       const composition = await selectComposition({
         serveUrl: bundled,
-        id: compositionId,
-        inputProps: {
-          ...video,
-          accentColor: "#60a5fa",
-          logoUrl: "https://myapp.com/logo.png",
-        },
+        id: `SocialClip-${format}`,
+        inputProps,
       });
 
       await renderMedia({
@@ -212,32 +205,32 @@ async function main() {
         serveUrl: bundled,
         codec: "h264",
         outputLocation: `output/${video.id}-${format}.mp4`,
-        inputProps: {
-          ...video,
-          accentColor: "#60a5fa",
-          logoUrl: "https://myapp.com/logo.png",
-        },
+        inputProps,
       });
 
-      console.log(`  ✅ ${video.id}-${format}.mp4`);
+      console.log(`  done: ${video.id}-${format}.mp4`);
     }
   }
-  console.log("Done! Rendered", videos.length * 2, "videos");
+  console.log(`Done! Rendered ${videos.length * 2} videos`);
 }
 
 main();
 ```
 
+The first render downloads a headless Chrome build into `node_modules/.remotion`. For a single clip, `npx remotion render SocialClip-vertical out.mp4 --props='{"title":"Hello"}'` does the same from the command line.
+
 ## Step 5: Data-Driven Chart Animation
+
+Register it as another `<Composition id="AnimatedChart" component={AnimatedChart} ... />` in `Root.tsx`, with sample `data` and `title` in `defaultProps`, then render it like any other.
 
 ```tsx
 // src/compositions/AnimatedChart.tsx
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
-interface ChartProps {
+type ChartProps = {
   data: { label: string; value: number; color: string }[];
   title: string;
-}
+};
 
 export function AnimatedChart({ data, title }: ChartProps) {
   const frame = useCurrentFrame();
@@ -286,4 +279,8 @@ export function AnimatedChart({ data, title }: ChartProps) {
 
 ## Summary
 
-Nora's team now generates 50 video clips in 10 minutes instead of 50 hours. Each template is a React component with props — swap the title, image, and colors to get a new video. Remotion Studio lets designers preview and tweak animations in the browser. The batch render script takes a JSON array and outputs MP4 files for both vertical (Reels/TikTok) and horizontal (Twitter/LinkedIn) formats. Data-driven charts animate automatically from raw numbers. The videos look professional because they use spring physics, easing curves, and cinematic transitions — all defined in TypeScript, version-controlled, and reproducible.
+Nora's team now renders a week of clips from one JSON array instead of editing each one by hand. Each template is a React component with props, so swapping the title, image and colors yields a new video. Remotion Studio lets designers preview and tweak animations in the browser. The batch script takes the data and outputs MP4 files for both vertical (Reels/TikTok) and horizontal (Twitter/LinkedIn) formats. Everything is TypeScript, version-controlled and reproducible.
+
+## Related Skills
+
+- [remotion-video-toolkit](/skills/remotion-video-toolkit)
