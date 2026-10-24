@@ -6,12 +6,13 @@ description: >-
   mappings, write complex queries, build aggregation pipelines, tune relevance
   scoring, or optimize index performance for search workloads.
 license: Apache-2.0
-compatibility: "Elasticsearch 8.10+"
+compatibility: "Elasticsearch 8.x or 9.x (checked with 9.5.5); curl"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/elastic/elasticsearch
   category: devops
-  tags: ["elasticsearch", "search", "full-text-search", "aggregations", "analyzers", "mappings"]
+  tags: ["elasticsearch", "search", "full-text-search", "aggregations", "analyzers"]
 ---
 
 # Elasticsearch Search
@@ -22,15 +23,28 @@ Design and implement Elasticsearch search solutions including index mappings, cu
 
 ## Instructions
 
+### Connect first
+
+Elasticsearch 8 and 9 start with security on: HTTPS, a generated `elastic` password and a CA certificate. Set the base URL once and add credentials from the environment (never in the command text). For a throwaway local node started with `xpack.security.enabled=false`, plain `http://127.0.0.1:9200` works.
+
+```bash
+export ES_URL="https://127.0.0.1:9200"
+# secured cluster: add to each curl  -u "elastic:$ELASTIC_PASSWORD" --cacert "$ES_CA_CERT"
+# or with an API key:               -H "Authorization: ApiKey $ES_API_KEY"
+curl -s "$ES_URL" -u "elastic:$ELASTIC_PASSWORD" --cacert "$ES_CA_CERT"
+```
+
+The commands below omit the credential flags to stay readable; add them on a secured cluster. A single shard is right for small indices (under tens of GB); more shards add overhead.
+
 ### Task A: Create Index with Custom Mappings
 
 ```bash
 # Create an index with explicit mappings and custom analyzers
-curl -X PUT "http://localhost:9200/products" \
+curl -X PUT "$ES_URL/products" \
   -H "Content-Type: application/json" \
   -d '{
   "settings": {
-    "number_of_shards": 3,
+    "number_of_shards": 1,
     "number_of_replicas": 1,
     "analysis": {
       "analyzer": {
@@ -81,7 +95,6 @@ curl -X PUT "http://localhost:9200/products" \
       "rating": { "type": "float" },
       "tags": { "type": "keyword" },
       "created_at": { "type": "date" },
-      "location": { "type": "geo_point" },
       "in_stock": { "type": "boolean" }
     }
   }
@@ -91,8 +104,7 @@ curl -X PUT "http://localhost:9200/products" \
 ### Task B: Full-Text Search Queries
 
 ```bash
-# Multi-match search with boosting
-curl -X POST "http://localhost:9200/products/_search" \
+curl -X POST "$ES_URL/products/_search" \
   -H "Content-Type: application/json" \
   -d '{
   "query": {
@@ -109,29 +121,21 @@ curl -X POST "http://localhost:9200/products/_search" \
         { "term": { "in_stock": true } },
         { "range": { "price": { "gte": 50, "lte": 300 } } }
       ],
-      "should": [
-        { "range": { "rating": { "gte": 4.0, "boost": 2.0 } } },
-        { "term": { "category": { "value": "electronics", "boost": 1.5 } } }
-      ]
+      "should": [{ "range": { "rating": { "gte": 4.0, "boost": 2.0 } } }]
     }
   },
   "highlight": {
     "fields": {
       "name": {},
-      "description": { "fragment_size": 150, "number_of_fragments": 2 }
+      "description": { "fragment_size": 150 }
     }
   },
-  "sort": [
-    { "_score": "desc" },
-    { "rating": "desc" }
-  ],
   "size": 20
 }'
 ```
 
 ```bash
-# Autocomplete / search-as-you-type query
-curl -X POST "http://localhost:9200/products/_search" \
+curl -X POST "$ES_URL/products/_search" \
   -H "Content-Type: application/json" \
   -d '{
   "query": {
@@ -144,16 +148,14 @@ curl -X POST "http://localhost:9200/products/_search" \
       "filter": { "term": { "in_stock": true } }
     }
   },
-  "size": 10,
-  "_source": ["name", "category", "price"]
+  "size": 10
 }'
 ```
 
 ### Task C: Aggregations
 
 ```bash
-# Multi-level aggregations for faceted search
-curl -X POST "http://localhost:9200/products/_search" \
+curl -X POST "$ES_URL/products/_search" \
   -H "Content-Type: application/json" \
   -d '{
   "size": 0,
@@ -176,14 +178,6 @@ curl -X POST "http://localhost:9200/products/_search" \
           { "key": "luxury", "from": 300 }
         ]
       }
-    },
-    "price_stats": { "extended_stats": { "field": "price" } },
-    "top_rated": {
-      "top_hits": {
-        "sort": [{ "rating": "desc" }],
-        "size": 3,
-        "_source": ["name", "rating", "price"]
-      }
     }
   }
 }'
@@ -191,7 +185,7 @@ curl -X POST "http://localhost:9200/products/_search" \
 
 ```bash
 # Date histogram aggregation for time-series analysis
-curl -X POST "http://localhost:9200/logs-*/_search" \
+curl -X POST "$ES_URL/logs-*/_search" \
   -H "Content-Type: application/json" \
   -d '{
   "size": 0,
@@ -218,84 +212,88 @@ curl -X POST "http://localhost:9200/logs-*/_search" \
 }'
 ```
 
-### Task D: Index Lifecycle Management
+### Task D: Index Lifecycle Management for Logs
+
+ILM moves time-series indices through phases. Use a data stream plus an index template that names the policy:
 
 ```bash
-# Create an ILM policy for log indices
-curl -X PUT "http://localhost:9200/_ilm/policy/logs-lifecycle" \
+curl -X PUT "$ES_URL/_ilm/policy/logs-lifecycle" \
   -H "Content-Type: application/json" \
   -d '{
   "policy": {
     "phases": {
       "hot": {
-        "min_age": "0ms",
-        "actions": {
-          "rollover": { "max_age": "1d", "max_primary_shard_size": "50gb" },
-          "set_priority": { "priority": 100 }
-        }
+        "actions": { "rollover": { "max_age": "1d", "max_primary_shard_size": "50gb" } }
       },
       "warm": {
         "min_age": "3d",
-        "actions": {
-          "shrink": { "number_of_shards": 1 },
-          "forcemerge": { "max_num_segments": 1 },
-          "set_priority": { "priority": 50 }
-        }
+        "actions": { "forcemerge": { "max_num_segments": 1 }, "set_priority": { "priority": 50 } }
       },
-      "cold": {
-        "min_age": "30d",
-        "actions": {
-          "searchable_snapshot": { "snapshot_repository": "backups" },
-          "set_priority": { "priority": 0 }
-        }
-      },
-      "delete": {
-        "min_age": "90d",
-        "actions": { "delete": {} }
-      }
+      "delete": { "min_age": "90d", "actions": { "delete": {} } }
     }
   }
 }'
+
+curl -X PUT "$ES_URL/_index_template/logs-app" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "index_patterns": ["logs-app-*"],
+  "data_stream": {},
+  "priority": 200,
+  "template": {
+    "settings": { "index.lifecycle.name": "logs-lifecycle", "number_of_shards": 1 },
+    "mappings": { "properties": { "@timestamp": { "type": "date" }, "level": { "type": "keyword" }, "message": { "type": "text" } } }
+  }
+}'
+
+curl -X PUT "$ES_URL/_data_stream/logs-app-web"
 ```
+
+Documents written to a data stream need `@timestamp` and the `create` bulk action. A `searchable_snapshot` action (cold or frozen phase) needs an Enterprise license; on the Basic license the policy is rejected, so leave it out unless the cluster is licensed for it.
 
 ### Task E: Search Templates
 
+The template `source` is a mustache string (not a JSON object, because mustache sections are not valid JSON):
+
 ```bash
-# Create a reusable search template
-curl -X PUT "http://localhost:9200/_scripts/product-search" \
+curl -X PUT "$ES_URL/_scripts/product-search" \
   -H "Content-Type: application/json" \
   -d '{
   "script": {
     "lang": "mustache",
-    "source": {
-      "query": {
-        "bool": {
-          "must": { "multi_match": { "query": "{{query}}", "fields": ["name^3", "description"] } },
-          "filter": [
-            {{#category}}{ "term": { "category": "{{category}}" } },{{/category}}
-            { "term": { "in_stock": true } },
-            { "range": { "price": { "gte": "{{min_price}}{{^min_price}}0{{/min_price}}", "lte": "{{max_price}}{{^max_price}}99999{{/max_price}}" } } }
-          ]
-        }
-      },
-      "size": "{{size}}{{^size}}20{{/size}}"
-    }
+    "source": "{\"query\":{\"bool\":{\"must\":{\"multi_match\":{\"query\":\"{{query}}\",\"fields\":[\"name^3\",\"description\"]}},\"filter\":[{\"term\":{\"in_stock\":true}}{{#category}},{\"term\":{\"category\":\"{{category}}\"}}{{/category}},{\"range\":{\"price\":{\"gte\":{{min_price}}{{^min_price}}0{{/min_price}},\"lte\":{{max_price}}{{^max_price}}1000000{{/max_price}}}}}]}},\"size\":{{size}}{{^size}}20{{/size}}}"
   }
 }'
 ```
 
 ```bash
-# Use the search template
-curl -X POST "http://localhost:9200/products/_search/template" \
+# Use the template; the optional parameters fall back to their defaults
+curl -X POST "$ES_URL/products/_search/template" \
   -H "Content-Type: application/json" \
   -d '{ "id": "product-search", "params": { "query": "headphones", "category": "electronics", "max_price": 200, "size": 10 } }'
+
+# Debug: show the query a template produces
+curl -X POST "$ES_URL/_render/template/product-search" \
+  -H "Content-Type: application/json" -d '{ "params": { "query": "headphones" } }'
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: "Search my products for wireless headphones under $200"
+
+Create the `products` index (Task A), load documents with `POST $ES_URL/_bulk?refresh=true`, then run the Task B query with `"lte": 200`. The response lists hits ordered by `_score`, for instance `Wireless Noise Cancelling Headphones` (price 149.0) first and `Wired Studio Headphones` second, with `<em>` highlight tags around the matched words.
+
+### Example 2: "Show error rate per hour for the last week"
+
+Index logs into the `logs-app-web` data stream (Task D), then run the date histogram of Task C against `logs-app-web`. Each bucket carries `doc_count`, `error_count.doc_count` and `error_rate.value`, for example `{"doc_count": 2, "error_count": {"doc_count": 1}, "error_rate": {"value": 50.0}}`.
+
+## Guidelines
 
 - Use `keyword` sub-fields on text fields for exact match filtering and aggregations
 - Set `fuzziness: "AUTO"` for user-facing search to handle typos gracefully
 - Use `filter` context for non-scoring clauses (dates, booleans, categories) to leverage caching
-- Design ILM policies to move data through hot/warm/cold tiers based on access patterns
+- Use data streams with ILM for logs and metrics; rollover and delete phases work on every license
 - Use search templates to keep query logic server-side and simplify client code
 - Monitor slow queries with `index.search.slowlog.threshold.query.warn: 2s`
+- Mapping changes to existing fields are not possible: create a new index with the new mapping and `_reindex` into it, switching an alias when ready
+- Never expose port 9200 to the internet; keep security enabled and pass credentials from environment variables
