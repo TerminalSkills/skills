@@ -15,7 +15,7 @@ A startup runs six services: a marketing site, a customer-facing API, a dashboar
 
 Last month, the database went down at 2 AM due to disk space. Nobody noticed until 8 AM when the first developer logged in. Six hours of downtime, 340 failed webhook deliveries, and an angry enterprise customer who lost confidence in the platform. The CEO's email started with "how did we not know the database was down for six hours?"
 
-The team tried a SaaS monitoring service, but at $29/month for 50 monitors with 1-minute intervals, the cost adds up — especially when they need to monitor internal services that aren't publicly accessible. They need something that monitors both public endpoints and internal services, sends alerts to Slack and email, and provides a customer-facing status page — all self-hosted on infrastructure they already pay for.
+The team looked at SaaS monitoring services, but they also need to monitor internal services that aren't publicly accessible, and per-monitor pricing adds up. They need something that monitors both public endpoints and internal services, sends alerts to Slack and email, and provides a customer-facing status page — all self-hosted on infrastructure they already pay for.
 
 ## The Solution
 
@@ -32,13 +32,13 @@ for the on-call engineer, and a public status page for customers.
 ```
 
 ```bash
-docker run -d --name uptime-kuma --restart always \
-  -p 3001:3001 \
+docker run -d --name uptime-kuma --restart unless-stopped \
+  -p 127.0.0.1:3001:3001 \
   -v uptime-kuma-data:/app/data \
-  louislam/uptime-kuma:1
+  louislam/uptime-kuma:2
 ```
 
-Dashboard available at `http://server-ip:3001`. Set admin credentials on first visit.
+The `:2` tag is the current 2.x line (2.5.7 at the time of writing); the `:1` tag is the older 1.x line. The port is bound to the loopback interface so the dashboard is not exposed until a reverse proxy fronts it. Open `http://127.0.0.1:3001` (through an SSH tunnel on a remote VPS). The 2.x first-run wizard asks which database to use (the embedded SQLite option needs no extra service) and then for the admin account.
 
 For production, put it behind Caddy or Nginx with HTTPS:
 
@@ -50,7 +50,7 @@ status.example.com {
 
 ### Step 2: Configure Monitors
 
-Add monitors through the dashboard (Settings → Add New Monitor) or the API:
+Add monitors with **Add New Monitor** on the dashboard (Uptime Kuma has no REST API for creating monitors, so this is done in the UI). Set **Retries** to 2 or 3 so a single failed check does not page anyone:
 
 **HTTP monitors** — check that endpoints return 200:
 
@@ -72,7 +72,7 @@ Add monitors through the dashboard (Settings → Add New Monitor) or the API:
 
 | Monitor | URL | Expected keyword | Note |
 |---|---|---|---|
-| API Version | `https://api.example.com/health` | `"status":"ok"` | Catches 200 responses with error body |
+| API Health (keyword) | `https://api.example.com/health` | `"status":"ok"` | Monitor type "HTTP(s) - Keyword"; catches 200 responses with an error body |
 
 For the API health endpoint, a keyword check is more reliable than a simple HTTP check. A reverse proxy might return 200 even when the backend is down — the keyword check verifies the actual application is responding.
 
@@ -80,23 +80,23 @@ For the API health endpoint, a keyword check is more reliable than a simple HTTP
 
 **Slack** — alerts to #engineering-alerts channel:
 
-1. Create a Slack Incoming Webhook at api.slack.com/apps
-2. In Uptime Kuma: Settings → Notifications → Add → Slack
-3. Paste the webhook URL
-4. Test the notification
+1. Create a Slack app with an Incoming Webhook at api.slack.com/apps
+2. In Uptime Kuma: Settings → Notifications → Setup Notification → Slack
+3. Paste the webhook URL and press Test
+4. Tick **Default enabled** (and **Apply on all existing monitors**) so every monitor uses it
 
 **Email** — for on-call engineer:
 
-1. Settings → Notifications → Add → SMTP
-2. Configure: `smtp.gmail.com`, port 587, TLS
-3. From: `monitoring@example.com`
-4. To: `oncall@example.com`
+1. Settings → Notifications → Setup Notification → Email (SMTP)
+2. Host `smtp.gmail.com`, port 587, leave **Security** off (port 587 upgrades with STARTTLS; the Security switch is implicit TLS for port 465)
+3. Username and password: a Google app password supplied by the mail account, not the login password
+4. From: `monitoring@example.com`, To: `oncall@example.com`
 
-**Custom webhook** — for PagerDuty or custom alerting:
+**PagerDuty** — for paging:
 
-1. Settings → Notifications → Add → Webhook
-2. URL: `https://events.pagerduty.com/v2/enqueue`
-3. Body template with `{{ msg }}` and `{{ monitorJSON }}`
+1. Settings → Notifications → Setup Notification → PagerDuty
+2. Paste the Events API v2 integration key from your PagerDuty service
+3. For other tools, the generic **Webhook** type posts JSON that can include `{{ msg }}` and `{{ monitorJSON }}`
 
 ### Step 4: Create the Status Page
 
@@ -104,7 +104,7 @@ Uptime Kuma's built-in status page shows customers which services are operationa
 
 1. Go to Status Pages → Add
 2. **Title**: "Platform Status"
-3. **Slug**: `status` (accessible at `status.example.com/status/status`)
+3. **Slug**: `status` (the page is served at `/status/status`, for example `status.example.com/status/status`)
 4. Add groups:
    - **Core Platform**: API, Dashboard
    - **Website**: Marketing site
@@ -112,32 +112,31 @@ Uptime Kuma's built-in status page shows customers which services are operationa
 
 Each group shows a green/yellow/red indicator and uptime percentage. Customers see "API — Operational (99.97% uptime)" without knowing about your database server, Redis cache, or internal monitoring tools.
 
-Custom domain: point `status.example.com` to Uptime Kuma and configure the status page path.
+Custom domain: point `status.example.com` at the Uptime Kuma server, then add the domain under **Domain Names** in the status page's edit settings; requests to that host serve the status page at the root path.
 
 ### Step 5: Add Maintenance Windows
 
 When deploying updates or running database migrations, set maintenance windows so monitoring doesn't fire false alerts:
 
-1. Go to Maintenance → Add
+1. Open the Maintenance page and add a new one
 2. **Title**: "Database maintenance"
 3. **Affected monitors**: PostgreSQL, API Health
-4. **Schedule**: one-time or recurring
-5. **Duration**: 30 minutes
+4. **Affected status pages**: Platform Status
+5. **Strategy**: single maintenance window, recurring (interval, weekday, day of month), or a cron expression; set the time zone and a 30-minute duration
 
-During maintenance, the status page shows "Scheduled Maintenance" instead of "Down", and no alerts fire. This prevents the 2 AM deploy from waking up the on-call engineer with false alarms.
+During maintenance, the affected monitors report maintenance instead of "Down" and the status page shows the maintenance notice, and no alerts fire. This prevents the 2 AM deploy from waking up the on-call engineer with false alarms.
 
 ### Step 6: Monitor Internal Services via Docker
 
-If Uptime Kuma runs on the same Docker network as your services, it can monitor containers directly:
+If Uptime Kuma runs next to your services, it can monitor containers directly through the Docker API:
 
 ```yaml
-# docker-helper.yml
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
-    restart: always
+    image: louislam/uptime-kuma:2
+    restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     volumes:
       - uptime-kuma-data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker monitoring
@@ -161,13 +160,13 @@ volumes:
   uptime-kuma-data:
 ```
 
-With Docker socket access, Uptime Kuma can monitor container health status directly — not just port availability, but whether the container's health check passes.
+Then add the socket under Settings → Docker Hosts (connection type Socket, `/var/run/docker.sock`) and create a monitor of type **Docker Container** with the container name. The monitor is down if the container is not running or paused, pending while it restarts, and follows the container's own `HEALTHCHECK` result when one is defined. Without a healthcheck, a running container counts as up, so give the service one. The `:ro` flag only makes the socket file read-only; it does not limit the Docker API, so anyone who can reach the Uptime Kuma admin account effectively controls the host's containers. Keep that login strong and the dashboard behind HTTPS.
 
 ## Real-World Example
 
 The ops lead deploys Uptime Kuma on a Friday afternoon — 15 minutes for Docker setup, 30 minutes to add all 6 monitors and configure Slack + email notifications. The status page goes live at `status.example.com` with a link from the app's footer.
 
-Monday at 3:17 AM, the Redis container runs out of memory and crashes. Within 60 seconds, Uptime Kuma detects the TCP port is unreachable. The on-call engineer gets a Slack notification and an email simultaneously. They SSH in, check Docker logs, increase the memory limit, and restart Redis. Total downtime: 8 minutes. The status page showed "Redis Cache — Degraded" during the incident and auto-recovered to "Operational" when the check passed again.
+Monday at 3:17 AM, the Redis container runs out of memory and crashes. Within a couple of minutes (a 60-second interval plus the retries), Uptime Kuma detects the TCP port is unreachable. The on-call engineer gets a Slack notification and an email simultaneously. They SSH in, check Docker logs, increase the memory limit, and restart Redis. Total downtime: 8 minutes. The Redis monitor showed down during the incident, and the dashboard recovered to "Operational" when the check passed again.
 
 The following week, the team schedules a 20-minute maintenance window for a database migration at 2 AM. The status page shows "Scheduled Maintenance" starting at 1:55 AM. No alerts fire during the migration. Customers who check the status page see the maintenance notice instead of a scary red "Down" indicator.
 
@@ -175,5 +174,4 @@ After one month, the dashboard shows 99.97% uptime across all services. The sing
 
 ## Related Skills
 
-- [uptime-kuma](../skills/uptime-kuma/) -- Advanced Uptime Kuma configuration, API, and Docker monitoring
-- [coolify](../skills/coolify/) -- Self-hosted deployment platform (can run Uptime Kuma)
+- [uptime-kuma](../skills/uptime-kuma/) -- Uptime Kuma monitors, notifications, status pages, and Docker monitoring
