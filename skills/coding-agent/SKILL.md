@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Requires at least one coding agent CLI installed (claude, codex, etc.)"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: ["coding-agent", "automation", "sub-agent", "background-process", "orchestration"]
   use-cases:
@@ -81,14 +81,14 @@ LOG=$(mktemp /tmp/claude-agent.XXXXXX)
 claude -p "Refactor the function parseConfig in src/config.ts to use zod validation. Do not modify other files." \
   --permission-mode acceptEdits \
   --allowedTools "Read" "Edit" "Bash(npx tsc --noEmit)" \
-  --max-turns 20 --max-budget-usd 2 \
+  --max-budget-usd 2 \
   --output-format text > "$LOG" 2>&1 &
 
 AGENT_PID=$!     # the PID of claude itself (no pipe, so $! is not tee's PID)
 echo "Agent running with PID: $AGENT_PID, log: $LOG"
 ```
 
-`--output-format json` returns one JSON object; `stream-json` (needs `--verbose`) streams events. `--permission-mode` accepts `default`, `acceptEdits`, `plan`, `auto`, `dontAsk` and `bypassPermissions`; `--dangerously-skip-permissions` disables all checks, so use it only in a throwaway container. Claude Code also has its own background sessions: `claude --bg "investigate the flaky test" --name flaky-test` starts one and returns immediately, and `claude agents` lists and manages them.
+`--output-format json` returns one JSON object; `stream-json` (needs `--verbose`) streams events. `--permission-mode` accepts `manual`, `acceptEdits`, `plan`, `auto`, `dontAsk` and `bypassPermissions`; `--permission-prompts none` makes anything that would prompt get denied instead of waiting; `--dangerously-skip-permissions` disables all checks, so use it only in a throwaway container. Claude Code also has its own background sessions: `claude --bg "investigate the flaky test" --name flaky-test` starts one and returns immediately, and `claude agents` lists and manages them.
 
 **Codex CLI.** `codex exec` is the non-interactive entry point; it is read-only by default, streams progress to stderr and prints only the final message to stdout:
 
@@ -100,7 +100,7 @@ codex exec --sandbox workspace-write --ephemeral \
 AGENT_PID=$!
 ```
 
-`-o <file>` writes the last message to a file, `--json` gives a JSONL event stream, `--output-schema schema.json` forces a structured final answer, and `--skip-git-repo-check` allows a non-git directory. `--full-auto` still works but is deprecated in favor of `--sandbox workspace-write`.
+`-o <file>` writes the last message to a file, `--json` gives a JSONL event stream, `--output-schema schema.json` forces a structured final answer, and `--skip-git-repo-check` allows a non-git directory. `--full-auto` is no longer supported; use `--sandbox workspace-write` for edits, and `--worktree` to run in a fresh git worktree.
 
 **Gemini CLI:**
 
@@ -216,7 +216,7 @@ python3 -m json.tool /tmp/todos.json
 - Always scope tasks narrowly. Agents work best with focused, well-defined objectives.
 - Use `--output-format text` or `--output-format json` for programmatic consumption; for Codex use `--json` or `-o`, for Gemini `--output-format json`.
 - Pre-approve only the tools the task needs (`--allowedTools`, `--sandbox workspace-write`, `--approval-mode auto_edit`). Reserve `--dangerously-skip-permissions`, `--yolo` and `danger-full-access` for disposable containers.
-- Cap runaway runs with `--max-turns` and `--max-budget-usd` (Claude Code print mode) or wrap the command in `timeout 900`.
+- Cap runaway runs with `--max-budget-usd` (Claude Code print mode) and wrap every command in `timeout 900`; Claude Code has no turn-limit flag in `claude --help`.
 - Set reasonable timeouts for background processes to avoid runaway agents.
 - Never spawn agents for tasks involving secrets, credentials, or destructive operations.
 - Review all agent output before presenting it to the user or applying changes.
