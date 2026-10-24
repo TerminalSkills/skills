@@ -35,7 +35,7 @@ turso db show orders-prod --url          # libsql://orders-prod-<org>.turso.io
 turso db tokens create orders-prod       # database token; add --read-only or --expiration 7d as needed
 ```
 
-Put the URL and token in environment variables (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`), never in source. The docs also offer an installer script (`curl ... | bash`); prefer Homebrew, or download the script and read it before running it.
+Put the URL and token in environment variables (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`), never in source. The docs also offer an installer script; prefer Homebrew, or download that script, read it, and only then run it.
 
 ### 2. Connect and query
 
