@@ -10,8 +10,9 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, terraform, psql, AlloyDB Auth Proxy'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/GoogleCloudPlatform/alloydb-auth-proxy
   tags:
     - gcp
     - alloydb
@@ -34,8 +35,8 @@ AlloyDB is Google Cloud's managed PostgreSQL-compatible database. It separates c
 - **Primary instance** — the read/write instance; one per cluster
 - **Read pool instance** — horizontally scalable read replicas backed by the same storage
 - **Secondary cluster** — cross-region replica for DR
-- **Continuous backup** — point-in-time recovery within the recovery window (default 14 days)
-- **AlloyDB AI** — native `vector` extension, `google_ml_integration` for inference, hybrid search
+- **Continuous backup** — point-in-time recovery within the recovery window (14 days by default; `--continuous-backup-recovery-window-days` changes it)
+- **AlloyDB AI** — `vector` and `alloydb_scann` extensions, `google_ml_integration` for embeddings and model endpoints, hybrid search
 
 ### Prerequisites
 
@@ -58,11 +59,12 @@ gcloud services vpc-peerings connect \
 ### Creating a Cluster and Primary Instance
 
 ```bash
-# Create a cluster (storage + config; no compute yet)
+# Create a cluster (storage + config; no compute yet).
+# --password sets the initial `postgres` user; keep it in Secret Manager, not in shell history.
 gcloud alloydb clusters create prod-cluster \
   --region=us-central1 \
   --network=default \
-  --password="$(openssl rand -base64 24)" \
+  --password="$ALLOYDB_POSTGRES_PASSWORD" \
   --automated-backup-days-of-week=MONDAY,THURSDAY \
   --automated-backup-start-times=02:00 \
   --automated-backup-retention-count=14
@@ -76,10 +78,10 @@ gcloud alloydb instances create prod-primary \
   --instance-type=PRIMARY \
   --cpu-count=4 \
   --availability-type=REGIONAL \
-  --database-flags="cloudsql.iam_authentication=on,alloydb.enable_pgvector=on"
+  --database-flags="alloydb.iam_authentication=on"
 ```
 
-For production, prefer **IAM database authentication** over password auth — it removes static credentials entirely and integrates with service accounts.
+For production, prefer **IAM database authentication** over password auth — it removes static credentials entirely and integrates with service accounts. The flag is `alloydb.iam_authentication` (`cloudsql.iam_authentication` is Cloud SQL's); group login also needs `alloydb.iam_group_authentication=on`. Then add the account to the cluster (`gcloud alloydb users create app-sa@my-project.iam --cluster=prod-cluster --region=us-central1 --type=IAM_BASED`) and `GRANT` it database privileges. The `vector` extension needs no flag: just `CREATE EXTENSION`.
 
 ### Read Pool for Scaling Reads
 
@@ -96,13 +98,17 @@ gcloud alloydb instances create reports-pool \
 ### Connecting from an Application
 
 ```bash
-# Run the Auth Proxy locally (handles IAM + TLS)
-./alloydb-auth-proxy \
-  projects/my-project/locations/us-central1/clusters/prod-cluster/instances/prod-primary \
-  --port 5432
+# Run the Auth Proxy locally (handles IAM + TLS). Download the binary from the URL on the
+# AlloyDB docs page "Connect using the Auth Proxy" (v1.17.2 at time of writing), e.g.
+#   wget https://storage.googleapis.com/alloydb-auth-proxy/v1.17.2/alloydb-auth-proxy.linux.amd64 -O alloydb-auth-proxy && chmod +x alloydb-auth-proxy
+# Google publishes no checksum for it; use only that HTTPS URL and pin the version.
+# --auto-iam-authn logs in with your IAM identity; add --public-ip only for instances with a public address.
+./alloydb-auth-proxy --auto-iam-authn --port 5432 \
+  projects/my-project/locations/us-central1/clusters/prod-cluster/instances/prod-primary
 ```
 
 ```python
+# pip install "google-cloud-alloydb-connector[pg8000]" sqlalchemy
 # Python connection using the AlloyDB connector + IAM auth
 from google.cloud.alloydb.connector import Connector, IPTypes
 import sqlalchemy
@@ -129,11 +135,12 @@ with engine.connect() as conn:
 ### AlloyDB AI — Vector Search
 
 ```sql
--- Enable extensions (once per database, run as superuser)
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Enable extensions (once per database; alloydb_scann installs vector too)
+CREATE EXTENSION IF NOT EXISTS alloydb_scann CASCADE;
 CREATE EXTENSION IF NOT EXISTS google_ml_integration;
+GRANT EXECUTE ON FUNCTION embedding TO "app-sa@my-project.iam";
 
--- Schema with embeddings
+-- Schema with embeddings (text-embedding-005 returns 768 dimensions)
 CREATE TABLE products (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
@@ -141,36 +148,38 @@ CREATE TABLE products (
   embedding vector(768)
 );
 
--- Generate embeddings inline using a registered model endpoint
+-- Backfill with a Vertex AI model; embedding() works without registering an endpoint
 UPDATE products
-SET embedding = embedding('textembedding-gecko@003', description)
+SET embedding = embedding('text-embedding-005', description)::vector
 WHERE embedding IS NULL;
 
--- ScaNN index for fast approximate nearest-neighbor search
-CREATE INDEX ON products USING scann (embedding cosine)
-WITH (num_leaves = 100);
+-- ScaNN index: default is auto-tuned (needs 10,000+ rows, or add WITH (mode='AUTO') to defer the build)
+CREATE INDEX products_embedding_idx ON products USING scann (embedding cosine);
+-- Manual tuning: WITH (mode = 'MANUAL', num_leaves = 1000, quantizer = 'SQ8')
 
--- Hybrid search: semantic + lexical
-SELECT id, name, description,
-       1 - (embedding <=> embedding('textembedding-gecko@003', 'wireless headphones with noise cancellation')) AS similarity
+-- Hybrid search: semantic ranking plus a lexical filter
+SELECT id, name,
+       1 - (embedding <=> embedding('text-embedding-005', 'wireless headphones with noise cancellation')::vector) AS similarity
 FROM products
 WHERE description ILIKE '%bluetooth%'
-ORDER BY embedding <=> embedding('textembedding-gecko@003', 'wireless headphones with noise cancellation')
+ORDER BY embedding <=> embedding('text-embedding-005', 'wireless headphones with noise cancellation')::vector
 LIMIT 10;
 ```
+
+`textembedding-gecko@003` (used by older copies of this skill) is not in the current model lists; use `text-embedding-005` (768 dims) or `gemini-embedding-001` (3072 dims by default, so size the column to match). The cluster's AlloyDB service agent needs access to Vertex AI (see "Integrate your database with Vertex AI" in the docs), and the model must be available in the cluster's region. To pass task types or use OpenAI-style endpoints, register a model with `CALL google_ml.create_model(...)` and call `google_ml.embedding(model_id => ..., content => ...)`.
 
 ### Cross-Region DR with Secondary Cluster
 
 ```bash
-# Promote a secondary cluster in a different region
+# Create a read-only secondary cluster in another region
+# (then add its instance with `gcloud alloydb instances create-secondary dr-primary --cluster=dr-cluster --region=us-east1`)
 gcloud alloydb clusters create-secondary dr-cluster \
   --region=us-east1 \
-  --primary-cluster=projects/my-project/locations/us-central1/clusters/prod-cluster \
-  --network=default
+  --primary-cluster=projects/my-project/locations/us-central1/clusters/prod-cluster
 ```
 
 ```bash
-# Failover (promote secondary to standalone primary)
+# Failover (promote the secondary cluster to a standalone read/write cluster)
 gcloud alloydb clusters promote dr-cluster --region=us-east1
 ```
 
@@ -188,6 +197,8 @@ resource "google_alloydb_cluster" "prod" {
     user     = "postgres"
     password = var.alloydb_password
   }
+
+  deletion_protection = true   # the provider's default; set false only to tear down a dev cluster
 
   automated_backup_policy {
     location      = "us-central1"
@@ -210,20 +221,22 @@ resource "google_alloydb_instance" "primary" {
   availability_type = "REGIONAL"
 
   database_flags = {
-    "alloydb.enable_pgvector" = "on"
-    "cloudsql.iam_authentication" = "on"
+    "alloydb.iam_authentication" = "on"
   }
+
+  # In Terraform, add depends_on = [google_service_networking_connection.private_vpc] so the
+  # private service access exists before the cluster is created.
 }
 ```
 ## Examples
 
 ### Example 1 — Set up a production cluster with read replicas
 
-User asks for a production-ready AlloyDB deployment. Create the cluster with regional availability, configure automated backups with 14-day retention, provision a primary instance with IAM auth enabled, then add a 3-node read pool sized for the analytics workload. Hand the user the Auth Proxy connection string and a Terraform module they can commit.
+User asks for a production-ready AlloyDB deployment. Create the cluster with regional availability, configure automated backups with 14-day retention, provision a primary instance with IAM auth enabled, then add a 3-node read pool sized for the analytics workload. Hand the user the Auth Proxy command (`--auto-iam-authn`) and a Terraform module they can commit. Expected result: `gcloud alloydb instances list --cluster=prod-cluster --region=us-central1` shows `prod-primary` and `reports-pool` as READY.
 
 ### Example 2 — Add semantic search to an existing PostgreSQL app
 
-User has a products table on AlloyDB and wants vector search. Enable `vector` and `google_ml_integration` extensions, add an `embedding vector(768)` column, backfill embeddings using `embedding('textembedding-gecko@003', description)`, create a ScaNN index, and rewrite the search endpoint to combine cosine distance with existing `WHERE` filters for hybrid retrieval.
+User has a products table on AlloyDB and wants vector search. Enable `alloydb_scann` (which pulls in `vector`) and `google_ml_integration`, add an `embedding vector(768)` column, backfill embeddings using `embedding('text-embedding-005', description)::vector`, create a ScaNN index with `USING scann (embedding cosine)`, and rewrite the search endpoint to combine cosine distance with existing `WHERE` filters for hybrid retrieval.
 
 ## Guidelines
 
@@ -231,7 +244,7 @@ User has a products table on AlloyDB and wants vector search. Enable `vector` an
 - Set `availability-type=REGIONAL` for HA; `ZONAL` only for dev/test
 - Keep the Auth Proxy in your container or sidecar — never expose AlloyDB to the public internet
 - Read pools are the right scaling lever before considering bigger primary CPUs
-- For vector workloads, ScaNN indexes outperform `ivfflat` and `hnsw` at scale; tune `num_leaves` to ~sqrt(rows)
-- Use secondary clusters for DR; failover is manual but typically completes in minutes
+- For vector workloads, prefer ScaNN with its default auto-tuning; for manual tuning, `num_leaves` around sqrt(rows) is the documented starting point for a two-level index. Increase `scann.num_leaves_to_search` at query time for recall
+- Use secondary clusters for DR; promotion is a manual step, and plan how applications are repointed to the promoted cluster
 - Continuous backup gives PITR within the recovery window — separate from automated backups (which are snapshot-based)
 - Monitor slow queries via Query Insights (built into the AlloyDB console)
