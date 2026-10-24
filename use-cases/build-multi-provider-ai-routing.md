@@ -2,55 +2,48 @@
 title: "Build a Multi-Provider AI Router for Cost and Latency Optimization"
 slug: build-multi-provider-ai-routing
 description: "Build an AI router that selects the best LLM provider per task type with automatic fallback chains and cost tracking."
-skills: [groq, perplexity-api, azure-openai, aws-bedrock, cohere-api, mistral-api]
+skills: [groq, perplexity-api, azure-openai, mistral-api]
 category: data-ai
 tags: [llm-routing, multi-provider, cost-optimization, ai-infrastructure]
 ---
 
 # Build a Multi-Provider AI Router
 
-**Persona:** AI product engineer optimizing costs and reliability across multiple LLM providers.
+## The Problem
 
-You're building a production AI feature and realize that different tasks have wildly different requirements: a code autocomplete needs sub-200ms latency, a research query needs fresh web data, and an enterprise report needs SOC2-compliant infrastructure. Using one provider for everything is either too slow, too expensive, or non-compliant. The solution is an AI router that selects the best provider based on task type, latency, and cost.
+You are an AI product engineer building a production feature, and different tasks have very different requirements: code autocomplete needs low latency, a research question needs fresh web data, and an enterprise report must stay on infrastructure your compliance review approved. One provider for everything is either too slow, too expensive or out of bounds. You also want a fallback when a provider rate-limits or goes down, and you want to see what each provider costs.
 
----
+## The Solution
 
-## Architecture Overview
+A small Python router that classifies each request, tries providers in a configured order for that task type, falls back on error, and records cost and observed latency per provider.
 
 ```
-User Request
-     │
-     ▼
-  AI Router
-     │
-     ├─ Task: coding        → Groq (llama-3.3-70b) or Codestral
-     ├─ Task: research      → Perplexity (sonar-pro)
-     ├─ Task: enterprise    → Azure OpenAI or AWS Bedrock
-     ├─ Task: embedding     → Cohere Embed v3
-     └─ Task: general       → Mistral Small (cost-efficient)
-          │
-          ▼
-     Fallback Chain
-     (provider errors → next provider)
-          │
-          ▼
-     Cost Tracker
+request -> classify_task -> ROUTING_RULES[task] -> provider 1 -> (error) -> provider 2 ...
+   coding     Groq (gpt-oss-120b) -> Codestral -> Mistral Small
+   research   Perplexity Agent API (fast effort level: web search, cited answers)
+   enterprise Azure OpenAI only (no cross-vendor fallback, on purpose)
+   general    Mistral Small -> Groq (gpt-oss-20b)
 ```
 
----
+Model ids and prices below were checked against each vendor's docs on 2026-10-24. Model lineups change quickly (Groq shut down `llama-3.3-70b-versatile` and `llama-3.1-8b-instant` on 2026-08-16, and Perplexity retired the Sonar chat models in favour of its Agent API), so keep ids and prices in one file.
 
-## Step 1: Install Dependencies
+## Step-by-Step Walkthrough
+
+### Step 1: Install
 
 ```bash
-pip install groq openai mistralai cohere boto3 azure-identity
+python3 -m venv .venv && source .venv/bin/activate
+pip install groq mistralai openai perplexityai
+export GROQ_API_KEY=... MISTRAL_API_KEY=... PERPLEXITY_API_KEY=...
+export AZURE_OPENAI_API_KEY=... AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=your-deployment-name
 ```
 
----
+The Mistral SDK (v2 and later) imports as `from mistralai.client import Mistral`. Perplexity's SDK is the `perplexity` module from the `perplexityai` package; the `effort` parameter needs version 0.46.0 or later (earlier versions call it `preset`).
 
-## Step 2: Define the Router Configuration
+### Step 2: Routing configuration
 
 ```python
-# config.py
 from dataclasses import dataclass
 from enum import Enum
 
@@ -58,119 +51,50 @@ class TaskType(Enum):
     CODING = "coding"
     RESEARCH = "research"
     ENTERPRISE = "enterprise"
-    EMBEDDING = "embedding"
     GENERAL = "general"
 
-@dataclass
+@dataclass(frozen=True)
 class ProviderConfig:
-    name: str
-    model: str
-    cost_per_1k_input: float   # USD per 1k input tokens
-    cost_per_1k_output: float  # USD per 1k output tokens
-    avg_latency_ms: int
-    supports_streaming: bool = True
+    name: str                                    # groq | mistral | perplexity | azure_openai
+    model: str                                   # model id, effort level, or Azure env var holding the deployment name
+    usd_per_m: tuple[float, float] | None = None  # (input, output) per 1M tokens; None = provider reports cost or unknown
 
-# Provider cost and latency profiles (approximate, check current pricing)
+# Prices copied from each vendor's pricing page; re-check them, they change.
 PROVIDERS = {
-    "groq_llama70b": ProviderConfig(
-        name="groq",
-        model="llama-3.3-70b-versatile",
-        cost_per_1k_input=0.00059,
-        cost_per_1k_output=0.00079,
-        avg_latency_ms=200,
-    ),
-    "groq_llama8b": ProviderConfig(
-        name="groq",
-        model="llama-3.1-8b-instant",
-        cost_per_1k_input=0.00005,
-        cost_per_1k_output=0.00008,
-        avg_latency_ms=100,
-    ),
-    "codestral": ProviderConfig(
-        name="mistral",
-        model="codestral-latest",
-        cost_per_1k_input=0.00020,
-        cost_per_1k_output=0.00060,
-        avg_latency_ms=400,
-    ),
-    "perplexity_sonar_pro": ProviderConfig(
-        name="perplexity",
-        model="sonar-pro",
-        cost_per_1k_input=0.00300,
-        cost_per_1k_output=0.01500,
-        avg_latency_ms=3000,
-        supports_streaming=True,
-    ),
-    "mistral_small": ProviderConfig(
-        name="mistral",
-        model="mistral-small-latest",
-        cost_per_1k_input=0.00020,
-        cost_per_1k_output=0.00060,
-        avg_latency_ms=600,
-    ),
-    "azure_gpt4o": ProviderConfig(
-        name="azure_openai",
-        model="gpt-4o",
-        cost_per_1k_input=0.00250,
-        cost_per_1k_output=0.01000,
-        avg_latency_ms=800,
-    ),
+    "groq_gpt_oss_120b": ProviderConfig("groq", "openai/gpt-oss-120b", (0.15, 0.60)),
+    "groq_gpt_oss_20b": ProviderConfig("groq", "openai/gpt-oss-20b", (0.075, 0.30)),
+    "codestral": ProviderConfig("mistral", "codestral-latest", (0.30, 0.90)),
+    "mistral_small": ProviderConfig("mistral", "mistral-small-latest", (0.15, 0.60)),
+    "perplexity_fast": ProviderConfig("perplexity", "fast"),  # Agent API effort level; the response includes its cost
+    "azure_openai": ProviderConfig("azure_openai", "AZURE_OPENAI_DEPLOYMENT"),  # env var holding your deployment name
 }
 
-# Routing rules: task type → ordered list of provider keys (first = preferred)
+# Task type -> providers in order of preference. Enterprise has no cross-vendor fallback on purpose:
+# failing over to a provider your compliance review did not cover would defeat the point.
 ROUTING_RULES = {
-    TaskType.CODING: ["groq_llama70b", "codestral", "mistral_small"],
-    TaskType.RESEARCH: ["perplexity_sonar_pro", "azure_gpt4o"],
-    TaskType.ENTERPRISE: ["azure_gpt4o", "groq_llama70b"],
-    TaskType.GENERAL: ["mistral_small", "groq_llama8b", "azure_gpt4o"],
+    TaskType.CODING: ["groq_gpt_oss_120b", "codestral", "mistral_small"],
+    TaskType.RESEARCH: ["perplexity_fast"],
+    TaskType.ENTERPRISE: ["azure_openai"],
+    TaskType.GENERAL: ["mistral_small", "groq_gpt_oss_20b"],
 }
 ```
 
----
+Groq and Mistral bill per token, so cost is computed from `usd_per_m`. Perplexity's response carries its own cost, and the Azure price depends on your deployment and region, so add it to `usd_per_m` once you know it.
 
-## Step 3: Implement Provider Clients
+### Step 3: Providers, router and classifier
+
+Groq, Mistral and Azure return the same usage fields through their SDKs. Azure uses the stock `OpenAI` client with the `/openai/v1/` base URL (no `api-version`), and `model` is your deployment name. Perplexity goes through its Agent API with the `fast` effort level, the migration guide's mapping for `sonar-pro`.
 
 ```python
-# providers.py
-import os
+import logging, os, re, time
+from dataclasses import dataclass
 from groq import Groq
-from mistralai import Mistral
-from openai import OpenAI, AzureOpenAI
-
-def get_groq_client():
-    return Groq(api_key=os.environ["GROQ_API_KEY"])
-
-def get_mistral_client():
-    return Mistral(api_key=os.environ["MISTRAL_API_KEY"])
-
-def get_perplexity_client():
-    return OpenAI(
-        api_key=os.environ["PERPLEXITY_API_KEY"],
-        base_url="https://api.perplexity.ai",
-    )
-
-def get_azure_client():
-    return AzureOpenAI(
-        api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        api_version="2024-10-21",
-    )
-```
-
----
-
-## Step 4: Build the Router
-
-```python
-# router.py
-import time
-import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from mistralai.client import Mistral
+from openai import OpenAI
+from perplexity import Perplexity
 from config import TaskType, PROVIDERS, ROUTING_RULES
-from providers import get_groq_client, get_mistral_client, get_perplexity_client, get_azure_client
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger("router")
 
 @dataclass
 class RouteResult:
@@ -180,190 +104,131 @@ class RouteResult:
     input_tokens: int
     output_tokens: int
     latency_ms: float
-    cost_usd: float
-    citations: list = field(default_factory=list)
+    cost_usd: float | None
 
-class CostTracker:
+def _usage(resp):  # Groq, Mistral and Azure (OpenAI SDK) share this shape
+    return resp.choices[0].message.content, resp.usage.prompt_tokens, resp.usage.completion_tokens
+
+def call_groq(model, messages):
+    return _usage(Groq(api_key=os.environ["GROQ_API_KEY"]).chat.completions.create(model=model, messages=messages)) + (None,)
+
+def call_mistral(model, messages):
+    return _usage(Mistral(api_key=os.environ["MISTRAL_API_KEY"]).chat.complete(model=model, messages=messages)) + (None,)
+
+def call_azure(model, messages):
+    # Azure's v1 API: the stock OpenAI client, /openai/v1/ base URL, no api-version; `model` is your deployment name
+    client = OpenAI(api_key=os.environ["AZURE_OPENAI_API_KEY"],
+                    base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/")
+    return _usage(client.chat.completions.create(model=os.environ[model], messages=messages)) + (None,)
+
+def call_perplexity(effort, messages):
+    # Sonar chat completions are retired; web-grounded answers now come from the Agent API
+    resp = Perplexity(api_key=os.environ["PERPLEXITY_API_KEY"]).responses.create(effort=effort, input=messages[-1]["content"])
+    cost = resp.usage.cost.total_cost if resp.usage and resp.usage.cost else None
+    return resp.output_text, resp.usage.input_tokens, resp.usage.output_tokens, cost
+
+CALLERS = {"groq": call_groq, "mistral": call_mistral, "perplexity": call_perplexity, "azure_openai": call_azure}
+
+class Stats:
+    """Per-provider spend, call counts and an exponential moving average of observed latency."""
     def __init__(self):
-        self.total_cost = 0.0
-        self.calls_by_provider: dict[str, int] = {}
-        self.cost_by_provider: dict[str, float] = {}
+        self.cost, self.calls, self.latency = {}, {}, {}
+    def record(self, key, cost, ms):
+        self.calls[key] = self.calls.get(key, 0) + 1
+        self.cost[key] = self.cost.get(key, 0.0) + (cost or 0.0)
+        self.latency[key] = ms if key not in self.latency else 0.8 * self.latency[key] + 0.2 * ms
+    def summary(self):
+        return {"calls": self.calls, "cost_usd": {k: round(v, 6) for k, v in self.cost.items()},
+                "avg_latency_ms": {k: round(v) for k, v in self.latency.items()}}
 
-    def record(self, provider: str, cost: float):
-        self.total_cost += cost
-        self.calls_by_provider[provider] = self.calls_by_provider.get(provider, 0) + 1
-        self.cost_by_provider[provider] = self.cost_by_provider.get(provider, 0.0) + cost
+stats = Stats()
 
-    def summary(self) -> dict:
-        return {
-            "total_cost_usd": round(self.total_cost, 6),
-            "calls_by_provider": self.calls_by_provider,
-            "cost_by_provider": {k: round(v, 6) for k, v in self.cost_by_provider.items()},
-        }
+def call_provider(key, messages) -> RouteResult:
+    cfg = PROVIDERS[key]
+    start = time.perf_counter()
+    content, tin, tout, cost = CALLERS[cfg.name](cfg.model, messages)
+    ms = (time.perf_counter() - start) * 1000
+    if cost is None and cfg.usd_per_m:
+        cost = (tin * cfg.usd_per_m[0] + tout * cfg.usd_per_m[1]) / 1e6
+    stats.record(key, cost, ms)
+    return RouteResult(content, key, cfg.model, tin, tout, round(ms, 1), None if cost is None else round(cost, 6))
 
-cost_tracker = CostTracker()
-
-def calculate_cost(provider_key: str, input_tokens: int, output_tokens: int) -> float:
-    config = PROVIDERS[provider_key]
-    return (input_tokens / 1000 * config.cost_per_1k_input +
-            output_tokens / 1000 * config.cost_per_1k_output)
-
-def call_provider(provider_key: str, messages: list[dict], **kwargs) -> RouteResult:
-    config = PROVIDERS[provider_key]
-    start = time.time()
-
-    if config.name == "groq":
-        client = get_groq_client()
-        resp = client.chat.completions.create(model=config.model, messages=messages, **kwargs)
-        content = resp.choices[0].message.content
-        in_tok, out_tok = resp.usage.prompt_tokens, resp.usage.completion_tokens
-
-    elif config.name == "mistral":
-        client = get_mistral_client()
-        resp = client.chat.complete(model=config.model, messages=messages)
-        content = resp.choices[0].message.content
-        in_tok = resp.usage.prompt_tokens
-        out_tok = resp.usage.completion_tokens
-
-    elif config.name == "perplexity":
-        client = get_perplexity_client()
-        resp = client.chat.completions.create(model=config.model, messages=messages)
-        content = resp.choices[0].message.content
-        in_tok, out_tok = resp.usage.prompt_tokens, resp.usage.completion_tokens
-        citations = getattr(resp, "citations", [])
-
-    elif config.name == "azure_openai":
-        client = get_azure_client()
-        resp = client.chat.completions.create(model=config.model, messages=messages, **kwargs)
-        content = resp.choices[0].message.content
-        in_tok, out_tok = resp.usage.prompt_tokens, resp.usage.completion_tokens
-
-    latency = (time.time() - start) * 1000
-    cost = calculate_cost(provider_key, in_tok, out_tok)
-    cost_tracker.record(config.name, cost)
-
-    return RouteResult(
-        content=content,
-        provider=config.name,
-        model=config.model,
-        input_tokens=in_tok,
-        output_tokens=out_tok,
-        latency_ms=round(latency, 1),
-        cost_usd=round(cost, 6),
-    )
-
-def route(
-    messages: list[dict],
-    task_type: TaskType = TaskType.GENERAL,
-    prefer_fast: bool = False,
-) -> RouteResult:
-    """Route a request to the best provider for the task type."""
-    providers = ROUTING_RULES.get(task_type, ROUTING_RULES[TaskType.GENERAL])
-
-    # If speed is critical, sort by latency
-    if prefer_fast:
-        providers = sorted(providers, key=lambda p: PROVIDERS[p].avg_latency_ms)
-
-    for provider_key in providers:
+def route(messages, task_type=TaskType.GENERAL, prefer_fast=False) -> RouteResult:
+    keys = list(ROUTING_RULES[task_type])
+    if prefer_fast:  # providers we have not measured yet keep their configured order, after measured ones
+        keys.sort(key=lambda k: stats.latency.get(k, float("inf")))
+    errors = []
+    for key in keys:
         try:
-            logger.info(f"Trying provider: {provider_key}")
-            result = call_provider(provider_key, messages)
-            logger.info(f"Success: {provider_key} | {result.latency_ms}ms | ${result.cost_usd}")
-            return result
-        except Exception as e:
-            logger.warning(f"Provider {provider_key} failed: {e}. Trying next...")
-            continue
+            return call_provider(key, messages)
+        except Exception as e:  # rate limit, timeout, 5xx, missing credentials
+            log.warning("%s failed: %s", key, e)
+            errors.append(f"{key}: {e}")
+    raise RuntimeError("All providers failed: " + "; ".join(errors))
 
-    raise RuntimeError("All providers failed")
+RULES = [
+    (TaskType.CODING, r"\b(code|function|debug|implement|refactor|python|typescript|sql|regex)\b"),
+    (TaskType.RESEARCH, r"\b(latest|current|recent|news|today|this week|search|look up)\b"),
+    (TaskType.ENTERPRISE, r"\b(compliance|audit|policy|regulation|hipaa|soc ?2|gdpr)\b"),
+]
+
+def classify_task(text: str) -> TaskType:
+    return next((t for t, pat in RULES if re.search(pat, text.lower())), TaskType.GENERAL)
 ```
 
----
+`prefer_fast` sorts by the latency the router has actually measured, so there are no guessed latency numbers in the config.
 
-## Step 5: Classify Task Type
-
-```python
-# classifier.py
-from config import TaskType
-
-CODING_KEYWORDS = ["code", "function", "debug", "implement", "refactor", "python", "typescript", "sql"]
-RESEARCH_KEYWORDS = ["latest", "current", "recent", "news", "today", "2025", "now", "search", "find out"]
-ENTERPRISE_KEYWORDS = ["compliance", "audit", "report", "policy", "regulation", "hipaa", "soc2"]
-
-def classify_task(user_message: str) -> TaskType:
-    msg_lower = user_message.lower()
-    if any(kw in msg_lower for kw in CODING_KEYWORDS):
-        return TaskType.CODING
-    if any(kw in msg_lower for kw in RESEARCH_KEYWORDS):
-        return TaskType.RESEARCH
-    if any(kw in msg_lower for kw in ENTERPRISE_KEYWORDS):
-        return TaskType.ENTERPRISE
-    return TaskType.GENERAL
-```
-
----
-
-## Step 6: Wire It Together
+### Step 4: Try it
 
 ```python
-# main.py
-from router import route, cost_tracker
-from classifier import classify_task
-from config import TaskType
-
-def ai_assistant(user_message: str, stream: bool = False) -> str:
-    task = classify_task(user_message)
-    print(f"[Router] Task type: {task.value}")
-
-    result = route(
-        messages=[{"role": "user", "content": user_message}],
-        task_type=task,
-        prefer_fast=(task == TaskType.CODING),
-    )
-
-    print(f"[Router] Provider: {result.provider}/{result.model} | "
-          f"{result.latency_ms}ms | ${result.cost_usd}")
-    return result.content
-
-# Example usage
-print(ai_assistant("Write a Python function to parse JSON with error handling"))
-print(ai_assistant("What are the latest AI model releases this week?"))
-print(ai_assistant("Generate a SOC2 compliance checklist for our SaaS"))
-print(ai_assistant("Explain the CAP theorem"))
-
-# Print cost summary
-print("\n=== Cost Summary ===")
 import json
-print(json.dumps(cost_tracker.summary(), indent=2))
+from router import route, classify_task, stats
+from config import TaskType
+
+def ask(text: str) -> str:
+    task = classify_task(text)
+    r = route([{"role": "user", "content": text}], task, prefer_fast=task == TaskType.CODING)
+    print(f"[{task.value}] {r.provider} ({r.model}) {r.latency_ms} ms, cost: {r.cost_usd}")
+    return r.content
+
+if __name__ == "__main__":
+    for q in ["Write a Python function that parses JSON with error handling",
+              "What changed in the news about EU AI regulation this week?",
+              "Draft a SOC 2 evidence checklist for our SaaS",
+              "Explain the CAP theorem"]:
+        print(ask(q), "\n")
+    print(json.dumps(stats.summary(), indent=2))
 ```
 
----
+Output looks like this (provider names, latencies and costs depend on your account and the day):
 
-## Expected Output
-
-```
-[Router] Task type: coding
-[Router] Provider: groq/llama-3.3-70b-versatile | 312ms | $0.000023
-
-[Router] Task type: research
-[Router] Provider: perplexity/sonar-pro | 2847ms | $0.000891
-
-[Router] Task type: enterprise
-[Router] Provider: azure_openai/gpt-4o | 756ms | $0.000450
-
-=== Cost Summary ===
+```console
+$ python main.py
+[coding] groq_gpt_oss_120b (openai/gpt-oss-120b) 410.2 ms, cost: 0.00031
+...
 {
-  "total_cost_usd": 0.001364,
-  "calls_by_provider": {"groq": 1, "perplexity": 1, "azure_openai": 1},
-  "cost_by_provider": {"groq": 0.000023, "perplexity": 0.000891, "azure_openai": 0.00045}
+  "calls": {"groq_gpt_oss_120b": 1, "perplexity_fast": 1, "azure_openai": 1, "mistral_small": 1},
+  "cost_usd": {"groq_gpt_oss_120b": 0.00031, "perplexity_fast": 0.0094, "azure_openai": 0.0, "mistral_small": 0.00012},
+  "avg_latency_ms": {"groq_gpt_oss_120b": 410, "perplexity_fast": 5100, "azure_openai": 900, "mistral_small": 700}
 }
 ```
 
----
+`azure_openai` shows 0.0 until you give it a price. The numbers above are illustrative, not benchmarks.
 
-## Extensions
+### Step 5: Extend it
 
-- **Latency-based routing**: Ping all providers asynchronously and use the fastest responder.
-- **Budget caps**: Stop routing to expensive providers when monthly budget threshold is hit.
-- **A/B testing**: Route a percentage of traffic to experimental models for quality comparison.
-- **Caching**: Hash prompts and cache responses for identical queries.
-- **Observability**: Send `RouteResult` metrics to DataDog or Grafana for dashboards.
+- Budget caps: check `stats.cost` before calling an expensive provider and skip it past a limit.
+- Caching: hash the messages and return a stored answer for identical prompts.
+- A better classifier: replace the regex rules with a call to a cheap model, but measure it, since keyword rules are fast and free.
+- Observability: ship `RouteResult` fields to your metrics system.
+
+## Real-World Example
+
+A support-tooling team routes four kinds of traffic through this router. Developer questions go to Groq first for speed; "what changed this week" questions go to Perplexity so answers cite live sources; compliance drafts go only to the Azure deployment their security team approved, and fail loudly if it is down rather than leaking to another vendor; everything else goes to Mistral Small. After a week they read `stats.summary()` and move the general traffic to the cheaper Groq model when its measured latency and quality are acceptable.
+
+## Related Skills
+
+- [groq](/skills/groq) - Fast inference for the coding path
+- [perplexity-api](/skills/perplexity-api) - Web-grounded answers through the Agent API
+- [azure-openai](/skills/azure-openai) - The enterprise path
+- [mistral-api](/skills/mistral-api) - General and code models
