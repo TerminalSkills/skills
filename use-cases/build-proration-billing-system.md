@@ -21,207 +21,204 @@ tags:
 
 ## The Problem
 
-Filip leads billing at a 25-person SaaS. When customers upgrade mid-cycle, they're charged the full new price — even if there are only 3 days left in the billing period. Customers complain it's unfair. When they downgrade, they lose the remaining value of what they already paid. Adding seats mid-cycle either double-charges or doesn't charge at all depending on which support agent handles it. They need automatic proration: fair charges on upgrades, credits on downgrades, and per-seat mid-cycle adjustments — all with clear invoice line items so customers understand what they're paying for.
+Filip leads billing at a 25-person SaaS. When customers upgrade mid-cycle they are charged the full new price even with three days left in the period. When they downgrade they lose what they already paid for. Adding seats mid-cycle either double-charges or charges nothing, depending on which support agent handles it. He needs automatic proration: a charge for the extra value on upgrades, a credit on downgrades, per-seat adjustments, and invoice lines a customer can check with a calculator.
 
-## Step 1: Build the Proration Engine
+## The Solution
+
+Keep the money math in one pure function that takes the billing period, the old plan and the new plan, and returns invoice lines in integer cents. A plan change and a seat change are the same calculation: credit the unused part of what the customer has, charge the remaining part of what they will have. Around it, a Hono API with Zod-validated requests previews and applies changes; PostgreSQL holds subscriptions and invoices; Redis blocks duplicate submissions; Stripe collects the charge.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Tables
+
+Prices are integer cents per seat per billing period. Subscriptions keep the Stripe customer and the saved card to charge.
+
+```sql
+CREATE TABLE plans (id text PRIMARY KEY, price_per_seat integer NOT NULL);
+CREATE TABLE customers (id text PRIMARY KEY, credit_balance integer NOT NULL DEFAULT 0);
+CREATE TABLE subscriptions (
+  id text PRIMARY KEY, customer_id text REFERENCES customers(id),
+  stripe_customer_id text, stripe_payment_method_id text,
+  plan_id text REFERENCES plans(id), price_per_seat integer NOT NULL, seats integer NOT NULL,
+  current_period_start timestamptz NOT NULL, current_period_end timestamptz NOT NULL);
+CREATE TABLE invoices (
+  id uuid PRIMARY KEY, customer_id text, subscription_id text,
+  amount integer NOT NULL, type text NOT NULL, line_items jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now());
+```
+
+### Step 2: The proration function
+
+The share of the period still ahead is measured to the millisecond, not in whole days, so a change at 09:00 and one at 17:00 are priced differently and a 28-day month needs no special case. Rounding happens once per line.
 
 ```typescript
-// src/billing/proration.ts — Mid-cycle plan changes with fair credit/charge calculation
-import { pool } from "../db";
-import { Redis } from "ioredis";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const redis = new Redis(process.env.REDIS_URL!);
-
-interface Subscription {
-  id: string;
-  customerId: string;
-  planId: string;
-  pricePerSeat: number;       // cents/month
-  seats: number;
-  billingCycle: "monthly" | "annual";
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  status: string;
-}
-
-interface ProrationPreview {
-  creditAmount: number;        // credit from unused old plan
-  chargeAmount: number;        // charge for new plan remainder
-  netAmount: number;           // positive = charge, negative = credit
-  lineItems: ProrationLineItem[];
-  effectiveDate: string;
-  daysRemaining: number;
-  daysInPeriod: number;
-}
-
-interface ProrationLineItem {
+// src/proration.ts — pure math: no database, no network, easy to test
+export interface Line {
   description: string;
-  quantity: number;
-  unitPrice: number;           // cents
-  amount: number;              // cents (can be negative for credits)
-  type: "credit" | "charge";
+  quantity: number;     // seats
+  amount: number;       // integer cents, negative = credit
 }
 
-// Preview proration before applying
-export async function previewPlanChange(
-  subscriptionId: string,
-  newPlanId: string,
-  newSeats?: number
-): Promise<ProrationPreview> {
-  const { rows: [sub] } = await pool.query("SELECT * FROM subscriptions WHERE id = $1", [subscriptionId]);
-  if (!sub) throw new Error("Subscription not found");
-
-  const { rows: [newPlan] } = await pool.query("SELECT * FROM plans WHERE id = $1", [newPlanId]);
-  if (!newPlan) throw new Error("Plan not found");
-
-  const seats = newSeats || sub.seats;
-  const now = new Date();
-  const periodStart = new Date(sub.current_period_start);
-  const periodEnd = new Date(sub.current_period_end);
-
-  const daysInPeriod = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / 86400000);
-  const daysUsed = Math.ceil((now.getTime() - periodStart.getTime()) / 86400000);
-  const daysRemaining = daysInPeriod - daysUsed;
-
-  const dailyRateOld = (sub.price_per_seat * sub.seats) / daysInPeriod;
-  const dailyRateNew = (newPlan.base_price * seats) / daysInPeriod;
-
-  const lineItems: ProrationLineItem[] = [];
-
-  // Credit for unused portion of current plan
-  const creditAmount = Math.round(dailyRateOld * daysRemaining);
-  if (creditAmount > 0) {
-    lineItems.push({
-      description: `Unused time on ${sub.plan_id} (${daysRemaining} days × ${sub.seats} seats)`,
-      quantity: daysRemaining,
-      unitPrice: Math.round(dailyRateOld),
-      amount: -creditAmount,
-      type: "credit",
-    });
-  }
-
-  // Charge for remaining portion of new plan
-  const chargeAmount = Math.round(dailyRateNew * daysRemaining);
-  if (chargeAmount > 0) {
-    lineItems.push({
-      description: `Remaining time on ${newPlanId} (${daysRemaining} days × ${seats} seats)`,
-      quantity: daysRemaining,
-      unitPrice: Math.round(dailyRateNew),
-      amount: chargeAmount,
-      type: "charge",
-    });
-  }
-
-  // Seat change within same plan
-  if (newPlanId === sub.plan_id && newSeats && newSeats !== sub.seats) {
-    const seatDiff = newSeats - sub.seats;
-    const seatAdjustment = Math.round((sub.price_per_seat / daysInPeriod) * daysRemaining * Math.abs(seatDiff));
-
-    lineItems.length = 0; // Clear plan-level items
-    if (seatDiff > 0) {
-      lineItems.push({
-        description: `Add ${seatDiff} seat(s) for ${daysRemaining} remaining days`,
-        quantity: seatDiff,
-        unitPrice: Math.round((sub.price_per_seat / daysInPeriod) * daysRemaining),
-        amount: seatAdjustment,
-        type: "charge",
-      });
-    } else {
-      lineItems.push({
-        description: `Remove ${Math.abs(seatDiff)} seat(s), credit for ${daysRemaining} remaining days`,
-        quantity: Math.abs(seatDiff),
-        unitPrice: Math.round((sub.price_per_seat / daysInPeriod) * daysRemaining),
-        amount: -seatAdjustment,
-        type: "credit",
-      });
-    }
-
-    return {
-      creditAmount: seatDiff < 0 ? seatAdjustment : 0,
-      chargeAmount: seatDiff > 0 ? seatAdjustment : 0,
-      netAmount: seatDiff > 0 ? seatAdjustment : -seatAdjustment,
-      lineItems, effectiveDate: now.toISOString(), daysRemaining, daysInPeriod,
-    };
-  }
-
-  const netAmount = chargeAmount - creditAmount;
-
-  return { creditAmount, chargeAmount, netAmount, lineItems, effectiveDate: now.toISOString(), daysRemaining, daysInPeriod };
+export interface Preview {
+  lines: Line[];
+  netAmount: number;    // > 0 charge now, < 0 credit to balance
+  remainingFraction: number;
 }
 
-// Apply plan change with proration
-export async function applyPlanChange(
-  subscriptionId: string,
-  newPlanId: string,
-  newSeats?: number
-): Promise<{ success: boolean; invoiceId?: string; preview: ProrationPreview }> {
-  const preview = await previewPlanChange(subscriptionId, newPlanId, newSeats);
-  const { rows: [sub] } = await pool.query("SELECT * FROM subscriptions WHERE id = $1", [subscriptionId]);
+interface Side { planId: string; pricePerSeat: number; seats: number } // price in cents per seat per period
 
-  const seats = newSeats || sub.seats;
+export function prorate(
+  periodStart: Date, periodEnd: Date, now: Date, from: Side, to: Side,
+): Preview {
+  const total = periodEnd.getTime() - periodStart.getTime();
+  const left = Math.min(total, Math.max(0, periodEnd.getTime() - now.getTime()));
+  const f = left / total; // share of the period still ahead, to the millisecond
 
-  // Create invoice for proration
-  if (preview.netAmount !== 0) {
-    const invoiceId = `inv-${Date.now().toString(36)}`;
+  const credit = Math.round(from.pricePerSeat * from.seats * f);
+  const charge = Math.round(to.pricePerSeat * to.seats * f);
+  const pct = Math.round(f * 100);
 
-    await pool.query(
-      `INSERT INTO invoices (id, customer_id, subscription_id, amount, status, line_items, type, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'proration', NOW())`,
-      [invoiceId, sub.customer_id, subscriptionId, Math.abs(preview.netAmount),
-       preview.netAmount > 0 ? "pending" : "credit",
-       JSON.stringify(preview.lineItems)]
-    );
-
-    if (preview.netAmount > 0) {
-      // Charge the customer
-      try {
-        await stripe.paymentIntents.create({
-          amount: preview.netAmount,
-          currency: "usd",
-          customer: sub.stripe_customer_id,
-          description: `Proration: ${sub.plan_id} → ${newPlanId}`,
-          metadata: { invoiceId, subscriptionId },
-          confirm: true,
-          automatic_payment_methods: { enabled: true, allow_redirects: "never" },
-        });
-        await pool.query("UPDATE invoices SET status = 'paid' WHERE id = $1", [invoiceId]);
-      } catch (err: any) {
-        await pool.query("UPDATE invoices SET status = 'failed' WHERE id = $1", [invoiceId]);
-        return { success: false, preview };
-      }
-    } else {
-      // Apply credit to customer balance
-      await pool.query(
-        "UPDATE customers SET credit_balance = credit_balance + $2 WHERE id = $1",
-        [sub.customer_id, Math.abs(preview.netAmount)]
-      );
-    }
-  }
-
-  // Update subscription
-  const { rows: [newPlan] } = await pool.query("SELECT * FROM plans WHERE id = $1", [newPlanId]);
-  await pool.query(
-    `UPDATE subscriptions SET plan_id = $2, price_per_seat = $3, seats = $4, updated_at = NOW() WHERE id = $1`,
-    [subscriptionId, newPlanId, newPlan.base_price, seats]
-  );
-
-  // Log the change
-  await pool.query(
-    `INSERT INTO subscription_changes (subscription_id, old_plan, new_plan, old_seats, new_seats, proration_amount, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-    [subscriptionId, sub.plan_id, newPlanId, sub.seats, seats, preview.netAmount]
-  );
-
-  return { success: true, preview };
+  const lines: Line[] = [];
+  if (credit) lines.push({ description: `Unused ${from.planId}, ${from.seats} seats x ${pct}% of period`, quantity: from.seats, amount: -credit });
+  if (charge) lines.push({ description: `${to.planId}, ${to.seats} seats x ${pct}% of period`, quantity: to.seats, amount: charge });
+  return { lines, netAmount: charge - credit, remainingFraction: f };
 }
 ```
 
-## Results
+Run it for a 30-day period with 10 days left:
 
-- **Fair billing on upgrades** — customer upgrading from $49 to $99 with 10 days left pays $16.33 prorated charge, not $99; zero complaints about "double charging"
-- **Credits on downgrades** — unused time on the expensive plan applied as credit; customer sees the math on their invoice; support tickets about billing drop 70%
-- **Mid-cycle seat changes** — adding 5 seats on day 20 of 30 charges for 10 days × 5 seats; removing seats gives credit; HR doesn't have to wait until next billing cycle
-- **Preview before commit** — customer sees exact charges/credits before confirming; no surprises; "what will I pay?" answered in milliseconds
-- **Transparent invoices** — each line item shows: what changed, how many days, unit price, total; customers trust the billing because they can verify the math
+```console
+$ npx tsx check.ts
+starter 49.00 -> pro 99.00, 1 seat    net  1667  (charge $16.67)
+pro 10 -> 15 seats at 10.00           net  1667  (charge $16.67)
+pro 99.00 -> starter 49.00, 1 seat    net -1667  (credit $16.67)
+```
+
+An upgrade from $49 to $99 with a third of the period left costs $16.67, which is (99 - 49) / 3, and the matching downgrade returns the same amount as credit.
+
+### Step 3: Apply the change safely
+
+The function locks the subscription row, so two support agents cannot change one account at once. The Stripe charge carries an idempotency key derived from the client's `Idempotency-Key`, and a Redis `SET ... NX` on the same key rejects a double click before anything runs. If the card is declined Stripe throws, the transaction rolls back, the lock is released and the subscription stays on the old plan. If the failure comes after the card was charged, the lock stays, so a replay is refused and someone reconciles the charge by its `idempotencyKey` metadata instead of charging twice. A negative net amount becomes credit on the customer's balance.
+
+```typescript
+// src/billing.ts — apply a plan or seat change: lock, charge, record
+import { randomUUID } from "node:crypto";
+import pg from "pg";
+import Stripe from "stripe";
+import { Redis } from "ioredis";
+import { z } from "zod";
+import { prorate } from "./proration.ts";
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+
+export const ChangeRequest = z.object({
+  subscriptionId: z.string().min(1),
+  newPlanId: z.string().min(1),
+  newSeats: z.number().int().min(1).max(10_000).optional(),
+});
+export type ChangeRequest = z.infer<typeof ChangeRequest>;
+
+export async function applyChange(req: ChangeRequest, idempotencyKey: string, dryRun = false) {
+  // The same client retry must not charge twice.
+  let charged = false;
+  if (!dryRun && !(await redis.set(`proration:${idempotencyKey}`, "1", "EX", 3600, "NX"))) {
+    throw new Error("Duplicate request");
+  }
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    const { rows: [sub] } = await db.query(
+      "SELECT * FROM subscriptions WHERE id = $1 FOR UPDATE", [req.subscriptionId]);
+    const { rows: [plan] } = await db.query("SELECT * FROM plans WHERE id = $1", [req.newPlanId]);
+    if (!sub || !plan) throw new Error("Unknown subscription or plan");
+
+    const seats = req.newSeats ?? sub.seats;
+    const preview = prorate(
+      new Date(sub.current_period_start), new Date(sub.current_period_end), new Date(),
+      { planId: sub.plan_id, pricePerSeat: sub.price_per_seat, seats: sub.seats },
+      { planId: plan.id, pricePerSeat: plan.price_per_seat, seats },
+    );
+    if (dryRun) { await db.query("ROLLBACK"); return { preview }; }
+
+    const invoiceId = randomUUID();
+    // The client key is the unit of work: a replay of it can never create a second charge.
+    if (preview.netAmount > 0) {
+      // Off-session charge of the customer's saved default card.
+      await stripe.paymentIntents.create({
+        amount: preview.netAmount, currency: "usd",
+        customer: sub.stripe_customer_id,
+        payment_method: sub.stripe_payment_method_id,
+        off_session: true, confirm: true,
+        description: `Proration ${sub.plan_id} -> ${plan.id}`,
+        metadata: { idempotencyKey, subscriptionId: sub.id },
+      }, { idempotencyKey: `proration-${idempotencyKey}` });
+      charged = true;
+    } else if (preview.netAmount < 0) {
+      await db.query("UPDATE customers SET credit_balance = credit_balance + $2 WHERE id = $1",
+        [sub.customer_id, -preview.netAmount]);
+    }
+    await db.query(
+      `INSERT INTO invoices (id, customer_id, subscription_id, amount, type, line_items)
+       VALUES ($1, $2, $3, $4, 'proration', $5)`,
+      [invoiceId, sub.customer_id, sub.id, preview.netAmount, JSON.stringify(preview.lines)]);
+    await db.query(
+      "UPDATE subscriptions SET plan_id = $2, price_per_seat = $3, seats = $4 WHERE id = $1",
+      [sub.id, plan.id, plan.price_per_seat, seats]);
+    await db.query("COMMIT");
+    return { invoiceId, preview };
+  } catch (err) {
+    await db.query("ROLLBACK");
+    if (!charged) await redis.del(`proration:${idempotencyKey}`); // not charged: the client may retry
+    throw err;
+  } finally {
+    db.release();
+  }
+}
+```
+
+### Step 4: Expose preview and apply
+
+The preview runs the same code in a transaction that is rolled back, so what the customer sees is what they will pay.
+
+```typescript
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import Stripe from "stripe";
+import { ChangeRequest, applyChange } from "./billing.ts";
+
+const app = new Hono();
+
+// Duplicate submit -> 409, declined card -> 402; anything else is logged and hidden from the client.
+app.onError((err, c) => {
+  if (err.message === "Duplicate request") return c.json({ error: err.message }, 409);
+  if (err instanceof Stripe.errors.StripeCardError) return c.json({ error: err.message }, 402);
+  console.error(err);
+  return c.json({ error: "Could not apply the change" }, 500);
+});
+
+app.post("/changes/preview", zValidator("json", ChangeRequest), async (c) =>
+  c.json((await applyChange(c.req.valid("json"), "preview", true)).preview));
+
+app.post("/changes", zValidator("json", ChangeRequest), async (c) => {
+  const key = c.req.header("idempotency-key");
+  if (!key) return c.json({ error: "Idempotency-Key header required" }, 400);
+  return c.json(await applyChange(c.req.valid("json"), key));
+});
+
+serve({ fetch: app.fetch, hostname: "127.0.0.1", port: 3000 });
+```
+
+## Real-World Example
+
+On the 22nd of a 31-day month, a customer with 10 Pro seats at $10 per seat adds 5. The preview shows a credit of $32.26 for the unused 10 seats and a charge of $48.39 for 15 seats, a net charge of $16.13, and nothing is billed until the customer confirms. The same day another account moves from Pro to Starter and receives credit on its balance. Support stops answering "why was I charged this?" by hand, because each invoice line names the plan, the seat count and the share of the period.
+
+## Related Skills
+
+- [typescript](/skills/typescript) - strict types for money amounts and request bodies
+- [redis](/skills/redis) - the idempotency lock
+- [postgresql](/skills/postgresql) - row locks, transactions and the schema
+- [hono](/skills/hono) - the preview and apply endpoints
+- [zod](/skills/zod) - request validation
