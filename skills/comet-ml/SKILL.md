@@ -1,11 +1,11 @@
 ---
 name: comet-ml
-description: Expert guidance for Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.
+description: Comet ML is a platform for tracking machine learning experiments, managing registered models, and comparing runs. Use when logging experiments, hyperparameters and metrics, registering model versions, or comparing training runs; LLM tracing goes through Comet's Opik. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Python 3.8+, comet-ml SDK (pip), a Comet account and COMET_API_KEY (or OfflineExperiment)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags:
   - ml-ops
@@ -21,7 +21,7 @@ metadata:
 ## Overview
 
 
-Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.
+Comet ML is a platform for tracking machine learning experiments (parameters, metrics, code, git state, environment), registering model versions, and comparing runs through the Python SDK `comet-ml` and its REST-backed `API` class. LLM tracing and evaluation are handled by the separate Opik package.
 
 
 ## Instructions
@@ -30,7 +30,8 @@ Comet ML, the platform for tracking machine learning experiments, managing model
 
 ```python
 # train.py — Track a training run with Comet ML
-import comet_ml
+import os
+import comet_ml   # import before torch/sklearn so auto-logging can hook them
 from comet_ml import Experiment
 import torch
 from torch import nn, optim
@@ -95,7 +96,7 @@ for epoch in range(5):
 
     print(f"Epoch {epoch}: loss={avg_loss:.4f} val_acc={val_acc:.4f}")
 
-# Log the model
+# Log the weights, so they can be registered later
 experiment.log_model("text-classifier", "./model_weights.pt")
 
 # Log confusion matrix
@@ -118,127 +119,100 @@ experiment.end()
 ### Model Registry
 
 ```python
-# Register and version models for deployment
-from comet_ml import API
-
-api = API(api_key=os.environ["COMET_API_KEY"])
-
-# Register a model from an experiment
-experiment = api.get_experiment("my-team", "text-classifier", "abc123")
-
-# Register to model registry
+# In train.py, after log_model and before experiment.end(): register the logged model
+# The first argument is the name given to log_model; registry_name is the registered model's name
 experiment.register_model(
-    model_name="text-classifier-prod",
+    "text-classifier",
+    registry_name="text-classifier-prod",
     version="1.2.0",
     description="DistilBERT fine-tuned on customer reviews, F1=0.92",
     tags=["production-ready"],
-    status="Production",              # Staging | Production | Archived
+    status="Production",              # free-form status string, e.g. Staging | Production
 )
-
-# Retrieve a registered model
-model = api.get_model(workspace="my-team", model_name="text-classifier-prod")
-latest = model.get_details("1.2.0")
-print(f"Model: {latest['modelName']} v{latest['version']}")
-print(f"Status: {latest['status']}")
-
-# Download model assets
-model.download("1.2.0", output_folder="./model_artifacts/")
-
-# Compare two model versions
-experiments = api.query("my-team", "text-classifier",
-    Expression("val_f1", ">", 0.85))
-for exp in experiments:
-    print(f"{exp.id}: F1={exp.get_metric('val_f1')}")
 ```
 
-### LLM Tracking
+```python
+# Later, from another script: look up, promote and download a registered model
+import os
+from comet_ml import API
+
+api = API(api_key=os.environ["COMET_API_KEY"])
+model = api.get_model(workspace="my-team", model_name="text-classifier-prod")
+details = model.get_details("1.2.0")
+print(details["modelName"], details["version"], details["status"])
+
+model.set_status("1.2.0", "Production")
+model.download("1.2.0", output_folder="./model_artifacts/")
+```
+
+### LLM Tracking (Opik)
+
+Comet's LLM tracing, prompt and evaluation features live in **Opik**, a separate open-source package (`pip install opik`) that can run on Comet cloud or be self-hosted. The `comet-ml` SDK has no OpenAI integration.
 
 ```python
-# Track LLM/prompt experiments
-from comet_ml import Experiment
-from comet_ml.integration.openai import comet_openai_trace
+import opik
+from openai import OpenAI
+from opik.integrations.openai import track_openai
 
-# Auto-log OpenAI API calls
-experiment = Experiment(project_name="llm-eval")
-comet_openai_trace(experiment)              # Patches OpenAI client
+opik.configure()                      # prompts for / reads the Opik API key and URL
+client = track_openai(OpenAI(), project_name="support-bot-eval")
 
-# All OpenAI calls are automatically logged with:
-# - Prompt text and system message
-# - Model used and parameters
-# - Response text
-# - Token usage and cost
-# - Latency
-
-response = openai.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "Summarize this text..."}],
+reply = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Summarize our refund policy in two sentences."}],
 )
-# ↑ Automatically logged to Comet dashboard
+# Prompt, response, model, token usage and latency show up as a trace in Opik
 
-# Manual prompt logging
-experiment.log_text("prompt_template", "Summarize the following: {text}")
-experiment.log_metric("prompt_tokens", response.usage.prompt_tokens)
-experiment.log_metric("completion_tokens", response.usage.completion_tokens)
-experiment.log_metric("total_cost", calculate_cost(response.usage))
+@opik.track                           # trace any function as a span
+def answer(question: str) -> str:
+    return client.chat.completions.create(
+        model="gpt-4o-mini", messages=[{"role": "user", "content": question}]
+    ).choices[0].message.content
 ```
 
 ### Comparing Experiments
 
 ```python
-# Query and compare experiments programmatically
+import os
 from comet_ml import API
+from comet_ml.query import Metric
 
-api = API()
+api = API(api_key=os.environ["COMET_API_KEY"])
 
-# Get all experiments in a project
-experiments = api.get_experiments("my-team", "text-classifier")
+# Server-side filter: experiments whose val_f1 exceeds 0.85
+good = api.query("my-team", "text-classifier", Metric("val_f1") > 0.85)
 
-# Filter by metric
-best = sorted(experiments, key=lambda e: e.get_metric("val_f1") or 0, reverse=True)[:5]
+def final_f1(exp):
+    summary = exp.get_metrics_summary("val_f1")     # dict with valueCurrent, valueMax, ...
+    return float(summary["valueCurrent"]) if summary else 0.0
 
-for exp in best:
-    params = exp.get_parameters_summary()
-    metrics = exp.get_metrics_summary()
-    print(f"Experiment: {exp.name}")
-    print(f"  Model: {params.get('model')}")
-    print(f"  F1: {metrics.get('val_f1')}")
-    print(f"  Accuracy: {metrics.get('val_accuracy')}")
+for exp in sorted(good, key=final_f1, reverse=True)[:5]:
+    params = {p["name"]: p["valueCurrent"] for p in exp.get_parameters_summary()}
+    print(exp.name, params.get("learning_rate"), final_f1(exp))
 ```
 
 ## Installation
 
 ```bash
-pip install comet-ml
-
-# With framework integrations
-pip install comet-ml[pytorch]
-pip install comet-ml[tensorflow]
-pip install comet-ml[sklearn]
+pip install comet-ml            # current release 3.58.x; set COMET_API_KEY in the environment
 ```
 
+Frameworks (PyTorch, scikit-learn, Keras, XGBoost, ...) are detected automatically: `import comet_ml` **before** importing them. Without an account or network, use `OfflineExperiment(offline_directory="./comet-offline")` and upload later with `comet upload <file>.zip`.
 
 ## Examples
 
 
-### Example 1: Setting up an evaluation pipeline for a RAG application
+### Example 1: Track a scikit-learn run and pick the best one
 
-**User request:**
+**User request:** "I keep retraining a churn model and losing track of which settings gave the best F1. Log my runs to Comet."
 
-```
-I have a RAG chatbot that answers questions from our docs. Set up Comet Ml to evaluate answer quality.
-```
+The agent adds `import comet_ml` at the top of `train.py`, creates `Experiment(project_name="churn-model", workspace="my-team")` reading `COMET_API_KEY` from the environment, logs `n_estimators` and `max_depth` with `log_parameters`, `val_f1` with `log_metric`, and a confusion matrix. After a few runs, `api.query("my-team", "churn-model", Metric("val_f1") > 0.8)` returns the matching runs, sorted in Python by `get_metrics_summary("val_f1")["valueCurrent"]`. Each run also appears in the project table at comet.com with its git commit and environment.
 
-The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
+### Example 2: Promote a model and trace an LLM app
 
-### Example 2: Comparing model performance across prompts
+**User request:** "Register the best classifier as `text-classifier-prod` and trace the OpenAI calls in our support bot."
 
-**User request:**
-
-```
-We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Comet Ml.
-```
-
-The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
+The agent calls `experiment.log_model("text-classifier", "./model_weights.pt")` followed by `experiment.register_model("text-classifier", registry_name="text-classifier-prod", version="1.2.0", status="Production")`, and later fetches it with `api.get_model(...).download("1.2.0", output_folder="./model_artifacts/")`. For the bot it installs `opik`, wraps the client with `track_openai(OpenAI())`, and checks the traces in the Opik project `support-bot-eval`.
 
 
 ## Guidelines
@@ -250,4 +224,5 @@ The agent creates a structured experiment with the existing prompt set, configur
 5. **Log dataset hashes** — Use `log_dataset_hash()` for reproducibility; know exactly which data produced which results
 6. **Confusion matrices for classification** — Always log confusion matrices; accuracy alone misses class imbalances
 7. **Compare before deploying** — Use Comet's comparison view to verify new models outperform current production across all metrics
-8. **LLM cost tracking** — Log token usage and calculated costs for every LLM call; costs add up fast in production
+8. **LLM apps use Opik** — `comet-ml` is for training experiments and the model registry; trace prompts and LLM calls with the `opik` package
+9. **Keep keys out of code** — read `COMET_API_KEY` from the environment or `~/.comet.config`, never commit it
