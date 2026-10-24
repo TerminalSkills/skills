@@ -7,6 +7,7 @@ skills:
   - redis
   - hono
   - zod
+  - pdfkit
 category: development
 tags:
   - pdf
@@ -20,315 +21,276 @@ tags:
 
 ## The Problem
 
-Petra leads engineering at a 20-person legal-tech company. They generate 2,000 contracts per month. Each contract is assembled manually in Word, exported to PDF, and emailed. Changing the company address means editing 15 templates. Dynamic data (client name, dates, amounts) is copy-pasted — typos happen in 5% of documents. They tried puppeteer-based PDF generation but it's slow (8 seconds per PDF) and uses 500MB RAM per instance. They need a template system that generates PDFs fast, handles multi-page layouts, and lets non-developers create templates.
+Petra leads engineering at a 20-person legal-tech company. They generate about 2,000 contracts a month. Each one is assembled by hand in Word, exported to PDF and emailed. Changing the company address means editing 15 templates, and client names, dates and amounts are copy-pasted, so typos get through. A headless-Chrome generator they tried was slow and heavy on memory per instance. They need templates that live as data, so the legal team can change wording without a developer, and an engine that renders multi-page documents with tables, headers and footers quickly.
 
-## Step 1: Build the PDF Engine
+## The Solution
+
+Describe each template as JSON, validate it with [Zod](/skills/zod), and render it directly with [PDFKit](/skills/pdfkit) (no browser involved). Write it in [TypeScript](/skills/typescript), expose it through a small [Hono](/skills/hono) API, and use [Redis](/skills/redis) to cache templates and track batch progress.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install
+
+```bash
+npm install pdfkit hono @hono/node-server @hono/zod-validator zod ioredis
+npm install -D typescript tsx @types/node @types/pdfkit
+```
+
+The code uses ES modules (`"type": "module"` in `package.json`) and was type-checked with `tsc --noEmit` under `strict`. PDFKit has a table API (`doc.table()`) that splits long tables across pages, so there is no hand-written row-height logic.
+
+### Step 2: Define the template format
+
+The template is data, so the schema is the contract between the template editor and the engine. Zod rejects a bad template at save time instead of at render time.
 
 ```typescript
-// src/pdf/engine.ts — PDF generation with templates, data binding, and batch processing
+// src/pdf/schema.ts
+import { z } from "zod";
+
+const style = z.object({
+  fontSize: z.number().positive().optional(),
+  bold: z.boolean().optional(),
+  alignment: z.enum(["left", "center", "right"]).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+}).default({});
+
+const text = z.object({ type: z.literal("text"), content: z.string(), style });
+const pagebreak = z.object({ type: z.literal("pagebreak") });
+const table = z.object({
+  type: z.literal("table"),
+  headers: z.array(z.string()),
+  widths: z.array(z.number().positive()),      // percentages, one per column
+  dataKey: z.string(),                         // variable holding the rows
+  rowTemplate: z.array(z.string()),            // e.g. "{{item.price|money}}"
+  totalRow: z.array(z.string()).optional(),
+});
+
+export const section = z.discriminatedUnion("type", [text, pagebreak, table])
+  .and(z.object({ if: z.string().optional() })); // render only if this variable is truthy
+
+export const templateSchema = z.object({
+  name: z.string().min(1),
+  pageSize: z.enum(["A4", "LETTER", "LEGAL"]).default("A4"),
+  margin: z.number().min(20).max(120).default(56),
+  fontSize: z.number().default(11),
+  header: z.string().optional(),               // "{{company}}"
+  footer: z.string().optional(),               // "Page {{_page}} of {{_pages}}"
+  variables: z.array(z.object({ name: z.string(), required: z.boolean().default(false) })).default([]),
+  sections: z.array(section),
+});
+export type Template = z.infer<typeof templateSchema>;
+export type Section = z.infer<typeof section>;
+```
+
+### Step 3: Write the renderer
+
+`interpolate` replaces `{{path}}` placeholders, with an optional `|money` filter that formats integer cents. Headers and footers are drawn after layout so `{{_pages}}` is known. PDFKit adds a page if you write below the bottom margin, so the footer code zeroes that margin while it draws.
+
+```typescript
+// src/pdf/engine.ts
 import PDFDocument from "pdfkit";
-import { pool } from "../db";
-import { Redis } from "ioredis";
-import { Readable } from "node:stream";
+import type { Section, Template } from "./schema";
 
-const redis = new Redis(process.env.REDIS_URL!);
+type Data = Record<string, any>;
+const money = (cents: unknown) => (Number(cents) / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-interface PDFTemplate {
-  id: string;
-  name: string;
-  type: "invoice" | "contract" | "report" | "receipt" | "certificate";
-  layout: {
-    pageSize: "A4" | "Letter" | "Legal";
-    margins: { top: number; bottom: number; left: number; right: number };
-    orientation: "portrait" | "landscape";
-  };
-  header: TemplateSection | null;
-  footer: TemplateSection | null;
-  sections: TemplateSection[];
-  styles: {
-    fontFamily: string;
-    primaryColor: string;
-    accentColor: string;
-    fontSize: number;
-    lineHeight: number;
-  };
-  variables: Array<{ name: string; type: string; required: boolean; default?: any }>;
+// {{path.to.value}} or {{path|money}}; unknown paths render as empty text
+export function interpolate(tpl: string, data: Data): string {
+  return tpl.replace(/\{\{\s*([\w.]+)\s*(?:\|\s*(money))?\s*\}\}/g, (_, path: string, filter?: string) => {
+    const value = path.split(".").reduce((v: any, k) => v?.[k], data);
+    if (value == null) return "";
+    return filter === "money" ? money(value) : String(value);
+  });
 }
 
-interface TemplateSection {
-  type: "text" | "table" | "image" | "spacer" | "divider" | "signature" | "pagebreak";
-  content?: string;            // supports {{variable}} placeholders
-  style?: {
-    fontSize?: number;
-    bold?: boolean;
-    italic?: boolean;
-    alignment?: "left" | "center" | "right";
-    color?: string;
-    marginTop?: number;
-    marginBottom?: number;
-  };
-  table?: {
-    headers: string[];
-    widths: number[];          // column widths as percentages
-    dataKey: string;           // variable name containing row data
-    rowTemplate: string[];     // {{item.field}} for each column
-    totalRow?: string[];       // optional totals row
-    striped?: boolean;
-  };
-  image?: {
-    urlKey: string;            // variable name containing image URL
-    width?: number;
-    height?: number;
-    alignment?: "left" | "center" | "right";
-  };
-  condition?: string;          // {{#if variable}} — only render if truthy
-}
-
-// Generate PDF from template + data
-export async function generatePDF(
-  templateId: string,
-  data: Record<string, any>
-): Promise<Buffer> {
-  const { rows: [tmplRow] } = await pool.query(
-    "SELECT * FROM pdf_templates WHERE id = $1", [templateId]
-  );
-  if (!tmplRow) throw new Error("Template not found");
-
-  const template: PDFTemplate = {
-    ...tmplRow,
-    layout: JSON.parse(tmplRow.layout),
-    header: tmplRow.header ? JSON.parse(tmplRow.header) : null,
-    footer: tmplRow.footer ? JSON.parse(tmplRow.footer) : null,
-    sections: JSON.parse(tmplRow.sections),
-    styles: JSON.parse(tmplRow.styles),
-    variables: JSON.parse(tmplRow.variables),
-  };
-
-  // Validate required variables
-  for (const v of template.variables) {
-    if (v.required && data[v.name] === undefined) {
-      throw new Error(`Missing required variable: ${v.name}`);
-    }
-    if (data[v.name] === undefined && v.default !== undefined) {
-      data[v.name] = v.default;
-    }
-  }
-
-  // Add built-in variables
-  data._date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  data._year = new Date().getFullYear();
-  data._page = 1;
+export function renderPDF(tpl: Template, input: Data): Promise<Buffer> {
+  const data: Data = { ...input, _date: new Date().toISOString().slice(0, 10) };
+  for (const v of tpl.variables) if (v.required && data[v.name] == null) throw new Error(`Missing required variable: ${v.name}`);
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({
-      size: template.layout.pageSize,
-      layout: template.layout.orientation,
-      margins: template.layout.margins,
-      bufferPages: true, // needed for headers/footers
-    });
-
+    const doc = new PDFDocument({ size: tpl.pageSize, margin: tpl.margin, bufferPages: true });
     const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("data", (c: Buffer) => chunks.push(c));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    // Set default font
-    doc.font("Helvetica").fontSize(template.styles.fontSize);
-
-    // Render sections
-    for (const section of template.sections) {
-      if (section.condition && !evaluateCondition(section.condition, data)) continue;
-      renderSection(doc, section, data, template);
+    doc.font("Helvetica").fontSize(tpl.fontSize);
+    for (const s of tpl.sections) {
+      if (s.if && !data[s.if]) continue;
+      renderSection(doc, s, data, tpl);
     }
 
-    // Add headers/footers to all pages
-    const pageCount = doc.bufferedPageRange().count;
-    for (let i = 0; i < pageCount; i++) {
+    // Headers and footers go on after layout, once the page count is known.
+    const range = doc.bufferedPageRange();
+    for (let i = range.start; i < range.start + range.count; i++) {
       doc.switchToPage(i);
-
-      if (template.header) {
-        const savedY = doc.y;
-        doc.y = template.layout.margins.top / 2;
-        renderHeaderFooter(doc, template.header, { ...data, _page: i + 1, _pages: pageCount }, template);
-        doc.y = savedY;
-      }
-
-      if (template.footer) {
-        doc.y = doc.page.height - template.layout.margins.bottom + 10;
-        renderHeaderFooter(doc, template.footer, { ...data, _page: i + 1, _pages: pageCount }, template);
+      const vars = { ...data, _page: i + 1, _pages: range.count };
+      const w = doc.page.width - 2 * tpl.margin;
+      doc.fontSize(8).fillColor("#666666").font("Helvetica");
+      if (tpl.header) doc.text(interpolate(tpl.header, vars), tpl.margin, tpl.margin / 2, { width: w, align: "center" });
+      if (tpl.footer) {
+        // writing below the bottom margin would add a page, so drop the margin first
+        const bottom = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc.text(interpolate(tpl.footer, vars), tpl.margin, doc.page.height - tpl.margin / 2 - 8, { width: w, align: "center" });
+        doc.page.margins.bottom = bottom;
       }
     }
-
     doc.end();
   });
 }
 
-function renderSection(doc: typeof PDFDocument.prototype, section: TemplateSection, data: Record<string, any>, template: PDFTemplate): void {
-  const style = section.style || {};
-
-  if (style.marginTop) doc.moveDown(style.marginTop / template.styles.fontSize);
-
-  switch (section.type) {
+function renderSection(doc: PDFKit.PDFDocument, s: Section, data: Data, tpl: Template) {
+  switch (s.type) {
     case "text": {
-      const text = interpolate(section.content || "", data);
-      doc.fontSize(style.fontSize || template.styles.fontSize);
-      if (style.bold) doc.font("Helvetica-Bold");
-      else if (style.italic) doc.font("Helvetica-Oblique");
-      else doc.font("Helvetica");
-      if (style.color) doc.fillColor(style.color);
-      else doc.fillColor(template.styles.primaryColor || "#000000");
-
-      doc.text(text, { align: style.alignment || "left" });
+      doc.font(s.style.bold ? "Helvetica-Bold" : "Helvetica").fontSize(s.style.fontSize ?? tpl.fontSize)
+        .fillColor(s.style.color ?? "#111111")
+        .text(interpolate(s.content, data), { align: s.style.alignment ?? "left" }).moveDown(0.6);
       break;
     }
-
-    case "table": {
-      if (!section.table) break;
-      const rows = data[section.table.dataKey] || [];
-      renderTable(doc, section.table, rows, data, template);
-      break;
-    }
-
-    case "spacer":
-      doc.moveDown(2);
-      break;
-
-    case "divider":
-      const x = doc.x;
-      const width = doc.page.width - template.layout.margins.left - template.layout.margins.right;
-      doc.moveTo(x, doc.y).lineTo(x + width, doc.y)
-        .strokeColor("#CCCCCC").lineWidth(0.5).stroke();
-      doc.moveDown(0.5);
-      break;
-
-    case "signature": {
-      doc.moveDown(3);
-      const sigX = doc.x;
-      doc.moveTo(sigX, doc.y).lineTo(sigX + 200, doc.y)
-        .strokeColor("#000000").lineWidth(1).stroke();
-      doc.moveDown(0.3);
-      doc.fontSize(10).text(interpolate(section.content || "Signature", data));
-      doc.text(data._date);
-      break;
-    }
-
     case "pagebreak":
       doc.addPage();
       break;
-  }
-
-  if (style.marginBottom) doc.moveDown(style.marginBottom / template.styles.fontSize);
-}
-
-function renderTable(doc: any, table: NonNullable<TemplateSection["table"]>, rows: any[], data: Record<string, any>, template: PDFTemplate): void {
-  const pageWidth = doc.page.width - template.layout.margins.left - template.layout.margins.right;
-  const colWidths = table.widths.map((w) => (pageWidth * w) / 100);
-  const startX = template.layout.margins.left;
-
-  // Headers
-  doc.font("Helvetica-Bold").fontSize(10);
-  let x = startX;
-  for (let i = 0; i < table.headers.length; i++) {
-    doc.text(table.headers[i], x, doc.y, { width: colWidths[i], continued: i < table.headers.length - 1 });
-    x += colWidths[i];
-  }
-  doc.moveDown(0.5);
-
-  // Divider
-  doc.moveTo(startX, doc.y).lineTo(startX + pageWidth, doc.y).strokeColor("#000").lineWidth(0.5).stroke();
-  doc.moveDown(0.3);
-
-  // Rows
-  doc.font("Helvetica").fontSize(10);
-  for (let r = 0; r < rows.length; r++) {
-    const row = rows[r];
-
-    // Striped background
-    if (table.striped && r % 2 === 1) {
-      doc.rect(startX, doc.y - 2, pageWidth, 16).fill("#F8F9FA");
-      doc.fillColor("#000000");
-    }
-
-    x = startX;
-    for (let i = 0; i < table.rowTemplate.length; i++) {
-      const cellText = interpolate(table.rowTemplate[i], { ...data, item: row });
-      doc.text(cellText, x, doc.y, { width: colWidths[i] });
-      x += colWidths[i];
-    }
-
-    // Check if we need a new page
-    if (doc.y > doc.page.height - template.layout.margins.bottom - 50) {
-      doc.addPage();
+    case "table": {
+      const w = doc.page.width - 2 * tpl.margin;
+      const rows: unknown[] = Array.isArray(data[s.dataKey]) ? data[s.dataKey] : [];
+      const body = rows.map((item) => s.rowTemplate.map((c) => interpolate(c, { ...data, item })));
+      doc.font("Helvetica").fontSize(10).fillColor("#111111");
+      doc.table({
+        columnStyles: s.widths.map((p) => (w * p) / 100),
+        data: [
+          s.headers.map((h) => ({ text: h, font: { src: "Helvetica-Bold" }, backgroundColor: "#f1f3f5" })),
+          ...body,
+          ...(s.totalRow ? [s.totalRow.map((c) => ({ text: interpolate(c, data), font: { src: "Helvetica-Bold" } }))] : []),
+        ],
+      });
+      doc.moveDown(0.6);
+      break;
     }
   }
-
-  // Totals row
-  if (table.totalRow) {
-    doc.moveDown(0.3);
-    doc.moveTo(startX, doc.y).lineTo(startX + pageWidth, doc.y).strokeColor("#000").stroke();
-    doc.moveDown(0.3);
-    doc.font("Helvetica-Bold");
-
-    x = startX;
-    for (let i = 0; i < table.totalRow.length; i++) {
-      const cellText = interpolate(table.totalRow[i], data);
-      doc.text(cellText, x, doc.y, { width: colWidths[i] });
-      x += colWidths[i];
-    }
-  }
-
-  doc.moveDown(1);
-}
-
-function renderHeaderFooter(doc: any, section: TemplateSection, data: Record<string, any>, template: PDFTemplate): void {
-  const text = interpolate(section.content || "", data);
-  doc.fontSize(8).fillColor("#999999").font("Helvetica");
-  doc.text(text, template.layout.margins.left, doc.y, {
-    align: section.style?.alignment || "center",
-    width: doc.page.width - template.layout.margins.left - template.layout.margins.right,
-  });
-}
-
-// Replace {{variable}} placeholders
-function interpolate(template: string, data: Record<string, any>): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
-    const parts = key.trim().split(".");
-    let value: any = data;
-    for (const part of parts) {
-      value = value?.[part];
-    }
-    if (value === undefined || value === null) return "";
-    if (typeof value === "number" && key.includes("amount")) {
-      return (value / 100).toFixed(2);
-    }
-    return String(value);
-  });
-}
-
-function evaluateCondition(condition: string, data: Record<string, any>): boolean {
-  const match = condition.match(/\{\{#if\s+(\w+)\}\}/);
-  if (match) return !!data[match[1]];
-  return true;
-}
-
-// Batch generate PDFs
-export async function batchGenerate(
-  templateId: string,
-  dataList: Array<Record<string, any>>
-): Promise<Array<{ data: Record<string, any>; buffer: Buffer }>> {
-  const results = [];
-  for (const data of dataList) {
-    const buffer = await generatePDF(templateId, data);
-    results.push({ data, buffer });
-  }
-  return results;
 }
 ```
 
-## Results
+### Step 4: Try it
 
-- **PDF generation: 8s → 200ms** — PDFKit generates directly without headless browser; 500MB RAM → 50MB; server handles 10x more concurrent generations
-- **Template typos eliminated** — `{{client.name}}` pulled from database; no more copy-paste errors; error rate 5% → 0%
-- **Company address updated in 1 place** — change template variable, all future documents use it; 15 Word templates replaced by 3 programmatic templates
-- **Batch invoicing** — 2,000 contracts generated in 7 minutes (was 2 days of manual work); sent via email automatically
-- **Non-developers create templates** — JSON template format with sections, tables, and variables; legal team defines templates without developer help
+```typescript
+// src/demo.ts
+import { writeFileSync } from "node:fs";
+import { templateSchema } from "./pdf/schema";
+import { renderPDF } from "./pdf/engine";
+const tpl = templateSchema.parse({
+  name: "Service agreement", header: "{{company}}", footer: "Page {{_page}} of {{_pages}}",
+  variables: [{ name: "client", required: true }],
+  sections: [
+    { type: "text", content: "Service Agreement", style: { fontSize: 20, bold: true } },
+    { type: "text", content: "Between {{company}} and {{client.name}}, dated {{_date}}." },
+    { type: "table", headers: ["Item", "Qty", "Price"], widths: [60, 15, 25], dataKey: "items", rowTemplate: ["{{item.name}}", "{{item.qty}}", "{{item.price|money}}"], totalRow: ["Total", "", "{{total|money}}"] },
+    { type: "text", content: "Rush clause applies.", if: "rush" },
+  ],
+});
+const items = Array.from({ length: 80 }, (_, i) => ({ name: `Line item ${i + 1}`, qty: 1 + (i % 3), price: 12500 + i }));
+const buf = await renderPDF(tpl, { company: "Acme Legal", client: { name: "Globex" }, items, total: 1000000, rush: true });
+writeFileSync("agreement.pdf", buf);
+```
+
+Run it with `npx tsx src/demo.ts`. With 80 line items this gave a 2-page PDF in well under a second (checked with `pdftotext -layout`), with the header on both pages, the table continuing on page 2, the total row, the conditional clause, and "Page 2 of 2" in the footer.
+
+### Step 5: Serve it with Hono, Zod and Redis
+
+Templates are stored in Postgres (a `pdf_templates` table with `id text primary key` and `body jsonb`; `./db` is your own pool). Redis holds a 5-minute cache of parsed templates and the progress counters of each batch. The server binds to `127.0.0.1`; put authentication and a reverse proxy in front of it before exposing it.
+
+```typescript
+// src/api.ts
+import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { Redis } from "ioredis";
+import { z } from "zod";
+import { pool } from "./db";
+import { templateSchema, type Template } from "./pdf/schema";
+import { renderPDF } from "./pdf/engine";
+
+const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+const app = new Hono();
+
+// Templates live in Postgres (table pdf_templates: id text primary key, body jsonb);
+// Redis only caches the parsed copy for 5 minutes.
+async function loadTemplate(id: string): Promise<Template | null> {
+  const cached = await redis.get(`pdf:tpl:${id}`);
+  if (cached) return templateSchema.parse(JSON.parse(cached));
+  const { rows } = await pool.query("SELECT body FROM pdf_templates WHERE id = $1", [id]);
+  if (!rows[0]) return null;
+  const tpl = templateSchema.parse(rows[0].body);
+  await redis.set(`pdf:tpl:${id}`, JSON.stringify(tpl), "EX", 300);
+  return tpl;
+}
+
+app.put("/templates/:id", zValidator("json", templateSchema), async (c) => {
+  const id = c.req.param("id");
+  await pool.query(
+    "INSERT INTO pdf_templates (id, body) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET body = $2",
+    [id, JSON.stringify(c.req.valid("json"))],
+  );
+  await redis.del(`pdf:tpl:${id}`);
+  return c.json({ id });
+});
+
+app.post("/templates/:id/render", zValidator("json", z.record(z.string(), z.unknown())), async (c) => {
+  const tpl = await loadTemplate(c.req.param("id"));
+  if (!tpl) return c.json({ error: "template not found" }, 404);
+  try {
+    const pdf = await renderPDF(tpl, c.req.valid("json"));
+    return new Response(new Uint8Array(pdf), { headers: { "Content-Type": "application/pdf" } });
+  } catch (e) { return c.json({ error: (e as Error).message }, 422); }
+});
+
+// Batch: respond at once, render in the background, report progress through Redis
+app.post("/batches", zValidator("json", z.object({
+  templateId: z.string(),
+  items: z.array(z.record(z.string(), z.unknown())).min(1).max(5000),
+})), async (c) => {
+  const { templateId, items } = c.req.valid("json");
+  const tpl = await loadTemplate(templateId);
+  if (!tpl) return c.json({ error: "template not found" }, 404);
+
+  const id = randomUUID();
+  const dir = `${process.env.OUTPUT_DIR ?? "./out"}/${id}`;
+  await mkdir(dir, { recursive: true });
+  await redis.hset(`pdf:batch:${id}`, { total: items.length, done: 0, failed: 0 });
+  await redis.expire(`pdf:batch:${id}`, 86400);
+
+  void (async () => {
+    for (const [i, item] of items.entries()) {
+      try {
+        await writeFile(`${dir}/${i}.pdf`, await renderPDF(tpl, item));
+        await redis.hincrby(`pdf:batch:${id}`, "done", 1);
+      } catch {
+        await redis.hincrby(`pdf:batch:${id}`, "failed", 1);
+      }
+    }
+  })();
+  return c.json({ id }, 202);
+});
+
+app.get("/batches/:id", async (c) => {
+  const status = await redis.hgetall(`pdf:batch:${c.req.param("id")}`);
+  return Object.keys(status).length ? c.json(status) : c.json({ error: "not found" }, 404);
+});
+
+serve({ fetch: app.fetch, hostname: "127.0.0.1", port: Number(process.env.PORT ?? 3300) });
+```
+
+`POST /templates/:id/render` returns the PDF. `POST /batches` returns `202` with a batch id, and `GET /batches/:id` returns `{ total, done, failed }` while files are written to `OUTPUT_DIR`. The batch loop runs inside the API process; for thousands of documents move it to a worker that reads jobs from a Redis-backed queue, so a restart does not lose a run.
+
+## Real-World Example
+
+Petra's team moves three contract types into this format. The company address becomes one variable, the client block comes from the CRM record, and the legal team edits the JSON through an internal form that calls `PUT /templates/:id` (a bad template comes back as a 400 with the Zod error). The month-end run posts 2,000 client records to `/batches` and watches `done` climb. A regression test renders every template against a sample record and compares the `pdftotext` output, so a wording change cannot silently break the layout.
+
+## Related Skills
+
+- [typescript](/skills/typescript): strict typing for the template model and the renderer
+- [zod](/skills/zod): template and request validation
+- [pdfkit](/skills/pdfkit): text, drawing, tables and multi-page layout
+- [hono](/skills/hono): the HTTP API around the renderer
+- [redis](/skills/redis): template cache and batch progress
