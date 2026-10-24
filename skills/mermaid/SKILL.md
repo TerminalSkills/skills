@@ -1,22 +1,28 @@
 ---
 name: mermaid
 description: >-
-  Generate diagrams from text with Mermaid.js. Use when a user asks to create flowcharts, sequence diagrams, ERD diagrams, Gantt charts, class diagrams, or embed diagrams in Markdown documentation.
+  Mermaid turns short text definitions into diagrams (flowcharts, sequence, ER, class, state, Gantt, C4 and
+  architecture diagrams) that render in Markdown on GitHub, GitLab and docs sites. Use when a user asks to
+  "draw a flowchart", "make a sequence diagram", "generate an ER diagram from my schema", "embed a diagram in
+  the README", or "export a diagram to SVG or PNG".
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "Browsers for the JS library; Node.js 22.13+ and a headless Chromium (downloaded by the CLI) for mmdc"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/mermaid-js/mermaid
   tags: ["diagrams", "markdown", "flowchart", "sequence-diagram", "docs-as-code"]
 ---
 # Mermaid — Diagrams as Code in Markdown
 
 ## Overview
 
-You are an expert in Mermaid, the JavaScript-based diagramming library that renders diagrams from text definitions embedded in Markdown. You help developers create flowcharts, sequence diagrams, class diagrams, ERDs, Gantt charts, and architecture diagrams that live alongside code and documentation — versioned in Git, rendered in GitHub, GitLab, Notion, and VitePress.
+Mermaid (npm `mermaid`, 12.x in October 2026) renders diagrams from text. Write a fenced block tagged `mermaid` in any Markdown file and GitHub, GitLab and most documentation tools draw it; the text diffs and reviews like code. Newer diagram types may not render on a host that runs an older Mermaid, so check the target before using them.
 
 ## Instructions
+
+Pick the diagram type by the question it answers: flowchart for decisions, sequence for who-calls-whom over time, ER for data models, state for lifecycles, Gantt for schedules. Write the definition, then validate it (see Rendering) before committing. The blocks below are all valid on Mermaid 12.
 
 ### Flowcharts
 
@@ -99,7 +105,7 @@ erDiagram
     }
 ```
 
-### Architecture Diagrams (C4)
+### Architecture diagrams (C4, experimental)
 
 ```mermaid
 C4Context
@@ -134,13 +140,13 @@ gantt
     axisFormat %b %d
 
     section Discovery
-    User interviews       :done,    d1, 2026-01-06, 2w
+    User interviews       :done,    d1, 2026-09-07, 2w
     Assumption testing     :done,    d2, after d1, 1w
     PRD writing           :done,    d3, after d2, 1w
 
     section Development
-    Backend API           :active,  dev1, 2026-02-03, 3w
-    Frontend UI           :active,  dev2, 2026-02-10, 3w
+    Backend API           :active,  dev1, 2026-10-12, 3w
+    Frontend UI           :active,  dev2, 2026-10-19, 3w
     Integration testing   :         dev3, after dev1, 1w
 
     section Launch
@@ -170,45 +176,76 @@ stateDiagram-v2
     }
 ```
 
-## Installation
+### Other types worth knowing
+
+`classDiagram`, `pie`, `gitGraph`, `timeline`, `mindmap`, `journey`, `quadrantChart`, `xychart-beta`, `sankey-beta`, `kanban`, `block-beta`, `packet-beta`, `requirementDiagram`, `treemap-beta`, `radar-beta` and `architecture-beta` all parse in Mermaid 12. Example of an architecture diagram:
+
+```mermaid
+architecture-beta
+    group cloud(cloud)[Production]
+    service api(server)[API] in cloud
+    service db(database)[Postgres] in cloud
+    service bucket(disk)[Uploads] in cloud
+    api:R --> L:db
+    api:B --> T:bucket
+```
+
+### Theme and configuration
+
+Directives such as `%%{init: {...}}%%` are deprecated. Put configuration in YAML frontmatter at the top of the block:
+
+```mermaid
+---
+config:
+  theme: dark
+  flowchart:
+    curve: basis
+---
+flowchart LR
+    Client[Browser] --> Edge[CDN] --> Origin[App server]
+```
+
+### Rendering and validating
 
 ```bash
-npm install mermaid                    # JavaScript library
-# Or use CDN: <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-
-# GitHub, GitLab, Notion render Mermaid natively in Markdown
-# Just use ```mermaid code blocks
+npm install -g @mermaid-js/mermaid-cli     # provides mmdc; downloads a headless Chromium
+mmdc -i architecture.mmd -o architecture.svg
+mmdc -i architecture.mmd -o architecture.png -t dark -b transparent
+mmdc -i README.template.md -o README.md    # replaces mermaid blocks with rendered images
 ```
+
+`mmdc` renders in a headless browser, so a diagram that does not parse will not produce an image; run it on changed files in CI to catch syntax errors.
+
+### In a web page
+
+```html
+<pre class="mermaid">
+flowchart LR
+    A[Request] --> B[Handler]
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@12/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>
+```
+
+Pin a major version in the URL. In a bundled app, `npm install mermaid`, call `mermaid.initialize({ startOnLoad: false })` and then `await mermaid.run()`. Keep the default `securityLevel: 'strict'` unless you fully trust the diagram source.
 
 ## Examples
 
-**Example 1: User asks to set up mermaid**
+### Example 1: "Document our checkout API call flow in the README"
 
-User: "Help me set up mermaid for my project"
+Write the sequence diagram above (adapting participants) in a `mermaid` fence in `README.md`, then preview the file on GitHub or render the diagram with `mmdc`. The result is a rendered diagram with the `alt`/`else` branches shown as labelled boxes.
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure mermaid
-3. Set up initial project structure
-4. Verify the setup works correctly
+### Example 2: "Generate an ER diagram from my Postgres tables"
 
-**Example 2: User asks to build a feature with mermaid**
-
-User: "Create a dashboard using mermaid"
-
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+Read the schema (`\d+ orders` in psql or the migration files), then emit one `erDiagram` entity per table with its columns and `PK`/`FK`/`UK` markers, and one relationship line per foreign key, such as `USERS ||--o{ ORDERS : places`. The cardinality markers are `||` exactly one, `|o` or `o|` zero or one, `o{` or `}o` zero or many, `|{` or `}|` one or many (the crow's foot points at the "many" side).
 
 ## Guidelines
 
-1. **Diagrams as code** — Keep Mermaid diagrams in Markdown files alongside code; they version, diff, and review in PRs
-2. **GitHub native rendering** — GitHub renders Mermaid in README and docs automatically; no extra tooling needed
-3. **Sequence diagrams for APIs** — Use sequence diagrams to document API flows; clearer than prose for multi-service interactions
-4. **ERDs from actual schema** — Generate Mermaid ERDs from your database schema; keep them in sync with migrations
-5. **Keep it simple** — Mermaid diagrams should fit on one screen; split complex systems into multiple diagrams
-6. **Theme for presentations** — Use `%%{init: {'theme': 'dark'}}%%` for dark-mode diagrams in presentations
-7. **C4 for architecture** — Use C4 context/container/component diagrams for system architecture documentation
-8. **Gantt for planning** — Use Gantt charts in project READMEs to communicate timelines; auto-renders in GitHub
+- A node id or label that is the lowercase word `end` breaks flowcharts; write `End` or quote the label.
+- Wrap labels containing parentheses, braces, quotes or `#` in double quotes: `B["Pay (card)"]`. Unquoted `B[Pay (card)]` is a parse error.
+- Keep a diagram to what fits on one screen; split large systems into several diagrams.
+- C4 diagrams are marked experimental upstream; their syntax may change between releases.
+- Mermaid lays out automatically; if you need exact positioning, use a drawing tool instead.
+- Do not paste untrusted user text into a diagram that renders with `securityLevel: 'loose'`.
