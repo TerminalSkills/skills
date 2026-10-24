@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: 'Any HTTP client (REST APIs), Deluge for serverless scripting'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: business
   tags:
     - zoho
@@ -26,7 +26,7 @@ metadata:
 
 ## Overview
 
-Integrate and automate across the Zoho ecosystem — CRM, Books, Desk, Projects, Creator, and more. This skill covers OAuth2 authentication, the Zoho CRM API v2 (leads, contacts, deals, custom modules), Zoho Books (invoices, payments, expenses), Zoho Desk (tickets, agents), Deluge serverless scripting for custom automation, webhooks, and cross-product data synchronization.
+Integrate and automate across the Zoho ecosystem — CRM, Books, Desk, Projects, Creator, and more. This skill covers OAuth2 authentication, the Zoho CRM API v8 (leads, contacts, deals, custom modules), Zoho Books (invoices, payments, expenses), Zoho Desk (tickets, agents), Deluge serverless scripting for custom automation, webhooks, and cross-product data synchronization.
 
 ## Instructions
 
@@ -35,11 +35,15 @@ Integrate and automate across the Zoho ecosystem — CRM, Books, Desk, Projects,
 Register an app at https://api-console.zoho.com/. All Zoho APIs use OAuth2.
 
 ```bash
-# Self-client: generate grant code at api-console.zoho.com → Self Client
-# Scope: ZohoCRM.modules.ALL,ZohoBooks.fullaccess.all,ZohoDesk.tickets.ALL
+# Self Client (server-to-server): in api-console.zoho.com create a Self Client, then generate a grant code
+# for these scopes (the code is valid only a few minutes, exchange it at once):
+#   ZohoCRM.modules.ALL,ZohoCRM.coql.READ,ZohoBooks.fullaccess.all,Desk.tickets.ALL
 curl -X POST "https://accounts.zoho.com/oauth/v2/token" \
-  -d "grant_type=authorization_code&client_id=ID&client_secret=SECRET&code=CODE&redirect_uri=https://www.zoho.com"
+  -d "grant_type=authorization_code" -d "client_id=$ZOHO_CLIENT_ID" \
+  -d "client_secret=$ZOHO_CLIENT_SECRET" -d "code=$ZOHO_GRANT_CODE"
 ```
+
+The response holds `access_token` (valid 1 hour), a long-lived `refresh_token` (store it as a secret) and `api_domain`. Use that `api_domain` as the base URL of CRM calls instead of hard-coding it.
 
 **Token refresh & API helper:**
 ```typescript
@@ -51,9 +55,9 @@ async function refreshAccessToken(refreshToken: string, clientId: string, client
   return (await res.json()).access_token;
 }
 
-async function zoho(method: string, url: string, token: string, body?: any) {
+async function zoho(method: string, url: string, token: string, body?: any, extraHeaders: Record<string, string> = {}) {
   const res = await fetch(url, {
-    method, headers: { Authorization: `Zoho-oauthtoken ${token}`, "Content-Type": "application/json" },
+    method, headers: { Authorization: `Zoho-oauthtoken ${token}`, "Content-Type": "application/json", ...extraHeaders },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`Zoho ${res.status}: ${await res.text()}`);
@@ -61,30 +65,30 @@ async function zoho(method: string, url: string, token: string, body?: any) {
 }
 ```
 
-Data center URLs: US `.com`, EU `.eu`, IN `.in`, AU `.com.au`.
+Data centers: Accounts and API hosts share one suffix in the US `.com`, EU `.eu`, IN `.in`, AU `.com.au`, JP `.jp` and CN `.com.cn` regions (for example `accounts.zoho.eu`, `www.zohoapis.eu`, `desk.zoho.eu`). Canada is the exception: `accounts.zohocloud.ca`, `www.zohoapis.ca`, `desk.zohocloud.ca`.
 
 ### Step 2: Zoho CRM — Leads, Contacts, Deals
 
 ```typescript
-const CRM = "https://www.zohoapis.com/crm/v2";
+const CRM = "https://www.zohoapis.com/crm/v8";
 
-// Create a lead
+// Create a lead (one POST may carry up to 100 records)
 await zoho("POST", `${CRM}/Leads`, token, {
   data: [{ First_Name: "Marta", Last_Name: "Schmidt", Email: "marta@startup.io",
     Company: "TechStart GmbH", Phone: "+49-30-12345678", Lead_Source: "Web Form", Annual_Revenue: 500000 }],
-  trigger: ["workflow"],
+  trigger: ["workflow"], // omit to run all automations; [] runs none
 });
 
-// COQL query (Zoho's SQL-like syntax)
+// COQL query (SQL-like; needs the ZohoCRM.coql.READ scope; LIMIT max 200 per call)
 const results = await zoho("POST", `${CRM}/coql`, token, {
   select_query: `SELECT Last_Name, Email, Company FROM Leads
     WHERE Lead_Source = 'Web Form' AND Created_Time > '2026-01-01T00:00:00+00:00'
-    ORDER BY Created_Time DESC LIMIT 100`
+    ORDER BY Created_Time DESC LIMIT 0, 100`
 });
 
 // Update a deal
 await zoho("PUT", `${CRM}/Deals`, token, {
-  data: [{ id: "DEAL_ID", Stage: "Closed Won", Amount: 75000, Closing_Date: "2026-03-31" }],
+  data: [{ id: "5725767000001843011", Stage: "Closed Won", Amount: 75000, Closing_Date: "2026-03-31" }],
 });
 
 // Convert lead to contact + deal
@@ -103,13 +107,13 @@ await zoho("POST", `${CRM}/Leads`, token, {
 
 ```typescript
 const BOOKS = "https://www.zohoapis.com/books/v3";
-const ORG_ID = "YOUR_ORG_ID";
+const ORG_ID = process.env.ZOHO_BOOKS_ORG_ID!; // from GET /organizations
 
 // Create invoice
 const invoice = await zoho("POST", `${BOOKS}/invoices?organization_id=${ORG_ID}`, token, {
   customer_id: customerId, date: "2026-02-18", payment_terms: 30,
   line_items: [
-    { name: "Enterprise License — Annual", rate: 50000, quantity: 1, tax_id: "TAX_ID" },
+    { name: "Enterprise License — Annual", rate: 50000, quantity: 1, tax_id: "982000000566007" },
     { name: "Implementation Support (40h)", rate: 150, quantity: 40 },
   ],
 });
@@ -133,24 +137,29 @@ const unpaid = await zoho("GET", `${BOOKS}/invoices?organization_id=${ORG_ID}&st
 
 ```typescript
 const DESK = "https://desk.zoho.com/api/v1";
+// every Desk call except /organizations needs the orgId header (GET /organizations lists yours)
+const DESK_HDR = { orgId: process.env.ZOHO_DESK_ORG_ID! };
 
 await zoho("POST", `${DESK}/tickets`, token, {
-  subject: "Cannot access dashboard after update", departmentId: "DEPT_ID",
+  subject: "Cannot access dashboard after update", departmentId: "1892000000006907", contactId: "1892000000042032",
   channel: "Email", priority: "High", status: "Open", category: "Technical",
-});
+}, DESK_HDR);
 
 await zoho("POST", `${DESK}/tickets/${ticketId}/comments`, token, {
   content: "Root cause identified. Fix deploying in 2 hours.", isPublic: false,
-});
+}, DESK_HDR);
 
-await zoho("PATCH", `${DESK}/tickets/${ticketId}`, token, { status: "In Progress", assigneeId: "AGENT_ID" });
+await zoho("PATCH", `${DESK}/tickets/${ticketId}`, token, { status: "In Progress", assigneeId: "1892000000056007" }, DESK_HDR);
 ```
 
 ### Step 5: Deluge Scripting
 
-**Auto-create invoice when deal closes (CRM → Books):**
+**Auto-create invoice when deal closes (CRM → Books).** Create the `zoho_books` and CRM connections under Setup → Developer Hub → Connections first, and replace `ORG_ID` with your Books organization id:
 ```deluge
-dealId = input.Deal.get("id");
+// Custom function attached to a CRM workflow rule; the rule passes the deal id as `dealId`
+void createInvoiceFromDeal(string dealId)
+{
+headers = Map(); headers.put("Content-Type", "application/json");
 deal = zoho.crm.getRecordById("Deals", dealId);
 contact = zoho.crm.getRecordById("Contacts", deal.get("Contact_Name").get("id"));
 
@@ -161,7 +170,7 @@ searchResp = invokeurl [url: "https://www.zohoapis.com/books/v3/contacts?organiz
 if (searchResp.get("contacts").size() == 0) {
   customerData = Map(); customerData.put("contact_name", deal.get("Account_Name").get("name"));
   createResp = invokeurl [url: "https://www.zohoapis.com/books/v3/contacts?organization_id=ORG_ID"
-    type: POST parameters: customerData.toString() connection: "zoho_books"];
+    type: POST parameters: customerData.toString() headers: headers connection: "zoho_books"];
   booksContactId = createResp.get("contact").get("contact_id");
 } else { booksContactId = searchResp.get("contacts").get(0).get("contact_id"); }
 
@@ -171,7 +180,8 @@ item.put("name", deal.get("Deal_Name")); item.put("rate", deal.get("Amount")); i
 lineItems.add(item);
 invoiceData = Map(); invoiceData.put("customer_id", booksContactId); invoiceData.put("line_items", lineItems);
 invokeurl [url: "https://www.zohoapis.com/books/v3/invoices?organization_id=ORG_ID"
-  type: POST parameters: invoiceData.toString() connection: "zoho_books"];
+  type: POST parameters: invoiceData.toString() headers: headers connection: "zoho_books"];
+}
 ```
 
 ### Step 6: Webhooks & Reporting
@@ -179,12 +189,13 @@ invokeurl [url: "https://www.zohoapis.com/books/v3/invoices?organization_id=ORG_
 **CRM webhook** (Setup → Automation → Webhooks):
 ```
 URL: https://your-server.com/zoho/deal-closed
-Body: {"deal_id":"${Deals.Deal Id}","name":"${Deals.Deal Name}","amount":"${Deals.Amount}"}
+Parameters: send the Deal's id, name and amount as deal_id, name and amount, and add the custom header x-webhook-secret (see the handler below).
 ```
 
-**Webhook handler:**
+**Webhook handler** (add a secret as a custom parameter or header in the webhook definition and reject requests that lack it):
 ```typescript
 app.post("/zoho/deal-closed", (req, res) => {
+  if (req.get("x-webhook-secret") !== process.env.ZOHO_WEBHOOK_SECRET) return res.sendStatus(401);
   const { deal_id, name, amount } = req.body;
   notifySlack(`Deal won: ${name} — $${amount}`);
   syncToERP(deal_id);
@@ -198,11 +209,6 @@ const revenue = await zoho("POST", `${CRM}/coql`, token, {
   select_query: `SELECT Stage, SUM(Amount) as Total_Amount, COUNT(id) as Deal_Count
     FROM Deals WHERE Closing_Date BETWEEN '2026-01-01' AND '2026-12-31' GROUP BY Stage`
 });
-
-// Books financial reports
-const pnl = await zoho("GET",
-  `${BOOKS}/reports/profitandloss?organization_id=${ORG_ID}&from_date=2026-01-01&to_date=2026-12-31`, token);
-const aging = await zoho("GET", `${BOOKS}/reports/receivableaging?organization_id=${ORG_ID}`, token);
 ```
 
 ## Examples
@@ -221,9 +227,10 @@ The agent will write a Deluge scheduled function that runs daily, queries Zoho D
 
 ## Guidelines
 
-- **Use the correct data center URL** — Zoho routes by region (US `.com`, EU `.eu`, IN `.in`, AU `.com.au`); using the wrong base URL returns 404 errors even with valid tokens.
+- **Use the correct data center URL** — Zoho routes by region (US `.com`, EU `.eu`, IN `.in`, AU `.com.au`, JP `.jp`, CN `.com.cn`; Canada uses `zohocloud.ca` for Accounts and Desk but `zohoapis.ca` for the CRM and Books APIs); tokens from one data center do not work on another, so take `api_domain` from the token response.
+- **Pin the CRM API version in the URL** (`/crm/v8/`); older versions such as v2 are superseded, and request fields by API name.
 - **Refresh tokens before they expire** — Zoho access tokens last 1 hour; implement automatic refresh using the stored refresh token and handle 401 responses as a trigger to re-authenticate.
-- **Limit bulk inserts to 100 records** — the CRM API caps batch creates/updates at 100 records per request; split larger datasets into chunks and add a short delay between batches.
-- **Use COQL over search for complex queries** — COQL supports aggregation, sorting, and multi-field filtering that the basic search API cannot handle; prefer it for analytics and reporting.
+- **Limit bulk inserts to 100 records** — the CRM API caps batch creates/updates at 100 records per request; split larger datasets into chunks and add a short delay between batches. A batch can return HTTP 207 (partial success), so read the per-record `status` in the response.
+- **Use COQL over search for complex queries** — COQL supports aggregation, GROUP BY, joins through lookups and multi-field filtering that the basic search API cannot handle; it returns up to 200 rows per call (`LIMIT offset, count`; pagination reaches 100,000 rows), and larger exports belong to the Bulk Read API.
 - **Test Deluge scripts in sandbox first** — Deluge errors in production workflows can silently break automations; use the Zoho Developer Console sandbox to test before deploying to live.
-- **Include `trigger: ["workflow"]` on record creation** — omitting the trigger parameter skips CRM workflow rules and approvals, which can break downstream automations.
+- **Know what `trigger` does** — if you omit it, the automations tied to the API call run; `trigger: []` skips workflows, so pass `[]` for bulk imports that should not fire emails.
