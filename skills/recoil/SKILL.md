@@ -1,57 +1,59 @@
 ---
 name: recoil
 description: >-
-  You are an expert in Recoil, the state management library by Meta for React
-  applications. You help developers manage application state with atoms
-  (shared state units), selectors (derived/async state), and atom families —
-  providing a graph-based state model that integrates naturally with React's
-  concurrent features, avoids unnecessary re-renders, and handles async data
-  fetching as first-class state.
+  Recoil is Meta's atom-and-selector state management library for React. The
+  repository was archived in January 2025 and the library does not run on
+  React 19, so use this skill to maintain existing React 18 or older apps.
+  Use when the user has code with atom, selector, useRecoilState or RecoilRoot,
+  asks how Recoil atoms, selectors and families work, or wants to migrate
+  away from Recoil.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'recoil 0.7.7 with React 16.13.1 through 18; fails on React 19'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Frontend Development
+  version: "1.1.0"
+  repository: https://github.com/facebookexperimental/Recoil
+  category: development
   tags:
     - state-management
     - react
     - atoms
     - selectors
     - meta
-    - async
-    - graph
 ---
 
-# Recoil — State Management for React
+# Recoil
 
-You are an expert in Recoil, the state management library by Meta for React applications. You help developers manage application state with atoms (shared state units), selectors (derived/async state), and atom families — providing a graph-based state model that integrates naturally with React's concurrent features, avoids unnecessary re-renders, and handles async data fetching as first-class state.
+## Overview
 
-## Core Capabilities
+Recoil models React state as a graph: atoms hold state, selectors derive from atoms and other selectors (sync or async), and components subscribe only to the nodes they read. The latest and final release is 0.7.7 (February 2024); the GitHub repository `facebookexperimental/Recoil` is archived (read-only; last push 2025-01-01).
 
-### Atoms and Selectors
+It is not compatible with React 19: rendering any component under `RecoilRoot` throws `Cannot destructure property 'ReactCurrentDispatcher' of 'react.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED' as it is undefined` (verified with recoil 0.7.7 and react 19.3.1; the same code works on react 18.3.1). Its peer range `react >=16.13.1` does not stop the install. For a new project, or an app moving to React 19, pick a maintained library instead: Jotai has the closest model (atoms plus derived atoms), Zustand is the simplest store.
+
+## Instructions
+
+### Install (React 18 or older only)
+
+```bash
+npm install recoil@0.7.7
+```
+
+### Atoms, selectors and components
 
 ```tsx
 import { atom, selector, useRecoilState, useRecoilValue, RecoilRoot } from "recoil";
 
-// Atoms — units of state
-const todosAtom = atom<Todo[]>({
-  key: "todos",
-  default: [],
-});
+type Todo = { id: string; title: string; done: boolean };
+type Filter = "all" | "active" | "completed";
 
-const filterAtom = atom<"all" | "active" | "completed">({
-  key: "todoFilter",
-  default: "all",
-});
+const todosAtom = atom<Todo[]>({ key: "todos", default: [] });
+const filterAtom = atom<Filter>({ key: "todoFilter", default: "all" });
 
-// Selectors — derived state (auto-updates when dependencies change)
-const filteredTodosSelector = selector({
+const filteredTodosSelector = selector<Todo[]>({
   key: "filteredTodos",
   get: ({ get }) => {
     const todos = get(todosAtom);
-    const filter = get(filterAtom);
-    switch (filter) {
+    switch (get(filterAtom)) {
       case "active": return todos.filter((t) => !t.done);
       case "completed": return todos.filter((t) => t.done);
       default: return todos;
@@ -63,23 +65,10 @@ const statsSelector = selector({
   key: "todoStats",
   get: ({ get }) => {
     const todos = get(todosAtom);
-    return {
-      total: todos.length,
-      completed: todos.filter((t) => t.done).length,
-      percent: todos.length ? Math.round(todos.filter((t) => t.done).length / todos.length * 100) : 0,
-    };
+    const completed = todos.filter((t) => t.done).length;
+    return { total: todos.length, completed, percent: todos.length ? Math.round((completed / todos.length) * 100) : 0 };
   },
 });
-
-// Components
-function TodoList() {
-  const filteredTodos = useRecoilValue(filteredTodosSelector);  // Only re-renders when filtered list changes
-  return (
-    <ul>
-      {filteredTodos.map((todo) => <TodoItem key={todo.id} id={todo.id} />)}
-    </ul>
-  );
-}
 
 function TodoStats() {
   const stats = useRecoilValue(statsSelector);
@@ -91,8 +80,7 @@ function FilterButtons() {
   return (
     <div>
       {(["all", "active", "completed"] as const).map((f) => (
-        <button key={f} onClick={() => setFilter(f)}
-          style={{ fontWeight: filter === f ? "bold" : "normal" }}>
+        <button key={f} onClick={() => setFilter(f)} style={{ fontWeight: filter === f ? "bold" : "normal" }}>
           {f}
         </button>
       ))}
@@ -100,75 +88,90 @@ function FilterButtons() {
   );
 }
 
-function App() {
+export function App() {
   return (
     <RecoilRoot>
       <TodoStats />
       <FilterButtons />
-      <TodoList />
     </RecoilRoot>
   );
 }
 ```
 
-### Async Selectors and Atom Families
+Hook choice: `useRecoilValue` to read, `useSetRecoilState` to write without subscribing, `useRecoilState` for both, `useResetRecoilState` to restore the default.
+
+### Async selectors, families and loadables
 
 ```tsx
-// Async selector — fetches data, integrates with Suspense
-const userProfileSelector = selector({
-  key: "userProfile",
-  get: async ({ get }) => {
-    const userId = get(currentUserIdAtom);
-    const response = await fetch(`/api/users/${userId}`);
-    return response.json();
-  },
-});
+import { Suspense } from "react";
+import { atom, atomFamily, selectorFamily, useRecoilValue, useRecoilValueLoadable } from "recoil";
 
-// Atom families — parameterized atoms (one atom per ID)
-const todoItemAtom = atomFamily<Todo | null, string>({
-  key: "todoItem",
-  default: null,
-});
+type User = { id: string; name: string };
 
-// Selector families — parameterized selectors
+const currentUserIdAtom = atom<string>({ key: "currentUserId", default: "u_1042" });
+
+// one cached selector per id
 const userByIdSelector = selectorFamily<User, string>({
   key: "userById",
-  get: (userId) => async ({ get }) => {
-    const response = await fetch(`/api/users/${userId}`);
-    return response.json();
+  get: (userId) => async () => {
+    const res = await fetch(`/api/users/${userId}`);
+    if (!res.ok) throw new Error(`User ${userId}: ${res.status}`);
+    return res.json();
   },
 });
 
-// Usage with Suspense
+// one atom per id, with a default computed from the id
+const draftNoteAtom = atomFamily<string, string>({ key: "draftNote", default: (id) => `Note for ${id}` });
+
 function UserProfile() {
-  const profile = useRecoilValue(userProfileSelector);  // Suspends until loaded
-  return <h1>{profile.name}</h1>;
+  const userId = useRecoilValue(currentUserIdAtom);
+  const user = useRecoilValue(userByIdSelector(userId)); // suspends; throws to the error boundary on failure
+  return <h1>{user.name}</h1>;
 }
 
-function App() {
-  return (
-    <RecoilRoot>
-      <Suspense fallback={<Spinner />}>
-        <UserProfile />
-      </Suspense>
-    </RecoilRoot>
-  );
+function UserBadge({ userId }: { userId: string }) {
+  const loadable = useRecoilValueLoadable(userByIdSelector(userId)); // no Suspense needed
+  if (loadable.state === "loading") return <span>...</span>;
+  if (loadable.state === "hasError") return <span>unavailable</span>;
+  return <span>{loadable.contents.name}</span>;
 }
+
+export const Page = () => (
+  <Suspense fallback={<p>Loading profile...</p>}>
+    <UserProfile />
+  </Suspense>
+);
 ```
 
-## Installation
+### Atom effects (persistence, sync)
 
-```bash
-npm install recoil
+```tsx
+const themeAtom = atom<"light" | "dark">({
+  key: "theme",
+  default: "light",
+  effects: [
+    ({ setSelf, onSet }) => {
+      if (typeof window === "undefined") return; // effects also run during server rendering
+      const saved = localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark") setSelf(saved);
+      onSet((value) => localStorage.setItem("theme", value));
+    },
+  ],
+});
 ```
 
-## Best Practices
+## Examples
 
-1. **Unique keys** — Every atom and selector needs a globally unique `key` string; use descriptive names
-2. **Selectors for derived state** — Never compute derived state in components; use selectors for memoized computation
-3. **Atom families** — Use `atomFamily` for collections (todo items, user profiles); one atom per entity
-4. **Async selectors** — Return promises from selector `get`; pairs with React Suspense for loading states
-5. **Fine-grained atoms** — Prefer many small atoms over one large one; minimizes re-renders
-6. **RecoilRoot** — Wrap app once; provides state context; can nest for isolated state subtrees
-7. **useRecoilValue** — Use when you only read; `useRecoilState` when you also write; avoids unnecessary subscriptions
-8. **Concurrent mode** — Recoil is designed for React concurrent features; async selectors work with Suspense transitions
+**"Add a dark-mode toggle that survives reloads in our Recoil app."** Create `themeAtom` with the effect above and use `const [theme, setTheme] = useRecoilState(themeAtom)` in the toggle. Reloading restores the saved theme. The `window` guard keeps server rendering from touching `localStorage`.
+
+**"Why does my app crash after upgrading to React 19?"** Recoil 0.7.7 reads a React internal that React 19 removed; the error above is thrown on first render. Options: pin `react` and `react-dom` to 18.3.x, or move the atoms to Jotai (`atom` for atoms, derived atoms via `atom((get) => ...)`, `useAtom` / `useAtomValue`), one slice at a time.
+
+## Guidelines
+
+- Do not start new work on Recoil and do not expect fixes: the project is archived. Say so when the user is choosing a library.
+- Every atom and selector needs a key that is unique across the whole app; a duplicate key logs a warning and causes confusing state sharing.
+- Put `RecoilRoot` once near the app root; nested roots start with isolated state.
+- Use selectors for derived values instead of computing in components. Values read from atoms and selectors are frozen in development, so copy before mutating.
+- An async selector with no `Suspense` boundary above it throws to React; either add `<Suspense>` or read it with `useRecoilValueLoadable`.
+- Prefer `selectorFamily` and `atomFamily` over one big atom for collections, and keep family parameters serializable (strings, numbers, plain objects).
+- If server data is the main use case, a data-fetching library such as TanStack Query fits better than async selectors.
