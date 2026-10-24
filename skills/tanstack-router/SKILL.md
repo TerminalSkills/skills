@@ -8,10 +8,11 @@ description: >-
   type-safe", or "add route-level data loading". Covers file-based routing,
   search params with Zod, route loaders, code splitting, and layouts.
 license: Apache-2.0
-compatibility: "React 18+. TypeScript recommended."
+compatibility: "React 18+, Vite. TypeScript recommended."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  repository: https://github.com/TanStack/router
+  version: "1.1.0"
   category: development
   tags: ["react", "routing", "typescript", "tanstack", "file-based-routes"]
 ---
@@ -35,38 +36,72 @@ TanStack Router is a fully type-safe router for React. Every route path, search 
 ### Setup
 
 ```bash
-npm install @tanstack/react-router
-npm install -D @tanstack/router-plugin  # Vite plugin for file-based routing
+npm install @tanstack/react-router zod
+npm install -D @tanstack/router-plugin  # Vite plugin: generates the route tree, splits code
 ```
 
 ```typescript
-// vite.config.ts
+// vite.config.ts — the router plugin goes BEFORE the React plugin
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  plugins: [TanStackRouterVite(), react()],
+  plugins: [
+    tanstackRouter({ target: "react", autoCodeSplitting: true }),
+    react(),
+  ],
 });
+```
+
+The plugin used to be exported as `TanStackRouterVite`; that name is deprecated. On first `vite dev` or `vite build` it generates `src/routeTree.gen.ts` from the files in `src/routes/`. Commit that file or add it to `.gitignore` consistently, and never edit it.
+
+Create the router once and register it, so every `Link`, `useNavigate` and `useSearch` is typed against your routes:
+
+```tsx
+// src/main.tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { routeTree } from "./routeTree.gen";
+
+const router = createRouter({ routeTree });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+);
 ```
 
 ### File-Based Routing
 
 ```
 src/routes/
-├── __root.tsx          # Root layout (wraps all pages)
-├── index.tsx           # /
-├── about.tsx           # /about
+├── __root.tsx            # Root layout (wraps all pages)
+├── index.tsx             # /
+├── about.tsx             # /about
 ├── users/
-│   ├── index.tsx       # /users
-│   ├── $userId.tsx     # /users/:userId (dynamic param)
+│   ├── index.tsx         # /users
 │   └── $userId/
-│       └── posts.tsx   # /users/:userId/posts (nested)
-└── settings/
-    ├── _layout.tsx     # Layout wrapper for /settings/*
-    ├── profile.tsx     # /settings/profile
-    └── billing.tsx     # /settings/billing
+│       ├── route.tsx     # layout + loader for /users/:userId (renders <Outlet />)
+│       ├── index.tsx     # /users/:userId
+│       └── posts.tsx     # /users/:userId/posts
+├── settings/
+│   ├── route.tsx         # layout wrapper for /settings/*
+│   ├── profile.tsx       # /settings/profile
+│   └── billing.tsx       # /settings/billing
+└── _auth/                # `_` prefix = pathless layout: adds no URL segment
+    └── dashboard.tsx     # /dashboard
 ```
+
+`route.tsx` inside a directory is the layout for that path. A file such as `users/$userId.tsx` next to a `users/$userId/` directory is also a parent route, so it must render `<Outlet />` or its children never show. Dots in a file name are the same as slashes (`users.$userId.tsx`).
 
 ### Root Layout
 
@@ -78,9 +113,9 @@ export const Route = createRootRoute({
   component: () => (
     <div>
       <nav className="flex gap-4 p-4 border-b">
-        <Link to="/" className="[&.active]:font-bold">Home</Link>
-        <Link to="/users" className="[&.active]:font-bold">Users</Link>
-        <Link to="/about" className="[&.active]:font-bold">About</Link>
+        <Link to="/" activeProps={{ className: "font-bold" }}>Home</Link>
+        <Link to="/users" activeProps={{ className: "font-bold" }}>Users</Link>
+        <Link to="/about" activeProps={{ className: "font-bold" }}>About</Link>
       </nav>
       <main className="p-4">
         <Outlet />
@@ -90,36 +125,34 @@ export const Route = createRootRoute({
 });
 ```
 
-### Route with Loader
+`Link` also adds an `active` class on its own, so Tailwind's `[&.active]:font-bold` works too.
+
+### Route with Search Params and Loader
+
+Zod 4 (current) schemas go straight into `validateSearch` with no adapter. Use `.default(x).catch(x)`: `.default` keeps the search params optional on `<Link>`, `.catch` replaces malformed URL values instead of showing an error. With only `.catch`, every `<Link to="/users">` has to pass `search`. Zod 3 needs `zodValidator` and `fallback` from `@tanstack/zod-adapter`.
 
 ```tsx
-// src/routes/users/index.tsx — Route with data loading
-import { createFileRoute } from "@tanstack/react-router";
+// src/routes/users/index.tsx
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 
-// Search params schema — validated and typed
+type User = { id: string; name: string; email: string };
+
 const usersSearchSchema = z.object({
-  page: z.number().int().positive().catch(1),
+  page: z.number().int().positive().default(1).catch(1),
   search: z.string().optional(),
-  role: z.enum(["all", "admin", "user"]).catch("all"),
+  role: z.enum(["all", "admin", "user"]).default("all").catch("all"),
 });
 
 export const Route = createFileRoute("/users/")({
-  // Validate search params with Zod
   validateSearch: usersSearchSchema,
-
-  // Load data before rendering (with typed search params)
-  loaderDeps: ({ search }) => ({ search }),
-  loader: async ({ deps: { search } }) => {
-    const params = new URLSearchParams({
-      page: String(search.page),
-      ...(search.search && { search: search.search }),
-      ...(search.role !== "all" && { role: search.role }),
-    });
+  loaderDeps: ({ search }) => ({ page: search.page, search: search.search, role: search.role }),
+  loader: async ({ deps }) => {
+    const params = new URLSearchParams({ page: String(deps.page), role: deps.role });
+    if (deps.search) params.set("search", deps.search);
     const res = await fetch(`/api/users?${params}`);
-    return res.json() as Promise<{ users: User[]; total: number }>;
+    return (await res.json()) as { users: User[]; total: number };
   },
-
   component: UsersPage,
 });
 
@@ -131,93 +164,77 @@ function UsersPage() {
   return (
     <div>
       <h1>Users ({total})</h1>
-
       <input
         value={search ?? ""}
-        onChange={(e) => navigate({ search: { search: e.target.value, page: 1 } })}
-        placeholder="Search users..."
+        onChange={(e) =>
+          navigate({ search: (prev) => ({ ...prev, search: e.target.value || undefined, page: 1 }), replace: true })
+        }
       />
-
       <select
         value={role}
-        onChange={(e) => navigate({ search: { role: e.target.value as any, page: 1 } })}
+        onChange={(e) =>
+          navigate({ search: (prev) => ({ ...prev, role: e.target.value as "all" | "admin" | "user", page: 1 }) })
+        }
       >
         <option value="all">All roles</option>
-        <option value="admin">Admin</option>
-        <option value="user">User</option>
       </select>
-
-      {users.map((user) => (
-        <Link key={user.id} to="/users/$userId" params={{ userId: user.id }}>
-          {user.name}
-        </Link>
+      {users.map((u) => (
+        <Link key={u.id} to="/users/$userId" params={{ userId: u.id }}>{u.name}</Link>
       ))}
-
-      <button
-        disabled={page <= 1}
-        onClick={() => navigate({ search: { page: page - 1 } })}
-      >
-        Previous
-      </button>
-      <button onClick={() => navigate({ search: { page: page + 1 } })}>
-        Next
-      </button>
+      <button disabled={page <= 1} onClick={() => navigate({ search: (prev) => ({ ...prev, page: page - 1 }) })}>Previous</button>
+      <Link to="/users" search={{ page: 2, role: "admin" }}>Admin Users</Link>
     </div>
   );
 }
 ```
+
+`navigate({ search: { page: 2 } })` replaces the whole query string, so the filters would be lost. Pass a function, `search: (prev) => ({ ...prev, page: 2 })`, to keep them. The loader re-runs only when the values returned by `loaderDeps` change, which is why every search param the fetch uses is listed there.
 
 ### Dynamic Route Params
 
 ```tsx
-// src/routes/users/$userId.tsx — Dynamic route with typed params
-import { createFileRoute, notFound } from "@tanstack/react-router";
+// src/routes/users/$userId/route.tsx
+import { createFileRoute, notFound, Link, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/users/$userId")({
   loader: async ({ params: { userId } }) => {
-    // userId is typed as string — no casting needed
     const res = await fetch(`/api/users/${userId}`);
     if (!res.ok) throw notFound();
-    return res.json() as Promise<User>;
+    return (await res.json()) as { id: string; name: string; email: string };
   },
-
   notFoundComponent: () => <div>User not found</div>,
-
-  component: UserProfile,
+  component: UserLayout,
 });
 
-function UserProfile() {
+function UserLayout() {
   const user = Route.useLoaderData();
-  //    ^? User — fully typed from loader return
-
   return (
     <div>
       <h1>{user.name}</h1>
-      <p>{user.email}</p>
-      <Link to="/users/$userId/posts" params={{ userId: user.id }}>
-        View Posts
-      </Link>
+      <Link to="/users/$userId/posts" params={{ userId: user.id }}>Posts</Link>
+      <Outlet />
     </div>
   );
 }
 ```
 
+`params.userId` is typed as `string`. `throw notFound()` renders the nearest `notFoundComponent`. Add `errorComponent` and `pendingComponent` to the same route for failed and slow loads.
+
 ### Type-Safe Links
 
 ```tsx
-// Links are fully typed — wrong routes or missing params = compile error
 import { Link } from "@tanstack/react-router";
 
-// ✅ Correct — route exists, params match
+// Route exists, params match
 <Link to="/users/$userId" params={{ userId: "123" }}>Profile</Link>
 
-// ✅ Search params typed
+// Search params are typed against validateSearch
 <Link to="/users" search={{ page: 2, role: "admin" }}>Admin Users</Link>
 
-// ❌ Compile error — route doesn't exist
+// Compile error: route does not exist
 <Link to="/nonexistent">Broken</Link>
 
-// ❌ Compile error — missing required param
+// Compile error: missing required param
 <Link to="/users/$userId">Missing userId</Link>
 ```
 
@@ -237,12 +254,13 @@ The agent will create a settings layout route with sidebar Links, nested routes 
 
 ## Guidelines
 
-- **Search params = state** — use URL search params instead of React state for filterable/bookmarkable views
-- **Validate search params with Zod** — `.catch()` provides defaults for invalid params
-- **Loaders run before render** — no loading spinners for route-level data
-- **`notFound()` in loaders** — throw it to render the notFoundComponent
-- **Links are type-checked** — changing a route path catches all broken links at compile time
-- **File naming = route structure** — `$param` for dynamic segments, `_layout` for layout routes
-- **Code splitting is automatic** — each route file becomes a separate chunk
-- **`loaderDeps` controls re-fetching** — loader re-runs only when deps change
-- **TanStack Router + TanStack Query** — use together for server state + route state
+- **Search params = state**: use URL search params instead of React state for filterable, bookmarkable views
+- **Validate search params**: Zod 4 with `.default(x).catch(x)`; Zod 3 needs `@tanstack/zod-adapter` (`zodValidator`, `fallback`); Valibot and ArkType work without an adapter
+- **Merge, don't replace**: `navigate({ search: (prev) => ({ ...prev, page: 2 }) })`
+- **Loaders start before render**, so route data needs no spinner. A slow loader shows `pendingComponent` after `defaultPendingMs` (1000 ms); set both on the router if you need different timing
+- **`loaderDeps` controls re-fetching**: list every search param the loader reads, or stale data stays on screen
+- **TanStack Query**: for caching and invalidation, call `queryClient.ensureQueryData` in the loader and read the data with `useSuspenseQuery`
+- **Links are type-checked**: renaming a route file breaks every `Link` to it at compile time, which is the point. Run `tsc --noEmit` in CI
+- **File naming = route structure**: `$param` dynamic segment, `route.tsx` layout, `_name` pathless layout, `index.tsx` for the directory path. The old `_layout.tsx` convention is not a layout file
+- **Code splitting**: with `autoCodeSplitting: true` each route's `component`, `errorComponent` and `notFoundComponent` become separate lazy chunks, while the loader and `pendingComponent` stay in the main bundle. Do not `export` those properties from a route file, or they are no longer split
+- **Devtools**: `npm install -D @tanstack/react-router-devtools` and render `<TanStackRouterDevtools />` in the root layout (development only)
