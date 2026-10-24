@@ -1,15 +1,15 @@
 ---
 name: spec-to-3d
 description: >-
-  Generate 3D building models from architectural specifications, parsed drawings, or
-  building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for
-  IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models,
-  generating architectural visualizations from structured data.
+  Generate 3D building massing models from architectural specifications, parsed drawings, or
+  building code data. Produces a plain Building3D JSON and a Three.js group, and hands the
+  result to Pascal Editor for refinement. Use when: converting floor plans to 3D, building
+  spec-driven 3D models, generating architectural visualizations from structured data.
 license: Apache-2.0
-compatibility: "Node.js 18+, Three.js or Pascal Editor"
+compatibility: "Node.js 18+, three (npm); Node.js 22.13+ for the optional Pascal Editor CLI"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: [3d-modeling, architecture, three-js, ifc, building-generation]
 ---
@@ -18,141 +18,147 @@ metadata:
 
 ## Overview
 
-Convert structured architectural data (from `architectural-drawing-parser` or manual specs) into 3D building models. Supports three output formats: **Three.js** (interactive web viewer), **Pascal Editor JSON** (BIM-style node graph), and **plain JSON** (for IFC/GLB conversion). Works as the final stage in a drawing-to-3D pipeline alongside `architectural-drawing-parser` and `ibc-building-codes`.
+Convert structured architectural data (from `architectural-drawing-parser` or a manual spec) into a 3D massing model: stacked floors, units side by side, a corridor and a footprint. This is a recipe you implement in your own project, not an installable package. It yields two outputs: a plain **Building3D JSON** (levels, units, corridors) for custom renderers, and a **Three.js `Group`** for a web viewer. For BIM-style editing, load the result into Pascal Editor, which agents drive through its MCP server. It is the last stage after `architectural-drawing-parser` and `ibc-building-codes`.
 
 ## Instructions
 
 ### Pipeline
 
-```
-Architectural Drawing (image/PDF)
-        |  architectural-drawing-parser
-Structured BuildingData JSON
-        |  ibc-building-codes (validation)
-Validated Building Data
-        |  spec-to-3d (THIS SKILL)
-3D Model Output:
-  - Three.js Group (web viewer)
-  - Pascal Editor JSON (BIM node graph)
-  - Building3D JSON (for IFC/GLB export)
+```text
+Architectural drawing (image/PDF)  ->  architectural-drawing-parser
+Structured BuildingData JSON       ->  ibc-building-codes (validation)
+Validated data                     ->  this recipe -> Building3D JSON / THREE.Group
+Refinement and BIM                 ->  Pascal Editor (separate tool)
 ```
 
-### Input Requirements
+### Input
 
-The generator expects a `BuildingData` object with:
+A `BuildingData` object needs at least `stories.actual` (number of floors) and `units`, an array of `{ name, areaSqft }`. Keep `occupancy`, `constructionType` and `height` from the parser for the code check, but the geometry below does not use them.
 
-- **stories** -- `{ permitted, actual }` (number of floors)
-- **units** -- Array of `{ name, area: { sqft, sqm }, occupantLoad }` (unit types per floor)
-- **height** -- `{ permitted, actual }` in feet and meters
-- **occupancy** and **constructionType** -- for IBC validation context
+### Generation rules (defaults, all overridable)
 
-### Generation Logic
+1. **Floor-to-floor height**: 9 ft (2.743 m). This is a design default, not a code value. Minimum ceiling heights come from the building code that applies to the project, so check it before using the model for anything beyond massing.
+2. **Unit footprint**: depth = sqrt(area x 1.5), width = area / depth (aspect 1:1.5). Use 1:2 or more for deep corridor-loaded units.
+3. **Layout**: units side by side along x with a 0.15 m party wall; a 5 ft (1.524 m) corridor along the back of the units.
+4. **Units are boxes**: rooms, walls, doors and windows are not generated. Take their positions from the drawing parser if you need them.
+5. Internal dimensions are metres: 1 ft = 0.3048 m, 1 sqft = 0.092903 sqm.
 
-1. **Floor-to-floor height**: Default 9'-0" (2.74m) per IBC R-2 residential standard (7'-0" minimum habitable)
-2. **Unit dimensions**: Derived from area using 1:1.5 aspect ratio (width:depth). Override for corridor-loaded or deep units
-3. **Wall thickness**: 300mm exterior, 150mm interior partitions (US wood frame standard)
-4. **Layout**: Units placed side-by-side per floor with 150mm party walls, common corridor along one side (5'-0" / 1.52m wide)
-5. **Stairs**: Two stairwells at building ends, 4'-0" wide x 10'-0" deep
-6. **Room subdivision**: Automatic based on unit area -- studio (<50 sqm), 1-bed (50-70 sqm), 2-bed (>70 sqm)
+### Reference implementation
 
-### Output Formats
+Tested with `three@0.186.1` (`npm install three`, saved as an ES module such as `massing.mjs`):
 
-| Format | Use Case | Description |
+```javascript
+import * as THREE from "three";
+
+const FT = 0.3048;
+const FLOOR_HEIGHT = 9 * FT;       // 2.743 m floor to floor
+const CORRIDOR = 5 * FT;           // 1.524 m
+const PARTY_WALL = 0.15;           // m
+const SQFT = 0.092903;
+
+export function buildModel(spec) {
+  const levels = [];
+  let footprintWidth = 0, footprintDepth = 0;
+  for (let i = 0; i < spec.stories.actual; i++) {
+    let x = 0;
+    const units = spec.units.map((u) => {
+      const area = u.areaSqft * SQFT;
+      const depth = Math.sqrt(area * 1.5);   // width:depth = 1:1.5
+      const width = area / depth;
+      const unit = { type: u.name, position: { x, y: i * FLOOR_HEIGHT, z: 0 }, width, depth, height: FLOOR_HEIGHT };
+      x += width + PARTY_WALL;
+      footprintDepth = Math.max(footprintDepth, depth);
+      return unit;
+    });
+    footprintWidth = x - PARTY_WALL;
+    levels.push({
+      elevation: i * FLOOR_HEIGHT, height: FLOOR_HEIGHT, units,
+      corridors: [{ x: 0, z: footprintDepth, width: footprintWidth, depth: CORRIDOR }],
+    });
+  }
+  return { levels, totalHeight: levels.length * FLOOR_HEIGHT, footprintWidth, footprintDepth };
+}
+
+export function toThree(model) {
+  const group = new THREE.Group();
+  const slab = new THREE.MeshStandardMaterial({ color: 0xcfcfcf });
+  const shell = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, transparent: true, opacity: 0.6 });
+  for (const level of model.levels) {
+    for (const u of level.units) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(u.width, u.height, u.depth), shell);
+      m.position.set(u.position.x + u.width / 2, u.position.y + u.height / 2, u.position.z + u.depth / 2);
+      m.name = `${u.type}@${level.elevation.toFixed(2)}`;
+      group.add(m);
+    }
+    for (const c of level.corridors) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(c.width, level.height, c.depth), slab);
+      m.position.set(c.x + c.width / 2, level.elevation + level.height / 2, c.z + c.depth / 2);
+      group.add(m);
+    }
+  }
+  return group;
+}
+```
+
+For the two units in Example 1 this gives a total height of 8.23 m and a footprint of 13.66 x 10.78 m.
+
+### Output formats
+
+| Format | Use | How |
 |---|---|---|
-| `json` (Building3D) | IFC conversion, custom renderers | Plain data: levels, units, rooms, walls, openings |
-| `pascal` (Pascal Editor) | BIM workflows | Node graph with site > building > level > wall/room hierarchy |
-| `threejs` (THREE.Group) | Web-based 3D viewer | Mesh geometry with materials for floors, walls, windows |
+| Building3D JSON | custom renderers, your own converters | `JSON.stringify(buildModel(spec))` |
+| `THREE.Group` | web viewer, massing and spatial checks | `toThree(model)`, add to a scene |
+| GLB | sharing, Blender, game engines | in the browser, pass the group to `GLTFExporter` from `three/examples/jsm/exporters/GLTFExporter.js` |
+| Pascal Editor | BIM-style editing | create levels and walls through Pascal's MCP tools (see Guidelines) |
 
-### Key Interfaces
-
-```typescript
-interface Building3D {
-  levels: Level3D[];
-  totalHeight: number;       // meters
-  footprintWidth: number;
-  footprintDepth: number;
-}
-
-interface Level3D {
-  elevation: number;         // meters above grade
-  height: number;            // floor-to-floor in meters
-  units: Unit3D[];
-  corridors: Box3D[];
-  stairs: Stair3D[];
-}
-
-interface Unit3D {
-  type: string;
-  position: { x: number; y: number; z: number };
-  width: number; depth: number; height: number;  // meters
-  rooms: Room3D[];
-  walls: Wall3D[];
-  openings: Opening3D[];
-}
-```
+IFC is not produced by this recipe. Building3D has no walls or openings, so an IFC export needs a separate converter written against your own schema.
 
 ## Examples
 
-### Example 1: Converting a Building Spec to a 3D Model
+### Example 1: A 3-story R-2 apartment building
 
-A developer has parsed data from an IBC compliance sheet for a 3-story R-2 apartment building and wants to generate a 3D model for visualization.
+A developer parsed an IBC compliance sheet: occupancy R-2, construction type V-B, 3 stories (4 permitted), Type A 834 SF and Type B 645 SF. They ask: "Make a 3D massing model of this building."
 
-```
-Input BuildingData:
-  occupancy: R-2, constructionType: V-B, sprinklerSystem: NFPA 13
-  stories: { permitted: 4, actual: 3 }
-  units:
-    - Type A: 834 SF (77.5 sqm), 5 occupants
-    - Type B: 645 SF (59.9 sqm), 4 occupants
-
-Generated Building3D (format: "json"):
-  Level 0 (Ground Floor): elevation 0.00m, height 2.74m
-    Type A: 7.19m wide x 10.78m deep (2-bedroom layout: living, kitchen, master bed, bed 2, 2 baths)
-    Type B: 6.32m wide x 9.48m deep (1-bedroom layout: living, kitchen, bedroom, bath)
-    Corridor: full building width x 1.52m deep
-    2 stairwells at building ends
-
-  Level 1: elevation 2.74m, height 2.74m (same layout)
-  Level 2: elevation 5.49m, height 2.74m (same layout, no stairs above)
-
-  Total height: 8.23m
-  Footprint: ~13.66m x 10.78m
-  Wall count: 12 exterior + 8 interior per floor
-  Openings: 1 door + 2 windows per unit
+```javascript
+const model = buildModel({
+  stories: { actual: 3 },
+  units: [{ name: "Type A", areaSqft: 834 }, { name: "Type B", areaSqft: 645 }],
+});
+console.log(model.totalHeight.toFixed(2), model.footprintWidth.toFixed(2), model.footprintDepth.toFixed(2));
 ```
 
-### Example 2: Generating IFC-Compatible Output
-
-An architect needs to export the building data for use in an IFC/BIM workflow. They generate Pascal Editor JSON that maps to a site > building > level > element hierarchy.
-
+```console
+8.23 13.66 10.78
 ```
-Input: Same 3-story R-2 building as Example 1
-Output format: "pascal"
 
-Generated Pascal Editor JSON:
-{
-  "nodes": {
-    "site_1700000000": { "type": "site", "parentId": null },
-    "building_1700000000": { "type": "building", "parentId": "site_...", "width": 13.66, "depth": 10.78, "height": 8.23 },
-    "level_0": { "type": "level", "name": "Ground Floor", "elevation": 0.00, "height": 2.74 },
-    "level_1": { "type": "level", "name": "Level 1", "elevation": 2.74, "height": 2.74 },
-    "level_2": { "type": "level", "name": "Level 2", "elevation": 5.49, "height": 2.74 },
-    "wall_0_0": { "type": "wall", "parentId": "level_0", "start": { "x": 0, "y": 0 }, "end": { "x": 7.19, "y": 0 }, "thickness": 0.30, "isExterior": true },
-    "room_0_0": { "type": "room", "parentId": "level_0", "name": "Living Room", "roomType": "living", "width": 4.31, "depth": 4.31 },
-    ... (60+ nodes total across 3 levels)
-  },
-  "rootNodeIds": ["site_1700000000"]
-}
+Level 0 has Type A at 7.19 x 10.78 m and Type B at 6.32 x 9.48 m with a 13.66 m corridor behind them; levels 1 and 2 repeat at elevations 2.74 m and 5.49 m.
 
-This JSON imports directly into Pascal Editor or can be converted to IFC using ifcopenshell.
+### Example 2: A viewer for the model
+
+The developer says: "Show it in the browser so I can check the proportions."
+
+```javascript
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+const scene = new THREE.Scene();
+scene.add(new THREE.AmbientLight(0xffffff, 1.2), toThree(model));
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+camera.position.set(25, 18, 30);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.append(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(7, 4, 6);
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
 ```
+
+The page shows three stacked translucent blocks per unit type with a grey corridor slab; orbit with the mouse. This needs a bundler or an import map for the `three` module specifiers.
 
 ## Guidelines
 
-- Floor-to-floor height defaults to 9'-0" (2.74m); override if the source drawing specifies otherwise
-- Unit aspect ratio defaults to 1:1.5; corridor-loaded or deep units may need 1:2 or higher
-- Window and door positions are generated algorithmically; use `architectural-drawing-parser` room extraction for actual positions from drawings
-- The Three.js output creates simple box geometry -- suitable for massing models and spatial validation, not photorealistic rendering
-- For production BIM use, export to Pascal Editor JSON and refine in a BIM tool
-- Stair geometry is simplified (box representation); detailed stair modeling requires a dedicated BIM tool
-- All dimensions are in meters internally; input data in feet is converted using 1 ft = 0.3048 m
+- The result is a massing model for spatial validation, not a BIM model and not a rendering. Stairs, rooms, doors and windows are not modelled.
+- Do not present the output as code-compliant. Run `ibc-building-codes` on the data first; the corridor width here is a default, not checked against the code.
+- For BIM work, run Pascal Editor locally with `npx @pascal-app/cli editor` (Node.js 22.13+), install the `pascal` command with `npm install --global @pascal-app/cli`, and configure your agent to launch `pascal mcp connect`. Let the agent create levels and walls from your Building3D numbers through the MCP tools; read the tool schemas first and do not hand-write Pascal's scene JSON.
+- Keep one active agent client per local Pascal service.
+- Keep units consistent: the parser reports feet and square feet, the geometry is metres.
