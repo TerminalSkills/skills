@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:38b9003c2336e0e4111eb43d571baefd531950258b8764796eb28ab18c5f6e3e",
+  "scoredAt": "2026-10-24T23:21:21.883Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "setup-ci-github-actions",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully covers all rubric items, while Response A omits uv commands and the required flags."
+      },
+      {
+        "name": "baseline-legacy-errors",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the required --exit-zero flag, while Response B is incomplete."
+      },
+      {
+        "name": "configure-ty-with-overrides",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements with a correct pyproject.toml snippet and command, while Response A uses the wrong config file and omits the required ty settings."
+      }
+    ]
+  }
+}
