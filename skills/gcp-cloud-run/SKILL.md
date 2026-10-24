@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, terraform'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: devops
   tags:
     - gcp
@@ -78,14 +78,14 @@ gcloud builds submit \
 
 ```dockerfile
 # Dockerfile — optimized multi-stage build for Cloud Run
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --production=false
+RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:20-slim
+FROM node:24-slim
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
@@ -150,14 +150,16 @@ gcloud run jobs execute data-export --region us-central1
 gcloud scheduler jobs create http data-export-daily \
   --location us-central1 \
   --schedule "0 2 * * *" \
-  --uri "https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/my-project/jobs/data-export:run" \
+  --uri "https://run.googleapis.com/v2/projects/my-project/locations/us-central1/jobs/data-export:run" \
   --http-method POST \
-  --oauth-service-account-email my-sa@my-project.iam.gserviceaccount.com
+  --oauth-service-account-email scheduler-sa@my-project.iam.gserviceaccount.com
 ```
+
+The scheduler's service account needs `roles/run.invoker` on the job. Use `--oauth-service-account-email` here (the Admin API is a Google API); `--oidc-*` flags are for calling a Cloud Run service URL.
 
 ### Worker Pools (Pull-Based Workloads)
 
-Worker pools handle long-running background work that pulls from a queue — Pub/Sub pull subscriptions, Kafka consumers, RabbitMQ. Unlike services, they have no HTTP endpoint and are not driven by request traffic.
+Worker pools handle long-running background work that pulls from a queue — Pub/Sub pull subscriptions, Kafka consumers, RabbitMQ. Unlike services, they have no HTTP endpoint and are not driven by request traffic. They do not autoscale on their own: you set a fixed instance count with `--instances` (manual scaling), and every requested instance is billed as active even when idle. `--instances 0` disables the pool. To scale on queue depth, drive the count from an external system (Google documents autoscaling with external metrics and Pub/Sub pull).
 
 ```bash
 # Deploy a Pub/Sub worker pool
@@ -165,12 +167,12 @@ gcloud run worker-pools deploy events-consumer \
   --image us-central1-docker.pkg.dev/my-project/repo/consumer:v1.0.0 \
   --region us-central1 \
   --memory 1Gi --cpu 1 \
-  --min-instances 1 --max-instances 20 \
+  --instances 3 \
   --set-env-vars "SUBSCRIPTION=projects/my-project/subscriptions/events-pull"
 ```
 
 ```bash
-# Deploy from source (uses Cloud Build + buildpacks)
+# Deploy from source (Cloud Build)
 gcloud run worker-pools deploy events-consumer \
   --source . --region us-central1
 ```
@@ -181,18 +183,20 @@ Use worker pools instead of:
 
 ### Custom Domains
 
+Domain mappings (`gcloud beta run domain-mappings`) are a Preview feature, limited to a few regions (including us-central1, europe-west1, europe-west4) and Google says they are not recommended for production. For production use a global external Application Load Balancer, or Firebase Hosting.
+
 ```bash
 # Map a custom domain
 gcloud run domain-mappings create \
   --service web-app \
-  --domain app.example.com \
+  --domain app.northwind-tools.dev \
   --region us-central1
 ```
 
 ```bash
 # Get DNS records to configure
 gcloud run domain-mappings describe \
-  --domain app.example.com \
+  --domain app.northwind-tools.dev \
   --region us-central1
 ```
 
@@ -229,8 +233,8 @@ gcloud run revisions list --service web-app --region us-central1
 ```
 
 ```bash
-# Stream logs
-gcloud run services logs tail web-app --region us-central1
+# Stream logs (tail is beta-only; use `gcloud run services logs read` for GA)
+gcloud beta run services logs tail web-app --region us-central1
 ```
 
 ## Examples
@@ -241,7 +245,7 @@ User wants to deploy a new revision of a Node.js API. Build and push the image t
 
 ### Example 2 — Convert a self-hosted Kafka consumer to a worker pool
 
-User runs a Kafka consumer on a Compute Engine VM. Containerize the consumer, deploy as a Cloud Run worker pool with `--min-instances=1 --max-instances=10`, attach a service account with the Kafka topic's read access, and remove the VM. Worker pools auto-scale on CPU/memory, restart on crash, and cost only for actual instance time — no provisioning headaches.
+User runs a Kafka consumer on a Compute Engine VM. Containerize the consumer, deploy as a Cloud Run worker pool with `--instances=3`, attach a service account with the Kafka topic's read access, and remove the VM. Worker pools restart crashed instances and have no VM to patch, but the instance count is fixed (no built-in autoscaling) and billed while running, so size it to your partition count.
 
 ## Guidelines
 
@@ -253,4 +257,5 @@ User runs a Kafka consumer on a Compute Engine VM. Containerize the consumer, de
 - Use traffic splitting for safe canary deployments
 - Set appropriate request timeouts (default 300s, max 3600s)
 - Use Cloud Run Jobs for batch work instead of long-running services
-- Use Worker Pools for always-on pull-based work (Pub/Sub pull, Kafka, RabbitMQ) instead of dedicated VMs
+- Use Worker Pools for always-on pull-based work (Pub/Sub pull, Kafka, RabbitMQ) instead of dedicated VMs; they have a fixed instance count, so scale them yourself
+- Do not use domain mappings for production traffic (Preview); put a load balancer in front
