@@ -1,16 +1,18 @@
 ---
 name: clickhouse
-description: >
-  ClickHouse is a columnar OLAP database built for real-time analytical queries over massive datasets.
-  It supports a familiar SQL interface with powerful aggregation functions, materialized views for
-  pre-computed rollups, and high-throughput inserts that make it ideal for event tracking, time-series
-  analytics, and ad-hoc exploration of billions of rows.
+description: >-
+  ClickHouse is a columnar OLAP database for real-time analytical queries over billions of rows.
+  It speaks SQL, stores data in MergeTree tables, and rolls up data at insert time with
+  materialized views. Use when the user wants to run ClickHouse in Docker, design MergeTree
+  tables, load events or logs, write aggregation or retention queries, build rollups, or connect
+  from Node.js. Trigger words: clickhouse, olap, mergetree, columnar database, analytics database.
 license: Apache-2.0
-compatibility: 'linux, macos, windows'
+compatibility: "Docker (or a native ClickHouse install); examples tested on ClickHouse 26.10 and @clickhouse/client 1.24 (Node >= 20)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
+  repository: "https://github.com/ClickHouse/ClickHouse"
   tags:
     - database
     - analytics
@@ -21,229 +23,178 @@ metadata:
 
 # ClickHouse
 
-ClickHouse is a column-oriented database management system designed for online analytical processing. Where traditional row-based databases excel at transactional workloads, ClickHouse shines when you need to scan and aggregate billions of rows in seconds. It achieves this through columnar storage, vectorized query execution, and aggressive compression.
+## Overview
 
-This skill walks through deploying ClickHouse with Docker, creating tables with the MergeTree engine family, inserting data, running aggregation queries, and connecting from a Node.js application.
+ClickHouse is a column-oriented database for online analytical processing: it scans and aggregates very large tables quickly through columnar storage, vectorized execution and compression. It is a poor fit for frequent single-row updates or deletes and for transactional workloads; keep those in PostgreSQL or MySQL and send analytical copies to ClickHouse. New feature releases come monthly (26.10 at the time of writing), with some versions designated long-term support; pin a version tag in production instead of `latest`.
 
-## Deploying ClickHouse with Docker
+## Instructions
 
-The fastest way to get a ClickHouse instance running is with the official Docker image. This gives you both the server and the built-in `clickhouse-client` CLI.
+### Run it with Docker
+
+The image's `default` user cannot be used from outside the container without a password, so create a user at startup. Publish ports on loopback only unless you have put TLS and a firewall in front.
 
 ```bash
-# docker-compose.yml — ClickHouse single-node deployment
-# Exposes the HTTP interface on 8123 and the native protocol on 9000
-
-docker run -d \
-  --name clickhouse-server \
-  -p 8123:8123 \
-  -p 9000:9000 \
+export CLICKHOUSE_PASSWORD="$(openssl rand -hex 16)"
+docker run -d --name clickhouse-server \
+  -p 127.0.0.1:8123:8123 -p 127.0.0.1:9000:9000 \
+  -e CLICKHOUSE_USER=analytics -e CLICKHOUSE_PASSWORD="$CLICKHOUSE_PASSWORD" \
+  --ulimit nofile=262144:262144 \
   -v clickhouse-data:/var/lib/clickhouse \
-  -v clickhouse-logs:/var/log/clickhouse-server \
-  clickhouse/clickhouse-server:latest
+  clickhouse/clickhouse-server:26.10
+
+docker exec -it clickhouse-server clickhouse-client -u analytics --password "$CLICKHOUSE_PASSWORD"
+curl -s -u "analytics:$CLICKHOUSE_PASSWORD" http://127.0.0.1:8123/ --data-binary 'SELECT version()'
 ```
 
-Once the container is running, connect with the native client:
+Without credentials the HTTP call returns `Code: 194 ... Authentication failed (REQUIRED_PASSWORD)`.
 
-```bash
-# CLI — connect to the running ClickHouse instance
-docker exec -it clickhouse-server clickhouse-client
-```
+### Design MergeTree tables
 
-You can also query via HTTP, which is useful for quick health checks and lightweight integrations:
+- `ENGINE = MergeTree` is the default choice. `ORDER BY` is the sorting and sparse primary key: put columns you filter on most first, low-cardinality ones before high-cardinality ones. Queries that filter on a prefix of it skip whole granules.
+- `PARTITION BY toYYYYMM(created_at)` is for data lifecycle (dropping or moving old months), not for speed. Keep partitions to tens or hundreds, never thousands.
+- Use `LowCardinality(String)` for columns with fewer than roughly 10,000 distinct values, and the narrowest numeric and date types that fit.
+- Insert in batches of thousands of rows at a time or more. Many tiny inserts create many parts and slow everything down.
+- `ReplacingMergeTree(version)` removes duplicates only during background merges, so read with `FINAL` (or `argMax`) when you need the latest row now.
 
-```bash
-# curl — HTTP interface query example
-curl 'http://localhost:8123/' --data-binary 'SELECT version()'
-```
+### Rollups with materialized views
 
-## Table Engines and MergeTree
+A materialized view runs on every insert into its source table and writes into a target table. Rolling up distinct counts needs aggregate states, because summing `uniq` results from different inserts double counts users. Use `AggregatingMergeTree` with `uniqState` on write and `uniqMerge` on read. `SummingMergeTree` is only correct for plain additive numbers. A view does not backfill rows inserted before it was created.
 
-ClickHouse organizes data through table engines, and MergeTree is the workhorse you will use for almost everything. It supports primary key indexing, data partitioning, and automatic background merges that keep query performance high even under continuous inserts.
+### Query from Node.js
+
+`npm install @clickhouse/client` (the official client; uses the HTTP interface on port 8123). Pass values as typed query parameters (`{days:UInt32}`), never by string interpolation, and read credentials from the environment.
+
+## Examples
+
+### Example 1: Event table, batch load and daily active users
+
+**User request:** "Track page views and signups, and show me daily active users for the last 30 days"
 
 ```sql
--- DDL — create an events table using MergeTree engine
--- Partitioned by month for efficient time-range queries
--- Ordered by event timestamp and user for fast filtered aggregations
-
 CREATE TABLE events (
-    event_id     UUID DEFAULT generateUUIDv4(),
-    user_id      UInt64,
-    event_name   LowCardinality(String),
-    properties   String,
-    created_at   DateTime DEFAULT now()
-) ENGINE = MergeTree()
+    event_id   UUID DEFAULT generateUUIDv4(),
+    user_id    UInt64,
+    event_name LowCardinality(String),
+    properties String,
+    created_at DateTime DEFAULT now()
+) ENGINE = MergeTree
 PARTITION BY toYYYYMM(created_at)
-ORDER BY (created_at, user_id);
-```
+ORDER BY (event_name, toStartOfHour(created_at), user_id);
 
-The `ORDER BY` clause defines the primary key and controls how data is physically sorted on disk. Queries that filter or group by these columns will be significantly faster because ClickHouse can skip entire data granules that don't match.
-
-For high-cardinality string columns that still have a bounded set of values (like event names), `LowCardinality(String)` applies dictionary encoding and dramatically reduces storage and speeds up group-by queries.
-
-### ReplacingMergeTree for Deduplication
-
-When your ingestion pipeline might send duplicate events, `ReplacingMergeTree` collapses rows with the same sorting key during background merges:
-
-```sql
--- DDL — deduplicated user profiles using ReplacingMergeTree
--- The latest row (by updated_at) wins during merge
-
-CREATE TABLE user_profiles (
-    user_id      UInt64,
-    display_name String,
-    plan         LowCardinality(String),
-    updated_at   DateTime
-) ENGINE = ReplacingMergeTree(updated_at)
-ORDER BY user_id;
-```
-
-## Inserting Data
-
-ClickHouse is optimized for batch inserts. Sending one row at a time works but wastes resources. Aim for batches of at least a few thousand rows.
-
-```sql
--- DML — batch insert of event records
 INSERT INTO events (user_id, event_name, properties) VALUES
-    (1001, 'page_view', '{"page": "/dashboard"}'),
+    (1001, 'page_view',    '{"page": "/dashboard"}'),
     (1001, 'button_click', '{"button": "export"}'),
-    (1002, 'page_view', '{"page": "/settings"}'),
-    (1003, 'signup', '{}');
-```
+    (1002, 'page_view',    '{"page": "/settings"}'),
+    (1003, 'signup',       '{}');
 
-For bulk loading from files, ClickHouse can ingest CSV, JSON, and Parquet directly:
-
-```bash
-# CLI — bulk insert from a CSV file via clickhouse-client
-cat events.csv | docker exec -i clickhouse-server \
-  clickhouse-client --query="INSERT INTO events FORMAT CSVWithNames"
-```
-
-## Aggregation Queries
-
-This is where ClickHouse earns its keep. Aggregation queries over millions of rows return in milliseconds thanks to columnar scanning and SIMD-accelerated computation.
-
-```sql
--- Analytics — daily active users over the last 30 days
-SELECT
-    toDate(created_at) AS day,
-    uniqExact(user_id) AS dau
+SELECT toDate(created_at) AS day, uniqExact(user_id) AS dau
 FROM events
 WHERE created_at >= now() - INTERVAL 30 DAY
 GROUP BY day
 ORDER BY day;
 ```
 
-```sql
--- Analytics — top 10 most used features this week
-SELECT
-    event_name,
-    count() AS total,
-    uniq(user_id) AS unique_users
-FROM events
-WHERE created_at >= toMonday(now())
-GROUP BY event_name
-ORDER BY total DESC
-LIMIT 10;
+Bulk load a CSV file that has a header row (the container reads it from stdin):
+
+```bash
+docker exec -i clickhouse-server clickhouse-client -u analytics --password "$CLICKHOUSE_PASSWORD" \
+  --query "INSERT INTO events (user_id, event_name, properties, created_at) FORMAT CSVWithNames" < events.csv
 ```
 
-```sql
--- Analytics — retention cohort: users who signed up in January
--- and returned within 7 days
-SELECT
-    toDate(s.created_at) AS signup_date,
-    count(DISTINCT r.user_id) AS retained
-FROM events s
-INNER JOIN events r ON s.user_id = r.user_id
-    AND r.created_at BETWEEN s.created_at AND s.created_at + INTERVAL 7 DAY
-    AND r.event_name != 'signup'
-WHERE s.event_name = 'signup'
-    AND s.created_at BETWEEN '2025-01-01' AND '2025-01-31'
-GROUP BY signup_date
-ORDER BY signup_date;
-```
+**Result:** `SELECT` returns one row per day, for example `2026-10-24  3`. Extract JSON fields with `JSONExtractString(properties, 'page')`.
 
-## Materialized Views
+### Example 2: Hourly rollup with distinct users, and 7-day signup retention
 
-Materialized views in ClickHouse are triggers that transform data at insert time. They read from a source table and write aggregated results into a destination table, giving you pre-computed rollups without any external scheduler.
+**User request:** "Give me hourly event counts with unique users that stay fast as the table grows, and tell me how many signups came back within a week"
 
 ```sql
--- DDL — destination table for hourly event counts
-CREATE TABLE hourly_event_counts (
-    hour       DateTime,
-    event_name LowCardinality(String),
-    count      UInt64,
-    unique_users UInt64
-) ENGINE = SummingMergeTree()
+CREATE TABLE hourly_event_stats (
+    hour         DateTime,
+    event_name   LowCardinality(String),
+    total        SimpleAggregateFunction(sum, UInt64),
+    unique_users AggregateFunction(uniq, UInt64)
+) ENGINE = AggregatingMergeTree
 ORDER BY (hour, event_name);
-```
 
-```sql
--- DDL — materialized view that populates hourly_event_counts
--- on every INSERT into the events table
-CREATE MATERIALIZED VIEW mv_hourly_events
-TO hourly_event_counts
-AS SELECT
-    toStartOfHour(created_at) AS hour,
-    event_name,
-    count() AS count,
-    uniq(user_id) AS unique_users
+CREATE MATERIALIZED VIEW mv_hourly_event_stats TO hourly_event_stats AS
+SELECT toStartOfHour(created_at) AS hour, event_name,
+       count() AS total, uniqState(user_id) AS unique_users
 FROM events
 GROUP BY hour, event_name;
+
+-- reading the rollup: merge the partial states
+SELECT hour, event_name, sum(total) AS total, uniqMerge(unique_users) AS users
+FROM hourly_event_stats
+GROUP BY hour, event_name
+ORDER BY hour DESC, event_name;
+
+-- 7-day retention per signup day, without a self-join
+SELECT toDate(signed_up) AS signup_day,
+       count() AS signups,
+       countIf(arrayExists(t -> t > signed_up AND t <= signed_up + INTERVAL 7 DAY, visits)) AS retained_7d
+FROM (
+    SELECT user_id,
+           minIf(created_at, event_name = 'signup')             AS signed_up,
+           groupArrayIf(created_at, event_name != 'signup')     AS visits
+    FROM events
+    GROUP BY user_id
+    HAVING countIf(event_name = 'signup') > 0
+)
+GROUP BY signup_day
+ORDER BY signup_day;
 ```
 
-Now every insert into `events` automatically updates the rollup. Querying `hourly_event_counts` is near-instant regardless of how large the raw events table grows.
+**Result:** the view only sees rows inserted after it was created, so right after the Example 1 inserts the rollup query returns nothing; insert more events and it returns rows like `2026-10-24 18:00:00  page_view  3  2` (three views, two distinct users). On the Example 1 data the retention query returns `2026-10-24  1  0`: one signup that day (user 1003) and none who came back within seven days. A later event from that user would make `retained_7d` 1.
 
-## Node.js Client
-
-The official `@clickhouse/client` package provides a typed, streaming-capable client for Node.js applications.
+### Example 3: Insert and query from Node.js
 
 ```javascript
-// clickhouse-client.js — Node.js ClickHouse client setup and query example
-// npm install @clickhouse/client
-
+// events.mjs — run with: CLICKHOUSE_PASSWORD=... node events.mjs
 import { createClient } from '@clickhouse/client';
 
 const client = createClient({
-  url: 'http://localhost:8123',
-  username: 'default',
-  password: '',
+  url: process.env.CLICKHOUSE_URL ?? 'http://localhost:8123',
+  username: process.env.CLICKHOUSE_USER ?? 'default',
+  password: process.env.CLICKHOUSE_PASSWORD ?? '',
   database: 'default',
 });
 
-// Insert a batch of events
-async function insertEvents(events) {
-  await client.insert({
-    table: 'events',
-    values: events,
-    format: 'JSONEachRow',
-  });
+async function insertEvents(rows) {
+  await client.insert({ table: 'events', values: rows, format: 'JSONEachRow' });
 }
 
-// Query daily active users
-async function getDailyActiveUsers(days = 30) {
+async function dailyActiveUsers(days) {
   const result = await client.query({
     query: `
-      SELECT toDate(created_at) AS day, uniqExact(user_id) AS dau
+      SELECT toString(toDate(created_at)) AS day, uniqExact(user_id) AS dau
       FROM events
       WHERE created_at >= now() - INTERVAL {days:UInt32} DAY
-      GROUP BY day ORDER BY day
-    `,
+      GROUP BY day ORDER BY day`,
     query_params: { days },
     format: 'JSONEachRow',
   });
   return result.json();
 }
 
-// Usage
-await insertEvents([
-  { user_id: 1001, event_name: 'page_view', properties: '{"page":"/home"}' },
-  { user_id: 1002, event_name: 'signup', properties: '{}' },
-]);
-
-const dau = await getDailyActiveUsers(7);
-console.log('DAU last 7 days:', dau);
-
-await client.close();
+try {
+  await insertEvents([
+    { user_id: 2001, event_name: 'page_view', properties: '{"page":"/home"}' },
+    { user_id: 2002, event_name: 'signup', properties: '{}' },
+  ]);
+  console.log(await dailyActiveUsers(7));
+} finally {
+  await client.close();
+}
 ```
 
-The client supports streaming for large result sets via `result.stream()`, which yields rows in chunks rather than buffering the entire response in memory. For high-throughput ingestion, keep a persistent client instance and batch your inserts on a timer or buffer threshold.
+**Result:** prints an array such as `[ { day: '2026-10-24', dau: 2 } ]`. For large result sets use `result.stream()` instead of `result.json()`. Keep one client for the process lifetime and batch inserts on a timer or size threshold, or enable async inserts.
+
+## Guidelines
+
+- Set a password for every user and never publish 8123 or 9000 to the internet; the HTTP interface runs any SQL you are authorized for.
+- Pin the image tag. Upgrades between monthly versions are usually safe, but read the changelog first and test on a copy.
+- Choose `ORDER BY` before loading data; changing it later means creating a new table and copying the data.
+- `UPDATE` and `DELETE` are heavy operations on immutable parts; model corrections as new rows (`ReplacingMergeTree`) or drop whole partitions.
+- Prefer approximate `uniq` over `uniqExact` when a small error is acceptable; it is much cheaper on large data.
+- Check index use with `EXPLAIN indexes = 1 SELECT ...`: it lists parts and granules read per index. A query that reads nearly all granules for a selective filter usually has the wrong `ORDER BY`.
+- Do not use ClickHouse as the system of record for data that needs transactions or foreign keys.
