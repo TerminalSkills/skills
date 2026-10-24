@@ -1,14 +1,15 @@
 ---
 name: market-evaluation
 description: >-
-  Evaluate market opportunities before building — assess demand, competition, margins, and
-  timing using Personal MBA's proven 10-factor framework. Use when: evaluating a new business
-  idea, deciding which market to enter, assessing product-market fit potential.
+  Scores a business idea or market on the ten factors from Josh Kaufman's The Personal MBA
+  (urgency, market size, pricing, acquisition cost and more) before anything is built. Use when
+  someone asks to evaluate a business idea, compare markets, decide whether an idea is worth
+  pursuing, or assess demand and competition.
 license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: [market-research, evaluation, startup, product-market-fit, demand]
   use-cases:
@@ -22,9 +23,9 @@ metadata:
 
 ## Overview
 
-Before writing a single line of code or spending a dollar on ads, evaluate whether your market is worth entering. This skill implements the 10-factor market evaluation framework from Josh Kaufman's Personal MBA — a systematic way to score any business idea on a 0-100 scale and make go/no-go decisions based on data, not gut feelings.
+Before writing a single line of code or spending a dollar on ads, evaluate whether your market is worth entering. This skill implements the "10 Ways to Evaluate a Market" checklist from Josh Kaufman's The Personal MBA (personalmba.com/10-ways-to-evaluate-a-market) — a back-of-the-napkin way to score any business idea on a 0-100 scale and make go/no-go decisions based on data, not gut feelings.
 
-Most failed startups don't fail because of bad execution. They fail because they picked a bad market. The Iron Law of the Market says: every business is fundamentally constrained by the size and quality of the market it serves. No amount of hustle can overcome a market that doesn't want what you're selling.
+Most failed startups don't fail because of bad execution. They fail because they picked a bad market. Kaufman's Iron Law of the Market says the same: even the most ingenious idea fails if no one wants it, so look for existing markets to serve before building something and hunting for buyers.
 
 ## Instructions
 
@@ -32,57 +33,57 @@ When a user asks to evaluate a business idea, market opportunity, or compare mul
 
 ### Step 1: Score the Idea on 10 Factors
 
-Rate each factor from 1 (worst) to 10 (best). Be brutally honest — optimism kills startups.
+Rate each factor from 0 (extremely unattractive) to 10 (extremely attractive). When in doubt, be conservative — optimism kills startups.
 
 #### The 10 Evaluation Factors
 
 1. **Urgency** — How badly do people need this RIGHT NOW?
-   - 1 = "Nice to have someday" / 10 = "I need this fixed by Friday or I lose money"
+   - 0 = "Nice to have someday" / 10 = "I need this fixed by Friday or I lose money"
    - Look for: deadlines, pain frequency, regulatory pressure, broken workflows
    - Example: Tax filing software in March (10) vs a journaling app (2)
 
-2. **Market Size** — How many people are actively willing to pay for this?
-   - 1 = A few hundred people worldwide / 10 = Millions of potential paying customers
-   - Don't count "could theoretically use it" — count "would actually pay money"
+2. **Market Size** — How many people are actively purchasing things like this?
+   - 0 = A few hundred people worldwide / 10 = Millions of potential paying customers
+   - Don't count "could theoretically use it" — count people who already buy things like this
    - Example: CRM for real estate agents (8) vs CRM for yacht brokers (3)
 
-3. **Pricing Potential** — What's the highest price a buyer would realistically pay?
-   - 1 = Under $5/month / 10 = $10,000+ per deal
+3. **Pricing Potential** — What is the highest average price a buyer would be willing to pay for a solution?
+   - 0 = Under $5/month / 10 = $10,000+ per deal
    - Higher pricing = fewer customers needed = more room for CAC
    - Example: Enterprise security audit ($50k+, score 10) vs mobile game ($2, score 1)
 
-4. **Cost of Customer Acquisition** — How easy is it to find and convince buyers?
-   - 1 = Impossible to reach, long sales cycles / 10 = They're already searching for this
+4. **Cost of Customer Acquisition** — How easy is it to win a customer, in money and effort per sale?
+   - 0 = Impossible to reach, long sales cycles / 10 = They're already searching for this
    - Consider: Are they Googleable? Do they hang out in communities? Can you run ads?
    - Example: Shopify store owners (easy to target, score 8) vs hospital procurement (score 2)
 
-5. **Cost of Value Delivery** — How much does it cost to produce and deliver?
-   - 1 = Extremely expensive per unit / 10 = Near-zero marginal cost
+5. **Cost of Value Delivery** — How much does it cost, in money and effort, to create and deliver what you offer?
+   - 0 = Extremely expensive per unit / 10 = Near-zero marginal cost
    - Software scores high (build once, deliver infinitely). Services score low.
    - Example: SaaS product (9) vs custom consulting engagement (3)
 
-6. **Uniqueness of Offer** — How different is this from existing alternatives?
-   - 1 = Exact clone of 50 competitors / 10 = Nothing like this exists
+6. **Uniqueness of Offer** — How different is this from competing offers, and how easily can a competitor copy it?
+   - 0 = Exact clone of 50 competitors / 10 = Nothing like this exists
    - Don't need to be unique in everything — unique in ONE dimension that matters
    - Example: Notion when it launched (8) vs another project management tool today (2)
 
 7. **Speed to Market** — How quickly can you have a sellable product?
-   - 1 = Years of development / 10 = Can sell within a week
+   - 0 = Years of development / 10 = Can sell within a week
    - Faster = less risk, faster learning, less capital burned
    - Example: Consulting service (10) vs medical device (1)
 
 8. **Up-front Investment** — How much capital before the first sale?
-   - 1 = Millions required / 10 = Can start with $0-100
+   - 0 = Millions required / 10 = Can start with $0-100
    - Invert: lower investment = higher score
    - Example: Info product (10) vs hardware startup (2)
 
 9. **Upsell Potential** — Can you sell related offerings after the first purchase?
-   - 1 = One-and-done transaction / 10 = Natural expansion into premium, add-ons, services
+   - 0 = One-and-done transaction / 10 = Natural expansion into premium, add-ons, services
    - Look for: tiers, add-ons, complementary products, increasing usage
    - Example: Slack (free→pro→enterprise + app marketplace, score 9) vs a calculator app (1)
 
-10. **Evergreen Potential** — Does it keep working without constant reinvention?
-    - 1 = Constant maintenance, trend-dependent / 10 = Set up once, runs for years
+10. **Evergreen Potential** — Once the offer exists, how much more work is needed to keep selling it?
+    - 0 = Constant maintenance, trend-dependent / 10 = Set up once, runs for years
     - Consider: Does the need persist? Will technology shifts kill it?
     - Example: Accounting software (9) vs fidget spinner store (1)
 
@@ -92,10 +93,10 @@ Rate each factor from 1 (worst) to 10 (best). Be brutally honest — optimism ki
 Total = Sum of all 10 factors (max 100)
 ```
 
-**Interpretation:**
-- **75-100: Promising** — Strong opportunity. Proceed to validation immediately.
-- **50-74: Proceed with Caution** — Has potential but significant weaknesses. Address the low-scoring factors or find a niche where they don't matter.
-- **Below 50: Don't Bother** — Too many structural problems. Either pivot the idea dramatically or move on. Life is too short for bad markets.
+**Interpretation** (Kaufman's cut-offs):
+- **75 and up: Promising** — Strong opportunity. Proceed to validation immediately.
+- **51-74: Proceed with Caution** — Likely to cover costs, but only a big, sustained investment of time and money turns it into a big win. Address the low-scoring factors or find a niche where they don't matter.
+- **50 or below: Don't Bother** — Too many structural problems. Either pivot the idea dramatically or move on. Life is too short for bad markets.
 
 ### Step 3: Apply the Iron Law of the Market
 
@@ -128,7 +129,7 @@ Example for "AI Invoice Parser for Accountants":
 Shadow testing validates demand WITHOUT building the product:
 
 - **Landing page test:** Create a page describing the product. Run $200 in Google Ads targeting your market. Measure signup/waitlist conversion rate.
-  - < 2% conversion = weak demand
+  - Rules of thumb, not Kaufman's numbers: < 2% conversion = weak demand
   - 2-5% = moderate interest
   - > 5% = strong signal
 
@@ -174,7 +175,7 @@ function evaluateMarket(evaluation: MarketEvaluation): EvaluationResult {
 
   const verdict: EvaluationResult["verdict"] =
     totalScore >= 75 ? "promising" :
-    totalScore >= 50 ? "caution" : "dont-bother";
+    totalScore > 50 ? "caution" : "dont-bother";
 
   const strengths = entries
     .filter(([, v]) => v >= 8)
@@ -237,7 +238,7 @@ Market Evaluation: AI Expense Categorizer for Freelancers
 
   Strengths: value delivery cost, up-front investment, evergreen potential
   Weaknesses: pricing potential, uniqueness
-  Critical Risks:
+  Risks to discuss (judgement; none scores 3 or below, so the code's critical-risk flags stay empty):
     - Crowded market — QuickBooks and FreshBooks already serve this audience
     - Low pricing ceiling limits growth potential
 
@@ -282,4 +283,5 @@ Comparative Market Evaluation:
 - If a score is below 50, say "don't bother" clearly. Saving someone from a bad market is more valuable than encouraging them.
 - After scoring, always suggest the ONE cheapest next step to validate (usually a landing page test or customer interviews).
 - If the user has no access to the target market (can't reach customers easily), flag this as a critical risk regardless of other scores.
-- Reference the Iron Law: "Every business is limited by the size and quality of the market it serves. You can't fix a bad market with great execution."
+- Reference the Iron Law of the Market: even the most ingenious idea fails if no one wants it, so prefer markets where people already spend money on the problem.
+- The score is a screening tool, not a forecast. Rescore after customer conversations; the numbers should change as you learn.
