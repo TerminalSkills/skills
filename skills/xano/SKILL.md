@@ -1,213 +1,191 @@
 ---
 name: xano
-description: Expert guidance for Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
+description: >-
+  Xano is a no-code/low-code backend platform for building REST APIs, a PostgreSQL database and user authentication without server code. Use when someone asks to "build a backend with Xano", "create a Xano API", "write XanoScript", "add login and signup to Xano", "connect a frontend to Xano", or "manage a Xano workspace from the CLI". Covers tables, API endpoints, auth, background tasks, webhooks, and the Xano CLI and Developer MCP for working with AI agents.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "A Xano account and workspace. The Xano CLI and Developer MCP need Node.js 20.12+ (the CLI's engines field)."
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
   tags:
-  - no-code-backend
-  - api-builder
-  - database
-  - auth
-  - serverless
+    - no-code-backend
+    - api-builder
+    - database
+    - auth
+    - xanoscript
 ---
 
 # Xano — No-Code Backend Builder
 
-
 ## Overview
 
+Xano hosts a PostgreSQL database, REST APIs built from step-by-step "function stacks", authentication, background tasks, webhooks and MCP servers. You build in the visual editor, in XanoScript (a text language that every visual object also has), or with an AI agent. Docs: https://docs.xano.com (an index for agents is at https://docs.xano.com/llms.txt).
 
-Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
+Two ways an agent can work with Xano:
 
+- **Local files.** The Xano CLI (`@xano/cli`) pulls a workspace down as `.xs` XanoScript files and pushes changes back; the Developer MCP (`@xano/developer-mcp`) gives the agent XanoScript docs and syntax validation.
+- **Plain HTTP.** Every API group has a base URL; any frontend calls it with `fetch`.
 
 ## Instructions
 
-### Database Schema
+### Tables
 
-```markdown
-## Data Modeling in Xano
-Create tables visually in the Xano dashboard:
+Every table starts with an `id` field (`int` or `uuid`; the primary key type cannot be changed later). Tables are created in the dashboard or as XanoScript. Table and field syntax from the docs:
 
-### Users Table
-| Field        | Type      | Properties                    |
-|-------------|-----------|-------------------------------|
-| id          | integer   | Primary key, auto-increment   |
-| email       | text      | Unique, indexed               |
-| name        | text      | Required                      |
-| password    | password  | Hashed automatically          |
-| plan        | enum      | free, pro, enterprise         |
-| avatar_url  | text      | Nullable                      |
-| metadata    | json      | Flexible key-value data       |
-| created_at  | timestamp | Auto-set on create            |
-
-### Posts Table
-| Field        | Type       | Properties                   |
-|-------------|------------|------------------------------|
-| id          | integer    | Primary key                  |
-| user_id     | integer    | Foreign key → Users          |
-| title       | text       | Required, max 200 chars      |
-| content     | text       | Required                     |
-| published   | boolean    | Default: false               |
-| tags        | list[text] | Array of strings             |
-| created_at  | timestamp  | Auto-set on create           |
-
-Xano auto-generates CRUD endpoints for each table.
+```text
+table "user" {
+  auth = true
+  schema {
+    int id
+    timestamp created_at?=now
+    text name filters=trim
+    email? email filters=trim|lower
+    password? password filters=min:8|minAlpha:1|minDigit:1
+  }
+  index = [
+    {type: "primary", field: [{name: "id"}]}
+    {type: "btree|unique", field: [{name: "email", op: "asc"}]}
+  ]
+}
 ```
 
-### API Endpoints (Function Stacks)
+`auth = true` marks the table as one whose rows can log in. Other field types include `text`, `int`, `decimal`, `bool`, `timestamp`, `enum`, `json`, `uuid`, and lists such as `text[]`.
 
-```markdown
-## Visual API Builder
-Xano uses "Function Stacks" — visual, step-by-step API logic:
+### API endpoints
 
-### POST /api/posts — Create a Post
-1. **Precondition**: Verify authentication (JWT token valid)
-2. **Input**: title (text, required), content (text, required), tags (list)
-3. **Create Variable**: `user_id` from auth token
-4. **Conditional**: Check user plan
-   - If plan == "free" AND post_count >= 5 → Return error "Free plan limited to 5 posts"
-5. **Database Query**: Add record to `posts` table
-   - title: input.title
-   - content: input.content
-   - tags: input.tags
-   - user_id: user_id
-   - published: false
-6. **Return**: { id, title, created_at }
+An endpoint (`query` in XanoScript) has inputs, a `stack` of functions, and a `response`. This signup endpoint is from the docs:
 
-### GET /api/posts — List Published Posts
-1. **Input**: page (int, default 1), per_page (int, default 20)
-2. **Database Query**: Query `posts` table
-   - Filter: published = true
-   - Sort: created_at DESC
-   - Pagination: page, per_page
-   - Join: users (for author info)
-3. **Return**: { items: [...], total, page, pages }
+```text
+query "auth/signup" verb=POST {
+  input {
+    text name?
+    email email? filters=trim|lower
+    text password?
+  }
+  stack {
+    db.get user {
+      field_name = "email"
+      field_value = $input.email
+    } as $user
+
+    precondition ($user == null) {
+      error_type = "accessdenied"
+      error = "This account is already in use."
+    }
+
+    db.add user {
+      data = {
+        created_at: "now"
+        name      : $input.name
+        email     : $input.email
+        password  : $input.password
+      }
+    } as $user
+
+    security.create_auth_token {
+      table = "user"
+      extras = {}
+      expiration = 86400
+      id = $user.id
+    } as $authToken
+  }
+  response = {authToken: $authToken}
+}
 ```
+
+Listing records: `db.query user { return = {type: "list"} } as $users`, then `response = $users`. A list endpoint should take page inputs and return a paginated result.
 
 ### Authentication
 
+Enable authentication on a table (table menu, Settings), then set an endpoint's authentication to that table so it requires a token. Tokens are JWE tokens. In an API group, "Add API Endpoint" then "Authentication" adds the pre-built `login`, `signup` and `auth/me` endpoints; `login` and `signup` return an `authToken`.
+
+### Calling Xano from a frontend
+
+Each API group has its own base URL, shown in the dashboard, such as `https://x8ki-letl-twmt.n7.xano.io/api:Qm3vT9aP`. The part after `api:` is generated, so copy the URL rather than guessing it. Keep it in an environment variable.
+
 ```typescript
-// Xano provides built-in auth endpoints:
+const AUTH_BASE = process.env.NEXT_PUBLIC_XANO_AUTH_URL!;   // base URL of the auth API group
+const APP_BASE = process.env.NEXT_PUBLIC_XANO_APP_URL!;     // base URL of the app API group
 
-// Sign up: POST /auth/signup
-const signUp = async (email: string, password: string, name: string) => {
-  const response = await fetch("https://your-instance.xano.io/api:auth/auth/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, name }),
-  });
-  const { authToken } = await response.json();
-  return authToken;   // JWT token
-};
-
-// Login: POST /auth/login
-const login = async (email: string, password: string) => {
-  const response = await fetch("https://your-instance.xano.io/api:auth/auth/login", {
+export async function login(email: string, password: string): Promise<string> {
+  const res = await fetch(`${AUTH_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  const { authToken } = await response.json();
+  if (!res.ok) throw new Error(`Login failed: ${res.status}`);
+  const { authToken } = await res.json();
   return authToken;
-};
+}
 
-// Authenticated request
-const getPosts = async (token: string) => {
-  const response = await fetch("https://your-instance.xano.io/api:main/posts", {
+export async function listPosts(token: string, page = 1) {
+  const res = await fetch(`${APP_BASE}/posts?page=${page}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return response.json();
-};
-
-// Get current user: GET /auth/me
-const getMe = async (token: string) => {
-  const response = await fetch("https://your-instance.xano.io/api:auth/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.json();
-};
+  return res.json();
+}
 ```
 
-### External API Integration
+For typed clients, enable combined Swagger/OpenAPI docs in Xano, download the JSON, and have the agent generate the client from it.
 
-```markdown
-## Calling External APIs from Function Stacks
+### Local development with the CLI and MCP
 
-### Example: Process payment via Stripe
-1. **External API Request**: POST https://api.stripe.com/v1/charges
-   - Headers: Authorization: Bearer sk_live_xxx
-   - Body:
-     - amount: input.amount * 100
-     - currency: "usd"
-     - source: input.payment_token
-2. **Conditional**: Check response status
-   - If status != 200 → Return error with Stripe message
-3. **Database Query**: Update order status to "paid"
-4. **External API Request**: POST to webhook (notify fulfillment)
-5. **Return**: { success: true, charge_id }
-
-### Example: Send email via Resend
-1. **External API Request**: POST https://api.resend.com/emails
-   - Headers: Authorization: Bearer re_xxx
-   - Body:
-     - from: "app@myapp.com"
-     - to: user.email
-     - subject: "Order Confirmed"
-     - html: template with order details
+```bash
+npm install -g @xano/cli
+xano auth                       # browser sign-in, saves a profile
+xano workspace pull -d ./shop-backend
+claude mcp add xano -- npx -y @xano/developer-mcp
 ```
 
-### Webhooks and Scheduled Tasks
+Edit the `.xs` files (the XanoScript Language Server VS Code extension highlights and validates them). Paid plans push through a sandbox first; free plans have no sandbox and push straight to the workspace with `xano workspace push -d ./shop-backend --dry-run`, then without `--dry-run`.
 
-```markdown
-## Webhooks (incoming)
-Xano can receive webhooks from external services:
-- Stripe payment events → Update order status
-- GitHub push events → Trigger build
-- Custom webhooks → Process any incoming data
-
-## Scheduled Tasks (Cron)
-Run function stacks on a schedule:
-- Every hour: Sync data from external API
-- Daily at midnight: Generate reports
-- Weekly: Send digest emails
+```bash
+xano sandbox push -d ./shop-backend --dry-run   # preview
+xano sandbox push -d ./shop-backend
+xano sandbox review                              # promote in the browser
 ```
 
+Changes made in the visual builder do not appear locally until you pull again. Ephemeral tenants (`xano-cli/ephemeral` in the docs) give an agent a disposable environment to test in.
+
+### Webhooks, tasks and external calls
+
+- **Incoming webhooks:** a POST endpoint that uses Get All Raw Input to read whatever the sender posts. Verify the sender's signature before trusting the payload.
+- **Background tasks:** logic plus a schedule (once or repeating); no inputs or response. A task must be enabled and published.
+- **External API Request** function: call another service from a stack. Keep keys in workspace environment variables, not in the stack.
 
 ## Examples
 
+### Example 1: Signup and login for a Next.js app
 
-### Example 1: Adding Xano to a new project
+**User request:** "Add email and password accounts to my Xano backend and call them from Next.js."
 
-**User request:**
+Steps: enable authentication on the `user` table, create an API group named `auth`, add the pre-built Login, Signup and auth/me endpoints, copy the group's base URL into `NEXT_PUBLIC_XANO_AUTH_URL`, and use `login()` above. Result: `login()` returns an `authToken` string, and `GET /auth/me` with an `Authorization: Bearer` header carrying the token returns the user row; a wrong password returns a non-2xx response.
 
+### Example 2: Review an AI-written endpoint before it ships
+
+**User request:** "Have Claude add a `GET /orders` endpoint with paging to my Xano workspace, but don't touch production."
+
+```bash
+xano workspace pull -d ./shop-backend
+claude mcp add xano -- npx -y @xano/developer-mcp
+# the agent writes shop-backend/api/orders/list_orders_get.xs, validated by the MCP
+xano sandbox push -d ./shop-backend --dry-run
+xano sandbox push -d ./shop-backend
+xano sandbox review
 ```
-I'm building a SaaS app with Next.js. Integrate Xano for the database schema functionality.
-```
 
-The agent installs the Xano SDK, configures the connection (API keys, environment variables), creates the initial integration code with proper error handling, and writes a working example that demonstrates the database schema feature end-to-end.
-
-### Example 2: Building advanced configuration with Xano
-
-**User request:**
-
-```
-I need to implement advanced configuration in my app. Show me how to do it with Xano.
-```
-
-The agent reads the project structure, identifies the right integration points, implements the advanced configuration feature using Xano's API, handles edge cases (authentication, error states, loading), and adds tests to verify the integration works correctly.
-
+Result: the dry run lists the one new endpoint; after the push you test it against the sandbox and promote it in the browser.
 
 ## Guidelines
 
-1. **Start with the data model** — Design your tables and relationships first; Xano generates CRUD endpoints automatically
-2. **Use function stacks for logic** — Keep business logic in Xano's visual builder; don't put it in the frontend
-3. **Authentication built-in** — Use Xano's auth system (JWT-based); don't build your own
-4. **Pagination on all list endpoints** — Always add page/per_page inputs; unbounded queries kill performance
-5. **Validate inputs** — Add input validation (required, type, min/max) on every endpoint
-6. **Use addons for complex queries** — Xano supports raw SQL for complex aggregations and joins beyond the visual builder
-7. **API groups for organization** — Group related endpoints (auth, posts, payments) into separate API groups
-8. **Rate limiting** — Enable rate limiting on public endpoints to prevent abuse
+1. Design tables first; Xano can generate CRUD endpoints for them.
+2. Keep business rules in function stacks or custom functions, not in the frontend.
+3. Use Xano's built-in auth; mark every private endpoint with the auth table.
+4. Add page inputs to every list endpoint; unbounded queries get slow.
+5. Validate inputs (type, required, filters) on every endpoint, especially public ones.
+6. Use Addons for related data in list queries. Raw SQL is available through the Direct Database Query function on plans that include it; check the plan first.
+7. Split endpoints into API groups (auth, app, webhooks); each group has its own base URL and can be given its own settings.
+8. Set instance API rate limits (docs: Instances, API Rate Limit) and restrict public endpoints.
+9. Back up before pushing schema changes: a pushed table change can alter or drop data. Use the sandbox and review the diff.
+10. Never put secret keys in client code or in a function stack; use environment variables.
