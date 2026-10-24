@@ -1,158 +1,164 @@
 ---
 name: strapi
 description: >-
-  You are an expert in Strapi, the leading open-source headless CMS built
-  with Node.js. You help teams build content APIs using Strapi's admin panel
-  for content modeling, role-based access control, media library, and plugin
-  system — with auto-generated REST and GraphQL APIs that power websites,
-  mobile apps, and any frontend through a clean content management interface
-  that non-technical editors can use.
+  Strapi is an open-source headless CMS built on Node.js that turns content types
+  you model in an admin panel into REST and GraphQL APIs, with roles, a media
+  library and plugins. Use when setting up a Strapi 5 project, modeling content
+  types, querying the REST API from a Next.js or other frontend, customizing
+  controllers and routes, or migrating from Strapi 4.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Node.js 20+ (Strapi 5.59 supports 20 to 26); SQLite, PostgreSQL or MySQL'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Content Management
+  version: 1.1.0
+  category: content
+  repository: https://github.com/strapi/strapi
   tags:
     - headless-cms
     - api
     - content
     - self-hosted
-    - open-source
     - rest
-    - graphql
 ---
 
 # Strapi — Open-Source Headless CMS
 
-You are an expert in Strapi, the leading open-source headless CMS built with Node.js. You help teams build content APIs using Strapi's admin panel for content modeling, role-based access control, media library, and plugin system — with auto-generated REST and GraphQL APIs that power websites, mobile apps, and any frontend through a clean content management interface that non-technical editors can use.
+## Overview
 
-## Core Capabilities
+Strapi lets editors manage content in an admin panel while developers consume it through generated REST (and optional GraphQL) endpoints. This skill targets **Strapi 5** (5.59 at the time of writing). Version 5 changed the API shape from version 4: entries are **documents** addressed by a string `documentId`, responses are **flat** (no `attributes` wrapper), `publishedAt` filtering is replaced by a `status` parameter, and the Entity Service is deprecated in favor of the Document Service API. Code written for v4 will break.
 
-### Project Setup
+## Instructions
+
+### Project setup
 
 ```bash
-# Create new Strapi project
-npx create-strapi@latest my-cms
-cd my-cms
-npm run develop                           # Starts admin at localhost:1337
+npx create-strapi@latest newsroom-cms     # prompts: TypeScript (default), database, example data
+cd newsroom-cms
+npm run develop                           # admin at http://localhost:1337/admin
 ```
 
-### Content Types
+Non-interactive: `npx create-strapi@latest newsroom-cms --non-interactive --skip-cloud` (TypeScript, SQLite, npm dependencies installed). Other flags: `--js`, `--dbclient postgres|mysql|sqlite`, `--use-pnpm`, `--no-example`. Create the first admin user in the browser on first start. Secrets (`APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `JWT_SECRET`) live in `.env`; set production values and keep the file out of git. `npm run develop` is for development (auto-reload, Content-Type Builder enabled); production uses `npm run build` then `npm run start`.
 
-```markdown
-## Content Type Builder (Admin Panel)
+### Content types
 
-Strapi generates API endpoints automatically from content types:
+Model them in the Content-Type Builder (development mode only; it writes schema files under `src/api/`, so commit them):
 
-### Collection Types (many entries)
-- Articles: title (text), slug (uid), content (rich text), cover (media), author (relation), tags (enumeration[])
-- Products: name, price (decimal), description, images (media[]), category (relation)
-- Team Members: name, role, bio, photo, social links (json)
+- **Collection types** hold many entries (articles, products); **single types** hold one (homepage, site settings).
+- **Components** are reusable field groups (SEO, hero) that you attach to content types or to dynamic zones.
+- Each collection type `article` gets routes under `/api/articles`:
 
-### Single Types (one entry)
-- Homepage: hero_title, hero_subtitle, featured_articles (relation[])
-- Site Settings: site_name, logo, footer_text, social_links
+| Method | Path | Action |
+|--------|------|--------|
+| GET | `/api/articles` | list |
+| POST | `/api/articles` | create (body `{ "data": { ... } }`) |
+| GET | `/api/articles/:documentId` | read one |
+| PUT | `/api/articles/:documentId` | update |
+| DELETE | `/api/articles/:documentId` | delete |
 
-### Components (reusable blocks)
-- SEO: meta_title, meta_description, og_image
-- Hero: title, subtitle, cta_text, cta_url, background
-- Feature Card: icon, title, description
+Single types are `/api/homepage` (no id). New endpoints are closed: in the admin go to Settings, Users & Permissions, Roles, Public (or Authenticated) and tick `find`/`findOne`, or send an API token created under Settings, API Tokens as `Authorization: Bearer <token>`.
 
-### Auto-generated API:
-GET    /api/articles           → List all articles
-GET    /api/articles/:id       → Get single article
-POST   /api/articles           → Create article
-PUT    /api/articles/:id       → Update article
-DELETE /api/articles/:id       → Delete article
-GET    /api/articles?filters[slug][$eq]=my-post → Filter by field
-```
-
-### API Usage
+### Querying the REST API
 
 ```typescript
-// Frontend: Fetch content from Strapi
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
+const headers = { Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}` };
 
-// List articles with pagination, filtering, and population
-async function getArticles(page = 1, pageSize = 10) {
+// Strapi 5: flat documents, published versions by default
+export async function getArticles(page = 1, pageSize = 10) {
   const params = new URLSearchParams({
-    "populate[cover]": "*",               // Include cover image
-    "populate[author]": "*",              // Include author relation
-    "filters[publishedAt][$notNull]": "true",  // Only published
-    "sort": "publishedAt:desc",
+    "populate[0]": "cover",
+    "populate[1]": "author",
+    sort: "publishedAt:desc",
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
   });
-
   const res = await fetch(`${STRAPI_URL}/api/articles?${params}`, {
-    headers: { Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}` },
-    next: { revalidate: 60 },             // ISR: revalidate every 60s
+    headers,
+    next: { revalidate: 60 },
   });
-
+  if (!res.ok) throw new Error(`Strapi responded ${res.status}`);
   const { data, meta } = await res.json();
-  return {
-    articles: data.map((item: any) => ({
-      id: item.id,
-      ...item.attributes,
-      cover: item.attributes.cover?.data?.attributes?.url,
-      author: item.attributes.author?.data?.attributes?.name,
-    })),
-    pagination: meta.pagination,
-  };
+  // data[i] = { id, documentId, title, slug, publishedAt, cover: {...}, author: {...} }
+  return { articles: data, pagination: meta.pagination };
 }
 
-// Get single article by slug
-async function getArticleBySlug(slug: string) {
-  const res = await fetch(
-    `${STRAPI_URL}/api/articles?filters[slug][$eq]=${slug}&populate=*`,
-    { headers: { Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}` } },
-  );
+export async function getArticleBySlug(slug: string) {
+  const params = new URLSearchParams({ "filters[slug][$eq]": slug, populate: "cover" });
+  const res = await fetch(`${STRAPI_URL}/api/articles?${params}`, { headers });
   const { data } = await res.json();
-  return data[0] ? { id: data[0].id, ...data[0].attributes } : null;
+  return data[0] ?? null;
 }
 ```
 
-### Custom Controllers and Policies
+Rules that differ from v4 and cause most bugs:
 
-```javascript
-// src/api/article/controllers/article.js — Custom logic
-const { createCoreController } = require("@strapi/strapi").factories;
+- **Relations, media and components are not returned unless populated.** Use `populate[0]=cover` or `populate[author][populate][0]=avatar`; avoid `populate=*` in production and `populate=deep` plugins.
+- **Draft and Publish**: the REST API returns the published version by default, so no `publishedAt` filter is needed. Add `status=draft` to read drafts (needs a token allowed to). A `POST` or `PUT` publishes immediately unless you pass `status=draft`.
+- Filter with `filters[field][$eq]=value`; other operators include `$eqi`, `$contains`, `$in`, `$notNull`, `$between`. Page size is capped by `api.rest.maxLimit` in `config/api.ts`.
+- Build complex query strings with the `qs` library rather than by hand.
+- Fetch from server code or a proxy route, never ship a full-access token in browser bundles.
 
-module.exports = createCoreController("api::article.article", ({ strapi }) => ({
-  // Override find to add view count
-  async find(ctx) {
-    const { data, meta } = await super.find(ctx);
-    return { data, meta };
-  },
+### Custom controllers, routes and the Document Service
 
-  // Custom endpoint: /api/articles/:id/increment-views
+Inside Strapi, use `strapi.documents(uid)` (Document Service) instead of `strapi.entityService`.
+
+```typescript
+// src/api/article/controllers/article.ts
+import { factories } from "@strapi/strapi";
+
+export default factories.createCoreController("api::article.article", ({ strapi }) => ({
+  // Custom action: POST /api/articles/:id/views (route below)
   async incrementViews(ctx) {
-    const { id } = ctx.params;
-    const article = await strapi.entityService.findOne("api::article.article", id);
-    await strapi.entityService.update("api::article.article", id, {
-      data: { views: (article.views || 0) + 1 },
+    const { id: documentId } = ctx.params;
+    const article = await strapi.documents("api::article.article").findOne({ documentId });
+    if (!article) return ctx.notFound("Article not found");
+    const updated = await strapi.documents("api::article.article").update({
+      documentId,
+      data: { views: (article.views ?? 0) + 1 },
     });
-    return { views: (article.views || 0) + 1 };
+    return { views: updated?.views };
   },
 }));
 ```
 
-## Installation
-
-```bash
-npx create-strapi@latest my-cms
-# Database: SQLite (default), PostgreSQL, MySQL, MariaDB
-# Strapi Cloud or self-host on any Node.js server
+```typescript
+// src/api/article/routes/01-custom-article.ts  (the 01- prefix loads it before the core routes)
+export default {
+  type: "content-api",
+  routes: [
+    {
+      method: "POST",
+      path: "/articles/:id/views",
+      handler: "api::article.article.incrementViews",
+    },
+  ],
+};
 ```
 
-## Best Practices
+Grant the new action in Users & Permissions (or the route returns 403). Note that `update` through the Document Service edits the draft by default; pass `status: "published"` to publish while updating. The read-modify-write counter above is not atomic; use a database counter for heavy traffic. Plain JavaScript projects use `require("@strapi/strapi").factories` and `module.exports` instead.
 
-1. **API tokens over user credentials** — Create read-only API tokens for frontend; never expose admin credentials
-2. **Populate selectively** — Use `populate` parameter to include only needed relations; avoid `populate=*` in production
-3. **Webhooks for revalidation** — Configure Strapi webhooks to trigger Next.js ISR revalidation on content change
-4. **Components for reuse** — Create shared components (SEO, Hero, CTA) and reuse across content types
-5. **Draft/Publish workflow** — Enable draft system; editors work on drafts, publish when ready; API only returns published by default
-6. **Media library** — Use Strapi's media library with cloud providers (AWS S3, Cloudinary) for production image hosting
-7. **RBAC** — Set up roles (Author, Editor, Admin) with granular permissions; authors can only edit their own content
-8. **Lifecycle hooks** — Use `beforeCreate`, `afterUpdate` hooks for custom logic (auto-generate slugs, send notifications)
+## Examples
+
+### Example 1: "Create a blog backend and publish an article from the command line"
+
+```bash
+curl -s -X POST http://localhost:1337/api/articles \
+  -H "Authorization: Bearer $STRAPI_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"data":{"title":"Launch notes","slug":"launch-notes"}}'
+```
+
+Result: HTTP `201 Created` with a JSON body `{"data":{"id":3,"documentId":"hgv1vny5cebq2l3czil1rpb3","title":"Launch notes", ...},"meta":{}}`. Because Draft and Publish is on and no `status` was given, the article is published at once. Read it back with `GET /api/articles/hgv1vny5cebq2l3czil1rpb3`.
+
+### Example 2: "My v4 frontend broke after upgrading to Strapi 5"
+
+Symptoms: `item.attributes` is `undefined`, `/api/articles/12` returns 404, `filters[publishedAt][$notNull]` is redundant. Fixes: read fields directly from `item`, address documents by `documentId` (a string), replace `item.attributes.cover.data.attributes.url` with `item.cover.url`, and replace `strapi.entityService.*` in backend code with `strapi.documents(uid).*`. The official upgrade tool is `npx @strapi/upgrade major` (run it on a clean git tree), followed by manual review of custom code.
+
+## Guidelines
+
+- **Tokens**: use read-only API tokens for frontends; admin credentials never leave the browser admin UI.
+- **Webhooks**: configure Settings, Webhooks to call your frontend's revalidation endpoint on `entry.publish` and `entry.update` events.
+- **Uploads**: for production, move the media library to S3, Cloudinary or similar with an upload provider, because container disks are ephemeral.
+- **Lifecycle hooks** (`beforeCreate`, `afterUpdate` in `lifecycles.ts` or via `strapi.documents.use` middleware) suit slugs and notifications; keep them fast.
+- **Permissions**: define Author/Editor/Admin roles in the admin (RBAC); Users & Permissions roles govern the Content API separately.
+- **Database**: SQLite is for development; use PostgreSQL or MySQL in production and back up the database and `public/uploads`.
+- **Do not edit schemas on a production server**; the Content-Type Builder is disabled there. Change schemas in development and deploy.
