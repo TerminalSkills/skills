@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
   - discovery
@@ -70,8 +70,9 @@ the cheapest experiment to test it.
 Solution: "AI-assisted setup"
   Riskiest assumption: "Users will trust AI to configure their workspace"
   Experiment: Wizard of Oz — show AI suggestions but have a human generate them
-  Success metric: >60% of users accept AI suggestions without modification
-  Duration: 1 week, 50 users
+  Success metric: a threshold you fix before the test (the 60% acceptance figure
+  here is an illustrative heuristic, not a benchmark)
+  Duration: 1 week, 50 users (illustrative sizing)
 ```
 
 ### Assumption Mapping
@@ -122,6 +123,10 @@ Don't waste time validating things you're already confident about.
 
 ### Experiment Ladder (from cheapest to most expensive)
 
+The time and cost figures and the success thresholds below are rough
+heuristics from common practice, not sourced benchmarks. Set your own
+thresholds before each test.
+
 1. **Desk Research** (hours, $0)
    Search for existing data: analytics, support tickets, competitor reviews
    "Do users actually complain about this? What do Intercom tickets say?"
@@ -132,11 +137,11 @@ Don't waste time validating things you're already confident about.
 
 3. **Smoke Test / Fake Door** (2-3 days, $0)
    Add a button/link for the feature. Track clicks. Don't build the feature.
-   Success: >5% click-through rate from relevant page
+   Success: a click-through threshold set before launch (heuristic)
 
 4. **Landing Page Test** (3-5 days, ~$200 ads)
    Build a landing page describing the solution. Drive traffic. Measure signups.
-   Success: >3% conversion from visitor to signup
+   Success: a visitor-to-signup threshold set before launch (heuristic)
 
 5. **Wizard of Oz** (1-2 weeks, $0)
    Deliver the experience manually behind the scenes. Users think it's automated.
@@ -215,7 +220,9 @@ or wrong answers — I'm here to learn from your experience."
 - Summarize within 1 hour (memory fades fast)
 - Extract: opportunities, quotes, workarounds, emotional moments
 - Tag by theme
-- After 5 interviews: cluster opportunities, update OST
+- Every 3-4 interviews: revisit the opportunity space and refine the OST
+  (Torres, producttalk.org: revisit the opportunity space every three to four
+  customer interviews)
 ```
 
 ### Continuous Discovery Cadence
@@ -224,12 +231,14 @@ or wrong answers — I'm here to learn from your experience."
 ## Weekly Discovery Rhythm
 
 **Monday**: Review last week's experiment results. Update OST.
-**Tuesday-Wednesday**: Conduct 2-3 user interviews (30 min each).
+**Tuesday-Wednesday**: Conduct customer interviews (30 min each). Teresa Torres
+recommends interviewing continuously, week over week; the 2-3 per week count
+is a heuristic.
 **Thursday**: Synthesize interviews. Identify new opportunities.
 **Friday**: Design next experiment. Write experiment brief.
 
 ### Quarterly Review
-- How many assumptions did we test? (target: 10-15/quarter)
+- How many assumptions did we test? (a team target you choose; no source benchmark)
 - What did we learn that changed our roadmap?
 - Which opportunities are validated vs invalidated?
 - Update the OST with new evidence.
@@ -239,15 +248,15 @@ or wrong answers — I'm here to learn from your experience."
 ## Examples
 
 
-### Example 1: Creating a opportunity solution tree for a new product
+### Example 1: Building an opportunity solution tree for a new product
 
 **User request:**
 
 ```
-We're launching a project management tool for remote design teams. Help me create a opportunity solution tree.
+We're launching a project management tool for remote design teams. Our outcome is 4-week retention of design leads going from 30% to 40%. Help me build an opportunity solution tree.
 ```
 
-The agent applies the Product Discovery framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
+The agent first asks which design-lead interviews exist, then writes the tree as a nested list: the outcome at the root, three or more opportunities drawn from interview stories (for example "design leads re-export frames into the handoff tool by hand every sprint"), and at least three solutions under each opportunity. Each solution ends in its riskiest assumption and the cheapest test for it. The output is a single markdown file the team can edit each week.
 
 ### Example 2: Designing experiments to test assumptions
 
@@ -257,12 +266,12 @@ The agent applies the Product Discovery framework, asking clarifying questions a
 We assume enterprise teams will pay $200/month for our reporting feature. Design experiments to validate this before we build it.
 ```
 
-The agent analyzes the existing work against product discovery best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
+The agent names the willingness-to-pay assumption as high-risk and high-impact, then proposes a fake-door test on the reporting page (count clicks on a "Request reporting access" button and collect a price-intent question) before any build. It writes an experiment brief using the template above, with the success threshold set in advance by the team and a decision rule for each outcome. The $200 price is the hypothesis under test, not a benchmark.
 
 
 ## Guidelines
 
-1. **Talk to users weekly** — Continuous discovery means continuous contact; 2-3 interviews per week is the minimum cadence
+1. **Talk to users weekly** — Continuous discovery means continuous contact, week over week (Teresa Torres, producttalk.org)
 2. **Test assumptions, not ideas** — Break every idea into assumptions; test the riskiest one first with the cheapest experiment
 3. **Opportunity Solution Tree** — Map outcomes → opportunities → solutions → experiments; it prevents solution-first thinking
 4. **Cheapest test first** — Start with desk research and surveys before building prototypes; most assumptions can be tested without code
