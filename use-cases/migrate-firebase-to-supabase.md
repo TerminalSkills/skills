@@ -1,7 +1,7 @@
 ---
 title: "Migrate from Firebase to Supabase and Cut Costs by 60%"
 slug: migrate-firebase-to-supabase
-description: "Migrate a production application from Firebase to Supabase — move authentication, Firestore data to Postgres, storage buckets, and real-time listeners while maintaining zero downtime."
+description: "Migrate a production application from Firebase to Supabase: move Firebase Auth users with their password hashes, Firestore data to Postgres, and real-time listeners, while running both systems in parallel."
 skills: [supabase, data-migration, database-schema-designer]
 category: development
 tags: [supabase, firebase, migration, postgres, database, cost-optimization]
@@ -11,183 +11,260 @@ tags: [supabase, firebase, migration, postgres, database, cost-optimization]
 
 ## The Problem
 
-Leo runs a project management SaaS with 8,000 monthly active users on Firebase. The bill hit $1,400 last month and it's climbing fast — Firestore charges per read, and one viral day last quarter caused a $600 spike from a single dashboard page that triggered cascading reads across collections.
+Leo runs a project management SaaS with 8,000 monthly active users on Firebase. The bill hit $1,400 last month and it is climbing: Firestore charges per read, and one viral day a single dashboard page triggered cascading reads across collections and added $600.
 
-The cost isn't even the worst part. Every time the team needs to answer "show me all projects where user X is assigned," they hit Firestore's biggest limitation: no JOINs. So they denormalize everything — user data lives in 3 different places, and when someone updates their avatar, a background function has to propagate it everywhere. They pay $200/month for Algolia on the side because Firestore can't do full-text search. And every architectural decision feels permanent because of vendor lock-in.
+The cost is not even the worst part. Every time the team needs to answer "show me all projects where user X is assigned," they hit Firestore's biggest limitation: no JOINs. So they denormalize everything. User data lives in 3 places, and when someone updates their avatar a background function has to propagate it. They pay $200/month for Algolia on the side because Firestore has no full-text search, and every architectural decision feels permanent because of vendor lock-in.
 
-Leo wants to move to Supabase — Postgres gives them JOINs, full-text search, and predictable pricing — but they can't afford downtime. The app has paying customers who use it all day.
+Leo wants Postgres (JOINs, full-text search, SQL) on Supabase, but the app has paying customers who use it all day, so there can be no downtime.
 
 ## The Solution
 
-Using the **supabase**, **data-migration**, and **database-schema-designer** skills, the agent plans and executes a zero-downtime migration: redesigns the schema from denormalized Firestore documents to clean relational tables, migrates 363,000 records, converts auth and real-time listeners, and runs both systems in parallel before cutting over.
+Using the **supabase**, **data-migration** and **database-schema-designer** skills, the agent redesigns the schema from denormalized Firestore documents into relational tables, copies the data in dependency order with idempotent upserts, imports Firebase Auth users together with their password hashes, converts the real-time listeners, and runs both systems in parallel before cutting over.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Audit Firebase and Design the Postgres Schema
 
-First, Leo describes the current Firestore structure to the agent — five collections with nested subcollections, embedded arrays, and duplicated data everywhere. The agent maps each Firestore path to a proper relational table:
+Leo describes the Firestore structure: five collections with nested subcollections, embedded arrays and duplicated data. The agent maps each path to a table:
 
 | Firestore Path | Postgres Table | What Changes |
 |---|---|---|
-| `users/{uid}` | `profiles` | Direct mapping, becomes source of truth |
-| `workspaces/{id}` | `workspaces` + `workspace_members` | Members array → join table (queryable both directions) |
-| `workspaces/.../projects/{id}` | `projects` + `project_assignees` + `project_tags` | Embedded arrays → normalized tables |
-| `.../tasks/{id}` | `tasks` | Flat table with FK to project |
-| `tasks[].comments` | `comments` | Embedded array → separate table (paginated, sortable) |
+| `users/{uid}` | `profiles` | Keyed by the Supabase auth user id, keeps `firebase_uid` |
+| `workspaces/{id}` | `workspaces` + `workspace_members` | Members array becomes a join table (queryable both directions) |
+| `workspaces/{id}/projects/{id}` | `projects` | Flat table with FK to workspace |
+| `.../tasks/{id}` | `tasks` | Flat table with FK to project, assignee is a FK |
+| `tasks[].comments` | `comments` | Embedded array becomes a separate table (paginated, sortable) |
 
-The schema eliminates all three copies of user data. "Find all workspaces for user X" goes from a client-side filter on every workspace document to a single SQL query on the join table. Full-text search on task titles comes free with a `pg_trgm` index — no more Algolia.
-
-The agent generates the migration file with 8 tables, 14 RLS policies, and 8 indexes:
+The three copies of user data collapse into `profiles`. "Find all workspaces for user X" becomes a query on the join table, and full-text search comes from a GIN index on a `tsvector`, so Algolia can go. Row Level Security matters from day one: every table in the `public` schema is reachable through the API, so enable RLS on each (a table with RLS and no policy returns nothing to API clients) and add the read policies your app needs (two shown below as the pattern). Firestore document ids are kept as `text` primary keys, which makes the copy idempotent.
 
 ```sql
--- supabase/migrations/20260218_initial_schema.sql
+-- supabase/migrations/20261025_initial_schema.sql
+create table profiles (
+  id           uuid primary key references auth.users(id) on delete cascade,
+  firebase_uid text unique,
+  name         text,
+  avatar_url   text
+);
 
--- Members as a proper join table — queryable in both directions
+-- Copy the Firebase identity across when an auth user is created (import or first sign-in)
+create function handle_new_user() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.profiles (id, firebase_uid, name, avatar_url)
+  values (new.id, new.raw_user_meta_data->>'firebase_uid',
+          new.raw_user_meta_data->>'display_name', new.raw_user_meta_data->>'avatar_url');
+  return new;
+end $$;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function handle_new_user();
+
+create table workspaces (
+  id text primary key, name text not null, created_at timestamptz default now()
+);
+
+-- Members as a join table: queryable in both directions
 create table workspace_members (
-  workspace_id uuid references workspaces(id) on delete cascade,
-  user_id uuid references profiles(id) on delete cascade,
-  role text not null default 'member',
-  joined_at timestamptz default now(),
+  workspace_id text references workspaces(id) on delete cascade,
+  user_id      uuid references profiles(id) on delete cascade,
+  role         text not null default 'member',
   primary key (workspace_id, user_id)
 );
 
--- Comments as a separate table — paginated, sortable, countable
-create table comments (
-  id uuid primary key default gen_random_uuid(),
-  task_id uuid references tasks(id) on delete cascade,
-  author_id uuid references profiles(id),
-  body text not null,
-  created_at timestamptz default now()
+create table projects (
+  id text primary key, workspace_id text references workspaces(id) on delete cascade, name text not null
 );
 
--- Full-text search on tasks — replaces the $200/mo Algolia subscription
+create table tasks (
+  id text primary key, project_id text references projects(id) on delete cascade,
+  title text not null, description text, position int not null default 0,
+  assignee_id uuid references profiles(id)
+);
+
+-- Comments as their own table: paginated, sortable, countable
+create table comments (
+  id text primary key, task_id text references tasks(id) on delete cascade,
+  author_id uuid references profiles(id), body text not null, created_at timestamptz default now()
+);
+
+-- Full-text search replaces the external search service
 create index tasks_search_idx on tasks
   using gin (to_tsvector('english', title || ' ' || coalesce(description, '')));
+create index tasks_project_idx on tasks (project_id, position);
+
+-- RLS: every table is exposed through the API, so every table needs it
+alter table profiles enable row level security;
+alter table workspaces enable row level security;
+alter table workspace_members enable row level security;
+alter table projects enable row level security;
+alter table tasks enable row level security;
+alter table comments enable row level security;
+create policy "profiles readable" on profiles for select to authenticated using (true); -- the assignee JOIN in Step 4 needs it
+create policy "see own memberships" on workspace_members for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "members read tasks" on tasks for select to authenticated using (
+  exists (select 1 from projects p join workspace_members m on m.workspace_id = p.workspace_id
+          where p.id = tasks.project_id and m.user_id = (select auth.uid())));
+
+-- Realtime: postgres_changes only fires for tables in this publication
+alter publication supabase_realtime add table tasks;
 ```
 
-### Step 2: Migrate 363,000 Records in 8 Minutes
+### Step 2: Move Firebase Auth Users With Their Passwords
 
-The agent builds a migration script that exports from Firestore in batches of 500 (to avoid memory issues) and imports into Supabase in batches of 1,000. Collections are migrated in FK-dependency order so foreign keys never point to missing records:
+Firebase does export password hashes: they are scrypt hashes (a modified scrypt), and Supabase Auth can verify that format natively. Nobody has to reset a password. In the Firebase console open Authentication, Users, the three-dot menu, Password hash parameters, and save `base64_signer_key`, `base64_salt_separator`, `rounds` and `mem_cost`. Then `admin.createUser` takes a `password_hash` in the form `$fbscrypt$v=1,n=<mem_cost>,r=<rounds>,p=1,ss=<salt separator>,sk=<signer key>$<user salt>$<user hash>`; the first two parameters map onto `n` and `r` exactly as the Supabase Auth test suite uses them.
 
 ```typescript
-// scripts/migrate-firebase-to-supabase.ts
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { createClient } from '@supabase/supabase-js';
 
-// Phase 1: Export from Firestore in dependency order
-const migrationOrder = [
-  { collection: 'users', table: 'profiles', count: 8_000 },
-  { collection: 'workspaces', table: 'workspaces', count: 2_100 },
-  // Members extracted from workspace.members array → join table rows
-  { derived: 'workspace_members', count: 9_400 },
-  { collection: 'projects', table: 'projects', count: 14_000 },
-  { derived: 'project_assignees', count: 22_000 },
-  { collection: 'tasks', table: 'tasks', count: 89_000 },
-  // Comments extracted from embedded task.comments array
-  { derived: 'comments', count: 241_000 },
-];
+initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS!) });
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-// Phase 2: Transform types
-// Firestore Timestamp → ISO string → Postgres timestamptz
-// Firestore doc references → UUID lookup from ID map
-// Embedded arrays → separate rows in join tables
+// Firebase console > Authentication > Users > ⋮ > Password hash parameters
+const { SIGNER_KEY, SALT_SEPARATOR, ROUNDS, MEM_COST } = process.env as Record<string, string>;
+const b64 = (s: string) => Buffer.from(s, 'base64').toString('base64'); // web-safe -> standard base64
 
-// Phase 3: Bulk upsert with service role key (bypasses RLS)
-// Idempotent — safe to re-run if it fails halfway
-for (const step of migrationOrder) {
-  const records = await exportFromFirestore(step);
-  const transformed = transformRecords(records, step);
-  await bulkUpsert(supabase, step.table, transformed);
-  console.log(`[${step.table}] ${transformed.length} records ✓`);
+// Supabase Auth verifies this format natively; the hash is replaced by a bcrypt one when the user next sets a password
+export const fbscrypt = (salt: string, hash: string) =>
+  `$fbscrypt$v=1,n=${MEM_COST},r=${ROUNDS},p=1,ss=${b64(SALT_SEPARATOR)},sk=${b64(SIGNER_KEY)}$${b64(salt)}$${b64(hash)}`;
+
+async function main() {
+  let pageToken: string | undefined;
+  do {
+    const page = await getAuth().listUsers(1000, pageToken);
+    for (const u of page.users) {
+      if (!u.email) continue; // phone/anonymous users need their own handling
+      const { error } = await supabase.auth.admin.createUser({
+        email: u.email,
+        email_confirm: u.emailVerified,
+        password_hash: u.passwordHash && u.passwordSalt ? fbscrypt(u.passwordSalt, u.passwordHash) : undefined,
+        user_metadata: { firebase_uid: u.uid, display_name: u.displayName, avatar_url: u.photoURL },
+      });
+      if (error) console.error(u.uid, error.message); // log and continue; rerun is safe for already-created users
+    }
+    pageToken = page.pageToken;
+  } while (pageToken);
 }
+if (require.main === module) main();
 ```
 
-The full migration takes about 8 minutes. Failed records get logged to `migration-errors.json` but the script keeps going — no single bad record stops the whole migration.
+Users who signed in with Google or a magic link have no hash. They are created with a confirmed email, and when they next sign in through Google, Supabase Auth links the new identity to the existing user because the verified email matches. The `handle_new_user` trigger from Step 1 creates each user's profile with their `firebase_uid`. Phone and anonymous users have no email and need their own handling. The community [`firebase-to-supabase`](https://github.com/supabase-community/firebase-to-supabase) tools are an alternative; their password-verifying middleware is still marked work in progress, so the `password_hash` route above is the simpler one.
 
-### Step 3: Handle Three Types of Auth Users
+Timeline: import auth users in week 1 (no user impact), switch login in week 2, disable Firebase Auth in week 4.
 
-Auth migration is the trickiest part because Firebase doesn't export password hashes. The agent plans three paths:
+### Step 3: Copy the Firestore Data
 
-**OAuth users (2,400) and magic link users (400)** get the smoothest ride — they sign in with Google or magic link on the new app, Supabase creates their auth record, and a database trigger matches them to their existing profile by email. They notice nothing.
-
-**Email/password users (5,200)** need a one-time password reset. The agent imports their records via `supabase.auth.admin.createUser()` with temporary passwords, then shows a "We've upgraded our platform — set your new password" screen on first login. A magic link email handles the reset.
+Run this after the auth import, because it needs the profiles. Collections are copied in dependency order, in pages of 500, with upserts, so a failed run can simply be started again.
 
 ```typescript
-// Import Firebase Auth users to Supabase
-for (const fbUser of firebaseUsers) {
-  await supabase.auth.admin.createUser({
-    email: fbUser.email,
-    email_confirm: fbUser.emailVerified,
-    user_metadata: {
-      firebase_uid: fbUser.uid,  // Keep for reference during migration
-      display_name: fbUser.displayName,
-      avatar_url: fbUser.photoURL,
-    },
-  });
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore, Timestamp, type DocumentData } from 'firebase-admin/firestore';
+import { createClient } from '@supabase/supabase-js';
+
+initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS!) });
+const db = getFirestore();
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); // service role bypasses RLS
+
+const iso = (v: unknown) => (v instanceof Timestamp ? v.toDate().toISOString() : v ?? null);
+
+// Read a collection (or collection group) in pages of 500 and hand each page to `map`
+async function copy(query: FirebaseFirestore.Query, table: string, map: (id: string, d: DocumentData, path: string) => object[], onConflict = 'id') {
+  let last: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+  for (;;) {
+    let q = query.orderBy('__name__').limit(500);
+    if (last) q = q.startAfter(last);
+    const snap = await q.get();
+    if (snap.empty) break;
+    const rows = snap.docs.flatMap((d) => map(d.id, d.data(), d.ref.path));
+    const { error } = await supabase.from(table).upsert(rows, { onConflict });
+    if (error) throw new Error(`${table}: ${error.message}`);
+    last = snap.docs[snap.docs.length - 1];
+    console.log(`${table}: +${rows.length}`);
+  }
 }
+
+// Firebase uid -> Supabase user id, from the profiles created during the auth migration
+async function loadUidMap() {
+  const map = new Map<string, string>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from('profiles').select('id, firebase_uid').range(from, from + 999);
+    if (error) throw error;
+    data.forEach((p) => map.set(p.firebase_uid, p.id));
+    if (data.length < 1000) return map;
+  }
+}
+
+async function main() {
+  const uid = await loadUidMap();
+  // Parents first so foreign keys always resolve. Document ids are kept as text primary keys.
+  await copy(db.collection('workspaces'), 'workspaces', (id, d) => [{ id, name: d.name, created_at: iso(d.createdAt) }]);
+  // Embedded members array -> join table rows
+  await copy(db.collection('workspaces'), 'workspace_members', (id, d) =>
+    (d.members ?? []).filter((m: { uid: string }) => uid.has(m.uid))
+      .map((m: { uid: string; role?: string }) => ({ workspace_id: id, user_id: uid.get(m.uid), role: m.role ?? 'member' })),
+    'workspace_id,user_id');
+  await copy(db.collectionGroup('projects'), 'projects', (id, d, path) => [{ id, workspace_id: path.split('/')[1], name: d.name }]);
+  await copy(db.collectionGroup('tasks'), 'tasks', (id, d, path) => [{
+    id, project_id: path.split('/')[3], title: d.title, description: d.description ?? null,
+    position: d.position ?? 0, assignee_id: uid.get(d.assigneeUid) ?? null,
+  }]);
+  // Embedded task.comments array -> comments table (the array index keeps ids stable, so reruns are safe)
+  await copy(db.collectionGroup('tasks'), 'comments', (id, d) =>
+    (d.comments ?? []).map((c: { authorUid: string; body: string; createdAt: unknown }, i: number) => ({
+      id: `${id}_${i}`, task_id: id, author_id: uid.get(c.authorUid) ?? null, body: c.body, created_at: iso(c.createdAt),
+    })));
+}
+if (require.main === module) main();
 ```
 
-The timeline: import auth records in week 1 (no user impact), switch login in week 2, send reminder emails in week 3, disable Firebase Auth in week 4. About 15% of email users need a support nudge to complete the reset.
+The service role key bypasses RLS: keep it in the migration environment only, never in a client.
 
 ### Step 4: Convert Real-Time Listeners
 
-The app uses Firestore `onSnapshot` in four places. The agent converts each one to Supabase real-time subscriptions. Here's the task list listener — the biggest change:
+The app used Firestore `onSnapshot` in four places. In Supabase, loading and subscribing are separate calls. The table must be in the `supabase_realtime` publication (done at the end of the schema) and RLS policies apply to what each user receives. For `DELETE` events `payload.old` carries only the primary key unless you set `replica identity full` on the table.
 
-**Before (Firestore):** one call loads data AND subscribes to changes:
-
-```javascript
-onSnapshot(
-  query(collection(db, 'workspaces', wsId, 'projects', projId, 'tasks'),
-    orderBy('position')),
-  (snapshot) => {
-    setTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-  }
-);
-```
-
-**After (Supabase):** initial load and real-time are separate, which is actually cleaner:
-
-```javascript
+```typescript
 // Load current data
 const { data } = await supabase
   .from('tasks')
-  .select('*, assignee:profiles(name, avatar)')  // JOINs! No more denormalization
+  .select('*, assignee:profiles(name, avatar_url)') // a JOIN replaces the denormalized copy
   .eq('project_id', projId)
   .order('position');
-setTasks(data);
+setTasks(data ?? []);
 
-// Subscribe to changes — filter at the database level, not client-side
-supabase.channel(`tasks:${projId}`)
+// Subscribe to changes, filtered in the database
+const channel = supabase.channel(`tasks:${projId}`)
   .on('postgres_changes',
-    { event: '*', schema: 'public', table: 'tasks',
-      filter: `project_id=eq.${projId}` },
+    { event: '*', schema: 'public', table: 'tasks', filter: `project_id=eq.${projId}` },
     (payload) => {
       if (payload.eventType === 'INSERT') addTask(payload.new);
       if (payload.eventType === 'UPDATE') updateTask(payload.new);
-      if (payload.eventType === 'DELETE') removeTask(payload.old.id);
+      if (payload.eventType === 'DELETE') removeTask(payload.old.id as string);
     })
   .subscribe();
+// on unmount: supabase.removeChannel(channel)
 ```
 
-Notice the `select('*, assignee:profiles(name, avatar)')` — that JOIN replaces the entire denormalization pattern. No more background functions propagating avatar changes.
+The `select('*, assignee:profiles(...)')` JOIN replaces the whole denormalization pattern: no background function propagates avatar changes.
 
 ### Step 5: Parallel Run and Cutover
 
-The agent sets up a two-week parallel run: all writes go to Supabase (primary) and Firebase (secondary), all reads come from Supabase only. A daily consistency checker at 3 AM compares record counts and samples 100 random records per table for field-level comparison, reporting discrepancies to Slack.
+Write to Supabase and Firebase for two weeks, read only from Supabase. A nightly consistency job compares record counts and a random sample of records per table, and posts discrepancies to Slack. Cut over when:
 
-After 7 consecutive days of clean checks, Leo runs the cutover checklist:
+- Consistency checks have been green for 7+ days
+- The Supabase error rate is low and real-time subscriptions are verified in staging
+- The rollback plan (switch reads back to Firebase) has been tested
+- A billing alert is set on the Firebase project
 
-- All consistency checks green for 7+ days
-- Supabase error rate below 0.1%
-- Real-time subscriptions verified in staging
-- Rollback plan tested (switch reads back to Firebase)
-- Support team briefed on the password reset FAQ
-- Firebase billing alert set to catch unexpected charges
-
-One week after cutover, the dual-write code gets removed. The Firebase project gets archived — not deleted — for 90 days, just in case.
+Storage buckets follow the same pattern: the Supabase guide on migrating Firebase Storage files covers copying files and keeping their paths. One week after cutover remove the dual-write code, and archive the Firebase project for 90 days before deleting it.
 
 ## Real-World Example
 
-Leo's monthly bill drops from $1,600 (Firebase + Algolia) to $75 (Supabase Pro) — a 95% reduction. The $200/month Algolia subscription disappears entirely because Postgres full-text search handles it natively.
+Leo's team replaces Firebase plus Algolia with one Supabase project. The Algolia subscription disappears because Postgres full-text search covers it, and the monthly bill drops by about 60 percent (Leo's figures, yours depend on plan, compute size and traffic). Queries that needed client-side gymnastics, such as "all projects tagged urgent where user X is assigned", become a two-table JOIN. The migration takes three weeks end to end without downtime, and email/password users sign in with the passwords they already had.
 
-But the money is almost secondary to what changes day-to-day. Queries that required reading entire Firestore collections now run as single SQL statements. The team stops maintaining three copies of user data. "Find all projects tagged 'urgent' where user X is assigned" — a query that required client-side gymnastics on Firebase — becomes a two-table JOIN that returns in 12ms.
+## Related Skills
 
-The migration takes 3 weeks end-to-end, with zero downtime. The 8,000 users don't notice the switch — except that the dashboard loads faster.
+- [supabase](/skills/supabase) for Auth, RLS, Realtime and the client library
+- [data-migration](/skills/data-migration) for ordering, idempotent copies and consistency checks
+- [database-schema-designer](/skills/database-schema-designer) for turning documents into relational tables
