@@ -1,196 +1,204 @@
 ---
 name: weaviate
-description: |
-  Weaviate is an open-source vector database with built-in vectorization modules.
-  Learn schema definition, GraphQL and REST APIs, hybrid search combining BM25 and vectors,
-  and self-hosted deployment with Docker.
+description: >-
+  Weaviate is an open-source vector database that stores objects with embeddings and searches them by meaning, keyword (BM25) or both at once. Use this skill to run Weaviate with Docker, define collections with a vectorizer, import data in batches, run near-text, hybrid and filtered queries, do RAG with a generative module, and back up a local instance, using the v4 Python or v3 TypeScript client.
 license: Apache-2.0
-compatibility: 'macos, linux'
+compatibility: 'Docker 24+; Weaviate 1.40; Python client weaviate-client 4.x (Python 3.10+); TypeScript client weaviate-client 3.x (Node 18+); an OpenAI API key for the OpenAI modules used in the examples'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/weaviate/weaviate
   tags:
     - weaviate
     - vector-database
-    - graphql
     - hybrid-search
+    - rag
     - docker
 ---
 
 # Weaviate
 
-Weaviate is an open-source vector database that can vectorize data at import time using built-in modules (OpenAI, Cohere, HuggingFace) or accept pre-computed vectors. It supports hybrid search combining vector similarity with BM25 keyword search.
+## Overview
 
-## Installation
+Weaviate stores objects (properties plus one or more vectors) in collections. It can call an embedding provider at import and query time (the `text2vec-*` modules), or you can supply your own vectors. Queries are served over REST and gRPC (ports 8080 and 50051); the official clients use gRPC, so both ports must be reachable. This skill uses the current client generation: Python `weaviate-client` 4.x and TypeScript `weaviate-client` 3.x. Both use the collections API (`client.collections.use("Name")`). The older "class", `client.schema` and `client.graphql` style belongs to the legacy v3 Python and v2 JS clients and is not used here.
+
+## Instructions
+
+### 1. Run Weaviate
+
+Save as `docker-compose.yml` and run `docker compose up -d`. Ports are bound to localhost, anonymous access is for local development only; for anything shared turn it off and enable API-key authentication (see the authentication page in the Weaviate docs).
 
 ```yaml
-# docker-compose.yml: Weaviate with OpenAI vectorizer module
 services:
   weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.28.0
+    image: cr.weaviate.io/semitechnologies/weaviate:1.40.1
     ports:
-      - "8080:8080"
-      - "50051:50051"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:50051:50051"
     environment:
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
       PERSISTENCE_DATA_PATH: /var/lib/weaviate
-      DEFAULT_VECTORIZER_MODULE: text2vec-openai
-      ENABLE_MODULES: text2vec-openai,generative-openai
+      ENABLE_MODULES: text2vec-openai,generative-openai,backup-filesystem
+      BACKUP_FILESYSTEM_PATH: /var/lib/weaviate/backups
       OPENAI_APIKEY: ${OPENAI_API_KEY}
       CLUSTER_HOSTNAME: node1
     volumes:
-      - weaviate-data:/var/lib/weaviate
+      - weaviate_data:/var/lib/weaviate
 
 volumes:
-  weaviate-data:
+  weaviate_data:
 ```
 
-```bash
-# Start Weaviate
-docker compose up -d
+Install a client: `npm install weaviate-client` or `pip install weaviate-client`. Check the server with `curl http://localhost:8080/v1/.well-known/ready` (HTTP 200 when ready).
 
-# Install clients
-npm install weaviate-client
-pip install weaviate-client
-```
+### 2. Create a collection (TypeScript)
 
-## Define Schema
+The vectorizer is set per collection. `vectors.text2VecOpenAI()` is the current helper; `configure.vectorizer.*` is deprecated.
 
-```javascript
-// schema.js: Create a collection (class) with properties
-const weaviate = require('weaviate-client');
+```typescript
+import weaviate, { vectors, generative, dataType, tokenization } from 'weaviate-client';
 
 const client = await weaviate.connectToLocal();
 
 await client.collections.create({
   name: 'Article',
-  vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
-  generative: weaviate.configure.generative.openAI(),
+  vectorizers: vectors.text2VecOpenAI(),
+  generative: generative.openAI(),
   properties: [
-    { name: 'title', dataType: 'text' },
-    { name: 'content', dataType: 'text' },
-    { name: 'category', dataType: 'text', tokenization: 'field' },
-    { name: 'url', dataType: 'text', skipVectorization: true },
-    { name: 'published', dataType: 'date' },
+    { name: 'title', dataType: dataType.TEXT },
+    { name: 'content', dataType: dataType.TEXT },
+    { name: 'category', dataType: dataType.TEXT, tokenization: tokenization.FIELD },
+    { name: 'url', dataType: dataType.TEXT, skipVectorization: true },
   ],
 });
 ```
 
-## Import Data
+### 3. Import data
 
-```javascript
-// import.js: Batch import objects into Weaviate
-const articles = client.collections.get('Article');
+`insertMany` returns per-object results; it does not throw on a bad object, so check `hasErrors`.
 
-const items = [
-  { title: 'Intro to Vector DBs', content: 'Vector databases store...', category: 'tech', url: 'https://example.com/1' },
-  { title: 'Hybrid Search Explained', content: 'Combining keyword and...', category: 'tech', url: 'https://example.com/2' },
-];
+```typescript
+const articles = client.collections.use('Article');
 
-// Batch import
-const response = await articles.data.insertMany(items);
-console.log(`Imported ${response.allResponses.length} objects`);
+const response = await articles.data.insertMany([
+  { title: 'Intro to Vector DBs', content: 'Vector databases store embeddings...', category: 'tech', url: 'https://weaviate.io/blog/vector-search-explained' },
+  { title: 'Hybrid Search Explained', content: 'Combining keyword and vector scores...', category: 'tech', url: 'https://weaviate.io/blog/hybrid-search-explained' },
+]);
+if (response.hasErrors) console.error(response.errors);
 ```
 
-## Vector Search
+For large datasets use server-side batching (Weaviate 1.36 and later, current clients): in Python, `with collection.batch.stream() as batch: batch.add_object(properties=row)`, then check `collection.batch.failed_objects`.
 
-```javascript
-// search.js: Semantic similarity search
-const articles = client.collections.get('Article');
+### 4. Query
 
-// nearText — uses the vectorizer to convert query to vector
-const results = await articles.query.nearText('how do vector databases work', {
+```typescript
+// semantic search; the query text is vectorized by the collection's vectorizer
+const near = await articles.query.nearText('how do vector databases work', {
   limit: 5,
   returnMetadata: ['distance'],
 });
 
-results.objects.forEach(obj => {
-  console.log(obj.properties.title, obj.metadata.distance);
-});
-```
-
-## Hybrid Search
-
-```javascript
-// hybrid.js: Combine BM25 keyword search with vector search
-const results = await articles.query.hybrid('vector database performance', {
+// hybrid: alpha 0 = pure BM25, 1 = pure vector, default 0.75
+const hybrid = await articles.query.hybrid('vector database performance', {
   limit: 10,
-  alpha: 0.5, // 0 = pure BM25, 1 = pure vector
+  alpha: 0.5,
   returnMetadata: ['score'],
   filters: articles.filter.byProperty('category').equal('tech'),
 });
-
-results.objects.forEach(obj => {
-  console.log(obj.properties.title, obj.metadata.score);
-});
+hybrid.objects.forEach(o => console.log(o.properties.title, o.metadata?.score));
 ```
 
-## Generative Search (RAG)
+### 5. RAG with the generative module
 
-```javascript
-// rag.js: Use generative module for RAG directly in Weaviate
-const results = await articles.generate.nearText('vector databases', {
-  singlePrompt: 'Summarize this article in one sentence: {content}',
-  groupedTask: 'Compare these articles and list key differences.',
-  limit: 3,
-});
+In the TypeScript client the generation options are the second argument and the search options (`limit`) the third. Results are on `.generative?.text`.
 
-// Per-object generation
-results.objects.forEach(obj => {
-  console.log(obj.generated); // Single prompt result
-});
-
-// Grouped generation across all results
-console.log(results.generatedText);
+```typescript
+const rag = await articles.generate.nearText(
+  'vector databases',
+  {
+    singlePrompt: { prompt: 'Summarize this article in one sentence: {content}' },
+    groupedTask: { prompt: 'Compare these articles and list key differences.' },
+  },
+  { limit: 3 },
+);
+rag.objects.forEach(o => console.log(o.generative?.text)); // one result per object
+console.log(rag.generative?.text);                          // one result for the group
 ```
 
-## Python Client
+### 6. Back up (filesystem)
 
-```python
-# app.py: Weaviate with Python v4 client
-import weaviate
-import weaviate.classes.query as wq
-
-client = weaviate.connect_to_local()
-articles = client.collections.get("Article")
-
-# Hybrid search
-response = articles.query.hybrid(
-    query="machine learning",
-    alpha=0.7,
-    limit=5,
-    return_metadata=wq.MetadataQuery(score=True),
-)
-
-for obj in response.objects:
-    print(obj.properties["title"], obj.metadata.score)
-
-# Filtered search
-from weaviate.classes.query import Filter
-
-response = articles.query.near_text(
-    query="databases",
-    filters=Filter.by_property("category").equal("tech"),
-    limit=5,
-)
-
-client.close()
-```
-
-## Backup and Restore
+The compose file above enables the module. Local filesystem backups are for development; use S3, GCS or Azure modules in production.
 
 ```bash
-# backup.sh: Create and restore Weaviate backups via REST API
-# Create backup
 curl -X POST http://localhost:8080/v1/backups/filesystem \
   -H 'Content-Type: application/json' \
-  -d '{"id": "backup-20260219", "include": ["Article"]}'
-
-# Check status
-curl http://localhost:8080/v1/backups/filesystem/backup-20260219
-
-# Restore
-curl -X POST http://localhost:8080/v1/backups/filesystem/backup-20260219/restore
+  -d '{"id": "articles-2026-10-24", "include": ["Article"]}'
+curl http://localhost:8080/v1/backups/filesystem/articles-2026-10-24
+# restore fails if a collection from the backup still exists on the instance:
+# delete it first (or restore into a fresh instance with the same node name)
+curl -X DELETE http://localhost:8080/v1/schema/Article
+curl -X POST http://localhost:8080/v1/backups/filesystem/articles-2026-10-24/restore
+curl http://localhost:8080/v1/backups/filesystem/articles-2026-10-24/restore   # status: SUCCESS when done
 ```
+
+## Examples
+
+### Example 1: Python semantic search with a filter
+
+Request: "Find articles about databases in the tech category."
+
+```python
+import weaviate
+from weaviate.classes.query import Filter, MetadataQuery
+
+client = weaviate.connect_to_local()
+try:
+    articles = client.collections.use("Article")
+    response = articles.query.near_text(
+        query="databases",
+        filters=Filter.by_property("category").equal("tech"),
+        limit=5,
+        return_metadata=MetadataQuery(distance=True),
+    )
+    for obj in response.objects:
+        print(obj.properties["title"], obj.metadata.distance)
+finally:
+    client.close()
+```
+
+Result: up to five articles in the tech category, closest first (smaller distance means closer).
+
+### Example 2: Python hybrid search
+
+Request: "Search for machine learning, favouring keyword matches a little less than meaning."
+
+```python
+import weaviate
+from weaviate.classes.query import MetadataQuery
+
+with weaviate.connect_to_local() as client:
+    articles = client.collections.use("Article")
+    response = articles.query.hybrid(
+        query="machine learning",
+        alpha=0.7,
+        limit=5,
+        return_metadata=MetadataQuery(score=True),
+    )
+    for obj in response.objects:
+        print(obj.properties["title"], obj.metadata.score)
+```
+
+Result: the five best fused BM25 and vector matches, highest score first.
+
+## Guidelines
+
+- Always close the Python client (`client.close()` or a `with` block); the TypeScript client holds gRPC connections too.
+- A collection's vectorizer cannot be changed after objects exist. Pick the model first, or use named vectors to add another one.
+- A property with `skipVectorization` still gets stored and filtered; it just does not feed the embedding.
+- Leaving a text property at the default tokenization means `equal('tech')` on a multi-word value matches per word; use `field` tokenization for exact-value filters such as category.
+- Anonymous access and unauthenticated REST are for development. Do not publish ports 8080 or 50051 on a public interface.
+- Keep the OpenAI key in an environment variable, never in the compose file or the code.
+- Weaviate collects usage telemetry by default; see the telemetry page in the docs to opt out.
+- Pin the server image tag and upgrade one minor version at a time; check the release notes first.
