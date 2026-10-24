@@ -1,276 +1,152 @@
 ---
 name: evidence
-description: Expert guidance for Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
+description: >-
+  Evidence is a BI framework that builds interactive data reports and dashboards
+  from SQL and Markdown, developed as code in Git. Use when creating or editing
+  Evidence reports, writing SQL blocks and charts in Markdown, connecting a warehouse,
+  running the Evidence CLI, self-hosting a project, or migrating an older
+  Evidence project (npm, Svelte-style components) to the current version.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: 'Evidence CLI 0.11 on macOS, Linux (x64/arm64) or Windows x64; an Evidence Studio account or a Snowflake/BigQuery connection.yaml'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/evidence-dev/evidence
   tags:
-  - bi
-  - dashboards
-  - sql
-  - markdown
-  - reporting
+    - bi
+    - dashboards
+    - sql
+    - markdown
+    - reporting
 ---
 
-# Evidence — Code-Driven BI Dashboards
-
+# Evidence — Code-Driven BI Reports
 
 ## Overview
 
-
-Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
-
+Evidence turns Markdown files with SQL code fences and chart tags into published reports. **It has changed completely since early 2026.** The older open-source framework (`npx degit evidence-dev/template`, `npm run dev`, Svelte tags such as `<LineChart data={orders} />`, `sources/` folders, DuckDB in the browser, `npm run build`) is now called *legacy*: the `template` repository's npm scripts print deprecation messages, and the last `@evidence-dev/evidence` release (40.1.8) is from February 2026. Current Evidence uses the **Evidence CLI** (a standalone binary, version 0.11.1 today), **Markdoc** component syntax, server-side SQL, and live queries with no build step. Do not write legacy syntax for new work. Docs: https://docs.evidence.dev.
 
 ## Instructions
 
-### Project Setup
+### Install the CLI (verify the checksum)
+
+The official one-liner pipes a script into a shell. Prefer downloading the binary and checking it against the checksum Evidence publishes next to it (Linux x64 shown; use `darwin-arm64`, `darwin-x64`, `linux-arm64` or `windows-x64` as needed):
 
 ```bash
-# Create a new Evidence project
-npx degit evidence-dev/template my-dashboard
-cd my-dashboard
-npm install
-npm run dev    # Dashboard at localhost:3000
+mkdir -p ~/.local/bin && cd ~/.local/bin || exit 1
+curl -fsSL -o version.json https://gaamozau3jchzs3r.public.blob.vercel-storage.com/cli/version.json
+URL=$(python3 -c "import json;print(json.load(open('version.json'))['binaries']['linux-x64'])")
+SUM=$(python3 -c "import json;print(json.load(open('version.json'))['checksums']['linux-x64'])")
+curl -fsSL -o evidence "$URL" && echo "$SUM  evidence" | sha256sum -c - && chmod +x evidence
+./evidence version      # 0.11.1
 ```
 
-### Writing Reports
+On macOS use `shasum -a 256 -c -` instead of `sha256sum -c -`. `evidence upgrade` updates later. Set `EVIDENCE_TELEMETRY_DISABLED=1` to turn off anonymous usage telemetry.
 
-Evidence reports are Markdown files with embedded SQL:
+### Create a project and the loop
 
-```markdown
-<!-- pages/sales-overview.md — Sales dashboard page -->
+```bash
+evidence init shop-reports       # writes pages/, evidence.config.yaml, theme.yaml, access.yaml, AGENTS.md
+cd shop-reports
+evidence login                   # opens a browser; uses your Studio organization's data connection
+evidence tables                  # list tables, including the demo.* sample data
+evidence describe demo.daily_orders
+evidence dev                     # local preview, default port 3000 (--port to change)
+evidence validate                # checks Markdown and component syntax; run it before every commit
+```
+
+Pages are Markdown files under `pages/`. There is no `npm install` or build step; queries run when the page loads. The generated `AGENTS.md`/`CLAUDE.md` tell coding agents the same rules, and `evidence docs list`, `evidence docs component <name>` and `evidence docs search <query>` print current component syntax as JSON, so check them instead of guessing attributes.
+
+### Writing a report
+
+SQL code fences are named queries (ClickHouse dialect on the Evidence warehouse, or your warehouse's own dialect on a direct connector). Components are Markdoc tags: `{% name attribute="value" /%}`, and string attributes are quoted. Charts and tables can query a table by themselves (aggregations go inside `y="sum(total_sales)"`), or render a named query.
+
+````markdown
+---
+title: Sales Overview
+---
+
 # Sales Overview
 
-```sql monthly_revenue
-SELECT
-  date_trunc('month', created_at) AS month,
-  SUM(amount) AS revenue,
-  COUNT(*) AS orders,
-  SUM(amount) / COUNT(*) AS avg_order_value
-FROM orders
-WHERE created_at >= '2025-01-01'
-GROUP BY 1
-ORDER BY 1
+{% dropdown id="category_filter" data="demo.daily_orders" value_column="category" title="Category" /%}
+
+{% big_value data="demo.daily_orders" value="sum(total_sales)" fmt="usd1m" filters=["category_filter"] /%}
+
+{% line_chart
+    data="demo.daily_orders"
+    x="date"
+    y="sum(total_sales)"
+    date_grain="month"
+    filters=["category_filter"]
+/%}
+
+```sql top_categories
+select category, sum(total_sales) as revenue
+from demo.daily_orders
+group by category
+order by revenue desc
+limit 5
 ```
 
-Revenue has grown **{fmt(monthly_revenue[monthly_revenue.length - 1].revenue, 'usd')}** this month,
-a {pct_change} change from last month.
+{% bar_chart data="top_categories" x="category" y="sum(revenue)" /%}
 
-<LineChart
-  data={monthly_revenue}
-  x=month
-  y=revenue
-  yFmt=usd
-  title="Monthly Revenue"
-/>
+{% table data="top_categories" /%}
+````
 
-<BarChart
-  data={monthly_revenue}
-  x=month
-  y=orders
-  title="Orders per Month"
-/>
+Key points (verified with `evidence validate` on CLI 0.11.1):
 
-## Revenue by Product
+- A `dropdown` with an `id` filters any component that lists that id in `filters=[...]`; there is no `${inputs.x}` interpolation.
+- Reference another query inside SQL with `{{query_name}}`; it is substituted as a subquery.
+- Other component families: `area_chart`, `scatter_chart`, `heatmap`, `pie_chart`, `combo_chart`, `funnel_chart`, `map`, `tabs`, `row`/`stack` for layout, `repeat` and `if` for logic, `date_range={ range="last 12 months" }` on data components. Unknown attributes fail validation (`Invalid attribute: 'yy'`).
+- Reusable SQL can live in `queries/*.sql` files, but `{{ }}` variables are not resolved inside them; put input-driven SQL in a page SQL block.
+- Models, metrics, partials and custom components are described under Core Concepts in the docs.
 
-```sql product_breakdown
-SELECT
-  p.name AS product,
-  SUM(oi.quantity * oi.unit_price) AS revenue,
-  SUM(oi.quantity) AS units_sold
-FROM order_items oi
-JOIN products p ON p.id = oi.product_id
-JOIN orders o ON o.id = oi.order_id
-WHERE o.created_at >= current_date - interval '30 days'
-GROUP BY 1
-ORDER BY 2 DESC
-LIMIT 10
-```
+### Connect your own warehouse
 
-<DataTable data={product_breakdown} rows=10>
-  <Column id=product title="Product" />
-  <Column id=revenue title="Revenue" fmt=usd />
-  <Column id=units_sold title="Units Sold" fmt=num0 />
-</DataTable>
-
-<BarChart
-  data={product_breakdown}
-  x=product
-  y=revenue
-  yFmt=usd
-  swapXY=true
-  title="Top 10 Products by Revenue"
-/>
-```
-
-### Data Source Configuration
-
-Connect to your databases:
+With a Studio account, `evidence login` is enough and no `connection.yaml` is needed. Without an account (self-hosting, offline, or different credentials) scaffold one: `evidence init shop-reports --warehouse bigquery` (or `snowflake`), which gitignores `connection.yaml` but not the key file it points to, so add the key file to `.gitignore` yourself.
 
 ```yaml
-# sources/mydb/connection.yaml — PostgreSQL connection
-name: mydb
-type: postgres
-host: localhost
-port: 5432
-database: analytics
-user: evidence_reader
-password: ${POSTGRES_PASSWORD}    # From environment variable
-ssl: true
-
-# sources/duckdb/connection.yaml — DuckDB for file-based analytics
-name: local
-type: duckdb
-filename: data/analytics.duckdb
-
-# sources/bigquery/connection.yaml — Google BigQuery
-name: warehouse
+# connection.yaml (BigQuery); the keyfile is a credential, never commit it
 type: bigquery
-project_id: my-gcp-project
-dataset: analytics
-credentials_path: ./gcp-key.json
-
-# sources/csv/connection.yaml — CSV files
-name: csvdata
-type: csv
-path: data/        # All CSV files in this directory become tables
+project: northwind-analytics
+keyfile: ./evidence-bq-reader.json
+datasets:
+  - sales
 ```
 
-### Interactive Components
+If `connection.yaml` exists, the CLI always uses it, even when logged in. Use a read-only warehouse role.
 
-```markdown
-<!-- pages/cohort-analysis.md — Interactive filters -->
-# Cohort Analysis
+### Publish or self-host
 
-<!-- Dropdown filter -->
-<Dropdown name=time_period title="Time Period">
-  <DropdownOption value="7 days" valueLabel="Last 7 Days" />
-  <DropdownOption value="30 days" valueLabel="Last 30 Days" />
-  <DropdownOption value="90 days" valueLabel="Last 90 Days" />
-</Dropdown>
+- **Evidence Studio**: `evidence launch` connects the Git repo and Studio project; afterwards each `git push` deploys. It needs `evidence login` and a GitHub repo; confirm before running it.
+- **Self-host**: the official Docker image runs `evidence serve` and requires a direct connector:
 
-<Dropdown name=segment title="Customer Segment" data={segments} value=id label=name />
-
-```sql cohort_data
-SELECT
-  date_trunc('week', first_purchase) AS cohort_week,
-  weeks_since_first AS week_number,
-  COUNT(DISTINCT customer_id) AS customers,
-  SUM(revenue) AS revenue
-FROM customer_cohorts
-WHERE first_purchase >= current_date - interval '${inputs.time_period}'
-  AND segment = '${inputs.segment.value}'
-GROUP BY 1, 2
-ORDER BY 1, 2
+```docker
+FROM evidencedev/serve:latest
+COPY --chown=evidence:evidence . /project
 ```
 
-<Heatmap
-  data={cohort_data}
-  x=week_number
-  y=cohort_week
-  value=customers
-  title="Customer Retention by Cohort"
-/>
+Replace secrets in `connection.yaml` with `${VAR}` references (for BigQuery use `keyfile_json` instead of a key file path) and set them as environment variables; the image needs `connection.yaml`, so once it holds only `${VAR}` references, commit it (the docs' step 3). Also set `EVIDENCE_BASIC_USER` and `EVIDENCE_BASIC_PASSWORD` (HTTP Basic auth) or the server has no login. Self-hosting lacks Studio's SSO, page permissions and agent features.
 
-<!-- Big number KPIs -->
-<BigValue
-  data={cohort_data}
-  value=customers
-  title="Total Customers"
-  fmt=num0
-  comparison=revenue
-  comparisonTitle="Total Revenue"
-  comparisonFmt=usd
-/>
-```
+### Migrating a legacy project
 
-### Templated Pages
-
-Generate pages dynamically from data:
-
-```markdown
-<!-- pages/products/[product_name].md — One page per product -->
-# {params.product_name}
-
-```sql product_detail
-SELECT * FROM products WHERE slug = '${params.product_name}'
-```
-
-```sql product_sales
-SELECT
-  date_trunc('day', o.created_at) AS date,
-  SUM(oi.quantity) AS units,
-  SUM(oi.quantity * oi.unit_price) AS revenue
-FROM order_items oi
-JOIN orders o ON o.id = oi.order_id
-JOIN products p ON p.id = oi.product_id
-WHERE p.slug = '${params.product_name}'
-  AND o.created_at >= current_date - interval '90 days'
-GROUP BY 1
-ORDER BY 1
-```
-
-<LineChart data={product_sales} x=date y=revenue yFmt=usd />
-<LineChart data={product_sales} x=date y=units />
-```
-
-### Deployment
-
-```bash
-# Build static site
-npm run build
-
-# Deploy to any static hosting
-# Vercel
-npx vercel
-
-# Netlify
-npx netlify deploy --prod --dir=build
-
-# Evidence Cloud (managed hosting)
-npx evidence deploy
-
-# Schedule refreshes with cron
-# Evidence rebuilds queries at build time
-# Set up a cron job to rebuild periodically:
-# 0 */4 * * * cd /app/dashboard && npm run build && cp -r build /var/www/dashboard
-```
-
+`evidence migrate --dry-run` previews, `evidence migrate` converts component syntax, inputs and connections in place, then `evidence validate` and `evidence dev`. Not migrated: templated `[param].md` pages (use one page with a dropdown), `sources/` SQL (sync a table or view instead), Svelte files and custom Svelte components, box plots, Venn diagrams, `y2` axes (use `combo_chart` with `axis="y2"`). Expect manual work.
 
 ## Examples
 
+### Example 1: "Add a weekly orders page to our Evidence project"
 
-### Example 1: Creating a weekly SaaS metrics report
+The agent runs `evidence tables`, `evidence describe demo.daily_orders`, creates `pages/orders.md` with a `week`-grain `line_chart` (`date_grain="week"`) and a `table`, runs `evidence validate`, and confirms the output is `{"valid":true,...,"errorCount":0}` before running `evidence dev` to look at it.
 
-**User request:**
+### Example 2: "Our dashboard repo uses `npm run dev` and `<LineChart>` tags"
 
-```
-Build an Evidence dashboard that shows our weekly SaaS metrics — MRR, churn rate, new trials, and conversion rate — from our PostgreSQL database.
-```
-
-The agent scaffolds an Evidence project, configures the PostgreSQL connection in `evidence.plugins.yaml`, creates SQL queries for each metric (`select date_trunc('week', created_at) as week, sum(amount) as mrr from subscriptions...`), builds a Markdown page with `<LineChart>`, `<BigValue>`, and `<DataTable>` components, and adds date range inputs with `<DateRange>` for filtering.
-
-### Example 2: Building a templated customer health page
-
-**User request:**
-
-```
-I need a per-customer detail page in Evidence that shows usage trends, support tickets, and renewal date for each customer.
-```
-
-The agent creates a templated page at `pages/customers/[customer_id].md`, writes SQL queries that filter by `${params.customer_id}`, adds a customer index page with `<DataTable>` linking to each detail page, and includes `<BarChart>` for usage and `<Alert>` components for upcoming renewals.
-
+That is a legacy project. The agent installs the CLI with the checksum steps above, runs `evidence migrate --dry-run`, reviews the warnings (templated pages and `sources/` SQL need redesign), runs `evidence migrate`, and fixes each `evidence validate` error using `evidence docs component <name>`.
 
 ## Guidelines
 
-1. **SQL is the source of truth** — Write queries directly in Markdown; no abstraction layer between you and the data
-2. **Use parameterized queries carefully** — Evidence supports `${inputs.x}` but sanitize inputs; prefer dropdown constraints over free text
-3. **One page per topic** — Keep reports focused; use navigation for different areas (sales, product, customer)
-4. **Templated pages for catalogs** — Use `[param].md` for product pages, customer profiles, or any entity-level reports
-5. **Read-only database users** — Connect Evidence with a read-only database user; it should never write data
-6. **Version control reports** — Evidence projects are code; store in Git, review in PRs, deploy via CI
-7. **Build-time queries** — Queries run at build time, not on page load; schedule rebuilds based on data freshness needs
-8. **DuckDB for local analysis** — Use DuckDB as a data source for CSV/Parquet files; no database server needed
+- Never generate `<LineChart ... />` Svelte tags, `${inputs.x}` or `npm run sources` for current Evidence; models trained earlier will do this by default.
+- Query results come from a live warehouse connection, so keep queries cheap and use a read-only role.
+- `evidence validate` runs in syntax-only mode without a connection; SQL errors only appear once a connection exists.
+- Never commit a `connection.yaml` that holds real secrets, or key files, and never expose a self-hosted server without Basic auth or an authenticating reverse proxy.
+- For tiny static reports with no warehouse, a plain Markdown or notebook workflow is lighter than Evidence.
