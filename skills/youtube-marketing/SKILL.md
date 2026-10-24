@@ -10,11 +10,11 @@ description: >-
   strategies.
 license: Apache-2.0
 compatibility: >-
-  YouTube Data API v3, YouTube Analytics API. Requires Google Cloud project with
-  YouTube API enabled.
+  YouTube Data API v3, YouTube Analytics API v2. Requires a Google Cloud
+  project with the YouTube APIs enabled and OAuth consent for uploads.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
     - youtube
@@ -28,148 +28,151 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents create high-performing YouTube content and integrate with the YouTube Data API. It covers long-form video strategy, Shorts, SEO optimization, thumbnail design, upload automation, analytics, monetization paths, and growth strategies for YouTube's search-and-recommendation algorithm.
+This skill helps AI agents plan YouTube content (long-form, Shorts, titles, descriptions, thumbnails), automate uploads and playlists with the YouTube Data API v3, and read channel analytics with the YouTube Analytics API. Field limits, quotas and Partner Program rules below come from Google's documentation. Claims about what the recommendation system favours are heuristics: YouTube publishes no ranking formula, so test them against your own Analytics.
 
 ## Instructions
 
-### Algorithm & Discovery
+### Discovery (heuristics)
 
-**Search (YouTube is the #2 search engine):** title/description/tags keyword matching, video transcript indexed, engagement rate (CTR + watch time), fresh content boost.
+- **Search:** title, description, chapters and captions are text the system can match against a query, so put the real topic in plain words early
+- **Recommendations:** click-through rate on the thumbnail and title, how long people watch, and whether viewers are satisfied. Read your own Analytics (impressions CTR, average view duration, retention graph) rather than trusting rules of thumb
+- What hurts: a title or thumbnail that promises something the video does not deliver, long intros, hiding the answer
 
-**Recommendations (70%+ of views):** click-through rate (thumbnail + title), average view duration, session time, viewer satisfaction (likes, shares, comments), upload consistency.
+### Content formats
 
-What kills reach: clickbait without delivery, long intros, inconsistent uploads, misleading thumbnails.
+**Long-form:** Hook in the first seconds, state what the viewer will get, then deliver in clear sections with chapters. Upload at 1080p or higher in MP4 (H.264) with clean audio. Retention tools: pattern changes, open loops, visual variety. Check the retention graph and cut where it drops.
 
-### Content Formats
+**Shorts:** vertical video. YouTube Help says Shorts can be up to 3 minutes long; the maximum upload resolution is 1080p. Open with the hook, one idea per Short, loop-friendly ending. Use Shorts to point to long-form playlists. Public view counts start when a video begins to play, for Shorts and long-form alike (Shorts since March 31, 2025, all formats since August 27, 2026); monetization and most core metrics stay on engaged views and engaged watch hours (`engagedViews` in Analytics).
 
-**Long-Form (8-20 min):** Hook (0-30s) -> Context (30s-1min) -> Main content -> CTA. Specs: 1080p minimum (4K preferred), MP4 H.264, clear audio at -14 to -12 LUFS. Retention techniques: pattern interrupts every 30-60s, open loops, chapters/timestamps, visual variety.
+**Community posts:** available to channels with the feature; polls, images and teasers between uploads.
 
-**Shorts (under 60s, 9:16 vertical):** Hook in first 1 second, single focused idea, loop-friendly endings, use as funnel to long-form. Post 3-5 Shorts/week.
+### Metadata
 
-**Community Posts (500+ subscribers):** Polls, images, video teasers. Post 2-3x/week between uploads.
-
-### YouTube SEO
-
-**Title:** 60-70 chars, primary keyword near start, number + benefit works. Formula: `[Primary Keyword] — [Benefit/Hook] ([Modifier])`. Example: "Next.js Authentication — Complete Guide (2026)".
-
-**Description:** First 150 chars appear in search (front-load keywords). Include timestamps/chapters (min 3). 150-300 words total. Links below the fold.
-
-**Tags:** 5-15 per video, primary keyword first, mix exact match + broader terms.
-
-**Thumbnail:** 1280x720px, high contrast, expressive face, 3-5 words max bold text, consistent branding, rule of thirds.
-
-**Captions:** Upload accurate SRT (auto-captions have errors). YouTube indexes caption text for search. Multi-language subtitles expand global reach.
+- **Title:** max 100 characters, no `<` or `>`. Aim for something short enough not to be cut in search results (about 60 characters is a common guideline, a heuristic). Put the primary keyword early. Example: "Next.js Authentication - Complete Guide (2026)"
+- **Description:** max 5,000 bytes. The opening lines appear in search and above the fold, so put the summary there. Timestamps starting at `0:00` create chapters (at least three, each 10 seconds or longer, per YouTube Help). Keep links below the summary
+- **Tags:** max 500 characters in total including commas. Google only says tags can help with findability; the effect is small, so use a few accurate ones (including common misspellings of a product name) rather than stuffing
+- **Thumbnail:** 16:9, JPG or PNG, high contrast, few words. The channel must be verified to use custom thumbnails. The `thumbnails.set` size limit is 50 MB (raised from 2 MB on September 14, 2026)
+- **Captions:** upload accurate captions; captions inserted through the API must carry timing information (the `sync` parameter was removed in 2024)
 
 ### YouTube Data API v3
 
+Uploads need OAuth with the `https://www.googleapis.com/auth/youtube.upload` scope (add `youtube` for playlists and thumbnails).
+
 ```typescript
+import fs from 'node:fs';
 import { google } from 'googleapis';
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI
 );
-oauth2Client.setCredentials(tokens);
+oauth2Client.setCredentials(tokens); // from your OAuth consent flow, stored server-side
 const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
 
-// Upload video
+// Upload, scheduled: private + publishAt (must be in the future, ISO 8601)
 const res = await youtube.videos.insert({
   part: ['snippet', 'status'],
   requestBody: {
     snippet: {
-      title: 'Next.js Authentication — Complete Guide (2026)',
-      description: 'Learn how to implement auth in Next.js...\n\n0:00 Introduction\n1:23 Setup',
+      title: 'Next.js Authentication - Complete Guide (2026)',
+      description: 'Add sign-in to a Next.js app.\n\n0:00 Introduction\n1:23 Setup\n4:10 Sessions',
       tags: ['nextjs', 'authentication', 'tutorial'],
-      categoryId: '28',
+      categoryId: '28', // Science & Technology; list valid ids with youtube.videoCategories.list
     },
-    status: { privacyStatus: 'private', publishAt: '2026-03-01T15:00:00.000Z', selfDeclaredMadeForKids: false },
+    status: {
+      privacyStatus: 'private',
+      publishAt: '2026-11-07T15:00:00.000Z',
+      selfDeclaredMadeForKids: false,
+      containsSyntheticMedia: false, // set true if it has realistic altered or synthetic content
+    },
   },
-  media: { body: fs.createReadStream('/path/to/video.mp4') },
+  media: { body: fs.createReadStream('./next-auth-tutorial.mp4') },
 });
-await youtube.thumbnails.set({ videoId: res.data.id, media: { body: fs.createReadStream('/path/to/thumb.jpg') } });
+const videoId = res.data.id!;
+await youtube.thumbnails.set({ videoId, media: { body: fs.createReadStream('./next-auth-thumb.jpg') } });
+```
 
-// Upload Short (vertical video + #Shorts in title)
-await youtube.videos.insert({
-  part: ['snippet', 'status'],
-  requestBody: {
-    snippet: { title: '3 Git Commands You Didn\'t Know #Shorts', tags: ['shorts', 'git'], categoryId: '28' },
-    status: { privacyStatus: 'public', selfDeclaredMadeForKids: false },
-  },
-  media: { body: fs.createReadStream('/path/to/short-vertical.mp4') },
-});
+Then add the video to a new playlist:
 
-// Create playlist and add video
+```typescript
 const playlist = await youtube.playlists.insert({
   part: ['snippet', 'status'],
   requestBody: { snippet: { title: 'Next.js Complete Course' }, status: { privacyStatus: 'public' } },
 });
 await youtube.playlistItems.insert({
   part: ['snippet'],
-  requestBody: { snippet: { playlistId: playlist.data.id, resourceId: { kind: 'youtube#video', videoId: 'abc123' } } },
+  requestBody: { snippet: { playlistId: playlist.data.id!, resourceId: { kind: 'youtube#video', videoId } } },
 });
 ```
 
-### Analytics
+A Short is uploaded the same way: a vertical video within the Shorts length limit goes through `videos.insert` like any other file; there is no separate API call.
+
+**Quota and audit:** the default allocation is 10,000 units per day for most methods. Since June 1, 2026, `videos.insert` and `search.list` are charged to their own buckets (100 calls per day each by default; an upload cost about 100 units before that). `thumbnails.set`, `playlists.insert` and `playlistItems.insert` cost 50 units each; most `list` calls cost 1. More quota needs the "YouTube API Services - Audit and Quota Extension Form". Google's `videos.insert` reference states that videos uploaded from unverified API projects are not restricted to private viewing mode.
+
+### Analytics (YouTube Analytics API v2)
 
 ```typescript
 const youtubeAnalytics = google.youtubeAnalytics({ version: 'v2', auth: oauth2Client });
 
-// Channel stats
+// Daily channel stats
 const stats = await youtubeAnalytics.reports.query({
-  ids: 'channel==MINE', startDate: '2026-01-01', endDate: '2026-02-18',
+  ids: 'channel==MINE', startDate: '2026-09-24', endDate: '2026-10-23',
   metrics: 'views,estimatedMinutesWatched,averageViewDuration,subscribersGained',
-  dimensions: 'day', sort: '-day',
+  dimensions: 'day', sort: 'day',
 });
 
-// Top videos
+// Top videos by subscribers gained
 const top = await youtubeAnalytics.reports.query({
-  ids: 'channel==MINE', startDate: '2026-01-01', endDate: '2026-02-18',
-  metrics: 'views,estimatedMinutesWatched,averageViewDuration,likes',
-  dimensions: 'video', sort: '-views', maxResults: 20,
+  ids: 'channel==MINE', startDate: '2026-09-24', endDate: '2026-10-23',
+  metrics: 'views,estimatedMinutesWatched,averageViewDuration,subscribersGained',
+  dimensions: 'video', sort: '-subscribersGained', maxResults: 10,
+});
+
+// Where views come from
+const sources = await youtubeAnalytics.reports.query({
+  ids: 'channel==MINE', startDate: '2026-09-24', endDate: '2026-10-23',
+  metrics: 'views,estimatedMinutesWatched', dimensions: 'insightTrafficSourceType', sort: '-views',
 });
 ```
+Use `estimatedRevenue` (not the long-removed `earnings`) for revenue and the `https://www.googleapis.com/auth/yt-analytics.readonly` scope. Traffic-source queries error if videos multiplied by days in the range exceed 50,000.
 
 ### Monetization
 
-**YPP requirements:** 1,000 subscribers + 4,000 watch hours (12 months) or 10M Shorts views (90 days).
+**YouTube Partner Program (YouTube Help):** 1,000 subscribers plus either 4,000 qualified public long-form watch hours in the last 12 months or 10 million qualified public Shorts views in the last 90 days. You also need to follow monetization policies, live in an eligible country, have no active Community Guidelines strikes, enable 2-Step Verification and link an AdSense account. The whole channel is reviewed (about a month). YPP terms change on February 1, 2027; accept the updated terms in YouTube Studio by January 31, 2027.
 
-**Revenue streams:** Ad revenue ($3-8 CPM tech niche), channel memberships, Super Chat/Thanks, YouTube Shopping, Shorts revenue sharing.
+Other income (channel memberships, Super Chat, Shopping, sponsorships, affiliate links, own products) depends on the channel; no reliable rate benchmarks exist, so get quotes rather than assuming a CPM.
 
-**Beyond YPP:** Sponsorships ($50-200/1K views for tech), affiliate links, own products/courses, consulting.
+### Growth plan (starting point)
 
-### Growth Strategy
-
-Upload 1-2 long-form/week + 3-5 Shorts/week. Content mix: 50% tutorials, 25% Shorts, 15% trend-jacking, 10% community. First 48 hours: share everywhere, reply to every comment, pin a question comment, post to relevant communities.
+Pick a cadence you can keep for a year; consistency matters more than volume. Publish long-form for depth and watch time, Shorts for reach. After publishing, reply to early comments, pin a question and compare the first week's CTR and retention with your channel average.
 
 ## Examples
 
-### Example 1: Optimize and schedule a tutorial video upload
-**User prompt:** "Upload my Next.js authentication tutorial video to YouTube with proper SEO, a custom thumbnail, and schedule it for Saturday at 3 PM UTC."
+### Example 1: Optimize and schedule a tutorial upload
+**User prompt:** "Upload my Next.js authentication tutorial to YouTube with proper SEO, a custom thumbnail, and schedule it for Saturday at 3 PM UTC."
 
 The agent will:
-1. Call `youtube.videos.insert` with `privacyStatus: 'private'` and `publishAt: '2026-03-07T15:00:00.000Z'`
-2. Set the title to "Next.js Authentication — Complete Guide (2026)" with primary keywords front-loaded
-3. Write a 200-word description with timestamps, keywords, and resource links below the fold
-4. Add 10 relevant tags mixing exact-match and broader terms
-5. Upload the custom thumbnail via `youtube.thumbnails.set`
+1. Call `youtube.videos.insert` with `privacyStatus: 'private'` and a future `publishAt` of `2026-11-07T15:00:00.000Z`
+2. Set the title "Next.js Authentication - Complete Guide (2026)" (under 100 characters, keyword first)
+3. Write a description with a two-line summary, then chapters from `0:00`, then links
+4. Add a few accurate tags (total under 500 characters)
+5. Call `youtube.thumbnails.set` with a 16:9 JPG
+6. Report the returned video ID and the scheduled publish time
 
-### Example 2: Analyze channel performance and identify growth opportunities
-**User prompt:** "Pull my YouTube analytics for the last 30 days and tell me which videos are driving the most subscribers and where my traffic is coming from."
+### Example 2: Analyze channel performance
+**User prompt:** "Pull my YouTube analytics for the last 30 days and tell me which videos are driving the most subscribers and where my traffic comes from."
 
 The agent will:
-1. Query `youtubeAnalytics.reports` with `dimensions: 'video'` and `metrics: 'subscribersGained,views,averageViewDuration'` sorted by subscribers gained
-2. Query traffic sources with `dimensions: 'insightTrafficSourceType'` to identify search vs. browse vs. suggested splits
-3. Present the top 5 subscriber-driving videos with their view duration and CTR metrics
-4. Recommend content strategy adjustments based on which traffic sources are strongest
+1. Query `reports.query` with `dimensions: 'video'`, `metrics: 'views,averageViewDuration,subscribersGained'`, `sort: '-subscribersGained'`, `maxResults: 10`
+2. Query `dimensions: 'insightTrafficSourceType'` for the split between search, browse, suggested and Shorts
+3. Return a table of the top five videos and the traffic-source shares
+4. Suggest next topics based on the videos that gained the most subscribers per view
 
 ## Guidelines
 
-- Thumbnail + title are 80% of the click decision — spend time on them
-- First 30 seconds determine if people stay — hook immediately, no long intros
-- Upload as unlisted, set thumbnail, add end screen, then publish (avoid low CTR on default thumbnail)
-- Chapters in description improve retention (viewers jump to relevant parts instead of leaving)
-- Cards and end screens — always point to your best-performing video or relevant playlist
-- Upload SRT captions — auto-captions have errors, YouTube indexes caption text for search
-- Consistency beats virality — 1 video/week for 2 years beats random posting
-- Shorts and long-form serve different purposes: Shorts for reach, long-form for watch time and monetization
-- Study Analytics Audience tab for optimal posting times
-- Every video should answer: "Why click THIS video instead of the other 10 on this topic?"
+- Do not promise outcomes; no ranking formula is public, so treat tips as experiments
+- Stay inside API quotas; cache `list` results and avoid `search.list` when `videos.list` or `playlistItems.list` can answer
+- Never put OAuth tokens or client secrets in code or logs; use environment variables
+- Titles and thumbnails must match the video's content; misleading ones lose viewers and can violate policy
+- `autoLevels` and `stabilize` on `videos.insert` are deprecated and ignored
+- Set `selfDeclaredMadeForKids` honestly and mark realistic synthetic media with `containsSyntheticMedia`
+- Chapters, accurate captions and end screens help viewers; use Analytics retention data to decide edits
