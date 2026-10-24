@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, Cloud Build, Binary Authorization, Security Command Center'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -35,55 +35,71 @@ Security is layered: identity, network, data, supply chain, runtime, and ops. Th
 | **Security by design** | Threat-model in the design phase, not after launch |
 | **Zero trust** | Authenticate every request; trust nothing by network position |
 | **Shift-left security** | Scan, sign, and verify in CI; not in production |
-| **Preemptive cyber defense** | Threat intelligence, centralized logs, automated response |
-| **Use AI securely & responsibly** | Protect models, data, and use SAIF guidance |
-| **Use AI for security** | Gemini in Security, Google SecOps for automation |
+| **Preemptive cyber defense** | Threat intelligence, centralized logs, automated response; includes using AI securely (SAIF) and AI for security operations (Gemini in Security, Google SecOps) |
 | **Compliance & privacy** | Assured Workloads, Org Policy, regional residency |
 
 ### Identity & Access (Zero Trust Foundation)
 
-```bash
-# Disable default networks at org level (Org Policy)
-gcloud resource-manager org-policies enable-enforce \
-  compute.skipDefaultNetworkCreation \
-  --organization=ORG_ID
+Org policies are set with `gcloud org-policies set-policy` and a policy file (the older `gcloud resource-manager org-policies` group still exists but is the legacy v1 API and uses a different file format).
 
-# Restrict service account key creation
-gcloud resource-manager org-policies enable-enforce \
-  iam.disableServiceAccountKeyCreation --organization=ORG_ID
-
-# Restrict resources to approved regions
-gcloud resource-manager org-policies set-policy policy.yaml --organization=ORG_ID
+```yaml
+# no-default-network.yaml — boolean constraint, enforced across the organization
+name: organizations/412398765012/policies/compute.skipDefaultNetworkCreation
+spec:
+  rules:
+    - enforce: true
 ```
 
 ```yaml
-# policy.yaml — only allow EU regions
-constraint: constraints/gcp.resourceLocations
-listPolicy:
-  allowedValues:
-    - in:eu-locations
+# no-sa-keys.yaml — block creation of service account keys
+name: organizations/412398765012/policies/iam.disableServiceAccountKeyCreation
+spec:
+  rules:
+    - enforce: true
+```
+
+```yaml
+# eu-only.yaml — only allow EU locations
+name: organizations/412398765012/policies/gcp.resourceLocations
+spec:
+  rules:
+    - values:
+        allowedValues:
+          - in:eu-locations
+```
+
+```bash
+# 412398765012 is the numeric organization ID (gcloud organizations list)
+gcloud org-policies set-policy no-default-network.yaml
+gcloud org-policies set-policy no-sa-keys.yaml
+gcloud org-policies set-policy eu-only.yaml
 ```
 
 ```bash
 # Identity-Aware Proxy for internal apps (no VPN needed)
 gcloud iap web add-iam-policy-binding \
   --resource-type=backend-services --service=internal-app \
-  --member="group:eng-team@example.com" \
+  --member="group:platform-eng@acme-retail.io" \
   --role="roles/iap.httpsResourceAccessor"
 ```
 
 ### Network Security
 
 ```bash
-# Hierarchical firewall policies — applied at folder/org, can't be overridden by projects
-gcloud compute firewall-policies create global-deny-all \
-  --organization=ORG_ID --short-name="org-baseline"
+# Hierarchical firewall policies — applied at org/folder level; project rules cannot override a deny, though a rule with action `goto_next` defers to lower levels
+gcloud compute firewall-policies create \
+  --organization=412398765012 --short-name=org-baseline
 
+# Deny SSH from the internet in every project under the organization
 gcloud compute firewall-policies rules create 1000 \
-  --firewall-policy=global-deny-all \
-  --action=DENY --direction=EGRESS \
-  --layer4-configs=tcp,udp \
-  --dest-ip-ranges=0.0.0.0/0
+  --firewall-policy=org-baseline --organization=412398765012 \
+  --action=deny --direction=INGRESS \
+  --layer4-configs=tcp:22 \
+  --src-ip-ranges=0.0.0.0/0
+
+# A policy only takes effect once associated with the org or a folder
+gcloud compute firewall-policies associations create \
+  --firewall-policy=org-baseline --organization=412398765012
 ```
 
 ```bash
@@ -104,7 +120,12 @@ gcloud compute security-policies rules create 2000 \
   --rate-limit-threshold-interval-sec=60 \
   --ban-duration-sec=600 \
   --conform-action=allow \
-  --enforce-on-key=IP
+  --exceed-action=deny-429 \
+  --enforce-on-key=ip
+
+# Attach the policy to the backend service behind your load balancer
+gcloud compute backend-services update storefront-backend --global \
+  --security-policy=web-policy
 ```
 
 ```bash
@@ -120,71 +141,81 @@ VPC Service Controls is the right answer when you need data-exfiltration protect
 
 ### Shift-Left: Supply Chain Security
 
+On-Demand Scanning needs the `ondemandscanning.googleapis.com` API. `images scan --remote` scans an image already in the registry, so push first; the scan command prints a scan resource name that `list-vulnerabilities` takes (not the image URL). Signing uses a Binary Authorization attestation (there is no `gcloud artifacts docker images sign`); the command is currently in the `beta` group.
+
 ```yaml
-# cloudbuild.yaml — scan, sign, then deploy
+# cloudbuild.yaml — build, push, scan, then attest
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/acme-prod/shop/storefront
 steps:
   - name: gcr.io/cloud-builders/docker
     args: ['build', '-t', '${_IMAGE}:${SHORT_SHA}', '.']
-
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: gcloud
-    args: ['artifacts', 'docker', 'images', 'scan', '${_IMAGE}:${SHORT_SHA}',
-           '--remote', '--format=value(response.scan)']
+  - name: gcr.io/cloud-builders/docker
+    args: ['push', '${_IMAGE}:${SHORT_SHA}']
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
     args:
       - -c
       - |
-        VULNS=$(gcloud artifacts docker images list-vulnerabilities \
-          ${_IMAGE}:${SHORT_SHA} --filter="severity=CRITICAL" --format="value(name)")
-        if [ -n "$VULNS" ]; then
-          echo "Critical vulnerabilities found"; exit 1
-        fi
-
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: gcloud
-    args: ['artifacts', 'docker', 'images', 'sign', '${_IMAGE}:${SHORT_SHA}',
-           '--key=projects/PROJECT/locations/global/keyRings/binauthz/cryptoKeys/build-signer/cryptoKeyVersions/1']
-
-images: ['${_IMAGE}:${SHORT_SHA}']
+        set -e
+        DIGEST=$(gcloud artifacts docker images describe ${_IMAGE}:${SHORT_SHA} \
+          --format='value(image_summary.digest)')
+        SCAN=$(gcloud artifacts docker images scan ${_IMAGE}@$$DIGEST \
+          --remote --location=us --format='value(response.scan)')
+        CRITICAL=$(gcloud artifacts docker images list-vulnerabilities $$SCAN \
+          --format='value(vulnerability.effectiveSeverity)' | grep -c CRITICAL || true)
+        if [ "$$CRITICAL" -gt 0 ]; then echo "Critical vulnerabilities found"; exit 1; fi
+        gcloud beta container binauthz attestations sign-and-create \
+          --artifact-url=${_IMAGE}@$$DIGEST \
+          --attestor=projects/acme-prod/attestors/build-attestor \
+          --keyversion-project=acme-prod --keyversion-location=global \
+          --keyversion-keyring=binauthz --keyversion-key=build-signer --keyversion=1
 ```
 
 ```yaml
-# Binary Authorization policy — only signed, scanned images deploy
+# policy.yaml — only attested images deploy. Apply with:
+#   gcloud container binauthz policy import policy.yaml
+# The GKE cluster must also have Binary Authorization enforcement turned on.
+globalPolicyEvaluationMode: ENABLE
 defaultAdmissionRule:
   evaluationMode: REQUIRE_ATTESTATION
   enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG
   requireAttestationsBy:
-    - projects/PROJECT/attestors/build-attestor
-    - projects/PROJECT/attestors/security-attestor
+    - projects/acme-prod/attestors/build-attestor
+    - projects/acme-prod/attestors/security-attestor
 clusterAdmissionRules:
   us-central1.prod-cluster:
     evaluationMode: REQUIRE_ATTESTATION
     enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG
     requireAttestationsBy:
-      - projects/PROJECT/attestors/build-attestor
-      - projects/PROJECT/attestors/security-attestor
+      - projects/acme-prod/attestors/build-attestor
+      - projects/acme-prod/attestors/security-attestor
 ```
 
 ### Data Protection
 
 ```bash
-# Customer-managed encryption keys (CMEK) — you own the key, Google holds the cipher
+# Customer-managed encryption keys (CMEK) — you control the key in Cloud KMS.
+# Cloud SQL needs its service agent granted roles/cloudkms.cryptoKeyEncrypterDecrypter on the key first.
 gcloud kms keyrings create prod --location=us-central1
 gcloud kms keys create db-key --keyring=prod --location=us-central1 --purpose=encryption
 
 # Use CMEK on a Cloud SQL instance
 gcloud sql instances create orders \
-  --database-version=POSTGRES_15 \
-  --tier=db-custom-2-7680 --region=us-central1 \
-  --disk-encryption-key=projects/my-project/locations/us-central1/keyRings/prod/cryptoKeys/db-key
+  --database-version=POSTGRES_17 \
+  --edition=enterprise --tier=db-custom-2-7680 --region=us-central1 \
+  --disk-encryption-key=projects/acme-prod/locations/us-central1/keyRings/prod/cryptoKeys/db-key
 ```
 
 ```bash
-# Sensitive Data Protection — find and redact PII in BigQuery
-gcloud dlp jobs create \
-  --inspect-job-from-file=inspect-pii.json
+# Sensitive Data Protection (formerly Cloud DLP) has no gcloud group; call the REST API.
+# Needs dlp.googleapis.com enabled and the dlp.jobsEditor role.
+curl -s -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  -d @inspect-pii.json \
+  "https://dlp.googleapis.com/v2/projects/acme-prod/locations/us-central1/dlpJobs"
 ```
 
 ```json
@@ -193,7 +224,7 @@ gcloud dlp jobs create \
     "storageConfig": {
       "bigQueryOptions": {
         "tableReference": {
-          "projectId": "my-project",
+          "projectId": "acme-prod",
           "datasetId": "raw",
           "tableId": "events"
         }
@@ -208,7 +239,7 @@ gcloud dlp jobs create \
     },
     "actions": [
       { "saveFindings": { "outputConfig": { "table": {
-        "projectId": "my-project", "datasetId": "dlp", "tableId": "findings"
+        "projectId": "acme-prod", "datasetId": "dlp", "tableId": "findings"
       }}}}
     ]
   }
@@ -218,14 +249,14 @@ gcloud dlp jobs create \
 ### Security Command Center & SecOps
 
 ```bash
-# Enable Security Command Center Premium / Enterprise (org-level)
-gcloud scc settings update --organization=ORG_ID --service=security-command-center
+# Activate the Premium or Enterprise tier for the organization in the console
+# (Security Command Center > Settings); there is no gcloud command for tier activation.
 
 # Subscribe a Pub/Sub topic to high-severity findings for automated response
 gcloud scc notifications create high-severity-findings \
-  --organization=ORG_ID \
+  --organization=412398765012 \
   --description="Critical and high findings" \
-  --pubsub-topic=projects/my-project/topics/scc-findings \
+  --pubsub-topic=projects/acme-prod/topics/scc-findings \
   --filter='severity="HIGH" OR severity="CRITICAL"'
 ```
 
@@ -233,33 +264,16 @@ Wire the Pub/Sub topic to a Cloud Function that auto-remediates well-known issue
 
 ### Validation Checklist
 
-### Security by design
-- [ ] Defense-in-depth at network, host, and application layers
-- [ ] Threat model exists and is reviewed for major changes
-- [ ] Risk assessment uses an industry framework (NIST CSF, CIS)
-
-### Zero trust
-- [ ] Default networks disabled at org level
-- [ ] All apps front-ended by IAP or equivalent (no public admin endpoints)
-- [ ] VPC Service Controls perimeters around sensitive data services
+- [ ] Threat model exists and is reviewed for major changes (security by design)
+- [ ] Default networks disabled; service account key creation blocked at org level
+- [ ] Apps front-ended by IAP; VPC Service Controls around sensitive data services
 - [ ] Service-to-service auth via OIDC tokens; no shared secrets
-
-### Shift-left
-- [ ] All infra in IaC (Terraform); no console clicks for prod
-- [ ] CI/CD includes vulnerability scan + signing
-- [ ] Binary Authorization enforces signed-only deployment
+- [ ] All infra in IaC; CI/CD scans and attests images; Binary Authorization enforces
 - [ ] Dependency updates automated (Renovate / Dependabot)
-
-### Preemptive defense
-- [ ] Security Command Center Premium/Enterprise enabled at org
-- [ ] All audit logs centralized to a SIEM or BigQuery
+- [ ] Security Command Center Premium/Enterprise enabled; audit logs centralized
 - [ ] Automated response for known patterns (public buckets, over-broad IAM)
-- [ ] Red-team / pen-test exercises run regularly
+- [ ] AI pipelines protected against data poisoning; training data masked
 
-### AI security
-- [ ] AI training pipelines protected against data poisoning
-- [ ] Differential privacy / data masking on training data where applicable
-- [ ] Vertex Explainable AI used for governance
 ## Examples
 
 ### Example 1 — Hardening review for a Cloud Run service
@@ -277,9 +291,9 @@ User wants to enforce that only scanned-and-signed images deploy to GKE prod. Se
 - **Restrict regions** via Org Policy if you have data-residency obligations
 - **IAP everywhere** for internal apps; never expose admin UIs to the public internet
 - **VPC Service Controls** when you genuinely have data-exfil concerns; expect a learning curve
-- **Cloud Armor on every public-facing load balancer** — preconfigured WAF rules cost nothing extra
+- **Cloud Armor on every public-facing load balancer** — start new rules in `--preview` mode and read the logs before enforcing
 - **Binary Authorization** is the only way to actually enforce "signed images only" at runtime
 - **CMEK** when keys must be in your control; default Google-managed encryption is otherwise fine
 - **Sensitive Data Protection** for PII discovery in BigQuery / GCS — automate, don't audit manually
-- **Security Command Center Premium/Enterprise** is non-negotiable at scale; the free tier is too limited
-- For AI workloads, follow Google's SAIF (Secure AI Framework) — it's the only published practical guidance
+- **Security Command Center Premium or Enterprise** adds threat detection and posture management beyond the Standard tier; check which tier your organization is on
+- For AI workloads, follow Google's SAIF (Secure AI Framework)
