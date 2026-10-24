@@ -1,11 +1,11 @@
 ---
 name: fireworks-ai
-description: Expert guidance for Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
+description: Fireworks AI runs open-weight LLMs (Kimi, GLM, DeepSeek, Qwen, gpt-oss and others) through an OpenAI-compatible serverless API and dedicated deployments. Use when integrating Fireworks inference, streaming chat, tool calling, JSON-schema structured output, prompt caching, batch inference, or fine-tuning a model with firectl and serving the result.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags:
   - llm
@@ -17,19 +17,28 @@ metadata:
 
 # Fireworks AI — Fast Open-Source Model Inference
 
-
 ## Overview
 
-
-Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
-
+Fireworks AI serves open-weight models behind an OpenAI-compatible API at `https://api.fireworks.ai/inference/v1`. Serverless is billed per token and needs no setup; dedicated deployments give you GPUs for consistent latency or for your own fine-tuned models. The catalog turns over quickly (Fireworks gives at least two weeks of notice before removing a serverless model), so pick model IDs from the current "Which model should I use?" guide and the Model Library, never from an old tutorial.
 
 ## Instructions
 
-### Chat Completions
+### Setup
+
+Create a key in the Fireworks dashboard, then export it. Any OpenAI SDK works with a different base URL; Fireworks also ships its own SDK (alpha, needs `--pre`) and an Anthropic-compatible endpoint at `https://api.fireworks.ai/inference`.
+
+```bash
+export FIREWORKS_API_KEY="$(pass show fireworks/api-key)"   # key created at https://app.fireworks.ai/settings/users/api-keys
+npm install openai          # or: pip install openai
+pip install --pre fireworks-ai   # optional native SDK: from fireworks import Fireworks
+```
+
+Model IDs have the form `accounts/fireworks/models/<slug>`. Slugs named in the current docs include `glm-5p3-flash` (quickstart), `glm-5p3`, `kimi-k3`, `deepseek-v4p1-flash-1017`, `minimax-m3`, `qwen3p7-plus`, `gpt-oss-120b` and `qwen3-8b` (small and cheap). Older slugs such as `llama-v3p3-70b-instruct`, `firefunction-v2` or `mixtral-8x22b-instruct` are not in the current guides: check the Model Library before relying on them.
+
+### Chat Completions and Streaming
 
 ```typescript
-// src/llm/fireworks.ts — Fireworks AI inference (OpenAI-compatible)
+// src/llm/fireworks.ts
 import OpenAI from "openai";
 
 const fireworks = new OpenAI({
@@ -37,12 +46,13 @@ const fireworks = new OpenAI({
   baseURL: "https://api.fireworks.ai/inference/v1",
 });
 
-// Chat completion with open-source models
-async function chat(prompt: string, model = "accounts/fireworks/models/llama-v3p3-70b-instruct") {
+const MODEL = "accounts/fireworks/models/glm-5p3-flash";
+
+async function chat(prompt: string, model = MODEL) {
   const response = await fireworks.chat.completions.create({
     model,
     messages: [
-      { role: "system", content: "You are a helpful assistant." },
+      { role: "system", content: "You answer questions about our shipping policy in two sentences." },
       { role: "user", content: prompt },
     ],
     temperature: 0.7,
@@ -51,10 +61,9 @@ async function chat(prompt: string, model = "accounts/fireworks/models/llama-v3p
   return response.choices[0].message.content;
 }
 
-// Streaming
 async function streamChat(prompt: string, onChunk: (text: string) => void) {
   const stream = await fireworks.chat.completions.create({
-    model: "accounts/fireworks/models/llama-v3p3-70b-instruct",
+    model: MODEL,
     messages: [{ role: "user", content: prompt }],
     stream: true,
   });
@@ -68,62 +77,50 @@ async function streamChat(prompt: string, onChunk: (text: string) => void) {
 }
 ```
 
-### Structured Output (JSON Mode & Grammar)
+### Structured Output
+
+`json_schema` is the recommended mode; `json_object` forces any valid JSON. In both cases also tell the model in the prompt to answer in JSON, or it may emit whitespace until the token limit. If `finish_reason` is `length` the JSON is truncated, so raise `max_tokens`.
 
 ```typescript
-// Force structured JSON output
-async function extractData(text: string) {
+async function analyzeReview(text: string) {
   const response = await fireworks.chat.completions.create({
-    model: "accounts/fireworks/models/llama-v3p3-70b-instruct",
+    model: "accounts/fireworks/models/deepseek-v4p1-flash-1017",
     messages: [
-      {
-        role: "system",
-        content: `Extract product information. Return JSON: { "name": string, "price": number, "category": string, "features": string[] }`,
-      },
+      { role: "system", content: "Classify the review. Reply in JSON with sentiment, confidence and keywords." },
       { role: "user", content: text },
     ],
-    response_format: { type: "json_object" },
-    temperature: 0,
-  });
-  return JSON.parse(response.choices[0].message.content!);
-}
-
-// Grammar-constrained generation (Fireworks-specific)
-async function generateWithGrammar(prompt: string) {
-  const response = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.FIREWORKS_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "accounts/fireworks/models/llama-v3p3-70b-instruct",
-      messages: [{ role: "user", content: prompt }],
-      response_format: {
-        type: "json_object",
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "ReviewAnalysis",
         schema: {
           type: "object",
           properties: {
             sentiment: { type: "string", enum: ["positive", "negative", "neutral"] },
-            confidence: { type: "number", minimum: 0, maximum: 1 },
+            confidence: { type: "number" },
             keywords: { type: "array", items: { type: "string" } },
           },
           required: ["sentiment", "confidence", "keywords"],
         },
       },
-    }),
+    },
+    temperature: 0,
+    max_tokens: 512,
   });
-  return response.json();
+  return JSON.parse(response.choices[0].message.content!);
 }
 ```
 
-### Function Calling
+Supported schema keywords include `properties`, `required`, `enum`, `anyOf`/`allOf`/`oneOf`, `pattern` (best effort), length and size limits, and in-document `$ref`/`$defs`. External `$ref` URIs are not supported. Custom BNF grammars are available as a second mode (see the Structured Outputs docs).
+
+### Tool Calling
+
+Standard OpenAI `tools` format. Use a low temperature (0.0 to 0.3) to reduce invented parameter values.
 
 ```typescript
-// Tool use with Fireworks
-async function agentWithTools(prompt: string) {
+async function findProducts(prompt: string) {
   const response = await fireworks.chat.completions.create({
-    model: "accounts/fireworks/models/firefunction-v2",  // Optimized for function calling
+    model: "accounts/fireworks/models/kimi-k3",
     messages: [{ role: "user", content: prompt }],
     tools: [
       {
@@ -144,111 +141,57 @@ async function agentWithTools(prompt: string) {
       },
     ],
     tool_choice: "auto",
+    temperature: 0.1,
   });
-  return response;
+  // response.choices[0].message.tool_calls: run each call, then send the result back
+  // as a { role: "tool", tool_call_id, content } message for the final answer.
+  return response.choices[0].message;
 }
 ```
 
 ### Fine-Tuning
 
-```python
-# fine_tune.py — Fine-tune a model on Fireworks
-import requests
-
-FIREWORKS_API_KEY = os.environ["FIREWORKS_API_KEY"]
-BASE_URL = "https://api.fireworks.ai/inference/v1"
-
-# Upload training data (JSONL format)
-def upload_dataset(filepath: str):
-    with open(filepath, "rb") as f:
-        response = requests.post(
-            f"{BASE_URL}/files",
-            headers={"Authorization": f"Bearer {FIREWORKS_API_KEY}"},
-            files={"file": (filepath, f, "application/jsonl")},
-            data={"purpose": "fine-tune"},
-        )
-    return response.json()["id"]
-
-# Start fine-tuning job
-def create_fine_tune(dataset_id: str, base_model: str = "accounts/fireworks/models/llama-v3p1-8b-instruct"):
-    response = requests.post(
-        f"{BASE_URL}/fine_tuning/jobs",
-        headers={
-            "Authorization": f"Bearer {FIREWORKS_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": base_model,
-            "training_file": dataset_id,
-            "hyperparameters": {
-                "n_epochs": 3,
-                "learning_rate_multiplier": 1.0,
-                "batch_size": 8,
-            },
-        },
-    )
-    return response.json()
-
-# Training data format (JSONL):
-# {"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
-```
-
-### Available Models
-
-```markdown
-## Popular Models on Fireworks
-- **llama-v3p3-70b-instruct** — Best open-source general-purpose model
-- **llama-v3p1-8b-instruct** — Fast, cheap, good for simple tasks
-- **mixtral-8x22b-instruct** — Strong multilingual, large context
-- **qwen2p5-72b-instruct** — Excellent for coding and math
-- **firefunction-v2** — Optimized for function calling / tool use
-- **deepseek-v3** — Strong reasoning and code generation
-- **gemma-2-27b-it** — Google's compact model
-```
-
-## Installation
+Managed supervised fine-tuning (SFT) trains a LoRA on a tunable base model; DPO/ORPO and an RL Training API also exist. Trained models are served from a dedicated deployment. Install `firectl` (`brew tap fw-ai/firectl && brew install firectl`; Linux builds are on the firectl docs page) and authenticate it as described in the firectl authentication docs.
 
 ```bash
-# Use any OpenAI-compatible SDK
-npm install openai
-# Set baseURL to https://api.fireworks.ai/inference/v1
+# Check the base model is tunable (look for Tunable: true)
+firectl model get -a fireworks qwen3-8b
 
-pip install openai
-# Set base_url to https://api.fireworks.ai/inference/v1
+# Dataset: JSONL, 3 to 3 million lines, one {"messages": [...]} object per line (optional "tools")
+firectl dataset create support-tickets-v1 ./support-tickets.jsonl
+
+firectl sftj create --base-model qwen3-8b --dataset support-tickets-v1 --output-model ticket-triage-v1
+firectl sftj get ticket-triage-v1-job   # use the job ID printed by the create command
+firectl model list
+
+# Serve it
+firectl deployment create ticket-triage-v1 --deployment-shape default
 ```
 
+Each training line looks like `{"messages": [{"role": "user", "content": "Refund for order 8841?"}, {"role": "assistant", "content": "Refunds ..."}]}`. Roles are `system`, `user`, `assistant`, `tool`; a per-message `weight` of `0` excludes that message from the loss. Use `Render Samples` on the job page to check tokenization when the tuned model ignores your answers.
 
 ## Examples
 
+### Example 1: Streaming chat in a Next.js app
 
-### Example 1: Integrating Fireworks Ai into an existing application
+**User request:** "Add Fireworks to my Next.js app for the support chat, with streaming."
 
-**User request:**
+The agent installs `openai`, adds `FIREWORKS_API_KEY` to `.env.local`, and creates `app/api/chat/route.ts` that builds the client above, calls `chat.completions.create({ stream: true })` with `accounts/fireworks/models/glm-5p3-flash`, and pipes the deltas to the browser as a `ReadableStream`. The key stays on the server; the page reads the stream and appends text as it arrives.
 
-```
-Add Fireworks Ai to my Next.js app for the AI chat feature. I want streaming responses.
-```
+### Example 2: Cutting cost on a slow, expensive classifier
 
-The agent installs the SDK, creates an API route that initializes the Fireworks Ai client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
+**User request:** "Our ticket classifier on Fireworks is slow and costs too much."
 
-### Example 2: Optimizing structured output performance
-
-**User request:**
-
-```
-My Fireworks Ai calls are slow and expensive. Help me optimize the setup.
-```
-
-The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Fireworks Ai's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
-
+The agent checks the model first (a large reasoning model for a three-label task is the usual cause) and moves it to `qwen3-8b` with `response_format` set to a `json_schema` and `temperature: 0`. It keeps the system prompt identical across requests and passes `x-session-affinity` per customer so prompt caching hits (cached input tokens cost 50% of the input rate by default). Offline backfills go to the Batch API at 50% of serverless rates. If accuracy drops, it fine-tunes the 8B model with `firectl sftj create` instead of going back to the big one.
 
 ## Guidelines
 
-1. **OpenAI SDK compatibility** — Use the standard OpenAI SDK with a different base URL; zero code changes to switch
-2. **firefunction-v2 for tools** — Use the function-calling-optimized model for reliable tool use
-3. **JSON schema for structure** — Fireworks supports JSON schema constraints; use them for reliable structured output
-4. **Fine-tune 8B for cost** — Fine-tune Llama 3.1 8B for domain-specific tasks; cheaper and faster than using 70B
-5. **Batch API for throughput** — Use Fireworks' batch API for bulk processing at lower cost
-6. **Model routing** — Use 8B for simple tasks, 70B for complex reasoning; route based on query complexity
-7. **Serverless vs dedicated** — Start with serverless; switch to dedicated endpoints for consistent latency at scale
-8. **Monitor token usage** — Fireworks pricing is per-token; track usage per feature to optimize costs
+1. **OpenAI compatibility** — only the base URL, key and model ID change; check `usage` in responses for billed tokens.
+2. **Verify model IDs** — the serverless catalog changes; deprecated models fail with an error. Read the models guide before pinning.
+3. **Prefer `json_schema`** — and mention JSON in the prompt; handle `finish_reason: "length"`.
+4. **Low temperature for tools** — 0.0 to 0.3.
+5. **Prompt caching is automatic** — keep the stable prefix first and send a stable `x-session-affinity` (or `user`) value so repeats land on the same replica.
+6. **Serverless modes** — Standard by default; set `service_tier: "priority"` for peak-hour reliability at a premium.
+7. **Batch inference** — asynchronous jobs at 50% of serverless prices for bulk work.
+8. **Serverless vs dedicated** — start serverless; fine-tuned models and guaranteed latency need a dedicated deployment, which bills for GPU time while it runs, so delete idle deployments.
+9. **Secrets** — keep `FIREWORKS_API_KEY` in server-side environment variables only.
