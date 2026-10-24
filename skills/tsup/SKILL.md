@@ -7,19 +7,22 @@ description: >-
   esbuild", or "library bundling with zero config". Covers ESM/CJS dual
   output, declaration files, tree-shaking, and npm publishing.
 license: Apache-2.0
-compatibility: "Node.js 18+. TypeScript."
+compatibility: "Node.js 22.18+ (tsup 9) or Node.js 18+ (tsup 8). TypeScript 5 or 6."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["bundling", "typescript", "tsup", "esbuild", "library"]
+  repository: https://github.com/egoist/tsup
 ---
 
 # tsup
 
 ## Overview
 
-tsup bundles TypeScript libraries for npm publishing — zero config, powered by esbuild (100x faster than tsc). Outputs ESM + CJS dual packages, generates `.d.ts` declaration files, and handles tree-shaking. The standard tool for building TypeScript packages in 2025+.
+tsup bundles TypeScript libraries for npm publishing — zero config, powered by esbuild (100x faster than tsc). Outputs ESM + CJS dual packages, generates `.d.ts` declaration files, and handles tree-shaking. 
+
+**Status:** tsup 9.0.0 (October 2026) is the current release, but the project README says it is no longer actively maintained and recommends [tsdown](https://tsdown.dev/guide/migrate-from-tsup) (a Rolldown-based successor with a migration guide). tsup still builds fine; use it for existing projects, and consider tsdown for new ones. tsup 9 requires Node.js 22.18+, 24.11+ or 26+; stay on tsup 8 for older Node.
 
 ## When to Use
 
@@ -34,12 +37,14 @@ tsup bundles TypeScript libraries for npm publishing — zero config, powered by
 ### Setup
 
 ```bash
-npm install -D tsup typescript
+npm install -D tsup typescript@6
 ```
+
+`dts: true` needs the TypeScript compiler API, which TypeScript 7 no longer ships. With `typescript@7` the build stops with "rollup-plugin-dts requires the TypeScript compiler API"; install `typescript@6` (or add `@typescript/typescript6` as the error suggests).
 
 ### Zero Config
 
-```json
+```jsonc
 // package.json — Minimal setup
 {
   "name": "my-lib",
@@ -98,14 +103,18 @@ export default defineConfig({
 });
 ```
 
-```json
+```jsonc
 // package.json — Subpath exports
 {
   "exports": {
-    ".": { "import": "./dist/index.js", "require": "./dist/index.cjs" },
-    "./client": { "import": "./dist/client.js", "require": "./dist/client.cjs" },
-    "./server": { "import": "./dist/server.js", "require": "./dist/server.cjs" },
-    "./utils": { "import": "./dist/utils.js", "require": "./dist/utils.cjs" }
+    ".": {
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    },
+    "./client": {
+      "import": { "types": "./dist/client.d.ts", "default": "./dist/client.js" },
+      "require": { "types": "./dist/client.d.cts", "default": "./dist/client.cjs" }
+    }
   }
 }
 ```
@@ -119,10 +128,11 @@ import { defineConfig } from "tsup";
 export default defineConfig([
   {
     entry: ["src/index.ts"],
-    format: ["esm"],
+    format: ["iife"],             // globalName applies to IIFE output
     platform: "browser",          // Browser-optimized
     globalName: "MyLib",
-    outDir: "dist/browser",
+    minify: true,
+    outDir: "dist/browser",   // dist/browser/index.global.js
   },
   {
     entry: ["src/index.ts"],
@@ -141,7 +151,7 @@ export default defineConfig([
 
 **User prompt:** "I have a collection of TypeScript utility functions. Package them for npm with ESM and CJS support."
 
-The agent will configure tsup for dual output, set up package.json exports, generate type declarations, and prepare for npm publish.
+The agent adds `tsup.config.ts` (entry `src/index.ts`, `format: ["esm", "cjs"]`, `dts: true`, `clean: true`) and the `exports` map above, then runs `npx tsup`. Result: `dist/index.js`, `dist/index.cjs`, `dist/index.d.ts` and `dist/index.d.cts`, which both `import` and `require` consumers resolve. This was built and loaded in Node 24 with tsup 9.0.0.
 
 ### Example 2: Build a React component library
 
@@ -157,6 +167,7 @@ The agent will set up tsup with React external, multiple entry points per compon
 - **Don't minify libraries** — let the consumer's bundler handle it
 - **`external` for peer deps** — don't bundle React, Vue, etc.
 - **`splitting` for ESM** — enables tree-shaking for consumers
+- **File extensions** — with `"type": "module"`, ESM is `.js` and CJS is `.cjs` (types `.d.ts` / `.d.cts`). Without it, ESM becomes `.mjs` and CJS `.js`, so the `exports` paths must match
 - **`exports` in package.json** — modern Node.js resolution, types condition first
 - **`files: ["dist"]`** — only publish the built output
 - **`treeshake: true`** — remove internal unused code from output
