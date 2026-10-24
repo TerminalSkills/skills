@@ -1,11 +1,13 @@
 ---
 name: gleam
-description: Expert guidance for Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
+description: >-
+  Gleam is a statically typed functional language that compiles to Erlang (BEAM) or JavaScript. Use when creating Gleam projects, writing custom types and pattern matching, building web servers with Wisp and Mist, running OTP actors, or adding dependencies with gleam add. Covers Gleam 1.x and current package APIs.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Gleam 1.19+; Erlang/OTP for the default Erlang target, Node.js, Deno or Bun for the JavaScript target"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/gleam-lang/gleam
   category: development
   tags:
   - gleam
@@ -17,110 +19,35 @@ metadata:
 
 # Gleam — Type-Safe Language for the BEAM
 
-
 ## Overview
 
-
-Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
-
+Gleam is a small, statically typed functional language. It compiles to Erlang and runs on the BEAM virtual machine (fault-tolerant, many lightweight processes), or compiles to JavaScript. There are no exceptions, no null, and no implicit conversions: errors are `Result` values and `case` expressions must be exhaustive. Current release: 1.19.2 (the language is 1.x, and the standard library `gleam_stdlib` is 1.x too). Web code in this skill targets Erlang, because Wisp, Mist and OTP actors are Erlang-only.
 
 ## Instructions
 
-### Project Setup
+### Project setup
+
+Install Gleam with a package manager (`brew install gleam` on macOS and Linuxbrew; your distribution's package or `mise`/`asdf` also work), or download the release archive from https://github.com/gleam-lang/gleam/releases and check it against the `.sha256` file published next to it. The Erlang target also needs Erlang/OTP installed (the compiler calls `escript`); the JavaScript target needs a JS runtime instead.
 
 ```bash
-# Install Gleam
-brew install gleam    # macOS
-# Or: curl -fsSL https://gleam.run/install | sh
-
-# Create a new project
-gleam new my_app
-cd my_app
-
-# Run
-gleam run
-
-# Test
-gleam test
-
-# Build for production
-gleam build
+gleam new task_api          # Erlang target by default; add --template javascript for JS
+cd task_api
+gleam add wisp mist gleam_json gleam_otp gleam_erlang gleam_http
+gleam run                   # build and run src/task_api.gleam main()
+gleam test                  # runs gleeunit tests in test/
+gleam check                 # type check only
+gleam format                # format source
+gleam run --target javascript   # run on Node instead (pure code only)
 ```
 
-### Type-Safe Web Server with Wisp
+`gleam add` writes version ranges into `gleam.toml`; `gleam deps update` refreshes them. Packages live on Hex (https://hex.pm). Note that `gleam_otp` 1.x has a new actor API and `wisp` 2.x changed several helpers; many older blog posts show removed functions.
+
+### Custom types and pattern matching
 
 ```gleam
-// src/my_app/router.gleam — Type-safe HTTP routing
-// Gleam catches errors at compile time — no runtime crashes from typos.
+// src/task_api/task.gleam
+import gleam/option.{type Option, None, Some}
 
-import gleam/http.{Get, Post, Delete}
-import gleam/http/request.{type Request}
-import gleam/http/response.{type Response}
-import gleam/json
-import gleam/result
-import wisp.{type Request as WispRequest, type Response as WispResponse}
-
-pub fn handle_request(req: WispRequest) -> WispResponse {
-  case wisp.path_segments(req) {
-    // GET /api/tasks
-    ["api", "tasks"] -> list_tasks(req)
-
-    // GET /api/tasks/:id
-    ["api", "tasks", id] -> get_task(req, id)
-
-    // POST /api/tasks
-    ["api", "tasks"] if req.method == Post -> create_task(req)
-
-    // DELETE /api/tasks/:id
-    ["api", "tasks", id] if req.method == Delete -> delete_task(req, id)
-
-    // 404 for everything else
-    _ -> wisp.not_found()
-  }
-}
-
-fn list_tasks(req: WispRequest) -> WispResponse {
-  // Pattern matching ensures we handle every case
-  case task_service.get_all() {
-    Ok(tasks) -> {
-      let body = json.array(tasks, task_to_json)
-      wisp.json_response(json.to_string_builder(body), 200)
-    }
-    Error(err) -> {
-      wisp.log_error("Failed to list tasks: " <> err)
-      wisp.internal_server_error()
-    }
-  }
-}
-
-fn create_task(req: WispRequest) -> WispResponse {
-  use body <- wisp.require_json(req)
-
-  // Decode and validate — compiler ensures all fields are handled
-  case decode_create_request(body) {
-    Ok(create_req) -> {
-      case task_service.create(create_req.title, create_req.priority) {
-        Ok(task) -> wisp.json_response(
-          json.to_string_builder(task_to_json(task)),
-          201,
-        )
-        Error(err) -> wisp.unprocessable_entity()
-      }
-    }
-    Error(_) -> wisp.bad_request()
-  }
-}
-```
-
-### Custom Types and Pattern Matching
-
-```gleam
-// src/my_app/task.gleam — Domain types with exhaustive matching
-// The compiler guarantees you handle every variant — impossible to forget a case.
-
-import gleam/option.{type Option, Some, None}
-
-/// Task priority — the compiler ensures you handle all variants
 pub type Priority {
   Low
   Medium
@@ -128,7 +55,6 @@ pub type Priority {
   Urgent
 }
 
-/// Task status with strict state machine semantics
 pub type Status {
   Todo
   InProgress
@@ -138,45 +64,23 @@ pub type Status {
 }
 
 pub type Task {
-  Task(
-    id: String,
-    title: String,
-    description: Option(String),
-    priority: Priority,
-    status: Status,
-    assignee: Option(String),
-  )
+  Task(id: String, title: String, priority: Priority, status: Status, assignee: Option(String))
 }
 
-/// Validate status transitions — not all transitions are allowed.
-/// The compiler ensures every combination is handled.
+/// Only some status changes are allowed; the compiler checks every pair is covered.
 pub fn transition(from: Status, to: Status) -> Result(Status, String) {
   case from, to {
-    // Valid transitions
     Todo, InProgress -> Ok(InProgress)
     InProgress, Review -> Ok(Review)
     Review, Done -> Ok(Done)
-    Review, InProgress -> Ok(InProgress)    // Send back for changes
-
-    // Any status can be cancelled
+    Review, InProgress -> Ok(InProgress)
+    Done, _ | Cancelled, _ -> Error("Finished tasks cannot change status")
     _, Cancelled -> Ok(Cancelled)
-
-    // Can't move backwards to Todo
-    _, Todo -> Error("Cannot move back to Todo")
-
-    // Can't skip steps
-    Todo, Done -> Error("Must go through InProgress and Review first")
-    Todo, Review -> Error("Must go through InProgress first")
-
-    // Already in target state
-    same, target if same == target -> Ok(target)
-
-    // Everything else is invalid
     _, _ -> Error("Invalid status transition")
   }
 }
 
-/// Calculate SLA based on priority — exhaustive, no default needed
+/// No default branch needed: adding a Priority variant breaks the build until handled.
 pub fn sla_hours(priority: Priority) -> Int {
   case priority {
     Low -> 72
@@ -185,124 +89,160 @@ pub fn sla_hours(priority: Priority) -> Int {
     Urgent -> 2
   }
 }
+
+pub fn describe(task: Task) -> String {
+  case task.assignee {
+    Some(name) -> task.title <> " (" <> name <> ")"
+    None -> task.title <> " (unassigned)"
+  }
+}
 ```
 
-### Concurrency with OTP Actors
+### JSON encoding and decoding
+
+`gleam_json` 3.x encodes with `json.object`/`json.string` and decodes with the `gleam/dynamic/decode` module (the old `dynamic.field` decoders are gone).
 
 ```gleam
-// src/my_app/task_actor.gleam — Concurrent actor for task management
-// Gleam runs on the BEAM — millions of lightweight processes, fault-tolerant.
+import gleam/dynamic/decode
+import gleam/json
 
-import gleam/erlang/process.{type Subject}
-import gleam/otp/actor.{type Next}
-
-/// Messages the actor can receive
-pub type Message {
-  GetAll(reply_to: Subject(List(Task)))
-  Create(title: String, priority: Priority, reply_to: Subject(Result(Task, String)))
-  UpdateStatus(id: String, status: Status, reply_to: Subject(Result(Task, String)))
+pub type NewTask {
+  NewTask(title: String, priority: String)
 }
 
-/// Actor state
+fn new_task_decoder() -> decode.Decoder(NewTask) {
+  use title <- decode.field("title", decode.string)
+  use priority <- decode.field("priority", decode.string)
+  decode.success(NewTask(title:, priority:))
+}
+
+pub fn parse(input: String) -> Result(NewTask, json.DecodeError) {
+  json.parse(input, new_task_decoder())
+}
+
+pub fn encode(task: NewTask) -> String {
+  json.object([
+    #("title", json.string(task.title)),
+    #("priority", json.string(task.priority)),
+  ])
+  |> json.to_string
+}
+```
+
+### Web server with Wisp and Mist, state in an OTP actor
+
+Wisp (2.x) is the web framework; Mist is the HTTP server it runs on. Handlers take a `wisp.Request` and return a `wisp.Response`; route with `gleam/http/request.path_segments` and the request method. Bodies are strings (`wisp.json_response(json_string, status)`).
+
+```gleam
+// src/task_api.gleam
+import gleam/dynamic/decode
+import gleam/erlang/process
+import gleam/http.{Get, Post}
+import gleam/http/request
+import gleam/int
+import gleam/json
+import gleam/list
+import gleam/otp/actor
+import mist
+import wisp.{type Request, type Response}
+import wisp/wisp_mist
+
+pub type Task {
+  Task(id: String, title: String)
+}
+
+pub type Message {
+  GetAll(reply_to: process.Subject(List(Task)))
+  Create(title: String, reply_to: process.Subject(Task))
+}
+
 pub type State {
   State(tasks: List(Task), next_id: Int)
 }
 
-/// Handle each message type
-fn handle_message(message: Message, state: State) -> Next(Message, State) {
+fn handle_message(state: State, message: Message) -> actor.Next(State, Message) {
   case message {
     GetAll(reply_to) -> {
-      process.send(reply_to, state.tasks)
+      process.send(reply_to, list.reverse(state.tasks))
       actor.continue(state)
     }
-
-    Create(title, priority, reply_to) -> {
-      let id = "task-" <> int.to_string(state.next_id)
-      let task = Task(
-        id: id,
-        title: title,
-        description: None,
-        priority: priority,
-        status: Todo,
-        assignee: None,
-      )
-      process.send(reply_to, Ok(task))
-      actor.continue(State(
-        tasks: [task, ..state.tasks],
-        next_id: state.next_id + 1,
-      ))
-    }
-
-    UpdateStatus(id, new_status, reply_to) -> {
-      let result = update_task_status(state.tasks, id, new_status)
-      case result {
-        Ok(updated_tasks) -> {
-          process.send(reply_to, Ok(find_task(updated_tasks, id)))
-          actor.continue(State(..state, tasks: updated_tasks))
-        }
-        Error(err) -> {
-          process.send(reply_to, Error(err))
-          actor.continue(state)
-        }
-      }
+    Create(title, reply_to) -> {
+      let task = Task("task-" <> int.to_string(state.next_id), title)
+      process.send(reply_to, task)
+      actor.continue(State(tasks: [task, ..state.tasks], next_id: state.next_id + 1))
     }
   }
 }
 
-/// Start the actor
-pub fn start() -> Result(Subject(Message), actor.StartError) {
-  actor.start(State(tasks: [], next_id: 1), handle_message)
+fn task_json(task: Task) -> json.Json {
+  json.object([#("id", json.string(task.id)), #("title", json.string(task.title))])
+}
+
+pub fn handle_request(req: Request, store: process.Subject(Message)) -> Response {
+  use <- wisp.log_request(req)
+  use <- wisp.rescue_crashes
+  case request.path_segments(req), req.method {
+    ["api", "tasks"], Get ->
+      actor.call(store, waiting: 1000, sending: GetAll)
+      |> json.array(task_json)
+      |> json.to_string
+      |> wisp.json_response(200)
+    ["api", "tasks"], Post -> {
+      use body <- wisp.require_json(req)
+      case decode.run(body, decode.field("title", decode.string, decode.success)) {
+        Ok(title) ->
+          actor.call(store, waiting: 1000, sending: Create(title, _))
+          |> task_json
+          |> json.to_string
+          |> wisp.json_response(201)
+        Error(_) -> wisp.unprocessable_content()
+      }
+    }
+    ["api", "tasks"], _ -> wisp.method_not_allowed([Get, Post])
+    _, _ -> wisp.not_found()
+  }
+}
+
+pub fn main() {
+  wisp.configure_logger()
+  let secret_key_base = wisp.random_string(64)
+  let assert Ok(started) =
+    actor.new(State(tasks: [], next_id: 1))
+    |> actor.on_message(handle_message)
+    |> actor.start
+  let assert Ok(_) =
+    wisp_mist.handler(handle_request(_, started.data), secret_key_base)
+    |> mist.new
+    |> mist.bind("127.0.0.1")
+    |> mist.port(8000)
+    |> mist.start
+  process.sleep_forever()
 }
 ```
 
-## Installation
-
-```bash
-# macOS
-brew install gleam
-
-# Linux
-curl -fsSL https://gleam.run/install | sh
-
-# Dependencies
-gleam add wisp           # Web framework
-gleam add gleam_json     # JSON encoding/decoding
-gleam add sqlight        # SQLite bindings
-gleam add gleam_http     # HTTP types
-```
-
+Try it: `gleam run`, then `curl -s -X POST localhost:8000/api/tasks -H 'content-type: application/json' -d '{"title":"Renew TLS certificate"}'` returns `{"id":"task-1","title":"Renew TLS certificate"}`.
 
 ## Examples
 
+### Example 1: Add a JSON endpoint to a Gleam service
 
-### Example 1: Building a feature with Gleam
+**User request:** "Add GET /api/health to my Wisp app that returns the app version as JSON."
 
-**User request:**
+Add a branch to the `case` in `handle_request`: `["api", "health"], Get -> json.object([#("status", json.string("ok")), #("version", json.string("1.4.2"))]) |> json.to_string |> wisp.json_response(200)`. Run `gleam check` (fast, no server), then `gleam run` and `curl -s localhost:8000/api/health`; the body is `{"status":"ok","version":"1.4.2"}`.
 
-```
-Add a real-time collaborative project setup to my React app using Gleam.
-```
+### Example 2: Replace string statuses with a custom type
 
-The agent installs the package, creates the component with proper Gleam initialization, implements the project setup with event handling and state management, and adds TypeScript types for the integration.
+**User request:** "Task status is a String in my Gleam code and I keep typo-ing it. Fix that."
 
-### Example 2: Migrating an existing feature to Gleam
-
-**User request:**
-
-```
-I have a basic type-safe web server with wisp built with custom code. Migrate it to use Gleam for better type-safe web server with wisp support.
-```
-
-The agent reads the existing implementation, maps the custom logic to Gleam's API, rewrites the components using Gleam's primitives, preserves existing behavior, and adds features only possible with Gleam (like Custom Types and Pattern Matching, Concurrency with OTP Actors).
-
+Define `pub type Status { Todo InProgress Review Done Cancelled }`, change the `Task` field type, and add `status_from_string(String) -> Result(Status, Nil)` for input at the JSON boundary. Run `gleam check`: every `case` that no longer covers all variants is reported as an error with the missing patterns, so nothing is left unhandled.
 
 ## Guidelines
 
-1. **Let the compiler help** — Gleam's type system catches bugs at compile time; if it compiles, it almost certainly works
-2. **Use custom types over strings** — Define `Priority` and `Status` as custom types, not strings; the compiler ensures you handle every variant
-3. **Pattern matching for control flow** — Replace if/else chains with pattern matching; the compiler warns about missing cases
-4. **Result type over exceptions** — Gleam has no exceptions; use `Result(value, error)` and `use` syntax for error handling
-5. **Leverage the BEAM** — Gleam runs on Erlang's VM; you get fault tolerance, hot code reloading, and millions of concurrent processes for free
-6. **Call Erlang/Elixir libraries** — Use `@external` to call any Erlang or Elixir library; the entire OTP ecosystem is available
-7. **Pipelines for data transformation** — Use `|>` operator for readable data pipelines: `data |> filter |> map |> sort`
-8. **Actors for state** — Use OTP actors (via gleam_otp) for concurrent stateful services; each actor is isolated and crash-safe
+1. Use `gleam check` for a fast compile loop, `gleam format` before committing, `gleam test` with gleeunit for tests.
+2. Model states as custom types, not strings; avoid catch-all `_` branches so new variants are flagged by the compiler.
+3. No exceptions: return `Result(value, error)` and chain with `use x <- result.try(...)`. `let assert` crashes on mismatch, so keep it for startup code and tests.
+4. Pipelines (`|>`) pass the left value as the first argument; labelled arguments and `_` captures (`Create(title, _)`) fill other positions.
+5. Call Erlang or JavaScript with `@external(erlang, "module", "function")`, always with a Gleam type signature.
+6. Bind servers to `127.0.0.1` in development (`mist.bind`), and load `secret_key_base` from an environment variable in production instead of generating it per start, or signed cookies break on restart.
+7. Actors (`gleam_otp`) serialize access to state; use `actor.call` with a timeout, and supervise long-lived actors for restarts.
+8. Code using Wisp, Mist, or OTP only works on the Erlang target; keep shared logic in pure modules if you also want JavaScript output.
