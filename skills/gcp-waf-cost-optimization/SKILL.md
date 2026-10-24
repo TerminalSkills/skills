@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, BigQuery (billing export), Cloud Billing'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -33,7 +33,7 @@ Cloud is OpEx, not CapEx — getting cost right requires visibility (where is mo
 | Principle | What it means in practice |
 |---|---|
 | **Align spending with business value** | Every dollar should map to a product/team/feature; reject infra that doesn't tie back to a business metric |
-| **Foster cost awareness** | Make spend visible to engineers via dashboards, not just to finance |
+| **Foster a culture of cost awareness** | Make spend visible to engineers via dashboards, not just to finance |
 | **Optimize resource usage** | Rightsize, use cheap-when-fault-tolerant compute (Spot), commit when stable (CUDs) |
 | **Optimize continuously** | Cost reviews are recurring; act on Recommender insights monthly |
 
@@ -41,20 +41,20 @@ Cloud is OpEx, not CapEx — getting cost right requires visibility (where is mo
 
 ```bash
 # Enable BigQuery billing export — required for granular analysis
-gcloud beta billing accounts list  # find your billing account ID
+gcloud billing accounts list  # find your billing account ID
 # Then in Console: Billing → Export → BigQuery export → enable "Detailed usage cost data"
 ```
 
 ```sql
 -- Top 20 services by cost, last 30 days
 SELECT
-  service.description AS service,
+  service.description AS service_name,
   SUM(cost) AS cost_usd,
   SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0)) AS credits_usd,
   SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0)) AS net_usd
 FROM `my-project.billing_export.gcp_billing_export_resource_v1_*`
-WHERE _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
-GROUP BY service
+WHERE usage_start_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
+GROUP BY service_name
 ORDER BY net_usd DESC
 LIMIT 20;
 ```
@@ -64,18 +64,18 @@ LIMIT 20;
 SELECT
   (SELECT value FROM UNNEST(labels) WHERE key = 'team') AS team,
   (SELECT value FROM UNNEST(labels) WHERE key = 'env') AS env,
-  service.description AS service,
+  service.description AS service_name,
   SUM(cost) AS cost_usd
 FROM `my-project.billing_export.gcp_billing_export_resource_v1_*`
-WHERE _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
-GROUP BY team, env, service
+WHERE usage_start_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
+GROUP BY team, env, service_name
 ORDER BY cost_usd DESC;
 ```
 
 ### Budgets and Alerts
 
 ```bash
-# Per-project budget with alerts at 50%, 90%, 100% of forecasted spend
+# Per-project budget: alerts at 50% and 90% of actual spend, 100% of forecasted spend
 gcloud billing budgets create \
   --billing-account=BILLING_ACCOUNT_ID \
   --display-name="prod-monthly-budget" \
@@ -87,7 +87,7 @@ gcloud billing budgets create \
   --notifications-rule-pubsub-topic=projects/my-project/topics/billing-alerts
 ```
 
-Pipe the Pub/Sub topic to a Cloud Function that auto-disables non-critical resources at 95% of budget for dev/test projects.
+Budgets only notify; they do not cap spend. Pipe the Pub/Sub topic to a Cloud Run function that disables non-critical resources for dev/test projects.
 
 ### Rightsizing via Active Assist
 
@@ -109,6 +109,14 @@ gcloud recommender recommendations list \
 ```
 
 ```bash
+# Idle reserved external IP addresses
+gcloud recommender recommendations list \
+  --project=my-project \
+  --location=us-central1 \
+  --recommender=google.compute.address.IdleResourceRecommender
+```
+
+```bash
 # Idle persistent disks
 gcloud recommender recommendations list \
   --project=my-project \
@@ -119,7 +127,7 @@ gcloud recommender recommendations list \
 ### Cheaper Compute
 
 ```bash
-# Spot VMs — up to 91% cheaper, can be preempted with 30s notice
+# Spot VMs — up to 91% cheaper; can be preempted at any time (best-effort 30s shutdown)
 gcloud compute instances create batch-worker \
   --zone=us-central1-a \
   --machine-type=n2-standard-4 \
@@ -128,12 +136,13 @@ gcloud compute instances create batch-worker \
 ```
 
 ```bash
-# Committed Use Discount — 1 or 3 year commit, ~57% off for stable workloads
+# Resource-based Committed Use Discount — plan is 12-month or 36-month; up to 55% off
+# (70% for memory-optimized series) for stable workloads
 gcloud compute commitments create prod-commit-3y \
   --region=us-central1 \
-  --resources=vcpu=64,memory=256 \
-  --plan=THIRTY_SIX_MONTH \
-  --type=GENERAL_PURPOSE
+  --resources=vcpu=64,memory=256GB \
+  --plan=36-month \
+  --type=general-purpose
 ```
 
 For variable workloads, use **Cloud Run / Cloud Run functions / GKE Autopilot** — pay for actual request seconds, not provisioned capacity. Migrating a low-traffic API from a Compute Engine VM to Cloud Run typically cuts cost 70%+.
@@ -161,7 +170,7 @@ EOF
 gcloud storage buckets update gs://my-archive-bucket --lifecycle-file=lifecycle.json
 ```
 
-Storage class pricing (US, per GB-month, approximate): Standard $0.020, Nearline $0.010, Coldline $0.004, Archive $0.0012. Lifecycle rules pay for themselves within weeks on cold data.
+Colder classes cost less to store but add minimum storage durations and retrieval fees, so only move data you rarely read; check current Cloud Storage pricing before choosing the ages.
 
 ### Workload Assessment Questions
 
@@ -198,7 +207,7 @@ User shares last month's GCP bill ($15k, up from $9k). Pull billing-export data 
 
 ### Example 2 — Architectural cost review of a new service
 
-Team is designing a new background job processor. Default proposal is 6 always-on n2-standard-8 VMs ($1.4k/month). Recommend Cloud Run Jobs with `--task-count` matching peak burst — pay only for actual job seconds (~$200/month at expected volume). For the message queue, Pub/Sub instead of self-hosted RabbitMQ on GCE. For object storage, Standard tier with lifecycle to Coldline at 90 days.
+Team is designing a new background job processor. Default proposal is 6 always-on n2-standard-8 VMs (about $1.7k/month). Recommend Cloud Run Jobs with `--tasks` matching peak burst — pay only for actual job seconds (~$200/month at expected volume). For the message queue, Pub/Sub instead of self-hosted RabbitMQ on GCE. For object storage, Standard tier with lifecycle to Coldline at 90 days.
 
 ## Guidelines
 
@@ -207,8 +216,8 @@ Team is designing a new background job processor. Default proposal is 6 always-o
 - **Budgets with Pub/Sub alerts** — wire to a function that can auto-disable resources for dev/test
 - Recommender insights are passive — schedule a monthly sweep, don't expect them to act themselves
 - Spot VMs are the right default for any fault-tolerant workload (CI, batch, inference, dev/test)
-- CUDs require >12 months of usage history to size correctly — never commit before that
+- Resource-based CUDs should be sized from several months of stable usage history, using the Recommender commitment recommendations
 - Migrate static-VM workloads to Cloud Run / Cloud Run Jobs / GKE Autopilot whenever possible
-- Storage lifecycle policies pay for themselves in weeks; there's no reason not to set them
+- Storage lifecycle policies suit cold data; mind minimum storage durations and retrieval fees before tiering data you still read
 - For multi-team accounts, use Folders + per-folder budgets and aggregated billing rollups
 - Set Org Policies to restrict regions and machine types — prevents accidentally provisioning the world's most expensive VM in Sydney
