@@ -5,14 +5,14 @@ description: >-
   asks to "get structured data from LLM", "parse LLM response as JSON",
   "make AI return typed output", "validate LLM output", "extract structured
   data with AI", "use instructor with OpenAI", or "get reliable JSON from
-  Claude/GPT". Covers OpenAI structured outputs, Anthropic tool_use for
-  structured data, Instructor library, Zod schemas, Pydantic models, and
+  Claude/GPT". Covers OpenAI structured outputs, Anthropic output_config.format
+  (JSON outputs), Instructor library, Zod schemas, Pydantic models, and
   retry strategies for malformed responses.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.10+. OpenAI or Anthropic API key."
+compatibility: "Node.js 20+ or Python 3.10+. OpenAI or Anthropic API key (OPENAI_API_KEY, ANTHROPIC_API_KEY)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["llm", "json", "validation", "zod", "pydantic"]
 ---
@@ -35,109 +35,105 @@ LLMs love to ramble. When you need JSON, you get JSON wrapped in markdown. When 
 
 ### Strategy 1: OpenAI Structured Outputs (Native)
 
-OpenAI's `response_format` with JSON Schema guarantees valid JSON matching your schema. The model literally cannot produce non-conforming output.
+OpenAI's JSON Schema mode (`strict`) constrains decoding so the reply matches your schema. Use the Responses API: `responses.parse` with `zodTextFormat` (TypeScript) or `text_format=` with a Pydantic model (Python). The older `chat.completions.parse` with `zodResponseFormat` still works but is the legacy path.
 
 ```typescript
 // openai-structured.ts — Type-safe LLM outputs with OpenAI
-/**
- * Uses OpenAI's native structured outputs to guarantee
- * responses match a JSON Schema. No parsing, no retries,
- * no "please return valid JSON" prompting hacks.
- */
 import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import { zodResponseFormat } from "openai/helpers/zod";
 
-const openai = new OpenAI();
+const openai = new OpenAI(); // reads OPENAI_API_KEY
 
-// Define your output schema with Zod
+// Strict mode: every field is required and objects take no extra keys.
+// Express "maybe missing" as .nullable(), never .optional().
 const ProductAnalysis = z.object({
   name: z.string().describe("Product name"),
   category: z.enum(["electronics", "clothing", "food", "software", "other"]),
   sentiment: z.enum(["positive", "negative", "neutral", "mixed"]),
-  score: z.number().min(0).max(10).describe("Overall quality score"),
-  pros: z.array(z.string()).describe("List of positive aspects"),
-  cons: z.array(z.string()).describe("List of negative aspects"),
-  summary: z.string().max(200).describe("One-sentence summary"),
+  score: z.number().describe("Overall quality score from 0 to 10"),
+  pros: z.array(z.string()).describe("Positive aspects"),
+  cons: z.array(z.string()).describe("Negative aspects"),
+  summary: z.string().describe("One-sentence summary, at most 200 characters"),
+  warranty_months: z.number().nullable().describe("Warranty length, null if not mentioned"),
 });
-
 type ProductAnalysis = z.infer<typeof ProductAnalysis>;
 
 async function analyzeReview(review: string): Promise<ProductAnalysis> {
-  const response = await openai.beta.chat.completions.parse({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: "Analyze the product review and extract structured data.",
-      },
+  const response = await openai.responses.parse({
+    model: "gpt-6-luna", // pick a current model; gpt-4o-mini is scheduled for removal on 2027-01-14
+    input: [
+      { role: "system", content: "Analyze the product review and extract structured data." },
       { role: "user", content: review },
     ],
-    response_format: zodResponseFormat(ProductAnalysis, "product_analysis"),
+    text: { format: zodTextFormat(ProductAnalysis, "product_analysis") },
   });
 
-  // Guaranteed to be valid — no try/catch needed
-  return response.choices[0].message.parsed!;
+  if (!response.output_parsed) {
+    // A safety refusal does not follow the schema; it arrives as a refusal item.
+    throw new Error(`No parsed output (status: ${response.status})`);
+  }
+  return response.output_parsed;
 }
 ```
 
-### Strategy 2: Anthropic Tool Use for Structured Data
+Python equivalent: `client.responses.parse(model=..., input=[...], text_format=ProductAnalysis)` where `ProductAnalysis` is a Pydantic `BaseModel`; read `response.output_parsed`.
 
-Claude doesn't have native JSON mode, but tool_use forces structured output through a function call schema.
+### Strategy 2: Anthropic JSON outputs (`output_config.format`)
+
+Claude constrains its reply to a JSON Schema through `output_config.format` (GA on the Claude API, Bedrock, Vertex and Foundry; supported by current Claude models). `messages.parse` with a Zod schema (`zodOutputFormat`) or a Pydantic model (`output_format=`) sends the schema, validates the reply and returns it typed in `parsed_output`. Keep `max_tokens` high enough: a reply cut off at the limit is not valid JSON.
 
 ```typescript
-// anthropic-structured.ts — Structured output from Claude via tool_use
-/**
- * Uses Anthropic's tool_use feature to extract structured data.
- * Define a "tool" with your output schema — Claude fills it in
- * as a structured tool call instead of free text.
- */
+// anthropic-structured.ts — Structured output from Claude
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { z } from "zod";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic(); // reads ANTHROPIC_API_KEY
 
-interface ExtractedEvent {
-  title: string;
-  date: string;        // ISO 8601
-  location: string;
-  attendees: number;
-  description: string;
-}
+const ExtractedEvent = z.object({
+  title: z.string(),
+  date: z.string().describe("Event date in ISO 8601 format"),
+  location: z.string(),
+  attendees: z.number().describe("Expected number of attendees"),
+  description: z.string().describe("Brief event description"),
+});
+type ExtractedEvent = z.infer<typeof ExtractedEvent>;
 
 async function extractEvent(text: string): Promise<ExtractedEvent> {
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const response = await anthropic.messages.parse({
+    model: "claude-sonnet-5-5",
     max_tokens: 1024,
-    tools: [
-      {
-        name: "extract_event",
-        description: "Extract event details from text",
-        input_schema: {
-          type: "object" as const,
-          properties: {
-            title: { type: "string", description: "Event title" },
-            date: { type: "string", description: "Event date in ISO 8601 format" },
-            location: { type: "string", description: "Event location" },
-            attendees: { type: "number", description: "Expected number of attendees" },
-            description: { type: "string", description: "Brief event description" },
-          },
-          required: ["title", "date", "location", "attendees", "description"],
-        },
-      },
-    ],
-    tool_choice: { type: "tool", name: "extract_event" },  // Force this tool
     messages: [{ role: "user", content: `Extract event details:\n\n${text}` }],
+    output_config: { format: zodOutputFormat(ExtractedEvent) },
   });
-
-  // Find the tool_use block
-  const toolBlock = response.content.find((b) => b.type === "tool_use");
-  if (!toolBlock || toolBlock.type !== "tool_use") {
-    throw new Error("No tool_use block in response");
-  }
-
-  return toolBlock.input as ExtractedEvent;
+  if (!response.parsed_output) throw new Error(`No parsed output (stop_reason: ${response.stop_reason})`);
+  return response.parsed_output;
 }
 ```
+
+```python
+# anthropic_structured.py
+from anthropic import Anthropic
+from pydantic import BaseModel
+
+class ExtractedEvent(BaseModel):
+    title: str
+    date: str
+    location: str
+    attendees: int
+
+client = Anthropic()
+response = client.messages.parse(
+    model="claude-sonnet-5-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Extract the event: PyData Berlin, 14 March 2027 at the Kosmos venue, about 300 attendees."}],
+    output_format=ExtractedEvent,
+)
+print(response.parsed_output)
+```
+
+The API enforces only a subset of JSON Schema; the SDK helpers strip numeric and length constraints (`minimum`, `maxLength` ...) from the wire schema, move them into the field description and check them on the reply. For tool inputs, set `strict: true` on the tool definition instead. Forcing a single tool with `tool_choice` still works but is no longer the recommended route for plain data extraction.
 
 ### Strategy 3: Instructor Library (Python)
 
@@ -155,8 +151,8 @@ from pydantic import BaseModel, Field
 from openai import OpenAI
 from typing import Optional
 
-# Patch the OpenAI client
-client = instructor.from_openai(OpenAI())
+# Wrap the OpenAI client (reads OPENAI_API_KEY)
+client = instructor.from_openai(OpenAI())  # or instructor.from_provider("openai/gpt-6-luna")
 
 class ContactInfo(BaseModel):
     """Extracted contact information from unstructured text."""
@@ -185,7 +181,7 @@ def analyze_email(email_text: str) -> EmailAnalysis:
         Validated EmailAnalysis with all fields populated
     """
     return client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-6-luna",
         response_model=EmailAnalysis,  # Instructor magic
         max_retries=3,                 # Auto-retry on validation failure
         messages=[
@@ -195,7 +191,7 @@ def analyze_email(email_text: str) -> EmailAnalysis:
     )
 
 # Usage
-result = analyze_email("Hi, I'm John from Acme Corp. We need the API docs by Friday...")
+result = analyze_email("Hi, I'm Dana Reyes from Northwind Logistics. We need the API docs by Friday...")
 print(result.model_dump_json(indent=2))
 ```
 
@@ -207,21 +203,21 @@ When the model doesn't support native structured output, validate and retry.
 // retry-structured.ts — Validate and retry LLM output
 /**
  * Generic structured output with retry logic.
- * Works with any LLM provider. Sends the validation error
+ * Works with any LLM provider (Zod 4: z.toJSONSchema is built in). Sends the validation error
  * back to the model so it can self-correct.
  */
-import { z, ZodSchema } from "zod";
+import { z, ZodType } from "zod";
 
 async function structuredLLM<T>(
   llmCall: (messages: Array<{ role: string; content: string }>) => Promise<string>,
-  schema: ZodSchema<T>,
+  schema: ZodType<T>,
   prompt: string,
   maxRetries: number = 3
 ): Promise<T> {
   const messages: Array<{ role: string; content: string }> = [
     {
       role: "system",
-      content: `Respond with valid JSON matching this schema:\n${JSON.stringify(zodToJsonSchema(schema), null, 2)}`,
+      content: `Respond with valid JSON matching this schema:\n${JSON.stringify(z.toJSONSchema(schema), null, 2)}`,
     },
     { role: "user", content: prompt },
   ];
@@ -268,13 +264,14 @@ The agent will define a SearchQuery schema (filters, sort, pagination, date rang
 
 ## Guidelines
 
-- **Use native structured output when available** — OpenAI's response_format is 100% reliable
-- **Anthropic tool_use works** — force a single tool to get structured data from Claude
-- **Instructor is the best Python option** — auto-retries, validation, works with multiple providers
-- **Always validate** — even native structured output should be validated with Zod/Pydantic
+- **Use native structured output when available** — OpenAI `text.format` / `response_format` with strict JSON Schema and Anthropic `output_config.format` both constrain decoding; they guarantee the shape, not that the values are true
+- **Handle refusals and truncation** — an OpenAI safety refusal or an Anthropic reply cut off at `max_tokens` will not match the schema; check `output_parsed` / `parsed_output` and `stop_reason`
+- **Strict mode limits** — OpenAI needs every field required (use `.nullable()`, not `.optional()`) and `additionalProperties: false`; both vendors support only a subset of JSON Schema, so keep range and length rules in your own validation
+- **Instructor is a good Python option** — auto-retries on validation failure, one `response_model=` API across providers
+- **Always validate** — business rules (ranges, string length, cross-field checks) are not enforced by the model; check with Zod/Pydantic
 - **Keep schemas simple** — deeply nested schemas increase error rates
 - **Descriptions matter** — add `.describe()` to every field; the model uses them for guidance
 - **Retry with error feedback** — sending the validation error back lets the model self-correct
 - **Use enums over free strings** — `z.enum(["low", "medium", "high"])` beats `z.string()`
 - **Temperature 0 for extraction** — deterministic output reduces schema violations
-- **Cost: extraction is cheap** — gpt-4o-mini handles most extraction tasks at $0.15/1M tokens
+- **Cost: extraction is cheap** — a small, cheap model handles most extraction tasks; check the vendor's pricing page
