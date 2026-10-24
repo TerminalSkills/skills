@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: 'Next.js, Nuxt, SvelteKit, Astro, Express, Hono'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - better-auth
@@ -16,6 +16,7 @@ metadata:
     - oauth
     - sessions
     - typescript
+  repository: https://github.com/better-auth/better-auth
 ---
 
 # Better Auth
@@ -32,12 +33,22 @@ Better Auth is a framework-agnostic TypeScript authentication library. It handle
 npm install better-auth
 ```
 
+Add two variables to `.env` (the secret must be at least 32 characters; generate one with `openssl rand -base64 32`):
+
+```bash
+BETTER_AUTH_SECRET=k3Jx9vQ2mLw8sT5nYd0aPzR7uHc4bGfE1oXiVtN6yMs=
+BETTER_AUTH_URL=http://localhost:3000
+```
+
+Better Auth reads both automatically. To rotate the secret later, use `BETTER_AUTH_SECRETS` so existing data stays valid. The examples below were checked against version 1.7.
+
 ### Step 2: Server Configuration
 
 ```typescript
 // lib/auth.ts — Better Auth server setup
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
+import { nextCookies } from 'better-auth/next-js'
 import { prisma } from './db'
 
 export const auth = betterAuth({
@@ -64,8 +75,8 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,              // refresh every 24h
   },
 
-  // Plugins for additional features
-  plugins: [],
+  // nextCookies must be the last plugin; it lets server actions set cookies
+  plugins: [nextCookies()],
 })
 ```
 
@@ -124,28 +135,66 @@ export function LoginForm() {
 }
 ```
 
-### Step 5: Protect Routes
+### Step 5: Create the tables
+
+```bash
+npx auth@latest generate   # writes the Prisma/Drizzle schema or SQL for the auth tables
+npx auth@latest migrate    # applies it directly (built-in Kysely adapter only)
+```
+
+With Prisma or Drizzle, run your ORM's own migration after `generate`.
+
+### Step 6: Protect Routes
+
+Check the session on the server, in every page or route that needs it:
 
 ```typescript
-// middleware.ts — Next.js route protection
+// app/dashboard/page.tsx — Next.js server component
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 
-export async function getSession() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-  return session
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session) redirect('/login')
+  return <h1>Welcome, {session.user.name}</h1>
 }
-
-// In a server component or page
-const session = await getSession()
-if (!session) redirect('/login')
 ```
+
+A proxy (Next.js 16, `proxy.ts`) or middleware (`middleware.ts` before 16) can only do a fast redirect: `getSessionCookie(request)` from `better-auth/cookies` checks that a cookie exists, not that it is valid. Treat it as a convenience and keep the real check in the page or route. If you customised the cookie name or prefix in `auth.ts`, pass the same values to `getSessionCookie`.
+
+## Examples
+
+### Example 1: "Add email login and GitHub sign-in to my Next.js app"
+
+Follow Steps 1-6 with `emailAndPassword.enabled: true` and the `github` social provider. In the GitHub OAuth app, set the callback URL to `http://localhost:3000/api/auth/callback/github`. Result: `signIn.email(...)` and `signIn.social({ provider: 'github' })` work from the client, and `/dashboard` redirects to `/login` without a session.
+
+### Example 2: "Use Better Auth in my Hono API with Drizzle and Postgres"
+
+```typescript
+// src/auth.ts
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { db } from './db'
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, { provider: 'pg' }),
+  emailAndPassword: { enabled: true },
+  trustedOrigins: ['https://app.shopmetrics.dev'],
+})
+
+// src/index.ts — mount the handler on /api/auth/*
+import { Hono } from 'hono'
+const app = new Hono()
+app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
+```
+
+Run `npx auth@latest generate`, apply the schema with `drizzle-kit`, then call `auth.api.getSession({ headers: c.req.raw.headers })` in a middleware to protect other routes. When the frontend is on another origin, list it in `trustedOrigins` and set `createAuthClient({ baseURL })` to the API address.
 
 ## Guidelines
 
-- Better Auth works with any database via adapters (Prisma, Drizzle, Kysely, raw SQL).
-- Run `npx better-auth generate` to create database migrations for auth tables.
+- Better Auth works with any database via adapters (Prisma, Drizzle, MongoDB, memory) or a direct Kysely-compatible driver (better-sqlite3, pg Pool, mysql2).
+- With an ORM adapter, import `betterAuth` from `better-auth/minimal` to shrink the bundle.
+- Re-run `npx auth@latest generate` whenever you add a plugin that has its own tables (organization, two-factor, and so on).
 - For multi-tenancy, use the organization plugin — handles teams, roles, and invites.
 - Alternative to NextAuth/Auth.js — Better Auth is framework-agnostic and more composable.
