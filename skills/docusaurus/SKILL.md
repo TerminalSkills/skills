@@ -8,10 +8,10 @@ description: >-
   Covers project setup, docs structure, versioning, custom pages, blog,
   Algolia search, MDX components, and deployment.
 license: Apache-2.0
-compatibility: 'Node.js 18+ (any hosting platform)'
+compatibility: 'Node.js 20+ for Docusaurus 3.10 (any hosting platform)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - docusaurus
@@ -19,7 +19,7 @@ metadata:
     - docs
     - static-site
     - mdx
-    - technical-writing
+  repository: https://github.com/facebook/docusaurus
 ---
 
 # Docusaurus
@@ -33,16 +33,16 @@ Docusaurus is a static site generator built by Meta specifically for documentati
 ### Step 1: Project Setup
 
 ```bash
-# Create new Docusaurus project
-npx create-docusaurus@latest my-docs classic
+# Create new Docusaurus project (3.10.2 on 2026-10-24); without --javascript/--typescript
+# the CLI stops to ask which language to use
+npx create-docusaurus@latest my-docs classic --javascript
 
 cd my-docs
 
 # Start development server
 npm start
-# Opens http://localhost:3000
 
-# Build for production
+# Build for production (output in build/)
 npm run build
 
 # Project structure:
@@ -51,7 +51,8 @@ npm run build
 # src/pages/     — custom React pages
 # src/css/       — custom styles
 # static/        — static assets (images, files)
-# docusaurus.config.js — main configuration
+# docusaurus.config.js — main configuration (the 3.x template uses ESM `export default`;
+#   the CommonJS `module.exports` form below also builds)
 # sidebars.js    — sidebar navigation structure
 ```
 
@@ -144,8 +145,10 @@ const config = {
   tagline: 'Build amazing things with our SDK',
   url: 'https://docs.mycompany.com',
   baseUrl: '/',
+  organizationName: 'mycompany', projectName: 'docs', // required by `npm run deploy` (GitHub Pages)
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  // top-level onBrokenMarkdownLinks is deprecated since 3.9; it moved here:
+  markdown: { hooks: { onBrokenMarkdownLinks: 'warn' } },
 
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
@@ -154,8 +157,8 @@ const config = {
       docs: {
         sidebarPath: './sidebars.js',
         editUrl: 'https://github.com/mycompany/docs/tree/main/',
-        showLastUpdateTime: true,
-        showLastUpdateAuthor: true,
+        showLastUpdateTime: true,    // reads git history: the build fails outside a git repository
+        showLastUpdateAuthor: true,  // and CI checkouts need fetch-depth: 0 for correct dates
       },
       blog: {
         showReadingTime: true,
@@ -180,13 +183,13 @@ const config = {
       style: 'dark',
       links: [
         { title: 'Docs', items: [{ label: 'Getting Started', to: '/docs/getting-started' }] },
-        { title: 'Community', items: [{ label: 'Discord', href: 'https://discord.gg/...' }] },
+        { title: 'Community', items: [{ label: 'Discord', href: 'https://github.com/mycompany/sdk/discussions' }] },
       ],
     },
     algolia: {
-      appId: 'YOUR_ALGOLIA_APP_ID',
-      apiKey: 'YOUR_ALGOLIA_SEARCH_KEY',
-      indexName: 'my-docs',
+      appId: process.env.ALGOLIA_APP_ID,          // from your DocSearch application
+      apiKey: process.env.ALGOLIA_SEARCH_API_KEY, // the public search-only key, never the admin key
+      indexName: 'mycompany-sdk-docs',
     },
   },
 }
@@ -205,9 +208,8 @@ npm run docusaurus docs:version 1.0
 # versioned_docs/version-1.0/ — frozen v1.0 docs
 # versioned_sidebars/         — frozen v1.0 sidebars
 
-# Create another version
-npm run docusaurus docs:version 2.0
-# Users can switch between versions via the dropdown
+# Users can switch between versions via the dropdown.
+# Once a version exists, the unreleased docs/ folder is served under /docs/next
 ```
 
 ### Step 6: MDX Components
@@ -260,9 +262,6 @@ npm run build
 
 # GitHub Pages deployment
 GIT_USER=mycompany npm run deploy
-
-# Vercel — just connect the repo, it auto-detects Docusaurus
-# Netlify — build command: npm run build, publish directory: build
 ```
 
 ## Examples
@@ -283,7 +282,7 @@ The agent will:
 
 The agent will:
 1. Create a multi-instance docs setup (one docs folder per service).
-2. Add a shared architecture section with embedded diagrams (Mermaid).
+2. Add a shared architecture section with Mermaid diagrams (`@docusaurus/theme-mermaid`, `themes: ['@docusaurus/theme-mermaid']`, `markdown: { mermaid: true }`).
 3. Configure internal blog for architecture decisions and RFCs.
 4. Deploy behind VPN/auth for internal access only.
 
@@ -291,7 +290,9 @@ The agent will:
 
 - Use the `classic` preset for most documentation sites — it includes docs, blog, pages, and search out of the box.
 - Structure docs in a flat hierarchy when possible — deeply nested sidebars are hard to navigate. 2-3 levels max.
-- Enable `showLastUpdateTime` and `showLastUpdateAuthor` — it builds trust with readers and helps identify stale docs.
-- Set `onBrokenLinks: 'throw'` to catch broken internal links during build. This prevents deploying docs with dead links.
+- Enable `showLastUpdateTime` and `showLastUpdateAuthor` (needs a git repo with full history, see Step 4) — it builds trust with readers and helps identify stale docs.
+- Run `npm run build` (not only `npm start`) before merging; it is what finds broken links and MDX errors. Set `onBrokenLinks: 'throw'` to catch broken internal links during build. This prevents deploying docs with dead links.
 - Use MDX sparingly — most docs should be plain Markdown for contributor accessibility. Save MDX for interactive examples and complex layouts.
 - Apply for Algolia DocSearch (free for open-source) for production search. For internal docs, use the local search plugin.
+- Two files that map to the same doc id (for example `intro.md` and `intro.mdx`) fail the build; keep one.
+- Keep the Algolia search-only key in an environment variable or CI secret; the admin key must never be in the repository.
