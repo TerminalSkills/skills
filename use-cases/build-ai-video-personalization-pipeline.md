@@ -9,273 +9,157 @@ tags: [video, personalization, sales-outreach, heygen, automation]
 
 # Build an AI Video Personalization Pipeline
 
-**Persona:** Sales team automating personalized video outreach  
-**Stack:** HeyGen API, Python, CSV contacts, email/LinkedIn delivery  
-**Outcome:** Personalized talking-avatar videos generated at scale, sent to prospects
+## The Problem
 
----
+Generic cold outreach gets ignored. A short video that greets the prospect by name, mentions their company and names one specific pain point stands out far more, but recording a hundred individual videos by hand is not realistic. A sales team needs each video generated from the contact list, tracked, and delivered without anyone sitting in front of a camera.
 
-## Problem
+## The Solution
 
-Generic cold outreach is ignored. A personalized video message — one where the sender addresses the prospect by name, mentions their company, and references a specific pain point — converts 3–5x better. But recording hundreds of individual videos manually is impossible at scale.
-
-**Solution:** Use HeyGen's API to generate a unique talking-avatar video for each prospect, automatically, from a CSV of contacts.
-
----
-
-## Architecture Overview
+Use the **heygen-api** skill to turn a CSV of contacts into one talking-avatar video per prospect through HeyGen's v3 API. A script template fills in name, company and pain point; the pipeline submits one job per row, polls until each is done, downloads the files and writes a results file you hand to your email tool.
 
 ```
-contacts.csv
-    │
-    ▼
-Script Personalization (Python)
-    │
-    ▼
-HeyGen API → Video Generation Jobs (async)
-    │
-    ▼
-Poll Status → Download Videos
-    │
-    ▼
-Email / LinkedIn delivery
-    │
-    ▼
-Track open rates (UTM links or video hosting platform)
+contacts.csv -> script template -> POST /v3/videos (one per row)
+             -> poll GET /v3/videos/{id} -> download mp4 -> host + send email
 ```
 
----
+Every generation call spends HeyGen credits, so test with three rows first and check your balance and plan limits in the HeyGen dashboard.
 
-## Step 1: Prepare your contacts CSV
+## Step-by-Step Walkthrough
+
+### Step 1: Prepare the contacts and the key
 
 ```csv
 first_name,company,pain_point,email
-Sarah,Acme Corp,high cloud infrastructure costs,sarah@acme.com
-James,TechStart,slow developer onboarding,james@techstart.io
-Maria,GrowthCo,low email deliverability,maria@growthco.com
+Sarah,Acme Corp,high cloud infrastructure costs,sarah@example.com
+James,TechStart,slow developer onboarding,james@example.org
+Maria,GrowthCo,low email deliverability,maria@example.net
 ```
 
-Save as `contacts.csv`.
-
----
-
-## Step 2: Set up the environment
-
-```bash
-pip install requests python-dotenv
+```console
+$ python3 -m venv .venv && .venv/bin/pip install requests
+$ read -rs HEYGEN_API_KEY && export HEYGEN_API_KEY
+$ curl -s https://api.heygen.com/v3/users/me -H "X-Api-Key: $HEYGEN_API_KEY"
 ```
+
+Create the key in the HeyGen API dashboard. The v1/v2 endpoints (`/v2/video/generate`, `/v1/video_status.get`) are retired on October 31, 2026; use only `/v3/...`.
+
+### Step 2: Pick an avatar look and write the script template
 
 ```python
-# .env
-HEYGEN_API_KEY=your_key_here
-```
-
----
-
-## Step 3: Define the script template
-
-```python
-def build_script(first_name: str, company: str, pain_point: str) -> str:
-    return (
-        f"Hi {first_name}, I noticed that {company} might be dealing with {pain_point}. "
-        f"We've helped similar companies solve exactly this in under 30 days. "
-        f"I'd love to show you how — can we grab 15 minutes this week? "
-        f"Check the link below for a quick demo. Talk soon!"
-    )
-```
-
-Keep scripts under 60 seconds (~150 words) for best engagement.
-
----
-
-## Step 4: Submit video generation jobs
-
-```python
-import os
-import csv
-import time
-import json
+import csv, json, os, time
 import requests
 
-API_KEY = os.environ["HEYGEN_API_KEY"]
-HEADERS = {"X-Api-Key": API_KEY, "Content-Type": "application/json"}
+BASE = "https://api.heygen.com"
+HEADERS = {"X-Api-Key": os.environ["HEYGEN_API_KEY"]}
 
-# Configure once — pick your avatar and voice from the HeyGen library
-AVATAR_ID = "Angela-insuit-20220820"
-VOICE_ID = "en-US-JennyNeural"
+def api(method, path, **kwargs):
+    """Call the API, wait out rate limits, raise with the API's own error."""
+    headers = {**HEADERS, **kwargs.pop("headers", {})}
+    while True:
+        r = requests.request(method, f"{BASE}{path}", headers=headers, timeout=60, **kwargs)
+        if r.ok:
+            return r.json()
+        err = r.json().get("error", {})
+        if r.status_code == 429 and err.get("code") == "rate_limit_exceeded":
+            time.sleep(int(r.headers.get("Retry-After", "5")))
+            continue
+        raise RuntimeError(f"{r.status_code} {err.get('code')}: {err.get('message')}")
 
-def submit_video(script: str, title: str) -> str:
-    payload = {
-        "video_inputs": [{
-            "character": {"type": "avatar", "avatar_id": AVATAR_ID, "avatar_style": "normal"},
-            "voice": {"type": "text", "input_text": script, "voice_id": VOICE_ID, "speed": 1.0},
-            "background": {"type": "color", "value": "#F5F5F5"}
-        }],
-        "dimension": {"width": 1280, "height": 720},
-        "title": title
-    }
-    r = requests.post("https://api.heygen.com/v2/video/generate", json=payload, headers=HEADERS)
-    r.raise_for_status()
-    return r.json()["data"]["video_id"]
+looks = api("GET", "/v3/avatars/looks", params={"ownership": "public", "limit": 20})["data"]
+for look in looks[:5]:
+    print(look["id"], look["name"])
+AVATAR_ID = looks[0]["id"]   # replace with the look you chose; omit voice_id to use its default voice
 
-def process_contacts(csv_path: str, jobs_file: str = "jobs.json"):
-    jobs = []
-    with open(csv_path) as f:
-        for row in csv.DictReader(f):
-            script = build_script(row["first_name"], row["company"], row["pain_point"])
-            video_id = submit_video(script, title=f"Outreach - {row['first_name']} @ {row['company']}")
-            print(f"Submitted: {row['first_name']} @ {row['company']} → {video_id}")
-            jobs.append({**row, "video_id": video_id, "status": "pending", "video_url": None})
-            time.sleep(1.5)  # respect rate limits
-
-    with open(jobs_file, "w") as f:
-        json.dump(jobs, f, indent=2)
-    print(f"\nSubmitted {len(jobs)} jobs → {jobs_file}")
-    return jobs
-
-jobs = process_contacts("contacts.csv")
+def build_script(first_name, company, pain_point):
+    return (f"Hi {first_name}, I noticed that {company} might be dealing with {pain_point}. "
+            f"I would like to show you how we approach it. Can we grab 15 minutes this week? "
+            f"The link below has my calendar.")
 ```
 
----
+Keep scripts short (a 150-word script runs about a minute). Some looks have no default voice (`default_voice_id` is null in the looks list); for those, pass a `voice_id` from `GET /v3/voices`.
 
-## Step 5: Poll for completion and download videos
+### Step 3: Submit one job per contact
 
 ```python
-import os
+def submit_video(script, title, key):
+    body = {
+        "type": "avatar",
+        "avatar_id": AVATAR_ID,
+        "script": script,
+        "title": title,
+        "resolution": "720p",
+        "aspect_ratio": "16:9",
+        "background": {"type": "color", "value": "#F5F5F5"},
+    }
+    # Idempotency-Key: a retry after a network error does not render and bill twice.
+    # Keys replay for 24 hours, so a resubmit after a failure needs a new key (e.g. add "-r2").
+    return api("POST", "/v3/videos", json=body, headers={"Idempotency-Key": key})["data"]["video_id"]
 
-def poll_and_download(jobs_file: str = "jobs.json", output_dir: str = "videos/"):
-    os.makedirs(output_dir, exist_ok=True)
+def submit_all(csv_path, jobs_file="jobs.json"):
+    jobs = []
+    with open(csv_path, newline="") as f:
+        for i, row in enumerate(csv.DictReader(f)):
+            script = build_script(row["first_name"], row["company"], row["pain_point"])
+            vid = submit_video(script, f"Outreach - {row['first_name']} @ {row['company']}",
+                               key=f"outreach-{row['email']}")
+            jobs.append({**row, "video_id": vid, "status": "pending"})
+            print("Submitted", row["email"], vid)
+    with open(jobs_file, "w") as f:
+        json.dump(jobs, f, indent=2)
+    return jobs
+```
 
-    with open(jobs_file) as f:
-        jobs = json.load(f)
+HeyGen limits concurrent jobs per plan; extra submissions queue or get a 429, which `api()` waits out via `Retry-After`.
 
+### Step 4: Poll and download
+
+```python
+def poll_and_download(jobs, out_dir="videos"):
+    os.makedirs(out_dir, exist_ok=True)
     pending = [j for j in jobs if j["status"] == "pending"]
-    print(f"Polling {len(pending)} pending jobs...")
-
     while pending:
         for job in pending[:]:
-            r = requests.get(
-                f"https://api.heygen.com/v1/video_status.get?video_id={job['video_id']}",
-                headers=HEADERS
-            )
-            data = r.json()["data"]
-            status = data["status"]
-
-            if status == "completed":
-                video_url = data["video_url"]
-                # Download the video
-                filename = f"{output_dir}{job['first_name'].lower()}_{job['company'].lower().replace(' ', '_')}.mp4"
-                vid_r = requests.get(video_url, stream=True)
-                with open(filename, "wb") as vf:
-                    for chunk in vid_r.iter_content(8192):
-                        vf.write(chunk)
-                job["status"] = "completed"
-                job["video_url"] = video_url
-                job["local_file"] = filename
+            v = api("GET", f"/v3/videos/{job['video_id']}")["data"]
+            if v["status"] == "completed":
+                path = f"{out_dir}/{job['video_id']}.mp4"
+                r = requests.get(v["video_url"], stream=True, timeout=120)
+                r.raise_for_status()
+                with open(path, "wb") as f:
+                    for chunk in r.iter_content(8192):
+                        f.write(chunk)
+                job.update(status="completed", local_file=path)
                 pending.remove(job)
-                print(f"✓ Downloaded: {filename}")
-
-            elif status == "failed":
-                job["status"] = "failed"
+            elif v["status"] == "failed":
+                job.update(status="failed", error=f"{v.get('failure_code')}: {v.get('failure_message')}")
                 pending.remove(job)
-                print(f"✗ Failed: {job['first_name']} @ {job['company']}")
-
         if pending:
-            print(f"  Waiting... {len(pending)} still processing")
             time.sleep(15)
-
-    # Save updated jobs
-    with open(jobs_file, "w") as f:
-        json.dump(jobs, f, indent=2)
-    print(f"\nAll done. Results saved to {jobs_file}")
     return jobs
 
-completed_jobs = poll_and_download()
+jobs = poll_and_download(submit_all("contacts.csv"))
+with open("jobs.json", "w") as f:
+    json.dump(jobs, f, indent=2)
 ```
 
----
+`video_url` is presigned and expires, so save the file right away (or call `GET /v3/videos/{id}` again for a fresh link). To avoid polling, pass `callback_url` and `callback_id` in the create call, or register a webhook endpoint (`POST /v3/webhooks/endpoints`) and verify the HMAC-SHA256 `signature` header against the raw body.
 
-## Step 6: Deliver videos via email
+### Step 5: Host the videos and send the email
 
-Host videos on a platform with tracking (Loom, Vidyard, or AWS S3 with pre-signed URLs), then send personalized emails:
+Upload the mp4 files to a host that reports views (Loom, Vidyard, Wistia, or your own storage behind a tracked landing page), then send the link from your normal email tool or sequencer. Add UTM parameters so replies and bookings can be tied to the video:
 
 ```python
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from urllib.parse import urlencode
 
-def send_outreach_email(to_email: str, first_name: str, company: str, video_link: str):
-    """Send personalized outreach email with video link."""
-    subject = f"Quick video for you, {first_name}"
-    body = f"""Hi {first_name},
-
-I recorded a short personal video specifically for {company}.
-
-▶ Watch it here: {video_link}
-
-It's under 60 seconds and covers exactly how we solve the challenge I mentioned.
-
-Would love to hear your thoughts — reply here or book 15 min: https://cal.com/yourname
-
-Best,
-[Your Name]
-    """
-
-    msg = MIMEMultipart()
-    msg["From"] = os.environ["SENDER_EMAIL"]
-    msg["To"] = to_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(os.environ["SENDER_EMAIL"], os.environ["EMAIL_PASSWORD"])
-        server.send_message(msg)
-    print(f"Email sent to {to_email}")
-
-# Send to all completed
-for job in completed_jobs:
-    if job["status"] == "completed" and job.get("video_url"):
-        # Upload video to Loom/Vidyard/S3 first, get shareable link
-        video_link = f"https://your-video-host.com/{job['video_id']}"
-        send_outreach_email(job["email"], job["first_name"], job["company"], video_link)
-        time.sleep(2)
+def tracked_link(base_url, campaign="video-outreach"):
+    return f"{base_url}?{urlencode({'utm_source': 'email', 'utm_medium': 'video', 'utm_campaign': campaign})}"
 ```
 
----
+Do not put the prospect's email address in a URL; use a per-contact `video_id` as `utm_content` instead. Send in small daily batches from an authenticated domain (SPF, DKIM, DMARC) and include an unsubscribe line, as commercial email rules require.
 
-## Step 7: Track open rates
+## Real-World Example
 
-Use UTM parameters on your calendar link and video host analytics:
+A three-person sales team at an invented analytics startup, Brightline, exports 40 prospects from their CRM each Monday. They run the script, review the first three videos for lip-sync and pronunciation of company names, then let the rest finish while they work on other things. Videos that come back `failed` are listed in `jobs.json` with the failure code and resubmitted under a new idempotency key after fixing the script (usually an unpronounceable company name, spelled phonetically in the script). By Tuesday the emails go out with a link to the hosted video; the team compares reply rates against their plain-text sequence over a few weeks rather than assuming an uplift.
 
-```python
-def build_tracked_link(base_url: str, prospect_email: str, campaign: str = "video-outreach") -> str:
-    import urllib.parse
-    params = {
-        "utm_source": "email",
-        "utm_medium": "video",
-        "utm_campaign": campaign,
-        "utm_content": urllib.parse.quote(prospect_email)
-    }
-    return f"{base_url}?{urllib.parse.urlencode(params)}"
-```
+## Related Skills
 
-Monitor metrics in your email platform (open rate, click-through) and video host (watch rate, completion).
-
----
-
-## Expected Results
-
-- **Time to generate**: ~2 minutes per video (60-second script)
-- **Batch of 100 contacts**: ~3.5 hours generation time (can run overnight)
-- **Typical response rate uplift**: 3–5x vs. plain text cold email
-- **Cost**: ~$0.10–$0.30 per video depending on HeyGen plan
-
----
-
-## Tips
-
-- Use a real avatar that matches your brand — invest in a custom HeyGen avatar for best results.
-- Keep scripts under 90 seconds. Shorter = higher watch completion.
-- Test with 10 contacts before scaling to 1000.
-- Video URLs from HeyGen expire after 7 days — download and host them yourself promptly.
-- Add a thumbnail to your email link showing the avatar mid-speech for higher click-through.
+- **heygen-api**: avatar looks, voices, video creation, status polling, webhooks and translation.
