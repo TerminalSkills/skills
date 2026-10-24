@@ -11,12 +11,12 @@ license: Apache-2.0
 compatibility: 'Docker, Kubernetes, Linux, macOS'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/traefik/traefik
   tags:
     - traefik
     - reverse-proxy
-    - load-balancer
     - tls
     - docker
     - letsencrypt
@@ -38,7 +38,7 @@ Traefik is a modern reverse proxy and load balancer designed for containerized e
 
 services:
   traefik:
-    image: traefik:v3.2
+    image: traefik:v3.7      # pin a minor version; v3.7.16 was the newest release checked
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
@@ -47,7 +47,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       # Let's Encrypt auto-TLS
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@shipfast.io"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       # HTTP → HTTPS redirect
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -59,13 +59,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro    # Docker auto-discovery
       - letsencrypt:/letsencrypt                         # TLS certificate storage
     labels:
-      # Dashboard at traefik.example.com (protected by basicauth)
+      # Dashboard at traefik.shipfast.io (protected by basicauth)
+      # users value: output of `htpasswd -nb admin <password>` with every $ doubled to $$ in compose files
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.example.com`)"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.shipfast.io`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$xyz$$hashedpassword"
+      - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/"
 
 volumes:
   letsencrypt:
@@ -85,7 +86,7 @@ services:
     image: myapp:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webapp.rule=Host(`app.example.com`)"
+      - "traefik.http.routers.webapp.rule=Host(`app.shipfast.io`)"
       - "traefik.http.routers.webapp.tls.certresolver=letsencrypt"
       - "traefik.http.services.webapp.loadbalancer.server.port=3000"
 
@@ -93,7 +94,7 @@ services:
     image: myapi:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`api.example.com`)"
+      - "traefik.http.routers.api.rule=Host(`api.shipfast.io`)"
       - "traefik.http.routers.api.tls.certresolver=letsencrypt"
       - "traefik.http.services.api.loadbalancer.server.port=8000"
 
@@ -101,7 +102,7 @@ services:
     image: ghost:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.blog.rule=Host(`blog.example.com`)"
+      - "traefik.http.routers.blog.rule=Host(`blog.shipfast.io`)"
       - "traefik.http.routers.blog.tls.certresolver=letsencrypt"
       - "traefik.http.services.blog.loadbalancer.server.port=2368"
 ```
@@ -111,26 +112,27 @@ Adding a new service is just adding labels — Traefik detects the container aut
 ### Step 3: Path-Based Routing
 
 ```yaml
+# Router and service names are global in Traefik: do not reuse a name from another file
 # Route different paths to different services on the same domain
 services:
   frontend:
     image: frontend:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`example.com`)"
+      - "traefik.http.routers.frontend.rule=Host(`shipfast.io`)"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
-  api:
+  site-api:
     image: api:latest
     labels:
       - "traefik.enable=true"
       # PathPrefix routes /api/* to this service
-      - "traefik.http.routers.api.rule=Host(`example.com`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.site-api.rule=Host(`shipfast.io`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.site-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.site-api.loadbalancer.server.port=8000"
       # Strip /api prefix before forwarding (so /api/users → /users)
-      - "traefik.http.routers.api.middlewares=strip-api"
+      - "traefik.http.routers.site-api.middlewares=strip-api"
       - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
 ```
 
@@ -151,15 +153,16 @@ labels:
   - "traefik.http.middlewares.security.headers.frameDeny=true"
   - "traefik.http.routers.webapp.middlewares=security"
 
-# IP whitelist (admin panel)
+# IP allow list (admin panel; Traefik v3 name, `ipwhitelist` was removed)
 labels:
   - "traefik.http.middlewares.admin-ip.ipallowlist.sourcerange=10.0.0.0/8,192.168.1.0/24"
   - "traefik.http.routers.admin.middlewares=admin-ip"
 
 # Basic auth
 labels:
-  - "traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$05$$hashhere"
-  - "traefik.http.routers.protected.middlewares=auth"
+  # the name `auth` is already used by the dashboard in Step 1, so pick another
+  - "traefik.http.middlewares.panel-auth.basicauth.users=admin:$$2y$$05$$Qp3sX0nKq1VvBzC9Zr7hYuT1o0jHc4l7s0m3NfE5wJ8aD2kLbGq6i"
+  - "traefik.http.routers.protected.middlewares=panel-auth"
 
 # Compress responses
 labels:
@@ -182,7 +185,7 @@ services:
       replicas: 3    # 3 instances
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webapp.rule=Host(`app.example.com`)"
+      - "traefik.http.routers.webapp.rule=Host(`app.shipfast.io`)"
       - "traefik.http.services.webapp.loadbalancer.server.port=3000"
       # Health check
       - "traefik.http.services.webapp.loadbalancer.healthcheck.path=/health"
@@ -200,7 +203,7 @@ For services outside Docker (bare metal, VMs), use file configuration:
 http:
   routers:
     legacy-app:
-      rule: "Host(`legacy.example.com`)"
+      rule: "Host(`legacy.shipfast.io`)"
       service: legacy-backend
       tls:
         certResolver: letsencrypt
@@ -236,22 +239,23 @@ The agent will:
 2. Add routing labels to each service's docker-compose definition.
 3. Traefik auto-provisions TLS certificates for each subdomain.
 4. Add security headers and rate limiting middleware.
-5. Protect the admin panel with IP whitelist or basic auth.
+5. Protect the admin panel with an IP allow list or basic auth.
 
-### Example 2: Zero-downtime deployments with health checks
-**User prompt:** "Set up Traefik so I can deploy new versions without downtime. Old containers should keep serving until new ones are healthy."
+### Example 2: Health-checked load balancing
+**User prompt:** "Run three copies of my app behind Traefik and stop sending traffic to a copy that is failing."
 
 The agent will:
-1. Configure health check endpoints on the application.
-2. Add Traefik health check labels with appropriate intervals.
-3. Use Docker's rolling update strategy with Traefik's load balancer.
-4. New containers only receive traffic after passing health checks.
+1. Add a `/health` endpoint to the application.
+2. Set `loadbalancer.healthcheck.path` and `interval` labels (Step 5) and `deploy.replicas: 3`.
+3. Start it with `docker compose up -d`; Traefik adds each container as a backend.
+4. A copy whose `/health` stops answering with 2xx or 3xx is taken out of rotation until it recovers.
 
 ## Guidelines
 
-- Mount the Docker socket as read-only (`:ro`) — Traefik only needs to read container labels, not manage containers.
-- Set `exposedByDefault=false` to prevent accidentally routing internal services (databases, Redis) to the internet. Only containers with `traefik.enable=true` get routes.
-- Use Let's Encrypt's TLS challenge (port 443) rather than HTTP challenge (port 80) when possible — it's simpler and works with CDNs.
-- Store the acme.json file on a persistent volume — losing it means re-issuing all certificates, which hits Let's Encrypt rate limits.
-- For high-traffic production, add a health check to every service. Without health checks, Traefik routes to containers that may be starting up or shutting down.
-- Traefik's Docker provider is the killer feature over nginx — adding a new service is just adding labels to docker-compose, no proxy config to update, no reload needed.
+- Anyone who can reach the Docker socket controls the host, and `:ro` on the mount does not limit the API calls Traefik can make. On a shared or exposed host, put a socket proxy that only allows listing containers in front of it instead of mounting the socket directly.
+- Set `exposedByDefault=false` so databases and Redis are never routed by accident. Only containers with `traefik.enable=true` get routes.
+- The TLS challenge needs port 443 reachable from the internet and cannot work behind a proxying CDN; use the DNS challenge for wildcard certificates or CDN-fronted domains.
+- Keep `acme.json` on a persistent volume. Losing it means re-issuing every certificate and can hit Let's Encrypt rate limits.
+- Router, service and middleware names are shared across all providers; a duplicate name silently breaks one of the routes.
+- Traefik v3 changed some names and the rule syntax from v2 (for example `ipAllowList` replaced `ipWhiteList`); check the migration guide when copying v2 snippets.
+- Add a health check to every load-balanced service so Traefik does not send traffic to containers that are starting or failing.
