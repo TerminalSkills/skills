@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:73b5ab2c885cd3a6303b18bdc51b220db86635838d10f03a5eb1faafa8d22f44",
-  "scoredAt": "2026-05-13T13:58:59.236Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:49907fa6e2a67672f4e02d7f757f6ae7ff4944f5550e508bb6b21eb0b7f1211b",
+  "scoredAt": "2026-10-24T21:40:42.490Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing mainly on happy path examples."
+        "detail": "The skill does not explicitly cover error handling or edge cases such as missing inventory or module failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions specify Linux/macOS controllers only, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1,
-    "baselineAvg": 50,
-    "treatmentAvg": 50,
+    "multiplier": 3.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "playbook-with-template-and-handler",
-        "baseline": 70,
-        "treatment": 0,
-        "rationale": "Response A covers most rubric items but omits starting/enabling Nginx; Response B provides no content."
-      },
-      {
-        "name": "dynamic-aws-inventory-setup",
+        "name": "create-security-role",
         "baseline": 30,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A omits key elements such as the correct filters, keyed_groups, and compose syntax."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A fails to use the required fully qualified modules, correct variable names, and loop structure."
+      },
+      {
+        "name": "vault-db-password",
+        "baseline": 30,
+        "treatment": 45,
+        "rationale": "Response B better meets the rubric by referencing the vault file and using fully qualified modules, but both miss the required encrypt_string command and vault.yml content."
+      },
+      {
+        "name": "rolling-deploy-with-health-check",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements while Response A lacks key elements."
       }
     ]
   }

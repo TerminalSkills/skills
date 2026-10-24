@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:547f4382943f1f8695f29fe96abd6a2e47f3980f69aaedc3c4cc8ab58b62b86a",
-  "scoredAt": "2026-05-13T08:46:48.293Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:96bdcbcd6bdda2eea10ab653de862faabddb2a3a4e302fe39c6040e44e4e474c",
+  "scoredAt": "2026-10-24T21:49:55.529Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, only happy path."
+        "detail": "The instructions do not cover error handling or edge cases such as network failures or permission errors."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 3.39,
     "baselineAvg": 28,
-    "treatmentAvg": 89,
-    "multiplier": 3.18,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Incremental ML pipeline with params and metrics",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline drafted a Makefile or ad-hoc scripts; treatment wrote dvc.yaml with cmd/deps/outs stages, declared params from params.yaml, and ran dvc repro for change-driven execution."
+        "name": "add-dataset-and-push",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements exactly, while Response A deviates in remote naming and bucket path, though it otherwise follows the workflow."
       },
       {
-        "name": "Parallel learning-rate sweep with comparison",
-        "baseline": 25,
-        "treatment": 88,
-        "rationale": "Baseline wrote a shell loop or suggested Optuna without DVC; treatment queued runs with dvc exp run --set-param ... --queue, started them via dvc queue start --jobs, and compared with dvc exp show / exp diff."
+        "name": "create-training-stage-and-show-metrics",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with DVC stage creation, commits, and metric display, while Response B lacks any DVC integration or metric handling."
+      },
+      {
+        "name": "run-queued-experiments-and-apply-best",
+        "baseline": 5,
+        "treatment": 85,
+        "rationale": "Response A largely follows the DVC workflow with a minor deviation in parallelism, while Response B diverges entirely by using MLflow instead of DVC."
       }
     ]
   }

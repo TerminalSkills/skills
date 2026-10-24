@@ -1,35 +1,30 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:307a0328a3e67fae1e6e200dd0648872eaf285825d7f945086684de2bb16ca3b",
-  "scoredAt": "2026-05-13T10:29:07.543Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:db87e5371bd03c0b361f7b35d6544eaafc64f181fd0dc8429af0fc3634c523dd",
+  "scoredAt": "2026-10-24T22:15:17.016Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill only demonstrates happy path examples and does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill specifies compatibility only for macOS and Linux, limiting cross-platform applicability."
+        "category": "checksum",
+        "detail": "Docker image is pulled without verifying checksum."
       }
     ]
-  },
-  "security": {
-    "verdict": "SAFE",
-    "issues": []
   },
   "impact": {
     "baselineAvg": 38,

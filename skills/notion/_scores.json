@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9087f9b13ff4ecf7163a66688ccc52c19112c600f2f902f95a345a30ce6772ec",
-  "scoredAt": "2026-05-13T09:42:04.463Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:000b0ff233d53db1b0a47b562015c8e05a7f6c7011e8a4dbef945ca94969e167",
+  "scoredAt": "2026-10-24T22:04:26.578Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully handle API error scenarios or edge cases such as missing tokens or malformed responses."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose explanatory comments that could be trimmed for brevity."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 5,
+    "baselineAvg": 15,
+    "treatmentAvg": 75,
     "scenarios": [
       {
-        "name": "Sync GitHub issues into Notion database",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Baseline calls Notion endpoints but typically mis-shapes property values (plain strings instead of nested title/rich_text arrays) and forgets the Notion-Version header; treatment queries /v1/databases/{id}/query for existing pages, then create/update with correct title, number, select, multi_select, and url property shapes plus Bearer token and Notion-Version: 2022-06-28."
+        "name": "query-in-progress-due-date",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B meets most rubric requirements but fails to explicitly return page IDs, whereas Response A does not meet any of the rubric criteria."
       },
       {
-        "name": "Paginated query of in-progress pages",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline hits the endpoint once and misses the has_more/next_cursor loop and the version header; treatment posts a filter to /v1/databases/{id}/query, iterates with start_cursor while has_more is true, and includes Notion-Version: 2022-06-28."
+        "name": "create-task-page",
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Response A correctly uses get_data_source_id and create_page with proper properties but omits the children list in the create_page call, whereas Response B includes the children but does not use get_data_source_id or create_page as required."
+      },
+      {
+        "name": "append-todo-after-last-block",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is unrelated to Notion API and thus fails."
       }
     ]
   }

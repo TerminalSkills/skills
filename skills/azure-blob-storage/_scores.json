@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:80a14c4828665841bbf1d1eabee18b61ca0247b5aa734a24595f55ca71608112",
-  "scoredAt": "2026-05-13T14:31:54.474Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:0b03ec1acf411dfc803fc5272e977725d8f4af6fd24a093094121083361308f2",
+  "scoredAt": "2026-10-24T21:44:02.203Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Azure, limiting applicability to other cloud providers."
+        "detail": "The skill focuses on happy path operations and does not cover error handling or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 20,
-    "treatmentAvg": 100,
+    "multiplier": 0.76,
+    "baselineAvg": 83,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "setup-storage-account-with-lifecycle",
-        "baseline": 10,
-        "treatment": 100,
-        "rationale": "Response B meets every rubric requirement; Response A omits several mandatory flags and options."
+        "name": "generate-user-delegation-sas",
+        "baseline": 80,
+        "treatment": 10,
+        "rationale": "Response A includes the required az CLI command with most flags and outputs a full URL, but omits --as-user; Response B does not use az CLI at all."
       },
       {
-        "name": "bulk-sync-and-python-sas",
-        "baseline": 30,
+        "name": "apply-lifecycle-policy-temp",
+        "baseline": 100,
+        "treatment": 80,
+        "rationale": "Response B meets all rubric requirements exactly, while Response A uses a different file name and command reference, missing the specified lifecycle-policy.json."
+      },
+      {
+        "name": "upload-assets-to-static",
+        "baseline": 70,
         "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric items, while Response A lacks the required azcopy sync and copy commands and uses a different BlobServiceClient constructor."
+        "rationale": "Response A meets all rubric requirements, while Response B omits the required --auth-mode login flag."
       }
     ]
   }

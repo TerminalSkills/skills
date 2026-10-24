@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:56c5a801e06d73cad75821196e8f0eb60a7062cecde4a2b12beba48f13dab078",
-  "scoredAt": "2026-05-13T10:40:53.867Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e794b624c0378a3b0a5b6121b9a7c9a68783c75c32de7135370445bf300ed99f",
+  "scoredAt": "2026-10-24T22:17:25.587Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,30 +18,57 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for deployment and instrumentation."
+        "detail": "The skill does not cover error handling or troubleshooting scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
-  },
-  "impact": {
-    "baselineAvg": 74,
-    "treatmentAvg": 94,
-    "multiplier": 1.27,
-    "scenarios": [
+    "verdict": "SUSPICIOUS",
+    "issues": [
       {
-        "name": "spring-boot-3-instrumentation",
-        "baseline": 72,
-        "treatment": 95,
-        "rationale": "The treatment delivers the exact Micrometer-bridge-brave + zipkin-reporter-brave dependency pair plus the MDC logging pattern `%X{traceId:-},%X{spanId:-}`, where the baseline gets the overall approach right but is hazy on the precise property keys under `management.tracing` and the log pattern."
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Docker image openzipkin/zipkin:3 is pulled without verifying a checksum."
       },
       {
-        "name": "zipkin-elasticsearch-docker-compose",
-        "baseline": 75,
-        "treatment": 92,
-        "rationale": "Both produce a working compose file, but the treatment pins `openzipkin/zipkin:3` and includes ES_INDEX/REPLICAS/SHARDS and SELF_TRACING_ENABLED that the skill calls out, which the baseline omits."
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Docker image docker.elastic.co/elasticsearch/elasticsearch:8.12.0 is pulled without verifying a checksum."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Docker image mariadb:11.8 is pulled without verifying a checksum."
+      }
+    ]
+  },
+  "impact": {
+    "multiplier": 6.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "deploy-zipkin-with-elasticsearch",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B lacks required image tags, environment variables, ports, and volume definitions."
+      },
+      {
+        "name": "instrument-spring-boot-4-with-zipkin",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements and uses incorrect configuration."
+      },
+      {
+        "name": "query-zipkin-http-500-traces",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response A closely matches the required curl command and includes jq usage, while Response B uses a different API query and omits key rubric details."
       }
     ]
   }

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5a774a6f594f6d5c1e808965b062ee749107bed594cfa107da78b88126440fde",
-  "scoredAt": "2026-05-13T09:57:59.619Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5b47ecaf0b3795d90a741344c93130f8775b401b326d6014f6143508b1bab42f",
+  "scoredAt": "2026-10-24T22:08:46.720Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not handle error scenarios such as model failures, timeouts, or network issues."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 19,
-    "treatmentAvg": 91,
-    "multiplier": 4.79,
+    "multiplier": 2.26,
+    "baselineAvg": 23,
+    "treatmentAvg": 52,
     "scenarios": [
       {
-        "name": "Systematic test suite for a support ticket classifier prompt",
+        "name": "summarize-meeting-transcripts",
         "baseline": 20,
-        "treatment": 92,
-        "rationale": "Baseline gives ad-hoc 'try a few tickets' advice without rubric weights or variant comparison; treatment delivers the weighted rubric, normal/edge/adversarial test cases including empty and gibberish inputs, and a scored comparison of Concise vs Detailed variants."
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items, though still missing a full comparison table and one test case."
       },
       {
-        "name": "Compare two meeting-summarization prompts for action item extraction",
-        "baseline": 18,
-        "treatment": 90,
-        "rationale": "Baseline recommends subjective side-by-side review with no rubric; treatment produces a 4-criterion weighted rubric, 8 test cases across normal/edge/long/adversarial, 3 runs per case for consistency, and a scored winner with reasoning."
+        "name": "compare-support-ticket-prompts",
+        "baseline": 5,
+        "treatment": 30,
+        "rationale": "Response A contains more relevant content and partial structure, whereas Response B merely requests the prompts and does not address any rubric requirements."
+      },
+      {
+        "name": "test-sql-generation-prompt",
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Response B includes a rubric, two prompt variants, and a test suite, whereas Response A lacks a rubric and comparison table, making B the stronger answer."
       }
     ]
   }

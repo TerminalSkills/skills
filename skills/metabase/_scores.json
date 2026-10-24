@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ebaffa8beb7ce4b4f475db04fa49448656c975e7b2e04a0106b18eefccb486ff",
-  "scoredAt": "2026-05-13T09:34:33.101Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:934b0b3a7b35d414adb225e814477894aa44e332d111d4769e01f3b4c6bf811f",
+  "scoredAt": "2026-10-24T22:01:54.096Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for installation, database connection, or API usage."
+        "category": "clarity",
+        "detail": "The Instructions section is empty, making the skill's guidance ambiguous."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to macOS and Linux environments, lacking support for Windows."
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases for the provided scripts."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 98,
-    "multiplier": 3.92,
+    "multiplier": 9.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Deploy Metabase with Postgres backend via docker-compose",
-        "baseline": 30,
-        "treatment": 98,
-        "rationale": "Baseline left Metabase on the default H2 backend with no Postgres service; treatment defines both services, the MB_DB_* environment variables, depends_on, and a named pg-data volume as the skill prescribes."
+        "name": "stand-up-metabase-docker-db",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "B covers most rubric items but misses the exact health check command and uses a different password placeholder, while A is incomplete."
       },
       {
-        "name": "Signed JWT embed URL for a Metabase dashboard",
+        "name": "create-dashboard-with-api",
         "baseline": 20,
-        "treatment": 98,
-        "rationale": "Baseline signed a flat payload and pointed at /dashboard/<token>, which Metabase rejects; treatment uses the resource/params/exp payload shape and the /embed/dashboard/<token> URL exactly as the skill specifies."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A misses key requirements such as the correct headers, collection_id, grid size, and update method."
+      },
+      {
+        "name": "guest-embed-jwt-token",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet the specified payload, secret usage, and HTML embedding details."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0ecc0bee4f1c7633d15514ef5dc9077b915dfbea23a7a1eb240a5a8947eedb7b",
-  "scoredAt": "2026-05-13T10:23:18.265Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3761552f7439c2c5c316689b32ca5aa33f00506124f94eec7e0aa766ad7171f6",
+  "scoredAt": "2026-10-24T22:12:03.751Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 95,
-    "multiplier": 4.75,
+    "multiplier": 5.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "Type-safe POST server function with auth middleware and Zod validation",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline writes a raw Request handler with manual auth and validation; treatment uses createServerFn({ method: 'POST' }) with .middleware([authMiddleware]), .inputValidator(z.object(...)), and context.user threaded via next({ context })."
+        "name": "posts-list-create-action",
+        "baseline": 10,
+        "treatment": 65,
+        "rationale": "Response B covers most of the rubric (server functions, middleware, routes, loaders, notFoundComponent) but misses the root layout, vite config, and package.json scripts; Response A lacks all required server-side code and configuration."
       },
       {
-        "name": "Dynamic /posts/$postId route with server-side loader and notFound handling",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline reaches for Next.js getServerSideProps; treatment uses createFileRoute with loader calling a GET createServerFn, throws notFound() from @tanstack/react-router, defines notFoundComponent, and reads via Route.useLoaderData()."
+        "name": "health-check-dashboard",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response A correctly outlines the required route files but omits router export, Vite config, package.json scripts, and root layout; Response B is irrelevant to TanStack Start."
+      },
+      {
+        "name": "cloudflare-prerender-deploy",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but misses router and scripts, while Response B lacks almost all required details."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3fb6f734f0b96925554019e6d0879e94b2749b76ee18c3540e68f4d1835c2617",
-  "scoredAt": "2026-05-13T08:50:40.055Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d81cffe3c6c943f64c668d55496fe4efbf7e4e042baea95aecc738a5f9f1f86c",
+  "scoredAt": "2026-10-24T21:53:13.484Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, limiting its robustness."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
+    "multiplier": 2.75,
+    "baselineAvg": 32,
     "treatmentAvg": 88,
-    "multiplier": 1.83,
     "scenarios": [
       {
-        "name": "Install ExternalDNS on EKS with Route 53",
+        "name": "install-aws-upsert-only",
         "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented Helm repo, the AWS provider values (provider.name=aws, --aws-zone-type, --txt-owner-id, --registry=txt, --policy=upsert-only) and IRSA service account annotation; baseline references generic kubectl/helm install but omits the txt-owner-id registry pattern and the IAM policy resource scoping."
+        "treatment": 80,
+        "rationale": "Response A covers all rubric items except the pod log mention, while Response B fails to reference a values file and omits the log detail."
       },
       {
-        "name": "Auto-register DNS for a LoadBalancer Service on Cloudflare",
+        "name": "migrate-legacy-annotations",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A covers all rubric items; Response B does not."
+      },
+      {
+        "name": "cloudflare-proxied-setup",
         "baseline": 45,
         "treatment": 85,
-        "rationale": "Treatment provides the exact external-dns.alpha.kubernetes.io/hostname and cloudflare-proxied annotations along with the CF_API_TOKEN secret wiring shown in the skill; baseline mentions annotations generically but misses the proxied flag and TXT-registry ownership pattern."
+        "rationale": "Response B covers almost all rubric items, while Response A is incomplete and missing key details."
       }
     ]
   }

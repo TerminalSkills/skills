@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:81fb2e9efe41033c0ad0a19a58828d89ea016ea0c3bdbfe42452db01be87485d",
-  "scoredAt": "2026-05-13T08:50:12.581Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0b64db71660eb8f03540fa111722783f8c5ae1b093333709cb714353a252fc74",
+  "scoredAt": "2026-10-24T21:51:50.635Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path examples and does not address error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment and does not support browser execution, limiting cross-platform applicability."
+        "detail": "The skill assumes a Node.js environment and may not work in other AI agent platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 9,
+    "baselineAvg": 3,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Generate a styled sales report .xlsx from Node",
-        "baseline": 58,
-        "treatment": 90,
-        "rationale": "Treatment uses sheet.columns with header/key/width, getRow(1).font + fill pattern with argb, getColumn('revenue').numFmt = '$#,##0' and growth as '0.0%', then workbook.xlsx.writeFile; baseline writes a workbook but lacks the keyed columns approach and explicit numFmt strings, producing an unformatted output."
+        "name": "multi-sheet-styled-formulas",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with ExcelJS code, while Response B is a VBA macro and does not meet the required ExcelJS implementation."
       },
       {
-        "name": "Stream a million-row export without OOM",
-        "baseline": 52,
-        "treatment": 85,
-        "rationale": "Treatment uses ExcelJS.stream.xlsx.WorkbookWriter with fs.createWriteStream, useStyles: true, and per-row sheet.addRow(row).commit() followed by sheet.commit()/workbook.commit() as documented; baseline suggests CSV or chunked writeFile loops and misses the streaming WorkbookWriter API."
+        "name": "parse-excel-with-formulas-dates",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B uses ExcelJS and follows most rubric steps, but does not explicitly use cell.result for formulas, whereas Response A uses the wrong library."
+      },
+      {
+        "name": "stream-large-excel-export",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different library and misses all required steps."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:82d781e7f3d94d4335433c94964b2fb2f28a9738a2e4159c785ce123ec33678e",
-  "scoredAt": "2026-05-13T08:53:46.267Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:85ff21434c40b8fdc372be2c53059c5f693c22aed7aea58277b0ae5f33ab42d4",
+  "scoredAt": "2026-10-24T21:54:32.381Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, limiting robustness."
+        "detail": "The instructions focus on happy path scenarios and do not cover error handling or edge cases."
       }
     ]
   },

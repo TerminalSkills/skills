@@ -1,53 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b78770a69a827270936dadbdebe561eeabd98d82f3e052aa359590b6d8a77cf9",
-  "scoredAt": "2026-05-13T16:47:22.695Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:58355e1b61030ac23134383a8b74d3587f0f55511b0c5eff02ce6341e0697d32",
+  "scoredAt": "2026-10-24T21:49:08.361Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for file operations and database interactions."
+        "detail": "The skill does not explicitly cover error handling or edge cases such as missing files or permission errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation instructions for Windows are not provided, despite Windows being listed in compatibility."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for downloaded DuckDB binary."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 8.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "cli-top-countries",
+        "name": "cli-query-csv-orders",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with a single CLI command, while Response B lacks the required -c flag and uses a different CSV reading method."
+        "rationale": "Response A fully satisfies the rubric with a single DuckDB CLI command; Response B does not provide the required DuckDB command."
       },
       {
-        "name": "python-pandas-sql",
+        "name": "python-query-pandas-events",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric by using duckdb.sql with the required SQL syntax and .fetchdf(), whereas Response B uses pandasql and does not meet the duckdb requirement."
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not import duckdb or use duckdb.sql."
+      },
+      {
+        "name": "node-query-parquet-events",
+        "baseline": 15,
+        "treatment": 65,
+        "rationale": "Response A meets most rubric items but omits console.table and conn.closeSync(); Response B fails to use DuckDB or required methods."
       }
     ]
   }

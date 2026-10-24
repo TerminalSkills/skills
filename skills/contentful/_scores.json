@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:244b952bad1902470ad0f71887f7cc50ec31acdb14fba8b99c89e52216d31959",
-  "scoredAt": "2026-05-13T15:55:55.982Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6748f19b10491bc2257ef1546dc512342c2625747b8d19bfbeb78dccdc0e6c14",
+  "scoredAt": "2026-10-24T21:47:09.957Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path usage."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The examples rely on Next.js Image component and TypeScript, limiting applicability to other frameworks or plain JavaScript environments."
+        "detail": "The skill assumes a Node.js environment and specific packages, limiting cross-platform applicability."
       }
     ]
   },

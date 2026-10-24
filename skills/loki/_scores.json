@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d53f9c85a58ff821349844b6c1e23f56e8fb9cac65ebd036153dac773e40ecaa",
-  "scoredAt": "2026-05-13T09:26:09.215Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4d9479dfbee2d29dd0c9f22963b3a3a2ed150bc7f85f03467a327029e8537ed0",
+  "scoredAt": "2026-10-24T22:00:50.021Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill documentation does not cover error handling or edge cases for deployment and configuration."
+        "detail": "The instructions do not cover all possible error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 8.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Deploy Loki and Promtail with Docker container discovery",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment uses docker_sd_configs with __meta_docker_container_name relabeling for automatic container labels; baseline typically falls back to static file paths or generic Docker logging drivers."
+        "name": "deploy-loki-alloy-docker-compose",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet key specifications."
       },
       {
-        "name": "LogQL queries for service error rate and p99 duration",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Treatment writes idiomatic LogQL with rate()/sum by() and quantile_over_time with unwrap on parsed JSON fields; baseline confuses PromQL/LogQL syntax and misses unwrap."
+        "name": "logql-error-query",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a correct LogQL query and curl example, while Response B is empty and fails to meet any requirement."
+      },
+      {
+        "name": "promtail-to-alloy-conversion",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers conversion and validation steps but omits the required endpoint check and Docker Compose service update, while Response B fails to provide any answer."
       }
     ]
   }

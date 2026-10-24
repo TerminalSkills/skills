@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c4322c547527716fb28a74cbd6122d202da9c45c8e438bc4271e67f9813e914f",
-  "scoredAt": "2026-05-13T09:05:12.577Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:47a3e6e0520bad9417121339dd68b20ee162f627687954c1c0b542284f0c6d69",
+  "scoredAt": "2026-10-24T21:55:25.690Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,41 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as network failures or authentication errors."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose sections that could be trimmed for brevity."
+        "detail": "The instructions lack coverage of error handling and edge cases, focusing mainly on happy path scenarios."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to download a binary from GitHub without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Incrementally archive a Pixiv artist's gallery using browser cookies and skip already-downloaded files",
-        "baseline": 52,
-        "treatment": 90,
-        "rationale": "Treatment combines --cookies-from-browser firefox with --download-archive archive.sqlite3 and the documented pixiv directory/filename template ({id}_p{num:>02}.{extension}); baseline typically passes a username/password or omits the archive/dedup mechanism."
+        "name": "pixiv-oauth-metadata",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use gallery-dl or the specified options."
       },
       {
-        "name": "Build an ML dataset of >=1920x1080 images from r/EarthPorn over the past year with JSON metadata sidecars",
-        "baseline": 48,
-        "treatment": 86,
-        "rationale": "Treatment uses the documented --filter \"width >= 1920 and height >= 1080\" expression, --download-archive, and the metadata postprocessor (mode: json); baseline relies on shell post-filtering or external scripts rather than gallery-dl's native filter and postprocessor."
+        "name": "reddit-filter-metadata",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements while A does not provide any solution."
+      },
+      {
+        "name": "batch-imgur-rate-archive",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "B is closer to the rubric, though it uses a different input file name."
       }
     ]
   }

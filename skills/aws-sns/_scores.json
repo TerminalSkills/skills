@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:be8b0c1d718b51fc608d12b677c79e496453904a511790b75f9a97c53b133a5f",
-  "scoredAt": "2026-05-13T14:28:19.663Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:993fe4cabd5afe7c2391e88c641aba27ff8bad0da403e0a184e8d2c419cc1b26",
+  "scoredAt": "2026-10-24T21:41:46.804Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+        "detail": "The instructions do not cover error scenarios or edge cases such as permission failures or subscription errors."
       }
     ]
   },

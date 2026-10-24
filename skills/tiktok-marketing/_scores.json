@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ffe59d05ad0f63ed8b087960238cd58425d29fb9d02f795693ea11f6109e5002",
-  "scoredAt": "2026-05-13T10:25:57.104Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8baf3b8267734acd177139fcf9e0100fd2a0e190bbcad85265f5787db12cf88f",
+  "scoredAt": "2026-10-24T22:13:13.139Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for API interactions or content creation."
+        "detail": "The skill does not cover error handling or edge cases for API interactions."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The instructions contain extensive detail that may be considered verbose and not strictly necessary for execution."
+        "detail": "The skill contains extensive detail that may be considered padded, reducing conciseness."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 2.51,
+    "baselineAvg": 37,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Auto-publish MP4 via TikTok Content Posting API",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment uses the three documented endpoints (publish/video/init/, the returned upload_url with Content-Range PUT, and publish/status/fetch/) plus the FILE_UPLOAD source and PUBLIC_TO_EVERYONE privacy_level; baseline invents non-existent single-shot upload endpoints."
+        "name": "create-7-day-content-calendar",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric criteria, while Response A lacks hooks, duration, hashtag strategy, and Hook Framework reference."
       },
       {
-        "name": "Week-long TikTok content plan for a niche brand",
-        "baseline": 50,
+        "name": "nodejs-tiktok-upload-script",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet any of the specified API calls or authentication steps."
+      },
+      {
+        "name": "analytics-growth-tactics",
+        "baseline": 80,
         "treatment": 85,
-        "rationale": "Treatment applies the documented 40/30/20/10 content mix, hook frameworks (first 1-3s), <30s duration target, and 3-5 hashtag rule; baseline reverts to generic 'post consistently with #fyp' advice the skill explicitly warns against."
+        "rationale": "Both responses cover many required tactics and metrics, but Response A more explicitly ties each tactic to the specific metrics and provides a detailed action plan, giving it a slight edge."
       }
     ]
   }

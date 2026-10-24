@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bea6eea42c4d96d96042275620cfde1c06fad1108d629d06bfdf46a7d8741be5",
-  "scoredAt": "2026-05-13T09:35:19.199Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8843bbd8b37fa9997cf6354563bed120dc9457f140f9802e665f65b14da2f3e4",
+  "scoredAt": "2026-10-24T22:02:43.255Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 80,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -17,18 +17,18 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "clarity",
+        "detail": "The instructions contain incomplete environment variable assignments and ambiguous steps, making them hard to follow."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Documentation contains verbose explanations that could be trimmed."
+        "category": "completeness",
+        "detail": "Error handling and edge cases are not addressed, limiting robustness."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes Docker and Node.js environment, limiting cross-platform applicability."
+        "detail": "The skill is limited to Linux, macOS, and Docker, excluding Windows users."
       }
     ]
   },
@@ -37,27 +37,33 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for mc binary downloaded via curl."
+        "category": "go-install",
+        "detail": "The skill uses 'go install' to fetch MinIO from GitHub without verifying checksums, which is a medium security risk."
       }
     ]
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Wire AWS SDK Node client to self-hosted MinIO with presigned uploads",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment sets `forcePathStyle: true`, uses `@aws-sdk/s3-request-presigner` `getSignedUrl` with `PutObjectCommand` and a short expiry; baseline misses `forcePathStyle` and the presigned-PUT pattern documented for browser-direct uploads."
+        "name": "deploy-minio-from-source",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A omits key elements such as the go install command, correct data directory, and proper readiness check."
       },
       {
-        "name": "Auto-delete temp uploads after 30 days using mc CLI",
+        "name": "mc-bucket-file-ops",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items exactly, while Response A uses a different alias name and omits the required trailing slash, missing key rubric elements."
+      },
+      {
+        "name": "presigned-upload-url-node",
         "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment uses `mc alias set`, `mc mb`, and `mc ilm rule add --expiry-days 30`; baseline reaches for aws-cli `put-bucket-lifecycle-configuration` JSON instead of the documented `mc ilm` workflow."
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements, while Response B omits returning the key and does not derive it from the filename."
       }
     ]
   }

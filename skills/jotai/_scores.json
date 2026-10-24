@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5141c3f1ee6004f356d6000ce94407873ae88d3e91f7df37f076320d53a67aeb",
-  "scoredAt": "2026-05-13T09:18:31.473Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e7c8a71d024c5903d325b70c3b9464a133358c380b0033eeffd275512fb85ccf",
+  "scoredAt": "2026-10-24T21:58:42.303Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit instructions for the agent to follow."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling and edge case scenarios are not covered in the examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 94,
-    "multiplier": 1.96,
+    "multiplier": 4.85,
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Shopping cart with derived total and add-to-cart action",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline uses primitive atoms and likely a derived total but typically misses the atom(null, write) write-only action pattern and useSetAtom optimization; treatment matches all rubric checks."
+        "name": "theme-toggle-with-persistence",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses Recoil instead of Jotai and misses all required Jotai specifics."
       },
       {
-        "name": "Async user profile with Suspense loading",
-        "baseline": 40,
-        "treatment": 93,
-        "rationale": "Baseline tends toward useEffect+useState or React Query rather than Jotai async atoms with Suspense and useAtomValue; treatment cleanly implements the prescribed async atom pattern."
+        "name": "add-to-cart-button-no-re-render",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with correct jotai atoms and hooks, while Response B uses Recoil and does not meet the specified requirements."
+      },
+      {
+        "name": "migrate-v2-to-v3-atomfamily-and-unwrap",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Response A fully meets the rubric, importing atomFamily from jotai-family, defining a todoAtomFamily, and replacing loadable with unwrap and a fallback; Response B imports unwrap incorrectly, omits a fallback, and is less complete."
       }
     ]
   }

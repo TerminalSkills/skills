@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5d2beed192f5bd1a51824af72fdb1a70d44f785f25ddb0948b5b5c09cea68221",
-  "scoredAt": "2026-05-13T13:54:46.735Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:eb600abaeaa7300a019d0bcd85f0a6a39fabf47156fe724105205599a85e94e2",
+  "scoredAt": "2026-10-24T22:20:20.031Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file only covers happy path examples and does not address error scenarios or edge cases."
+        "detail": "The skill file does not cover error handling or edge cases for Alpine.js usage."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.18,
-    "baselineAvg": 45,
-    "treatmentAvg": 98,
+    "multiplier": 7.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "dropdown-with-outside-close",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A satisfies every rubric requirement, while Response B omits Alpine.js syntax and the required $dispatch event."
+        "name": "modal-dialog",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B aligns more closely with the Alpine.js requirements, while Response A lacks the required Alpine directives entirely."
       },
       {
-        "name": "reusable-todo-list",
-        "baseline": 90,
-        "treatment": 95,
-        "rationale": "Both responses meet the rubric, but B uses x-data='todoList' exactly as required, giving it a slight edge."
+        "name": "todo-list-component",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the Alpine.js rubric, while Response A is a React implementation and does not meet the requirements."
+      },
+      {
+        "name": "debounced-search",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A implements most Alpine features but omits the required Alpine.data('searchBox') definition, whereas Response B uses React and fails all rubric criteria."
       }
     ]
   }

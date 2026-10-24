@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:194e54b619c0303eeb04e632d650957cea875e2dae736010ecd965c76ba829e1",
-  "scoredAt": "2026-05-13T09:06:37.009Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:757f8a1fed4d19377b2185a3fa0c2b09e6a790631aaab10d3040896eac67feaa",
+  "scoredAt": "2026-10-24T21:56:12.498Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The skill does not cover error handling or edge cases such as permission errors or bucket name conflicts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes the presence of the gcloud CLI and specific Python libraries, limiting portability across all AI agents."
       }
     ]
   },
@@ -27,23 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 95,
-    "multiplier": 1.98,
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6",
+    "multiplier": 7.69,
+    "baselineAvg": 13,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Browser direct uploads via signed URL",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline produced a generic signed URL and gsutil cors set without v4 or uniform-bucket-level-access; treatment used v4 PUT signed URL, applied cors-config.json via gcloud storage buckets update, and created the bucket with --uniform-bucket-level-access."
+        "name": "create-log-bucket-with-lifecycle",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits required flags and uses incorrect syntax for versioning and storage class."
       },
       {
-        "name": "Tiered lifecycle for logs prefix",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline gave a single-rule delete-at-365 without prefix scoping or class transitions; treatment provided the full NEARLINE/COLDLINE/Delete chain with matchesPrefix logs/ applied via gcloud storage buckets update --lifecycle-file."
+        "name": "generate-upload-signed-url-keyless",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not include the required gcloud sign-url command or the specified curl usage."
+      },
+      {
+        "name": "setup-static-website-hosting",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required gcloud commands and options, while Response A uses AWS CLI and does not meet the rubric."
       }
     ]
   }

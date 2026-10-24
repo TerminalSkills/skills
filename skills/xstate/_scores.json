@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3fb8b646ce9d737b27a543203754c545516cc91639140c1435aae6978ec41c26",
-  "scoredAt": "2026-05-13T13:35:59.403Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:dd4d3971333c0f71c76f9f5d678ad5cd03a7e92336f50ae3ac6251d34b39d792",
+  "scoredAt": "2026-10-24T22:16:29.784Z",
   "backend": "ollama",
-  "model": "qwen2.5-coder:14b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
+        "detail": "Instructions do not cover all error scenarios and edge cases, such as installation failures or runtime errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes a Node/JavaScript environment and may not work in non-JS AI agents."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.06,
-    "baselineAvg": 83,
-    "treatmentAvg": 88,
+    "multiplier": 9.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "define-auth-machine",
-        "baseline": 70,
-        "treatment": 85,
-        "rationale": "Response A is more detailed and includes specific implementation details like error handling and context management, while Response B is less comprehensive in its explanation and lacks some key elements."
-      },
-      {
-        "name": "integrate-auth-machine-react",
-        "baseline": 95,
+        "name": "onboarding-wizard",
+        "baseline": 20,
         "treatment": 80,
-        "rationale": "Response A is more comprehensive, covering all aspects of the rubric including detailed steps and a complete example. Response B is also correct but lacks some details such as handling form changes and retry functionality."
+        "rationale": "Response A covers the required XState machine structure, guards, back transitions, and reenter:true, but omits an explicit state.can({type:'NEXT'}) demo; Response B lacks an XState machine entirely."
       },
       {
-        "name": "add-guard-to-machine",
-        "baseline": 85,
+        "name": "auto-hide-toast",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric by correctly implementing a guard on the 'RETRY' transition in the 'error' state, while Response B does not address the specific task of modifying an existing XState machine for authentication and instead provides a generic example."
+        "rationale": "Response A fully satisfies the rubric, while Response B does not implement an XState machine as required."
+      },
+      {
+        "name": "login-with-retry",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a proper XState machine, while Response B provides a plain JavaScript example that lacks the required machine structure."
       }
     ]
   }

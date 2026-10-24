@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3959a86e0dd32f87fb45bb2a934e7d517c10ba2e2ffcc71c8c847c8e92b0de3b",
-  "scoredAt": "2026-05-13T16:48:08.102Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a5ce9ae3a488a74ea9365d2e6c7f5bbb716772b903e36801f74aa51bd566959f",
+  "scoredAt": "2026-10-24T21:50:59.993Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases, such as authentication failures or missing fields."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be streamlined for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.61,
-    "baselineAvg": 18,
-    "treatmentAvg": 83,
+    "multiplier": 5.38,
+    "baselineAvg": 13,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "create-products-index-with-custom-analyzers",
-        "baseline": 10,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A fails on index name, analyzer names, and field structure."
+        "name": "create-product-index-with-custom-analyzers-and-fuzzy-search",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items, including the required custom analyzer and fuzzy multi_match query, whereas Response A lacks the specified analyzers, filters, and search constraints."
       },
       {
-        "name": "search-products-with-boosting-and-aggregations",
-        "baseline": 25,
-        "treatment": 65,
-        "rationale": "Response A meets most rubric requirements but lacks should clauses and name highlighting, whereas Response B fails on many core aspects such as URL, fuzziness, price range, boosts, highlighting, size, and aggregation details."
+        "name": "generate-category-average-price-rating-and-price-range-aggregation",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required aggregations but uses a match_all query instead of a match on description, while Response A does not use curl or any Elasticsearch query at all."
+      },
+      {
+        "name": "setup-log-data-stream-with-ilm-and-error-rate-per-hour",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet key naming, configuration, and aggregation specifications."
       }
     ]
   }

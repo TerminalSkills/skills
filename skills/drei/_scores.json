@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:378094f042ccafea8f55334d26608aba1f87b8d61cad5576f412c5d8df47f6bb",
-  "scoredAt": "2026-05-13T16:46:56.382Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5a06d317e0c59554b2b654fa307ef00cedc1cb28cb123e5100b4d0e2d57b27bc",
+  "scoredAt": "2026-10-24T21:48:18.405Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill examples do not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to @react-three/drei and does not work with other AI agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.86,
-    "baselineAvg": 35,
-    "treatmentAvg": 100,
+    "multiplier": 8,
+    "baselineAvg": 7,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "orbit-controls-auto-rotate",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response B exactly matches the rubric’s JSX <OrbitControls> syntax, while Response A uses a plain Three.js instance and thus misses the required JSX component format."
+        "name": "product-viewer-with-hdr",
+        "baseline": 5,
+        "treatment": 80,
+        "rationale": "Response B meets almost all rubric items except the exact Stage environment value, while Response A does not use the required React components at all."
       },
       {
-        "name": "gpu-instancing-boxes",
-        "baseline": 0,
+        "name": "3d-text-labels-facing-camera",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A includes the required <Text>, <Billboard>, and font file, but uses fontSize 0.3 instead of 0.5 and does not explicitly offset the text; Response B does not use <Text> or <Billboard> in the React context and thus misses the key requirements."
+      },
+      {
+        "name": "gpu-instancing-with-adaptive-dpr",
+        "baseline": 5,
         "treatment": 100,
-        "rationale": "Response B satisfies all rubric requirements, while Response A does not use <Instances> or the required JSX tags."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required React components."
       }
     ]
   }

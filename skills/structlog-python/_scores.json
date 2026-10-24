@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b7e2aa613d8bab8ecf76f00ce5550620c280ecdf7aa2d761f25ab6ee0fd46c3e",
-  "scoredAt": "2026-05-13T10:15:43.497Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5c42e4b32f95f8eff44fdae439969b524c44e85f97c8cc0f3cacda5cf217f909",
+  "scoredAt": "2026-10-24T22:10:24.562Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions cover only a single error scenario and do not address other edge cases such as missing configuration or invalid input."
+        "detail": "The instructions do not cover error scenarios or edge cases such as missing dependencies or misconfiguration."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Python and does not support other AI agent platforms."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 90,
-    "multiplier": 1.8,
+    "multiplier": 2.24,
+    "baselineAvg": 37,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Attach request_id to every log inside a request handler",
+        "name": "fastapi-json-logging-with-request-context",
         "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment uses structlog.contextvars.clear_contextvars and bind_contextvars in middleware so the request_id automatically threads through downstream log.info calls, while baseline manually passes request_id into each call."
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the required setup_logging call, foreign_pre_chain, and proper handler configuration."
       },
       {
-        "name": "Pretty console logs in dev, JSON in production from one config",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment selects ConsoleRenderer or JSONRenderer behind shared_processors and wires structlog.stdlib.ProcessorFormatter into a StreamHandler exactly as the skill prescribes, while baseline only swaps a basicConfig formatter."
+        "name": "flask-structured-logging-without-secrets",
+        "baseline": 60,
+        "treatment": 50,
+        "rationale": "Both responses miss a rubric requirement, but A avoids logging a secret key while B violates that rule by logging a 'secret' field."
+      },
+      {
+        "name": "integrate-third-party-logging-into-structlog",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
       }
     ]
   }

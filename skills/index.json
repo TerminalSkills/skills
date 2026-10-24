@@ -411,7 +411,7 @@
     {
       "name": "ansible",
       "slug": "ansible",
-      "description": "Configuration management and automation with Ansible. Use when the user needs to write playbooks, manage inventory, create roles, use Ansible Vault for secrets, or orchestrate multi-server deployments across environments.",
+      "description": "Ansible is an agentless automation tool that configures servers and deploys applications over SSH from YAML playbooks. Use when the user needs to write playbooks, manage inventory, create roles, protect secrets with Ansible Vault, or run rolling multi-server deployments across environments.",
       "category": "devops",
       "tags": []
     },
@@ -1969,9 +1969,15 @@
     {
       "name": "contentful",
       "slug": "contentful",
-      "description": "You are an expert in Contentful, the API-first content platform for enterprise teams. You help developers integrate Contentful's Content Delivery API (CDN-backed, read), Content Management API (write), and Content Preview API (draft content) into websites and apps — using typed content models, localization, rich text rendering, image transformations, and webhooks for build triggers.",
-      "category": "Content Management",
-      "tags": []
+      "description": "Contentful is an API-first headless CMS: content lives in typed content models and is served through the Content Delivery API (published, CDN), the Content Preview API (drafts) and the Content Management API (writes). Use when a user wants to fetch Contentful entries in a website or app, type them in TypeScript, render rich text, resolve linked entries and assets, preview drafts, write or publish entries from a script, or trigger rebuilds with webhooks.",
+      "category": "content",
+      "tags": [
+        "headless-cms",
+        "contentful",
+        "content-api",
+        "cdn",
+        "typescript"
+      ]
     },
     {
       "name": "context-engineering",
@@ -2703,8 +2709,8 @@
     {
       "name": "drei",
       "slug": "drei",
-      "description": "You are an expert in @react-three/drei, the companion library for React Three Fiber that provides 100+ ready-made components and hooks for common 3D patterns. You help developers add orbit controls, environment maps, text rendering, HTML overlays, loaders, performance utilities, shaders, and abstractions — eliminating boilerplate and letting teams focus on creative work instead of Three.js plumbing.",
-      "category": "3D & Creative",
+      "description": "Drei (@react-three/drei) is the helper library for React Three Fiber with ready-made 3D components: orbit controls, environment lighting, text, HTML overlays, model and texture loaders, instancing and performance tools. Use when someone asks to \"add OrbitControls\", \"load a GLTF model in React Three Fiber\", \"add an HDR environment\", \"put HTML labels in a 3D scene\", \"render 3D text\", or \"speed up a three.js scene in React\".",
+      "category": "design",
       "tags": []
     },
     {
@@ -2744,7 +2750,7 @@
     {
       "name": "dvc",
       "slug": "dvc",
-      "description": "Data Version Control for ML projects. Track large datasets and models alongside Git, build reproducible ML pipelines, and run experiments with metric comparison. Works with any storage backend including S3, GCS, Azure, and local filesystems.",
+      "description": "DVC (Data Version Control) tracks large datasets and models next to Git, builds reproducible ML pipelines and compares experiments. Use when the user says \"version my dataset\", \"dvc add\", \"dvc repro\", \"track ML experiments\", \"push data to S3 or GCS\" or wants to reproduce a model from a Git commit.",
       "category": "data-ai",
       "tags": []
     },
@@ -2791,8 +2797,7 @@
         "search",
         "full-text-search",
         "aggregations",
-        "analyzers",
-        "mappings"
+        "analyzers"
       ]
     },
     {
@@ -3055,7 +3060,7 @@
     {
       "name": "external-dns",
       "slug": "external-dns",
-      "description": "ExternalDNS for automatic DNS record management in Kubernetes. Use when the user needs to synchronize Kubernetes Ingress and Service resources with DNS providers like Route 53, CloudDNS, or Cloudflare automatically.",
+      "description": "ExternalDNS automatically creates and updates DNS records for Kubernetes Services, Ingresses, Gateway API routes and Istio resources in providers such as Route 53, Cloud DNS and Cloudflare. Use when someone asks to \"point a hostname at my Kubernetes service automatically\", \"install external-dns with Helm\", \"sync Ingress hosts to Route 53 or Cloudflare\", or \"fix external-dns deleting or not creating records\".",
       "category": "devops",
       "tags": []
     },
@@ -3351,7 +3356,6 @@
       "tags": [
         "fluentd",
         "logging",
-        "log-collection",
         "log-routing",
         "kubernetes",
         "observability"
@@ -3832,7 +3836,7 @@
     {
       "name": "gradio",
       "slug": "gradio",
-      "description": "Python library for building ML demo UIs with minimal code. Create interactive web interfaces for models with text, image, audio, and video inputs/outputs. Share demos via public links or deploy to Hugging Face Spaces.",
+      "description": "Gradio is a Python library that turns a function into a web UI and an API, used for machine-learning demos. Use it when a user asks to build a demo for a model, make a chatbot UI, accept image, audio or file input, share a prototype through a temporary public link, call a Gradio app from code, or deploy a demo to Hugging Face Spaces.",
       "category": "data-ai",
       "tags": []
     },
@@ -4604,8 +4608,8 @@
     {
       "name": "jotai",
       "slug": "jotai",
-      "description": "You are an expert in Jotai, the primitive and flexible state management library for React based on atomic state. You help developers build React applications with fine-grained reactivity using atoms (state primitives), derived atoms (computed values), async atoms (data fetching), and atom families — providing bottom-up state management where only components subscribing to changed atoms re-render.",
-      "category": "Frontend Development",
+      "description": "Jotai is a small state management library for React built on atoms: pieces of state that components subscribe to individually, so only the components reading a changed atom re-render. Use it when asked to add Jotai, replace useState prop drilling or Context, build derived or async state with atoms, persist a preference with atomWithStorage, or migrate Jotai v2 to v3.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5241,7 +5245,7 @@
     {
       "name": "loki",
       "slug": "loki",
-      "description": "Loki is a horizontally scalable log aggregation system built by Grafana Labs. Unlike traditional log platforms that index the full text of every log line, Loki indexes only metadata labels, making it significantly cheaper to operate. It integrates natively with Grafana for querying and visualization, and uses LogQL — a query language inspired by PromQL — to filter, parse, and aggregate log streams.",
+      "description": "Loki is a horizontally scalable log aggregation system built by Grafana Labs. Unlike traditional log platforms that index the full text of every log line, Loki indexes only metadata labels, making it significantly cheaper to operate. Use when someone asks to \"set up Loki\", \"ship Docker logs to Loki\", \"write a LogQL query\", \"replace Promtail with Alloy\", or \"show logs in Grafana\".",
       "category": "data-ai",
       "tags": []
     },
@@ -5677,7 +5681,7 @@
     {
       "name": "minio",
       "slug": "minio",
-      "description": "Self-host S3-compatible object storage with MinIO. Use when a user asks to set up self-hosted object storage, create an S3-compatible API on their own server, store files without AWS, set up a private cloud storage, manage buckets and objects, configure storage for backups, host static assets, or replace AWS S3 with a self-hosted solution. Covers single-node and distributed deployment, bucket management, presigned URLs, lifecycle policies, and integration with apps via the S3 API.",
+      "description": "Self-host S3-compatible object storage with MinIO. Use when a user asks to set up self-hosted object storage, create an S3-compatible API on their own server, store files without AWS, set up a private cloud storage, manage buckets and objects, configure storage for backups, host static assets, or replace AWS S3 with a self-hosted solution. Covers single-node deployment from source, bucket management, presigned URLs, lifecycle policies, and integration with apps via the S3 API.",
       "category": "devops",
       "tags": []
     },
@@ -5898,7 +5902,7 @@
     {
       "name": "mysql",
       "slug": "mysql",
-      "description": "MySQL is the world's most popular open-source relational database management system. Learn installation, SQL queries, indexing strategies, replication setup, and client integration with Node.js (mysql2) and Python (mysql-connector).",
+      "description": "MySQL is an open-source relational database server. Use when you need to install MySQL, design tables, add indexes, write queries, set up replication, take backups, or connect from Node.js (mysql2) or Python (mysql-connector-python).",
       "category": "data-ai",
       "tags": []
     },
@@ -6222,7 +6226,7 @@
     {
       "name": "notion",
       "slug": "notion",
-      "description": "Build integrations with the Notion API — databases, pages, blocks, comments, search, and OAuth. Use when tasks involve reading or writing Notion workspace data, syncing external tools with Notion databases, building dashboards from Notion content, or automating page creation and updates.",
+      "description": "Build integrations with the Notion API: databases and data sources, pages, blocks, search, and OAuth. Use when tasks involve reading or writing Notion workspace data, syncing external tools with a Notion database, building dashboards from Notion content, or automating page creation and updates.",
       "category": "productivity",
       "tags": [
         "notion",
@@ -6255,8 +6259,8 @@
     {
       "name": "nuxt",
       "slug": "nuxt",
-      "description": "You are an expert in Nuxt 3, the full-stack Vue framework with server-side rendering, auto-imports, file-based routing, API routes powered by Nitro, and 200+ modules. You help developers build production Vue applications with hybrid rendering (SSR/SSG/SPA per route), server components, middleware, state management with useState, data fetching with useFetch/useAsyncData, and deployment to 20+ platforms.",
-      "category": "Frontend Development",
+      "description": "Nuxt is the full-stack Vue framework with server-side rendering, auto-imports, file-based routing and a Nitro server for API routes. Use it when a user asks to build or fix a Nuxt app, set up per-route rendering (SSR, prerender, ISR, SPA), fetch data with useFetch or useAsyncData, write server/api endpoints, share state with useState, set page SEO meta, or deploy a Nuxt 3 or Nuxt 4 site.",
+      "category": "development",
       "tags": []
     },
     {
@@ -6513,8 +6517,8 @@
     {
       "name": "opencv",
       "slug": "opencv",
-      "description": "You are an expert in OpenCV (Open Source Computer Vision Library), the most popular library for real-time computer vision. You help developers build image processing pipelines, object detection systems, video analysis tools, augmented reality, and document processing using OpenCV's 2,500+ algorithms for image manipulation, feature detection, camera calibration, 3D reconstruction, and DNN inference — in Python, C++, or JavaScript.",
-      "category": "AI & Machine Learning",
+      "description": "OpenCV is an open-source computer vision library for image processing, video analysis, feature detection, camera calibration and DNN inference, with Python, C++ and JavaScript bindings. Use when asked to resize, blur, threshold or detect edges in images, find contours, read or write video, run an ONNX object detector, or build an OpenCV pipeline with cv2.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -7469,7 +7473,6 @@
         "prometheus",
         "alerts",
         "routing",
-        "notifications",
         "on-call"
       ]
     },
@@ -8958,9 +8961,15 @@
     {
       "name": "structlog-python",
       "slug": "structlog-python",
-      "description": "Add structured logging to Python with structlog. Use when a user asks to implement structured logging, add context to Python logs, configure log processing pipelines, or replace standard logging with typed output.",
+      "description": "Add structured logging to Python with structlog: key-value events rendered as JSON in production or colored console lines in development, request-scoped context through contextvars, and standard-library integration so third-party library logs share the same format. Use when a user asks to implement structured logging, add request IDs or context to Python logs, configure log processors, or replace print and logging format strings in a FastAPI or Flask service.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "structlog",
+        "logging",
+        "python",
+        "structured",
+        "observability"
+      ]
     },
     {
       "name": "structured-output",
@@ -9600,8 +9609,8 @@
     {
       "name": "tokio",
       "slug": "tokio",
-      "description": "You are an expert in Tokio, the asynchronous runtime for Rust that powers most of the Rust async ecosystem. You help developers build high-performance network applications, concurrent services, and I/O-bound systems using Tokio's task scheduler, async I/O primitives, channels, timers, and synchronization utilities — handling millions of concurrent connections with minimal memory overhead.",
-      "category": "Backend Development",
+      "description": "Tokio is the asynchronous runtime for Rust: a task scheduler, async TCP/UDP, timers, channels and synchronization primitives that most async Rust crates (axum, hyper, reqwest, tonic) run on. Use it when asked to write async Rust, spawn concurrent tasks, build a TCP server, use mpsc or broadcast channels, add timeouts, limit concurrency with a semaphore, run blocking code from async code, or shut a Tokio service down gracefully.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9814,9 +9823,15 @@
     {
       "name": "typesense",
       "slug": "typesense",
-      "description": "Typesense is an open-source, typo-tolerant search engine optimized for instant search experiences. Learn to deploy with Docker, define collections, index documents, and build search UIs as a modern alternative to Algolia.",
+      "description": "Typesense is an open-source, typo-tolerant search engine for instant search: sub-50ms queries, filters, facets, geo search and synonyms, self-hosted or in Typesense Cloud. Use when a user wants to run Typesense with Docker, define a collection schema, index documents, search from Node.js or Python, add synonyms or pinned results, create search-only API keys, or replace Algolia or Elasticsearch for site search.",
       "category": "data-ai",
-      "tags": []
+      "tags": [
+        "typesense",
+        "search-engine",
+        "full-text-search",
+        "docker",
+        "typo-tolerant"
+      ]
     },
     {
       "name": "ubiquitous-language",
@@ -10787,7 +10802,6 @@
     }
   ],
   "categories": [
-    "3D & Creative",
     "AI & Machine Learning",
     "Automation & Integration",
     "Backend Development",
@@ -10815,5 +10829,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T14:50:54.039Z"
+  "updatedAt": "2026-10-24T22:21:34.175Z"
 }

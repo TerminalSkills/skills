@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8583f9371f74e335658c6b2e182305cf913f50ca0a2d6ed22ce9cba1b1176b02",
-  "scoredAt": "2026-05-13T15:20:14.706Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:0567a1767bd36a9b329ebab3814d120f87dc61aa0f9d7ed57ee8a4956398d9d7",
+  "scoredAt": "2026-10-24T21:46:07.097Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as network failures or missing selectors."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Node.js environments and does not support other AI agent platforms."
+        "detail": "The skill is Node.js specific, limiting cross-platform compatibility."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.8,
-    "baselineAvg": 5,
-    "treatmentAvg": 98,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
         "name": "scrape-product-prices",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies the rubric with fetch, cheerio, CSS selectors, and JSON output, while Response A uses Python and BeautifulSoup, missing the required JavaScript tools."
-      },
-      {
-        "name": "clean-html-email",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric using cheerio, while Response A uses BeautifulSoup and does not meet the specified requirements."
+        "rationale": "Response B meets all rubric requirements; Response A does not."
+      },
+      {
+        "name": "parse-rss-feed",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B does not use cheerio or the specified methods."
+      },
+      {
+        "name": "transform-html-email",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A uses a different library and misses the specified cheerio methods."
       }
     ]
   }
