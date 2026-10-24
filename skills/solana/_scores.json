@@ -1,63 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:32df84d1d18bde8990d2c5d0f5ec546d86b5d874da7263e5b3bbaa1d9dfee211",
-  "scoredAt": "2026-05-13T10:09:44.957Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0585c88345758f3345b0d6be104cb1eb05c08c34f57b52ae2a00fa6b62b18939",
+  "scoredAt": "2026-10-24T16:02:57.949Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 80,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Skill file lacks clear, actionable instructions for the agent."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill file does not cover error scenarios or edge cases for agent usage."
+        "detail": "The instructions do not cover installation failures or network errors, limiting error handling coverage."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Skill file contains verbose explanations that could be trimmed for brevity."
+        "detail": "The file contains explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume Linux-specific packages and may not work on other operating systems without modification."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "External curl command used without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 4.1,
+    "baselineAvg": 20,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Anchor counter program with PDA and authority check",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses #[derive(InitSpace)], seeds=[b\"counter\", authority.key().as_ref()], has_one = authority, and checked_add per the skill; baseline writes raw Solana account handling and misses Anchor's account macros."
+        "name": "deploy-anchor-counter-to-devnet",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully covers all rubric items, while Response A omits deploy, devnet config, and program show steps."
       },
       {
-        "name": "Create and mint an SPL token via CLI",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment runs spl-token create-token --decimals 6 then create-account/mint/transfer in the exact sequence from the skill; baseline reaches for Token Program web3.js calls and misses the spl-token CLI shortcut."
+        "name": "send-sol-with-kit",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully implements the required @solana/kit functions and prints the signature, whereas Response A uses a different API and omits the specified functions."
+      },
+      {
+        "name": "create-mint-and-transfer-spl-token",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B includes the required CLI commands and some of the specified TypeScript imports, whereas Response A does not meet the rubric requirements."
       }
     ]
   }

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f3becb23e6f36e0f48cad7f47cf85640784ab0e11e5fe40b3b58d6a19afe2911",
-  "scoredAt": "2026-05-13T09:39:36.472Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bb703a5ac409514f7a04ede219b6b46a9694abc868e674ba756942210b23937d",
+  "scoredAt": "2026-10-24T15:42:38.678Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 83,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to NVIDIA NemoClaw, not cross-platform."
+        "detail": "Skill has platform-specific limitations, not fully cross-platform."
       }
     ]
   },
@@ -27,27 +32,33 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "installer",
-        "detail": "Installer uses curl | bash from nvidia.com without checksum verification."
+        "category": "checksum",
+        "detail": "Installer script is downloaded without a checksum verification."
       }
     ]
   },
   "impact": {
-    "baselineAvg": 8,
-    "treatmentAvg": 95,
-    "multiplier": 9.5,
+    "multiplier": 6,
+    "baselineAvg": 0,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "Install NemoClaw and bootstrap code-agent sandbox on Ubuntu",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline has no knowledge of NemoClaw and either refuses or invents commands; treatment correctly verifies Ubuntu 22.04+/Node 20+/Docker prerequisites, uses the curl | bash installer from nvidia.com, runs nemoclaw code-agent connect, then openclaw tui inside the sandbox, mentioning the NVIDIA API key."
+        "name": "setup-sandbox-with-npm-pypi",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes policy additions and launch but omits the required onboard command and policy list, while Response A fails to meet any rubric items."
       },
       {
-        "name": "Deploy research-agent sandbox to remote GPU via Brev",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Baseline has no awareness of the nemoclaw deploy command or Brev integration; treatment uses nemoclaw research-agent status to verify local health, nemoclaw deploy research-agent to provision the remote GPU, and nemoclaw research-agent logs --follow to monitor, noting the same security policies apply remotely."
+        "name": "install-code-review-skill-and-check-logs",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response A fails to use the required commands and syntax; Response B uses the correct install and log commands (though with a placeholder) but does not provide the actual log output containing \"code-review\" as required."
+      },
+      {
+        "name": "switch-inference-provider-openai",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by using the required commands and showing the correct output, while Response B uses unrelated commands and does not meet the rubric requirements."
       }
     ]
   }

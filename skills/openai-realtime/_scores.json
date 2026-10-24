@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d5e19bd921440d325e1ff5c3923220d6c5145b876bb3b928a4e1ca00cf77d482",
-  "scoredAt": "2026-05-13T09:44:56.020Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ba73d603c014d719b13284851b29a27db536104dbb47ee530ef91ede7699c2b3",
+  "scoredAt": "2026-10-24T15:46:25.005Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "WEAK"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to OpenAI Realtime API, limiting compatibility with other AI agents."
-      },
-      {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions omit error handling for connection failures, authentication errors, and other edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The examples provide only high-level outlines without concrete code or realistic demonstrations."
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as network failures, authentication errors, or reconnection logic."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 4,
+    "baselineAvg": 23,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Node.js Realtime voice agent with server VAD and nova voice",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline guesses URLs or stitches together STT/TTS pipelines, missing the realtime WebSocket protocol, while treatment uses the documented wss URL, OpenAI-Beta header, session.update with voice nova, server_vad, and pcm16."
+        "name": "phone-receptionist-websocket",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Response A meets most rubric requirements, while Response B lacks key elements."
       },
       {
-        "name": "Add function-calling appointment-booking tool to voice agent",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline confuses the format with Chat Completions tool_calls, while treatment registers tools via session.update, handles response.function_call_arguments.done, and returns results through conversation.item.create with function_call_output plus response.create."
+        "name": "web-app-webrtc-button",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the server endpoint, correct imports, and key client logic."
+      },
+      {
+        "name": "push-to-talk-interruption",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Response B fully implements the required push‑to‑talk logic, while Response A is incomplete and mis‑orders actions."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:37132731882ccb3547e296e298e90a978019b12d526568281fcf0f7cc24425ab",
-  "scoredAt": "2026-05-13T15:45:00.534Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9415c5ed837500c0b4316b69c38e8fb409946ea8851185c93ec02a3607be46f4",
+  "scoredAt": "2026-10-24T15:13:29.231Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only demonstrates happy path examples and does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases such as API failures or missing API keys."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Python and Node.js environments, not fully cross-platform for all AI agents."
+        "detail": "Instructions are only provided for Python, lacking equivalent Node.js examples for cross-platform compatibility."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.33,
-    "baselineAvg": 15,
-    "treatmentAvg": 65,
+    "multiplier": 4.75,
+    "baselineAvg": 20,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "semantic-search-with-rerank",
-        "baseline": 10,
-        "treatment": 80,
-        "rationale": "Response A covers almost all rubric requirements except the top‑5 retrieval step, while Response B uses a completely different API and misses all rubric criteria."
+        "name": "generate-document-embeddings",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits required parameters and incorrectly reports the embedding dimension."
+      },
+      {
+        "name": "rerank-documents-for-query",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
       },
       {
         "name": "rag-with-citations",
-        "baseline": 20,
-        "treatment": 50,
-        "rationale": "Response B meets most rubric items but lacks document IDs; Response A fails to use co.chat and the required document format."
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response B meets the rubric requirements more closely, providing the correct API call structure, documents format, and citation iteration, while Response A fails to supply documents in the required format and misuses the response fields."
       }
     ]
   }

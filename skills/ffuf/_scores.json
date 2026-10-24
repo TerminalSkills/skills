@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:58ec9199b6d6c72ba566c2e9046b69d9da65fda10331dda93e60e817db99bb55",
-  "scoredAt": "2026-05-13T08:52:12.263Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:460328b05c08e38dcc6af04b64096d3ad8ae7c48eb050b7c067c8ba814139965",
+  "scoredAt": "2026-10-24T15:20:23.273Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,41 +18,41 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing explicit error handling for network failures, timeouts, and unexpected HTTP responses."
+        "detail": "The instructions lack coverage of error handling and edge cases such as installation failures or network errors."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes Linux commands (wget, tar, git) which may not be available on Windows or other non-Unix systems."
+        "detail": "Setup instructions omit Windows-specific commands, limiting usability on Windows platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for the downloaded ffuf binary."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 90,
-    "multiplier": 1.73,
+    "multiplier": 7.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Fuzz a JSON login endpoint to find unknown POST body parameters with rate limiting",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses -X POST with -H Content-Type: application/json, a JSON -d body containing FUZZ, -w params.txt, -fc 400 and -rate 50 -t 10 exactly per SKILL.md; baseline reaches for Burp or a custom Python loop without ffuf's body-position FUZZ pattern."
+        "name": "directory-discovery-recursive",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B includes most required ffuf options but omits recursion flags, whereas Response A provides no useful content."
       },
       {
-        "name": "Discover hidden admin and backup paths with extensions, filtering 404s",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment uses -u .../FUZZ -w common.txt with -e .php,.bak,.old,.env and -fc 404 or -mc 200,301,302,403 and writes JSON via -o results.json -of json as documented; baseline suggests gobuster or generic wget loops without ffuf's match/filter flags."
+        "name": "subdomain-enumeration-dns",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric by using ffuf with the required options and outputting a CSV, whereas Response B does not use ffuf at all."
+      },
+      {
+        "name": "api-endpoint-discovery-auth",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A uses ffuf with most required flags but omits -ac and writes to results.md instead of endpoints.md, whereas Response B does not use ffuf at all."
       }
     ]
   }

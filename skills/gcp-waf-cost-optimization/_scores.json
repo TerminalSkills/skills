@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dd3b033b9b6fb0af300040457b2b98c433a545d6a179c2f6ef105c2eac10c2b3",
-  "scoredAt": "2026-05-13T09:07:08.944Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ba29d6dbc64dca4ca4a903a5c358775ff6979de84a325b3dba793c4b0218923e",
+  "scoredAt": "2026-10-24T15:24:30.230Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill file does not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Skill file contains verbose explanatory sections beyond necessary instructions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to GCP and relies on GCP-specific tools."
+        "detail": "The skill does not explicitly cover error handling or edge cases such as missing labels or disabled billing export."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 3.48,
+    "baselineAvg": 23,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Monthly cost review investigating a bill spike",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline points at the Console dashboard; treatment pulls BigQuery billing export with cost-by-service and cost-by-label SQL, runs MachineTypeRecommender + IdleResourceRecommender via gcloud recommender, and wires budget pubsub for auto-shutdown."
+        "name": "top-services-cost-report",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B is closer to the rubric, matching the required columns, aggregation, and ordering, whereas Response A omits credits, net_usd, and uses a different table name."
       },
       {
-        "name": "Architectural cost review of a job processor",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline suggests smaller VMs and Spot; treatment challenges the always-on architecture, replaces 6 VMs with Cloud Run Jobs + Pub/Sub for a 70%+ cut, adds the Standard->Nearline->Coldline->Archive lifecycle policy, and defers CUDs until 12+ months of stable consumption."
+        "name": "project-budget-creation",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A is closer to the rubric, providing the required gcloud command with most flags (though the display name differs), whereas Response B uses a JSON file and an alpha command, missing the single command with the specified flags."
+      },
+      {
+        "name": "storage-lifecycle-policy-setup",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully matches the required JSON structure and command, while Response B omits the top-level \"lifecycle\" wrapper and uses incorrect action syntax."
       }
     ]
   }

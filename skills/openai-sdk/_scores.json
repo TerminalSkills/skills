@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:938f5eb4e732c9656749421bb0f527c6a9995c0fc8c7e7b523180ac3c4613f6e",
-  "scoredAt": "2026-05-13T09:45:01.807Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a0cfe0e996c88ba97b80c13b6138ee9adb6f026b5d3b56160531df973a05ba7a",
+  "scoredAt": "2026-10-24T15:47:32.529Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing API keys or rate limiting."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill includes verbose guidelines that could be trimmed for brevity."
+        "detail": "The skill does not cover error handling or edge cases comprehensively."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 95,
-    "multiplier": 1.64,
+    "multiplier": 1.81,
+    "baselineAvg": 37,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Structured person extraction with guaranteed schema",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline relies on prompt-based JSON or the older json_object response_format, missing schema enforcement, while treatment uses response_format type json_schema with required fields and gpt-4o as documented."
+        "name": "customer-support-chatbot-function-calling",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A largely satisfies the rubric, implementing the required OpenAI API calls, tool schemas, function call handling, and streaming, whereas Response B omits all of those elements."
       },
       {
-        "name": "Stream chat response to Next.js frontend",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline shows generic stream=true SSE plumbing but skips the Vercel AI SDK helpers, while treatment uses the documented OpenAIStream/StreamingTextResponse pattern plus the delta loop."
+        "name": "contract-data-extraction-vision-structured-output",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B references the required OpenAI Responses API calls, whereas Response A does not; however, B’s code is incomplete and does not explicitly show the calls, so it receives a low score."
+      },
+      {
+        "name": "document-embeddings-generation",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, with A providing additional language options and B a concise Python example."
       }
     ]
   }

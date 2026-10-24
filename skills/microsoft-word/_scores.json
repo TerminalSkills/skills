@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8b1ec8e66ce943dfe4800bf2228af369b69a172a62ae98ac3457aef6bd6d7020",
-  "scoredAt": "2026-05-13T09:34:57.848Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:78c2c5a697a49bcf337b733c3279041601b4432e3395e7b97489cb8cece7a1e4",
+  "scoredAt": "2026-10-24T15:40:16.227Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly cover error handling or edge cases beyond the examples."
+        "detail": "The skill does not address error handling or edge cases such as missing files or network failures."
       },
       {
         "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory comments that could be condensed for brevity."
+      },
+      {
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Python runtime and specific libraries, limiting portability to other agent environments."
+        "detail": "The skill is limited to Python and Microsoft Graph, making it vendor-specific and not universally applicable."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 97,
-    "multiplier": 2.43,
+    "multiplier": 5.15,
+    "baselineAvg": 13,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Generate quarterly business report as .docx",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline uses python-docx with generic Table Grid but omits Pt/Cm measurements and section.header/footer; treatment applies the built-in Light Grid Accent 1 style with explicit Cm page setup and section header/footer."
+        "name": "generate-report-with-python-docx",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no relevant content."
       },
       {
-        "name": "Mail merge offer letters from CSV",
-        "baseline": 30,
-        "treatment": 98,
-        "rationale": "Baseline relies on python-docx string replacement that breaks on Jinja loops/conditionals; treatment uses DocxTemplate.render with csv.DictReader exactly as the skill prescribes."
+        "name": "mail-merge-with-docxtpl",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses pandas instead of csv.DictReader, missing a key requirement."
+      },
+      {
+        "name": "upload-and-convert-with-graph-api",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response uses async/await with graphClient .api(...).put/getStream/post as required by the rubric."
       }
     ]
   }

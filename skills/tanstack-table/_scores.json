@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:19e1cd58aefb879f2252946af8ce8f0769f7611876686fee1c4f8f226346a3c7",
-  "scoredAt": "2026-05-13T10:23:25.806Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:494c95320c8328e2beaa99abf2af860b2627a7cdb234254f2197fbd00c93bd33",
+  "scoredAt": "2026-10-24T16:09:28.668Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling for network failures and empty data states."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Examples and code snippets are React-specific, limiting applicability to other frameworks."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 90,
-    "multiplier": 2.09,
+    "multiplier": 8.3,
+    "baselineAvg": 8,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Admin users table with sort, search, pagination, bulk-delete",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Baseline produced an outline-only TanStack snippet missing some row-model imports and selection handlers, whereas treatment wired getCoreRowModel/getSortedRowModel/getFilteredRowModel/getPaginationRowModel, globalFilter state, and getSelectedRowModel().rows.map(r => r.original) for bulk delete."
+        "name": "client-side-search-sort-pagination-selection",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required TanStack Table features, type definitions, and rendering methods."
       },
       {
-        "name": "Server-side paginated table against /api/users",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline tried to use built-in pagination plus a fetch hook, while treatment correctly set manualPagination/manualSorting, supplied pageCount from server, and refetched in useEffect on [pagination, sorting] with pageIndex, pageSize, sortBy, sortDir."
+        "name": "server-side-pagination-sorting",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not."
+      },
+      {
+        "name": "column-visibility-virtualization",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response A implements most of the required TanStack Table features and virtualization, though it misuses FlexRender and does not call toggleVisibility; Response B uses a different library and misses all rubric requirements."
       }
     ]
   }

@@ -1,31 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4d93611fc1e7befb2700f2389b561735db4ead193bdffcc7787740e58e5b9133",
-  "scoredAt": "2026-05-13T09:57:02.464Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5a4d6d11b277b6a4750f9c5fa50fba12523923002a6961a1e8bb1455f70e69aa",
+  "scoredAt": "2026-10-24T15:51:26.127Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not explicit, lacking step-by-step guidance."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Examples do not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

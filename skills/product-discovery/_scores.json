@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:38158115e1775f721e848ebade5ca878b9c78f17d2e51137df28573d978c8e5d",
-  "scoredAt": "2026-05-13T09:57:11.556Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8765b93afbec28eba62f69d2dce41eba0860e5aae78aa411f1438869309fc33d",
+  "scoredAt": "2026-10-24T15:52:23.886Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 47,
-    "treatmentAvg": 88,
-    "multiplier": 1.87,
+    "multiplier": 1.34,
+    "baselineAvg": 50,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Validate $200/mo enterprise reporting willingness to pay",
+        "name": "build-ost-for-onboarding",
         "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment named the riskiest assumption, climbed the experiment ladder from desk research and one-question survey through smoke test and landing page test before any prototype, and supplied an experiment brief with hypothesis, success metric, sample size and kill criteria; baseline jumped to interviews and a pricing survey without the ladder or brief structure."
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B lists opportunities and solutions but omits riskiest assumptions and cheapest experiment types."
       },
       {
-        "name": "Build an OST for remote-design PM tool",
-        "baseline": 44,
-        "treatment": 86,
-        "rationale": "Treatment constructed a four-layer outcome -> opportunities -> 3+ solutions -> assumption tests tree with past-behavior interview prompts and forbade solution-first opportunities; baseline produced a feature list and personas without outcome mapping or assumption tests."
+        "name": "design-experiment-willingness-to-pay",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B includes all rubric items, while Response A omits riskiest assumption, experiment type, success metric, and decision rule."
+      },
+      {
+        "name": "map-prioritize-assumptions",
+        "baseline": 50,
+        "treatment": 0,
+        "rationale": "Response B provides assumptions, risk and impact scores, but omits required categories and explicit high‑risk/high‑impact highlighting, whereas Response A is empty."
       }
     ]
   }

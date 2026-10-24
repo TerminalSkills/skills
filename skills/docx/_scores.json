@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6e8b04dcd0f3c81a68186a5abc93f1741bdd11a015936a5bfe324ebf4645002c",
-  "scoredAt": "2026-05-13T16:44:06.332Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:55b1bae889bdecbf241992e2734096122ecc717acb85dea13443ed2b951457d0",
+  "scoredAt": "2026-10-24T15:17:00.311Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill examples do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The examples rely on Node.js-specific APIs, limiting cross-platform compatibility."
+        "detail": "The skill does not cover error handling or edge cases such as invalid input or missing dependencies."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 20,
+    "multiplier": 10,
+    "baselineAvg": 0,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "sales-table-report",
-        "baseline": 30,
+        "name": "monthly-sales-report-with-page-numbers",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A lacks the specified classes and methods."
+        "rationale": "Response B meets all rubric requirements; Response A does not produce a docx file."
       },
       {
-        "name": "header-footer-page-numbers",
-        "baseline": 10,
+        "name": "proposal-with-logo-and-numbered-list",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required classes and page number implementation."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet any of them."
+      },
+      {
+        "name": "product-spec-sheet-with-colored-table-and-bullets",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the spec, while Response B only provides markdown and no docx generation."
       }
     ]
   }

@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fd608b2f0e999b762d9413cfe1c0dabb605a168139d0c7656ad8677bdf180fa4",
-  "scoredAt": "2026-05-13T14:05:43.038Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1f48eed08999c2cc9d4f18f042e52a30777449523ad8f00594da2c64fd83df8b",
+  "scoredAt": "2026-10-24T15:02:36.259Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on the happy path."
+        "detail": "The skill does not cover error handling for exceeding field limits or invalid characters."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks runnable code or concrete procedures for automating ASO tasks."
       }
     ]
   },

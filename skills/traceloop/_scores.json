@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dc72f1397badc4a342ef48dc298b8dda493cfcb8b76b48c3f718deec92d8c429",
-  "scoredAt": "2026-05-13T10:27:06.511Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d87d22649da59c2e6a453a28cbf3dd849e00d00995e391a6bb89b052b14bd11d",
+  "scoredAt": "2026-10-24T16:11:34.419Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The instructions do not cover all error scenarios and edge cases, focusing mainly on happy paths."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
+    "multiplier": 8.8,
+    "baselineAvg": 5,
     "treatmentAvg": 88,
-    "multiplier": 2.32,
     "scenarios": [
       {
-        "name": "Instrument a multi-step RAG agent with semantic trace hierarchy",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment uses Traceloop.init plus @workflow/@task/@agent/@tool decorators to build a meaningful span hierarchy; baseline writes raw OpenTelemetry spans without OpenLLMetry's auto-instrumentation or AI semantic conventions."
+        "name": "python-local-console-tracing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B does not use Traceloop at all."
       },
       {
-        "name": "Export LLM traces from existing app to self-hosted Grafana Tempo",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment uses Traceloop.init with api_endpoint pointing at the Tempo OTLP HTTP endpoint and the documented headers parameter; baseline configures generic OTel exporters and misses the one-line auto-instrumentation pattern."
+        "name": "node-datadog-tracing-no-prompts",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items but omits TRACELOOP_HEADERS; Response A fails to meet any rubric requirement."
+      },
+      {
+        "name": "python-custom-collector-exporter",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to set the required environment variable, uses the wrong init parameter, and includes an exporter argument."
       }
     ]
   }

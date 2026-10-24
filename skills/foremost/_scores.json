@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2e74433ae24aabed3e6d0b1c80d777cdbd38c23b61bdd6bfb8acd260f1fd6c6f",
-  "scoredAt": "2026-05-13T10:45:12.858Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:769c1289b1331112d4a6b050cdcb0fb48bd6774f9a4d843403ff5e375b45d726",
+  "scoredAt": "2026-10-24T15:22:58.563Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Linux/macOS environment and uses platform-specific commands, limiting cross-platform applicability."
+        "detail": "The skill is limited to Linux environments and does not support other operating systems."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "SD card photo recovery after format",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline carves the live device directly; treatment images first with dd, hashes, then carves specific types with -t jpg,png,mov,mp4 and reviews audit.txt."
+        "name": "carve-jpg-png-with-timestamp",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses photorec instead of foremost and omits the required flags."
       },
       {
-        "name": "CTF PNG with hidden embedded files",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline reaches for binwalk/strings and never actually runs foremost; treatment uses foremost -t all, parses audit.txt offsets, and extracts the carved zip."
+        "name": "carve-custom-flag-with-config",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the required 'flag' subdirectory and file naming detail."
+      },
+      {
+        "name": "dry-run-with-skip-blocks",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is empty."
       }
     ]
   }

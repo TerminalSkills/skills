@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3789b75d18ff0cfdb898f55e9507ad0aaf63cb26c23b055057ade380cc85f77f",
-  "scoredAt": "2026-05-13T10:22:52.582Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a1678824b32fb29b2f21716c66ea3fa25f4b242307c25bcbb6e5ea63595ef390",
+  "scoredAt": "2026-10-24T16:07:47.084Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,42 +17,37 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly cover error scenarios or edge cases, focusing mainly on happy path instructions."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that may distract from actionable steps."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksumMissing",
-        "detail": "Missing checksum verification for Tailscale package installation via curl in Debian/Ubuntu setup."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "checksumMissing",
-        "detail": "Missing checksum verification for Tailscale package installation via curl in Fedora/RHEL setup."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 1.95,
+    "baselineAvg": 42,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Subnet router exposing 10.0.0.0/16 from an EC2 box to the tailnet",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline knows about ip_forward but misses --advertise-routes and route approval, and reaches for unrelated iptables; treatment runs tailscale up --advertise-routes, writes net.ipv4.ip_forward and net.ipv6.conf.all.forwarding to /etc/sysctl.conf with sysctl -p, and approves routes via admin panel/API."
+        "name": "provision-fleet-with-reusable-auth-key",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A includes the required reusable key creation with both tags and a loop using the same key, though the expiry is incorrect; Response B omits one tag, uses a different expiry, and the loop command does not match the rubric exactly."
       },
       {
-        "name": "Fleet provisioning script for 4 prod API servers with tag:prod,tag:api",
-        "baseline": 20,
+        "name": "setup-subnet-router-with-route-approval",
+        "baseline": 55,
         "treatment": 95,
-        "rationale": "Baseline loops ssh with interactive tailscale up and leaves tagging manual; treatment POSTs to /api/v2/tailnet/$TAILNET/keys with Authorization: Bearer to mint a reusable tagged auth key and uses tailscale up --authkey --hostname over ssh in parallel."
+        "rationale": "Response A includes all required commands and steps, while Response B omits key details such as the exact API endpoint, CIDR list, and client accept-routes command."
+      },
+      {
+        "name": "enable-tailscale-ssh-with-acl",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items but not the exact SSH command or user, while Response A fails to provide the required command, ACL snippet, and SSH command."
       }
     ]
   }

@@ -1,47 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d310f36afb365c9bbe5c83c0d7adf979f51d3e6629533379c9b1f019e7796d76",
-  "scoredAt": "2026-05-13T10:40:47.551Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4ac159e6e215a1d5b35227580e96faf4468a659a7187d6bfe22342b09be57e8c",
+  "scoredAt": "2026-10-24T16:19:33.598Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
-  },
-  "security": {
-    "verdict": "SUSPICIOUS",
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Downloaded Zig binaries are not verified with checksums, increasing risk of tampering."
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios and edge cases."
       }
     ]
   },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
   "impact": {
-    "baselineAvg": 87,
-    "treatmentAvg": 94,
-    "multiplier": 1.08,
+    "multiplier": 9.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "cross-compile-to-multiple-targets",
-        "baseline": 85,
-        "treatment": 95,
-        "rationale": "Zig's cross-compilation story is well-known so both responses produce correct `zig build -Dtarget=...` invocations for the three targets; the treatment matches the skill's exact triples and framing as Zig's killer feature."
+        "name": "cross-compile-windows-from-linux",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
       },
       {
-        "name": "request-scoped-allocator",
-        "baseline": 88,
-        "treatment": 93,
-        "rationale": "Both correctly recommend `ArenaAllocator` with `defer arena.deinit()` since this is idiomatic Zig; the treatment additionally reflects the skill's explicit-allocator-as-parameter guideline."
+        "name": "upgrade-0-13-cli-to-0-17",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A provides no content."
+      },
+      {
+        "name": "simple-http-health-server",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements (uses std.Io, std.net, std.http, correct listener, http.Server, proper JSON response, 404 handling, build command), while Response A does not use std.Io/std.http and manually parses requests, missing key rubric items."
       }
     ]
   }

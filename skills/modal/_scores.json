@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2e149c73538c68dac241210929940748fbe2b997eb127bbf4c50dd360764e5b6",
-  "scoredAt": "2026-05-13T09:36:26.515Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d0dc218ae4742f835cc3488e01e31c0460e7e1ee7febb8a65cf3e10f46db909d",
+  "scoredAt": "2026-10-24T15:41:40.319Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
@@ -16,14 +16,9 @@
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
-      },
-      {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Modal and does not work with other AI agents."
+        "detail": "The skill is vendor-locked to Modal, not applicable to other AI agents."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 92,
-    "multiplier": 4.0,
+    "multiplier": 3.22,
+    "baselineAvg": 27,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Mistral-7B web endpoint with one-time model load",
-        "baseline": 25,
-        "treatment": 93,
-        "rationale": "Baseline reaches for FastAPI/Docker or a plain @app.function and re-loads the model per request; treatment uses @app.cls with @modal.enter() and @modal.web_endpoint plus modal deploy as documented."
+        "name": "run-gpu-nvidia-smi",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items while Response A misses the gpu spec and local entrypoint."
       },
       {
-        "name": "Cron-scheduled nightly fine-tune with Volume cache",
+        "name": "deploy-private-llm-endpoint",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items, missing only the public‑endpoint note; Response B lacks key elements."
+      },
+      {
+        "name": "cache-model-weights-volume",
         "baseline": 20,
-        "treatment": 90,
-        "rationale": "Baseline relies on external cron + S3; treatment uses modal.Cron('0 2 * * *') with timeout and mounts a modal.Volume.from_name(create_if_missing=True) via volumes={...} exactly as the skill shows."
+        "treatment": 75,
+        "rationale": "Response A meets most rubric items except the volume name and GPU type, while Response B fails many key requirements."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:236d573590c79b779bb1c0e4e225a20c9ffb4484c8cfa34166c64577d1929b27",
-  "scoredAt": "2026-05-13T10:34:56.450Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0b2beb711dc956775edccf2a8d8800f3cf60d97829adaf942fb38b87ad44180f",
+  "scoredAt": "2026-10-24T16:16:28.292Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not fully cover error handling and edge cases for all examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 65,
-    "treatmentAvg": 95,
-    "multiplier": 1.46,
+    "multiplier": 9.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Pinia store with computed and async create action",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Treatment uses setup-style defineStore with ref/computed and explicit return object as in the skill; baseline reverts to options-style state/getters/actions API which is valid but not the recommended pattern shown."
+        "name": "create-bare-vue-project",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A uses the exact required command and creates a bare skeleton, while Response B uses a different scaffold command and does not meet the rubric."
       },
       {
-        "name": "Typed useApi composable with loading and error state",
-        "baseline": 70,
+        "name": "create-use-api-composable",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is unrelated Kotlin code and fails to meet any of the specified criteria."
+      },
+      {
+        "name": "add-auth-guard",
+        "baseline": 30,
         "treatment": 95,
-        "rationale": "Treatment includes the res.ok HTTP error check and a finally block to reset loading on failure; baseline omits both and would leave loading=true after a thrown error."
+        "rationale": "Response B fully satisfies the rubric, while Response A omits required imports, meta flag, and guard signature."
       }
     ]
   }

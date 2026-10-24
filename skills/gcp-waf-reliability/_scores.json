@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:55547ebde6b12b398aadf7bf7762f3d5d3d1da0b814bbfde59151b21a0572968",
-  "scoredAt": "2026-05-13T09:07:16.684Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8f8b3a65a4117a37612abce69bd8255a17dd11bcf8816d726b0c08b4d57701a6",
+  "scoredAt": "2026-10-24T15:25:42.321Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 83,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
@@ -16,9 +16,14 @@
     },
     "issues": [
       {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly cover error handling or edge cases for command failures or permission issues."
+      },
+      {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to GCP, not cross-platform."
+        "detail": "The skill is vendor-locked to Google Cloud Platform, limiting applicability to other environments."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 4.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 47,
     "scenarios": [
       {
-        "name": "Payments API production readiness review",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline gives generic HA/backup checklist; treatment specifies 99.95% SLO, regional GKE/Cloud SQL, HPA min=3 PDB minAvailable=2, readiness probe with DB check, SLO burn-rate alerts, and quarterly Backup-and-DR restore drills per the skill's Example 1."
+        "name": "define-slos-for-web-service",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
       },
       {
-        "name": "Diagnose checkout failures with green dashboards",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline reaches for RUM and 5xx logs; treatment names the cause-vs-symptom anti-pattern, prescribes the 14.4x/6x/3x/1x multi-window burn-rate alerts, and adds circuit breaker + retries-with-jitter for downstream flakiness as the skill prescribes."
+        "name": "regional-gke-autoscaling-healthchecks",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response B covers more rubric items, including the correct readiness probe path and CPU target, whereas Response A fails on several key requirements."
+      },
+      {
+        "name": "create-backup-plan",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the exact gcloud command required by the rubric."
       }
     ]
   }

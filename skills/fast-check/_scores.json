@@ -1,41 +1,59 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1156243fa378fc944b24172d3789e30b34d458dd4ac0bda7394480c3a4ca20ec",
-  "scoredAt": "2026-05-13T08:51:18.332Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:10cf5a30d3b3c55492e637de5a21f9a1a17b916ae8074bc92d8f333eba2bbed9",
+  "scoredAt": "2026-10-24T15:19:12.688Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes a Node.js environment, limiting cross-platform applicability."
+      }
+    ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "npm install commands lack checksum verification, which could allow tampering."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 29,
-    "treatmentAvg": 100,
-    "multiplier": 3.45,
+    "multiplier": 3.3,
+    "baselineAvg": 2,
+    "treatmentAvg": 33,
     "scenarios": [
       {
-        "name": "Roundtrip property test for encode/decode codec",
-        "baseline": 30,
-        "treatment": 100,
-        "rationale": "Treatment used fc.assert(fc.property(fc.string(), ...)) with the roundtrip identity inside Vitest, exactly the documented pattern; baseline rolled its own Math.random loop and missed fast-check's arbitraries and shrinking entirely."
+        "name": "json-roundtrip-serializer",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response follows the required fc.assert and expect(...).toBe(json) pattern."
       },
       {
-        "name": "Pricing invariant: discount never produces negative amount",
-        "baseline": 28,
+        "name": "counter-model-based-test",
+        "baseline": 5,
         "treatment": 100,
-        "rationale": "Treatment defined a moneyArbitrary via fc.record with fc.constantFrom for currency, combined two arbitraries in fc.property, and asserted discounted.amount >= 0 per the documented example; baseline used hand-rolled Math.random without arbitraries, record types, or shrinking."
+        "rationale": "Response B fully satisfies the rubric, while Response A uses Hypothesis instead of fast-check and misses all required elements."
+      },
+      {
+        "name": "async-fetch-user-property",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required expect(user.id).toBe(id) assertion, so neither meets the rubric."
       }
     ]
   }

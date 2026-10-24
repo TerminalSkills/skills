@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:af5dbd1d22bc6f72c8444d0ef10d912f5fef858d1190c388e7151db2b41a3535",
-  "scoredAt": "2026-05-13T14:20:36.907Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:506cdb2f1d212f190e3eeb264c5b7f1d4dad72317c02b300577e5e9d6321d41d",
+  "scoredAt": "2026-10-24T15:04:42.761Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API calls."
+        "detail": "The skill does not cover all possible error scenarios and edge cases, such as network failures or invalid input handling."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains verbose explanations that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is specific to AWS Bedrock and does not support other AI agent platforms."
+        "detail": "The skill assumes an AWS environment with boto3 and AWS credentials, limiting portability to other platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.8,
-    "baselineAvg": 5,
-    "treatmentAvg": 28,
+    "multiplier": 4.4,
+    "baselineAvg": 20,
+    "treatmentAvg": 88,
     "scenarios": [
       {
         "name": "converse-simple-explanation",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses omit the required Bedrock API call and token count output."
+        "baseline": 30,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric requirements but lacks the correct system message and token usage output, while Response B fails to use bedrock.converse, the specified model ID, and the required system message."
       },
       {
-        "name": "knowledge-base-rag-refund-policy",
+        "name": "converse-stream-quick-sort",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses the wrong API and model, missing key requirements."
+      },
+      {
+        "name": "knowledge-base-refund-policy",
         "baseline": 10,
-        "treatment": 55,
-        "rationale": "Response A correctly uses retrieve_and_generate and prints the answer, but the modelArn is incorrect; Response B does not use retrieve_and_generate or the correct modelArn at all."
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric by using the correct client, method, and parameters, while Response A uses the wrong client and method and omits required configuration."
       }
     ]
   }

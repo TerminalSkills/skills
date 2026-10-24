@@ -257,8 +257,8 @@
     {
       "name": "ai-sdk",
       "slug": "ai-sdk",
-      "description": "You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers integrate LLMs (OpenAI, Anthropic, Google, Mistral, Ollama) with React Server Components, streaming UI, tool calling, structured output with Zod schemas, RAG pipelines, multi-step agents, and edge-compatible AI features — the standard way to add AI to Next.js, Nuxt, SvelteKit, and any Node.js app.",
-      "category": "AI & Machine Learning",
+      "description": "The Vercel AI SDK is a TypeScript toolkit for calling LLMs from Node.js, Next.js, Nuxt, SvelteKit and edge runtimes through one API. It covers text generation, streaming, structured output with Zod, tool calling, agents (ToolLoopAgent) and chat UIs with useChat. Use when asked to \"add AI to my Next.js app\", \"stream a chat response\", \"get typed JSON from an LLM\", \"switch between OpenAI, Anthropic and Gemini\", or \"build a tool-calling agent\".",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -431,7 +431,7 @@
     {
       "name": "anthropic-sdk",
       "slug": "anthropic-sdk",
-      "description": "Integrate Claude AI into applications with the Anthropic SDK. Use when a user asks to add Claude to an app, use Claude for text generation, build a chatbot with Claude, use Claude's long context window, implement tool use with Claude, stream Claude responses, use Claude for code generation, document analysis, or reasoning tasks. Covers Messages API, streaming, tool use, vision, system prompts, extended thinking, and batch processing.",
+      "description": "The Anthropic SDK (Python `anthropic`, TypeScript `@anthropic-ai/sdk`) calls Claude models through the Messages API. Use when a user asks to add Claude to an app, build a chatbot, stream Claude responses, give Claude tools (function calling), send images or PDFs, turn on adaptive thinking, count tokens, or pick a current Claude model id. Covers client setup, streaming, tool use, vision, thinking and effort, and current model ids and breaking changes.",
       "category": "data-ai",
       "tags": []
     },
@@ -505,7 +505,7 @@
     {
       "name": "app-store-optimization",
       "slug": "app-store-optimization",
-      "description": "Optimize mobile app listings for discovery and conversion in Apple App Store and Google Play. Use when tasks involve ASO keyword research, title and subtitle optimization, screenshot and preview video design, A/B testing store listings, review management, localization for international markets, tracking keyword rankings, or improving download conversion rates. Covers both iOS and Android store algorithms and best practices.",
+      "description": "Optimize mobile app listings for discovery and conversion in Apple App Store and Google Play. Use when tasks involve ASO keyword research, app name and subtitle optimization, Google Play title and short description, screenshot and preview video design, Apple Product Page Optimization and Google Play store listing experiments, review prompts, localizing store metadata, tracking keyword rankings, or improving download conversion rates. Covers the metadata limits Apple and Google publish and the conversion tests each store offers.",
       "category": "business",
       "tags": []
     },
@@ -718,7 +718,7 @@
     {
       "name": "aws-bedrock",
       "slug": "aws-bedrock",
-      "description": "AWS Bedrock — fully managed foundation models on AWS infrastructure. Use when deploying AI in AWS-native environments, needing enterprise compliance (SOC2, HIPAA), running Claude, Llama, Titan, or Mistral on AWS, leveraging Knowledge Bases for RAG, or applying Guardrails for content safety.",
+      "description": "AWS Bedrock — fully managed foundation models on AWS infrastructure. Use when deploying AI in AWS-native environments, needing enterprise compliance (SOC2, HIPAA), running Claude or Llama on AWS, leveraging Knowledge Bases for RAG, or applying Guardrails for content safety.",
       "category": "data-ai",
       "tags": [
         "aws-bedrock",
@@ -820,7 +820,7 @@
     {
       "name": "axiom",
       "slug": "axiom",
-      "description": "Expert guidance for Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.",
+      "description": "Axiom is a cloud log management and analytics platform for ingesting logs, traces and events and querying them with APL (Axiom Processing Language). Use when sending app logs to Axiom from Node.js, Pino or Next.js, writing APL queries, tailing datasets with the axiom CLI, or setting up monitors and alerts.",
       "category": "devops",
       "tags": []
     },
@@ -1204,14 +1204,13 @@
     {
       "name": "bun-runtime",
       "slug": "bun-runtime",
-      "description": "Bun — fast all-in-one JavaScript runtime, bundler, test runner, and package manager. Use when speeding up Node.js projects, using Bun as a drop-in Node replacement, bundling with Bun, or running tests faster. Covers runtime APIs, package management, bundling, and Bun-specific features like Bun.serve, Bun.file, and Bun.sqlite.",
-      "category": "runtime",
+      "description": "Bun — fast all-in-one JavaScript runtime, bundler, test runner, and package manager. Use when speeding up Node.js projects, using Bun as a drop-in Node replacement, bundling with Bun, or running tests faster. Covers runtime APIs, package management, bundling, and Bun-specific features like Bun.serve, Bun.file, and bun:sqlite.",
+      "category": "development",
       "tags": [
         "bun",
         "javascript",
         "runtime",
         "bundler",
-        "fast",
         "node-alternative"
       ]
     },
@@ -1543,7 +1542,7 @@
     {
       "name": "class-variance-authority",
       "slug": "class-variance-authority",
-      "description": "Define component variants with CVA. Use when creating variant-based components with Tailwind, building design system tokens, or managing complex conditional class names in React.",
+      "description": "Class Variance Authority (CVA) is a small TypeScript library that turns a base class string plus named variants into a typed function returning class names. Use when building Tailwind components with variants such as size, intent or state, writing a shadcn/ui-style Button or Badge, replacing conditional className ternaries, or typing component props with VariantProps.",
       "category": "development",
       "tags": [
         "cva",
@@ -1642,15 +1641,15 @@
     {
       "name": "clickup",
       "slug": "clickup",
-      "description": "Automate and integrate with ClickUp. Use when a user asks to manage tasks, lists, and spaces via the ClickUp API, build automations and webhooks, create custom fields, set up time tracking, manage sprints and goals, integrate ClickUp with external tools, build dashboards, automate task assignments, sync with GitHub or Slack, or extend ClickUp with custom workflows. Covers API v2, webhooks, custom fields, automations, and reporting.",
+      "description": "Automate and integrate with ClickUp. Use when a user asks to manage tasks, lists, and spaces via the ClickUp API, build automations and webhooks, create custom fields, set up time tracking, manage sprints and goals, integrate ClickUp with external tools, build dashboards, automate task assignments, sync with GitHub or Slack, or extend ClickUp with custom workflows. Covers API v2 (plus the v3 move-task call), webhooks, custom fields, and time reports.",
       "category": "productivity",
       "tags": []
     },
     {
       "name": "cline",
       "slug": "cline",
-      "description": "You are an expert in Cline, the autonomous AI coding agent for VS Code that can read files, write code, run terminal commands, and use the browser — with human-in-the-loop approval at each step. You help developers use Cline for complex multi-file refactoring, feature implementation, debugging, and codebase exploration where the AI plans and executes while the developer reviews and approves.",
-      "category": "Developer Tools",
+      "description": "Cline is an open-source autonomous coding agent that runs in VS Code, JetBrains IDEs, the terminal (npm package `cline`) and a desktop app, and edits files, runs commands and uses MCP tools with your approval. Use when a user asks to set up Cline, run it headless in CI, choose a model provider, write .clinerules, connect an MCP server, switch between Plan and Act mode, control auto-approve or YOLO mode, or hand a multi-file refactor to an agent.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1695,7 +1694,7 @@
     {
       "name": "cloudflare-vectorize",
       "slug": "cloudflare-vectorize",
-      "description": "Serverless vector database at the edge with Cloudflare Vectorize. Use when: building semantic search on Cloudflare Workers, RAG pipelines at the edge, low-latency vector similarity search, or storing and querying embeddings without managing a separate vector database.",
+      "description": "Cloudflare Vectorize is a managed vector database that Cloudflare Workers query through a binding, used for semantic search and retrieval-augmented generation (RAG) with Workers AI embeddings. Use when building semantic search on Cloudflare Workers, a RAG pipeline at the edge, or when storing and querying embeddings with metadata filtering and namespaces without running a separate vector database.",
       "category": "data-ai",
       "tags": [
         "cloudflare",
@@ -1831,7 +1830,7 @@
     {
       "name": "cohere-api",
       "slug": "cohere-api",
-      "description": "Cohere API for enterprise NLP — embeddings, reranking, RAG, and text generation. Use when building RAG pipelines, semantic search, document reranking, or enterprise NLP applications. Command R+ excels at tool use and retrieval-augmented generation; Embed v3 and Rerank 3 are best-in-class for search quality.",
+      "description": "Cohere API for enterprise NLP — embeddings, reranking, RAG, and text generation. Use when building RAG pipelines, semantic search, document reranking, or enterprise NLP applications. The Command A models handle tool use and retrieval-augmented generation with citations; Embed and Rerank models improve search quality.",
       "category": "data-ai",
       "tags": [
         "cohere",
@@ -1844,7 +1843,7 @@
     {
       "name": "comet-ml",
       "slug": "comet-ml",
-      "description": "Expert guidance for Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.",
+      "description": "Comet ML is a platform for tracking machine learning experiments, managing registered models, and comparing runs. Use when logging experiments, hyperparameters and metrics, registering model versions, or comparing training runs; LLM tracing goes through Comet's Opik. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.",
       "category": "data-ai",
       "tags": []
     },
@@ -2260,7 +2259,7 @@
     {
       "name": "d1-database",
       "slug": "d1-database",
-      "description": "Build serverless applications with Cloudflare D1 — SQLite at the edge. Use when someone asks to \"serverless database\", \"Cloudflare D1\", \"SQLite at the edge\", \"database for Workers\", \"edge database\", or \"serverless SQL\". Covers schema setup, queries, migrations, Workers integration, and Drizzle ORM.",
+      "description": "Cloudflare D1 is a serverless SQLite database for Cloudflare Workers. Use when someone asks for \"Cloudflare D1\", \"SQLite at the edge\", \"database for Workers\", \"serverless SQL\" or \"D1 migrations\". Covers wrangler setup, SQL migrations, queries from a Worker, Drizzle ORM, read replication and limits.",
       "category": "data-ai",
       "tags": [
         "database",
@@ -2657,7 +2656,7 @@
     {
       "name": "docx",
       "slug": "docx",
-      "description": "Generate Word documents programmatically with the docx library — create paragraphs, tables, images, headers, footers, numbered lists, and styled content. Use when tasks involve generating contracts, proposals, resumes, or any .docx output from application data in Node.js.",
+      "description": "The docx library generates Word (.docx) files from Node.js or the browser in code, with no Word installation: paragraphs, tables, images, headers, footers, page numbers and numbered or bulleted lists. Use when someone asks to \"generate a Word document from data\", \"create a .docx report in Node\", \"build a contract or proposal as docx\", or \"add page numbers to a generated Word file\".",
       "category": "documents",
       "tags": [
         "docx",
@@ -3312,7 +3311,7 @@
     {
       "name": "fireworks-ai",
       "slug": "fireworks-ai",
-      "description": "Expert guidance for Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.",
+      "description": "Fireworks AI runs open-weight LLMs (Kimi, GLM, DeepSeek, Qwen, gpt-oss and others) through an OpenAI-compatible serverless API and dedicated deployments. Use when integrating Fireworks inference, streaming chat, tool calling, JSON-schema structured output, prompt caching, batch inference, or fine-tuning a model with firectl and serving the result.",
       "category": "data-ai",
       "tags": []
     },
@@ -3499,7 +3498,7 @@
     {
       "name": "gcloud",
       "slug": "gcloud",
-      "description": "Google Cloud CLI for managing GCP resources. Use when the user needs to work with Compute Engine, Cloud Storage, Cloud Functions, IAM, GKE, and other Google Cloud services from the terminal.",
+      "description": "The Google Cloud CLI (gcloud) manages Google Cloud resources from the terminal. Use when the user asks to create a VM, upload to a bucket, deploy a Cloud Run function, grant an IAM role, create a GKE cluster or switch GCP projects, or needs gcloud commands for Compute Engine, Cloud Storage, IAM, Cloud SQL or Pub/Sub.",
       "category": "devops",
       "tags": []
     },
@@ -3721,7 +3720,7 @@
     {
       "name": "gleam",
       "slug": "gleam",
-      "description": "Expert guidance for Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.",
+      "description": "Gleam is a statically typed functional language that compiles to Erlang (BEAM) or JavaScript. Use when creating Gleam projects, writing custom types and pattern matching, building web servers with Wisp and Mist, running OTP actors, or adding dependencies with gleam add. Covers Gleam 1.x and current package APIs.",
       "category": "development",
       "tags": []
     },
@@ -4054,7 +4053,7 @@
     {
       "name": "hipaa-compliance",
       "slug": "hipaa-compliance",
-      "description": "Implement HIPAA compliance for healthcare applications — PHI handling, encryption, audit logging, access controls, and Business Associate Agreements. Use when building healthtech apps, handling patient data, preparing for a HIPAA audit, or signing hospital/payer contracts.",
+      "description": "HIPAA compliance for software that handles protected health information (PHI): which data counts as PHI, what the Security Rule requires of encryption, access control, audit controls and logoff, how business associate agreements work, and the Breach Notification Rule deadlines. Use when someone asks to \"make this app HIPAA compliant\", \"encrypt PHI\", \"add audit logging for patient records\", \"check what a BAA needs\", or \"prepare for a hospital security review\". Not legal advice.",
       "category": "development",
       "tags": [
         "hipaa",
@@ -4087,14 +4086,13 @@
     {
       "name": "hono-rpc",
       "slug": "hono-rpc",
-      "description": "Hono RPC — end-to-end type-safe API client for the Hono web framework. Use when building type-safe REST APIs with Hono, sharing types between frontend and backend, or replacing tRPC with a REST-compatible approach. Works on Cloudflare Workers, Deno, Bun, and Node.js.",
-      "category": "backend",
+      "description": "Hono RPC shares a Hono server's route types with a typed fetch client (hc), giving end-to-end type safety for REST APIs without code generation or schema files. Use when building a type-safe API with Hono, sharing API types between frontend and backend, validating input with Zod and getting the types on the client, or replacing tRPC with plain REST. Runs on Cloudflare Workers, Deno, Bun and Node.js.",
+      "category": "development",
       "tags": [
         "hono",
         "rpc",
         "type-safe",
         "cloudflare-workers",
-        "api",
         "typescript"
       ]
     },
@@ -4122,8 +4120,8 @@
     {
       "name": "hotwire",
       "slug": "hotwire",
-      "description": "You are an expert in Hotwire (HTML Over The Wire), the collection of techniques for building modern web applications by sending HTML instead of JSON. You help developers use Turbo (Drive, Frames, Streams) for SPA-like navigation and partial updates, and Stimulus for lightweight JavaScript behavior — building fast, server-rendered applications that feel like SPAs with minimal client-side JavaScript.",
-      "category": "Web Frameworks",
+      "description": "Build server-rendered web apps that feel like SPAs with Hotwire, the HTML-over-the-wire toolkit made of Turbo (Drive, Frames, Streams, page-refresh morphing) and Stimulus controllers. Use when a user asks to \"add Turbo\", \"use Hotwire\", \"update part of a page without a full reload\", \"live-update with Turbo Streams\", \"write a Stimulus controller\", or wants SPA-like navigation from Rails, Django, Laravel, Express or Go without a JavaScript framework.",
+      "category": "development",
       "tags": []
     },
     {
@@ -4157,7 +4155,7 @@
     {
       "name": "huggingface",
       "slug": "huggingface",
-      "description": "Work with Hugging Face's ecosystem for machine learning — transformers library, model hub, tokenizers, inference pipelines, and fine-tuning. Covers downloading pre-trained models, running inference, training custom models, and publishing to the Hub.",
+      "description": "Hugging Face is the hub and Python libraries (transformers, datasets, peft, huggingface_hub) for downloading, running, fine-tuning and publishing machine-learning models. Use when the user asks to \"load a model from Hugging Face\", \"run a transformers pipeline\", \"fine-tune BERT\", \"LoRA fine-tune an LLM\", \"push a model or dataset to the Hub\", \"download a model with hf\", or \"call the Inference API\".",
       "category": "data-ai",
       "tags": []
     },
@@ -4177,7 +4175,7 @@
     {
       "name": "hunter-io",
       "slug": "hunter-io",
-      "description": "Hunter.io API for finding and verifying corporate email addresses by domain. Use when: finding contact emails for a target domain, discovering email naming patterns, verifying whether an email address is deliverable, or bulk-searching emails for lead generation or OSINT.",
+      "description": "Hunter.io is an email-finding and verification service with a REST API: list the public email addresses of a company domain, find one person's work email, check whether an address is deliverable, and detect a company's email pattern. Use when asked to \"find emails for a domain\", \"find the email of a person at a company\", \"verify an email address with Hunter\", \"discover a company's email format\", or for lead generation and authorized OSINT or phishing-simulation scoping.",
       "category": "research",
       "tags": [
         "hunter",
@@ -5169,7 +5167,7 @@
     {
       "name": "llm-cost-optimizer",
       "slug": "llm-cost-optimizer",
-      "description": "Track, analyze, and reduce LLM API costs — model routing, prompt caching, semantic caching, and budget alerts. Use when someone asks to \"reduce AI costs\", \"track LLM spending\", \"optimize API costs\", \"set up model routing\", \"cache LLM responses\", \"compare model costs\", \"set budget limits for AI\", or \"my OpenAI bill is too high\". Covers cost tracking per feature/user, smart model routing (expensive model for hard tasks, cheap for easy), semantic caching, prompt compression, and budget alerting.",
+      "description": "Cuts LLM API spend by measuring cost per feature and user, routing easy requests to cheaper models, using provider prompt caching, adding a semantic response cache, and using the batch APIs. Use when someone asks to \"reduce AI costs\", \"track LLM spending\", \"my OpenAI or Anthropic bill is too high\", \"set up model routing\", \"cache LLM responses\", \"compare model costs\", or \"set budget alerts for AI\".",
       "category": "data-ai",
       "tags": [
         "cost",
@@ -5375,7 +5373,7 @@
     {
       "name": "mapbox",
       "slug": "mapbox",
-      "description": "Build map-based applications with the Mapbox GL JS SDK. Use when a user asks to create interactive maps, add custom layers, implement geocoding, build navigation features, or visualize geospatial data with Mapbox.",
+      "description": "Mapbox is a platform for interactive web maps, geocoding and routing; Mapbox GL JS (v3) renders the maps in the browser. Use when a user asks to create interactive maps, add custom layers, implement geocoding, build navigation features, or visualize geospatial data with Mapbox.",
       "category": "data-ai",
       "tags": [
         "maps",
@@ -5585,7 +5583,7 @@
     {
       "name": "mermaid",
       "slug": "mermaid",
-      "description": "Generate diagrams from text with Mermaid.js. Use when a user asks to create flowcharts, sequence diagrams, ERD diagrams, Gantt charts, class diagrams, or embed diagrams in Markdown documentation.",
+      "description": "Mermaid turns short text definitions into diagrams (flowcharts, sequence, ER, class, state, Gantt, C4 and architecture diagrams) that render in Markdown on GitHub, GitLab and docs sites. Use when a user asks to \"draw a flowchart\", \"make a sequence diagram\", \"generate an ER diagram from my schema\", \"embed a diagram in the README\", or \"export a diagram to SVG or PNG\".",
       "category": "data-ai",
       "tags": [
         "diagrams",
@@ -5778,7 +5776,7 @@
     {
       "name": "modal",
       "slug": "modal",
-      "description": "Serverless GPU compute platform for running Python functions in the cloud. Deploy ML models, run training jobs, and serve inference endpoints without managing infrastructure. Supports A100/H100 GPUs, custom container images, and scales to zero automatically.",
+      "description": "Run Python functions on cloud GPUs and CPUs with Modal, a serverless platform that builds containers from Python code, scales to zero and bills per second. Use when a user asks to \"run this on a GPU\", \"deploy a model endpoint\", \"serve an LLM with vLLM\", \"run a nightly training job\", \"fan out a batch job across many containers\", or \"cache model weights in a volume\" without managing servers or Kubernetes.",
       "category": "data-ai",
       "tags": []
     },
@@ -5991,7 +5989,7 @@
     {
       "name": "nemoclaw",
       "slug": "nemoclaw",
-      "description": "Set up, configure, and manage NemoClaw — NVIDIA's open-source sandbox for running OpenClaw agents securely with policy-enforced network, filesystem, and inference controls. Use when the user mentions \"nemoclaw,\" \"openclaw sandbox,\" \"openshell,\" \"sandboxed agent,\" \"agent security sandbox,\" \"nemotron sandbox,\" or wants to deploy an AI agent inside an isolated environment with egress control and inference routing.",
+      "description": "NemoClaw is NVIDIA's open-source reference stack that installs and runs an AI agent (OpenClaw by default; Hermes and LangChain Deep Agents Code also supported) inside an NVIDIA OpenShell sandbox with deny-by-default network policy, managed inference and credential isolation. Use when the user mentions \"nemoclaw\", \"openclaw sandbox\", \"openshell\", \"sandboxed agent\", \"agent security sandbox\", or wants to run an autonomous agent in an isolated environment with egress control and inference routing.",
       "category": "devops",
       "tags": [
         "nemoclaw",
@@ -6143,7 +6141,7 @@
     {
       "name": "nikto",
       "slug": "nikto",
-      "description": "Scan web servers for vulnerabilities with Nikto. Use when a user asks to audit web server configuration, find outdated software, detect dangerous files, check for misconfigurations, or perform web server security scanning.",
+      "description": "Scan web servers for vulnerabilities with Nikto, an open-source Perl scanner that checks for dangerous files, outdated server software, risky HTTP settings, missing security headers and default content. Use when a user asks to audit web server configuration, find outdated software, detect exposed files, check for misconfigurations, or run a web server security scan on a host they are authorized to test.",
       "category": "devops",
       "tags": []
     },
@@ -6453,20 +6451,20 @@
     {
       "name": "openai-realtime",
       "slug": "openai-realtime",
-      "description": "Build voice-enabled AI applications with the OpenAI Realtime API. Use when a user asks to implement real-time voice conversations, stream audio with WebSockets, build voice assistants, or integrate OpenAI audio capabilities.",
+      "description": "Build voice agents with the OpenAI Realtime API, the speech-to-speech interface for low-latency spoken conversations. Use when a user asks to implement real-time voice chat, stream microphone audio over WebSocket or WebRTC, build a phone or browser voice assistant, handle interruptions and push-to-talk, add function calling to a voice agent, or migrate from the beta Realtime API and gpt-4o-realtime-preview.",
       "category": "data-ai",
       "tags": [
         "openai",
         "realtime",
         "voice",
         "websocket",
-        "multimodal"
+        "webrtc"
       ]
     },
     {
       "name": "openai-sdk",
       "slug": "openai-sdk",
-      "description": "Integrate OpenAI APIs into applications. Use when a user asks to add GPT or ChatGPT to an app, generate text with OpenAI, build a chatbot, use GPT-4 or o1 models, generate embeddings, use function calling, stream chat completions, build AI features, moderate content, generate images with DALL-E, transcribe audio with Whisper API, or integrate any OpenAI model. Covers Chat Completions, Assistants API, function calling, embeddings, streaming, vision, DALL-E, Whisper, and moderation.",
+      "description": "Integrate OpenAI APIs into applications. Use when a user asks to add GPT or ChatGPT to an app, generate text with OpenAI, build a chatbot, use GPT-6 or reasoning models, generate embeddings, use function calling, stream responses, get structured JSON, moderate content, generate images, transcribe audio, or migrate from the Assistants API, Chat Completions, DALL-E or Whisper. Covers the Responses API, tools, streaming, vision, embeddings, moderation, image generation and transcription.",
       "category": "data-ai",
       "tags": []
     },
@@ -6961,7 +6959,7 @@
     {
       "name": "pdfkit",
       "slug": "pdfkit",
-      "description": "Generate PDF documents programmatically with PDFKit — add text, images, vector graphics, tables, headers/footers, and custom fonts. Use when tasks involve creating invoices, reports, certificates, or any structured PDF output from application data in Node.js.",
+      "description": "PDFKit is a JavaScript library that generates PDF files in Node.js and the browser, with text, images, vector graphics, tables, custom fonts and streaming output. Use when asked to \"generate a PDF with Node\", \"create an invoice or report PDF\", \"add page numbers to a PDFKit document\", \"draw a table in PDFKit\", or \"stream a PDF from an Express route\".",
       "category": "documents",
       "tags": [
         "pdf",
@@ -7114,7 +7112,7 @@
     {
       "name": "planetscale",
       "slug": "planetscale",
-      "description": "Expert guidance for PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.",
+      "description": "PlanetScale is a managed database platform running Vitess (MySQL-compatible), Postgres and Neki (sharded Postgres), with Git-like database branches, deploy requests for non-blocking schema changes, and query insights. Use when asked to \"set up PlanetScale\", \"create a PlanetScale branch\", \"run a deploy request\", \"use the pscale CLI\", \"connect to PlanetScale from serverless or edge functions\", or \"check slow queries on PlanetScale\".",
       "category": "development",
       "tags": []
     },
@@ -7382,8 +7380,8 @@
     {
       "name": "prisma",
       "slug": "prisma",
-      "description": "You are an expert in Prisma, the TypeScript ORM with a declarative schema, auto-generated type-safe client, migrations, and studio GUI. You help developers model databases with Prisma Schema Language, generate a fully typed client that catches query errors at compile time, run zero-downtime migrations, and integrate with Postgres, MySQL, SQLite, MongoDB, CockroachDB, and PlanetScale.",
-      "category": "Backend Development",
+      "description": "Prisma ORM is a TypeScript database toolkit with a declarative schema, a generated type-safe client, and a migration system for PostgreSQL, MySQL/MariaDB, SQLite, SQL Server, CockroachDB and MongoDB. Use when someone asks to \"set up Prisma\", \"write a Prisma schema\", \"run a Prisma migration\", \"query with Prisma Client\", \"fix Prisma 7 adapter errors\", or \"upgrade from prisma-client-js\".",
+      "category": "development",
       "tags": []
     },
     {
@@ -7755,8 +7753,8 @@
     {
       "name": "react-email",
       "slug": "react-email",
-      "description": "You are an expert in React Email, the library for building responsive HTML emails using React components. You help developers create beautiful, cross-client-compatible email templates with type-safe components, live preview, and integration with email providers (Resend, SendGrid, Postmark, AWS SES) — replacing fragile HTML table layouts with a modern component-based workflow.",
-      "category": "Frontend Development",
+      "description": "React Email is an open-source library for building HTML emails from React components, with a live preview server and a render function that outputs email-safe HTML and plain text. Use when asked to \"build an email template with React\", \"set up React Email\", \"render a React component to email HTML\", \"preview emails locally\", or \"style emails with Tailwind\". Covers react-email 6.x, the single-package imports, Tailwind, rendering and sending through any provider (Resend, SendGrid, Postmark, AWS SES).",
+      "category": "development",
       "tags": []
     },
     {
@@ -8218,20 +8216,20 @@
     {
       "name": "sanity",
       "slug": "sanity",
-      "description": "Assists with building content platforms using Sanity's structured content and real-time collaboration features. Use when defining schemas, writing GROQ queries, configuring Sanity Studio, or integrating with Next.js for content-driven sites. Trigger words: sanity, groq, sanity studio, structured content, portable text, content lake, sanity schema.",
+      "description": "Sanity is a headless CMS that stores structured content in a hosted Content Lake, edited in a React-based Studio and queried with GROQ. Use when defining Sanity schemas, writing GROQ queries, configuring Sanity Studio, rendering Portable Text, or wiring Sanity into Next.js with next-sanity, Draft Mode and visual editing. Trigger words: sanity, groq, sanity studio, portable text, content lake, sanity schema, next-sanity.",
       "category": "content",
       "tags": [
         "sanity",
         "cms",
-        "structured-content",
         "groq",
-        "headless-cms"
+        "headless-cms",
+        "nextjs"
       ]
     },
     {
       "name": "sap",
       "slug": "sap",
-      "description": "Integrate with SAP systems and build extensions. Use when a user asks to connect to SAP S/4HANA, SAP Business One, or SAP ERP via OData, RFC, BAPI, or IDoc interfaces, build SAP BTP (Business Technology Platform) applications, work with SAP CAP (Cloud Application Programming), consume SAP APIs from the API Business Hub, manage master data, automate procurement or sales processes, build Fiori apps, extract SAP data for analytics, or integrate SAP with external systems. Covers S/4HANA APIs, Business One, BTP, CAP, and integration patterns.",
+      "description": "Connect to SAP S/4HANA (OData APIs), SAP Business One (Service Layer) and build SAP CAP applications on SAP BTP with Node.js. Use when a user asks to read or create business partners, sales orders or purchase orders in S/4HANA, automate Business One documents, scaffold a CAP service, or sync SAP with Shopify or another external system. Covers OAuth and CSRF handling, the SAP Cloud SDK HTTP client, and polling and webhook integration patterns.",
       "category": "business",
       "tags": []
     },
@@ -8321,7 +8319,7 @@
     {
       "name": "segment",
       "slug": "segment",
-      "description": "Collect and route customer data with Segment — customer data platform (CDP) that sends events to any destination. Use when someone asks to \"track user events across tools\", \"Segment\", \"customer data platform\", \"send events to multiple analytics tools\", \"CDP\", or \"unify analytics across Mixpanel/ Amplitude/BigQuery\". Covers identify, track, page, group, and destination routing.",
+      "description": "Segment is a customer data platform (CDP) that collects events from your website, apps and servers once and routes them to analytics, marketing and warehouse destinations. Use when someone asks to \"track user events across tools\", \"set up Segment\", \"send events to Mixpanel, Amplitude or BigQuery\", \"unify analytics\", or needs identify, track, page, group and alias calls in JavaScript, Node.js or React.",
       "category": "data-ai",
       "tags": [
         "analytics",
@@ -8525,7 +8523,7 @@
     {
       "name": "skipfish",
       "slug": "skipfish",
-      "description": "Run active web application reconnaissance with SkipFish. Use when a user asks to scan a web app they own for directory enumeration, injection vulnerabilities, and misconfigurations, or wants a fast dictionary-driven crawl with HTML output as a starting point for manual review.",
+      "description": "Crawl and probe a web application with SkipFish, a fast active security scanner that brute-forces paths from a dictionary, tests injection points and writes an HTML report. Use when a user asks to scan a web app they own for hidden directories, backup files, XSS, SQL injection or misconfigurations, or wants a quick dictionary-driven first pass before manual testing in Burp or ZAP. Unmaintained since 2012, so treat results as leads.",
       "category": "devops",
       "tags": []
     },
@@ -8625,8 +8623,8 @@
     {
       "name": "solana",
       "slug": "solana",
-      "description": "You are an expert in Solana blockchain development. You help developers build on-chain programs (smart contracts) in Rust, interact with the Solana network using @solana/web3.js, create tokens (SPL), build NFT collections, and integrate with wallets — leveraging Solana's 400ms block times, parallel transaction processing, and sub-cent fees for high-throughput applications.",
-      "category": "Blockchain & Web3",
+      "description": "Solana is a high-throughput blockchain with 400 ms slots and sub-cent fees. Use this skill to write on-chain programs in Rust with the Anchor framework, talk to the network from TypeScript with @solana/kit, create SPL tokens with the Solana CLI, and test and deploy to devnet. Trigger words: solana, anchor, smart contract, spl token, program derived address, solana web3.js, devnet.",
+      "category": "development",
       "tags": []
     },
     {
@@ -8685,7 +8683,7 @@
     {
       "name": "spec-to-3d",
       "slug": "spec-to-3d",
-      "description": "Generate 3D building models from architectural specifications, parsed drawings, or building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
+      "description": "Generate 3D building massing models from architectural specifications, parsed drawings, or building code data. Produces a plain Building3D JSON and a Three.js group, and hands the result to Pascal Editor for refinement. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
       "category": "design",
       "tags": [
         "3d-modeling",
@@ -8812,7 +8810,7 @@
     {
       "name": "sst",
       "slug": "sst",
-      "description": "Assists with building and deploying full-stack serverless applications on AWS using SST. Use when defining Lambda functions, API Gateway routes, DynamoDB tables, S3 buckets, or deploying Next.js/Remix/Astro with SSR on AWS. Trigger words: sst, serverless stack, sst dev, sst deploy, aws lambda, sst ion, resource linking.",
+      "description": "Builds and deploys full-stack applications on AWS with SST (v3 and later, built on Pulumi), defining Lambda functions, API Gateway routes, DynamoDB tables, S3 buckets and Next.js, Remix or Astro sites in sst.config.ts. Use when the user wants to deploy a serverless app to AWS, run sst dev, link resources into functions, manage secrets, or set up per-PR preview stages. Trigger words: sst, serverless stack, sst dev, sst deploy, aws lambda, sst ion, resource linking.",
       "category": "devops",
       "tags": [
         "sst",
@@ -8985,7 +8983,7 @@
     {
       "name": "supabase",
       "slug": "supabase",
-      "description": "Build applications with Supabase as the backend — Postgres database, authentication, real-time subscriptions, storage, and edge functions. Use when someone asks to \"set up Supabase\", \"add authentication\", \"create a real-time app\", \"set up row-level security\", \"configure Supabase storage\", \"write edge functions\", or \"migrate from Firebase to Supabase\". Covers project setup, schema design with RLS, auth flows, real-time subscriptions, file storage, and edge functions.",
+      "description": "Supabase is an open-source backend platform built on Postgres, with auth, realtime, storage and edge functions. Use when someone asks to \"set up Supabase\", \"add authentication\", \"create a real-time app\", \"set up row-level security\", \"configure Supabase storage\", \"write edge functions\", or \"migrate from Firebase to Supabase\". Covers the CLI, migrations, RLS schema design, auth flows, realtime subscriptions, storage policies and edge functions.",
       "category": "development",
       "tags": []
     },
@@ -9261,7 +9259,7 @@
     {
       "name": "tanstack-table",
       "slug": "tanstack-table",
-      "description": "Build powerful data tables with TanStack Table — headless, framework-agnostic table library. Use when someone asks to \"build a data table\", \"TanStack Table\", \"sortable table\", \"filterable data grid\", \"paginated table\", \"React table\", or \"headless table library\". Covers sorting, filtering, pagination, column resizing, row selection, and virtualization.",
+      "description": "TanStack Table is a headless table library for React, Vue, Svelte, Solid, Angular and Lit that handles sorting, filtering, pagination, row selection and column state while you write the markup. Use when someone asks to \"build a data table\", \"TanStack Table\", \"sortable table\", \"filterable data grid\", \"paginated table\", \"server-side pagination\", \"React table\", or \"headless table library\", or when migrating code from v8 `useReactTable`.",
       "category": "development",
       "tags": [
         "table",
@@ -9482,7 +9480,7 @@
     {
       "name": "theharvester",
       "slug": "theharvester",
-      "description": "Passive email, subdomain, and IP harvesting from public sources using theHarvester. Use when: gathering corporate email lists, enumerating subdomains passively, pre-engagement recon, finding exposed employee contacts without triggering alerts.",
+      "description": "theHarvester is an open-source OSINT tool that collects subdomains, email addresses, IP addresses and URLs for a domain from public sources such as certificate transparency logs, search engines and threat-intelligence APIs. Use it for passive pre-engagement reconnaissance, subdomain enumeration, finding exposed employee emails, and attack-surface checks on domains you are authorized to assess.",
       "category": "research",
       "tags": [
         "theharvester",
@@ -9620,8 +9618,8 @@
     {
       "name": "traceloop",
       "slug": "traceloop",
-      "description": "You are an expert in Traceloop and its OpenLLMetry SDK, the open-source observability framework that extends OpenTelemetry for LLM applications. You help developers instrument AI pipelines with automatic tracing for OpenAI, Anthropic, Cohere, LangChain, LlamaIndex, vector databases, and frameworks — exporting to any OpenTelemetry-compatible backend (Grafana Tempo, Jaeger, Datadog, Honeycomb, Traceloop Cloud).",
-      "category": "AI & Machine Learning",
+      "description": "Traceloop's OpenLLMetry SDK adds OpenTelemetry tracing to LLM applications: it auto-instruments OpenAI, Anthropic, LangChain, LlamaIndex and vector databases, and exports spans to any OTLP backend (Grafana Tempo, Datadog, Honeycomb, Jaeger, Traceloop Cloud). Use when someone asks to \"trace LLM calls\", \"add observability to my AI app\", \"OpenLLMetry\", \"Traceloop\", \"monitor token usage and latency\", or \"send LLM traces to Grafana/Honeycomb/Datadog\".",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -9680,8 +9678,8 @@
     {
       "name": "trigger-dev",
       "slug": "trigger-dev",
-      "description": "You are an expert in Trigger.dev, the open-source background jobs platform for TypeScript. You help developers build reliable long-running tasks, scheduled jobs, webhook handlers, and event-driven workflows with automatic retries, concurrency control, real-time logs, and deployment to serverless infrastructure — replacing BullMQ/Redis setups with a fully managed or self-hosted solution purpose-built for modern TypeScript apps.",
-      "category": "Backend Development",
+      "description": "Trigger.dev is an open-source background jobs platform for TypeScript: long-running tasks with no timeouts, automatic retries, cron schedules, durable waits, queues and concurrency limits, deployed to Trigger.dev Cloud or self-hosted. Use when the user wants to run background jobs, scheduled tasks or cron in TypeScript, move work off a request handler, retry flaky API calls, wait for hours or days inside a job, or replace BullMQ and Redis.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9979,8 +9977,8 @@
     {
       "name": "upstash",
       "slug": "upstash",
-      "description": "You are an expert in Upstash, the serverless data platform for Redis, Kafka, and QStash. You help developers add caching, rate limiting, session storage, message queuing, and scheduled jobs to serverless and edge applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare Workers, and AWS Lambda without persistent connections.",
-      "category": "Cloud & Serverless",
+      "description": "Upstash is a serverless data platform with HTTP-based Redis, rate limiting, QStash message delivery and Workflow for durable functions. Use when adding caching, sessions, rate limiting, delayed jobs, cron schedules or multi-step background workflows to Vercel, Next.js, Cloudflare Workers or AWS Lambda apps that cannot hold persistent connections.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -10145,7 +10143,7 @@
     {
       "name": "vertex-ai-gemini",
       "slug": "vertex-ai-gemini",
-      "description": "Google Cloud Vertex AI for enterprise Gemini deployments — production scaling, fine-tuning, and MLOps. Use when deploying Gemini in GCP-native environments, running fine-tuning jobs, needing enterprise IAM controls, VPC isolation, batch prediction at scale, or production ML pipelines on Google Cloud.",
+      "description": "Google Cloud Vertex AI (now Gemini Enterprise Agent Platform) for running Gemini models with Google Cloud IAM, fine-tuning and batch jobs. Use when deploying Gemini in GCP-native environments, running fine-tuning jobs, needing enterprise IAM controls, VPC isolation, batch prediction at scale, or production ML pipelines on Google Cloud.",
       "category": "data-ai",
       "tags": [
         "vertex-ai",
@@ -10296,7 +10294,7 @@
     {
       "name": "vue",
       "slug": "vue",
-      "description": "Vue.js is a progressive JavaScript framework for building user interfaces. It features the Composition API with reactive refs and computed values, single-file components, and an approachable learning curve with powerful scaling capabilities.",
+      "description": "Vue.js is a progressive JavaScript framework for building web interfaces with single-file components, the Composition API and fine-grained reactivity. Use when a user asks to create a Vue 3 app, write a `script setup` component, use ref/computed/watch, props and emits, defineModel, Pinia stores, Vue Router guards, composables, or provide/inject, or to set up a project with Vite and TypeScript.",
       "category": "development",
       "tags": []
     },
@@ -10727,7 +10725,7 @@
     {
       "name": "zeabur",
       "slug": "zeabur",
-      "description": "Expert guidance for Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.",
+      "description": "Zeabur is a cloud deployment platform that detects the framework of a project, builds it with its own zbpack builder and runs it as a managed service, with one-click databases and apps from a template marketplace. Use when deploying a Next.js, Node.js, Python, Go or Docker app to Zeabur, scripting deploys with the `zeabur` CLI, setting service variables or custom domains, or calling the Zeabur GraphQL API.",
       "category": "devops",
       "tags": []
     },
@@ -10741,7 +10739,7 @@
     {
       "name": "zig",
       "slug": "zig",
-      "description": "Expert guidance for Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.",
+      "description": "Zig is a systems programming language with compile-time evaluation, seamless C interop, no hidden control flow and no garbage collector. Use when writing, building, testing or cross-compiling Zig code, porting C projects, or fixing code that broke on a new Zig release (std.Io, Writergate, @cImport removal). Covers zig init, zig build, comptime generics, explicit allocators and an HTTP server on Zig 0.17.",
       "category": "development",
       "tags": []
     },
@@ -10791,7 +10789,6 @@
     "AI & Machine Learning",
     "Automation & Integration",
     "Backend Development",
-    "Blockchain & Web3",
     "Cloud & Serverless",
     "Content Management",
     "Data Engineering",
@@ -10801,9 +10798,7 @@
     "Infrastructure & DevOps",
     "Marketing & Growth",
     "Web Development",
-    "Web Frameworks",
     "automation",
-    "backend",
     "business",
     "content",
     "data-ai",
@@ -10812,8 +10807,7 @@
     "devops",
     "documents",
     "productivity",
-    "research",
-    "runtime"
+    "research"
   ],
-  "updatedAt": "2026-10-24T14:50:54.039Z"
+  "updatedAt": "2026-10-24T18:29:51.102Z"
 }

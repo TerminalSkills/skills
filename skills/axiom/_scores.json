@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f5d8b7ea469c4860e67faaf4ddf623d46fa6c3ac0889df1f280182fcf738318c",
-  "scoredAt": "2026-05-13T14:30:00.103Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6443fc9449d4c41dcbab931a254afbdbe0a779e8145cdfa1f060193ba67201d7",
+  "scoredAt": "2026-10-24T15:05:44.630Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path scenarios and does not address error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases such as missing tokens or network failures."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Axiom and relies on specific SDKs and environment variables, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
+    "multiplier": 8.7,
     "baselineAvg": 10,
-    "treatmentAvg": 100,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "ingest-logs-using-js-sdk",
+        "name": "sdk-ingest-with-custom-field",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric with code, while Response A provides no code and is incomplete."
+        "rationale": "Response A fully meets the rubric, while Response B uses a different SDK and does not import Axiom from @axiomhq/js, failing the key requirements."
       },
       {
-        "name": "run-cli-query-errors",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B includes the required query, the -f json flag, and implies JSON output, while Response A lacks the flag and explicit JSON format."
+        "name": "pino-transport-setup",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits a logger.error example, while Response B uses the wrong transport target and hardcodes the dataset, failing key requirements."
+      },
+      {
+        "name": "cli-query-top-errors",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B meets the query requirements but omits the AXIOM_TOKEN note, while Response A fails to provide an axiom query at all."
       }
     ]
   }

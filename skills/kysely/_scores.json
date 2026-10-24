@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3ffba9aff97d4e7685dc2d5344edeb883354901cb6f504b71ace4c39ca1213fd",
-  "scoredAt": "2026-05-13T09:20:46.693Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0a63825d40a057b34c4fdd329d69a3e0b63b19fda47424c81d305ae109269d37",
+  "scoredAt": "2026-10-24T15:35:56.325Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage"
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Node.js environment, not platform-agnostic"
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 73,
-    "treatmentAvg": 91,
-    "multiplier": 1.25,
+    "multiplier": 9.5,
+    "baselineAvg": 3,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Type-safe subquery filtering published authors",
-        "baseline": 65,
-        "treatment": 92,
-        "rationale": "Treatment uses the typed Database<> generic, qualified column references (users.id, posts.author_id), and a direct subquery passed into .where('users.id', 'in', ...) matching the skill exactly; baseline omits the Database type and uses a callback subquery form."
+        "name": "add-comments-table-migration",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response B closely follows the rubric, providing the required Kysely migration, down function, and type regeneration steps, while Response A uses Prisma instead of the specified Kysely schema and migration approach."
       },
       {
-        "name": "Atomic user+post insert with transaction",
-        "baseline": 80,
-        "treatment": 90,
-        "rationale": "Both use db.transaction().execute() with .returningAll() / .executeTakeFirstOrThrow() and reference user.id in the post insert, but treatment mirrors the skill's exact value shape and ordering."
+        "name": "latest-published-posts-with-authors",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a Kysely query, proper joins, filtering, ordering, limiting, and execution, while Response B is plain SQL, wrong table names, missing filter, and no Kysely usage."
+      },
+      {
+        "name": "transactional-user-post-insert",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric using Kysely's transaction API, while Response B relies on raw SQL and other languages, missing the required Kysely syntax."
       }
     ]
   }

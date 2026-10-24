@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f49267c20c83f36c44acad1953a16aae9827a81abe6fe440b4ed0928f746afe9",
-  "scoredAt": "2026-05-13T14:08:49.049Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5194583cf9bb717f5983b77754ee838175bfb2de8cf562f8e9e5cd1566907061",
+  "scoredAt": "2026-10-24T15:03:52.698Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack coverage of error handling and edge cases."
+        "detail": "The instructions do not cover error scenarios or edge cases, focusing only on the happy path."
       }
     ]
   },
@@ -28,7 +28,7 @@
       {
         "severity": "MEDIUM",
         "category": "checksum",
-        "detail": "Downloaded docker-compose.yml and .env files lack checksum verification."
+        "detail": "Docker image is pulled without checksum verification, which could allow tampering."
       }
     ]
   },

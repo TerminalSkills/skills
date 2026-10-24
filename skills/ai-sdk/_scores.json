@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:68e84b798e77cea5b2aeda3ef2b38be016991ac94c911c435da3488c7fe95b21",
-  "scoredAt": "2026-05-13T13:45:25.006Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:0605967f9c6f7b53b9eef18058855f64fc04716edb5c7198df3479947ae12775",
+  "scoredAt": "2026-10-24T14:59:30.022Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "detail": "The guide does not cover all possible error scenarios and edge cases, such as network failures or provider-specific errors."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to the Vercel AI SDK and does not support other AI SDKs or runtimes."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.2,
-    "baselineAvg": 25,
-    "treatmentAvg": 80,
+    "multiplier": 5.47,
+    "baselineAvg": 17,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "nextjs-stream-poem",
-        "baseline": 50,
-        "treatment": 60,
-        "rationale": "Response A correctly implements the required API route but misses the useChat hook; Response B implements the client streaming logic but does not use streamText or toDataStreamResponse in the API route."
+        "name": "generate-typed-json",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits logging result.output.name; Response B fails to use generateText and the required SDK pattern."
       },
       {
-        "name": "multi-step-agent-weather-search",
-        "baseline": 0,
+        "name": "stream-chat-nextjs",
+        "baseline": 10,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required structure."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use the required SDK functions or hooks."
+      },
+      {
+        "name": "weather-agent-tool-calling",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B deviates from the specified framework and lacks the required tool/agent definitions."
       }
     ]
   }

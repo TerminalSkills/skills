@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:56301f5620417d67243a37f2e0c54594df818954c604303d7ac9a74160614855",
-  "scoredAt": "2026-07-02T06:51:14.897Z",
+  "version": "2.1.0",
+  "skillHash": "sha256:a99d5056bf6de7fe2d2b0f04264b6dfa9d5019651a84ca0314a3ce31bdd8017c",
+  "scoredAt": "2026-10-24T15:59:36.832Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully cover all error scenarios and edge cases."
+        "category": "conciseness",
+        "detail": "The instructions contain extensive explanatory text that may be considered verbose."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 5.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "business-onboarding-with-keywords",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A follows all rubric steps, while Response B omits the required search_places, import_business, keyword_recommendations, and add_keyword calls."
+        "name": "generate-monthly-report",
+        "baseline": 5,
+        "treatment": 55,
+        "rationale": "Response A does not use the required paid tools at all, while Response B uses the correct sequence of tools but fails to specify the period as \"last_month\"."
       },
       {
-        "name": "weekly-review-and-ranking-summary",
+        "name": "publish-holiday-sale-post",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B follows the required API call sequence and includes a digest with rank and review deltas plus drafted replies, while Response A only provides a generic template without any of the mandated calls or data flow."
+        "treatment": 70,
+        "rationale": "A covers most required steps but incorrectly includes a direct publish_post call, violating the rubric; B provides no content."
       },
       {
-        "name": "competitor-threat-monitoring",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A provides no solution."
+        "name": "add-competitor-snapshot",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B includes the required add_competitor and snapshot_competitor calls and notes that add_competitor is paid, but also calls an extra tool (search_places), whereas Response A does not call the required tools at all."
       }
     ]
   }

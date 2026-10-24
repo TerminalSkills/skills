@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7e1e5cc6516692023ccf159377c5bb1cd83d56127f27eca1685b30f529e1afcf",
-  "scoredAt": "2026-05-13T16:09:30.081Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:b174f5e41a81072995790b54a320354cb17dba95b56a5a21518bea89ded7c85b",
+  "scoredAt": "2026-10-24T15:15:04.443Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing explicit error handling for file read or parse errors, limiting robustness."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Implementation relies on Node.js fs and streams, not compatible with browser environments."
+        "detail": "The skill assumes a Node.js environment, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 5,
-    "treatmentAvg": 100,
+    "multiplier": 6,
+    "baselineAvg": 0,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "stream-transform-large-csv",
+        "name": "parse-string-with-casting",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A is a Python solution and does not use the required Node.js streams."
+        "treatment": 80,
+        "rationale": "Response B correctly uses csv-parse/sync with most required options (missing only skip_empty_lines), whereas Response A does not use the parse function at all."
       },
       {
-        "name": "validate-csv-required-fields",
-        "baseline": 10,
+        "name": "stream-transform-large-file",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B correctly uses validateCsv with the required fields and expects the proper return structure, while Response A defines a different function and does not meet the rubric requirements."
+        "rationale": "Response B fully satisfies the rubric, while Response A is a Python script and does not meet the Node.js pipeline requirements."
+      },
+      {
+        "name": "validate-required-fields",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response explicitly uses csv-parse with the required options, so both fail to meet the rubric."
       }
     ]
   }

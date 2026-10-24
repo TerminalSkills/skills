@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fd5515c70d2b64dc7eed35825e75ddf72e75c0650cb3fc376450fc8c4992e906",
-  "scoredAt": "2026-05-13T15:06:04.295Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:47efc69eaf4b96ad4e70907485e4a8f561e6440a524e451de2314698c53be6cc",
+  "scoredAt": "2026-10-24T15:07:48.223Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for canvas operations."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The provided code examples use Node.js-specific imports, limiting cross-platform applicability."
+        "detail": "The skill does not cover error handling for loadImage failures or canvas creation errors."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.31,
-    "baselineAvg": 65,
-    "treatmentAvg": 85,
+    "multiplier": 4.04,
+    "baselineAvg": 23,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "gradient-title-watermark",
-        "baseline": 90,
+        "name": "create-gradient-chart-with-font",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items except font size, while Response B fails on font size and export, making A the stronger answer."
+      },
+      {
+        "name": "watermark-image",
+        "baseline": 10,
         "treatment": 100,
-        "rationale": "Response A fully meets all rubric requirements, while Response B is almost complete but has minor implementation omissions."
+        "rationale": "Response B fully satisfies the rubric, while Response A uses Sharp instead of canvas and does not meet the specified requirements."
       },
       {
         "name": "grayscale-filter",
-        "baseline": 40,
-        "treatment": 70,
-        "rationale": "Response B meets the canvas requirement but still uses simple averaging instead of the weighted formula, whereas Response A uses sharp and omits canvas entirely."
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully follows the rubric, B does not."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fa9fff449f67a4ca057db5895ecad16b085a47bfc9f700866690e73ef76d9ac0",
-  "scoredAt": "2026-05-13T15:32:22.922Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:fe795b61d6ac23b663cc73de06a89fd0e2ef4d52b977a3f6d7aeb153131343a1",
+  "scoredAt": "2026-10-24T15:10:03.957Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly cover error handling or edge cases such as invalid tokens or rate limiting failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment and uses TypeScript, limiting compatibility with non-Node AI agents."
+        "detail": "The instructions lack coverage of error handling for token expiration, network failures, and missing required fields."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 8,
-    "baselineAvg": 10,
-    "treatmentAvg": 80,
+    "multiplier": 6.7,
+    "baselineAvg": 2,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "bulk-custom-field-update",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response A covers all ClickUp steps except the initial token validation, while Response B is about Jira and does not meet any rubric requirements."
+        "name": "create-task-with-custom-field-and-time-entry",
+        "baseline": 5,
+        "treatment": 0,
+        "rationale": "Response B at least acknowledges the need for context, whereas Response A provides no content."
       },
       {
-        "name": "urgent-task-slack-notifier",
-        "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response A covers most ClickUp‑specific requirements (webhook creation, Express handler, signature verification, priority check, Slack notification) but omits the GET /api/v2/user token validation; Response B uses Asana instead of ClickUp and misses all rubric items."
+        "name": "setup-webhook-for-urgent-priority-slack-notification",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is unrelated to ClickUp and lacks the required webhook setup, signature verification, and Slack posting."
+      },
+      {
+        "name": "move-task-with-status-mapping",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty and does not provide any solution."
       }
     ]
   }

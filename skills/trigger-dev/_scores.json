@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3e373b2c6a301b1ff75536885fb6e91e95a6bcc5f36dc9506ece47e89d6f0d81",
-  "scoredAt": "2026-05-13T10:27:40.069Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2dfb645d8802d42922d8d9515da0b3432a04c976add23e47a17f0855d1b9b0c7",
+  "scoredAt": "2026-10-24T16:12:47.821Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all possible error scenarios and edge cases, such as network failures or data validation errors beyond the provided examples."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to Trigger.dev, making it vendor-locked and not applicable to other AI agents or background job platforms."
+        "detail": "The instructions do not cover all error scenarios and edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Migrate BullMQ video processing job to Trigger.dev with durable retries",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment used task() with explicit retry config (maxAttempts, factor, minTimeoutInMs), tasks.trigger, and logger.info from the SDK; baseline reached for BullMQ-like worker code or generic queue without the v3 SDK primitives."
+        "name": "define-payment-task-with-retry-and-wait",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A meets most rubric items (id, retry config, wait, logger) but lacks schemaTask and correct payload schema, whereas Response B misses almost all required elements."
       },
       {
-        "name": "Schedule a weekday 9 AM Slack report with timezone awareness",
-        "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment used tasks.schedule with cron and timezone option per the SDK; baseline reached for node-cron or a generic cron expression without the Trigger.dev scheduler API."
+        "name": "trigger-reminder-with-delay-and-idempotency",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use Trigger.dev at all."
+      },
+      {
+        "name": "create-daily-report-schedule-and-per-user-schedule",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but misses window details; Response A is empty."
       }
     ]
   }

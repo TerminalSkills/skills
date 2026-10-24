@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b6f1618ae238e289310a800268b2059923a16fc5a7c5adc12a72ef283527aba2",
-  "scoredAt": "2026-05-13T09:51:00.178Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:811bc59f2d72b53f70cf36b0c304ebc2e9f9cfd730dd082c6002dca15d44092d",
+  "scoredAt": "2026-10-24T15:49:50.583Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, limiting robustness."
+        "category": "conciseness",
+        "detail": "The guidelines section contains repeated lines, adding unnecessary filler."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 94,
-    "multiplier": 2.85,
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Add orders table to production without downtime",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment runs pscale branch create, applies DDL on the branch, then pscale deploy-request create/diff/deploy for non-blocking rollout; baseline applies ALTER/CREATE directly on main with manual backups and no deploy-request workflow."
+        "name": "create-branch-and-deploy-instantly",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands and details, while Response A is missing entirely."
       },
       {
-        "name": "Prisma + PlanetScale on Vercel Edge",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Treatment sets relationMode = \"prisma\" in the datasource, uses @planetscale/database for edge queries, and declares @@index for filtered columns; baseline uses default Prisma MySQL FK constraints that PlanetScale rejects."
+        "name": "serverless-edge-query-recent-orders",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
+      },
+      {
+        "name": "list-slow-queries-json",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B is closer to the required command, using the correct subcommand and positional arguments, whereas Response A uses a different subcommand and flags, making it less aligned with the rubric."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:25a5eae41c7dfe9dcbc2f714fff0e94bbc201bfc56cfed64c41528ca89441edb",
-  "scoredAt": "2026-05-13T09:12:55.617Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a2b127db1aa8c20f882e75b4f779097055633079017862f222409aa352ca9080",
+  "scoredAt": "2026-10-24T15:31:59.521Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 37,
-    "treatmentAvg": 93,
-    "multiplier": 2.51,
+    "multiplier": 5.59,
+    "baselineAvg": 17,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Typed users API with shared client",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline uses Hono and Zod manually but misses the RPC pattern entirely (no AppType export, no hc client, no zValidator middleware); treatment exports typeof route as AppType, uses hc<AppType> with $post, and applies zValidator('json', schema) with c.req.valid('json')."
+        "name": "create-hono-rpc-server-with-post-users",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
       },
       {
-        "name": "Cloudflare Workers D1 API with auth headers",
-        "baseline": 38,
-        "treatment": 93,
-        "rationale": "Baseline correctly uses Hono<{ Bindings }> and D1 prepare/bind/run but has no AppType export and uses raw fetch for auth; treatment chains routes, exports AppType, and uses hc<AppType>(url, { headers: { Authorization } }) per the skill's auth pattern."
+        "name": "generate-client-call-users-post",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A covers all rubric items except the explicit use of InferResponseType, while Response B omits the required hono/client imports and type usage entirely."
+      },
+      {
+        "name": "build-cloudflare-workers-hono-d1-app",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B is incomplete and missing key elements."
       }
     ]
   }

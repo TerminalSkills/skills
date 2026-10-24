@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:144bc26fec52d2c5ccca016dba5f1ffbb5d26c4af75f3a897e1c8964d4f4868a",
-  "scoredAt": "2026-05-13T10:35:18.184Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bc393932643478606fa7c33cc168a5ff87c553a88ced16d52812601d5cc2420b",
+  "scoredAt": "2026-10-24T16:17:16.675Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for W&B usage."
+        "detail": "The instructions do not cover error handling or edge cases such as network failures or missing dependencies."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 73,
-    "treatmentAvg": 97,
-    "multiplier": 1.33,
+    "multiplier": 4.35,
+    "baselineAvg": 23,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Bayesian hyperparameter sweep over learning rate and batch size",
-        "baseline": 75,
-        "treatment": 95,
-        "rationale": "Treatment uses skill's exact distribution syntax (log_uniform_values) and namespaced metric (val/accuracy); baseline uses plain min/max without distribution key."
+        "name": "add-wandb-tracking-to-script",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A lacks the argument‑parser integration for the config."
       },
       {
-        "name": "Dataset versioning with Artifacts and downstream training run",
-        "baseline": 70,
-        "treatment": 98,
-        "rationale": "Treatment correctly distinguishes runs via job_type (data-prep/training) per the skill pattern; baseline omits job_type entirely."
+        "name": "create-hyperparameter-sweep",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a correct sweep.yaml and W&B commands; Response B does not provide a sweep.yaml or W&B commands, using Optuna instead."
+      },
+      {
+        "name": "artifact-lineage-tracking",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required wandb workflow with dataset and model artifacts, while Response B uses MLflow and does not meet the wandb-specific rubric."
       }
     ]
   }

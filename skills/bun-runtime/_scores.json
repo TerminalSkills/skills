@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5e95a8a038f329ece2d3b7372d18bce0e8a0611db97956c69af3519d15500e37",
-  "scoredAt": "2026-05-13T14:59:30.664Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:ccac1170638b08b8f4a028caccbf54b75ee1a5986edccf961816f556a199f365",
+  "scoredAt": "2026-10-24T15:06:57.129Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,41 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanations that could be more concise."
+        "detail": "The instructions do not cover error handling or edge cases."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Uses curl to download and execute a script from bun.sh without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 1.76,
-    "baselineAvg": 33,
-    "treatmentAvg": 58,
+    "multiplier": 4,
+    "baselineAvg": 23,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "bundle-ts-browser-minify-sourcemap",
-        "baseline": 20,
-        "treatment": 60,
-        "rationale": "Response A covers most of the rubric but omits the NODE_ENV definition, while Response B uses a different build tool and misses all required bun options."
+        "name": "convert-node-to-bun-ci",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no content."
       },
       {
-        "name": "create-bun-serve-json-server",
-        "baseline": 45,
-        "treatment": 55,
-        "rationale": "Both responses miss the required 500 error handler and the exact JSON payload; A uses Response.json and logs the correct URL format, making it slightly better."
+        "name": "bundle-ts-app-browser",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required flags, while Response A omits the mandatory --outdir flag."
+      },
+      {
+        "name": "simple-http-server-bun",
+        "baseline": 70,
+        "treatment": 75,
+        "rationale": "Response B better meets the JSON response requirement, while Response A correctly reads the port but fails to use Response.json."
       }
     ]
   }

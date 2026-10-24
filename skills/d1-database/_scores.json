@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:aa2cc7142e5f0a79850a2cebf2d8987373ec55af782653aa64a429adbb42ed1f",
-  "scoredAt": "2026-05-13T16:14:15.031Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8e5cdcf9d96b8c241a2e8a793b5af7afd6dc570941c79b85ccf67b8d98e96d8e",
+  "scoredAt": "2026-10-24T15:16:05.621Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "The skill focuses on happy path setup and usage, lacking explicit error handling or edge case coverage."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains explanatory text that could be trimmed for brevity, leading to verbosity."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Cloudflare Workers and Wrangler CLI, not cross-platform."
+        "detail": "The skill is specific to Cloudflare Workers and Wrangler, limiting applicability to other platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.38,
-    "baselineAvg": 40,
-    "treatmentAvg": 55,
+    "multiplier": 4.26,
+    "baselineAvg": 23,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "shop-db-with-products-endpoint",
-        "baseline": 80,
-        "treatment": 60,
-        "rationale": "Response A covers most rubric items but omits migrations, while Response B uses migrations but fails to use env.DB.prepare(...).bind(...).all() in the Worker."
+        "name": "create-shop-db-with-migrations",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A omits key commands and details."
       },
       {
-        "name": "drizzle-orm-user-posts-api",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A covers most of the rubric but uses a different insertion method than required, while Response B provides no content."
+        "name": "drizzle-orm-fetch-published-posts",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with correct schema, relations, drizzle import, db instance, and query syntax, while Response A uses unsupported join syntax, lacks relations, and does not match the required query pattern."
+      },
+      {
+        "name": "enable-read-replication-and-use-sessions",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully follows the rubric, while Response A omits the required session and bookmark steps."
       }
     ]
   }

@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3ffdefd511ab156e4d3214016afdbf0767a6d27b5138d0c6b5a4a80403d8984f",
-  "scoredAt": "2026-05-13T09:07:20.902Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c778de724b636eabb00fc2cf727f2145d7e20f5ee35408e346ba9634c22145d2",
+  "scoredAt": "2026-10-24T15:26:55.063Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error scenarios and edge cases comprehensively."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Google Cloud Platform and does not work with other cloud providers."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 95,
-    "multiplier": 2.88,
+    "multiplier": 8.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Cloud Run + Cloud SQL hardening review",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline gives generic HTTPS/IAM advice; treatment delivers the skill's prescription — Cloud Armor OWASP + rate-based-ban, IAP for admin, CMEK on Cloud SQL, and a VPC Service Controls perimeter with exact gcloud commands."
+        "name": "org-policy-default-network-and-sa-keys",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is missing entirely."
       },
       {
-        "name": "Enforce signed-only image deploys to GKE",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline reaches for Cosign/Kyverno/Trivy (non-GCP); treatment uses the skill's GCP-native chain: gcloud artifacts docker images scan/list-vulnerabilities/sign in Cloud Build plus Binary Authorization REQUIRE_ATTESTATION + ENFORCED_BLOCK_AND_AUDIT_LOG."
+        "name": "cloud-armor-owasp-rate-limit",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is incomplete and contains errors."
+      },
+      {
+        "name": "binary-authorization-gke-policy",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response B includes the required policy.yaml structure and import command, but omits one attestor and the exact cluster name; Response A lacks the policy file and details entirely."
       }
     ]
   }

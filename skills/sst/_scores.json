@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e1636d56a4b70327feaa63dfa0a461c9a1a5a0666bc66320b5c72c2d07a90b85",
-  "scoredAt": "2026-05-13T10:11:37.531Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3479f1559e3d7f5ee0d4f5cf43a736d9f8bcd553896b615a9bd36f5ac2d8f4c1",
+  "scoredAt": "2026-10-24T16:05:16.578Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to SST and Node.js, limiting cross-platform applicability."
+        "detail": "The instructions do not cover error handling or edge cases beyond basic usage."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 90,
-    "multiplier": 3.21,
+    "multiplier": 4,
+    "baselineAvg": 23,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Build a serverless REST API backed by DynamoDB with SST",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline reached for raw CDK or legacy sst/constructs v2 syntax and hand-wrote IAM policies; treatment defined sst.aws.Dynamo and sst.aws.Function in sst.config.ts, used the link property to grant least-privilege access, accessed the table via Resource.Name in handlers, and ran sst dev for live local development."
+        "name": "notes-api-with-dynamodb",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A misses key elements such as the correct table name, API type, and handler implementation."
       },
       {
-        "name": "Deploy a Next.js app on AWS with isolated per-PR preview environments",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline suggested SST OpenNext or generic CDK with no preview-stage workflow; treatment configured the sst.aws.Nextjs component with linked backend resources and wired CI to run sst deploy --stage pr-${PR_NUMBER} on open and sst remove --stage pr-${PR_NUMBER} on close as documented."
+        "name": "nextjs-pr-preview-with-secret",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items but omits the --stage production flag for the secret command, while Response B is about Amplify and does not meet any of the SST-specific requirements."
+      },
+      {
+        "name": "sst-dev-basic-with-separate-frontend",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully covers the rubric, while Response A omits the required commands and details."
       }
     ]
   }

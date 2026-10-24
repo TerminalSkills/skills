@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:55ca2df4f229ba15695e93b6e0cc58e8d73d4c4d791ca76167fb68772c000ab9",
-  "scoredAt": "2026-05-13T09:49:20.013Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1ec4930335c199efe4d8a18886bd61e143e4a4cd3ef294dc9cbab964a58a13c7",
+  "scoredAt": "2026-10-24T15:48:22.473Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill examples do not cover error handling or edge cases, focusing only on happy paths."
-      },
-      {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is specific to Node.js and does not provide cross-platform or multi-agent compatibility."
+        "detail": "The skill is vendor-locked to Node.js, not cross-platform."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 94,
-    "multiplier": 2.09,
+    "multiplier": 7.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "invoice-with-table",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline pipes a PDFDocument and ends it but inlines text rows instead of a real table; treatment uses positioned column text with a separator line via moveTo/lineTo/stroke, matching the skill's manual table pattern."
+        "name": "invoice-with-table-and-custom-font",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, whereas Response A uses XeLaTeX and does not involve pdfkit at all."
       },
       {
-        "name": "multi-page-with-page-numbers",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline cannot show 'Page X of N' because it never buffers pages; treatment uses bufferPages, bufferedPageRange().count, switchToPage(i), and doc.page.height as the skill describes."
+        "name": "multi-page-report-with-page-numbers",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Response A references PDFKit and hints at the required approach, whereas Response B uses a different library (ReportLab) and does not meet the rubric's PDFKit-specific requirements."
+      },
+      {
+        "name": "express-invoice-streaming-route",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric by creating and streaming a PDFDocument with headers, title, and doc.end(), while Response B merely streams an existing file and never creates a PDFDocument."
       }
     ]
   }

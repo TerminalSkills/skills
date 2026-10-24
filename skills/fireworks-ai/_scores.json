@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f0279c454fa69f514f9c2459e692b83e9785f9c60eaa12e92de80a6f3055c4b6",
-  "scoredAt": "2026-05-13T08:53:18.040Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d3d9720ddc2c5c53e182a8c5433511dce6d5d8261c5eaee714c6ff31070561a4",
+  "scoredAt": "2026-10-24T15:21:33.214Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases in its code examples."
+        "detail": "The skill does not cover error handling for authentication failures, model not found errors, or network issues."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 6.92,
+    "baselineAvg": 12,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Add Fireworks streaming chat to a Next.js app",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment uses the OpenAI SDK with baseURL https://api.fireworks.ai/inference/v1 and a fully-qualified model id like accounts/fireworks/models/llama-v3p3-70b-instruct with stream:true as documented; baseline often invents a fireworks-only SDK or uses bare model names that won't resolve on the platform."
+        "name": "streaming-chat-nextjs",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B meets the rubric requirements (OpenAI import, baseURL, env var, specific model, streaming, iteration) while Response A uses a different SDK, omits the required baseURL and model, and does not expose a function returning the full response."
       },
       {
-        "name": "Tool-calling agent that returns structured JSON",
-        "baseline": 38,
-        "treatment": 86,
-        "rationale": "Treatment selects firefunction-v2 for tool use and uses response_format with a JSON schema (sentiment/confidence/keywords pattern) as the skill documents; baseline defaults to a generic 70B model and free-form prompt JSON, missing the Fireworks-specific function-calling-optimized model and schema-constrained output."
+        "name": "structured-output-review-analysis",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not call Fireworks or use the required JSON schema."
+      },
+      {
+        "name": "fine-tune-support-tickets",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required firectl commands but misnames the output model, whereas Response A does not address any of the rubric requirements."
       }
     ]
   }

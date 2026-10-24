@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f8bed8840a70248b527084120a8c78e0dde79b4cf83212009b4aacdf8eb388ad",
-  "scoredAt": "2026-05-13T10:16:05.251Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fe1d8d25b53ec7f48ea845550ecfdd0f55e42946ff7a76dc14ef7f11abfcd7cf",
+  "scoredAt": "2026-10-24T16:06:25.922Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases for migration failures or Docker startup issues."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes Node environment and Supabase CLI, limiting cross-platform applicability."
+        "detail": "The skill relies on Docker and Homebrew, which may not be available on all platforms, limiting cross-platform compatibility."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
+    "multiplier": 7.31,
+    "baselineAvg": 13,
     "treatmentAvg": 95,
-    "multiplier": 2.11,
     "scenarios": [
       {
-        "name": "RLS-secured profiles/projects schema with auto-profile trigger",
-        "baseline": 55,
+        "name": "setup-blog-backend",
+        "baseline": 25,
         "treatment": 95,
-        "rationale": "Baseline enables RLS only on projects and omits security definer on the trigger function; treatment enables RLS on both tables, writes the auth.uid()-based owner policies, and uses security definer plus the after-insert trigger on auth.users."
+        "rationale": "Response B meets all rubric requirements, while Response A omits key elements such as migrations, profiles table, policies, trigger, and reset/push commands."
       },
       {
-        "name": "Avatar upload storage bucket with folder-based RLS",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline uploads to a flat path and omits the storage.foldername RLS check, defeating the auth scoping; treatment creates the public avatars bucket, applies the auth.uid()::text = (storage.foldername(name))[1] insert policy, and uploads to ${user.id}/avatar.png."
+        "name": "realtime-todo-list",
+        "baseline": 5,
+        "treatment": 90,
+        "rationale": "Response A includes the required Supabase SQL and TypeScript subscription logic, while Response B describes a Socket.IO solution with no Supabase elements."
+      },
+      {
+        "name": "edge-welcome-email",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric while Response A does not."
       }
     ]
   }

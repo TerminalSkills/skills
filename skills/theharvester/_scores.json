@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1b80e82872f2664b74cbbccb884e43af2aa2fd7387f088176f07d7c049bff35f",
-  "scoredAt": "2026-05-13T10:25:36.175Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fce8dfff9eb7cbbfe2cc5fd033826057cd3991c7222fd87be0066e1f1c0b772f",
+  "scoredAt": "2026-10-24T16:10:35.211Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing API keys or rate limiting."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 89,
-    "multiplier": 1.98,
+    "multiplier": 3.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 37,
     "scenarios": [
       {
-        "name": "Passive subdomain enumeration with verified hosts",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment runs theHarvester -d with -b certspotter,dnsdumpster,virustotal,shodan plus -n for DNS verification and -f for JSON output as documented; baseline invents flags or relies on unrelated tools like sublist3r."
+        "name": "subdomain-inventory-keyless",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric, providing the required uv run theHarvester command and mentioning output files, though it uses a different output name; Response A does not meet the rubric at all."
       },
       {
-        "name": "Email harvest with API key sources and Python parsing",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment configures api-keys.yaml with hunter/github/securityTrails entries, calls theHarvester -b google,bing,hunter,linkedin with -l and -f, then loads the .json artifact via subprocess as the skill prescribes; baseline misses the api-keys.yaml structure entirely."
+        "name": "exposed-employee-emails",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required command and explanation."
+      },
+      {
+        "name": "full-passive-enumeration-report",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A includes the required theHarvester command and parsing logic but omits the ips list; Response B fails to use theHarvester and misses all rubric requirements."
       }
     ]
   }

@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d62f8506f329882e2f563911246fa264a958f789db7317389885af532a40692b",
-  "scoredAt": "2026-05-13T15:45:42.828Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:61bfc308197f67a59b6e3c4e6509253f3342b8110487b9680aa0fe48b0b1a14d",
+  "scoredAt": "2026-10-24T15:14:22.772Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not explicitly described, relying solely on code examples."
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
       },
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling and edge cases are not addressed in the examples."
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Python environment and specific SDKs, limiting its applicability to other AI agent platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9,
-    "baselineAvg": 10,
-    "treatmentAvg": 90,
+    "multiplier": 7.2,
+    "baselineAvg": 7,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "setup-experiment-tracking",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses MLflow and omits comet_ml-specific calls."
+        "name": "track-sklearn-with-auto-logging",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A fails several key points such as import order, auto-logging flags, and environment variable usage."
       },
       {
-        "name": "register-and-compare-models",
-        "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items, missing only the api.query comparison, while Response A omits key API calls and registry steps."
+        "name": "register-and-promote-model",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B uses the correct comet_ml API but omits set_status and uses a different folder name, while Response A uses MLflow and does not meet the rubric at all."
+      },
+      {
+        "name": "compare-experiments-by-f1",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A follows the rubric except for the wrong project name, while Response B uses an entirely different API (MLflow) and thus fails to meet the rubric."
       }
     ]
   }

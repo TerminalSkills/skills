@@ -1,52 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:c3fee6d9ac7560ce2dee1d3691dca2528b6ff678da8dc69f40deab7c9fd7d716",
-  "scoredAt": "2026-05-13T10:33:45.785Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:23068fed95ea4f4b5f75039c5c78769e9cf7826dfb7e85015ef3937a88040ab5",
+  "scoredAt": "2026-10-24T16:15:12.112Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for Vertex AI operations."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment and GCP credentials, limiting use on non-Python agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 4.45,
+    "baselineAvg": 22,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Legacy SDK to unified google-genai migration",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline tends to stay on google-cloud-aiplatform or pick google-generativeai and misses the GOOGLE_GENAI_USE_VERTEXAI=true toggle plus genai.Client/models.generate_content surface the rubric requires."
+        "name": "migrate-cloud-run-gemini",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B omits key elements such as enterprise client initialization, correct model name, and IAM binding."
       },
       {
-        "name": "5M-row batch translation pipeline",
-        "baseline": 30,
+        "name": "create-translation-batch-job",
+        "baseline": 45,
         "treatment": 95,
-        "rationale": "Baseline proposes parallel streaming calls or Dataflow; treatment uses BatchPredictionJob.submit with the documented JSONL request shape, GCS output, and bq load round-trip with cost rationale."
+        "rationale": "Response B fully meets the rubric with detailed steps, while Response A lacks the required depth and specifics."
+      },
+      {
+        "name": "fine-tune-gemini-support",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully covers all rubric requirements, while Response A provides no content."
       }
     ]
   }

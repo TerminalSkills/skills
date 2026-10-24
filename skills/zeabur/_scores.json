@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1b32005f8c57bacc64435e888ae80b7c43d3196b5c7f117170033b80c31dd160",
-  "scoredAt": "2026-05-13T10:40:35.657Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cea7be5c0fde3bf39cf1742b3076cae63b0d305bd2f28cff107aff39daa87de4",
+  "scoredAt": "2026-10-24T16:18:33.873Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases, focusing mainly on happy path."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy paths."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 90,
-    "multiplier": 4.5,
+    "multiplier": 2.79,
+    "baselineAvg": 33,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Deploy Next.js app and Postgres with zeabur CLI, set DATABASE_URL, attach api.myapp.com domain",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline invents CLI subcommands and routes user to a dashboard; treatment uses the documented zeabur auth login, zeabur deploy, marketplace DATABASE_URL auto-injection, and zeabur domain add."
+        "name": "deploy-local-express-with-env-and-domain",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with all required commands and explicit references, while Response B omits the mandatory variable env and domain create commands and relies on a different deployment approach."
       },
       {
-        "name": "Write a script to list services and restart one via Zeabur API",
-        "baseline": 15,
+        "name": "deploy-monorepo-app-dir",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers the required zbpack.json creation, commit, and deploy command, missing only a brief mention of the build log, while Response B uses a different config file and does not meet the rubric."
+      },
+      {
+        "name": "graphql-list-services",
+        "baseline": 20,
         "treatment": 90,
-        "rationale": "Baseline assumes REST and fabricates endpoints; treatment correctly uses the gateway.zeabur.com/graphql endpoint with the exact services query and restartService mutation shapes from the skill."
+        "rationale": "Response B fully meets the rubric with a JavaScript fetch snippet, correct headers, query, environment variable usage, and logging of results, while Response A lacks a fetch example, uses Python, and references a different env variable."
       }
     ]
   }

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f3efa94f3dbf725218e1e81fdfc63943a7320d9f4fb001c5a9af602ca597d82b",
-  "scoredAt": "2026-05-13T13:59:33.881Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:98b2f4e59fc705b6907dbf49e690e5124f86fbb3a180e2530c2f1dfd55a5d080",
+  "scoredAt": "2026-10-24T15:01:11.659Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases, only happy path."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Anthropic and does not support other AI agents."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.86,
-    "baselineAvg": 35,
-    "treatmentAvg": 100,
+    "multiplier": 8.08,
+    "baselineAvg": 12,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "stream-b-tree-explanation",
-        "baseline": 20,
+        "name": "stream-long-explanation",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A uses a different API method, model, and omits the finalMessage call."
+        "rationale": "Response B fully satisfies the rubric, while Response A is missing entirely."
       },
       {
-        "name": "tool-use-stock-price",
-        "baseline": 50,
+        "name": "tool-based-weather-chatbot",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Response B fully satisfies the rubric while Response A deviates on key points such as tool name, API usage, and parameter restrictions."
+      },
+      {
+        "name": "pdf-summarization",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B only partially addresses them."
+        "rationale": "Response A fully meets the rubric, while Response B misses key requirements."
       }
     ]
   }

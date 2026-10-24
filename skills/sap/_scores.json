@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:86cac016e6adbbe823edc712e88a5143f61491586fda1287086262ee2fd8b1ec",
-  "scoredAt": "2026-05-13T10:05:24.276Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ee60f0f1c41a2bd759cc0a4d69408f17689806db8abe995250ee31baaafee932",
+  "scoredAt": "2026-10-24T15:57:37.335Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully handle error scenarios such as token expiration, CSRF token fetching, or network failures."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Node.js environments and does not support other AI agent platforms."
+        "detail": "The skill is specific to Node.js and does not support other runtime environments."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 3.41,
+    "baselineAvg": 27,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Shopify webhook to S/4HANA sales order",
-        "baseline": 25,
+        "name": "create-s4-business-partner",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Treatment performs the OAuth2 client_credentials token exchange, fetches and sends X-CSRF-Token on POST, and posts to /API_SALES_ORDER_SRV/A_SalesOrder with the documented to_Item field names; baseline invents a generic /api/sales/orders endpoint with Basic auth and no CSRF."
+        "rationale": "Response B fully meets the rubric by using OAuth and CSRF tokens, posting the correct JSON payload, and extracting the BusinessPartner ID, whereas Response A uses Basic auth, incorrect fields, and omits the required steps."
       },
       {
-        "name": "Cron-based sales order polling to analytics",
+        "name": "scaffold-bookstore-cap-service",
         "baseline": 30,
-        "treatment": 93,
-        "rationale": "Treatment polls every 5 minutes and queries A_SalesOrder with $filter on CreationDate, $expand=to_Item, $select and $top; baseline invents a non-OData /sales/orders?since= endpoint with no $expand or field selection."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key entities, hooks, and details."
+      },
+      {
+        "name": "shopify-to-s4-webhook",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A includes the required express.raw middleware, HMAC verification, and a sapApi call with the correct payload structure, though it omits the final 200 response; Response B lacks the express.raw middleware, uses a different payload format, and does not call sapApi with the specified endpoint, so it falls short of the rubric."
       }
     ]
   }

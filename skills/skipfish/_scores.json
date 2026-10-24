@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:39f39cd18b883cd21924eec58c566b0889d9c8f2daf97bfa42c2c299442277b4",
-  "scoredAt": "2026-05-13T10:08:16.493Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:95e8e018b03cbde9a93a469d60034a9ccc0ff79e000f219df1b058863ab0b8b2",
+  "scoredAt": "2026-10-24T16:01:39.299Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as installation failures or missing dictionaries."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The file contains extensive explanatory text that may be considered verbose."
+        "detail": "Missing error handling for installation failures, missing dictionary files, and network errors."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Linux/macOS environments and does not support Windows."
+        "detail": "Instructions assume Linux/macOS environments and do not support Windows or other OSes."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 86,
-    "multiplier": 2.15,
+    "multiplier": 6,
+    "baselineAvg": 0,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "Fast scoped scan of a single host with dangerous endpoints excluded",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment runs skipfish with -W minimal.wl, -I '^http://host/' to clamp scope, -X to skip /logout and /delete, and -d/-c/-l to time-box, then opens ./report/index.html as documented; baseline reaches for nikto/nmap/zap or runs skipfish without scope flags and risks crawling /logout."
+        "name": "quick-triage-staging-site",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B includes most required flags and notes the output directory constraint, but uses the wrong dictionary file; Response A does not meet any of the rubric requirements."
       },
       {
-        "name": "Authenticated scan using a pre-acquired session cookie",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment pre-authenticates via curl, extracts the session value, passes it with -C 'session=...' to skipfish along with -X for the logout endpoint and a fresh -o output dir — exactly the skill's pattern; baseline tries skipfish flags like --auth or a login URL form that the tool does not support."
+        "name": "authenticated-dashboard-scan",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes every required flag and option, whereas Response A is empty."
+      },
+      {
+        "name": "scoped-load-tuned-scan",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response A covers some options but omits many required flags and details, whereas Response B provides no content at all."
       }
     ]
   }

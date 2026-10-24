@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:360eb5234c6c11a2811ea518df1dbd467027eeb9d2adc3e0fea7b66d8c52914d",
-  "scoredAt": "2026-05-13T10:00:32.682Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:87f2198d223b865c2a5e239225657b7a3266b3bbe05d4922c800bf30ecd83312",
+  "scoredAt": "2026-10-24T15:54:01.346Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy paths."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 88,
-    "multiplier": 2.2,
+    "multiplier": 8.5,
+    "baselineAvg": 5,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Typed team-invite email template with logo, CTA, and inbox preview text",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment composes the template from `@react-email/components` (`Html`/`Head`/`Body`/`Container`/`Section`/`Button`/`Img`/`Preview`) wrapped in `<Tailwind>`, with typed props for personalization, while baseline hand-rolls HTML tables and inline styles and omits the `<Preview>` inbox-text component the rubric checks for."
+        "name": "setup-project-export-laravel",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response B includes the required file, Tailwind config, PreviewProps, and an export command, whereas Response A lacks the create-email command, proper file structure, and export step."
       },
       {
-        "name": "Render the invite template and send it via Resend with a plain-text fallback",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment calls `render()` from `@react-email/render` twice (HTML and `{ plainText: true }`) and passes both to `resend.emails.send` per the skill, plus mentions `npx email dev` for preview, while baseline stringifies a template literal and sends only `html`, missing the deliverability-friendly plain-text path."
+        "name": "render-send-resend",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B omits the required imports and rendering steps."
+      },
+      {
+        "name": "preview-server-custom-dir-port",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A uses the exact required command and explains the server URL and warnings, while Response B uses a different command and does not meet the rubric."
       }
     ]
   }

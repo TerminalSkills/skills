@@ -1,53 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dba41149959f63da15fdec80b752458a300e50e73e25f71c1f61ff0c93f140d0",
-  "scoredAt": "2026-05-13T09:08:37.306Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:268090e92bb2f914a654adf0db7c63ff1760684ee8c5e61ea0df48f767b1eeca",
+  "scoredAt": "2026-10-24T15:28:16.354Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions only cover macOS and Linux, lacking Windows support."
+        "category": "completeness",
+        "detail": "Instructions do not cover error scenarios or edge cases."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to download and execute a script from gleam.run without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 83,
-    "treatmentAvg": 94,
-    "multiplier": 1.13,
+    "multiplier": 4.23,
+    "baselineAvg": 22,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Custom type with compile-time-checked status transitions",
-        "baseline": 80,
-        "treatment": 92,
-        "rationale": "Both define pub type Status, use case pattern matching, and return Result; treatment adds richer state machine with guards and exhaustiveness reasoning."
+        "name": "project-setup-and-dependencies",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A includes all required commands in order but omits the test‑pass statement, while Response B omits the `gleam add wisp mist` command and also lacks the test‑pass statement."
       },
       {
-        "name": "OTP actor managing a task list",
-        "baseline": 85,
-        "treatment": 95,
-        "rationale": "Both define Message with reply Subject, handler with actor.continue, and actor.start; treatment adds Next(Message, State) typing, Result replies, and supervisor context."
+        "name": "json-encoding-decoding",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to meet multiple key requirements."
+      },
+      {
+        "name": "counter-web-server-with-actor",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully implements the OTP actor, request handling, JSON response, and server startup as required, while Response A is incomplete and missing key code elements."
       }
     ]
   }
