@@ -12,7 +12,8 @@ license: Apache-2.0
 compatibility: 'Google Calendar API v3, Microsoft Graph API v1.0. Node.js/Python examples.'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/googleapis/google-api-nodejs-client
   category: development
   tags:
     - calendar
@@ -44,18 +45,24 @@ const oauth2Client = new google.auth.OAuth2(
 );
 const authUrl = oauth2Client.generateAuthUrl({
   access_type: 'offline',
-  scope: ['https://www.googleapis.com/auth/calendar'],
+  prompt: 'consent', // Google returns a refresh token only on first consent unless you force it
+  scope: [
+    'https://www.googleapis.com/auth/calendar.events',     // event CRUD
+    'https://www.googleapis.com/auth/calendar.freebusy',   // freebusy.query does not accept calendar.events
+  ],
 });
 const { tokens } = await oauth2Client.getToken(authorizationCode);
 oauth2Client.setCredentials(tokens);
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-// Service Account (server-to-server, domain-wide delegation)
+// Service account (server-to-server). Without domain-wide delegation it only sees calendars
+// shared with the service account's e-mail; with it, impersonate a Workspace user via `subject`.
 const auth = new google.auth.GoogleAuth({
-  keyFile: '/path/to/service-account-key.json',
+  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS, // path to the key file, never committed
   scopes: ['https://www.googleapis.com/auth/calendar'],
-  clientOptions: { subject: 'user@company.com' },
+  clientOptions: { subject: 'sarah@company.com' },
 });
+const calendarAsSarah = google.calendar({ version: 'v3', auth });
 ```
 
 #### Create Events
@@ -66,11 +73,12 @@ const event = await calendar.events.insert({
   requestBody: {
     summary: 'Sprint Planning',
     description: 'Plan sprint 14 tasks and capacity.',
-    start: { dateTime: '2026-03-01T14:00:00', timeZone: 'America/New_York' },
-    end: { dateTime: '2026-03-01T15:00:00', timeZone: 'America/New_York' },
+    start: { dateTime: '2026-11-02T14:00:00', timeZone: 'America/New_York' },
+    end: { dateTime: '2026-11-02T15:00:00', timeZone: 'America/New_York' },
     attendees: [{ email: 'sarah@company.com' }, { email: 'mike@company.com' }],
+    // Service accounts need domain-wide delegation to populate the attendee list
     conferenceData: {
-      createRequest: { requestId: 'req-' + Date.now(), conferenceSolutionKey: { type: 'hangoutsMeet' } },
+      createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: 'hangoutsMeet' } },
     },
   },
   conferenceDataVersion: 1,
@@ -82,9 +90,9 @@ await calendar.events.insert({
   calendarId: 'primary',
   requestBody: {
     summary: 'Daily Standup',
-    start: { dateTime: '2026-03-01T09:30:00', timeZone: 'America/New_York' },
-    end: { dateTime: '2026-03-01T09:45:00', timeZone: 'America/New_York' },
-    recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20260630T000000Z'],
+    start: { dateTime: '2026-11-02T09:30:00', timeZone: 'America/New_York' },
+    end: { dateTime: '2026-11-02T09:45:00', timeZone: 'America/New_York' },
+    recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20261231T000000Z'],
   },
 });
 ```
@@ -112,7 +120,7 @@ const { data } = await calendar.events.list({
 // Update event
 await calendar.events.patch({
   calendarId: 'primary', eventId,
-  requestBody: { summary: 'Sprint Planning (MOVED)', start: { dateTime: '2026-03-02T14:00:00', timeZone: 'America/New_York' }, end: { dateTime: '2026-03-02T15:00:00', timeZone: 'America/New_York' } },
+  requestBody: { summary: 'Sprint Planning (MOVED)', start: { dateTime: '2026-11-03T14:00:00', timeZone: 'America/New_York' }, end: { dateTime: '2026-11-03T15:00:00', timeZone: 'America/New_York' } },
   sendUpdates: 'all',
 });
 
@@ -124,8 +132,8 @@ await calendar.events.delete({ calendarId: 'primary', eventId, sendUpdates: 'all
 ```typescript
 const { data } = await calendar.freebusy.query({
   requestBody: {
-    timeMin: '2026-03-01T09:00:00-05:00',
-    timeMax: '2026-03-01T18:00:00-05:00',
+    timeMin: '2026-11-02T09:00:00-05:00',
+    timeMax: '2026-11-02T18:00:00-05:00',
     timeZone: 'America/New_York',
     items: [{ id: 'sarah@company.com' }, { id: 'mike@company.com' }],
   },
@@ -133,9 +141,13 @@ const { data } = await calendar.freebusy.query({
 // data.calendars['sarah@company.com'].busy → array of { start, end } blocks
 ```
 
+#### Push notifications
+`calendar.events.watch({ calendarId, requestBody: { id: crypto.randomUUID(), type: 'web_hook', address: 'https://hooks.company.com/gcal', token: 'target=sprint-calendar' } })`. The address must be HTTPS with a valid certificate. A channel expires at the time you request or at Google's own limit (whichever is sooner), there is no auto-renewal, and a notification carries no event data: on each one, run `events.list` with your stored `syncToken`. Check the `X-Goog-Channel-Expiration` header and replace the channel (new `id`) before it lapses.
+
 ### Microsoft Outlook Calendar (Graph API)
 
 #### Authentication
+App-only (below) needs the **application** permission `Calendars.ReadWrite` granted by an admin; restrict which mailboxes the app can reach with RBAC for Applications in Exchange Online (it replaces Application Access Policies). `findMeetingTimes` does **not** support app-only tokens (delegated `Calendars.Read.Shared` only), so with this credential use `getSchedule` (application `Calendars.ReadBasic` or higher) instead. For `findMeetingTimes`, sign the user in with a delegated flow.
 ```typescript
 import { ClientSecretCredential } from '@azure/identity';
 import { Client } from '@microsoft/microsoft-graph-client';
@@ -155,8 +167,8 @@ const graphClient = Client.initWithMiddleware({ authProvider });
 // Create event with Teams meeting
 const event = await graphClient.api(`/users/${userId}/events`).post({
   subject: 'Sprint Planning',
-  start: { dateTime: '2026-03-01T14:00:00', timeZone: 'America/New_York' },
-  end: { dateTime: '2026-03-01T15:00:00', timeZone: 'America/New_York' },
+  start: { dateTime: '2026-11-02T14:00:00', timeZone: 'America/New_York' },
+  end: { dateTime: '2026-11-02T15:00:00', timeZone: 'America/New_York' },
   attendees: [
     { emailAddress: { address: 'sarah@company.com' }, type: 'required' },
   ],
@@ -166,18 +178,26 @@ const event = await graphClient.api(`/users/${userId}/events`).post({
 
 // List events in date range
 const events = await graphClient.api(`/users/${userId}/calendarView`)
-  .query({ startDateTime: '2026-03-01T00:00:00Z', endDateTime: '2026-03-07T23:59:59Z' })
+  .query({ startDateTime: '2026-11-02T00:00:00Z', endDateTime: '2026-11-08T23:59:59Z' })
   .select('subject,start,end,location,isOnlineMeeting')
   .orderby('start/dateTime').top(50).get();
 
-// Find meeting times (smart scheduling)
+// Availability for several people (works app-only); availabilityView: 0 free or working elsewhere, 1 tentative, 2 busy, 3 OOF
+const schedule = await graphClient.api(`/users/${userId}/calendar/getSchedule`).post({
+  schedules: ['sarah@company.com', 'mike@company.com'],
+  startTime: { dateTime: '2026-11-02T09:00:00', timeZone: 'America/New_York' },
+  endTime: { dateTime: '2026-11-02T18:00:00', timeZone: 'America/New_York' },
+  availabilityViewInterval: 60,
+});
+
+// Find meeting times (smart scheduling) - delegated sign-in only, not the app-only client above
 const suggestions = await graphClient.api(`/users/${userId}/findMeetingTimes`).post({
   attendees: [
     { emailAddress: { address: 'sarah@company.com' }, type: 'required' },
   ],
   timeConstraint: { timeslots: [{
-    start: { dateTime: '2026-03-01T09:00:00', timeZone: 'America/New_York' },
-    end: { dateTime: '2026-03-05T18:00:00', timeZone: 'America/New_York' },
+    start: { dateTime: '2026-11-02T09:00:00', timeZone: 'America/New_York' },
+    end: { dateTime: '2026-11-06T18:00:00', timeZone: 'America/New_York' },
   }] },
   meetingDuration: 'PT1H',
   maxCandidates: 5,
@@ -190,8 +210,8 @@ const suggestions = await graphClient.api(`/users/${userId}/findMeetingTimes`).p
 |---------|----------------|-----------------|
 | Auth | Google OAuth 2.0 | Azure AD OAuth 2.0 |
 | Video meeting | Google Meet | Teams (isOnlineMeeting) |
-| Free/busy | freebusy.query | getSchedule / findMeetingTimes |
-| Webhooks | Push notifications (7 day max) | Subscriptions (3 day max) |
+| Free/busy | freebusy.query | getSchedule (app or delegated) / findMeetingTimes (delegated only) |
+| Webhooks | Watch channels (expire per request/Google limit; renew by creating a new channel) | Subscriptions (under 7 days; 1 day with resource data) |
 | Recurring | RRULE strings | Structured recurrence object |
 | Smart scheduling | Not built-in | findMeetingTimes (ranked) |
 
@@ -207,12 +227,13 @@ The agent will:
 4. Create the event with `calendar.events.insert` including attendees, Meet link (`conferenceDataVersion: 1`), and send notifications to all attendees
 
 ### Example 2: Set up a recurring standup with Outlook
-**User prompt:** "Create a daily standup meeting at 9:30 AM ET on weekdays in Microsoft Teams for our engineering team, running through June 2026."
+**User prompt:** "Create a daily standup meeting at 9:30 AM ET on weekdays in Microsoft Teams for our engineering team, running through December 2026."
 
 The agent will:
 1. Authenticate with Microsoft Graph API using the configured Azure AD credentials
-2. Call `graphClient.api('/users/{userId}/events').post()` with `isOnlineMeeting: true`, `onlineMeetingProvider: 'teamsForBusiness'`, and a weekly recurrence pattern for Monday-Friday
-3. Set the recurrence range with `startDate: '2026-03-01'` and `endDate: '2026-06-30'`
+2. Call `graphClient.api(`/users/${userId}/events`).post()` with `isOnlineMeeting: true`, `onlineMeetingProvider: 'teamsForBusiness'` and this recurrence:
+   `recurrence: { pattern: { type: 'weekly', interval: 1, daysOfWeek: ['monday','tuesday','wednesday','thursday','friday'] }, range: { type: 'endDate', startDate: '2026-11-02', endDate: '2026-12-31' } }`
+3. Use start `2026-11-02T09:30:00` and end `2026-11-02T09:45:00` in `America/New_York`; the recurrence range supplies the dates
 4. Add all engineering team members as required attendees and return the Teams join URL
 
 ## Guidelines
@@ -220,9 +241,10 @@ The agent will:
 - Always specify `timeZone` — never rely on server timezone for calendar operations
 - Use `singleEvents: true` (Google) or `calendarView` (Outlook) to expand recurring events
 - Free/busy before creating — check availability, don't just double-book
-- Webhook renewal — both Google (7d max) and Outlook (3d max) require renewal jobs
-- Use sync tokens (Google) / delta queries (Outlook) for efficient polling
+- Webhook renewal - Google channels and Graph subscriptions (under 7 days, 1 day with resource data) both lapse silently; run a renewal job and answer Graph's validation request (echo `validationToken`) within 10 seconds
+- Use sync tokens (Google) / `calendarView/delta` (Outlook) for efficient polling; a notification only says something changed
+- Use one client secret per environment, kept in env vars or a vault; scope Google OAuth to `calendar.events` plus `calendar.freebusy` (free/busy queries) when you do not need calendar-list access
 - Buffer time between events — back-to-back meetings are a UX problem
 - ISO 8601 for all date handling — never parse dates as strings manually
 - Send meeting updates to attendees (`sendUpdates: 'all'`) — silent changes cause confusion
-- Rate limits: Google ~10 QPS per user, Graph ~10,000 per 10 min per app per tenant
+- Rate limits: Google Calendar allows 10,000 requests/min per project and 600/min per user per project, and also throttles bursts of writes to one calendar (back off exponentially on 403 `rateLimitExceeded`/429). Outlook via Graph: 10,000 requests per 10 minutes and 4 concurrent requests per app and mailbox pair (back off on 429 `Retry-After`)
