@@ -9,66 +9,65 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["tailscale", "vpn", "networking", "wireguard", "zero-trust"]
 ---
 
 # Tailscale
 
+## Overview
+
 Build zero-trust mesh networks that connect servers, laptops, and cloud instances as if they're on the same LAN. Built on WireGuard, managed through a control plane.
 
-## Setup
+## Instructions
+
+### Setup
 
 ```bash
-# Debian/Ubuntu
-sudo apt-get install -y apt-transport-https
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
-sudo apt-get update && sudo apt-get install -y tailscale
+# Ubuntu 24.04 (use your release's codename instead of noble; list at https://pkgs.tailscale.com/stable/)
+sudo mkdir -p --mode=0755 /usr/share/keyrings
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+sudo apt-get update && sudo apt-get install tailscale
 sudo tailscale up
 
-# Fedora/RHEL
-sudo dnf config-manager --add-repo https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-sudo dnf install -y tailscale
+# Fedora 41+ (dnf5)
+sudo dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+sudo dnf install tailscale
 sudo systemctl enable --now tailscaled
 sudo tailscale up
 
-# macOS
+# macOS (Homebrew installs the open-source CLI daemon; the App Store app is the GUI alternative)
 brew install tailscale
 
-# Docker
-docker run -d --name tailscale \
-  --cap-add NET_ADMIN --cap-add NET_RAW \
-  -v tailscale-state:/var/lib/tailscale \
-  -e TS_AUTHKEY=tskey-auth-... \
-  tailscale/tailscale
+# Headless server: authenticate with an auth key from the environment
+sudo tailscale up --auth-key="$TS_AUTHKEY"
 
-# Authenticate with an auth key (headless servers)
-sudo tailscale up --authkey=tskey-auth-...
-
-# Check status
 tailscale status
 ```
 
-### Auth Keys
+Flag spelling is `--auth-key` (the old `--authkey` is no longer in the CLI reference). `tailscale up` reapplies every flag you pass; to change one setting later use `tailscale set` (for example `sudo tailscale set --ssh`).
 
-Generate at https://login.tailscale.com/admin/settings/keys:
+#### Auth Keys
+
+Generate in the admin console under Settings, Keys (https://login.tailscale.com/admin/settings/keys). Auth keys expire after 1 to 90 days (90 if you pick nothing).
 
 - **Reusable** — same key for multiple machines (fleet provisioning)
 - **Ephemeral** — machine removed when it disconnects (CI runners, containers)
-- **Pre-approved** — skips admin approval
+- **Pre-approved** — skips device approval when your tailnet requires it
+- **Tags** — a key can register devices as `tag:ci`; those devices are owned by the tag, not by a person
 
 ```bash
-# Ephemeral node (auto-removed on disconnect — good for CI/CD runners)
-tailscale up --authkey=tskey-auth-... --hostname=ci-runner-$(date +%s)
+# Ephemeral node: the key must be created as ephemeral; the node is then removed on disconnect (CI/CD runners)
+sudo tailscale up --auth-key="$TS_AUTHKEY" --hostname="ci-runner-$GITHUB_RUN_ID"
 ```
 
-## Access Control (ACLs)
+### Access Control (ACLs)
 
-ACLs define who can reach what. Edit at https://login.tailscale.com/admin/acls or via API:
+The policy file defines who can reach what. It is HuJSON (comments and trailing commas allowed). Edit it in the admin console under Access controls or via the API. The `acls` rules below still work; Tailscale also offers a newer `grants` syntax (network and app capabilities) in the same file.
 
-```json
+```jsonc
 {
   "acls": [
     // Developers can reach dev and staging servers
@@ -85,8 +84,8 @@ ACLs define who can reach what. Edit at https://login.tailscale.com/admin/acls o
   ],
 
   "groups": {
-    "group:devs": ["user@example.com", "dev2@example.com"],
-    "group:ops": ["ops@example.com"]
+    "group:devs": ["maria.santos@northwind.io", "dmitri.volkov@northwind.io"],
+    "group:ops": ["priya.nair@northwind.io"]
   },
 
   "tagOwners": {
@@ -98,208 +97,200 @@ ACLs define who can reach what. Edit at https://login.tailscale.com/admin/acls o
 }
 ```
 
-## Subnet Router
+### Subnet Router
 
 Expose an entire network (e.g., AWS VPC, office LAN) to your tailnet without installing Tailscale on every machine:
 
 ```bash
 # On the gateway machine in the target network
-sudo tailscale up --advertise-routes=10.0.0.0/16,172.16.0.0/12
+# Enable IP forwarding first (required)
+echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 
-# Enable IP forwarding (required)
-echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
-echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
+sudo tailscale set --advertise-routes=10.0.0.0/16,172.16.0.0/12
 ```
 
-Approve routes in the admin panel or via API. Now every tailnet member can reach `10.0.0.0/16` through the subnet router.
+Approve the routes in the admin console (Machines, Edit route settings) or via API. Linux clients must opt in with `sudo tailscale set --accept-routes`; Windows, iOS, Android and the macOS apps accept routes by default. Then tailnet members can reach `10.0.0.0/16` through the subnet router, subject to the ACLs. With firewalld, `firewall-cmd --permanent --add-masquerade` may be needed.
 
-## Exit Node
+### Exit Node
 
 Route all internet traffic through a specific machine (like a traditional VPN):
 
 ```bash
-# On the exit node (e.g., a VPS in a specific country)
-sudo tailscale up --advertise-exit-node
+# On the exit node (e.g., a VPS in a specific country); on Linux enable IP forwarding first, as in Subnet Router
+sudo tailscale set --advertise-exit-node
+# Then approve it in the admin console (Machines, Edit route settings, Use as exit node)
 
-# On the client — use the exit node
-sudo tailscale up --exit-node=exit-server-hostname
+# On the client — use the exit node (name or Tailscale IP)
+sudo tailscale set --exit-node=exit-server-hostname
+# Turn it off again: sudo tailscale set --exit-node=
 
 # Verify — should show the exit node's IP
 curl ifconfig.me
 ```
 
-## MagicDNS
+### MagicDNS
 
-Every machine gets a DNS name: `hostname.tailnet-name.ts.net`. No IP addresses to remember:
+With MagicDNS on (the default for new tailnets), every machine gets a DNS name: `hostname.tailnet-name.ts.net` (the tailnet name looks like `tail4f9c2.ts.net` unless you renamed it), and the short `hostname` works inside the tailnet:
 
 ```bash
 # Access your home server from anywhere
-ssh home-server.tailnet.ts.net
+ssh home-server.tail4f9c2.ts.net
 
 # Connect to a database
-psql -h db-server.tailnet.ts.net -U postgres
+psql -h db-server.tail4f9c2.ts.net -U postgres
 
 # Internal service discovery
-curl http://api-server.tailnet.ts.net:3000/health
+curl http://api-server.tail4f9c2.ts.net:3000/health
 ```
 
-## Tailscale SSH
+### Tailscale SSH
 
 Replace SSH key management entirely. Tailscale authenticates SSH connections using your identity:
 
 ```bash
 # Enable Tailscale SSH on a server
-sudo tailscale up --ssh
+sudo tailscale set --ssh
 
 # Connect — no keys needed, authenticated by Tailscale identity
-ssh user@server.tailnet.ts.net
+ssh deploy@server.tail4f9c2.ts.net
 
-# SSH ACL (add to your ACL policy)
+# SSH rules live in the "ssh" section of the policy file; without a matching rule nobody gets in:
 # "ssh": [
 #   {"action": "accept", "src": ["group:ops"], "dst": ["tag:prod"], "users": ["root"]},
 #   {"action": "accept", "src": ["group:devs"], "dst": ["tag:dev"], "users": ["deploy"]}
 # ]
 ```
 
-## Funnel (expose to internet)
+### Serve and Funnel
 
-Expose a local service to the public internet through Tailscale's infrastructure — no port forwarding, no dynamic DNS:
+`tailscale serve` shares a local service inside the tailnet; `tailscale funnel` makes it public. Both need MagicDNS and HTTPS certificates enabled for the tailnet, and Funnel also needs the `funnel` node attribute (`"nodeAttrs": [{"target": ["autogroup:member"], "attr": ["funnel"]}]`); the CLI offers to set these up.
 
 ```bash
-# Serve a local port publicly
-tailscale funnel 3000
+# Share a local port inside the tailnet, in the background
+tailscale serve --bg 3000
+tailscale serve status
 
-# Custom hostname (requires DNS setup)
-tailscale funnel --set-path /api 8080
-
-# HTTPS serve (local dev with real TLS cert)
-tailscale serve https / http://localhost:3000
-tailscale serve status  # Show what's being served
+# Publish a path to the public internet; Funnel listens only on 443, 8443 or 10000
+tailscale funnel --bg --set-path /webhooks 8080
+tailscale funnel status
+tailscale funnel reset      # stop all funnels
 ```
 
-## API Automation
+Funnel URLs always use your `*.ts.net` name (no custom domains), traffic is bandwidth-limited, and one port is either Serve (private) or Funnel (public), whichever command ran last. Without `--bg` the command runs in the foreground until interrupted.
+
+### API Automation
+
+Base URL `https://api.tailscale.com/api/v2`. Use `-` as the tailnet to mean the default tailnet of the credential. Authenticate with a Bearer token: an API access token (`tskey-api-…`, which expires) or an OAuth access token minted from an OAuth client with narrow scopes, which is the better choice for automation.
 
 ```python
-"""tailscale_api.py — Manage tailnet programmatically."""
+"""tailscale_api.py — Manage a tailnet programmatically."""
+import os
 import requests
 
 API = "https://api.tailscale.com/api/v2"
-TAILNET = "example.com"  # Your tailnet name
-API_KEY = "tskey-api-..."  # Generate at admin panel → Settings → Keys
+TAILNET = "-"  # default tailnet of the credential
+headers = {"Authorization": f"Bearer {os.environ['TS_API_KEY']}"}
 
-headers = {"Authorization": f"Bearer {API_KEY}"}
+
+def call(method: str, path: str, **kwargs) -> dict:
+    resp = requests.request(method, f"{API}{path}", headers=headers, timeout=30, **kwargs)
+    resp.raise_for_status()
+    return resp.json() if resp.content else {}
+
 
 def list_devices() -> list:
-    """List all devices in the tailnet with their IPs and status."""
-    resp = requests.get(f"{API}/tailnet/{TAILNET}/devices", headers=headers)
-    return resp.json()["devices"]
+    """Devices with their addresses, tags and last-seen time."""
+    return call("GET", f"/tailnet/{TAILNET}/devices", params={"fields": "all"})["devices"]
 
-def set_device_tags(device_id: str, tags: list[str]):
-    """Set ACL tags on a device (e.g., ['tag:prod', 'tag:db']).
 
-    Args:
-        device_id: Device ID from list_devices.
-        tags: List of ACL tags to apply.
-    """
-    requests.post(f"{API}/device/{device_id}/tags",
-                  json={"tags": tags}, headers=headers)
+def set_device_tags(device_id: str, tags: list[str]) -> None:
+    """Replace the ACL tags on a device, e.g. ['tag:prod', 'tag:db']."""
+    call("POST", f"/device/{device_id}/tags", json={"tags": tags})
 
-def create_auth_key(reusable: bool = False, ephemeral: bool = False,
-                    tags: list[str] = None) -> str:
-    """Create an auth key for automated device registration.
 
-    Args:
-        reusable: Allow key to register multiple devices.
-        ephemeral: Devices auto-removed on disconnect.
-        tags: ACL tags applied to devices using this key.
-    """
+def create_auth_key(tags: list[str], reusable=False, ephemeral=False, expiry_seconds=3600) -> str:
+    """Create a pre-approved auth key that registers devices with the given tags."""
     body = {
-        "capabilities": {
-            "devices": {
-                "create": {
-                    "reusable": reusable,
-                    "ephemeral": ephemeral,
-                    "tags": tags or [],
-                }
-            }
-        }
+        "capabilities": {"devices": {"create": {
+            "reusable": reusable, "ephemeral": ephemeral,
+            "preauthorized": True, "tags": tags,
+        }}},
+        "expirySeconds": expiry_seconds,
     }
-    resp = requests.post(f"{API}/tailnet/{TAILNET}/keys",
-                         json=body, headers=headers)
-    return resp.json()["key"]
+    return call("POST", f"/tailnet/{TAILNET}/keys", json=body)["key"]
 
-def approve_routes(device_id: str, routes: list[str]):
-    """Approve advertised subnet routes for a device.
 
-    Args:
-        device_id: Device ID.
-        routes: Routes to approve (e.g., ['10.0.0.0/16']).
-    """
-    resp = requests.post(f"{API}/device/{device_id}/routes",
-                         json={"routes": routes}, headers=headers)
-    return resp.json()
+def approve_routes(device_id: str, routes: list[str]) -> None:
+    """Enable subnet routes the device advertised, e.g. ['10.0.0.0/16']."""
+    call("POST", f"/device/{device_id}/routes", json={"routes": routes})
 ```
 
-### Fleet Provisioning
+## Examples
+
+### Example 1: "Add four API servers to our tailnet"
 
 ```bash
 #!/bin/bash
-# provision-fleet.sh — Add a batch of servers to the tailnet
-
+# provision-fleet.sh — needs TS_API_KEY in the environment
+set -euo pipefail
 SERVERS=("10.0.1.10" "10.0.1.11" "10.0.1.12" "10.0.1.13")
-TAGS="tag:prod,tag:api"
 
-# Create a reusable, pre-approved auth key with tags
-AUTH_KEY=$(curl -s -X POST "https://api.tailscale.com/api/v2/tailnet/$TAILNET/keys" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"capabilities\":{\"devices\":{\"create\":{\"reusable\":true,\"tags\":[\"$TAGS\"]}}}}" \
+# Short-lived, tagged, pre-approved, reusable only for this batch window
+AUTH_KEY=$(curl -s -X POST "https://api.tailscale.com/api/v2/tailnet/-/keys" \
+  -H "Authorization: Bearer $TS_API_KEY" -H "Content-Type: application/json" \
+  -d '{"capabilities":{"devices":{"create":{"reusable":true,"preauthorized":true,"tags":["tag:prod","tag:api"]}}},"expirySeconds":900}' \
   | jq -r '.key')
 
 for server in "${SERVERS[@]}"; do
-  ssh "$server" "sudo apt-get update && sudo apt-get install -y tailscale && \
-    sudo tailscale up --authkey=$AUTH_KEY --hostname=api-\$(hostname -s)" &
+  ssh "$server" "sudo tailscale up --auth-key='$AUTH_KEY' --hostname=api-\$(hostname -s)" &
 done
 wait
-
-echo "Fleet provisioning complete"
+tailscale status | grep api-
 ```
 
-## Docker Integration
+The key lives for 15 minutes, so a leaked copy is useless afterwards. The servers must already have Tailscale installed (see Setup), and the tags must exist in `tagOwners`.
 
-Run services inside Docker accessible via tailnet:
+### Example 2: "Give my dev web app a private HTTPS URL from a container"
 
 ```yaml
-# docker-compose.yml — Service accessible via Tailscale
+# docker-compose.yml — the app is reachable only inside the tailnet
 services:
   tailscale:
-    image: tailscale/tailscale
-    cap_add: [NET_ADMIN, NET_RAW]
-    volumes:
-      - tailscale-state:/var/lib/tailscale
+    image: tailscale/tailscale:stable
+    hostname: dashboard
     environment:
-      TS_AUTHKEY: tskey-auth-...
-      TS_EXTRA_ARGS: --hostname=my-service
+      TS_AUTHKEY: ${TS_AUTHKEY}
+      TS_STATE_DIR: /var/lib/tailscale
       TS_SERVE_CONFIG: /config/serve.json
     volumes:
-      - ./serve.json:/config/serve.json
-
+      - tailscale-state:/var/lib/tailscale
+      - ./serve.json:/config/serve.json:ro
   app:
-    image: my-app:latest
-    network_mode: service:tailscale  # Share Tailscale's network namespace
+    image: ghcr.io/northwind/dashboard:1.4.2
+    network_mode: service:tailscale   # shares the sidecar's network namespace
 
 volumes:
   tailscale-state:
 ```
 
+```json
+{
+  "TCP": {"443": {"HTTPS": true}},
+  "Web": {"${TS_CERT_DOMAIN}:443": {"Handlers": {"/": {"Proxy": "http://127.0.0.1:3000"}}}}
+}
+```
+
+The container image runs `tailscaled` in userspace mode by default, so no `NET_ADMIN` capability is needed for this setup (set `TS_USERSPACE=false` and add `NET_ADMIN` plus `/dev/net/tun` only for subnet-router or exit-node containers). Keep the state volume, otherwise the node re-registers on every restart.
+
 ## Guidelines
 
 - **Auth keys for automation** — never use interactive login for servers. Generate auth keys with appropriate tags.
-- **Tag everything** — ACLs are tag-based. Untagged devices can't be referenced in policies. Tag at provisioning time.
+- **Tag servers** — tag servers and CI nodes at provisioning time so access follows the tag, not whoever logged in. A tagged device loses its user identity.
 - **Ephemeral keys for ephemeral workloads** — CI runners, preview environments, and containers should auto-remove when they disconnect.
-- **Subnet routers need IP forwarding** — forgetting `sysctl net.ipv4.ip_forward=1` is the #1 setup issue.
+- **Subnet routers need IP forwarding and route approval**, and Linux clients need `--accept-routes`. Missing one of the three is the usual cause of "route advertised but unreachable".
 - **MagicDNS replaces IP addresses** — use hostnames everywhere. IPs change; DNS names don't.
-- **Funnel for webhooks** — expose a local development endpoint for testing webhooks from third-party services without ngrok.
-- **ACL testing** — use `tailscale ping` and `tailscale netcheck` to diagnose connectivity issues before blaming ACLs.
-- **Key rotation** — API keys and auth keys should be rotated regularly. Use short-lived keys where possible.
+- **Funnel for webhooks** — expose a local endpoint to third-party services without ngrok, and remember it is public: validate webhook signatures and run `tailscale funnel reset` when done.
+- **Diagnose before blaming ACLs** — `tailscale ping <host>` shows whether the path is direct or relayed, and `tailscale netcheck` reports local network conditions.
+- **Key hygiene** — keep keys in environment variables or a secret manager, give auth keys short expiry, and prefer OAuth clients over personal API keys for automation.
