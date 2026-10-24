@@ -5,14 +5,15 @@ description: >-
   manager. Use when speeding up Node.js projects, using Bun as a drop-in Node
   replacement, bundling with Bun, or running tests faster. Covers runtime APIs,
   package management, bundling, and Bun-specific features like Bun.serve,
-  Bun.file, and Bun.sqlite.
+  Bun.file, and bun:sqlite.
 license: Apache-2.0
-compatibility: "Bun 1.x. macOS, Linux, Windows (experimental). Node.js projects compatible."
+compatibility: "Bun 1.x (checked on 1.4.4). macOS, Linux, Windows. Node.js projects compatible."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: runtime
-  tags: ["bun", "javascript", "runtime", "bundler", "fast", "node-alternative"]
+  version: "1.1.0"
+  repository: https://github.com/oven-sh/bun
+  category: development
+  tags: ["bun", "javascript", "runtime", "bundler", "node-alternative"]
   use-cases:
     - "Speed up a Node.js project by switching to Bun as the runtime"
     - "Bundle a TypeScript app with Bun's built-in bundler"
@@ -28,20 +29,22 @@ metadata:
 
 Bun is a fast, all-in-one JavaScript toolkit: runtime, package manager, bundler, and test runner. It is Node.js-compatible and dramatically faster at startup, installs, and test runs. Use Bun to speed up existing Node.js projects or build new apps from scratch.
 
-## Installation
+## Instructions
+
+### Installation
 
 ```bash
-# macOS / Linux
-curl -fsSL https://bun.sh/install | bash
+npm install -g bun                 # any platform with Node.js
+brew install oven-sh/bun/bun       # macOS / Linux (Homebrew)
+scoop install bun                  # Windows (Scoop)
 
-# Windows (via Scoop)
-scoop install bun
-
-# Verify
-bun --version
+bun --version                      # verify
+bun upgrade                        # later: update in place
 ```
 
-## Package Manager
+The project also publishes an install script at bun.sh and release archives on GitHub; if you use an archive, check it against the release's `SHASUMS256.txt` before running it.
+
+### Package Manager
 
 Bun's package manager is a drop-in replacement for npm and pnpm:
 
@@ -50,13 +53,16 @@ bun install              # Install all dependencies (reads package.json)
 bun add express          # Add a package
 bun add -d typescript    # Add dev dependency
 bun remove lodash        # Remove a package
-bun update               # Update all packages
+bun update               # Update dependencies within their ranges
+bun outdated             # List packages with newer versions
+bun audit                # Check for known vulnerabilities
+bun install --frozen-lockfile   # CI: fail if the lockfile would change
 bun run dev              # Run a package.json script
 ```
 
-Lockfile: `bun.lockb` (binary, faster than package-lock.json).
+Lockfile: `bun.lock` (text, JSONC), the default in current Bun. Older projects may still have the binary `bun.lockb`; `bun install --save-text-lockfile` writes the text format. Commit the lockfile.
 
-## Runtime
+### Runtime
 
 Bun runs `.js`, `.ts`, `.jsx`, `.tsx` files natively — no compilation step needed:
 
@@ -69,11 +75,16 @@ bun --watch index.ts     # Restart on file change
 
 Node.js built-ins (`fs`, `path`, `http`, `crypto`, etc.) are fully supported. Native `fetch`, `WebSocket`, and `ReadableStream` are built in.
 
-## HTTP Server with Bun.serve
+### HTTP Server with Bun.serve
 
 ```typescript
 const server = Bun.serve({
   port: 3000,
+  // Optional: `routes` maps paths to a Response or handler (params via req.params):
+  routes: {
+    "/users/:id": (req) => Response.json({ id: req.params.id }),
+  },
+  // fetch handles everything the routes do not match
   async fetch(req) {
     const url = new URL(req.url);
 
@@ -97,24 +108,21 @@ const server = Bun.serve({
 console.log(`Listening on http://localhost:${server.port}`);
 ```
 
-## File I/O with Bun.file
+### File I/O with Bun.file
 
 ```typescript
 // Read file
 const file = Bun.file("data.json");
 const text = await file.text();
 const json = await file.json();
-const buffer = await file.arrayBuffer();
 
 // Write file
 await Bun.write("output.txt", "Hello, Bun!");
 await Bun.write("data.json", JSON.stringify({ key: "value" }, null, 2));
 
-// Stream large files
-const stream = file.stream();
 ```
 
-## SQLite with Bun.sqlite
+### SQLite with bun:sqlite
 
 Built-in SQLite — no native bindings needed:
 
@@ -123,30 +131,26 @@ import { Database } from "bun:sqlite";
 
 const db = new Database("mydb.sqlite");
 
-// Create table
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL
 )`);
 
-// Prepared statements
 const insert = db.prepare("INSERT INTO users (name, email) VALUES (?, ?)");
-insert.run("Alice", "alice@example.com");
+insert.run("Alice", "alice@bakery.test");
 
-// Query
 const getAll = db.prepare("SELECT * FROM users");
 const users = getAll.all();
 console.log(users);
 
-// Single row
 const getOne = db.prepare("SELECT * FROM users WHERE id = ?");
 const user = getOne.get(1);
 
 db.close();
 ```
 
-## Bundler
+### Bundler
 
 ```bash
 # Bundle a TypeScript app for the browser
@@ -168,9 +172,6 @@ const result = await Bun.build({
   target: "browser",
   minify: true,
   sourcemap: "external",
-  define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
-  },
 });
 
 if (!result.success) {
@@ -179,7 +180,7 @@ if (!result.success) {
 }
 ```
 
-## Test Runner
+### Test Runner
 
 Bun's test runner is Jest-compatible:
 
@@ -199,23 +200,27 @@ describe("math", () => {
 });
 ```
 
+Mocks, spies and `test.each` are available from `bun:test` as well.
+
 ```bash
 bun test                     # Run all tests
 bun test --watch             # Watch mode
 bun test math.test.ts        # Run specific file
 bun test --coverage          # With coverage report
-bun test --timeout 10000     # Custom timeout (ms)
+bun test --timeout 10000     # Custom timeout (ms, default 5000)
+bun test --bail=1            # Stop after the first failure
+bun test -u                  # Update snapshots
 ```
 
-## Environment Variables
+### Environment Variables
 
 ```typescript
-// Bun reads .env automatically — no dotenv needed
+// Bun reads .env (and .env.local, .env.<NODE_ENV>) automatically — no dotenv needed
 const apiKey = process.env.API_KEY;
 const port = Bun.env.PORT ?? "3000";
 ```
 
-## WebSocket Server
+### WebSocket Server
 
 ```typescript
 const server = Bun.serve({
@@ -241,7 +246,7 @@ const server = Bun.serve({
 });
 ```
 
-## Migrating from Node.js
+### Migrating from Node.js
 
 Most Node.js code runs without changes. Key differences:
 
@@ -254,30 +259,41 @@ Most Node.js code runs without changes. Key differences:
 | SQLite | Needs `better-sqlite3` | `bun:sqlite` built-in |
 | Test runner | `jest` | `bun test` |
 
-## package.json Setup
+## Examples
 
-```json
-{
-  "name": "my-bun-app",
-  "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target node",
-    "test": "bun test",
-    "start": "bun dist/index.js"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  }
-}
+### Example 1: Convert an Express service to Bun
+
+> "Switch our orders-api from npm to Bun and keep CI green."
+
+```bash
+rm -rf node_modules package-lock.json
+bun install                      # writes bun.lock
+bun test                         # existing Jest-style tests run as they are
+bun --hot src/server.ts          # dev server with hot reload
 ```
+
+Expected: `bun install` prints the installed package count, `bun test` ends with `N pass, 0 fail`. In CI use `bun install --frozen-lockfile`. If a test fails on a Node-only API, fix that test before merging.
+
+### Example 2: Ship a CLI as one binary
+
+> "Package our report generator as a single executable."
+
+```bash
+bun build src/report.ts --compile --outfile report-gen
+./report-gen --month 2026-09
+```
+
+Expected: `compile  report-gen` in the build output and a self-contained file that runs without Bun installed on the target machine (build for the platform you deploy to).
 
 ## Guidelines
 
-- Prefer `bun install` over `npm install` in all Bun projects — it is 10–25x faster.
+- Prefer `bun install` over `npm install` in Bun projects; it is much faster. Do not mix npm and bun lockfiles in one project.
+- `bun build` is a bundler and does not type-check; run `tsc --noEmit` (or `bun check`) for types.
+- Native Node addons and a few Node APIs may behave differently; run your test suite under Bun before switching production.
 - Use `bun:sqlite` instead of `better-sqlite3` for zero-dependency SQLite.
 - Use `Bun.file` and `Bun.write` instead of `fs` for simpler file I/O.
 - Run TypeScript directly with `bun run` — no build step needed in development.
 - Use `bun --hot` for hot reload during development (preserves module state).
-- Use `bun --compile` to produce a single self-contained executable binary.
+- Use `bun build --compile --outfile <name>` to produce a single self-contained executable binary.
 - Bun reads `.env` files automatically — remove `dotenv` from your dependencies.
 - The `bun:test` module is Jest-compatible; most Jest tests work with zero changes.
