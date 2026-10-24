@@ -20,254 +20,171 @@ tags:
 
 ## The Problem
 
-Diego leads AI engineering at a 20-person company using LLMs to extract structured data from emails, invoices, and support tickets. LLMs return JSON most of the time — but 15% of responses have invalid JSON (trailing commas, missing quotes), wrong types ("42" instead of 42), or missing required fields. Each failure requires manual review. They tried `JSON.parse()` but it fails on the first syntax error. They need robust parsing: fix common JSON errors, validate against schemas, retry with corrective prompts, and extract structured data from streaming responses.
+Diego leads AI engineering at a 20-person company using LLMs to extract structured data from emails, invoices, and support tickets. Prompting for "valid JSON" works most of the time, but some responses still arrive wrapped in prose, with trailing commas, wrong types (`"42"` instead of `42`), or missing required fields. Each failure lands in a manual review queue, and a bare `JSON.parse()` throws on the first syntax error. They need extraction that is schema-checked on every path, retried with a precise error when it fails, and cheap to repeat on documents they have already seen.
 
-## Step 1: Build the Output Parser
+## The Solution
+
+Use two layers. First, ask the model for schema-constrained output where the provider supports it: Claude's structured outputs (`output_config.format`, generally available) compile your JSON schema into a grammar, so the response is valid JSON that matches the schema. Second, keep a small validating parser with retry for everything that has no constrained decoding (a local model, an older model, a provider without the feature). Zod 4 defines the schema once, gives the TypeScript type, and produces the JSON Schema. Redis caches results by a hash of the input, and Hono exposes the extractor as an HTTP endpoint.
+
+Constrained output is not a guarantee in every case. Per the Anthropic docs, a response can still miss the schema when `stop_reason` is `"refusal"` (HTTP 200, the refusal text takes precedence over the schema) or `"max_tokens"` (output cut off), enum values can come back with different capitalization, and complex schemas can be rejected with a 400 "Schema is too complex for compilation" (limits: 24 optional parameters and 16 union-typed parameters across a request). Citations cannot be combined with `output_config.format`.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install and define the schema
+
+```bash
+npm install zod @anthropic-ai/sdk hono @hono/node-server ioredis
+npm install -D typescript @types/node
+export ANTHROPIC_API_KEY=...   # from the Anthropic Console, never commit it
+```
 
 ```typescript
-// src/parser/structured.ts — Robust LLM output parsing with validation and retry
-import { z, ZodSchema, ZodError } from "zod";
+import { z } from "zod";
+
+export const Invoice = z.object({
+  vendor: z.string(),
+  invoiceNumber: z.string(),
+  currency: z.enum(["USD", "EUR", "GBP"]),
+  total: z.number(),
+  dueDate: z.iso.date().nullable(),
+  lineItems: z.array(
+    z.object({ description: z.string(), quantity: z.number(), unitPrice: z.number() }),
+  ),
+});
+export type Invoice = z.infer<typeof Invoice>;
+```
+
+The code below was type-checked against `zod@4.6.7`, `@anthropic-ai/sdk@1.3.0`, `hono@4.13` and `ioredis@6`.
+
+### Step 2: Extract with constrained output
+
+`client.messages.parse()` sends the schema, validates the response, and returns it typed in `parsed_output`. Check `stop_reason` first, because a refusal or truncation is not a schema-valid result.
+
+```typescript
+import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { createHash } from "node:crypto";
 import { Redis } from "ioredis";
+import { Invoice } from "./schema.js";
 
-const redis = new Redis(process.env.REDIS_URL!);
+const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+const MODEL = "claude-sonnet-5-5";
 
-interface ParseOptions<T> {
-  schema: ZodSchema<T>;
-  maxRetries?: number;
-  retryWithCorrection?: boolean;
-  coerceTypes?: boolean;
-  extractFromMarkdown?: boolean;
-  fallback?: T;
-}
+export async function extractInvoice(text: string): Promise<Invoice> {
+  const key = "invoice:" + createHash("sha256").update(text).digest("hex");
+  const hit = await redis.get(key);
+  if (hit) return Invoice.parse(JSON.parse(hit));
 
-interface ParseResult<T> {
-  success: boolean;
-  data?: T;
-  raw: string;
-  retries: number;
-  corrections: string[];
-  error?: string;
-}
+  const response = await client.messages.parse({
+    model: MODEL,
+    max_tokens: 2048,
+    messages: [{ role: "user", content: `Extract the invoice fields from this document:\n\n${text}` }],
+    output_config: { format: zodOutputFormat(Invoice) },
+  });
 
-// Parse and validate LLM output against a Zod schema
-export async function parseStructured<T>(
-  llmOutput: string,
-  options: ParseOptions<T>
-): Promise<ParseResult<T>> {
-  const corrections: string[] = [];
-  let retries = 0;
-  let currentOutput = llmOutput;
+  // The schema is only guaranteed when the model finished normally.
+  if (response.stop_reason === "refusal") throw new Error("Model refused the request");
+  if (response.stop_reason === "max_tokens") throw new Error("Output truncated: raise max_tokens");
+  if (!response.parsed_output) throw new Error("No parsed output");
 
-  while (retries <= (options.maxRetries || 2)) {
-    // Step 1: Extract JSON from output (may be wrapped in markdown)
-    let jsonStr = currentOutput;
-    if (options.extractFromMarkdown !== false) {
-      jsonStr = extractJSON(currentOutput);
-    }
-
-    // Step 2: Fix common JSON errors
-    jsonStr = fixCommonErrors(jsonStr);
-
-    // Step 3: Parse JSON
-    let parsed: any;
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch (e: any) {
-      // Try more aggressive fixes
-      const fixed = aggressiveFix(jsonStr);
-      try {
-        parsed = JSON.parse(fixed);
-        corrections.push(`Fixed JSON syntax: ${e.message}`);
-      } catch {
-        if (retries < (options.maxRetries || 2)) {
-          retries++;
-          corrections.push(`JSON parse failed: ${e.message}`);
-          if (options.retryWithCorrection) {
-            currentOutput = await requestCorrection(llmOutput, e.message, options.schema);
-          }
-          continue;
-        }
-        if (options.fallback !== undefined) {
-          return { success: false, data: options.fallback, raw: llmOutput, retries, corrections, error: e.message };
-        }
-        return { success: false, raw: llmOutput, retries, corrections, error: `JSON parse failed: ${e.message}` };
-      }
-    }
-
-    // Step 4: Type coercion
-    if (options.coerceTypes !== false) {
-      parsed = coerceTypes(parsed, options.schema);
-    }
-
-    // Step 5: Validate against schema
-    try {
-      const validated = options.schema.parse(parsed);
-      return { success: true, data: validated, raw: llmOutput, retries, corrections };
-    } catch (e) {
-      if (e instanceof ZodError) {
-        const issues = e.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-        corrections.push(`Validation failed: ${issues}`);
-
-        if (retries < (options.maxRetries || 2) && options.retryWithCorrection) {
-          retries++;
-          currentOutput = await requestCorrection(llmOutput, issues, options.schema);
-          continue;
-        }
-
-        if (options.fallback !== undefined) {
-          return { success: false, data: options.fallback, raw: llmOutput, retries, corrections, error: issues };
-        }
-        return { success: false, raw: llmOutput, retries, corrections, error: issues };
-      }
-      throw e;
-    }
-  }
-
-  return { success: false, raw: llmOutput, retries, corrections, error: "Max retries exceeded" };
-}
-
-// Extract JSON from markdown code blocks or mixed text
-function extractJSON(text: string): string {
-  // Try ```json blocks first
-  const jsonBlock = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
-  if (jsonBlock) return jsonBlock[1].trim();
-
-  // Try to find JSON object or array
-  const jsonMatch = text.match(/([\[{][\s\S]*[\]}])/);
-  if (jsonMatch) return jsonMatch[1].trim();
-
-  return text.trim();
-}
-
-// Fix common LLM JSON mistakes
-function fixCommonErrors(json: string): string {
-  let fixed = json;
-
-  // Remove trailing commas before } or ]
-  fixed = fixed.replace(/,\s*([}\]])/g, "$1");
-
-  // Fix single quotes to double quotes
-  fixed = fixed.replace(/(?<=[{,\[]\s*)'([^']+)'\s*:/g, '"$1":');
-  fixed = fixed.replace(/:\s*'([^']*)'(?=[,}\]])/g, ': "$1"');
-
-  // Fix unquoted keys
-  fixed = fixed.replace(/(?<=[{,]\s*)(\w+)\s*:/g, '"$1":');
-
-  // Fix JavaScript-style values
-  fixed = fixed.replace(/:\s*undefined/g, ": null");
-  fixed = fixed.replace(/:\s*NaN/g, ": null");
-  fixed = fixed.replace(/:\s*Infinity/g, ": null");
-
-  // Remove comments
-  fixed = fixed.replace(/\/\/.*$/gm, "");
-  fixed = fixed.replace(/\/\*[\s\S]*?\*\//g, "");
-
-  return fixed;
-}
-
-function aggressiveFix(json: string): string {
-  let fixed = fixCommonErrors(json);
-
-  // Try to close unclosed strings
-  const openQuotes = (fixed.match(/"/g) || []).length;
-  if (openQuotes % 2 !== 0) fixed += '"';
-
-  // Try to close unclosed objects/arrays
-  const openBraces = (fixed.match(/\{/g) || []).length - (fixed.match(/\}/g) || []).length;
-  const openBrackets = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length;
-  fixed += "}".repeat(Math.max(0, openBraces));
-  fixed += "]".repeat(Math.max(0, openBrackets));
-
-  return fixed;
-}
-
-// Type coercion based on schema expectations
-function coerceTypes(data: any, schema: ZodSchema): any {
-  if (typeof data !== "object" || data === null) return data;
-
-  // Get schema shape if available
-  const shape = (schema as any)?._def?.shape?.();
-  if (!shape) return data;
-
-  const coerced = { ...data };
-  for (const [key, fieldSchema] of Object.entries(shape)) {
-    if (!(key in coerced)) continue;
-    const typeName = (fieldSchema as any)?._def?.typeName;
-
-    switch (typeName) {
-      case "ZodNumber":
-        if (typeof coerced[key] === "string") coerced[key] = Number(coerced[key]);
-        break;
-      case "ZodBoolean":
-        if (typeof coerced[key] === "string") {
-          coerced[key] = ["true", "1", "yes"].includes(coerced[key].toLowerCase());
-        }
-        break;
-      case "ZodArray":
-        if (typeof coerced[key] === "string") {
-          try { coerced[key] = JSON.parse(coerced[key]); } catch {}
-        }
-        if (!Array.isArray(coerced[key]) && coerced[key] !== null) {
-          coerced[key] = [coerced[key]];  // wrap single value in array
-        }
-        break;
-    }
-  }
-
-  return coerced;
-}
-
-// Request LLM to correct its output
-async function requestCorrection<T>(
-  originalOutput: string,
-  error: string,
-  schema: ZodSchema<T>
-): Promise<string> {
-  // In production: call LLM with correction prompt
-  const correctionPrompt = `Your previous JSON output had errors: ${error}. Please fix and return valid JSON.`;
-  // Simplified — would call LLM API here
-  return originalOutput;
-}
-
-// Streaming extraction — parse structured data as LLM streams
-export function createStreamingParser<T>(schema: ZodSchema<T>) {
-  let buffer = "";
-  let depth = 0;
-  let inString = false;
-
-  return {
-    onChunk(chunk: string): T | null {
-      for (const char of chunk) {
-        buffer += char;
-
-        if (char === '"' && buffer[buffer.length - 2] !== '\\') inString = !inString;
-        if (!inString) {
-          if (char === '{' || char === '[') depth++;
-          if (char === '}' || char === ']') depth--;
-        }
-
-        // Complete JSON object detected
-        if (depth === 0 && buffer.trim().length > 0) {
-          try {
-            const parsed = JSON.parse(fixCommonErrors(buffer));
-            const validated = schema.parse(parsed);
-            buffer = "";
-            return validated;
-          } catch {
-            // Not valid yet, continue buffering
-          }
-        }
-      }
-      return null;
-    },
-  };
+  await redis.set(key, JSON.stringify(response.parsed_output), "EX", 86_400);
+  return response.parsed_output;
 }
 ```
 
-## Results
+`parse()` throws an `AnthropicError` when the response fails Zod validation, so a refusal or truncated reply can surface as an exception rather than as a `stop_reason`; catch it and route the document to review. One checked quirk: in `@anthropic-ai/sdk@1.3.0` the `zodOutputFormat()` helper moves `enum` (and Zod's date regex) into the field `description` instead of the grammar, so the `currency` list is enforced by the Zod check after the response, not by constrained decoding. Compare enum values after parsing, as the Zod check does.
 
-- **Parse success: 85% → 99.2%** — common JSON fixes handle trailing commas, single quotes, unquoted keys; LLM quirks no longer cause failures
-- **Type coercion saves retries** — LLM returns `"42"` instead of `42`; auto-coerced to number; schema validates; no retry needed; saves 1 LLM call per occurrence
-- **Retry with correction** — invalid output → parser tells LLM exactly what's wrong → LLM fixes it; 95% of remaining failures resolved in 1 retry
-- **Streaming extraction** — structured data extracted as LLM streams; partial objects buffered until complete; first result available before full response
-- **Manual review: 15% → 0.8%** — only truly ambiguous cases need human review; team processes 10x more documents per day
+The cache key is a SHA-256 of the document text, so reprocessing the same email costs no tokens. Validate cached JSON on read, as above, so a schema change never serves stale shapes.
+
+### Step 3: Add a validating parser with retry for other models
+
+For providers without constrained decoding, parse defensively and send the exact validation error back to the model. Keep the repairs minimal: pulling JSON out of a fenced block or surrounding prose and dropping trailing commas are safe, but regex "fixes" for quotes, unquoted keys or truncated output can silently corrupt string values, so let the retry handle those. Coercion belongs in the schema (`z.coerce.number()`), not in code that inspects Zod internals, which changed in Zod 4.
+
+```typescript
+import { z } from "zod";
+
+export type LooseResult<T> =
+  | { ok: true; data: T; attempts: number }
+  | { ok: false; error: string; attempts: number };
+
+// Pull the JSON out of a fenced block or surrounding prose.
+export function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) return fenced[1].trim();
+  const start = text.search(/[{[]/);
+  const end = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
+  return start >= 0 && end > start ? text.slice(start, end + 1) : text.trim();
+}
+
+// Parse + validate. `ask` re-prompts the model with the exact error.
+export async function parseLoose<S extends z.ZodType>(
+  raw: string,
+  schema: S,
+  ask: (badOutput: string, error: string) => Promise<string>,
+  maxRetries = 2,
+): Promise<LooseResult<z.infer<S>>> {
+  let output = raw;
+  let error = "";
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const json = extractJson(output).replace(/,\s*([}\]])/g, "$1"); // trailing commas
+      const result = schema.safeParse(JSON.parse(json));
+      if (result.success) return { ok: true, data: result.data, attempts: attempt + 1 };
+      error = z.prettifyError(result.error);
+    } catch (e) {
+      error = `Invalid JSON: ${(e as Error).message}`;
+    }
+    if (attempt < maxRetries) output = await ask(output, error);
+  }
+  return { ok: false, error, attempts: maxRetries + 1 };
+}
+```
+
+`ask` is whatever call re-prompts your model, for example a second `client.messages.create` that includes the bad output and the message from `z.prettifyError`. Run on the input `Sure!` followed by a fenced block containing `{"n": "42", "tags": ["a",],}` with the schema `z.object({ n: z.coerce.number(), tags: z.array(z.string()) })`, it returns `{ n: 42, tags: ["a"] }` on the first attempt. A bad `n` triggers one `ask` call with the Zod error text, then succeeds on attempt 2.
+
+### Step 4: Serve it with Hono
+
+```typescript
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { extractInvoice } from "./extract.js";
+
+const app = new Hono();
+
+app.post("/extract", async (c) => {
+  const { text } = await c.req.json<{ text: string }>();
+  if (!text) return c.json({ error: "text is required" }, 400);
+  try {
+    return c.json(await extractInvoice(text));
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 422);
+  }
+});
+
+serve({ fetch: app.fetch, port: 3000, hostname: "127.0.0.1" });
+```
+
+Bind to `127.0.0.1` unless the service sits behind your own authentication; this endpoint spends model tokens for every uncached request.
+
+```console
+$ curl -s 127.0.0.1:3000/extract -H 'content-type: application/json' \
+    -d '{"text":"Invoice INV-2041 from Northwind Ltd, due 2026-11-15. 3 x Widget at 40.00 EUR. Total 120.00 EUR"}'
+```
+
+The response is a JSON object with the `Invoice` fields, for example `currency: "EUR"` and `total: 120`.
+
+### Step 5: Streaming
+
+Structured outputs work with streaming, but the JSON is only valid once complete: accumulate the stream (the SDK's `client.messages.stream(...).finalMessage()` does this) and validate at the end. Do not try to `JSON.parse` partial buffers; if the UI needs progressive fields, use a partial-JSON parser library and treat every partial value as unvalidated.
+
+## Real-World Example
+
+Diego's team routes invoices through `/extract`. Claude handles the bulk through constrained output, while a cheaper local model for internal tickets goes through `parseLoose` with two retries. Documents that fail all attempts, or that return `refusal` or `max_tokens`, are written to a review table together with the raw output and the error message, so reviewers see why a document failed rather than guessing. Duplicate documents, which are common in forwarded email chains, are answered from Redis.
+
+## Related Skills
+
+- [zod](/skills/zod) - schemas, `safeParse`, coercion and JSON Schema output
+- [typescript](/skills/typescript) - strict typing for the parser and its result types
+- [hono](/skills/hono) - the HTTP layer
+- [redis](/skills/redis) - caching extraction results by input hash
