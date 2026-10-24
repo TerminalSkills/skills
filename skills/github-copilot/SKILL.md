@@ -1,69 +1,55 @@
 ---
 name: github-copilot
-description: >
-  GitHub Copilot is an AI-powered pair programming tool that integrates directly into your editor
-  and terminal. It provides real-time code suggestions, natural language chat for explaining and
-  refactoring code, slash commands for common operations, and workspace-aware agents that can
-  reason across your entire codebase. Copilot accelerates development by turning intent into
-  working code, reducing boilerplate, and helping developers navigate unfamiliar APIs and patterns.
+description: >-
+  GitHub Copilot is an AI coding assistant for VS Code and the terminal that suggests code inline, answers questions in chat, and runs agent tasks across a project. Use it when a user asks to set up Copilot, write better prompts for Copilot Chat, use slash commands or #codebase context, generate tests with /tests, or move from the retired gh copilot extension to the GitHub Copilot CLI.
 license: Apache-2.0
 compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/github/copilot-cli
+  version: 1.1.0
   category: development
   tags:
     - ai
     - copilot
     - code-completion
-    - pair-programming
     - vscode
     - cli
-    - productivity
 ---
 
 # GitHub Copilot — AI Pair Programming
+
+## Overview
 
 GitHub Copilot sits in your editor and writes code alongside you. It reads your current file, open tabs, and surrounding context to suggest completions that range from finishing a single line to generating entire functions. Beyond completions, Copilot Chat lets you ask questions, explain code, generate tests, and refactor — all without leaving your editor.
 
 This skill covers setting up Copilot in VS Code and the CLI, working effectively with inline suggestions, leveraging chat and slash commands, and using workspace agents for codebase-wide tasks.
 
-## Setting Up Copilot in VS Code
+## Instructions
 
-Copilot requires an active GitHub Copilot subscription (Individual, Business, or Enterprise). Once you have access, installation takes seconds.
+### Setting Up Copilot in VS Code
 
-Open VS Code and install the extension from the marketplace. The Copilot extension includes both inline suggestions and the chat panel.
+Copilot needs a GitHub Copilot plan (Free, Pro, Business or Enterprise). Once you have access, setup takes seconds.
 
-```bash
-# Install Copilot extensions from the command line
-code --install-extension GitHub.copilot
-code --install-extension GitHub.copilot-chat
-```
+Open VS Code and sign in through the Copilot entry in the status bar or the Accounts menu. Without a plan, signing in enrolls an eligible account in Copilot Free; organization accounts follow the organization's policies. Extension installation is handled by that setup flow in current VS Code, so no manual `code --install-extension` step is needed.
 
-After installation, VS Code prompts you to sign in with your GitHub account. Once authenticated, Copilot activates automatically. You can verify it's running by checking the Copilot icon in the status bar — it should show as active, not crossed out.
+After signing in, run `/init` in a chat session to generate starter project instructions from the codebase.
 
-To configure Copilot's behavior, open your VS Code settings and adjust the relevant options.
+Inline suggestions can be switched per language with the documented `github.copilot.enable` setting (the default already turns off `plaintext` and `markdown`):
 
-```json
-// .vscode/settings.json — Copilot configuration for a project
+```jsonc
+// .vscode/settings.json — enable Copilot suggestions per language
 {
-  // Enable Copilot for specific languages
   "github.copilot.enable": {
     "*": true,
-    "markdown": true,
     "plaintext": false,
+    "markdown": true,
     "yaml": true
-  },
-
-  // Control inline suggestion behavior
-  "editor.inlineSuggest.enabled": true,
-  "github.copilot.advanced": {
-    "inlineSuggestCount": 3
   }
 }
 ```
 
-## Working with Inline Suggestions
+### Working with Inline Suggestions
 
 Inline suggestions appear as grayed-out ghost text as you type. Copilot predicts what you want to write based on your current file, function names, comments, and surrounding code.
 
@@ -94,17 +80,16 @@ function parseCSV(csv: string): Record<string, string>[] {
 
 Keyboard shortcuts control how you interact with suggestions:
 
-- **Tab** — Accept the full suggestion
+- **Tab** — Accept the suggestion
 - **Esc** — Dismiss the suggestion
-- **Alt+]** / **Option+]** — Cycle to the next suggestion
-- **Alt+[** / **Option+[** — Cycle to the previous suggestion
-- **Ctrl+Enter** — Open the Copilot completions panel to see multiple alternatives
 
-## Copilot Chat
+Beyond line completion, "next edit suggestions" propose the next change elsewhere in the file; their editor behavior is controlled by the `inlineSuggest.edits.*` settings.
+
+### Copilot Chat
 
 The chat panel is where Copilot moves beyond autocompletion into genuine pair programming. You can ask it to explain code, find bugs, suggest refactors, or generate entirely new code based on natural language descriptions.
 
-Open the chat panel with **Ctrl+Shift+I** (or **Cmd+Shift+I** on macOS). You can also select code in the editor, right-click, and choose a Copilot action from the context menu.
+Open the Chat view with **Ctrl+Alt+I** (**Ctrl+Cmd+I** on macOS), start a new chat with **Ctrl+N**, and use **Ctrl+I** for inline chat in the editor or terminal. You can also select code in the editor, right-click, and choose a Copilot action from the context menu.
 
 Effective chat prompts are specific and provide context. Instead of asking "fix this code," describe what's wrong and what behavior you expect.
 
@@ -123,18 +108,21 @@ invalid input, and database connection failures."
 "Explain what this regex does step by step: /^(?=.*[A-Z])(?=.*\d).{8,}$/"
 ```
 
-## Slash Commands
+### Slash Commands
 
 Slash commands are shortcuts for common operations. Type `/` in the chat panel to see the full list. These commands streamline repetitive tasks.
 
-The most useful slash commands include:
+Type `/` to see the commands available in the current session. The ones in the VS Code reference are:
 
-- **/explain** — Explain the selected code in plain language
-- **/fix** — Suggest a fix for problems in the selected code
-- **/tests** — Generate unit tests for the selected code
-- **/doc** — Generate documentation comments for a function or class
-- **/simplify** — Refactor the selected code to reduce complexity
-- **/new** — Scaffold a new project or file from a description
+- **/explain**, **/fix**, **/tests** — explain code, suggest a fix, generate tests
+- **/doc** — generate documentation comments (from editor inline chat)
+- **/plan** — research and propose an implementation plan
+- **/new**, **/newNotebook** — scaffold a workspace, file or notebook
+- **/init** — generate or update workspace instructions
+- **/setupTests** (experimental) — choose and set up a test framework
+- **/compact**, **/clear** — compress or restart the conversation
+
+`/simplify` is not in the documented list; ask for the refactor in plain words instead.
 
 When you select a block of code and type `/tests`, Copilot analyzes the function signatures, identifies edge cases, and generates a complete test file. You can then refine the output by following up in chat.
 
@@ -156,48 +144,36 @@ export class OrderService {
 }
 ```
 
-## Workspace Agents
+### Agents and Context
 
-Workspace agents are Copilot's most powerful feature. The `@workspace` agent can reason across your entire codebase, not just the current file. It indexes your project and answers questions that require understanding multiple files and their relationships.
+In current VS Code, chat runs as an agent: it can read files, run tools and edit code, and you steer it with context. Chat participants such as `@workspace`, `@terminal` and `@vscode` are listed as deprecated and are not supported in the Copilot harness, so do not rely on them. Reference context with `#` mentions instead: `#file`, folders, symbols, `#codebase` (search the whole project), `#terminalSelection` and `#fetch`.
 
 ```text
-# Workspace agent prompts — these search across your entire project
+Where is the database connection configured? #codebase
 
-@workspace "Where is the database connection configured?"
+Which components use the useAuth hook? #codebase
 
-@workspace "Which components use the useAuth hook?"
-
-@workspace "How does the payment flow work end to end?"
-
-@workspace "Find all API endpoints that don't have authentication middleware"
+Find all API endpoints that don't have authentication middleware. #codebase
 ```
 
-Other built-in agents include:
+Project rules go in custom instructions (generate a first version with `/init`); reusable prompts, custom agents, skills and MCP servers are configured with `/prompts`, `/agents`, `/skills` and the MCP server settings.
 
-- **@terminal** — Suggest or explain terminal commands
-- **@vscode** — Help with VS Code settings and features
+### Copilot in the CLI
 
-## Copilot in the CLI
-
-GitHub Copilot extends beyond the editor into your terminal. The `gh copilot` command turns natural language into shell commands.
+The `gh copilot suggest` / `gh copilot explain` extension (`github/gh-copilot`) was deprecated on October 25, 2025. Its replacement is GitHub Copilot CLI, an agent that runs in a terminal session, edits files and runs commands after you approve them. It needs an active Copilot subscription (and the CLI enabled by your organization, if you get Copilot through one).
 
 ```bash
-# Install the Copilot CLI extension
-gh extension install github/gh-copilot
+# Install (also available as: brew install copilot-cli, winget install GitHub.Copilot)
+npm install -g @github/copilot
 
-# Ask Copilot to explain a command
-gh copilot explain "find . -name '*.ts' -not -path './node_modules/*' | xargs grep 'TODO'"
-
-# Ask Copilot to suggest a command
-gh copilot suggest "find all Docker containers using more than 1GB memory"
-
-# Copilot presents the command and asks if you want to run it
-# ✓ docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}" | awk '$2 > 1024'
+# Start in the project folder, then sign in with /login on first run
+cd ~/work/billing-service
+copilot
 ```
 
-The CLI is particularly powerful for operations you do infrequently — complex `find` commands, `awk` pipelines, Docker operations, or git history queries. Instead of searching Stack Overflow, describe what you want and Copilot translates it into the right command for your shell.
+Inside the session, describe the task in your own words, for example "explain what this find pipeline does and suggest a faster one". Useful slash commands: `/login`, `/model` (pick a model), `/experimental`. For unattended use, authenticate with a fine-grained personal access token that has the "Copilot Requests" permission in `GH_TOKEN` or `GITHUB_TOKEN`. Usage counts against your Copilot plan; GitHub now bills with AI credits and lists the older premium-request billing as legacy, so check your plan's billing page for the current meter.
 
-## Tips for Getting Better Suggestions
+### Tips for Getting Better Suggestions
 
 Copilot's quality depends heavily on the context you provide. A few practices dramatically improve suggestion accuracy.
 
@@ -208,3 +184,25 @@ Keep related code in the same file or have relevant files open in tabs. Copilot 
 Use TypeScript or JSDoc types. The more type information Copilot has, the more constrained and accurate its suggestions become. A function that accepts `userId: string` and returns `Promise<User | null>` gives Copilot much more to work with than untyped JavaScript.
 
 Write a leading comment before complex functions. Even a single line describing the algorithm or business rule helps Copilot generate the right implementation on the first try.
+
+## Examples
+
+### Example 1: Generate tests for a service
+
+**User request:** "Write unit tests for OrderService, including an empty cart."
+
+Select the `OrderService` class in the editor, open the Chat view (Ctrl+Alt+I) and run `/tests`. Copilot proposes a test file covering `createOrder` with items and the `ValidationError` for an empty cart; review the diff, run the suite, and follow up in chat to adjust the framework or mocks.
+
+### Example 2: Move from `gh copilot` to Copilot CLI
+
+**User request:** "`gh copilot suggest` stopped working, what do I use now?"
+
+Install `npm install -g @github/copilot`, start `copilot` in the project folder, run `/login`, then ask "find Docker containers using more than 1 GB of memory". The agent proposes a command and waits for approval before running it.
+
+## Guidelines
+
+- Copilot needs an active plan (Free, Pro, Business or Enterprise); organization policy can disable chat, the CLI or specific models.
+- Review every suggestion and every command the agent asks to run; approve edits one at a time on unfamiliar code.
+- Do not paste secrets into prompts; keep tokens such as `GH_TOKEN` in the environment.
+- Chat participants (`@workspace`, `@terminal`, `@vscode`) and the `gh copilot` extension are deprecated; use `#codebase` and Copilot CLI.
+- Keybindings and commands vary by surface (editor, terminal, CLI); type `/` or open the keyboard shortcuts list to confirm what your version offers.
