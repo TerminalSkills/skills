@@ -2,7 +2,7 @@
 title: "Build a Multi-Provider AI Router for Cost and Latency Optimization"
 slug: build-multi-provider-ai-routing
 description: "Build an AI router that selects the best LLM provider per task type with automatic fallback chains and cost tracking."
-skills: [groq, perplexity-api, azure-openai, mistral-api]
+skills: [groq, perplexity-api, azure-openai, aws-bedrock, mistral-api]
 category: data-ai
 tags: [llm-routing, multi-provider, cost-optimization, ai-infrastructure]
 ---
@@ -21,7 +21,7 @@ A small Python router that classifies each request, tries providers in a configu
 request -> classify_task -> ROUTING_RULES[task] -> provider 1 -> (error) -> provider 2 ...
    coding     Groq (gpt-oss-120b) -> Codestral -> Mistral Small
    research   Perplexity Agent API (fast effort level: web search, cited answers)
-   enterprise Azure OpenAI only (no cross-vendor fallback, on purpose)
+   enterprise Azure OpenAI -> Amazon Bedrock (only vendors your compliance review approved)
    general    Mistral Small -> Groq (gpt-oss-20b)
 ```
 
@@ -33,11 +33,15 @@ Model ids and prices below were checked against each vendor's docs on 2026-10-24
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install groq mistralai openai perplexityai
+pip install groq mistralai openai perplexityai boto3
 export GROQ_API_KEY=... MISTRAL_API_KEY=... PERPLEXITY_API_KEY=...
 export AZURE_OPENAI_API_KEY=... AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com
 export AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+# Amazon Bedrock: no key variable. boto3 reads the standard AWS credential chain (AWS_PROFILE, SSO, instance or task role).
+export AWS_DEFAULT_REGION=eu-central-1 BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-5-5
 ```
+
+Bedrock needs model access in your AWS account and IAM permission `bedrock:InvokeModel` on the model and its inference profile. Anthropic models on Bedrock have no in-Region id, so `BEDROCK_MODEL_ID` is a geo inference profile (`eu.` keeps requests in EU Regions; `us.` and `global.` also exist). Amazon's own `amazon.nova-2-lite-v1:0` works too, with the same `eu.`/`us.` prefixes. Ids come from the model cards in the Bedrock user guide.
 
 The Mistral SDK (v2 and later) imports as `from mistralai.client import Mistral`. Perplexity's SDK is the `perplexity` module from the `perplexityai` package; the `effort` parameter needs version 0.46.0 or later (earlier versions call it `preset`).
 
@@ -55,8 +59,8 @@ class TaskType(Enum):
 
 @dataclass(frozen=True)
 class ProviderConfig:
-    name: str                                    # groq | mistral | perplexity | azure_openai
-    model: str                                   # model id, effort level, or Azure env var holding the deployment name
+    name: str                                    # groq | mistral | perplexity | azure_openai | bedrock
+    model: str                                   # model id, effort level, or env var holding the Azure deployment / Bedrock model id
     usd_per_m: tuple[float, float] | None = None  # (input, output) per 1M tokens; None = provider reports cost or unknown
 
 # Prices copied from each vendor's pricing page; re-check them, they change.
@@ -67,26 +71,28 @@ PROVIDERS = {
     "mistral_small": ProviderConfig("mistral", "mistral-small-latest", (0.15, 0.60)),
     "perplexity_fast": ProviderConfig("perplexity", "fast"),  # Agent API effort level; the response includes its cost
     "azure_openai": ProviderConfig("azure_openai", "AZURE_OPENAI_DEPLOYMENT"),  # env var holding your deployment name
+    "bedrock": ProviderConfig("bedrock", "BEDROCK_MODEL_ID"),  # env var holding the model or inference profile id
 }
 
-# Task type -> providers in order of preference. Enterprise has no cross-vendor fallback on purpose:
-# failing over to a provider your compliance review did not cover would defeat the point.
+# Task type -> providers in order of preference. Enterprise lists only providers your compliance review
+# approved; failing over to one it did not cover would defeat the point. Drop "bedrock" if Azure is the only one.
 ROUTING_RULES = {
     TaskType.CODING: ["groq_gpt_oss_120b", "codestral", "mistral_small"],
     TaskType.RESEARCH: ["perplexity_fast"],
-    TaskType.ENTERPRISE: ["azure_openai"],
+    TaskType.ENTERPRISE: ["azure_openai", "bedrock"],
     TaskType.GENERAL: ["mistral_small", "groq_gpt_oss_20b"],
 }
 ```
 
-Groq and Mistral bill per token, so cost is computed from `usd_per_m`. Perplexity's response carries its own cost, and the Azure price depends on your deployment and region, so add it to `usd_per_m` once you know it.
+Groq and Mistral bill per token, so cost is computed from `usd_per_m`. Perplexity's response carries its own cost, and the Azure price depends on your deployment and region, so add it to `usd_per_m` once you know it. The same goes for Bedrock, whose price depends on the model and inference profile.
 
 ### Step 3: Providers, router and classifier
 
-Groq, Mistral and Azure return the same usage fields through their SDKs. Azure uses the stock `OpenAI` client with the `/openai/v1/` base URL (no `api-version`), and `model` is your deployment name. Perplexity goes through its Agent API with the `fast` effort level, the migration guide's mapping for `sonar-pro`.
+Groq, Mistral and Azure return the same usage fields through their SDKs; Bedrock's `Converse` call has its own response shape. Azure uses the stock `OpenAI` client with the `/openai/v1/` base URL (no `api-version`), and `model` is your deployment name. Perplexity goes through its Agent API with the `fast` effort level, the migration guide's mapping for `sonar-pro`.
 
 ```python
 import logging, os, re, time
+import boto3
 from dataclasses import dataclass
 from groq import Groq
 from mistralai.client import Mistral
@@ -121,13 +127,24 @@ def call_azure(model, messages):
                     base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/")
     return _usage(client.chat.completions.create(model=os.environ[model], messages=messages)) + (None,)
 
+def call_bedrock(model, messages):
+    # Converse API: one request shape for every Bedrock model. Region and credentials come from the standard AWS chain.
+    resp = boto3.client("bedrock-runtime").converse(
+        modelId=os.environ[model],
+        messages=[{"role": m["role"], "content": [{"text": m["content"]}]} for m in messages],
+        inferenceConfig={"maxTokens": 1024},
+    )
+    blocks = resp["output"]["message"]["content"]  # reasoning models may also return reasoningContent blocks
+    text = "".join(b["text"] for b in blocks if "text" in b)
+    return text, resp["usage"]["inputTokens"], resp["usage"]["outputTokens"], None
+
 def call_perplexity(effort, messages):
     # Sonar chat completions are retired; web-grounded answers now come from the Agent API
     resp = Perplexity(api_key=os.environ["PERPLEXITY_API_KEY"]).responses.create(effort=effort, input=messages[-1]["content"])
     cost = resp.usage.cost.total_cost if resp.usage and resp.usage.cost else None
     return resp.output_text, resp.usage.input_tokens, resp.usage.output_tokens, cost
 
-CALLERS = {"groq": call_groq, "mistral": call_mistral, "perplexity": call_perplexity, "azure_openai": call_azure}
+CALLERS = {"groq": call_groq, "mistral": call_mistral, "perplexity": call_perplexity, "azure_openai": call_azure, "bedrock": call_bedrock}
 
 class Stats:
     """Per-provider spend, call counts and an exponential moving average of observed latency."""
@@ -224,11 +241,12 @@ $ python main.py
 
 ## Real-World Example
 
-A support-tooling team routes four kinds of traffic through this router. Developer questions go to Groq first for speed; "what changed this week" questions go to Perplexity so answers cite live sources; compliance drafts go only to the Azure deployment their security team approved, and fail loudly if it is down rather than leaking to another vendor; everything else goes to Mistral Small. After a week they read `stats.summary()` and move the general traffic to the cheaper Groq model when its measured latency and quality are acceptable.
+A support-tooling team routes four kinds of traffic through this router. Developer questions go to Groq first for speed; "what changed this week" questions go to Perplexity so answers cite live sources; compliance drafts go only to the Azure deployment and the Bedrock EU inference profile their security team approved, and fail loudly if both are down rather than leaking to another vendor; everything else goes to Mistral Small. After a week they read `stats.summary()` and move the general traffic to the cheaper Groq model when its measured latency and quality are acceptable.
 
 ## Related Skills
 
 - [groq](/skills/groq) - Fast inference for the coding path
 - [perplexity-api](/skills/perplexity-api) - Web-grounded answers through the Agent API
 - [azure-openai](/skills/azure-openai) - The enterprise path
+- [aws-bedrock](/skills/aws-bedrock) - The enterprise path on AWS: Converse API, inference profiles, IAM
 - [mistral-api](/skills/mistral-api) - General and code models
