@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:646ccac7fe8755ce5cfb11feebdd9cf72190d77e5d12feba79e399360e6a70ac",
+  "scoredAt": "2026-10-24T23:32:09.654Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 22,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "deploy-vaultwarden-with-reverse-proxy",
+        "baseline": 15,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A misses key requirements."
+      },
+      {
+        "name": "configure-smtp-for-vaultwarden",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Response B includes most required variables but still misses SIGNUPS_VERIFY and adds extras, while Response A misses SMTP_SECURITY and includes many unrelated variables."
+      },
+      {
+        "name": "nightly-backup-with-restic",
+        "baseline": 40,
+        "treatment": 45,
+        "rationale": "Both responses omit the required docker exec command, the sftp repository syntax, and the explicit mention of an encrypted backup directory; A provides more detailed setup steps, giving it a slightly higher score."
+      }
+    ]
+  }
+}
