@@ -1,14 +1,17 @@
 ---
 name: ai-scientist
 description: >-
-  Build AI agents that automate scientific research — hypothesis generation, experiment design,
-  data analysis, and paper writing using agentic tree search. Use when: automating research
-  workflows, generating and testing hypotheses, building AI-powered research assistants.
+  The AI Scientist-v2 is Sakana AI's open-source research agent that turns a
+  topic description into research ideas, runs machine-learning experiments with
+  an agentic tree search, and writes a LaTeX paper with citations. Use when
+  someone wants to automate ML research, generate and test hypotheses, run
+  "AI Scientist" or "AI-Scientist-v2", or study automated scientific discovery.
 license: Apache-2.0
-compatibility: "Python 3.10+"
+compatibility: 'Linux with NVIDIA GPU and CUDA, conda, Python 3.11, LLM API keys (OpenAI, Gemini or Bedrock); run inside a sandbox'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/SakanaAI/AI-Scientist-v2
   category: research
   tags:
     - research
@@ -20,197 +23,106 @@ metadata:
 
 # AI Scientist
 
-Build AI agents that automate scientific research using [AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist-v2) — an agentic tree search framework for hypothesis generation, experiment design, data analysis, and paper writing.
-
 ## Overview
 
-AI Scientist explores research problems as a tree search: generate candidate hypotheses, evaluate them based on evidence and feasibility, design experiments for promising branches, and prune dead ends. It covers the full research lifecycle from literature review through paper drafting.
+The AI Scientist-v2 (`SakanaAI/AI-Scientist-v2`, paper arXiv:2504.08066) is a research codebase, not a pip library. It runs in two steps: (1) `ai_scientist/perform_ideation_temp_free.py` turns a Markdown topic description into a JSON file of research ideas, checking novelty against Semantic Scholar; (2) `launch_scientist_bfts.py` takes one of those ideas, has a coding agent run experiments through a best-first tree search (configured in `bfts_config.yaml`), then writes and reviews a paper (PDF). Its README says v2 is exploratory with a lower success rate than the template-based v1 (`SakanaAI/AI-Scientist`), which suits tasks with a clear objective and a strong starting template.
+
+The PyPI package named `ai-scientist` is an unrelated project; do not install it for this tool.
+
+Safety first: the system executes code written by an LLM, with possible dangerous packages, open web access and spawned processes. Run it only in a controlled sandbox such as a Docker container with limited network access.
 
 ## Instructions
 
-### Installation
+### 1. Install
 
 ```bash
-pip install ai-scientist
+git clone https://github.com/SakanaAI/AI-Scientist-v2.git
+cd AI-Scientist-v2
+conda create -n ai_scientist python=3.11
+conda activate ai_scientist
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia   # match your CUDA version
+conda install anaconda::poppler
+conda install conda-forge::chktex
+pip install -r requirements.txt
 ```
 
-Set up API key:
+The README says installation takes up to an hour and that the code targets Linux with NVIDIA GPUs.
+
+### 2. Set API keys
 
 ```bash
-export ANTHROPIC_API_KEY="sk-ant-..."  # or OPENAI_API_KEY
+export OPENAI_API_KEY="..."        # default for OpenAI models
+export GEMINI_API_KEY="..."        # for Gemini models, used through the OpenAI-compatible API
+export S2_API_KEY="..."            # optional Semantic Scholar key, avoids rate limits in ideation and citation
+# Claude through AWS Bedrock needs the extra package anthropic[bedrock] and the variables
+# AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION_NAME
 ```
 
-### Define a Research Problem
+Read keys from your shell or secret manager; never write them into the topic file or the config.
 
-```python
-from ai_scientist import Researcher
+### 3. Describe the topic and generate ideas
 
-researcher = Researcher(
-    model="claude-sonnet-4-20250514",
-    domain="machine-learning",
-)
+Create `ai_scientist/ideas/<topic>.md` with the sections `Title`, `Keywords`, `TL;DR` and `Abstract`; copy the structure of `ai_scientist/ideas/i_cant_believe_its_not_better.md`. Then:
 
-result = researcher.investigate(
-    question="How does data augmentation affect few-shot learning performance?",
-    max_depth=3,
-    max_hypotheses=5,
-    budget_hours=2,
-)
-
-print(result.best_hypothesis)
-print(result.evidence_summary)
-print(result.suggested_experiments)
+```bash
+python ai_scientist/perform_ideation_temp_free.py \
+  --workshop-file "ai_scientist/ideas/few_shot_medical_imaging.md" \
+  --model gpt-4o-2024-05-13 \
+  --max-num-generations 20 \
+  --num-reflections 5
 ```
 
-### Hypothesis Generation
+The output is `ai_scientist/ideas/few_shot_medical_imaging.json`, a list of ideas with hypotheses, proposed experiments and related-work notes. `--model` must be one of the names in `AVAILABLE_LLMS` in `ai_scientist/llm.py` (the script rejects anything else), and your account must still be able to call it; the README's example names are from 2024.
 
-```python
-from ai_scientist import HypothesisGenerator
+### 4. Run the experiment and paper pipeline
 
-generator = HypothesisGenerator(model="claude-sonnet-4-20250514")
+Review `bfts_config.yaml` first: `agent.num_workers` (parallel paths), `agent.steps` and the `stageN_max_iters` limits (size of the search), `agent.search.num_drafts`, `max_debug_depth` and `debug_prob`, `exec.timeout` (seconds per run), and the model entries for `code`, `feedback`, `vlm_feedback` and `report`. The shipped coding model is a Bedrock Claude 3.5 Sonnet id; change it to a model you can access.
 
-hypotheses = generator.generate(
-    context="Recent work shows transformers struggle with compositional generalization",
-    num_hypotheses=5,
-    constraints=[
-        "Must be testable with existing benchmarks",
-        "Should suggest a concrete architectural modification",
-    ],
-)
-
-for h in hypotheses:
-    print(f"Hypothesis: {h.statement}")
-    print(f"Novelty: {h.novelty:.2f}, Feasibility: {h.feasibility:.2f}")
-    print(f"Test approach: {h.test_plan}")
+```bash
+python launch_scientist_bfts.py \
+  --load_ideas "ai_scientist/ideas/few_shot_medical_imaging.json" \
+  --idea_idx 0 \
+  --model_writeup o1-preview-2024-09-12 \
+  --model_citation gpt-4o-2024-11-20 \
+  --model_review gpt-4o-2024-11-20 \
+  --model_agg_plots o3-mini-2025-01-31 \
+  --num_cite_rounds 20
 ```
 
-### Experiment Design
+`--idea_idx` picks which idea of the file to run (0 is the first). Run `python launch_scientist_bfts.py --help` for the current flags. `--load_code` seeds the experiment with a Python file next to the ideas file and with the same name (`few_shot_medical_imaging.py`); if that file does not exist the script only prints a warning, so omit the flag unless you wrote one. `--add_dataset_ref` prepends a Hugging Face dataset snippet from `hf_dataset_reference.py` in the working directory; the repository does not ship that file, so leave the flag out unless you wrote one. Replace any model id the provider has retired.
 
-```python
-from ai_scientist import ExperimentDesigner
+### 5. Find the results
 
-designer = ExperimentDesigner(model="claude-sonnet-4-20250514")
-
-experiment = designer.design(
-    hypothesis="Adding a symbolic reasoning layer improves compositional generalization",
-    resources={
-        "compute": "4x A100 GPUs",
-        "time": "48 hours",
-        "datasets": ["COGS", "SCAN", "CFQ"],
-    },
-)
-
-print(experiment.methodology)
-print(experiment.variables)
-print(experiment.metrics)
-print(experiment.code_outline)
-```
-
-### Result Analysis
-
-```python
-from ai_scientist import ResultAnalyzer
-
-analyzer = ResultAnalyzer(model="claude-sonnet-4-20250514")
-
-analysis = analyzer.analyze(
-    hypothesis="Symbolic reasoning layer improves compositional generalization",
-    results_path="./experiment_results/",
-    metrics=["accuracy", "generalization_gap", "training_time"],
-)
-
-print(analysis.supports_hypothesis)
-print(analysis.key_findings)
-print(analysis.next_steps)
-```
-
-### Literature Review
-
-```python
-from ai_scientist import LiteratureReviewer
-
-reviewer = LiteratureReviewer(model="claude-sonnet-4-20250514")
-
-review = reviewer.review(
-    topic="Compositional generalization in neural networks",
-    sources=["arxiv", "semantic-scholar"],
-    max_papers=50,
-)
-
-print(review.summary)
-print(review.research_gaps)
-print(review.taxonomy)
-```
-
-### Paper Writing
-
-```python
-from ai_scientist import PaperWriter
-
-writer = PaperWriter(model="claude-sonnet-4-20250514")
-
-paper = writer.draft(
-    title="Symbolic Reasoning Layers for Compositional Generalization",
-    sections=["abstract", "introduction", "related-work", "method",
-              "experiments", "results", "discussion", "conclusion"],
-    results=analysis,
-    literature=review,
-    style="neurips",
-)
-
-paper.save("draft.tex")
-```
+A timestamped folder appears under `experiments/`. Open `experiments/<timestamp>_<idea>/logs/0-run/unified_tree_viz.html` to inspect the tree search. After the experiments the write-up stage runs (about 20 to 30 minutes) and leaves `<timestamp>_<idea>.pdf` in the same experiment folder.
 
 ## Examples
 
-### Example 1: End-to-End Research on RAG for Code Generation
+### Example 1: Explore a new topic
 
-```python
-from ai_scientist import ResearchPipeline
+**User request:**
 
-pipeline = ResearchPipeline(
-    model="claude-sonnet-4-20250514",
-    output_dir="./research_output/",
-)
-
-result = pipeline.run(
-    question="Can retrieval-augmented generation reduce hallucination in code generation?",
-    stages=["literature-review", "hypothesis-generation", "experiment-design",
-            "result-analysis", "paper-draft"],
-    config={"tree_search_depth": 3, "hypotheses_per_level": 4, "auto_prune_threshold": 0.3},
-)
-
-print(f"Hypotheses explored: {result.total_hypotheses}")
-print(f"Experiments designed: {result.total_experiments}")
-print(f"Best finding: {result.top_finding}")
-print(f"Paper draft: {result.paper_path}")
+```
+I want the AI Scientist to look into why contrastive pre-training sometimes fails on small medical image datasets.
 ```
 
-### Example 2: Quick Hypothesis Screening for Few-Shot Learning
+The agent writes `ai_scientist/ideas/contrastive_medical_failures.md` (title, keywords, TL;DR, abstract), runs the ideation script with `--max-num-generations 5` to keep cost low, and opens the resulting JSON. It summarises each idea's hypothesis and proposed experiment and asks which one to run. Result: a JSON idea file the user can review before spending GPU time.
 
-```python
-from ai_scientist import Researcher
+### Example 2: Run one idea cheaply
 
-researcher = Researcher(model="claude-sonnet-4-20250514", domain="machine-learning")
+**User request:**
 
-result = researcher.investigate(
-    question="Does contrastive pre-training improve few-shot classification on medical images?",
-    max_depth=2,
-    max_hypotheses=3,
-    budget_hours=1,
-)
-
-for h in result.all_hypotheses:
-    print(f"{h.statement} — score: {h.score:.2f}, pruned: {h.pruned}")
-print(f"Best: {result.best_hypothesis.statement}")
 ```
+Run the first idea from contrastive_medical_failures.json, but keep the cost small.
+```
+
+The agent lowers `agent.num_workers` to 2, `agent.multi_seed_eval.num_seeds` to 2 and `agent.steps` and the stage limits, sets `exp_name`, checks that the `code` and `report` models are ones the user has keys for, then launches `launch_scientist_bfts.py` inside the user's Docker sandbox. Result: logs under `experiments/`, a tree visualization HTML and, if the run succeeds, a PDF; a failed run produces no PDF, which is a normal outcome.
 
 ## Guidelines
 
-- Start with `max_depth=2` and `max_hypotheses=3` to get quick results before scaling up
-- Use domain-specific constraints in hypothesis generation — unconstrained search wastes compute
-- The pruning threshold (`auto_prune_threshold`) controls exploration vs exploitation — lower values explore more
-- Literature review works best with `semantic-scholar` for ML papers and `pubmed` for bio/medical
-- Always review generated hypotheses and papers — the agent is a research accelerator, not a replacement
-- For reproducibility, set `seed` in the pipeline config
-- Tree search depth beyond 4 rarely improves results but significantly increases cost
+- Cost: the README estimates about $15 to $20 per experiment run with Claude 3.5 Sonnet for coding, plus about $5 for the write-up with the default models. Ideation costs a few dollars. Check the vendor's current model prices.
+- Success depends on the model and the idea; expect some runs to end with no paper. Higher-capability coding models give better odds.
+- Semantic Scholar rate limits are the usual cause of ideation or citation failures; set `S2_API_KEY` or skip the citation phase.
+- CUDA out-of-memory means the generated experiment wants a bigger model than your GPU holds; say in the topic file that small models should be used.
+- Licence: the code uses the AI Scientist Source Code License, which requires that any manuscript produced with it carries a prominent disclosure that it was machine-generated. Add that disclosure before sharing a paper, and read the licence before commercial use.
+- Treat every output as a draft: verify claims, numbers, and citations by hand before using or submitting anything.
+- Not for: quick literature questions or non-ML experiments (the pipeline assumes Python experiments that run on one GPU machine).
