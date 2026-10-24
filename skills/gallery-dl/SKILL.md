@@ -8,20 +8,18 @@ description: >-
   with metadata, download from image boards, save entire user profiles or
   tagged collections, or build image dataset pipelines.
 license: Apache-2.0
-compatibility: 'Python 3.8+ (Linux, macOS, Windows)'
+compatibility: 'Python 3.8+ (Linux, macOS, Windows); tested with gallery-dl 1.32.17'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://codeberg.org/mikf/gallery-dl
   category: content
   tags:
     - gallery-dl
     - images
     - download
     - scrape
-    - instagram
-    - twitter
     - reddit
-    - pixiv
 ---
 
 # gallery-dl
@@ -35,17 +33,10 @@ gallery-dl is a command-line tool for downloading image galleries and collection
 ### Step 1: Installation
 
 ```bash
-# pip (recommended)
+# pip (recommended); needs Python 3.8+
 pip install gallery-dl
 
-# With optional dependencies for broader format support
-pip install gallery-dl[yt-dlp]    # adds video download support via yt-dlp
-
-# Standalone binary (Linux)
-curl -L https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.bin -o /usr/local/bin/gallery-dl
-chmod +x /usr/local/bin/gallery-dl
-
-# macOS
+# macOS / Linux with Homebrew
 brew install gallery-dl
 
 # Update
@@ -55,27 +46,29 @@ pip install -U gallery-dl
 gallery-dl --version
 ```
 
+A standalone `gallery-dl.bin` is attached to each release at https://codeberg.org/mikf/gallery-dl/releases (the project's home; the GitHub mirror redirects there). Download it together with `SHA256SUMS`, run `sha256sum -c --ignore-missing SHA256SUMS`, then `chmod +x` it. Video support through yt-dlp is automatic when `yt-dlp` is installed in the same environment.
+
 ### Step 2: Basic Downloads
 
 ```bash
 # Download from a gallery/post URL
-gallery-dl "https://www.instagram.com/p/POST_ID/"
-gallery-dl "https://twitter.com/user/status/123456789"
+gallery-dl "https://www.instagram.com/p/C8aBcDeFgHi/"
 gallery-dl "https://www.reddit.com/r/EarthPorn/top/?t=month"
-gallery-dl "https://www.pixiv.net/en/artworks/12345678"
-gallery-dl "https://imgur.com/a/ALBUM_ID"
+gallery-dl "https://www.pixiv.net/en/artworks/100000000"
+gallery-dl "https://imgur.com/a/k3TpL9x"
 
 # Download entire user profile
-gallery-dl "https://www.instagram.com/username/"
-gallery-dl "https://twitter.com/username/media"
-gallery-dl "https://www.deviantart.com/username"
-gallery-dl "https://www.pixiv.net/en/users/USER_ID"
+gallery-dl "https://www.instagram.com/natgeo/"
+gallery-dl "https://x.com/nasa/media"
+gallery-dl "https://www.deviantart.com/sakimichan"
+gallery-dl "https://www.pixiv.net/en/users/11"
 
-# Download with custom output directory
-gallery-dl -d ./downloads "URL"
+# Download into ./downloads (gallery-dl adds its own category folders below it)
+gallery-dl -d ./downloads "https://imgur.com/a/k3TpL9x"
 
-# Download with verbose output
-gallery-dl -v "URL"
+# Verbose output; list available keywords for templates and filters
+gallery-dl -v "https://imgur.com/a/k3TpL9x"
+gallery-dl -K "https://imgur.com/a/k3TpL9x"
 ```
 
 ### Step 3: Output Templates and Organization
@@ -83,15 +76,17 @@ gallery-dl -v "URL"
 gallery-dl uses a powerful template system for organizing downloaded files into directories.
 
 ```bash
-# Custom filename template
-gallery-dl -o "filename={category}_{id}_{title}.{extension}" "URL"
+# Custom filename template (-f is short for the filename option)
+gallery-dl -f "{category}_{id}_{title}.{extension}" "https://imgur.com/a/k3TpL9x"
 
-# Organize by site and user
-gallery-dl -o "directory=['{category}', '{subcategory}']" "URL"
+# Directory layout: the value of -o is parsed as JSON, so use double quotes inside single quotes
+gallery-dl -o 'directory=["{category}", "{subcategory}"]' "https://imgur.com/a/k3TpL9x"
 
-# Custom directory per site
-gallery-dl -o "base-directory=./media" -o "directory=['{category}', '{user}', '{date:%Y-%m}']" "URL"
+# Several options at once
+gallery-dl -d ./media -o 'directory=["{category}", "{user}", "{date:%Y-%m}"]' "https://www.deviantart.com/sakimichan"
 ```
+
+Single quotes inside the list (`['{category}']`) are not JSON and make gallery-dl fail with `Single '{' encountered in format string`.
 
 Default directory structure: `./gallery-dl/{category}/{subcategory}/`
 
@@ -100,67 +95,68 @@ Default directory structure: `./gallery-dl/{category}/{subcategory}/`
 Many sites require login for full access (age-restricted content, private profiles, higher rate limits).
 
 ```bash
-# Username + password
-gallery-dl -u "username" -p "password" "URL"
+# Username + password (prefer a config file or --netrc over typing a password on the command line)
+gallery-dl -u "$PIXIV_USER" -p "$PIXIV_PASSWORD" "https://www.pixiv.net/en/users/11"
 
 # Cookie-based authentication (recommended for most sites)
 # Export cookies from your browser using a browser extension (e.g., "Get cookies.txt")
-gallery-dl --cookies cookies.txt "URL"
+gallery-dl --cookies cookies.txt "https://www.instagram.com/natgeo/"
 
 # Browser cookie extraction (auto-extracts from installed browser)
-gallery-dl --cookies-from-browser firefox "URL"
-gallery-dl --cookies-from-browser chrome "URL"
+gallery-dl --cookies-from-browser firefox "https://x.com/nasa/media"
+gallery-dl --cookies-from-browser chrome "https://x.com/nasa/media"
 
 # OAuth (for Tumblr, DeviantArt, Reddit, etc.)
-gallery-dl oauth:reddit          # opens browser for OAuth flow
+gallery-dl oauth:reddit          # prints an authorization URL, then saves the token
 gallery-dl oauth:deviantart
-gallery-dl oauth:tumblr
+gallery-dl oauth:tumblr   # also: oauth:flickr, oauth:smugmug, oauth:pixiv, oauth:mastodon:<instance>
 ```
 
 ### Step 5: Filtering and Selection
 
 ```bash
-# Download only images (skip videos)
-gallery-dl --filter "extension in ('jpg', 'jpeg', 'png', 'gif', 'webp')" "URL"
+# Use -K on a URL to see the keys a filter can use (they differ per site)
+gallery-dl -K "https://www.reddit.com/r/EarthPorn/top/?t=year"
 
-# Download only videos
-gallery-dl --filter "extension in ('mp4', 'webm', 'mov')" "URL"
+# Only images, only large ones (--filter keys are the filename-specific ones from -K)
+gallery-dl --filter "extension in ('jpg', 'jpeg', 'png', 'gif', 'webp') and width >= 1920 and height >= 1080" "https://www.reddit.com/r/EarthPorn/top/?t=year"
 
-# Minimum image dimensions
-gallery-dl --filter "width >= 1920 and height >= 1080" "URL"
+# Date window on posts (ISO date or Unix timestamp); older posts end the run for date-ordered feeds
+gallery-dl --date-after 2025-01-01 --date-before 2026-01-01 "https://www.deviantart.com/sakimichan"
 
-# Date range
-gallery-dl --filter "date >= datetime(2024, 1, 1)" "URL"
+# Size limits
+gallery-dl --filesize-min 500k --filesize-max 20M "https://imgur.com/a/k3TpL9x"
 
-# Limit number of downloads
-gallery-dl --range "1-50" "URL"       # first 50 items
-gallery-dl --range "10-20" "URL"      # items 10 through 20
+# Limit which files are downloaded
+gallery-dl --range "1-50" "https://imgur.com/a/k3TpL9x"     # first 50 files
+gallery-dl --range "10-20" "https://imgur.com/a/k3TpL9x"    # files 10 through 20
 
-# Skip files that already exist
-gallery-dl --no-skip "URL"    # download even if exists (default: skip)
+# Stop a feed after 3 files in a row were already downloaded
+gallery-dl -A 3 --download-archive archive.sqlite3 "https://x.com/nasa/media"
+
+# Overwrite existing files (default: skip)
+gallery-dl --no-skip "https://imgur.com/a/k3TpL9x"
 ```
 
 ### Step 6: Configuration File
 
-gallery-dl supports a JSON configuration file at `~/.config/gallery-dl/config.json` (or `~/.gallery-dl.conf`).
+gallery-dl supports a JSON configuration file at `~/.config/gallery-dl/config.json` (or `~/.gallery-dl.conf`; `gallery-dl --config-status` lists the paths it checks).
 
 ```json
 {
   "extractor": {
     "base-directory": "./gallery-dl/",
     "archive": "~/.gallery-dl/archive.sqlite3",
+    "sleep": [3.0, 5.0],
 
     "instagram": {
-      "cookies-from-browser": "firefox",
-      "directory": ["instagram", "{user}"],
-      "filename": "{date:%Y%m%d}_{shortcode}_{num:>02}.{extension}",
-      "posts": {
-        "include": ["image", "video", "sidecar"]
-      }
+      "cookies": ["firefox"],
+      "directory": ["instagram", "{username}"],
+      "filename": "{date:%Y%m%d}_{shortcode}_{num:>02}.{extension}"
     },
 
     "twitter": {
-      "cookies-from-browser": "chrome",
+      "cookies": ["chrome"],
       "directory": ["twitter", "{user[name]}"],
       "filename": "{date:%Y%m%d}_{tweet_id}_{num:>02}.{extension}",
       "retweets": false,
@@ -185,7 +181,7 @@ gallery-dl supports a JSON configuration file at `~/.config/gallery-dl/config.js
     "retries": 3,
     "timeout": 30.0,
     "part": true,
-    "part-directory": "/tmp/.gallery-dl/"
+    "part-directory": "~/.cache/gallery-dl-parts/"
   },
 
   "output": {
@@ -210,10 +206,10 @@ The archive feature tracks downloaded files in a SQLite database, preventing re-
 
 ```bash
 # Use archive file (skip already downloaded)
-gallery-dl --download-archive archive.sqlite3 "URL"
+gallery-dl --download-archive archive.sqlite3 "https://x.com/nasa/media"
 
-# Clear archive for specific URL
-gallery-dl --clear-archive archive.sqlite3 "URL"
+# Skipped files are printed with a leading "#". To redownload, delete the archive file
+# or run with --no-skip.
 ```
 
 In config:
@@ -239,7 +235,7 @@ gallery-dl can run post-processors on downloaded files — metadata export, conv
     },
     {
       "name": "exec",
-      "command": ["convert", "{_path}", "-resize", "1920x1080>", "{_path}"]
+      "command": ["magick", "{_path}", "-resize", "1920x1080>", "{_path}"]
     },
     {
       "name": "zip",
@@ -250,19 +246,9 @@ gallery-dl can run post-processors on downloaded files — metadata export, conv
 }
 ```
 
-### Step 9: Supported Sites (Partial List)
+### Step 9: Supported Sites
 
-Major platforms supported by gallery-dl:
-
-- **Social media:** Instagram, Twitter/X, Reddit, Tumblr, TikTok
-- **Art platforms:** Pixiv, DeviantArt, ArtStation, Newgrounds
-- **Image hosting:** Imgur, Flickr, SmugMug, Google Photos
-- **Image boards:** Danbooru, Gelbooru, Safebooru, E621, Konachan
-- **Manga/comics:** MangaDex, Webtoon, Tapas, Dynasty Scans
-- **Stock/photography:** Unsplash, 500px
-- **Other:** Patreon, Kemono, Cohost, Mastodon, Bluesky, Pillowfort
-
-Full list: `gallery-dl --list-extractors`
+Instagram, Twitter/X, Reddit, Tumblr, TikTok, Bluesky, Mastodon, Pixiv, DeviantArt, ArtStation, Newgrounds, Imgur, Flickr, SmugMug, Danbooru, Gelbooru, E621, MangaDex, Webtoons, Tapas, Unsplash, 500px, Patreon, Kemono and many more. `gallery-dl --list-extractors` prints every extractor class.
 
 ### Step 10: Batch Downloads
 
@@ -271,10 +257,13 @@ Full list: `gallery-dl --list-extractors`
 gallery-dl -i urls.txt
 
 # Combine with rate limiting
-gallery-dl -i urls.txt --rate-limit 2M --sleep 3-5
+gallery-dl -i urls.txt --limit-rate 2M --sleep 3-5
 
-# Download with metadata export
+# Download with metadata export (one .json file next to each file)
 gallery-dl -i urls.txt --write-metadata
+
+# Collect URLs that failed
+gallery-dl -i urls.txt -e failed.txt
 ```
 
 ## Examples
@@ -294,8 +283,8 @@ The agent will:
 
 The agent will:
 1. Configure gallery-dl with dimension filter: `--filter "width >= 1920 and height >= 1080"`
-2. Add date filter for the last year and metadata post-processor.
-3. Run: `gallery-dl --filter "width >= 1920 and height >= 1080" --download-archive dataset_archive.sqlite3 -o "postprocessor=[{'name': 'metadata', 'mode': 'json'}]" "https://www.reddit.com/r/EarthPorn/top/?t=year"`
+2. Add `--date-after` for the last year and `--write-metadata` for JSON sidecars. If `width` is not a key for the site, `-K` shows the right name.
+3. Run: `gallery-dl --filter "width >= 1920 and height >= 1080" --date-after 2025-10-24 --download-archive dataset_archive.sqlite3 --write-metadata "https://www.reddit.com/r/EarthPorn/top/?t=year"`
 4. The JSON metadata files include title, author, score, dimensions, and original URL — useful for dataset labeling.
 
 ## Guidelines
@@ -303,6 +292,7 @@ The agent will:
 - Always use `--download-archive` when downloading from profiles or feeds that update over time; it prevents re-downloading previously saved files on subsequent runs.
 - Set up authentication (cookies or OAuth) before downloading from platforms that gate content behind login — Instagram, Pixiv, Patreon, and Twitter all limit unauthenticated access.
 - Use `--cookies-from-browser` instead of manual cookie export when possible — it auto-extracts fresh cookies and handles session tokens.
-- Apply rate limiting (`"rate": "2M"` and `"sleep": "3-5"` in config) to avoid triggering anti-bot measures.
+- Apply rate limiting (`"rate": "2M"` under `downloader` and `"sleep": [3.0, 5.0]` under `extractor` in config, or `--limit-rate` / `--sleep` on the command line) to avoid triggering anti-bot measures.
 - Test with `--range "1-5"` first to verify your configuration and filename templates before running a full download.
-- gallery-dl pairs well with yt-dlp — gallery-dl handles images and galleries, yt-dlp handles video. Together they cover most content download scenarios.
+- Respect each site's terms and the rights of the artists; downloaded galleries are usually copyrighted. Site layouts change often, so if an extractor breaks, run `pip install -U gallery-dl` first.
+- gallery-dl handles images and galleries; use yt-dlp for dedicated video sites.
