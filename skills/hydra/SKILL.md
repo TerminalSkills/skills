@@ -6,11 +6,12 @@ description: >-
   services they own, validate a credential list against a target during an
   authorized engagement, or run a CTF login brute challenge.
 license: Apache-2.0
-compatibility: 'THC Hydra 9.x, Linux/macOS'
+compatibility: 'THC Hydra 9.x (tested against 9.7), Linux/macOS'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/vanhauser-thc/thc-hydra
   tags:
     - hydra
     - brute-force
@@ -90,8 +91,8 @@ hydra -L users.txt -P passwords.txt 10.0.0.5 http-post-form \
   -t 4 -f -V
 
 # HTTPS with cookies and custom headers
-hydra -L users.txt -P passwords.txt example.com -s 443 https-post-form \
-  '/api/auth:user=^USER^&pass=^PASS^:F=error\":\"bad_creds:H=Cookie\: csrftoken=abc123' \
+hydra -L users.txt -P passwords.txt portal.fernhill-design.internal -s 443 https-post-form \
+  '/api/auth:user=^USER^&pass=^PASS^:H=Cookie\: csrftoken=8f3a1c2e9b:F=error\":\"bad_creds' \
   -t 2 -f
 
 # Basic auth
@@ -128,8 +129,8 @@ hydra -R
 ### Example 1: Audit Your Own SSH Bastion
 
 ```bash
-# In the engagement agreement: "Authorized to test bastion.example.com for
-# credential strength on a list of service accounts."
+# In the engagement agreement: "Authorized to test bastion.fernhill-design.internal
+# for credential strength on a list of service accounts."
 
 cat > svc-users.txt <<'EOF'
 svc_backup
@@ -138,39 +139,39 @@ svc_monitor
 svc_deploy
 EOF
 
-# 1000-entry wordlist tailored to the org
+# Wordlist tailored to the org's naming conventions, not rockyou
 cat > targeted.txt <<'EOF'
-Acme2026!
-Acme2025!
-BackupService1
-CiRunner!
-MonitorAcme!
+FernhillBackup24!
+FernhillCi2026!
+MonitorFernhill1
+DeployFernhill!
+Welcome1
 EOF
 
 hydra -L svc-users.txt -P targeted.txt \
   -t 2 -W 5 -f -V \
   -o audit-ssh.log \
-  ssh://bastion.example.com
+  ssh://bastion.fernhill-design.internal
 
 # Expected output:
-# [22][ssh] host: bastion.example.com  login: svc_backup  password: BackupService1
+# [22][ssh] host: bastion.fernhill-design.internal  login: svc_backup  password: FernhillBackup24!
 # Report weak credentials, rotate, done.
 ```
 
 ### Example 2: CTF — Break a Login Form
 
 ```bash
-# Reconnaissance first
-curl -sS -X POST http://10.10.10.50/login -d 'username=wrong&password=wrong' -i
+# Reconnaissance first, against a CTF box at 192.168.56.50
+curl -sS -X POST http://192.168.56.50/login -d 'username=wrong&password=wrong' -i
 # Response contains: "Login failed. Try again."
 
 # Hydra with the matching failure string
 hydra -l admin -P /usr/share/wordlists/rockyou.txt \
-  10.10.10.50 http-post-form \
+  192.168.56.50 http-post-form \
   '/login:username=^USER^&password=^PASS^:F=Login failed' \
   -t 16 -f
 
-# [80][http-post-form] host: 10.10.10.50  login: admin  password: letmein2024
+# [80][http-post-form] host: 192.168.56.50  login: admin  password: letmein2024
 ```
 
 ## Guidelines
@@ -182,4 +183,5 @@ hydra -l admin -P /usr/share/wordlists/rockyou.txt \
 - Use `-W seconds` between attempts on lockout-prone services (AD, RDP).
 - Hydra is for live services. For captured hashes, switch to John or hashcat.
 - On web apps, prefer `ffuf` or `wfuzz` for deeper customization (headers, JSON bodies, CSRF tokens). Hydra is faster but less flexible.
-- Log every session with `-o` so you can reproduce findings and feed them into the final report.
+- Log every session with `-o` so you can reproduce findings and feed them into the final report. Add `-b json` (or `-b jsonv1`) to `-o` for a machine-readable report instead of the default text format.
+- The condition string in a `*-post-form` module (`F=...` or `S=...`) must be the last colon-separated field; putting it third when there are more optional fields (`C=`, `H=`) silently breaks the match.
