@@ -9683,13 +9683,6 @@
       ]
     },
     {
-      "name": "trieve",
-      "slug": "trieve",
-      "description": "Trieve is open-source search infrastructure that combines full-text, semantic and hybrid search with a RAG endpoint, recommendations and search analytics behind one REST API. Use this skill when a user asks to add Trieve search, ingest chunks into a Trieve dataset, build hybrid search or autocomplete, generate RAG answers from retrieved chunks, or read search analytics. The hosted service appears to be gone (trieve.ai no longer resolves and api.trieve.ai does not answer), so the code takes the base URL from an environment variable and targets a self-hosted deployment.",
-      "category": "data-ai",
-      "tags": []
-    },
-    {
       "name": "trigger-dev",
       "slug": "trigger-dev",
       "description": "You are an expert in Trigger.dev, the open-source background jobs platform for TypeScript. You help developers build reliable long-running tasks, scheduled jobs, webhook handlers, and event-driven workflows with automatic retries, concurrency control, real-time logs, and deployment to serverless infrastructure — replacing BullMQ/Redis setups with a fully managed or self-hosted solution purpose-built for modern TypeScript apps.",
@@ -10833,5 +10826,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T21:47:22.655Z"
+  "updatedAt": "2026-10-24T22:53:02.101Z"
 }
