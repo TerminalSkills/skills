@@ -1,7 +1,7 @@
 ---
 title: "Automate Desktop Workflows with Claude Computer Use"
 slug: automate-desktop-workflows-with-computer-use
-description: "Use Claude's computer use API to automate repetitive GUI tasks — from legacy desktop apps to browser workflows — without writing brittle CSS selectors."
+description: "Use Claude's computer use tool to automate repetitive GUI tasks, from legacy desktop apps to browser workflows, inside a sandbox and without brittle CSS selectors."
 skills:
   - claude-computer-use
 category: automation
@@ -14,237 +14,163 @@ tags: [automation, computer-use, claude, anthropic, gui, desktop, browser]
 
 ## The Problem
 
-Alex is an ops engineer at a mid-size company. They use a legacy ERP system from 2008 that has no API. Every Monday, Alex manually exports 3 reports, reformats them in Excel, and uploads them to a dashboard. The whole process takes 2 hours. There's no Playwright selector, no API endpoint — just an ancient Windows GUI.
+Alex is an ops engineer at a mid-size company. They use a legacy ERP system from 2008 that has no API. Every Monday, Alex manually exports 3 reports, reformats them in Excel, and uploads them to a dashboard. The whole process takes 2 hours. There is no Playwright selector and no API endpoint, just an ancient GUI.
 
-## What You'll Build
+## The Solution
 
-An automation agent that:
-- Takes a screenshot of the current screen
-- Analyzes what it sees
-- Decides what to click/type
-- Repeats until the task is done
-- Pauses for human confirmation on uncertain steps
+Computer use is a client-side tool of the Claude API. Claude asks for an action (screenshot, click, type, scroll), your program performs it on a desktop you control and returns the result, and the loop repeats until the task is done. Nothing in the ERP needs to change. The tool runs in a disposable sandbox, a person approves risky steps, and the exported files are post-processed with ordinary code.
 
-## Step 1: Set Up Sandboxed Environment
+## Step-by-Step Walkthrough
 
-Always run computer use in an isolated container.
+### Step 1: Start Anthropic's reference sandbox
 
-```dockerfile
-# Dockerfile
-FROM ubuntu:22.04
+Anthropic's quickstart ships a container with a Linux desktop, a VNC viewer and a Streamlit chat UI. Bind every port to localhost so nothing else on the network can reach the desktop:
 
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
-    xvfb x11vnc \
-    firefox \
-    scrot \
-    xdotool \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip3 install anthropic pillow
-
-# VNC for monitoring
-EXPOSE 5900
-
-CMD ["bash", "-c", "Xvfb :99 -screen 0 1280x768x24 & x11vnc -display :99 -nopw -forever & bash"]
+```console
+$ docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+    -v $HOME/.anthropic:/home/computeruse/.anthropic \
+    -p 127.0.0.1:5900:5900 -p 127.0.0.1:8501:8501 \
+    -p 127.0.0.1:6080:6080 -p 127.0.0.1:8080:8080 \
+    -it ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
 ```
 
-```bash
-docker build -t computer-use-sandbox .
-docker run -it -p 5900:5900 -e DISPLAY=:99 computer-use-sandbox
+Open `http://127.0.0.1:8080` for the combined chat and desktop view. The source is in `anthropics/anthropic-quickstarts` under `computer-use-demo`.
+
+The container controls a Linux desktop, so the ERP client has to be reachable from it. If the ERP has a web client, open that in Firefox. If it only exists as a Windows program, run it in a throwaway Windows VM and open an RDP or VNC viewer to that VM from the container's desktop. In both cases give the sandbox a dedicated, read-only ERP account and restrict its network access to the ERP host and the domains it truly needs.
+
+### Step 2: Try the task interactively
+
+Describe the task in the chat UI with exact labels and expected end states, and watch the desktop on port 8080:
+
+```text
+The ERP client is open. Go to Reports > Weekly Summary, set the date range to last
+week, click Export and choose CSV. Save the file as weekly-summary.csv in Downloads.
+After every step take a screenshot and confirm the result before the next step.
+Stop and ask me if a dialog appears that you did not expect.
 ```
 
-## Step 2: Define Computer Use Tools
+Fix any ambiguity in the wording until the run is reliable, then turn it into a script.
+
+### Step 3: Script the loop with the Messages API
+
+The current API shape is one entry, `{"type": "computer_toolset_20260801"}`, with no beta header. Claude 5.5 and later models accept only this toolset; older models still use `computer_20251124` with the `computer-use-2025-11-24` beta header. The toolset takes no display size, so coordinates are in the pixel space of the screenshots you return. Install `pip install anthropic pyautogui` plus `scrot` in the sandbox, then:
 
 ```python
-import anthropic
 import base64
 import subprocess
-from PIL import ImageGrab
-import io
+import time
+from pathlib import Path
 
-client = anthropic.Anthropic()
+import anthropic
+import pyautogui
 
-def take_screenshot() -> str:
-    """Take screenshot and return as base64."""
-    result = subprocess.run(["scrot", "-o", "/tmp/screenshot.png"], capture_output=True)
-    with open("/tmp/screenshot.png", "rb") as f:
-        return base64.b64encode(f.read()).decode()
+client = anthropic.Anthropic()          # reads ANTHROPIC_API_KEY
+MODEL = "claude-sonnet-5-5"
+# All 17 members are on by default; withhold the ones this loop does not implement.
+UNUSED = ("zoom", "middle_click", "triple_click", "left_click_drag", "mouse_move",
+          "left_mouse_down", "left_mouse_up", "cursor_position", "hold_key")
+TOOLS = [{"type": "computer_toolset_20260801",
+          "configs": {m: {"enabled": False} for m in UNUSED}}]
+RISKY = ("submit", "delete", "purchase", "send", "pay", "upload")
 
-def execute_action(action: dict) -> str:
-    """Execute a computer use action."""
-    action_type = action["type"]
 
-    if action_type == "screenshot":
-        return take_screenshot()
+def screenshot() -> list[dict]:
+    subprocess.run(["scrot", "-o", "/tmp/screen.png"], check=True)
+    data = base64.standard_b64encode(Path("/tmp/screen.png").read_bytes()).decode()
+    return [{"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": data}}]
 
-    elif action_type == "left_click":
-        x, y = action["coordinate"]
-        subprocess.run(["xdotool", "mousemove", str(x), str(y), "click", "1"])
-        return "Clicked"
 
-    elif action_type == "type":
-        text = action["text"].replace('"', '\\"')
-        subprocess.run(["xdotool", "type", "--", text])
-        return "Typed"
+def perform(name: str, a: dict):
+    xy = a.get("coordinate")
+    if name == "screenshot":
+        return screenshot()
+    if name == "left_click":
+        pyautogui.click(*xy)
+    elif name == "double_click":
+        pyautogui.doubleClick(*xy)
+    elif name == "right_click":
+        pyautogui.rightClick(*xy)
+    elif name == "type":
+        pyautogui.write(a["text"], interval=0.02)
+    elif name == "key":
+        for _ in range(a.get("repeat", 1)):
+            pyautogui.hotkey(*a["text"].lower().split("+"))
+    elif name == "scroll":
+        sign = -1 if a["scroll_direction"] == "down" else 1
+        pyautogui.scroll(sign * a["scroll_amount"], *(xy or pyautogui.position()))
+    elif name == "wait":
+        time.sleep(a["duration"])
+    else:
+        raise NotImplementedError(name)   # add a member here, and remove it from UNUSED, if the task needs it
+    time.sleep(0.5)
+    return "OK"
 
-    elif action_type == "key":
-        subprocess.run(["xdotool", "key", action["key"]])
-        return "Key pressed"
 
-    elif action_type == "right_click":
-        x, y = action["coordinate"]
-        subprocess.run(["xdotool", "mousemove", str(x), str(y), "click", "3"])
-        return "Right-clicked"
+def approved(name: str, a: dict, task: str) -> bool:
+    """Ask a person before clicks or keys when the task involves irreversible words."""
+    if name in ("left_click", "double_click", "key") and any(w in task.lower() for w in RISKY):
+        return input(f"Allow {name} {a}? [y/N] ").strip().lower() == "y"
+    return True
 
-    elif action_type == "double_click":
-        x, y = action["coordinate"]
-        subprocess.run(["xdotool", "mousemove", str(x), str(y), "click", "--repeat", "2", "1"])
-        return "Double-clicked"
 
-    return f"Unknown action: {action_type}"
-```
+def run_agent(task: str, max_steps: int = 40) -> str:
+    messages = [{"role": "user", "content": task}]
+    for _ in range(max_steps):
+        resp = client.messages.create(model=MODEL, max_tokens=4096, tools=TOOLS, messages=messages)
+        messages.append({"role": "assistant", "content": resp.content})
+        calls = [b for b in resp.content if b.type == "tool_use"]
+        if not calls:
+            return next((b.text for b in resp.content if b.type == "text"), "")
 
-## Step 3: The Automation Loop
+        results, failed = [], False
+        for call in calls:                    # a turn can hold several actions: answer every one
+            res = {"type": "tool_result", "tool_use_id": call.id, "toolset_name": "computer"}
+            if failed:
+                res.update(is_error=True, content="Not executed: an earlier computer action in this turn failed.")
+            elif not approved(call.name, call.input, task):
+                failed = True
+                res.update(is_error=True, content="Denied by the operator. Stop and explain what you were about to do.")
+            else:
+                try:
+                    res["content"] = perform(call.name, call.input)
+                except Exception as exc:
+                    failed = True
+                    res.update(is_error=True, content=f"Error: {exc}")
+            results.append(res)
+        messages.append({"role": "user", "content": results})
+    return "Stopped: max_steps reached"
 
-```python
-def run_automation(task: str, max_steps: int = 50, human_in_loop: bool = True):
-    messages = []
-    steps = 0
 
-    print(f"Starting task: {task}")
-    print("-" * 50)
-
-    while steps < max_steps:
-        # Take screenshot
-        screenshot_b64 = take_screenshot()
-
-        # Add to messages
-        if not messages:
-            messages.append({
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/png",
-                            "data": screenshot_b64,
-                        },
-                    },
-                    {"type": "text", "text": task},
-                ],
-            })
-        else:
-            # Append screenshot result
-            messages.append({
-                "role": "user",
-                "content": [{
-                    "type": "tool_result",
-                    "tool_use_id": last_tool_use_id,
-                    "content": [{
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/png",
-                            "data": screenshot_b64,
-                        },
-                    }],
-                }],
-            })
-
-        # Ask Claude what to do
-        response = client.beta.messages.create(
-            model="claude-opus-4-5",
-            max_tokens=1024,
-            tools=[{
-                "type": "computer_20241022",
-                "name": "computer",
-                "display_width_px": 1280,
-                "display_height_px": 768,
-            }],
-            messages=messages,
-            betas=["computer-use-2024-10-22"],
-        )
-
-        messages.append({"role": "assistant", "content": response.content})
-
-        # Check if done
-        if response.stop_reason == "end_turn":
-            print("Task completed!")
-            break
-
-        # Find tool use
-        tool_use = next(
-            (block for block in response.content if block.type == "tool_use"),
-            None
-        )
-
-        if not tool_use:
-            print("No action requested — task may be complete")
-            break
-
-        last_tool_use_id = tool_use.id
-        action = tool_use.input
-
-        print(f"Step {steps + 1}: {action['action']} {action.get('coordinate', action.get('text', ''))[:50]}")
-
-        # Human-in-the-loop for risky actions
-        if human_in_loop and action["action"] in ["left_click", "type"]:
-            confirm = input(f"  Execute? [Y/n]: ").strip().lower()
-            if confirm == "n":
-                print("  Skipped by user")
-                steps += 1
-                continue
-
-        execute_action({"type": action["action"], **action})
-        steps += 1
-
-    return steps
-```
-
-## Step 4: Run It
-
-```python
 if __name__ == "__main__":
-    task = """
-    Open Firefox, go to http://internal-erp.company.com/reports,
-    log in with username 'ops_export' and password from the password manager,
-    export the 'Weekly Summary' report as CSV to the Downloads folder,
-    then confirm the file was downloaded.
-    """
-
-    run_automation(task, max_steps=30, human_in_loop=True)
+    print(run_agent(
+        "The ERP client is open and logged in. Export the 'Weekly Summary' report for last "
+        "week as CSV into ~/Downloads/weekly-summary.csv. Take a screenshot after every step "
+        "and verify it. If anything unexpected appears, stop and describe it."
+    ))
 ```
 
-## Step 5: Error Recovery
+If a screenshot is larger than the model's limit (2,576 px on the long edge for the newest models, 1,568 px for older ones), downscale it and scale Claude's coordinates back up. Docs recommend 1024x768 or 1280x720 for general desktop work and 1280x800 for web apps, and nothing above 1920x1080. Credentials belong in the sandbox's saved session or an environment variable, never in the prompt text.
 
-```python
-def run_with_recovery(task: str):
-    try:
-        steps = run_automation(task)
-        print(f"Completed in {steps} steps")
-    except Exception as e:
-        print(f"Automation failed: {e}")
-        # Take error screenshot
-        screenshot = take_screenshot()
-        with open("error_screenshot.png", "wb") as f:
-            f.write(base64.b64decode(screenshot))
-        print("Error screenshot saved to error_screenshot.png")
-        raise
+### Step 4: Post-process outside the sandbox
+
+Copy the exported CSVs out of the container and let ordinary code do the Excel work. The only part that needs vision is the GUI export:
+
+```console
+$ docker cp <container>:/home/computeruse/Downloads/weekly-summary.csv ./exports/
+$ python3 reformat_and_upload.py exports/weekly-summary.csv
 ```
 
-## Safety Guidelines
+### Step 5: Run it safely every week
 
-- **Always use Docker/VM** — never run on your main machine unattended
-- **Enable human-in-loop** for production tasks
-- **Set max_steps** to prevent infinite loops
-- **Log all actions** for audit trail
-- **Use read-only credentials** when possible
+- Cap the loop (`max_steps`), log each action and keep the screenshots for an audit trail.
+- Run the sandbox only for the duration of the job and delete the container afterwards (`docker rm -v <container>`).
+- Keep human approval on any step with real-world consequences, such as uploads, deletions and payments. The reference container's own notes warn that Claude can follow instructions it finds in on-screen content, so keep untrusted content out of the session.
+- Review the first few runs by watching the desktop on port 8080 before leaving it unattended.
 
-## Tips
+## Real-World Example
 
-- Be very specific in your task description — include URLs, button labels, expected states
-- For web automation, Playwright is faster; use computer use only for GUI apps without APIs
-- Take extra screenshots after each action to verify success
-- Claude works best with 1280x768 resolution
+Alex's three Monday exports run as three tasks in one sandbox session. The first week Alex watches every step and tightens the wording where the ERP's save dialog differs from the prompt. After that the script runs from a scheduler, the operator approval prompt stays on for the upload step, and the reports reach the dashboard without the two hours of manual clicking. When the ERP vendor ships a real export API, Alex deletes the automation and calls the API instead, which is the better option whenever one exists.
+
+## Related Skills
+
+- [claude-computer-use](/skills/claude-computer-use) - API shape, member tools, sandboxing and the agent loop
