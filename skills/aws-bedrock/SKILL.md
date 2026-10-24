@@ -3,17 +3,17 @@ name: aws-bedrock
 description: >-
   AWS Bedrock — fully managed foundation models on AWS infrastructure. Use when
   deploying AI in AWS-native environments, needing enterprise compliance (SOC2, HIPAA),
-  running Claude, Llama, Titan, or Mistral on AWS, leveraging Knowledge Bases for RAG,
+  running Claude or Llama on AWS, leveraging Knowledge Bases for RAG,
   or applying Guardrails for content safety.
 license: Apache-2.0
-compatibility: "Python 3.9+ with boto3 SDK and AWS credentials configured"
+compatibility: "Python 3.10+ with boto3 SDK and AWS credentials configured"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["aws-bedrock", "aws", "claude", "llama", "enterprise-ai"]
   use-cases:
-    - "Run Claude 3.5 Sonnet on AWS infrastructure with SOC2/HIPAA compliance"
+    - "Run Claude on AWS infrastructure with SOC2/HIPAA compliance"
     - "Build a RAG system using Bedrock Knowledge Bases and S3"
     - "Apply content safety guardrails to LLM outputs in regulated industries"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
@@ -23,37 +23,38 @@ metadata:
 
 ## Overview
 
-Amazon Bedrock is a fully managed service that provides access to foundation models from multiple providers (Anthropic, Meta, Amazon, Mistral, Cohere) through a unified AWS API. It integrates natively with AWS IAM, VPC, CloudWatch, and S3, making it ideal for enterprise workloads requiring compliance, security controls, and AWS-native data pipelines.
+Amazon Bedrock is a fully managed service that provides access to foundation models from multiple providers (Anthropic, Amazon, Meta, Mistral and others) through a unified AWS API. It integrates natively with AWS IAM, VPC, CloudWatch, and S3, making it ideal for enterprise workloads requiring compliance, security controls, and AWS-native data pipelines.
 
 ## Setup
 
 ```bash
 pip install boto3
-```
-
-```bash
-# Configure AWS credentials
-aws configure
-# Or set environment variables:
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
+# Configure credentials (SSO or an IAM role is preferable to long-lived keys)
+aws configure sso
 export AWS_DEFAULT_REGION=us-east-1
 ```
 
-Enable model access in the AWS Console: **Bedrock → Model Access → Enable models**
+Access to most serverless models is on by default once your IAM role has the AWS Marketplace permissions (`aws-marketplace:Subscribe`, `Unsubscribe`, `ViewSubscriptions`) and the account has a valid payment method. Anthropic models on the `bedrock-runtime` endpoint also need the one-time first-use form (it does not apply to the `bedrock-mantle` endpoint). The first call can fail with `AccessDeniedException` for up to about 15 minutes while the subscription finishes. Some models need extra account-level access from AWS Sales.
 
 ## Available Models
 
-| Model ID | Provider | Best For |
-|---|---|---|
-| `anthropic.claude-3-5-sonnet-20241022-v2:0` | Anthropic | Best overall quality |
-| `anthropic.claude-3-5-haiku-20241022-v1:0` | Anthropic | Fast, cost-efficient |
-| `anthropic.claude-3-opus-20240229-v1:0` | Anthropic | Most capable reasoning |
-| `meta.llama3-70b-instruct-v1:0` | Meta | Open-weight, Llama 3 70B |
-| `meta.llama3-8b-instruct-v1:0` | Meta | Fast, smaller Llama |
-| `amazon.titan-text-express-v1` | Amazon | AWS-native text generation |
-| `mistral.mistral-large-2402-v1:0` | Mistral | Code + reasoning |
-| `cohere.command-r-plus-v1:0` | Cohere | RAG, tool use |
+Model IDs, Regions and lifecycle state change often. List what your account and Region can call, and read the `modelLifecycle` field before you pin an ID:
+
+```python
+import boto3
+
+bedrock = boto3.client("bedrock", region_name="us-east-1")  # control plane, not bedrock-runtime
+for m in bedrock.list_foundation_models(byProvider="anthropic")["modelSummaries"]:
+    print(m["modelId"], m["modelLifecycle"]["status"])
+```
+
+| Model ID | Notes |
+|---|---|
+| `anthropic.claude-fable-5-1`, `anthropic.claude-opus-5-5`, `anthropic.claude-sonnet-5-5`, `anthropic.claude-haiku-5-5` | Current Claude line. No ARN version suffix. Call through `InvokeModel` or the Messages endpoint below. |
+| `anthropic.claude-haiku-4-5-20251001-v1:0` | Older Claude. Needs an inference profile (`global.`, `us.`, `eu.` prefix); the bare ID fails with an HTTP 400 about on-demand throughput. |
+| `meta.llama3-3-70b-instruct-v1:0` | Llama; already Legacy (EOL March 30, 2027). |
+
+Claude 3, 3.5 and 3.7 models, Claude Sonnet 4.5 and Opus 4.1 are Legacy with end-of-life dates between November 2026 and April 2027; Cohere Command R+ and Llama 3.1 405B are already past EOL. A Legacy model stops accepting new customers, and existing ones can lose access after 15 days of inactivity. Check the Bedrock model lifecycle page before using any ID from an older tutorial.
 
 ## Instructions
 
@@ -67,20 +68,14 @@ import boto3
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 response = bedrock.converse(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
-    messages=[
-        {"role": "user", "content": [{"text": "Explain AWS Lambda in simple terms."}]}
-    ],
-    system=[{"text": "You are a helpful AWS solutions architect."}],
-    inferenceConfig={
-        "maxTokens": 1024,
-        "temperature": 0.7,
-    },
+    modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    messages=[{"role": "user", "content": [{"text": "Explain AWS Lambda in simple terms."}]}],
+    system=[{"text": "You are an AWS solutions architect for a fintech team."}],
+    inferenceConfig={"maxTokens": 1024, "temperature": 0.7},
 )
 
 print(response["output"]["message"]["content"][0]["text"])
-print(f"Input tokens: {response['usage']['inputTokens']}")
-print(f"Output tokens: {response['usage']['outputTokens']}")
+print(response["usage"])  # token counts
 ```
 
 ### Streaming with Converse
@@ -91,7 +86,7 @@ import boto3
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 response = bedrock.converse_stream(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
+    modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
     messages=[{"role": "user", "content": [{"text": "Write a Python quicksort implementation."}]}],
 )
 
@@ -103,9 +98,31 @@ for event in response["stream"]:
 print()
 ```
 
+### Claude Sonnet/Opus 5.x through InvokeModel or the Messages endpoint
+
+The current Claude models are documented for `InvokeModel` on `bedrock-runtime` and for a native Messages API on the `bedrock-mantle` endpoint. Use `anthropic.claude-sonnet-5-5` as the model ID. Do not assume the Converse examples here accept them; check the model's page in Bedrock first.
+
+```bash
+pip install -U "anthropic[bedrock]"
+```
+
+```python
+from anthropic import AnthropicBedrockMantle
+
+client = AnthropicBedrockMantle(aws_region="us-east-1")  # SigV4 via the standard AWS credential chain
+message = client.messages.create(
+    model="anthropic.claude-sonnet-5-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Summarize the CAP theorem in three sentences."}],
+)
+print(next(b.text for b in message.content if b.type == "text"))
+```
+
+That endpoint has no Files API, server-side tools (web search, code execution), MCP connector or Message Batches.
+
 ### InvokeModel API (Raw)
 
-For models not yet supported by Converse, or for direct access:
+Direct access with the model-specific body. Claude's body uses `anthropic_version`:
 
 ```python
 import boto3
@@ -113,65 +130,32 @@ import json
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
-# Claude via InvokeModel
 body = {
     "anthropic_version": "bedrock-2023-05-31",
     "max_tokens": 1024,
-    "messages": [
-        {"role": "user", "content": "What is the capital of France?"}
-    ],
+    "messages": [{"role": "user", "content": "What is the capital of France?"}],
 }
 
 response = bedrock.invoke_model(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
+    modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
     body=json.dumps(body),
     contentType="application/json",
-    accept="application/json",
 )
 
 result = json.loads(response["body"].read())
 print(result["content"][0]["text"])
 ```
 
-### Multi-Modal — Image Analysis
+### Image input
 
-```python
-import boto3
-import base64
-import json
+In Converse, an image is a content block with raw bytes (no base64): `{"image": {"format": "png", "source": {"bytes": open("diagram.png", "rb").read()}}}`, placed next to a `{"text": ...}` block in the same user message.
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
-
-# Read image
-with open("diagram.png", "rb") as f:
-    image_b64 = base64.b64encode(f.read()).decode()
-
-response = bedrock.converse(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
-    messages=[
-        {
-            "role": "user",
-            "content": [
-                {
-                    "image": {
-                        "format": "png",
-                        "source": {"bytes": base64.b64decode(image_b64)},
-                    }
-                },
-                {"text": "Describe this architecture diagram and identify potential issues."},
-            ],
-        }
-    ],
-)
-
-print(response["output"]["message"]["content"][0]["text"])
-```
+## Examples
 
 ### Tool Use (Function Calling)
 
 ```python
 import boto3
-import json
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
@@ -197,7 +181,7 @@ tools = [
 messages = [{"role": "user", "content": [{"text": "How many active users do we have?"}]}]
 
 response = bedrock.converse(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
+    modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
     messages=messages,
     toolConfig={"tools": tools},
 )
@@ -205,10 +189,7 @@ response = bedrock.converse(
 # Handle tool use
 if response["stopReason"] == "tool_use":
     tool_use = next(b for b in response["output"]["message"]["content"] if "toolUse" in b)
-    print(f"Tool: {tool_use['toolUse']['name']}")
-    print(f"Input: {tool_use['toolUse']['input']}")
-
-    # Return tool result
+    # tool_use["toolUse"]["name"] / ["input"] say what to run; return the result
     messages.append(response["output"]["message"])
     messages.append({
         "role": "user",
@@ -223,7 +204,7 @@ if response["stopReason"] == "tool_use":
     })
 
     final = bedrock.converse(
-        modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=messages,
         toolConfig={"tools": tools},
     )
@@ -236,9 +217,9 @@ if response["stopReason"] == "tool_use":
 import boto3
 
 # Knowledge Base RAG — Bedrock manages embedding and retrieval
+account_id = boto3.client("sts").get_caller_identity()["Account"]
 bedrock_agent = boto3.client("bedrock-agent-runtime", region_name="us-east-1")
 
-# Retrieve relevant documents
 retrieve_response = bedrock_agent.retrieve(
     knowledgeBaseId="KB123456789",
     retrievalQuery={"text": "What is our refund policy?"},
@@ -247,17 +228,15 @@ retrieve_response = bedrock_agent.retrieve(
     },
 )
 
-# Extract text from results
 contexts = [r["content"]["text"] for r in retrieve_response["retrievalResults"]]
 
-# Generate answer grounded in retrieved docs
 retrieve_and_generate = bedrock_agent.retrieve_and_generate(
     input={"text": "What is our refund policy?"},
     retrieveAndGenerateConfiguration={
         "type": "KNOWLEDGE_BASE",
         "knowledgeBaseConfiguration": {
             "knowledgeBaseId": "KB123456789",
-            "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "modelArn": f"arn:aws:bedrock:us-east-1:{account_id}:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
         },
     },
 )
@@ -274,18 +253,19 @@ bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 # Apply a guardrail to filter content
 response = bedrock.converse(
-    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
-    messages=[{"role": "user", "content": [{"text": "User's message here"}]}],
+    modelId="global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    messages=[{"role": "user", "content": [{"text": "My card number is 4111 1111 1111 1111, can you store it?"}]}],
     guardrailConfig={
-        "guardrailIdentifier": "my-guardrail-id",
+        "guardrailIdentifier": "gr7k2m9x4p1q",
         "guardrailVersion": "DRAFT",  # or "1", "2", etc.
         "trace": "enabled",
     },
 )
 
-# Check if content was blocked
-if response.get("trace", {}).get("guardrail", {}).get("inputAssessment"):
-    print("Guardrail assessment:", response["trace"]["guardrail"])
+# stopReason tells you whether the guardrail stepped in
+if response["stopReason"] == "guardrail_intervened":
+    print("Blocked:", response["output"]["message"]["content"][0]["text"])
+    print("Why:", response["trace"]["guardrail"]["inputAssessment"])
 ```
 
 ### IAM Policy for Bedrock
@@ -298,12 +278,11 @@ if response.get("trace", {}).get("guardrail", {}).get("inputAssessment"):
       "Effect": "Allow",
       "Action": [
         "bedrock:InvokeModel",
-        "bedrock:InvokeModelWithResponseStream",
-        "bedrock:Converse",
-        "bedrock:ConverseStream"
+        "bedrock:InvokeModelWithResponseStream"
       ],
       "Resource": [
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+        "arn:aws:bedrock:us-east-1:111122223333:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
       ]
     }
   ]
@@ -312,11 +291,9 @@ if response.get("trace", {}).get("guardrail", {}).get("inputAssessment"):
 
 ## Guidelines
 
-- Use the **Converse API** for new integrations — it's model-agnostic and handles message formatting.
-- Enable models in the AWS Console before first use — they are not enabled by default.
+- Use the **Converse API** for new integrations with models that support it. `Converse` needs the `bedrock:InvokeModel` permission and `ConverseStream` needs `bedrock:InvokeModelWithResponseStream`; there are no separate `bedrock:Converse*` actions.
+- Newer models are served through inference profiles. Pass the profile ID (`global.`, `us.`, `eu.`); the policy must allow the profile ARN and the foundation-model ARN in every destination Region, and an SCP that blocks one destination Region fails the request. Regional endpoints cost 10 percent more than global ones for Claude.
 - Bedrock processes data in the selected AWS region — choose for data residency compliance.
 - Knowledge Bases handle chunking, embedding, and retrieval automatically with OpenSearch Serverless.
 - Guardrails can block harmful content, PII, and off-topic queries before they reach the model.
 - Use `converse_stream` for user-facing features to reduce perceived latency.
-- Cross-region inference profiles let you automatically fall back to other regions if capacity is unavailable.
-- Monitor costs with AWS Cost Explorer; tag Bedrock calls with application-specific tags.
