@@ -9,273 +9,252 @@ tags: [vector-search, pgvector, postgres, prisma, cohere, semantic-search, embed
 
 # Build Vector Search from Scratch with pgvector
 
-> **Persona:** You're a developer who needs semantic search for your app. Pinecone, Weaviate, Qdrant — they all add $100+/month and another service to babysit. You already have Postgres. Let's use it.
+> **Persona:** You're a developer who needs semantic search for your app. A managed vector database means another service, another bill and another place where your data lives. You already have Postgres. Let's use it.
 
-pgvector extends PostgreSQL with first-class vector operations. With HNSW indexing, it handles millions of vectors at sub-10ms latency. No new infrastructure, no vendor lock-in.
+pgvector adds a `vector` column type and approximate-nearest-neighbour indexes (HNSW and IVFFlat) to PostgreSQL. Documents, metadata and embeddings live in one table, so a filter such as "only this user's invoices" is a plain `WHERE` clause.
 
 ## What You'll Build
 
-- Cohere-powered embeddings for your documents
-- pgvector storage with HNSW index via Prisma
-- Hybrid metadata + vector search
-- Benchmarks at 1M and 10M vectors
+- Cohere embeddings for your documents (1024 dimensions)
+- A pgvector column with an HNSW index, managed through Prisma migrations
+- Semantic search with metadata filters
+- Update and re-embed handling
 
 ## Setup
 
+This guide uses Prisma 7, which needs Node.js 20.19+ and an ES module project. On 2026-10-24 the npm `latest` tag of `prisma` already pointed at the 8.0 release candidate, so pin the major version.
+
 ```bash
-npm install @prisma/client prisma cohere-ai
-npx prisma init
+npm install --save-dev prisma@7 typescript tsx @types/node @types/pg
+npm install @prisma/client@7 @prisma/adapter-pg pg dotenv cohere-ai
+npm pkg set type=module
 ```
 
-Enable pgvector in your database:
+Run Postgres with pgvector locally, bound to loopback only:
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
+```bash
+docker run -d --name pgvector -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_PASSWORD="$PG_PASSWORD" -e POSTGRES_DB=app pgvector/pgvector:pg18
 ```
 
-## Prisma Schema
+```ini
+# .env
+DATABASE_URL=postgresql://postgres:<password>@127.0.0.1:5432/app
+COHERE_API_KEY=<your Cohere API key>
+```
+
+## Prisma Config and Schema
+
+Prisma 7 no longer takes the connection URL in `schema.prisma`; it lives in `prisma.config.ts`, and the client needs a driver adapter.
+
+```typescript
+// prisma.config.ts
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: env("DATABASE_URL") },
+});
+```
 
 ```prisma
-// schema.prisma
+// prisma/schema.prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
   extensions = [vector]
 }
 
 model Document {
-  id         String                 @id @default(cuid())
-  content    String
-  title      String
-  category   String
-  userId     String
-  createdAt  DateTime               @default(now())
-  embedding  Unsupported("vector(1024)")?
+  id        String                 @id @default(cuid())
+  title     String
+  content   String
+  category  String
+  userId    String
+  createdAt DateTime               @default(now())
+  embedding Unsupported("vector(1024)")?
 
   @@index([category])
   @@index([userId])
 }
 ```
 
+Prisma writes `CREATE EXTENSION IF NOT EXISTS "vector"` into the first migration. The database user needs permission to create extensions (the `postgres` user in the container does).
+
 ```bash
 npx prisma migrate dev --name add-vector-search
 ```
 
-Add HNSW index after migration:
+Prisma cannot describe an HNSW index in the schema, so add it as its own hand-written migration. Keeping it in the migration history avoids drift between environments:
+
+```bash
+npx prisma migrate dev --create-only --name add-hnsw-index
+```
+
+Put this in the generated `prisma/migrations/<timestamp>_add_hnsw_index/migration.sql`, then apply and generate the client:
 
 ```sql
--- Run separately (Prisma doesn't support this yet)
-CREATE INDEX ON "Document" USING hnsw (embedding vector_cosine_ops)
+CREATE INDEX "Document_embedding_hnsw_idx" ON "Document"
+USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 ```
 
-## Embedding Documents with Cohere
-
-```typescript
-// embed/cohere.ts
-import { CohereClient } from 'cohere-ai';
-
-const cohere = new CohereClient({ token: process.env.COHERE_API_KEY! });
-
-export async function embedTexts(texts: string[]): Promise<number[][]> {
-  // Cohere Embed v3 — 1024 dimensions, great for search
-  const response = await cohere.embed({
-    texts,
-    model: 'embed-english-v3.0',
-    inputType: 'search_document', // Use 'search_query' for queries
-  });
-  return response.embeddings as number[][];
-}
-
-export async function embedQuery(query: string): Promise<number[]> {
-  const response = await cohere.embed({
-    texts: [query],
-    model: 'embed-english-v3.0',
-    inputType: 'search_query', // Different input type for queries!
-  });
-  return (response.embeddings as number[][])[0];
-}
+```bash
+npx prisma migrate dev
+npx prisma generate   # Prisma 7 no longer generates the client for you after migrate dev
 ```
 
-## Indexing Documents
+`m` and `ef_construction` above are pgvector's defaults. A higher `ef_construction` gives better recall at the cost of build time and slower inserts. The `vector` type can be HNSW-indexed up to 2,000 dimensions, so 1024 fits.
+
+## Client and Embeddings
 
 ```typescript
-// indexer.ts
-import { PrismaClient } from '@prisma/client';
-import { embedTexts } from './embed/cohere';
+// src/db.ts
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "./generated/prisma/client";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+export const prisma = new PrismaClient({ adapter });
+```
 
-export async function indexDocuments(docs: Array<{
-  content: string;
-  title: string;
-  category: string;
-  userId: string;
-}>) {
-  // Batch embed — Cohere supports up to 96 texts per request
-  const BATCH_SIZE = 90;
-  const results = [];
+Cohere's current embedding models (`embed-v5.0-pro`, `embed-v5.0-fast`, `embed-v4.0`) let you pick the output size, so we ask for 1024 dimensions to match the column. Use `search_document` when indexing and `search_query` for queries, since the model embeds the two differently.
 
+```typescript
+// src/embed.ts
+import { CohereClientV2 } from "cohere-ai";
+
+const cohere = new CohereClientV2({ token: process.env.COHERE_API_KEY! });
+
+const MODEL = "embed-v5.0-fast"; // embed-v5.0-pro for the highest quality
+const DIMENSIONS = 1024;         // must match vector(1024) in the schema
+
+async function embed(texts: string[], inputType: "search_document" | "search_query") {
+  const res = await cohere.embed({
+    texts, // at most 96 per call
+    model: MODEL,
+    inputType,
+    embeddingTypes: ["float"],
+    outputDimension: DIMENSIONS,
+  });
+  return res.embeddings.float!;
+}
+
+export const embedDocuments = (texts: string[]) => embed(texts, "search_document");
+export const embedQuery = async (q: string) => (await embed([q], "search_query"))[0];
+```
+
+Changing the model or the dimension later means re-embedding every row, because vectors from different models are not comparable.
+
+## Indexing and Updating Documents
+
+Prisma Client cannot write `Unsupported` columns, so inserts and updates of the vector use raw SQL (tagged templates, so every value is a bound parameter).
+
+```typescript
+// src/indexer.ts
+import { randomUUID } from "node:crypto";
+import { prisma } from "./db";
+import { embedDocuments } from "./embed";
+
+export interface NewDoc { title: string; content: string; category: string; userId: string }
+
+export async function indexDocuments(docs: NewDoc[]) {
+  const BATCH_SIZE = 96; // Cohere's per-request maximum
   for (let i = 0; i < docs.length; i += BATCH_SIZE) {
     const batch = docs.slice(i, i + BATCH_SIZE);
-    const embeddings = await embedTexts(batch.map(d => d.content));
-
-    for (let j = 0; j < batch.length; j++) {
-      // Use raw SQL to insert vector — Prisma doesn't support vector type directly
-      const result = await prisma.$executeRaw`
-        INSERT INTO "Document" (id, content, title, category, "userId", embedding, "createdAt")
-        VALUES (
-          ${cuid()},
-          ${batch[j].content},
-          ${batch[j].title},
-          ${batch[j].category},
-          ${batch[j].userId},
-          ${JSON.stringify(embeddings[j])}::vector,
-          NOW()
-        )
-      `;
-      results.push(result);
+    const vectors = await embedDocuments(batch.map((d) => `${d.title}\n${d.content}`));
+    for (const [j, d] of batch.entries()) {
+      await prisma.$executeRaw`
+        INSERT INTO "Document" (id, title, content, category, "userId", embedding)
+        VALUES (${randomUUID()}, ${d.title}, ${d.content}, ${d.category}, ${d.userId},
+                ${JSON.stringify(vectors[j])}::vector)`;
     }
-
     console.log(`Indexed ${Math.min(i + BATCH_SIZE, docs.length)}/${docs.length}`);
-    // Respect Cohere rate limits
-    if (i + BATCH_SIZE < docs.length) await sleep(200);
   }
+}
 
-  return results;
+// Keep the embedding in sync with the text it describes.
+export async function updateDocument(id: string, content: string) {
+  const [vector] = await embedDocuments([content]);
+  await prisma.$executeRaw`
+    UPDATE "Document" SET content = ${content}, embedding = ${JSON.stringify(vector)}::vector
+    WHERE id = ${id}`;
 }
 ```
 
-## Vector Search with Metadata Filtering
+For bulk loads, create the HNSW index after the data is in (drop it first, reload, recreate): building once is much faster than updating the graph row by row.
+
+## Search with Metadata Filters
+
+`<=>` is cosine distance, so similarity is `1 - distance`. Filters are built with `Prisma.sql` and `Prisma.join`, which keeps user input out of the SQL text.
 
 ```typescript
-// search.ts
-import { embedQuery } from './embed/cohere';
+// src/search.ts
+import { Prisma } from "./generated/prisma/client";
+import { prisma } from "./db";
+import { embedQuery } from "./embed";
 
 export interface SearchOptions {
   query: string;
   category?: string;
   userId?: string;
-  dateAfter?: Date;
+  createdAfter?: Date;
   limit?: number;
-  threshold?: number; // cosine similarity threshold
 }
 
-export async function semanticSearch(options: SearchOptions) {
-  const { query, category, userId, dateAfter, limit = 10, threshold = 0.7 } = options;
+export async function semanticSearch(opts: SearchOptions) {
+  const { query, category, userId, createdAfter, limit = 10 } = opts;
+  const vec = JSON.stringify(await embedQuery(query));
 
-  const queryEmbedding = await embedQuery(query);
+  const filters: Prisma.Sql[] = [];
+  if (category) filters.push(Prisma.sql`category = ${category}`);
+  if (userId) filters.push(Prisma.sql`"userId" = ${userId}`);
+  if (createdAfter) filters.push(Prisma.sql`"createdAt" > ${createdAfter}`);
+  const where = filters.length ? Prisma.sql`WHERE ${Prisma.join(filters, " AND ")}` : Prisma.empty;
 
-  // Build dynamic WHERE clause
-  const conditions: string[] = ['1=1'];
-  const params: unknown[] = [JSON.stringify(queryEmbedding)];
-  let paramIdx = 2;
-
-  if (category) {
-    conditions.push(`category = $${paramIdx++}`);
-    params.push(category);
-  }
-  if (userId) {
-    conditions.push(`"userId" = $${paramIdx++}`);
-    params.push(userId);
-  }
-  if (dateAfter) {
-    conditions.push(`"createdAt" > $${paramIdx++}`);
-    params.push(dateAfter);
-  }
-
-  const whereClause = conditions.join(' AND ');
-
-  const results = await prisma.$queryRawUnsafe<Array<{
-    id: string;
-    title: string;
-    content: string;
-    category: string;
-    similarity: number;
-  }>>(`
-    SELECT
-      id, title, content, category,
-      1 - (embedding <=> $1::vector) AS similarity
-    FROM "Document"
-    WHERE ${whereClause}
-      AND 1 - (embedding <=> $1::vector) > ${threshold}
-    ORDER BY embedding <=> $1::vector
-    LIMIT ${limit}
-  `, ...params);
-
-  return results;
+  return prisma.$transaction(async (tx) => {
+    // Filters run after the index scan. Iterative scans (pgvector 0.8+) keep
+    // scanning until LIMIT rows survive the filters.
+    await tx.$executeRaw`SET LOCAL hnsw.iterative_scan = relaxed_order`;
+    return tx.$queryRaw<
+      Array<{ id: string; title: string; content: string; category: string; similarity: number }>
+    >`
+      SELECT id, title, content, category, 1 - (embedding <=> ${vec}::vector) AS similarity
+      FROM "Document"
+      ${where}
+      ORDER BY embedding <=> ${vec}::vector
+      LIMIT ${limit}`;
+  });
 }
 ```
 
-## Performance Benchmarks
+Without iterative scans, a filter matching 10% of rows combined with the default `hnsw.ef_search` of 40 returns about 4 rows on average, so a restrictive filter can come back nearly empty. `relaxed_order` may return results slightly out of order; use `strict_order` if exact ordering matters more than speed, or re-sort the page in your code.
 
-```typescript
-// benchmark.ts
-export async function runBenchmark(docCount: number) {
-  const queries = [
-    'machine learning optimization techniques',
-    'user authentication security best practices',
-    'database performance tuning strategies',
-  ];
+## Measure It on Your Data
 
-  const timings: number[] = [];
-
-  for (const query of queries) {
-    const start = performance.now();
-    await semanticSearch({ query, limit: 10 });
-    timings.push(performance.now() - start);
-  }
-
-  console.log(`\nBenchmark results (${docCount.toLocaleString()} docs):`);
-  console.log(`  Avg latency: ${(timings.reduce((a, b) => a + b) / timings.length).toFixed(1)}ms`);
-  console.log(`  P95 latency: ${timings.sort((a, b) => a - b)[Math.floor(timings.length * 0.95)].toFixed(1)}ms`);
-}
-
-// Typical results:
-// 1M vectors  → avg 8ms,  p95 15ms  (HNSW m=16)
-// 10M vectors → avg 22ms, p95 40ms  (HNSW m=32)
-```
-
-## Tune HNSW for Your Scale
+Do not trust anyone else's latency figures; they depend on your hardware, dimensions, filters and recall target. Measure with `EXPLAIN ANALYZE` and watch the index size:
 
 ```sql
--- For 1M vectors: speed-optimized
-CREATE INDEX ON "Document" USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 64);
+SELECT pg_size_pretty(pg_relation_size('"Document_embedding_hnsw_idx"'));
 
--- For 10M vectors: accuracy-optimized  
-CREATE INDEX ON "Document" USING hnsw (embedding vector_cosine_ops)
-WITH (m = 32, ef_construction = 128);
-
--- Check index size
-SELECT pg_size_pretty(pg_relation_size('"Document"_embedding_idx'));
--- Typical: ~5GB per 1M 1024-dim vectors
+-- Higher ef_search = better recall, slower queries (default 40)
+SET hnsw.ef_search = 100;
 ```
 
-## Update and Delete Vectors
-
-```typescript
-// Keep embeddings in sync with content changes
-export async function updateDocument(id: string, newContent: string) {
-  const [embedding] = await embedTexts([newContent]);
-
-  await prisma.$executeRaw`
-    UPDATE "Document"
-    SET content = ${newContent},
-        embedding = ${JSON.stringify(embedding)}::vector
-    WHERE id = ${id}
-  `;
-}
-```
+Compare the approximate results with an exact scan (drop to `SET enable_indexscan = off;`) on a sample of real queries to see your recall, then raise `ef_search` or `m` until it is acceptable.
 
 ## What to Build Next
 
-- **Hybrid BM25 + vector:** Combine with `pg_trgm` or `tsvector` for keyword boosting
-- **Namespace isolation:** Use `userId` as a partition key for multi-tenant search
-- **Incremental re-embedding:** Queue re-embed when the Cohere model is updated
-- **Search analytics:** Log queries and click-through to improve ranking over time
+- **Hybrid keyword + vector:** combine with Postgres full-text search (`tsvector`) and merge rankings
+- **Multi-tenant isolation:** always pass `userId` as a filter; for very large tenants consider partitioning the table
+- **Re-embedding jobs:** queue a re-embed when you switch embedding models
+
+## Related Skills
+
+- [prisma](../skills/prisma/SKILL.md) — schema, migrations, driver adapters and raw queries
+- [cohere-api](../skills/cohere-api/SKILL.md) — embedding models and input types
