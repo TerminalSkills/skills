@@ -21,262 +21,277 @@ tags:
 
 ## The Problem
 
-Hana leads product at a 25-person learning platform. Course completion rate is 12%. Users sign up, watch 1-2 lessons, and never return. There's no sense of progress, no reward for consistency, no social proof. Duolingo's streak system keeps users coming back daily — Hana wants the same mechanics for her platform. They need XP for completed lessons, levels that unlock content, badges for achievements, streaks for daily engagement, and a leaderboard for competitive motivation.
+Hana leads product at a 25-person learning platform. Course completion is low: users sign up, watch one or two lessons, and never return. There is no sense of progress, no reward for consistency, and no social proof. Duolingo-style streaks keep users coming back daily, and Hana wants the same mechanics: XP for completed lessons, levels, badges for achievements, streaks for daily engagement and a leaderboard.
 
-## Step 1: Build the Gamification Engine
+## The Solution
+
+Postgres is the source of truth for XP, streaks and badges, and every award is one transaction. Redis holds the leaderboards as sorted sets, which makes "top 20 this week" a single fast command. A small Hono API receives learning events and zod validates them. The game rules (XP table, levels, badge conditions) live in one pure TypeScript file, so product can tune them without touching I/O code.
+
+Three design rules keep the numbers trustworthy:
+
+- **Idempotent awards.** Every event carries an `eventId`; a retry or replayed webhook cannot pay twice.
+- **Locked updates.** `SELECT ... FOR UPDATE` serializes concurrent events for one user, so XP, streaks and level-ups cannot race.
+- **Redis is a cache.** The ledger (`xp_events`) is authoritative; leaderboards can always be rebuilt from it.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install and create the schema
+
+```bash
+npm install ioredis pg hono @hono/node-server @hono/zod-validator zod
+npm install -D typescript tsx @types/pg @types/node
+```
+
+`ioredis` 6 uses the RESP3 protocol by default and needs Node.js 20 or newer. Run your own Postgres and Redis, bound to localhost; the connection strings go in `DATABASE_URL` and `REDIS_URL`.
+
+```sql
+CREATE TABLE users (id text PRIMARY KEY, username text NOT NULL, avatar_url text);
+
+CREATE TABLE user_gamification (
+  user_id           text PRIMARY KEY REFERENCES users(id),
+  total_xp          integer NOT NULL DEFAULT 0,
+  level             integer NOT NULL DEFAULT 1,
+  lessons_completed integer NOT NULL DEFAULT 0,
+  courses_completed integer NOT NULL DEFAULT 0,
+  perfect_scores    integer NOT NULL DEFAULT 0,
+  current_streak    integer NOT NULL DEFAULT 0,
+  longest_streak    integer NOT NULL DEFAULT 0,
+  last_active_day   date
+);
+
+-- One row per award; the unique event_id makes retries and duplicate webhooks harmless
+CREATE TABLE xp_events (
+  event_id   text PRIMARY KEY,
+  user_id    text NOT NULL REFERENCES users(id),
+  action     text NOT NULL,
+  xp         integer NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX xp_events_user_time ON xp_events (user_id, created_at);
+
+CREATE TABLE user_badges (
+  user_id   text NOT NULL REFERENCES users(id),
+  badge_id  text NOT NULL,
+  earned_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, badge_id)
+);
+```
+
+### Step 2: Game rules
+
+Levels, XP values, badges, the streak multiplier and the ISO-week key are plain functions with no database access.
 
 ```typescript
-// src/gamification/engine.ts — Points, levels, badges, streaks, and leaderboards
-import { pool } from "../db";
-import { Redis } from "ioredis";
+// src/rules.ts: pure game rules, no I/O, easy to unit test
+export const LEVELS = [0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 10000]; // XP needed for level 1..10
 
-const redis = new Redis(process.env.REDIS_URL!);
-
-// Level thresholds (XP required to reach each level)
-const LEVELS = [
-  { level: 1, xpRequired: 0, title: "Beginner" },
-  { level: 2, xpRequired: 100, title: "Learner" },
-  { level: 3, xpRequired: 300, title: "Student" },
-  { level: 4, xpRequired: 600, title: "Practitioner" },
-  { level: 5, xpRequired: 1000, title: "Skilled" },
-  { level: 6, xpRequired: 1500, title: "Advanced" },
-  { level: 7, xpRequired: 2500, title: "Expert" },
-  { level: 8, xpRequired: 4000, title: "Master" },
-  { level: 9, xpRequired: 6000, title: "Grandmaster" },
-  { level: 10, xpRequired: 10000, title: "Legend" },
-];
-
-// XP rewards for actions
-const XP_REWARDS: Record<string, number> = {
+export const XP_REWARDS = {
   lesson_completed: 25,
   quiz_passed: 50,
   quiz_perfect_score: 100,
   course_completed: 500,
-  first_comment: 10,
   helpful_answer: 30,
   daily_login: 5,
-  streak_bonus_7: 50,         // 7-day streak bonus
-  streak_bonus_30: 200,       // 30-day streak bonus
+} as const;
+export type Action = keyof typeof XP_REWARDS;
+
+// Which counter column an action increments (a fixed whitelist, never built from user input)
+export const COUNTER: Partial<Record<Action, string>> = {
+  lesson_completed: "lessons_completed",
+  course_completed: "courses_completed",
+  quiz_perfect_score: "perfect_scores",
 };
 
-// Achievement badges
-interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  condition: (stats: UserStats) => boolean;
-  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+export interface Stats {
+  total_xp: number; level: number; lessons_completed: number; courses_completed: number;
+  perfect_scores: number; current_streak: number; longest_streak: number;
 }
 
-interface UserStats {
-  totalXp: number;
-  level: number;
-  lessonsCompleted: number;
-  coursesCompleted: number;
-  currentStreak: number;
-  longestStreak: number;
-  quizzesPassed: number;
-  perfectScores: number;
-  daysActive: number;
-  helpfulAnswers: number;
-}
-
-const BADGES: Badge[] = [
-  { id: "first_lesson", name: "First Step", description: "Complete your first lesson", icon: "👶", rarity: "common",
-    condition: (s) => s.lessonsCompleted >= 1 },
-  { id: "ten_lessons", name: "Getting Serious", description: "Complete 10 lessons", icon: "📚", rarity: "common",
-    condition: (s) => s.lessonsCompleted >= 10 },
-  { id: "hundred_lessons", name: "Centurion", description: "Complete 100 lessons", icon: "🏛️", rarity: "rare",
-    condition: (s) => s.lessonsCompleted >= 100 },
-  { id: "first_course", name: "Graduate", description: "Complete your first course", icon: "🎓", rarity: "uncommon",
-    condition: (s) => s.coursesCompleted >= 1 },
-  { id: "five_courses", name: "Scholar", description: "Complete 5 courses", icon: "🎖️", rarity: "rare",
-    condition: (s) => s.coursesCompleted >= 5 },
-  { id: "streak_7", name: "On Fire", description: "7-day learning streak", icon: "🔥", rarity: "uncommon",
-    condition: (s) => s.currentStreak >= 7 },
-  { id: "streak_30", name: "Unstoppable", description: "30-day learning streak", icon: "⚡", rarity: "epic",
-    condition: (s) => s.currentStreak >= 30 },
-  { id: "streak_100", name: "Legendary Commitment", description: "100-day learning streak", icon: "💎", rarity: "legendary",
-    condition: (s) => s.longestStreak >= 100 },
-  { id: "perfect_quiz", name: "Perfectionist", description: "Get a perfect quiz score", icon: "💯", rarity: "uncommon",
-    condition: (s) => s.perfectScores >= 1 },
-  { id: "ten_perfect", name: "Flawless", description: "10 perfect quiz scores", icon: "✨", rarity: "epic",
-    condition: (s) => s.perfectScores >= 10 },
-  { id: "helper", name: "Mentor", description: "Give 10 helpful answers", icon: "🤝", rarity: "rare",
-    condition: (s) => s.helpfulAnswers >= 10 },
-  { id: "level_10", name: "Legend", description: "Reach level 10", icon: "👑", rarity: "legendary",
-    condition: (s) => s.level >= 10 },
+export const BADGES = [
+  { id: "first_lesson", name: "First Step", rarity: "common", earned: (s: Stats) => s.lessons_completed >= 1 },
+  { id: "hundred_lessons", name: "Centurion", rarity: "rare", earned: (s: Stats) => s.lessons_completed >= 100 },
+  { id: "first_course", name: "Graduate", rarity: "uncommon", earned: (s: Stats) => s.courses_completed >= 1 },
+  { id: "streak_7", name: "On Fire", rarity: "uncommon", earned: (s: Stats) => s.current_streak >= 7 },
+  { id: "streak_30", name: "Unstoppable", rarity: "epic", earned: (s: Stats) => s.current_streak >= 30 },
+  { id: "streak_100", name: "Legendary Commitment", rarity: "legendary", earned: (s: Stats) => s.longest_streak >= 100 },
+  { id: "perfect_quiz", name: "Perfectionist", rarity: "uncommon", earned: (s: Stats) => s.perfect_scores >= 1 },
+  { id: "level_10", name: "Legend", rarity: "legendary", earned: (s: Stats) => s.level >= 10 },
 ];
 
-// Award XP for an action
-export async function awardXP(
-  userId: string,
-  action: string,
-  metadata?: Record<string, any>
-): Promise<{
-  xpAwarded: number;
-  totalXp: number;
-  leveledUp: boolean;
-  newLevel: number | null;
-  newBadges: Badge[];
-  streakUpdated: boolean;
-}> {
-  const xp = XP_REWARDS[action];
-  if (!xp) return { xpAwarded: 0, totalXp: 0, leveledUp: false, newLevel: null, newBadges: [], streakUpdated: false };
+export const levelFor = (xp: number) => LEVELS.filter((min) => xp >= min).length;
+export const multiplierFor = (streak: number) => (streak >= 30 ? 1.5 : streak >= 7 ? 1.2 : 1);
+// One-off bonus on the day a streak reaches exactly 7 or 30
+export const streakBonus = (streak: number) => (streak === 7 ? 50 : streak === 30 ? 200 : 0);
 
-  // Apply streak multiplier
-  const streak = await updateStreak(userId);
-  const multiplier = streak >= 30 ? 1.5 : streak >= 7 ? 1.2 : 1.0;
-  const adjustedXp = Math.round(xp * multiplier);
-
-  // Update user XP
-  const { rows: [user] } = await pool.query(
-    `UPDATE user_gamification SET
-       total_xp = total_xp + $2,
-       ${action.includes("lesson") ? "lessons_completed = lessons_completed + 1," : ""}
-       ${action.includes("course") ? "courses_completed = courses_completed + 1," : ""}
-       ${action === "quiz_passed" ? "quizzes_passed = quizzes_passed + 1," : ""}
-       ${action === "quiz_perfect_score" ? "perfect_scores = perfect_scores + 1," : ""}
-       updated_at = NOW()
-     WHERE user_id = $1
-     RETURNING *`,
-    [userId, adjustedXp]
-  );
-
-  // Check level up
-  const currentLevel = calculateLevel(user.total_xp - adjustedXp);
-  const newLevel = calculateLevel(user.total_xp);
-  const leveledUp = newLevel > currentLevel;
-
-  if (leveledUp) {
-    await pool.query("UPDATE user_gamification SET level = $2 WHERE user_id = $1", [userId, newLevel]);
-  }
-
-  // Check new badges
-  const stats = userRowToStats(user);
-  stats.level = newLevel;
-  const newBadges = await checkBadges(userId, stats);
-
-  // Update leaderboard
-  await redis.zadd("leaderboard:weekly", user.total_xp, userId);
-  await redis.zadd("leaderboard:alltime", user.total_xp, userId);
-
-  // Streak bonuses
-  if (streak === 7) await awardXP(userId, "streak_bonus_7");
-  if (streak === 30) await awardXP(userId, "streak_bonus_30");
-
-  return {
-    xpAwarded: adjustedXp,
-    totalXp: user.total_xp,
-    leveledUp,
-    newLevel: leveledUp ? newLevel : null,
-    newBadges,
-    streakUpdated: true,
-  };
+export function nextStreak(lastDay: string | null, today: string, current: number): number {
+  if (lastDay === today) return current;
+  const yesterday = new Date(Date.parse(today) - 86_400_000).toISOString().slice(0, 10);
+  return lastDay === yesterday ? current + 1 : 1;
 }
 
-// Streak tracking
-async function updateStreak(userId: string): Promise<number> {
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-
-  const key = `streak:${userId}`;
-  const lastActive = await redis.hget(key, "lastActive");
-
-  if (lastActive === today) {
-    // Already active today
-    return parseInt(await redis.hget(key, "current") || "0");
-  }
-
-  let newStreak: number;
-  if (lastActive === yesterday) {
-    newStreak = parseInt(await redis.hget(key, "current") || "0") + 1;
-  } else {
-    newStreak = 1; // streak broken
-  }
-
-  await redis.hset(key, { lastActive: today, current: String(newStreak) });
-
-  // Update longest streak
-  const longest = parseInt(await redis.hget(key, "longest") || "0");
-  if (newStreak > longest) {
-    await redis.hset(key, "longest", String(newStreak));
-    await pool.query("UPDATE user_gamification SET longest_streak = $2, current_streak = $2 WHERE user_id = $1", [userId, newStreak]);
-  } else {
-    await pool.query("UPDATE user_gamification SET current_streak = $2 WHERE user_id = $1", [userId, newStreak]);
-  }
-
-  return newStreak;
-}
-
-// Get leaderboard
-export async function getLeaderboard(
-  period: "weekly" | "monthly" | "alltime",
-  limit: number = 20
-): Promise<Array<{ rank: number; userId: string; username: string; xp: number; level: number; avatar: string }>> {
-  const key = `leaderboard:${period}`;
-  const entries = await redis.zrevrange(key, 0, limit - 1, "WITHSCORES");
-
-  const results = [];
-  for (let i = 0; i < entries.length; i += 2) {
-    const userId = entries[i];
-    const xp = parseInt(entries[i + 1]);
-    const { rows: [user] } = await pool.query(
-      "SELECT username, avatar_url FROM users WHERE id = $1", [userId]
-    );
-    results.push({
-      rank: i / 2 + 1, userId, username: user?.username || "Unknown",
-      xp, level: calculateLevel(xp), avatar: user?.avatar_url || "",
-    });
-  }
-
-  return results;
-}
-
-async function checkBadges(userId: string, stats: UserStats): Promise<Badge[]> {
-  const { rows: earned } = await pool.query(
-    "SELECT badge_id FROM user_badges WHERE user_id = $1",
-    [userId]
-  );
-  const earnedIds = new Set(earned.map((r) => r.badge_id));
-  const newBadges: Badge[] = [];
-
-  for (const badge of BADGES) {
-    if (!earnedIds.has(badge.id) && badge.condition(stats)) {
-      await pool.query(
-        "INSERT INTO user_badges (user_id, badge_id, earned_at) VALUES ($1, $2, NOW())",
-        [userId, badge.id]
-      );
-      newBadges.push(badge);
-    }
-  }
-
-  return newBadges;
-}
-
-function calculateLevel(xp: number): number {
-  for (let i = LEVELS.length - 1; i >= 0; i--) {
-    if (xp >= LEVELS[i].xpRequired) return LEVELS[i].level;
-  }
-  return 1;
-}
-
-function userRowToStats(row: any): UserStats {
-  return {
-    totalXp: row.total_xp, level: row.level || 1,
-    lessonsCompleted: row.lessons_completed, coursesCompleted: row.courses_completed,
-    currentStreak: row.current_streak, longestStreak: row.longest_streak,
-    quizzesPassed: row.quizzes_passed, perfectScores: row.perfect_scores,
-    daysActive: row.days_active || 0, helpfulAnswers: row.helpful_answers || 0,
-  };
+// ISO week key such as "2026-W43", used to name the weekly leaderboard
+export function weekKey(d = new Date()): string {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const week = Math.ceil(((t.getTime() - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86_400_000 + 1) / 7);
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 ```
 
-## Results
+### Step 3: The award engine
 
-- **Course completion rate: 12% → 38%** — XP rewards and level progression create a sense of accomplishment; users complete courses to reach the next level
-- **Daily active users up 65%** — streak system (+ multiplier bonus) motivates daily returns; breaking a 30-day streak feels like losing something real
-- **Referral-driven growth** — leaderboard creates social proof; users share their badges and levels on social media; "I reached Expert level!" drives organic signups
-- **Badge rarity drives aspiration** — only 2% of users have the "Legendary Commitment" badge (100-day streak); rarity makes it worth pursuing
-- **Community engagement doubled** — "Mentor" badge rewards helpful answers; users actively help others to earn the badge
+One transaction records the event, updates the streak, XP and counters, and grants badges. Only after the commit does it touch Redis. The `COUNTER` map is a fixed whitelist, because column names cannot be bound as SQL parameters and must never come from the request.
+
+```typescript
+// src/engine.ts: award XP inside one Postgres transaction, then update Redis leaderboards
+import pg from "pg";
+import { Redis } from "ioredis";
+import { BADGES, COUNTER, XP_REWARDS, Action, Stats, levelFor, multiplierFor, nextStreak, streakBonus, weekKey } from "./rules.js";
+
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+export const redis = new Redis(process.env.REDIS_URL!);
+
+export async function awardXP(userId: string, action: Action, eventId: string) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    // Duplicate eventId (retry, double click, replayed webhook) => no second award
+    const dup = await client.query(
+      "INSERT INTO xp_events (event_id, user_id, action, xp) VALUES ($1, $2, $3, 0) ON CONFLICT DO NOTHING RETURNING 1",
+      [eventId, userId, action]
+    );
+    if (dup.rowCount === 0) { await client.query("ROLLBACK"); return { duplicate: true as const }; }
+
+    await client.query("INSERT INTO user_gamification (user_id) VALUES ($1) ON CONFLICT DO NOTHING", [userId]);
+    // FOR UPDATE serializes concurrent awards for the same user, so streaks and XP cannot race
+    const { rows: [before] } = await client.query(
+      "SELECT *, last_active_day::text AS last_day, (now() AT TIME ZONE 'UTC')::date::text AS today FROM user_gamification WHERE user_id = $1 FOR UPDATE",
+      [userId]
+    );
+    const streak = nextStreak(before.last_day, before.today, before.current_streak);
+    const xp = Math.round(XP_REWARDS[action] * multiplierFor(streak)) + (streak !== before.current_streak ? streakBonus(streak) : 0);
+    const counter = COUNTER[action];
+    const { rows: [after] } = await client.query(
+      `UPDATE user_gamification SET total_xp = total_xp + $2, current_streak = $3,
+         longest_streak = GREATEST(longest_streak, $3), last_active_day = $4::date
+         ${counter ? `, ${counter} = ${counter} + 1` : ""}
+       WHERE user_id = $1 RETURNING *`,
+      [userId, xp, streak, before.today]
+    );
+    const level = levelFor(after.total_xp);
+    await client.query("UPDATE user_gamification SET level = $2 WHERE user_id = $1", [userId, level]);
+    await client.query("UPDATE xp_events SET xp = $2 WHERE event_id = $1", [eventId, xp]);
+
+    const stats: Stats = { ...after, level };
+    const { rows: owned } = await client.query("SELECT badge_id FROM user_badges WHERE user_id = $1", [userId]);
+    const have = new Set(owned.map((r) => r.badge_id));
+    const newBadges = BADGES.filter((b) => !have.has(b.id) && b.earned(stats));
+    for (const b of newBadges) {
+      await client.query("INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [userId, b.id]);
+    }
+    await client.query("COMMIT");
+
+    // Leaderboards are a cache of xp_events. If Redis is down the award still stands and they can be rebuilt.
+    const week = `leaderboard:weekly:${weekKey()}`;
+    await redis.multi().zincrby(week, xp, userId).expire(week, 14 * 86_400).zincrby("leaderboard:alltime", xp, userId).exec()
+      .catch((err) => console.error("leaderboard update failed; rebuild from xp_events", err));
+
+    return { duplicate: false as const, xpAwarded: xp, totalXp: after.total_xp, streak, level,
+      leveledUp: level > before.level, newBadges: newBadges.map((b) => ({ id: b.id, name: b.name, rarity: b.rarity })) };
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getLeaderboard(period: "weekly" | "alltime", limit = 20) {
+  const key = period === "weekly" ? `leaderboard:weekly:${weekKey()}` : "leaderboard:alltime";
+  const entries = await redis.zrevrange(key, 0, limit - 1, "WITHSCORES");
+  const ids: string[] = [], scores: number[] = [];
+  for (let i = 0; i < entries.length; i += 2) { ids.push(entries[i]); scores.push(Number(entries[i + 1])); }
+  if (ids.length === 0) return [];
+  // One query, not one per row. The level comes from lifetime XP, not from the weekly score
+  const { rows } = await pool.query(
+    "SELECT u.id, u.username, u.avatar_url, coalesce(g.level, 1) AS level FROM users u LEFT JOIN user_gamification g ON g.user_id = u.id WHERE u.id = ANY($1)", [ids]);
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  return ids.map((id, i) => ({
+    rank: i + 1, userId: id, username: byId.get(id)?.username ?? "Unknown",
+    avatar: byId.get(id)?.avatar_url ?? "", xp: scores[i], level: byId.get(id)?.level ?? 1,
+  }));
+}
+```
+
+### Step 4: The HTTP API
+
+zod rejects any action that is not in the XP table before it reaches the engine. In production, take `userId` from the authenticated session or from a signed server-to-server call, never from a public request body. Streak days are counted in UTC here; a learning product with a global audience should store each user's timezone and pass the local date in.
+
+```typescript
+// src/server.ts: HTTP API with Hono; zod validates every request body
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { awardXP, getLeaderboard } from "./engine.js";
+import { XP_REWARDS } from "./rules.js";
+
+const app = new Hono();
+
+const eventSchema = z.object({
+  userId: z.string().min(1),
+  action: z.enum(Object.keys(XP_REWARDS) as [keyof typeof XP_REWARDS, ...(keyof typeof XP_REWARDS)[]]),
+  eventId: z.string().min(8).max(128), // e.g. "lesson-4412-user-88-attempt-1", built by the caller
+});
+
+app.post("/events", zValidator("json", eventSchema), async (c) => {
+  const { userId, action, eventId } = c.req.valid("json");
+  return c.json(await awardXP(userId, action, eventId));
+});
+
+app.get("/leaderboard/:period", zValidator("param", z.object({ period: z.enum(["weekly", "alltime"]) })), async (c) =>
+  c.json(await getLeaderboard(c.req.valid("param").period))
+);
+
+serve({ fetch: app.fetch, port: 3000, hostname: "127.0.0.1" });
+```
+
+### Step 5: Try it
+
+```bash
+export DATABASE_URL=postgres://postgres:$PGPASSWORD@127.0.0.1:5432/postgres REDIS_URL=redis://127.0.0.1:6379
+npx tsx src/server.ts &
+curl -s -X POST 127.0.0.1:3000/events -H 'content-type: application/json' \
+  -d '{"userId":"u1","action":"lesson_completed","eventId":"lesson-1-u1-a1"}'
+curl -s 127.0.0.1:3000/leaderboard/weekly
+```
+
+```console
+{"duplicate":false,"xpAwarded":25,"totalXp":25,"streak":1,"level":1,"leveledUp":false,"newBadges":[{"id":"first_lesson","name":"First Step","rarity":"common"}]}
+```
+
+Sending the same `eventId` again returns `{"duplicate":true}` and changes nothing. The weekly leaderboard is a separate Redis key per ISO week (`leaderboard:weekly:2026-W43`) that expires after 14 days, so it resets itself with no cron job.
+
+To rebuild a leaderboard after a Redis loss, replay the ledger:
+
+```sql
+SELECT user_id, sum(xp) AS xp FROM xp_events
+WHERE created_at >= date_trunc('week', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+GROUP BY user_id;
+```
+
+Write each row back with `ZADD leaderboard:weekly:<week> <xp> <user_id>`.
+
+## Real-World Example
+
+Hana's team wires the lesson player and the quiz service to `POST /events`, using `lesson-{lessonId}-{userId}-{attemptNo}` as the `eventId`. The front end shows the `leveledUp` and `newBadges` fields of the response as a toast, which means the client never computes game state itself. Badge names and thresholds sit in `rules.ts`, so the product team tunes them in a pull request.
+
+Before launch, Hana records the current 7-day return rate and course completion rate. After four weeks she compares them for users who earned a streak badge against those who did not, remembering that engaged users earn badges more often, so she holds back a control group for the next release. Whatever the numbers turn out to be, the `xp_events` ledger gives her the raw data to answer the question.
+
+## Related Skills
+
+- [typescript](https://terminalskills.io/skills/typescript): strict typing for the rules and engine
+- [redis](https://terminalskills.io/skills/redis): sorted-set leaderboards with expiring weekly keys
+- [postgresql](https://terminalskills.io/skills/postgresql): transactions, row locks and idempotent inserts
+- [hono](https://terminalskills.io/skills/hono): the HTTP API
+- [zod](https://terminalskills.io/skills/zod): request validation
