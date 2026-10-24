@@ -6,12 +6,13 @@ description: >-
   persistent project memory, avoiding repeated context setup. Covers claude-mem
   (AI-compressed session logs) and Claude Subconscious (Letta-based background agent).
 license: Apache-2.0
-compatibility: "Claude Code, Node.js 18+"
+compatibility: "Claude Code, Node.js 20.12+ (Bun and uv are installed automatically)"
 metadata:
   author: terminal-skills
-  version: "2.0.0"
+  version: "2.1.0"
   category: productivity
   tags: ["claude-code", "memory", "persistence", "context", "session"]
+  repository: https://github.com/thedotmack/claude-mem
 ---
 
 # Claude Code Persistent Memory
@@ -20,63 +21,74 @@ metadata:
 
 Claude Code forgets everything between sessions. Two open-source tools solve this by automatically capturing context and injecting it into future sessions:
 
-- **claude-mem** — captures session activity, compresses it with AI, injects relevant memories on next session. Lightweight, local-first.
-- **Claude Subconscious** — a background Letta agent that watches sessions, builds up memory over time, and whispers guidance back. Cloud or self-hosted.
+- **claude-mem** (v15) — a Claude Code plugin that records what Claude does through lifecycle hooks, compresses it into observations and summaries with an AI model, stores them in a local SQLite database, and injects relevant context into the next session.
+- **Claude Subconscious** — a Letta demo app: a background agent that watches sessions and whispers guidance back. Its README says it is a demo, not meant for production; Letta points to Letta Code for that.
 
 Both eliminate the need to re-explain context when returning to a project.
 
 ## Instructions
 
-### Option A: claude-mem (Local AI Compression)
+### Option A: claude-mem
 
-**GitHub:** [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+**GitHub:** [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (Apache-2.0). Needs Node.js 20.12+ (the package `engines` field); Bun and uv are installed automatically if missing.
 
 #### Setup
 
 ```bash
-npm install -g claude-mem
-cd your-project
-claude-mem init
-claude-mem setup-hooks
+npx claude-mem install
 ```
 
-This creates `.claude-mem/` with config, compressed memories, and an index. Hooks auto-capture after each session and auto-inject before the next.
+The installer registers the plugin and hooks, puts a `claude-mem` launcher in `~/.local/bin`, and starts the worker. In an interactive shell it also offers a browser sign-in to the hosted observer (30-day trial); to skip any account step, pass a provider explicitly or set `CLAUDE_MEM_ONLINE_OPTIN=false`:
+
+```bash
+CLAUDE_MEM_ONLINE_OPTIN=false npx claude-mem install --provider claude
+```
+
+Alternative from inside Claude Code: `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem`. Restart Claude Code afterwards.
+
+Do not use `npm install -g claude-mem`: the README says that installs only the SDK/library, with no hooks and no worker. The older `claude-mem init` / `setup-hooks` / `capture` / `inject` commands no longer exist.
 
 #### How It Works
 
-1. **Capture** — hooks into Claude Code session, records interactions
-2. **Compress** — AI summarizes session into structured memory (decisions, code changes, learnings)
-3. **Store** — compressed memories saved to `.claude-mem/` directory
-4. **Retrieve** — on new session, relevant memories injected into context
+1. **Capture** — hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, SessionEnd) run `claude-mem hook claude-code <event>`
+2. **Compress** — a local worker service (HTTP, managed by Bun) has an AI model turn tool usage into observations and session summaries
+3. **Store** — SQLite with FTS5 plus a Chroma vector index, under `~/.claude-mem/`
+4. **Retrieve** — recent relevant observations are injected at session start; Claude can search the rest through MCP tools
 
 #### Commands
 
 ```bash
-claude-mem capture                     # Capture current session
-claude-mem inject                      # Inject memories into context
-claude-mem search "auth flow"          # Semantic search through memories
-claude-mem list                        # List all memories
-claude-mem stats                       # Show memory stats
-claude-mem compress                    # Reduce storage for old memories
+npx claude-mem status               # worker status
+npx claude-mem doctor               # diagnose bun, uv, hook launcher, worker
+npx claude-mem search "auth flow"   # search observations
+npx claude-mem restart              # restart the worker
+npx claude-mem repair               # re-run Bun/uv setup
+npx claude-mem update               # update to the latest version
+npx claude-mem uninstall            # remove plugin, config and launcher
 ```
+
+The worker serves a local web viewer (`/viewer`) on `127.0.0.1`; the port is `CLAUDE_MEM_WORKER_PORT` (default `37700 + (uid % 100)`). Memories, sessions and settings are browsable there.
+
+#### Search tools (inside a session)
+
+Claude gets three MCP tools for a token-efficient workflow: `search` (compact index with IDs), `timeline` (context around a result), `get_observations` (full detail for chosen IDs; batch them). Ask in plain words, for example "what did we decide about the auth bug?", and the mem-search skill drives them.
 
 #### Configuration
 
+Settings live in `~/.claude-mem/settings.json`, created on first run, as flat `CLAUDE_MEM_*` keys:
+
 ```json
 {
-  "compression": {
-    "model": "claude-sonnet-4-20250514",
-    "strategy": "smart"
-  },
-  "inject": {
-    "maxMemories": 10,
-    "relevanceThreshold": 0.7,
-    "strategy": "semantic"
-  }
+  "CLAUDE_MEM_PROVIDER": "claude",
+  "CLAUDE_MEM_MODEL": "claude-haiku-4-5-20251001",
+  "CLAUDE_MEM_MODE": "code",
+  "CLAUDE_MEM_LOG_LEVEL": "INFO"
 }
 ```
 
-Strategies: `smart` (AI picks what's important), `full` (captures everything), `minimal` (only decisions and errors).
+`CLAUDE_MEM_PROVIDER` in settings.json accepts `claude`, `codex`, `gemini`, `openrouter` or `openai-compatible`; `CLAUDE_MEM_MODEL` applies to the Claude provider; `CLAUDE_MEM_MODE` sets workflow and output language (`code--zh`, `code--ja`, `code--es`); `CLAUDE_MEM_DATA_DIR` moves the data directory (default `~/.claude-mem`). The `CLAUDE_MEM_CONTEXT_*` keys control how much is injected at session start. Restart Claude Code after changing mode.
+
+Wrap content in your prompts that must not be stored in `<private>...</private>` tags: Claude sees it during the session, but it is not saved as an observation.
 
 ### Option B: Claude Subconscious (Letta Background Agent)
 
@@ -90,50 +102,42 @@ Strategies: `smart` (AI picks what's important), `full` (captures everything), `
 export LETTA_API_KEY="your-api-key"
 ```
 
-Get your API key from [app.letta.com](https://app.letta.com). Or self-host:
-
-```bash
-pip install letta
-letta server --port 8283
-export LETTA_BASE_URL="http://localhost:8283"
-```
+Get your API key from [app.letta.com](https://app.letta.com). For a self-hosted Letta server, also set `LETTA_BASE_URL` (default `https://api.letta.com`) to its address, for example `http://localhost:8283`. Mode is chosen with `LETTA_MODE`.
 
 #### Modes
 
-| Mode | Behavior | Token Cost |
+| `LETTA_MODE` | Behavior | Token Cost |
 |------|----------|------------|
-| `whisper` (default) | Short guidance before each prompt | Low |
-| `full` | Full memory blocks + message history | Higher |
+| `whisper` (default) | Only the agent's messages are injected | Low |
+| `full` | Memory blocks plus messages | Higher |
 | `off` | Disabled | None |
 
 ### Which to Choose
 
 | | claude-mem | Claude Subconscious |
 |---|-----------|-------------------|
-| Storage | Local files (.claude-mem/) | Letta cloud or self-hosted |
-| Cost | Uses your Claude API for compression | Requires Letta API key (free tier) |
-| Latency | Near-zero (local) | ~1-2s per whisper |
+| Storage | Local SQLite in ~/.claude-mem/ | Letta cloud or self-hosted |
+| Cost | A model call per compression (default Claude Haiku 4.5; hosted observer optional) | Requires a Letta API key or your own Letta server |
 | Memory style | Compressed session summaries | Continuous learning agent |
-| Best for | Local-first, privacy-sensitive | Rich cross-session context |
+| Best for | Searchable local history | Rich cross-session context |
 
 ## Examples
 
 ### Example 1: Session Continuity with claude-mem
 
-```bash
-# Session 1: Work on auth module
-$ claude-mem stats
-Memories: 12 | Storage: 45KB | Last capture: 2 hours ago
-
-# Session 2: Return to project — auto-injected context
-# Claude already knows: "You implemented JWT auth with RS256, refresh tokens in Redis"
+```console
+$ npx claude-mem install --provider claude
+$ npx claude-mem status
+$ npx claude-mem search "refresh token"
 ```
+
+Restart Claude Code, work on the auth module, end the session. In the next session the start-up context lists recent observations such as "Implemented JWT refresh-token rotation in auth/session.ts", and you can ask "why did we pick Redis for refresh tokens?" to trigger the search tools.
 
 ### Example 2: Architecture Recall with Subconscious
 
 After discussing a REST-to-GraphQL migration, you start a new session:
 
-```
+```text
 [subconscious] Last session you decided to switch from REST to GraphQL for the
 user service. Migration is 60% done — resolvers for User and Project are complete,
 Order and Payment still need conversion. You preferred code-first schema with TypeGraphQL.
@@ -142,8 +146,9 @@ Order and Payment still need conversion. You preferred code-first schema with Ty
 ## Guidelines
 
 - **Pair with CLAUDE.md** — use CLAUDE.md for static project context, persistent memory for dynamic decisions
-- **One tool per project** — don't run both claude-mem and Subconscious simultaneously
-- For claude-mem: set `relevanceThreshold` higher (0.8+) if too much context is injected
-- For Subconscious: `whisper` mode gives 90% of the value at lower token cost
-- Add `.claude-mem/memories/` to `.gitignore` for private projects
-- Memory quality depends on session length — short sessions produce less useful memories
+- **One tool per project** — do not run claude-mem and Subconscious together; both inject memory text into Claude's context and would overlap
+- claude-mem sends tool inputs and outputs to the configured provider for compression; use `<private>` tags for secrets, and pick a local or own-key provider if code must not reach the hosted observer
+- claude-mem collects anonymous telemetry by default; `npx claude-mem telemetry disable` opts out
+- If hooks report `Executable not found in $PATH: "claude-mem"`, run `npx claude-mem install`, restart the terminal, then `npx claude-mem doctor`
+- Subconscious is a demo app; for production use Letta Code instead
+- Memory quality depends on session length; short sessions yield thin memories
