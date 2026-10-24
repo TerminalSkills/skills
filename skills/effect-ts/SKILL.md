@@ -1,225 +1,185 @@
 ---
 name: effect-ts
 description: >-
-  Build robust TypeScript applications with Effect — type-safe error handling,
-  concurrency, dependency injection, and streaming. Use when someone asks to
-  "handle errors without try-catch", "type-safe error handling in TypeScript",
-  "dependency injection without classes", "concurrent TypeScript", "Effect library",
-  "replace try-catch with typed errors", or "functional programming in TypeScript".
-  Covers Effect, Layer, Schedule, Stream, and Schema.
+  Effect is a TypeScript library for typed errors, dependency injection,
+  structured concurrency, retries, streams and schema validation. Use when
+  someone asks to "handle errors without try-catch", "type-safe error handling
+  in TypeScript", "dependency injection without classes", "retry with
+  backoff", "concurrent TypeScript", "Effect library" or "replace Promise
+  chains with typed effects". Targets Effect 4.x and notes the changes from
+  3.x.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Bun. TypeScript 5.0+."
+compatibility: "Node.js 18+ or Bun; TypeScript 5.9+ with strict mode enabled; effect 4.x"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["typescript", "error-handling", "fp", "concurrency", "dependency-injection"]
+  repository: https://github.com/Effect-TS/effect
 ---
 
 # Effect-TS
 
 ## Overview
 
-Effect is a TypeScript library that makes errors, dependencies, and async operations explicit in the type system. Instead of `try-catch` with `unknown` errors, every function declares exactly what can go wrong. Instead of global imports, every dependency is tracked in the type. The result: code that's easier to test, refactor, and reason about.
+Effect makes failures and dependencies part of a function's type. An `Effect<A, E, R>` produces `A`, may fail with `E`, and needs services `R`. The current line is Effect 4.x (npm `latest` is 4.0.6; 3.22.x is tagged `prev`). Version 4 merged many packages into `effect` (`@effect/platform`, `@effect/rpc` and others), all ecosystem packages share one version, and some APIs were renamed. Code from older tutorials (`Context.Tag`, `Effect.catchAll`, `Schema.minLength`) does not compile on 4.x. Migration guide: https://github.com/Effect-TS/effect/blob/main/MIGRATION.md
 
-## When to Use
+Requirements: `strict: true` in `tsconfig.json`, TypeScript 5.9 or newer.
 
-- Business logic where knowing every possible error matters (payments, auth, data pipelines)
-- Applications with complex dependency graphs that need testability
-- Concurrent operations that need structured concurrency (not just Promise.all)
-- Data validation and transformation pipelines
-- Replacing error-prone try-catch chains with typed error handling
+```bash
+npm install effect
+```
 
 ## Instructions
 
-### Core Concept: Effect<Success, Error, Requirements>
+### Typed errors with `Effect.gen`
 
-Every Effect value has three type parameters:
-- **Success**: what it returns when it works
-- **Error**: what errors it can produce
-- **Requirements**: what services/dependencies it needs
+Define errors with `Data.TaggedError`; the `_tag` is added for you and `catchTag` narrows on it. Inside a generator, `yield*` unwraps an effect and `return yield* new MyError(...)` fails with it.
 
 ```typescript
-// core.ts — Effect basics: typed errors and pipe
-import { Effect, pipe } from "effect";
+// users.ts
+import { Data, Effect } from "effect"
 
-// Define typed errors (not just Error/string)
-class UserNotFound {
-  readonly _tag = "UserNotFound";
-  constructor(readonly userId: string) {}
-}
+class UserNotFound extends Data.TaggedError("UserNotFound")<{ readonly userId: string }> {}
+class DatabaseError extends Data.TaggedError("DatabaseError")<{ readonly cause: unknown }> {}
 
-class DatabaseError {
-  readonly _tag = "DatabaseError";
-  constructor(readonly cause: unknown) {}
-}
+interface User { readonly id: string; readonly name: string; readonly email: string }
+declare const db: { user: { findUnique(a: { where: { id: string } }): Promise<User | null> } }
 
-// Function that can fail with typed errors
-//           Success ───┐  Error ──────────────────────────┐  Requirements ─┐
-//                      ▼                                   ▼                ▼
-const getUser = (id: string): Effect.Effect<User, UserNotFound | DatabaseError, never> =>
-  pipe(
-    Effect.tryPromise({
+export const getUser = (id: string) =>
+  Effect.gen(function* () {
+    const user = yield* Effect.tryPromise({
       try: () => db.user.findUnique({ where: { id } }),
-      catch: (e) => new DatabaseError(e),
-    }),
-    Effect.flatMap((user) =>
-      user ? Effect.succeed(user) : Effect.fail(new UserNotFound(id))
-    )
-  );
+      catch: (cause) => new DatabaseError({ cause }),
+    })
+    if (user === null) return yield* new UserNotFound({ userId: id })
+    return user
+  })
+// Effect<User, DatabaseError | UserNotFound, never>
 
-// Handle specific errors
-const getUserOrDefault = (id: string) =>
-  pipe(
-    getUser(id),
+export const getUserOrGuest = (id: string) =>
+  getUser(id).pipe(
     Effect.catchTag("UserNotFound", () =>
-      Effect.succeed({ id: "default", name: "Guest", email: "guest@example.com" })
-    )
-    // DatabaseError is NOT caught — it propagates up in the type
-  );
+      Effect.succeed({ id: "guest", name: "Guest", email: "guest@northwind.dev" })),
+  ) // DatabaseError stays in the error type
 ```
 
-### Dependency Injection with Layers
+Renamed in 4.x: `Effect.catchAll` is now `Effect.catch`, `catchAllCause` is `catchCause`, `catchSome` is `catchFilter`. `catchTag` and `catchTags` are unchanged.
+
+### Services and layers
+
+In 4.x all of `Context.Tag`, `Context.GenericTag`, `Effect.Tag` and `Effect.Service` are replaced by `Context.Service`. The type parameters come first and the identifier goes in the second call. Static accessor proxies are gone: `yield*` the service (preferred) or use `Service.use((s) => ...)`.
 
 ```typescript
-// services.ts — Dependency injection without classes
-import { Effect, Context, Layer } from "effect";
+// services.ts
+import { Context, Data, Effect, Layer } from "effect"
 
-// Define a service interface
-class UserRepo extends Context.Tag("UserRepo")<
-  UserRepo,
-  {
-    findById: (id: string) => Effect.Effect<User | null, DatabaseError>;
-    create: (data: NewUser) => Effect.Effect<User, DatabaseError>;
-  }
->() {}
+class DatabaseError extends Data.TaggedError("DatabaseError")<{ readonly cause: unknown }> {}
+class UserNotFound extends Data.TaggedError("UserNotFound")<{ readonly userId: string }> {}
+interface User { readonly id: string; readonly name: string; readonly email: string }
+declare const prisma: { user: { findUnique(a: { where: { id: string } }): Promise<User | null> } }
 
-// Business logic that REQUIRES UserRepo (tracked in type)
-const getUser = (id: string) =>
-  pipe(
-    UserRepo,                    // Access the service
-    Effect.flatMap((repo) => repo.findById(id)),
-    Effect.flatMap((user) =>
-      user ? Effect.succeed(user) : Effect.fail(new UserNotFound(id))
-    )
-  );
-//   ^? Effect<User, UserNotFound | DatabaseError, UserRepo>
-//                                                  ^^^^^^^^ dependency tracked!
+export class UserRepo extends Context.Service<UserRepo, {
+  findById(id: string): Effect.Effect<User | null, DatabaseError>
+}>()("app/UserRepo") {
+  static readonly layer = Layer.succeed(UserRepo, {
+    findById: (id: string) =>
+      Effect.tryPromise({
+        try: () => prisma.user.findUnique({ where: { id } }),
+        catch: (cause) => new DatabaseError({ cause }),
+      }),
+  })
+}
 
-// Production implementation
-const UserRepoLive = Layer.succeed(UserRepo, {
-  findById: (id) =>
-    Effect.tryPromise({
-      try: () => prisma.user.findUnique({ where: { id } }),
-      catch: (e) => new DatabaseError(e),
+// Effect.fn names the function for traces and keeps generator ergonomics
+export const getUser = Effect.fn("getUser")(function* (id: string) {
+  const repo = yield* UserRepo
+  const user = yield* repo.findById(id)
+  if (user === null) return yield* new UserNotFound({ userId: id })
+  return user
+}) // (id: string) => Effect<User, DatabaseError | UserNotFound, UserRepo>
+
+// Entry point: provide the real layer and run once
+Effect.runPromise(getUser("u_1042").pipe(Effect.provide(UserRepo.layer)))
+
+// Test: same logic, fake layer
+const FakeRepo = Layer.succeed(UserRepo, {
+  findById: (id: string) => Effect.succeed({ id, name: "Test User", email: "test@northwind.dev" }),
+})
+Effect.runPromise(getUser("u_1").pipe(Effect.provide(FakeRepo)))
+```
+
+Use `Layer.effect(Service, effectBuildingTheImplementation)` when building the service needs other services or resources.
+
+### Concurrency, retry, timeout
+
+```typescript
+// resilience.ts
+import { Duration, Effect, Schedule } from "effect"
+
+// At most 5 at once; results keep input order
+export const processAll = (ids: string[]) =>
+  Effect.forEach(ids, (id) => processOne(id), { concurrency: 5 })
+
+export const fetchJson = (url: string) =>
+  Effect.tryPromise(() => fetch(url).then((r) => r.json() as Promise<unknown>)).pipe(
+    Effect.retry({
+      schedule: Schedule.exponential(Duration.seconds(1)).pipe(Schedule.jittered),
+      times: 3,
     }),
-  create: (data) =>
-    Effect.tryPromise({
-      try: () => prisma.user.create({ data }),
-      catch: (e) => new DatabaseError(e),
-    }),
-});
+    Effect.timeout(Duration.seconds(5)),
+  )
 
-// Test implementation
-const UserRepoTest = Layer.succeed(UserRepo, {
-  findById: (id) => Effect.succeed({ id, name: "Test", email: "test@test.com" }),
-  create: (data) => Effect.succeed({ id: "new-id", ...data }),
-});
-
-// Run with real dependencies
-Effect.runPromise(
-  pipe(getUser("123"), Effect.provide(UserRepoLive))
-);
-
-// Run with test dependencies
-Effect.runPromise(
-  pipe(getUser("123"), Effect.provide(UserRepoTest))
-);
+// First success wins, the loser is interrupted
+export const fastest = Effect.race(fetchJson("https://api-a.northwind.dev/rates"), fetchJson("https://api-b.northwind.dev/rates"))
+declare const processOne: (id: string) => Effect.Effect<void>
 ```
 
-### Concurrency and Scheduling
+### Schema
+
+`Schema` lives in `effect`. In 4.x, constraints are added with `.check(...)` and filters are named `is*`; `Schema.Literals([...])` takes an array.
 
 ```typescript
-// concurrent.ts — Structured concurrency with Effect
-import { Effect, Schedule, Duration } from "effect";
+// schema.ts
+import { Schema } from "effect"
 
-// Run tasks concurrently with a limit
-const processItems = (items: string[]) =>
-  Effect.forEach(items, (item) => processItem(item), {
-    concurrency: 5,    // Max 5 concurrent
-    batching: true,     // Batch database calls
-  });
+const NewUser = Schema.Struct({
+  name: Schema.String.check(Schema.isMinLength(2), Schema.isMaxLength(100)),
+  email: Schema.String.check(Schema.isPattern(/^[^@]+@[^@]+\.[^@]+$/)),
+  age: Schema.Number.check(Schema.isInt(), Schema.isBetween({ minimum: 13, maximum: 120 })),
+  role: Schema.Literals(["user", "admin"]),
+})
+type NewUser = typeof NewUser.Type
 
-// Retry with exponential backoff
-const resilientFetch = (url: string) =>
-  pipe(
-    Effect.tryPromise(() => fetch(url).then((r) => r.json())),
-    Effect.retry(
-      Schedule.exponential(Duration.seconds(1)).pipe(
-        Schedule.compose(Schedule.recurs(3)),  // Max 3 retries
-        Schedule.jittered,                      // Add random jitter
-      )
-    ),
-  );
-
-// Timeout
-const withTimeout = pipe(
-  slowOperation(),
-  Effect.timeout(Duration.seconds(5)),
-);
-
-// Race — first to complete wins
-const fastest = Effect.race(
-  fetchFromPrimary(),
-  fetchFromFallback(),
-);
+const user = Schema.decodeUnknownSync(NewUser)({ name: "Kai", email: "kai@northwind.dev", age: 25, role: "user" })
+const asEffect = Schema.decodeUnknownEffect(NewUser) // unknown -> Effect<NewUser, SchemaError>
 ```
 
-### Schema — Runtime Validation + Type Inference
+### Streams
 
 ```typescript
-// schema.ts — Validation with Effect Schema (replaces Zod)
-import { Schema } from "effect";
+import { Effect, Stream } from "effect"
 
-const User = Schema.Struct({
-  id: Schema.UUID,
-  name: Schema.String.pipe(Schema.minLength(2), Schema.maxLength(100)),
-  email: Schema.String.pipe(Schema.pattern(/^[^@]+@[^@]+\.[^@]+$/)),
-  age: Schema.Number.pipe(Schema.int(), Schema.between(13, 120)),
-  role: Schema.Literal("user", "admin"),
-  createdAt: Schema.Date,
-});
-
-// Type is inferred — no duplicate definition
-type User = Schema.Schema.Type<typeof User>;
-
-// Decode (parse + validate)
-const parseUser = Schema.decodeUnknown(User);
-const result = Effect.runSync(parseUser({ id: "...", name: "Kai", email: "kai@example.com", age: 25, role: "user", createdAt: new Date() }));
+const doubled = await Effect.runPromise(
+  Stream.fromIterable([1, 2, 3, 4]).pipe(Stream.map((n) => n * 2), Stream.filter((n) => n > 2), Stream.runCollect),
+) // [4, 6, 8]
 ```
 
 ## Examples
 
-### Example 1: Build a payment processing pipeline
+### Example 1: "Payment flow with typed errors for decline, fraud and timeout"
 
-**User prompt:** "Build a payment flow with typed errors for each failure case — card declined, insufficient funds, fraud detected, network timeout."
+Define `CardDeclined`, `InsufficientFunds`, `FraudSuspected` as `Data.TaggedError` classes and a `PaymentGateway` service with `Context.Service`. The charge function returns `Effect<Receipt, CardDeclined | InsufficientFunds | FraudSuspected | GatewayError, PaymentGateway>`. Retry only `GatewayError` (network) with `Effect.retry({ while: (e) => e._tag === "GatewayError", schedule, times: 3 })`, and let the other errors reach the HTTP handler, where `Effect.catchTags({ CardDeclined: ..., InsufficientFunds: ... })` maps each to a response. The compiler reports any case you forget.
 
-The agent will define tagged error types for each failure, compose the payment pipeline with Effect.pipe, add retry for network errors, and propagate card/fraud errors to the caller with full type information.
+### Example 2: "Test my business logic without the database"
 
-### Example 2: Testable service with dependency injection
-
-**User prompt:** "I want to test my business logic without hitting the database."
-
-The agent will define services as Effect Context.Tags, write business logic that depends on service interfaces, create Layer.succeed implementations for both production and test, and run the same logic against fake data in tests.
+Write the logic against `UserRepo` as in the services section, then in the test provide `Layer.succeed(UserRepo, {...})` with in-memory data. No mocking library is needed, and the production layer is only provided in `main.ts`.
 
 ## Guidelines
 
-- **Start with `Effect.tryPromise`** — wrap existing async code first, then gradually adopt more Effect patterns
-- **Tag your errors** — `readonly _tag = "ErrorName"` enables `catchTag` for precise error handling
-- **Layers for DI** — define service interfaces with Context.Tag, implement with Layer
-- **`pipe` everything** — Effect uses pipe-based composition; avoid nesting
-- **Don't `runPromise` inside Effects** — compose Effects together, run once at the entry point
-- **Schema over Zod** — Effect Schema integrates with the Effect ecosystem and is more composable
-- **Concurrency is explicit** — `{ concurrency: 5 }` not hidden behind promise pools
-- **Learning curve is real** — Effect is powerful but complex; introduce gradually to a team
-- **Effect is a runtime** — it manages execution; don't mix with raw Promises inside Effects
+- Install exactly one Effect line: `effect` and every `@effect/*` package (platform-node, sql-pg, vitest, opentelemetry) must have the same 4.x version. Pin `effect@3` and read the 3.x docs for an existing 3.x codebase.
+- Run effects once, at the program edge (`Effect.runPromise`, or `runMain` from the platform package for your runtime). Never call `runPromise` inside an effect.
+- Wrap Promise code with `Effect.tryPromise` and give `catch` a tagged error; do not leave `unknown` errors in the type.
+- Modules that the docs mark `@stability unstable` (for example `effect/http`, `effect/rpc`, `effect/sql`) may change in minor releases; the import path has no `unstable` segment in 4.x.
+- Concurrency is opt-in: `Effect.forEach` runs sequentially unless you pass `{ concurrency }`.
+- Effect has a real learning curve; adopt it by module (one service or one pipeline) rather than rewriting an app.
