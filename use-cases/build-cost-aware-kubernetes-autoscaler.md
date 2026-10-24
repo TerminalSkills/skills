@@ -3,14 +3,12 @@ title: Build a Cost-Aware Kubernetes Autoscaler
 slug: build-cost-aware-kubernetes-autoscaler
 description: >
   Replace reactive HPA with a predictive, cost-aware autoscaler that
-  pre-scales for traffic spikes, right-sizes pods, and saves $14K/month
-  on a $45K cloud bill — without sacrificing performance.
+  pre-scales for traffic spikes, right-sizes pods and caps spend,
+  without sacrificing performance.
 skills:
   - typescript
   - redis
   - postgresql
-  - zod
-  - hono
   - vitest
 category: devops
 tags:
@@ -26,487 +24,275 @@ tags:
 
 ## The Problem
 
-Jay is a platform engineer at a B2B SaaS company spending $45K/month on Kubernetes clusters across 3 environments. CPU utilization averages 23% — they're paying for 4x what they use. The default HPA (Horizontal Pod Autoscaler) reacts too slowly: when a sales demo drives 5x traffic at 2 PM, pods take 3 minutes to scale up and users see 503s. Engineers set high replica minimums "just in case," wasting $14K/month on idle pods. Nobody knows which services are over-provisioned because there's no cost attribution per team.
+Jay is a platform engineer at a B2B SaaS company spending $45K/month on Kubernetes clusters across 3 environments. CPU utilization averages 23%, so they pay for roughly four times what they use. The Horizontal Pod Autoscaler (HPA) reacts too slowly: when a sales demo drives five times the traffic at 2 PM, new pods take minutes to become ready and users see 503s. Engineers set high replica minimums "just in case", and nobody can say which services are over-provisioned because there is no cost attribution per team.
 
-Jay needs:
-- **Predictive scaling** — pre-scale for known traffic patterns (business hours, demos, deployments)
-- **Right-sizing recommendations** — analyze actual usage vs requested resources
-- **Cost attribution** — show each team what their services cost
-- **Intelligent scale-down** — don't kill pods during active requests; drain gracefully
-- **Budget guardrails** — prevent a runaway autoscaler from spending $100K overnight
-- **Performance SLOs** — never sacrifice p99 latency to save money
+## The Solution
 
-## Step 1: Resource Usage Collector
+A small TypeScript service with five parts:
 
-Collect actual CPU/memory usage per pod and compare against requested resources.
+1. a **collector** that samples pod usage from metrics-server and requests from the pod specs into PostgreSQL;
+2. a **right-sizer** that computes p95 usage in SQL and recommends requests;
+3. a **pure decision function** (unit-tested with Vitest) that combines a scheduled event, last week's pattern and the HPA-style CPU ratio, then applies a budget cap and one-pod-at-a-time scale-down;
+4. an **executor** that patches the Deployment's `scale` subresource and records history in Redis;
+5. a **cost report** query per team.
 
-```typescript
-// src/collector/usage-collector.ts
-// Scrapes Kubernetes metrics and stores usage history
+Prerequisites: metrics-server (serves `metrics.k8s.io/v1beta1`), Redis, PostgreSQL, Node.js 22+ (Vitest 5 requires it). Do not run this against a Deployment that also has an HPA: the two controllers will fight over `replicas`. Remove the HPA for services you hand to this service, or keep the HPA and use only the collector, right-sizer and cost report.
 
-import { Redis } from 'ioredis';
-import { Pool } from 'pg';
+Install: `npm i ioredis pg` and `npm i -D typescript vitest @types/node @types/pg`.
 
-const redis = new Redis(process.env.REDIS_URL!);
-const db = new Pool({ connectionString: process.env.DATABASE_URL });
+## Step-by-Step Walkthrough
 
-interface PodMetrics {
-  namespace: string;
-  deployment: string;
-  pod: string;
-  containers: Array<{
-    name: string;
-    cpuUsageMillicores: number;
-    cpuRequestMillicores: number;
-    cpuLimitMillicores: number;
-    memoryUsageMb: number;
-    memoryRequestMb: number;
-    memoryLimitMb: number;
-  }>;
-  timestamp: number;
-}
+### Step 1: Storage and permissions
 
-export async function collectMetrics(): Promise<PodMetrics[]> {
-  // Fetch from Kubernetes Metrics Server API
-  const metricsResponse = await fetch(
-    `${process.env.K8S_API}/apis/metrics.k8s.io/v1beta1/pods`,
-    { headers: { Authorization: `Bearer ${process.env.K8S_TOKEN}` } }
-  );
-  const metrics = await metricsResponse.json() as any;
-
-  // Fetch pod specs for requests/limits
-  const podsResponse = await fetch(
-    `${process.env.K8S_API}/api/v1/pods`,
-    { headers: { Authorization: `Bearer ${process.env.K8S_TOKEN}` } }
-  );
-  const pods = await podsResponse.json() as any;
-
-  const podSpecs = new Map<string, any>();
-  for (const pod of pods.items) {
-    podSpecs.set(pod.metadata.name, pod.spec);
-  }
-
-  const results: PodMetrics[] = [];
-
-  for (const item of metrics.items) {
-    const spec = podSpecs.get(item.metadata.name);
-    if (!spec) continue;
-
-    const deployment = item.metadata.labels?.['app'] ??
-      item.metadata.ownerReferences?.[0]?.name ?? 'unknown';
-
-    results.push({
-      namespace: item.metadata.namespace,
-      deployment,
-      pod: item.metadata.name,
-      containers: item.containers.map((c: any, i: number) => {
-        const specContainer = spec.containers[i];
-        return {
-          name: c.name,
-          cpuUsageMillicores: parseCpu(c.usage.cpu),
-          cpuRequestMillicores: parseCpu(specContainer?.resources?.requests?.cpu ?? '0'),
-          cpuLimitMillicores: parseCpu(specContainer?.resources?.limits?.cpu ?? '0'),
-          memoryUsageMb: parseMemory(c.usage.memory),
-          memoryRequestMb: parseMemory(specContainer?.resources?.requests?.memory ?? '0'),
-          memoryLimitMb: parseMemory(specContainer?.resources?.limits?.memory ?? '0'),
-        };
-      }),
-      timestamp: Date.now(),
-    });
-  }
-
-  // Store in Redis for real-time access + PostgreSQL for history
-  for (const pod of results) {
-    const key = `metrics:${pod.namespace}:${pod.deployment}`;
-    await redis.lpush(key, JSON.stringify(pod));
-    await redis.ltrim(key, 0, 1439);  // 24h at 1-minute intervals
-    await redis.expire(key, 172800);
-  }
-
-  // Batch insert to PostgreSQL for historical analysis
-  if (results.length > 0) {
-    const values = results.map(p =>
-      `('${p.namespace}', '${p.deployment}', ${JSON.stringify(p.containers).replace(/'/g, "''")}, ${p.timestamp})`
-    ).join(',');
-
-    await db.query(`
-      INSERT INTO pod_metrics (namespace, deployment, containers, collected_at)
-      VALUES ${values}
-    `);
-  }
-
-  return results;
-}
-
-function parseCpu(value: string): number {
-  if (value.endsWith('n')) return parseInt(value) / 1_000_000;
-  if (value.endsWith('m')) return parseInt(value);
-  return parseFloat(value) * 1000;
-}
-
-function parseMemory(value: string): number {
-  if (value.endsWith('Ki')) return parseInt(value) / 1024;
-  if (value.endsWith('Mi')) return parseInt(value);
-  if (value.endsWith('Gi')) return parseInt(value) * 1024;
-  return parseInt(value) / (1024 * 1024);
-}
+```sql
+CREATE TABLE pod_metrics (
+  namespace    text        NOT NULL,
+  deployment   text        NOT NULL,
+  pod          text        NOT NULL,
+  containers   jsonb       NOT NULL,
+  collected_at timestamptz NOT NULL DEFAULT now()
+);
 ```
 
-## Step 2: Right-Sizing Analyzer
+Give the service its own ServiceAccount with only these rules: `get`/`list` on `pods` (core group) and on `pods` in `metrics.k8s.io` (a ClusterRole), and `get`/`patch` on `deployments/scale` in `apps` (a namespaced Role in each namespace it manages).
+
+### Step 2: Usage collector
+
+Run it every minute (a CronJob or `setInterval`). Inside the cluster, authenticate with the pod's ServiceAccount token. Kubernetes rotates that token, so read the file on every request instead of caching it, and start Node with `NODE_EXTRA_CA_CERTS=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt` so `fetch` trusts the API server.
 
 ```typescript
-// src/analyzer/right-sizer.ts
-// Analyzes usage patterns and recommends optimal resource requests
+// src/k8s.ts
+import { readFileSync } from "node:fs";
+export const K8S = process.env.K8S_API ?? "https://kubernetes.default.svc";
+export const authHeaders = (): Record<string, string> => ({
+  Authorization: `Bearer ${readFileSync("/var/run/secrets/kubernetes.io/serviceaccount/token", "utf8").trim()}`,
+});
+```
 
-import { Pool } from 'pg';
+Queries are parameterized, and pods are matched by namespace and name, since names are only unique within a namespace. Resource quantities come in several spellings (`250m`, `100000n`, `512M`, `1Gi`), so the parsers handle each suffix.
+
+```typescript
+// src/collector.ts
+import { Pool } from "pg";
+import { K8S, authHeaders } from "./k8s.js";
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
-interface RightSizingRecommendation {
-  namespace: string;
-  deployment: string;
-  currentCpuRequest: number;      // millicores
-  recommendedCpuRequest: number;
-  currentMemoryRequest: number;   // MB
-  recommendedMemoryRequest: number;
-  potentialSavingsPercent: number;
-  monthlySavingsUsd: number;
-  confidence: 'high' | 'medium' | 'low';
-  dataPointsAnalyzed: number;
-}
-
-export async function analyzeRightSizing(
-  namespace: string,
-  deployment: string,
-  daysToAnalyze: number = 7
-): Promise<RightSizingRecommendation> {
-  // Get historical usage data
-  const result = await db.query(`
-    SELECT containers
-    FROM pod_metrics
-    WHERE namespace = $1 AND deployment = $2
-      AND collected_at > NOW() - INTERVAL '${daysToAnalyze} days'
-    ORDER BY collected_at
-  `, [namespace, deployment]);
-
-  if (result.rows.length < 100) {
-    throw new Error('Insufficient data for recommendation');
-  }
-
-  // Extract CPU and memory usage across all samples
-  const cpuSamples: number[] = [];
-  const memorySamples: number[] = [];
-  let currentCpuRequest = 0;
-  let currentMemoryRequest = 0;
-
-  for (const row of result.rows) {
-    const containers = row.containers as any[];
-    for (const c of containers) {
-      cpuSamples.push(c.cpuUsageMillicores);
-      memorySamples.push(c.memoryUsageMb);
-      currentCpuRequest = c.cpuRequestMillicores;
-      currentMemoryRequest = c.memoryRequestMb;
-    }
-  }
-
-  // Calculate p95 usage (we want headroom, not average)
-  cpuSamples.sort((a, b) => a - b);
-  memorySamples.sort((a, b) => a - b);
-
-  const cpuP95 = cpuSamples[Math.floor(cpuSamples.length * 0.95)];
-  const memP95 = memorySamples[Math.floor(memorySamples.length * 0.95)];
-
-  // Add 20% buffer above p95 for safety
-  const recommendedCpu = Math.ceil(cpuP95 * 1.2);
-  const recommendedMemory = Math.ceil(memP95 * 1.2);
-
-  // Don't recommend below minimum thresholds
-  const finalCpu = Math.max(50, recommendedCpu);    // at least 50m
-  const finalMemory = Math.max(64, recommendedMemory); // at least 64MB
-
-  // Calculate savings
-  const cpuSavingsPercent = currentCpuRequest > 0
-    ? ((currentCpuRequest - finalCpu) / currentCpuRequest) * 100
-    : 0;
-  const memorySavingsPercent = currentMemoryRequest > 0
-    ? ((currentMemoryRequest - finalMemory) / currentMemoryRequest) * 100
-    : 0;
-
-  // Rough cost estimate: $0.048/vCPU/hour, $0.006/GB/hour (on-demand)
-  const cpuSavingsMonthly = Math.max(0, (currentCpuRequest - finalCpu) / 1000) * 0.048 * 730;
-  const memSavingsMonthly = Math.max(0, (currentMemoryRequest - finalMemory) / 1024) * 0.006 * 730;
-
-  return {
-    namespace,
-    deployment,
-    currentCpuRequest,
-    recommendedCpuRequest: finalCpu,
-    currentMemoryRequest,
-    recommendedMemoryRequest: finalMemory,
-    potentialSavingsPercent: Math.max(cpuSavingsPercent, memorySavingsPercent),
-    monthlySavingsUsd: cpuSavingsMonthly + memSavingsMonthly,
-    confidence: result.rows.length > 1000 ? 'high' : result.rows.length > 500 ? 'medium' : 'low',
-    dataPointsAnalyzed: result.rows.length,
-  };
-}
-```
-
-## Step 3: Predictive Autoscaler
-
-```typescript
-// src/scaler/predictive.ts
-// Pre-scales based on historical traffic patterns
-
-import { Redis } from 'ioredis';
-
-const redis = new Redis(process.env.REDIS_URL!);
-
-interface ScaleDecision {
-  deployment: string;
-  namespace: string;
-  currentReplicas: number;
-  targetReplicas: number;
-  reason: string;
-  estimatedCostChange: number;  // $/hour
-}
-
-export async function predictAndScale(
-  namespace: string,
-  deployment: string,
-  currentReplicas: number,
-  currentCpuPercent: number,
-  config: {
-    minReplicas: number;
-    maxReplicas: number;
-    targetCpuPercent: number;
-    costPerReplicaHour: number;
-    budgetMaxReplicaHour: number;
-  }
-): Promise<ScaleDecision> {
-  // 1. Check scheduled events (demos, deployments, marketing campaigns)
-  const scheduled = await getScheduledScaleEvents(deployment);
-  if (scheduled) {
-    return {
-      deployment, namespace, currentReplicas,
-      targetReplicas: Math.min(scheduled.replicas, config.maxReplicas),
-      reason: `Scheduled: ${scheduled.reason}`,
-      estimatedCostChange: (scheduled.replicas - currentReplicas) * config.costPerReplicaHour,
-    };
-  }
-
-  // 2. Check historical pattern (same hour, same day of week)
-  const historicalTarget = await getHistoricalReplicas(deployment);
-
-  // 3. Reactive component (current CPU)
-  const reactiveTarget = Math.ceil(
-    currentReplicas * (currentCpuPercent / config.targetCpuPercent)
-  );
-
-  // 4. Take the max of historical and reactive (conservative)
-  let targetReplicas = Math.max(historicalTarget, reactiveTarget);
-
-  // 5. Apply bounds
-  targetReplicas = Math.max(config.minReplicas, Math.min(config.maxReplicas, targetReplicas));
-
-  // 6. Budget guardrail
-  const hourlyCost = targetReplicas * config.costPerReplicaHour;
-  if (hourlyCost > config.budgetMaxReplicaHour) {
-    const budgetCappedReplicas = Math.floor(config.budgetMaxReplicaHour / config.costPerReplicaHour);
-    targetReplicas = Math.max(config.minReplicas, budgetCappedReplicas);
-  }
-
-  // 7. Scale-down dampening: don't scale down more than 1 pod per cycle
-  if (targetReplicas < currentReplicas) {
-    targetReplicas = Math.max(targetReplicas, currentReplicas - 1);
-  }
-
-  const reason = targetReplicas > currentReplicas
-    ? `Scale up: CPU at ${currentCpuPercent}% (target ${config.targetCpuPercent}%), historical suggests ${historicalTarget}`
-    : targetReplicas < currentReplicas
-    ? `Scale down: CPU at ${currentCpuPercent}%, safe to reduce`
-    : 'No change needed';
-
-  return {
-    deployment, namespace, currentReplicas, targetReplicas, reason,
-    estimatedCostChange: (targetReplicas - currentReplicas) * config.costPerReplicaHour,
-  };
-}
-
-async function getScheduledScaleEvents(deployment: string): Promise<{
-  replicas: number; reason: string;
-} | null> {
-  const event = await redis.get(`scale:scheduled:${deployment}`);
-  if (!event) return null;
-  const parsed = JSON.parse(event);
-
-  // Check if event is within 15-minute window
-  const now = Date.now();
-  if (parsed.startAt <= now && parsed.endAt >= now) {
-    return { replicas: parsed.replicas, reason: parsed.reason };
-  }
-  return null;
-}
-
-async function getHistoricalReplicas(deployment: string): Promise<number> {
-  const now = new Date();
-  const hour = now.getHours();
-  const dayOfWeek = now.getDay();
-
-  // Look up what replica count was needed at this time last week
-  const key = `scale:history:${deployment}:${dayOfWeek}:${hour}`;
-  const historical = await redis.get(key);
-
-  return historical ? parseInt(historical) : 1;
-}
-```
-
-## Step 4: Cost Attribution Dashboard
-
-```typescript
-// src/costs/attribution.ts
-// Calculates per-team, per-service cloud cost
-
-import { Pool } from 'pg';
-
-const db = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Pricing: on-demand rates per hour
-const PRICING = {
-  cpuPerCoreHour: 0.048,     // $/vCPU/hour
-  memoryPerGbHour: 0.006,    // $/GB/hour
-  storagePerGbMonth: 0.10,   // $/GB/month for PVCs
+export const parseCpu = (v: string): number => {
+  const m = /^([\d.]+)(n|u|m)?$/.exec(v);
+  if (!m) return 0;
+  const scale = { n: 1e-6, u: 1e-3, m: 1 }[m[2] as "n" | "u" | "m"] ?? 1000;
+  return parseFloat(m[1]) * scale; // -> millicores
 };
 
-interface CostBreakdown {
-  team: string;
-  namespace: string;
-  deployment: string;
-  dailyCpuCost: number;
-  dailyMemoryCost: number;
-  dailyTotalCost: number;
-  monthlyProjection: number;
-  utilizationPercent: number;
-  wastedSpendPercent: number;
-}
+export const parseMemory = (v: string): number => {
+  const m = /^([\d.]+)(Ki|Mi|Gi|Ti|k|M|G|T)?$/.exec(v);
+  if (!m) return 0;
+  const bytes: Record<string, number> = { Ki: 1024, Mi: 1024 ** 2, Gi: 1024 ** 3, Ti: 1024 ** 4, k: 1e3, M: 1e6, G: 1e9, T: 1e12 };
+  return (parseFloat(m[1]) * (bytes[m[2]] ?? 1)) / 1024 ** 2; // -> MiB
+};
 
-export async function calculateCostAttribution(
-  date: string  // YYYY-MM-DD
-): Promise<CostBreakdown[]> {
-  // Get average resource usage and requests per deployment
-  const result = await db.query(`
-    SELECT
-      namespace,
-      deployment,
-      AVG((c->>'cpuUsageMillicores')::float) as avg_cpu_usage,
-      AVG((c->>'cpuRequestMillicores')::float) as avg_cpu_request,
-      AVG((c->>'memoryUsageMb')::float) as avg_mem_usage,
-      AVG((c->>'memoryRequestMb')::float) as avg_mem_request,
-      COUNT(DISTINCT pod) as replica_count
-    FROM pod_metrics,
-      jsonb_array_elements(containers::jsonb) as c
-    WHERE collected_at::date = $1::date
-    GROUP BY namespace, deployment
-  `, [date]);
+const get = async (path: string) => {
+  const r = await fetch(`${K8S}${path}`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(`${path}: ${r.status}`);
+  return r.json() as Promise<any>;
+};
 
-  // Map namespaces to teams
-  const teamMap: Record<string, string> = {
-    'api': 'Backend',
-    'frontend': 'Frontend',
-    'ml': 'Data Science',
-    'payments': 'Payments',
-    'default': 'Platform',
-  };
+// checkout-7d9f8b6c5-x2x4k -> ReplicaSet checkout-7d9f8b6c5 -> Deployment checkout
+const deploymentOf = (pod: any): string => {
+  const rs = pod.metadata.ownerReferences?.find((o: any) => o.kind === "ReplicaSet")?.name;
+  return rs ? rs.replace(/-[a-z0-9]+$/, "") : pod.metadata.name;
+};
 
-  return result.rows.map(row => {
-    const cpuRequestCores = row.avg_cpu_request / 1000;
-    const memRequestGb = row.avg_mem_request / 1024;
-
-    const dailyCpuCost = cpuRequestCores * PRICING.cpuPerCoreHour * 24;
-    const dailyMemoryCost = memRequestGb * PRICING.memoryPerGbHour * 24;
-    const dailyTotalCost = (dailyCpuCost + dailyMemoryCost) * row.replica_count;
-
-    const cpuUtil = row.avg_cpu_request > 0 ? (row.avg_cpu_usage / row.avg_cpu_request) * 100 : 0;
-    const memUtil = row.avg_mem_request > 0 ? (row.avg_mem_usage / row.avg_mem_request) * 100 : 0;
-    const avgUtil = (cpuUtil + memUtil) / 2;
-
-    return {
-      team: teamMap[row.namespace] ?? row.namespace,
-      namespace: row.namespace,
-      deployment: row.deployment,
-      dailyCpuCost: Math.round(dailyCpuCost * 100) / 100,
-      dailyMemoryCost: Math.round(dailyMemoryCost * 100) / 100,
-      dailyTotalCost: Math.round(dailyTotalCost * 100) / 100,
-      monthlyProjection: Math.round(dailyTotalCost * 30 * 100) / 100,
-      utilizationPercent: Math.round(avgUtil),
-      wastedSpendPercent: Math.round(Math.max(0, 100 - avgUtil)),
-    };
-  });
+export async function collectMetrics(): Promise<number> {
+  const [usage, pods] = await Promise.all([get("/apis/metrics.k8s.io/v1beta1/pods"), get("/api/v1/pods")]);
+  const specs = new Map<string, any>(pods.items.map((p: any) => [`${p.metadata.namespace}/${p.metadata.name}`, p]));
+  let rows = 0;
+  for (const item of usage.items) {
+    const pod = specs.get(`${item.metadata.namespace}/${item.metadata.name}`);
+    if (!pod) continue;
+    const containers = item.containers.map((c: any) => {
+      const res = pod.spec.containers.find((s: any) => s.name === c.name)?.resources ?? {};
+      return {
+        name: c.name,
+        cpuUsage: parseCpu(c.usage.cpu),
+        cpuRequest: parseCpu(res.requests?.cpu ?? "0"),
+        memUsage: parseMemory(c.usage.memory),
+        memRequest: parseMemory(res.requests?.memory ?? "0"),
+      };
+    });
+    await db.query(
+      "INSERT INTO pod_metrics (namespace, deployment, pod, containers) VALUES ($1, $2, $3, $4)",
+      [item.metadata.namespace, deploymentOf(pod), item.metadata.name, JSON.stringify(containers)],
+    );
+    rows++;
+  }
+  return rows;
 }
 ```
 
-## Step 5: Scale Execution with Graceful Drain
+### Step 3: Right-sizing analyzer
+
+The p95 is computed by PostgreSQL, so no samples are pulled into Node.
 
 ```typescript
-// src/scaler/executor.ts
-// Applies scaling decisions with graceful pod draining
+// src/right-sizer.ts
+import { Pool } from "pg";
 
-export async function applyScaleDecision(decision: {
-  namespace: string;
-  deployment: string;
-  currentReplicas: number;
-  targetReplicas: number;
-}): Promise<{ success: boolean; message: string }> {
-  if (decision.targetReplicas === decision.currentReplicas) {
-    return { success: true, message: 'No scaling needed' };
-  }
+const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
-  // Scale via Kubernetes API
-  try {
-    const response = await fetch(
-      `${process.env.K8S_API}/apis/apps/v1/namespaces/${decision.namespace}/deployments/${decision.deployment}/scale`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${process.env.K8S_TOKEN}`,
-          'Content-Type': 'application/strategic-merge-patch+json',
-        },
-        body: JSON.stringify({ spec: { replicas: decision.targetReplicas } }),
-      }
-    );
+export async function recommend(namespace: string, deployment: string, days = 7) {
+  const { rows } = await db.query(
+    `SELECT c->>'name' AS container,
+            count(*)::int AS samples,
+            percentile_cont(0.95) WITHIN GROUP (ORDER BY (c->>'cpuUsage')::float) AS cpu_p95,
+            percentile_cont(0.95) WITHIN GROUP (ORDER BY (c->>'memUsage')::float) AS mem_p95,
+            max((c->>'cpuRequest')::float) AS cpu_request,
+            max((c->>'memRequest')::float) AS mem_request
+       FROM pod_metrics, jsonb_array_elements(containers) AS c
+      WHERE namespace = $1 AND deployment = $2
+        AND collected_at > now() - make_interval(days => $3)
+      GROUP BY 1`,
+    [namespace, deployment, days],
+  );
 
-    if (!response.ok) {
-      const error = await response.text();
-      return { success: false, message: `K8s API error: ${error}` };
-    }
-
-    // Record for historical pattern learning
-    const { Redis } = await import('ioredis');
-    const redis = new Redis(process.env.REDIS_URL!);
-    const now = new Date();
-    const key = `scale:history:${decision.deployment}:${now.getDay()}:${now.getHours()}`;
-    await redis.setex(key, 604800, String(decision.targetReplicas));  // 7-day TTL
-    redis.disconnect();
-
-    return {
-      success: true,
-      message: `Scaled ${decision.deployment}: ${decision.currentReplicas} → ${decision.targetReplicas}`,
-    };
-  } catch (err: any) {
-    return { success: false, message: err.message };
-  }
+  return rows.map((r) => ({
+    container: r.container,
+    cpuRequest: { current: r.cpu_request, recommended: Math.max(50, Math.ceil(r.cpu_p95 * 1.2)) }, // p95 + 20%, floor 50m
+    memRequestMiB: { current: r.mem_request, recommended: Math.max(64, Math.ceil(r.mem_p95 * 1.2)) }, // floor 64 MiB
+    confidence: r.samples >= 1000 ? "high" : r.samples >= 300 ? "medium" : "low",
+  }));
 }
 ```
 
-## Results
+### Step 4: The scaling decision, with tests
 
-After 3 months of cost-aware autoscaling:
+A pure function: every rule is testable without a cluster.
 
-- **Monthly cloud bill**: dropped from $45K to $31K — **$14K/month saved** (31% reduction)
-- **Average CPU utilization**: increased from 23% to 58% — resources actually used
-- **Scale-up latency**: 0 seconds for predicted traffic (pre-scaled 15 min before demos)
-- **503 errors during demos**: zero (was 2-3 incidents per week)
-- **Scale-down incidents**: zero — graceful drain prevents dropped requests
-- **Budget guardrails**: prevented 2 runaway scale-ups that would have cost $3K each
-- **Cost attribution**: each team sees their spend; Backend team voluntarily right-sized 6 services
-- **Right-sizing applied**: 14 deployments resized, saving $8K/month from over-provisioned pods
-- **Predictive accuracy**: 84% of scale-up events predicted from historical patterns
+```typescript
+// src/decide.ts
+export interface ScaleInput {
+  currentReplicas: number;
+  currentCpuPercent: number;   // average CPU as % of request
+  historicalReplicas: number;  // what this weekday/hour needed last time
+  scheduled?: { replicas: number; reason: string };
+  minReplicas: number;
+  maxReplicas: number;
+  targetCpuPercent: number;
+  costPerReplicaHour: number;
+  maxHourlyBudget: number;
+}
+
+export function decideReplicas(i: ScaleInput): { target: number; reason: string } {
+  const clamp = (n: number) => Math.max(i.minReplicas, Math.min(i.maxReplicas, n));
+
+  // Scheduled event (demo, campaign), else the larger of the HPA-style estimate and last week's pattern.
+  let target = i.scheduled
+    ? clamp(i.scheduled.replicas)
+    : clamp(Math.max(Math.ceil((i.currentReplicas * i.currentCpuPercent) / i.targetCpuPercent), i.historicalReplicas));
+
+  // Budget guardrail: stay under the hourly cap, but never below the floor.
+  const affordable = Math.floor(i.maxHourlyBudget / i.costPerReplicaHour);
+  if (target > affordable) target = Math.max(i.minReplicas, affordable);
+
+  // Scale down at most one pod per cycle.
+  if (target < i.currentReplicas) target = Math.max(target, i.currentReplicas - 1);
+
+  const reason = i.scheduled && target >= i.scheduled.replicas ? `scheduled: ${i.scheduled.reason}`
+    : target > i.currentReplicas ? `scale up: CPU ${i.currentCpuPercent}% vs target ${i.targetCpuPercent}%`
+    : target < i.currentReplicas ? "scale down: load below target"
+    : "no change";
+  return { target, reason };
+}
+```
+
+```typescript
+// src/decide.test.ts
+import { describe, expect, it } from "vitest";
+import { decideReplicas, type ScaleInput } from "./decide";
+
+const base: ScaleInput = {
+  currentReplicas: 4, currentCpuPercent: 60, historicalReplicas: 1,
+  minReplicas: 2, maxReplicas: 20, targetCpuPercent: 60,
+  costPerReplicaHour: 0.1, maxHourlyBudget: 1.0,
+};
+
+describe("decideReplicas", () => {
+  it("scales up reactively", () => {
+    expect(decideReplicas({ ...base, currentCpuPercent: 120 }).target).toBe(8);
+  });
+  it("pre-scales for a scheduled event", () => {
+    const s = { replicas: 9, reason: "demo" };
+    expect(decideReplicas({ ...base, currentCpuPercent: 10, scheduled: s }).target).toBe(9);
+  });
+  it("caps at the hourly budget", () => {
+    expect(decideReplicas({ ...base, currentCpuPercent: 600 }).target).toBe(10);
+  });
+  it("scales down one pod per cycle, never below the floor", () => {
+    expect(decideReplicas({ ...base, currentCpuPercent: 5 }).target).toBe(3);
+  });
+});
+```
+
+Run `npx vitest run`.
+
+### Step 5: Executor
+
+Scaling goes through the Deployment's `scale` subresource with a JSON merge patch. The loop that calls it reads the CPU average from the metrics table, the historical value from `scale:history:*`, and a `scale:scheduled:<namespace>:<deployment>` JSON value (`{"replicas":12,"reason":"customer demo","startAt":<ms>,"endAt":<ms>}`, with a TTL) when `now` is inside its window.
+
+```typescript
+// src/executor.ts
+import { Redis } from "ioredis";
+import { K8S, authHeaders } from "./k8s.js";
+
+const redis = new Redis(process.env.REDIS_URL!);
+
+export async function applyScale(namespace: string, deployment: string, replicas: number) {
+  const r = await fetch(
+    `${K8S}/apis/apps/v1/namespaces/${namespace}/deployments/${deployment}/scale`,
+    {
+      method: "PATCH",
+      headers: {
+        ...authHeaders(),
+        "Content-Type": "application/merge-patch+json",
+      },
+      body: JSON.stringify({ spec: { replicas } }),
+    },
+  );
+  if (!r.ok) return { ok: false, message: `${r.status} ${await r.text()}` };
+  const now = new Date(); // remembered for next week's pattern
+  await redis.set(`scale:history:${namespace}:${deployment}:${now.getDay()}:${now.getHours()}`, replicas, "EX", 14 * 86400);
+  return { ok: true, message: `${deployment} -> ${replicas}` };
+}
+```
+
+### Step 6: Make scale-down graceful
+
+The autoscaler only changes the replica count; Kubernetes picks the pod to remove. Dropped requests are prevented in the workload: give every service you scale down a `preStop` hook (`exec: { command: ["sleep", "10"] }`) so endpoints drain before SIGTERM, a `terminationGracePeriodSeconds` longer than your slowest request, and a PodDisruptionBudget with `maxUnavailable: 1` so node drains cannot remove several replicas at once.
+
+### Step 7: Cost per team
+
+Charge for what pods request, because that is what the scheduler reserves and the node bill follows. Each sample is one pod-minute, so request-minutes divided by 60 gives pod-hours; map namespaces to teams in a table you own.
+
+```sql
+SELECT namespace, deployment,
+       round((sum((c->>'cpuRequest')::float) / 1000 / 60 * $1 +
+              sum((c->>'memRequest')::float) / 1024 / 60 * $2)::numeric, 2) AS usd,
+       round(100 * sum((c->>'cpuUsage')::float) / NULLIF(sum((c->>'cpuRequest')::float), 0)) AS cpu_utilization_pct
+  FROM pod_metrics, jsonb_array_elements(containers) AS c
+ WHERE collected_at::date = $3
+ GROUP BY 1, 2 ORDER BY usd DESC;
+```
+
+Bind `$1`/`$2` as your CPU-core-hour and GiB-hour rates, `$3` as the day.
+
+## Real-World Example
+
+Jay runs the collector for a week, then the right-sizer over the 20 busiest Deployments. Most recommendations cut CPU requests by half or more, and `high` confidence ones are applied through the normal Helm values review rather than automatically. For the 2 PM demo he writes that scheduled entry for 12 replicas the day before, and the decision function holds 12 replicas for that window instead of waiting for CPU to rise. After a quarter the team's own bill figures show lower idle spend and no demo-time 503s; your numbers will depend on your workloads and cloud prices.
+
+## Related Skills
+
+- [typescript](../skills/typescript/) for the service code
+- [redis](../skills/redis/) for scheduled events and weekday/hour history
+- [postgresql](../skills/postgresql/) for usage history and p95 queries
+- [vitest](../skills/vitest/) for testing the decision rules
