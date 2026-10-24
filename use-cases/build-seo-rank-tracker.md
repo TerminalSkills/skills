@@ -1,6 +1,7 @@
 ---
 title: "Build a Keyword Rank Tracker"
-description: "Monitor Google keyword positions daily across 5000+ keywords and 50+ client sites, with position change alerts, historical charts, and competitor tracking."
+slug: build-seo-rank-tracker
+description: "Monitor Google keyword positions on a schedule across thousands of keywords and many client sites, with position-change alerts and historical data."
 skills: [prisma, resend]
 difficulty: intermediate
 time_estimate: "10 hours"
@@ -11,316 +12,288 @@ tags: [seo, rank-tracking, keywords, analytics, alerts, agency]
 
 ## The Problem
 
-SEO tools like Ahrefs and SEMrush cost $400-500/month for agency plans. You're tracking 5,000 keywords across 50 client sites. Most of that price is for features you don't use. The core need is simple: check Google rankings daily and alert when something changes.
+Commercial rank trackers charge by tracked keyword, and an agency with 50 clients and thousands of keywords outgrows the cheap tiers quickly. The core need is simple: check Google rankings on a schedule and alert when something changes. You want to own the data and put your own branding on it.
 
 ## Who This Is For
 
-**Persona:** An SEO agency owner with 50 clients. You currently use a mix of SERPWatcher and manual checks. You want a white-labeled tool running on your own server, with your branding, that you can offer as an add-on to clients. No per-keyword pricing. Own the data.
+**Persona:** An SEO agency owner with 50 clients who currently mixes a hosted tracker with manual checks, and wants a tool on their own server that they can offer to clients as an add-on.
 
 ## What You'll Build
 
-- Keyword and URL management per client/project
-- Daily automated rank checking via SerpAPI or ValueSERP
-- Position change alerts (±5 spots threshold)
-- Historical position charts per keyword
-- Competitor tracking: your rank vs competitor domains
-- Weekly summary email per client
-
----
+- Keyword management per client project (country, language, device)
+- Scheduled rank checks through the SerpAPI Google Search API
+- Position-change alerts (5 or more places) by email, one email per client
+- A history query for per-keyword position charts
 
 ## Architecture
 
 ```
-Cron Job (daily 3am UTC)
+cron / systemd timer (daily)
     ↓
-Rank Checker Worker
-    ├── SerpAPI / ValueSERP calls (batched)
-    └── Parse rank for target URL in results
-         ↓
-Prisma: store RankSnapshot
-         ↓
-Compare vs yesterday → trigger alerts if change ≥ 5
-         ↓
-Resend: alert email to client
+rank-checker.ts   → SerpAPI (one search per results page, stops when the domain is found)
+    ↓
+Prisma → Postgres: RankSnapshot
+    ↓
+alerts.ts: compare the two newest snapshots → Resend email per client
 ```
 
----
+A long-running batch like this belongs in a plain Node process started by cron or a systemd timer, not in a serverless function: thousands of keywords outlive a function's time limit, and work started after the response is sent can be killed.
 
 ## Step 1: Data Schema
 
+Tested with Prisma 7.10 (`prisma-client` generator, Postgres driver adapter). Prisma 7 reads the connection URL from `prisma.config.ts`, not the schema.
+
+```console
+$ npm install @prisma/client@7 @prisma/adapter-pg@7 pg resend
+$ npm install -D prisma@7 typescript tsx @types/node @types/pg
+```
+
+Pin the `7` major: the `latest` tag of the `prisma` CLI package currently points at an 8.0 release candidate, which this page's config and generator were not tested with.
+
+```typescript
+// prisma.config.ts
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: env("DATABASE_URL") },
+});
+```
+
 ```prisma
-// schema.prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
 model Project {
-  id       String    @id @default(cuid())
-  name     String
-  domain   String    // e.g. "example.com"
+  id          String              @id @default(cuid())
+  name        String
+  domain      String              // bare host, e.g. "example.com"
   clientEmail String
-  keywords Keyword[]
-  competitors ProjectCompetitor[]
-  createdAt DateTime @default(now())
+  keywords    Keyword[]
+  createdAt   DateTime            @default(now())
 }
 
 model Keyword {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   keyword   String
-  targetUrl String   // specific URL to track
-  country   String   @default("us")
-  language  String   @default("en")
-  device    String   @default("desktop") // desktop | mobile
+  country   String         @default("us")
+  language  String         @default("en")
+  device    String         @default("desktop") // desktop | mobile
   snapshots RankSnapshot[]
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
 
-  @@index([projectId])
+  @@unique([projectId, keyword, country, language, device])
 }
 
 model RankSnapshot {
   id        String   @id @default(cuid())
   keywordId String
   keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
-  position  Int?     // null = not in top 100
-  url       String?  // actual ranking URL (may differ from target)
-  date      DateTime @default(now())
+  position  Int?     // null = not found in the pages we fetched
+  url       String?  // the URL that actually ranks
   checkedAt DateTime @default(now())
 
-  @@index([keywordId, date])
-}
-
-model ProjectCompetitor {
-  id        String  @id @default(cuid())
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  domain    String
+  @@index([keywordId, checkedAt])
 }
 ```
 
----
+Run `npx prisma generate` and `npx prisma migrate dev --name init` (use `prisma migrate deploy` in production).
 
 ## Step 2: Rank Checking Worker
 
-```typescript
-// workers/rankChecker.ts
-import { prisma } from '@/lib/prisma'
+SerpAPI's Google endpoint (`https://serpapi.com/search.json`) takes `q`, `gl` (country), `hl` (language), `device` (`desktop`, `tablet` or `mobile`) and `start` (result offset). It does not offer a "100 results" parameter, so each page of about 10 results is a separate search and counts against your plan. The worker therefore fetches page by page and stops as soon as the domain appears, up to `MAX_PAGES`.
 
-const SERP_API_KEY = process.env.SERPAPI_KEY!
-const BATCH_SIZE = 10 // process 10 keywords at a time
+```typescript
+// src/db.ts — Prisma 7 needs a driver adapter
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "./generated/prisma/client.js";
+
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
+
+// src/rank-checker.ts — one SerpAPI search per results page, stop as soon as the domain shows up
+import { prisma } from "./db.js";
+import { runAlerts } from "./alerts.js";
+
+const SERPAPI = process.env.SERPAPI_BASE ?? "https://serpapi.com/search.json";
+const MAX_PAGES = Number(process.env.MAX_PAGES ?? 3); // 3 pages ≈ top 30; every page is 1 billed search
+const CONCURRENCY = 5;
+
+type Organic = { position: number; link: string };
+type Check = { id: string; keyword: string; country: string; language: string; device: string; project: { domain: string } };
+
+async function fetchPage(k: Check, page: number): Promise<Organic[]> {
+  const params = new URLSearchParams({
+    engine: "google",
+    q: k.keyword,
+    gl: k.country,
+    hl: k.language,
+    device: k.device,
+    start: String(page * 10),
+    api_key: process.env.SERPAPI_KEY!,
+  });
+  const res = await fetch(`${SERPAPI}?${params}`);
+  const body = (await res.json()) as { error?: string; organic_results?: Organic[] };
+  if (!res.ok || body.error) throw new Error(body.error ?? `HTTP ${res.status}`);
+  return body.organic_results ?? [];
+}
+
+// Match on hostname, not substring: "notexample.com" must not count as "example.com".
+function isDomain(link: string, domain: string): boolean {
+  try {
+    const host = new URL(link).hostname.replace(/^www\./, "");
+    return host === domain || host.endsWith(`.${domain}`);
+  } catch {
+    return false;
+  }
+}
+
+async function checkKeyword(k: Check) {
+  let found: Organic | undefined;
+  for (let page = 0; page < MAX_PAGES && !found; page++) {
+    const results = await fetchPage(k, page);
+    if (results.length === 0) break;
+    found = results.find((r) => isDomain(r.link, k.project.domain));
+    // SerpAPI's sample for start=10 numbers results from 1 again: make the position absolute
+    if (found && page > 0 && found.position <= page * 10) found = { ...found, position: page * 10 + found.position };
+  }
+  await prisma.rankSnapshot.create({
+    data: { keywordId: k.id, position: found?.position ?? null, url: found?.link ?? null },
+  });
+}
 
 export async function runDailyRankCheck() {
-  const keywords = await prisma.keyword.findMany({
-    include: { project: true }
-  })
-
-  console.log(`Checking ${keywords.length} keywords...`)
-
-  // Process in batches to respect API rate limits
-  for (let i = 0; i < keywords.length; i += BATCH_SIZE) {
-    const batch = keywords.slice(i, i + BATCH_SIZE)
-    await Promise.all(batch.map(checkKeyword))
-    // Small delay between batches
-    if (i + BATCH_SIZE < keywords.length) {
-      await sleep(1000)
-    }
-  }
-
-  console.log('Rank check complete. Running alerts...')
-  await runAlerts()
-}
-
-async function checkKeyword(keyword: any) {
-  try {
-    const result = await fetchSerp(keyword.keyword, keyword.country, keyword.language, keyword.device)
-    const position = findPosition(result.organic_results, keyword.targetUrl, keyword.project.domain)
-
-    await prisma.rankSnapshot.create({
-      data: {
-        keywordId: keyword.id,
-        position,
-        url: position ? findUrl(result.organic_results, keyword.project.domain) : null
+  const keywords = await prisma.keyword.findMany({ include: { project: true } });
+  console.log(`Checking ${keywords.length} keywords...`);
+  const queue = [...keywords];
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => {
+      for (let k = queue.shift(); k; k = queue.shift()) {
+        try {
+          await checkKeyword(k);
+        } catch (err) {
+          // A failed check writes no snapshot, so it can never look like "dropped out of the results"
+          console.error(`keyword ${k.id} failed:`, (err as Error).message);
+        }
       }
-    })
-  } catch (err) {
-    console.error(`Failed to check keyword ${keyword.id}:`, err)
-  }
+    }),
+  );
+  await runAlerts();
 }
 
-async function fetchSerp(query: string, country: string, language: string, device: string) {
-  const params = new URLSearchParams({
-    q: query,
-    gl: country,
-    hl: language,
-    device,
-    num: '100',
-    api_key: SERP_API_KEY
-  })
-
-  const res = await fetch(`https://serpapi.com/search.json?${params}`)
-  return res.json()
-}
-
-function findPosition(results: any[], targetUrl: string, domain: string): number | null {
-  for (let i = 0; i < results.length; i++) {
-    const link: string = results[i].link ?? ''
-    if (link.includes(domain) || link.includes(targetUrl)) {
-      return i + 1
-    }
-  }
-  return null
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runDailyRankCheck().then(() => prisma.$disconnect()).catch((e) => { console.error(e); process.exit(1); });
 }
 ```
-
----
 
 ## Step 3: Position Change Alerts
 
 ```typescript
-// workers/alerts.ts
-import { prisma } from '@/lib/prisma'
-import { Resend } from 'resend'
+// src/alerts.ts — compare the two newest snapshots, send one email per client
+import { Resend } from "resend";
+import { prisma } from "./db.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
-const ALERT_THRESHOLD = 5
+const resend = new Resend(process.env.RESEND_API_KEY);
+const THRESHOLD = 5;
+const OUT = 101; // treat "not found" as just past the pages we fetched
+
+type Move = { keyword: string; domain: string; before: number | null; after: number | null; change: number };
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+const show = (p: number | null) => (p === null ? "not in top results" : `#${p}`);
 
 export async function runAlerts() {
   const keywords = await prisma.keyword.findMany({
-    include: {
-      project: true,
-      snapshots: {
-        orderBy: { checkedAt: 'desc' },
-        take: 2  // today and yesterday
-      }
-    }
-  })
+    include: { project: true, snapshots: { orderBy: { checkedAt: "desc" }, take: 2 } },
+  });
 
-  const alerts: Record<string, any[]> = {} // clientEmail → alerts
-
-  for (const kw of keywords) {
-    if (kw.snapshots.length < 2) continue
-
-    const today = kw.snapshots[0].position
-    const yesterday = kw.snapshots[1].position
-
-    if (today === null || yesterday === null) continue
-
-    const change = yesterday - today // positive = improved (lower number is better)
-
-    if (Math.abs(change) >= ALERT_THRESHOLD) {
-      const email = kw.project.clientEmail
-      if (!alerts[email]) alerts[email] = []
-      alerts[email].push({
-        keyword: kw.keyword,
-        domain: kw.project.domain,
-        yesterday,
-        today,
-        change,
-        improved: change > 0
-      })
-    }
+  const byClient = new Map<string, Move[]>();
+  for (const k of keywords) {
+    if (k.snapshots.length < 2) continue;
+    const [now, before] = [k.snapshots[0].position, k.snapshots[1].position];
+    const change = (before ?? OUT) - (now ?? OUT); // positive = moved up
+    if (Math.abs(change) < THRESHOLD) continue;
+    const list = byClient.get(k.project.clientEmail) ?? [];
+    list.push({ keyword: k.keyword, domain: k.project.domain, before, after: now, change });
+    byClient.set(k.project.clientEmail, list);
   }
 
-  // Send one email per client (batch alerts)
-  for (const [email, keywordAlerts] of Object.entries(alerts)) {
-    await sendAlertEmail(email, keywordAlerts)
+  for (const [email, moves] of byClient) {
+    const row = (m: Move) =>
+      `<li><strong>${esc(m.keyword)}</strong> (${esc(m.domain)}): ${show(m.before)} → ${show(m.after)}</li>`;
+    const up = moves.filter((m) => m.change > 0);
+    const down = moves.filter((m) => m.change < 0);
+    const { error } = await resend.emails.send({
+      from: process.env.ALERT_FROM!, // an address on a domain verified in Resend
+      to: email,
+      subject: `Rank alert: ${moves.length} keyword${moves.length === 1 ? "" : "s"} moved`,
+      html: `<h2>Keyword position changes</h2>
+        ${up.length ? `<h3>Up (${up.length})</h3><ul>${up.map(row).join("")}</ul>` : ""}
+        ${down.length ? `<h3>Down (${down.length})</h3><ul>${down.map(row).join("")}</ul>` : ""}`,
+    });
+    if (error) console.error(`alert to ${email} failed:`, error.message);
   }
-}
-
-async function sendAlertEmail(clientEmail: string, alerts: any[]) {
-  const improved = alerts.filter(a => a.improved)
-  const dropped = alerts.filter(a => !a.improved)
-
-  await resend.emails.send({
-    from: 'ranks@yourseo.com',
-    to: clientEmail,
-    subject: `Rank Alert: ${alerts.length} keyword${alerts.length !== 1 ? 's' : ''} moved significantly`,
-    html: `
-      <h2>Keyword Position Alerts</h2>
-      ${improved.length > 0 ? `
-        <h3>🟢 Improved (${improved.length})</h3>
-        <ul>${improved.map(a => `<li><strong>${a.keyword}</strong>: #${a.yesterday} → #${a.today} (+${a.change})</li>`).join('')}</ul>
-      ` : ''}
-      ${dropped.length > 0 ? `
-        <h3>🔴 Dropped (${dropped.length})</h3>
-        <ul>${dropped.map(a => `<li><strong>${a.keyword}</strong>: #${a.yesterday} → #${a.today} (${a.change})</li>`).join('')}</ul>
-      ` : ''}
-    `
-  })
 }
 ```
 
----
+Verify your sending domain in Resend and use an address on it for `ALERT_FROM`. The `esc()` helper matters: keywords are user input going into HTML.
 
-## Step 4: Historical Chart API
+## Step 4: History for Charts
 
 ```typescript
-// app/api/keywords/[id]/history/route.ts
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { searchParams } = new URL(req.url)
-  const days = Number(searchParams.get('days') ?? 30)
+// src/history.ts — data for a position chart (call from any route handler)
+import { prisma } from "./db.js";
 
-  const since = new Date()
-  since.setDate(since.getDate() - days)
-
-  const snapshots = await prisma.rankSnapshot.findMany({
-    where: {
-      keywordId: params.id,
-      checkedAt: { gte: since }
-    },
-    orderBy: { checkedAt: 'asc' },
-    select: { position: true, checkedAt: true }
-  })
-
-  return Response.json({
-    data: snapshots.map(s => ({
-      date: s.checkedAt.toISOString().split('T')[0],
-      position: s.position
-    }))
-  })
+export async function keywordHistory(keywordId: string, days = 30) {
+  const since = new Date(Date.now() - days * 86_400_000);
+  const rows = await prisma.rankSnapshot.findMany({
+    where: { keywordId, checkedAt: { gte: since } },
+    orderBy: { checkedAt: "asc" },
+    select: { position: true, checkedAt: true },
+  });
+  return rows.map((r) => ({ date: r.checkedAt.toISOString().slice(0, 10), position: r.position }));
 }
 ```
 
----
+Plot it with a chart library such as Recharts or ECharts, inverting the y-axis so position 1 is at the top. A `null` position means "not found in the pages fetched".
 
-## Step 5: Cron Trigger
+## Step 5: Schedule It
 
-```typescript
-// app/api/cron/rank-check/route.ts
-// Vercel cron or external cron hitting this endpoint daily
-export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', { status: 401 })
-  }
+Put the secrets in an env file readable only by the service user (`DATABASE_URL`, `SERPAPI_KEY`, `RESEND_API_KEY`, `ALERT_FROM`) and run the worker from cron:
 
-  // Run async, respond immediately
-  runDailyRankCheck().catch(console.error)
-
-  return Response.json({ started: true, timestamp: new Date() })
-}
+```console
+$ crontab -l
+0 3 * * * cd /srv/rank-tracker && node --env-file=.env --import tsx src/rank-checker.ts >> /var/log/rank-tracker.log 2>&1
 ```
-
-Vercel `vercel.json`:
-```json
-{
-  "crons": [{ "path": "/api/cron/rank-check", "schedule": "0 3 * * *" }]
-}
-```
-
----
 
 ## Cost Analysis
 
-| Keywords | SerpAPI cost | Ahrefs plan | Savings |
-|----------|-------------|-------------|---------|
-| 500/day | ~$15/mo | $99/mo | $84/mo |
-| 5,000/day | ~$75/mo | $399/mo | $324/mo |
-| 50,000/day | ~$500/mo | Custom | Huge |
+SerpAPI bills per search, and monthly plans are fixed (checked on serpapi.com/pricing, October 2026): $25 for 1,000, $75 for 5,000, $150 for 15,000, $275 for 30,000 searches. Cost is driven by how often you check and how deep you look; the table assumes the domain is found on page 1 (1 search per check).
 
----
+| Keywords | Check frequency | Searches/month | Fits plan |
+|----------|-----------------|----------------|-----------|
+| 500 | weekly | ~2,200 | $75 |
+| 500 | daily | ~15,000 (15,500 in a 31-day month) | $275 |
+| 5,000 | weekly | ~21,700 | $275 |
+| 5,000 | daily | ~150,000 | above the listed plans; ask SerpAPI for a quote |
+
+Keywords that rank deeper, or not at all, cost up to `MAX_PAGES` searches per check. Daily checks of every keyword are rarely worth it: weekly for the long tail and daily for each client's top 50 keywords keeps both cost and noise down.
 
 ## Next Steps
+1. Competitor tracking: add a `ProjectCompetitor` table and record each competitor's position from the same SERP response, at no extra search cost
+2. Weekly summary email per client, and a dashboard with position timelines
+3. Google Search Console data (impressions, clicks) for your clients' own sites, free through its API
 
-1. Build a React dashboard with Recharts position timeline graphs
-2. Add Google Search Console integration for impression/click data
-3. Implement white-label client portal with custom subdomain
-4. Add Slack/Telegram alerting as alternative to email
-5. Support local pack and featured snippet tracking
+## Related Skills
+
+- [prisma](../skills/prisma/SKILL.md) — schema, migrations and the typed client
+- [resend](../skills/resend/SKILL.md) — transactional email for the alerts
