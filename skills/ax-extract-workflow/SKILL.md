@@ -1,177 +1,129 @@
 ---
 name: ax-extract-workflow
 description: >-
-  Reconstructs the workflow behind a past artifact by querying local ax session,
-  recall, and commit history data. Use when a user asks "what made X work",
-  "how was Y shipped/built", "extract workflow from <date|sha>", "workflow
-  around <topic>", "recipe for this feature", or similar. It finds the anchor
-  session or commit, inspects ax sessions, ax recall, and ax sessions show, and
-  returns an ordered read-only narrative with decisions and evidence.
+  Rebuilds how a past feature, fix or release came about by reading the local
+  ax history graph (sessions, commits, subagents) through the ax CLI. Use when
+  asked "how did we build X", "what made Y work", "walk me through the work
+  around commit <sha>" or "recipe for this feature". Finds the anchor commit or
+  date, inspects the sessions around it and answers with an ordered,
+  evidence-backed narrative. Read-only.
 license: Apache-2.0
-compatibility: "Requires ax or axctl on PATH and a populated local ax database/daemon data for the repository or user account."
+compatibility: "Requires the ax CLI (github.com/Necmttn/ax, binary ax or axctl) on PATH, with agent session history already ingested; run inside the git repository being asked about."
 metadata:
-  author: Necmttn
-  version: "1.0.0"
+  author: terminal-skills
+  version: "2.0.0"
   category: productivity
-  tags: ["ax", "workflow-reconstruction", "sessions", "developer-productivity"]
+  tags: ["ax", "session-history", "workflow-reconstruction", "git"]
 ---
 
-# Ax Extract Workflow
+# Reconstruct a Past Workflow with ax
 
 ## Overview
 
-Reconstruct how a past coding result happened by reading the user's local ax graph. Use this to answer questions about the sequence of sessions, commits, skills, subagents, and user decisions that produced a feature, fix, demo, PR, or other artifact.
+ax ingests the transcripts of coding agents (Claude Code, Codex, Pi, OpenCode, Cursor and others), git history and tool calls into a local database. Nothing is uploaded and no daemon runs. This skill uses that database to answer one kind of question: what sequence of sessions, decisions and commits produced a given result, so the user can repeat it.
 
-This is a read-only investigation skill. Inspect `ax sessions`, `ax recall`, and `ax sessions show`; do not create files, update docs, edit code, or write `.ax/tasks` unless the user separately asks for a saved artifact.
+The work is strictly read-only: query, read, summarise in chat. Do not edit code, write recipe files or run ax commands that change state (`ingest`, `improve accept`, `profile publish`, `contribute`) unless the user asks for that separately.
 
 ## Instructions
 
-### 1. Check ax availability
-
-Prefer `ax`; fall back to `axctl` only if `ax` is unavailable.
+### 1. Confirm ax is usable
 
 ```bash
 command -v ax || command -v axctl
+ax doctor
 ```
 
-If neither command is available, or ax cannot reach its local data, stop and tell the user to run `ax doctor`, start the ax daemon, or install ax. Do not use repo-local startup scripts.
+- If neither binary exists, tell the user to install ax from https://ax.necmttn.com/docs. Do not install it for them and never pipe an installer into a shell. The npm package named `ax` is a different project.
+- If `ax doctor` reports problems, or `ax sessions here` returns nothing for a repository the user has worked in, ask them to run `ax ingest` (the first full import can take a while) and then retry.
 
-### 2. Resolve the anchor
+### 2. Choose the anchor
 
-Choose one anchor mode from the user's request:
+| The user gives | Start with |
+|---|---|
+| a commit SHA | `ax sessions near <sha> --json` (run inside that repo) |
+| a date or period | `ax sessions around <YYYY-MM-DD> --days=3 --json` (window is plus or minus N days) |
+| a topic or feature name | `ax recall "<topic>" --sources=commit --json`, pick the best commit, then `ax sessions near <sha>` |
+| nothing precise | `ax sessions here --days=14 --json` (current repository) |
 
-- Commit SHA: use the SHA directly.
-- Date: use the date window.
-- Topic, feature, or artifact name: search commits first.
-- "This repo recently" or no precise anchor: inspect recent sessions in the current repository.
+`ax recall` is full-text search over past work; `--sources` takes `turn`, `commit` and `skill` (comma separated, default `turn`). Narrow it with `--project` or `--since` when the topic is common. If several commits fit, show the short list and ask which one before going on. `sessions here` hides subagent sessions unless you add `--include-subagents`.
 
-Use these commands:
+### 3. Read the sessions that matter
+
+Prefer sessions that overlap the anchor, show heavy activity, or mention the artifact in their summaries, files or commits. Two to five are usually enough.
 
 ```bash
-ax recall <q> --sources=commit --json
-ax sessions near <sha> --json
-ax sessions around <date> --days=3 --json
-ax sessions here --days=14 --json
+ax sessions show 7c1d2e4a-58b0-4f0e-9a6d-3b5f21c8d0aa --json
+ax sessions show 7c1d2e4a-58b0-4f0e-9a6d-3b5f21c8d0aa --by-role
+ax sessions show 7c1d2e4a-58b0-4f0e-9a6d-3b5f21c8d0aa --expand=2f2b5d9e-7f89-4a0f-b8ee-9657cdbb8c10
 ```
 
-For topic mode, pick the best matching commit from `ax recall <q> --sources=commit --json`, then continue with `ax sessions near <sha> --json`. If several candidates are plausible, show the short list and ask the user to choose.
+- Copy session ids exactly as the listing printed it.
+- `--by-role` groups the skills used by role, which helps to order the steps.
+- Subagents appear as one-line summaries. Use `--expand=<uuid>` with the subagent id (repeatable) or `--all` only for the ones that carried the real work.
+- `--turns` adds short excerpts of the conversation when the summary is not enough.
 
-### 3. Inspect relevant sessions
+### 4. Answer in chat
 
-Pick the sessions most likely to explain the artifact. Bias toward sessions close to the anchor, sessions with high activity, and sessions whose summaries, files, or commits match the artifact.
+Give, briefly:
 
-Inspect each selected session:
-
-```bash
-ax sessions show <id> --json
-```
-
-Use role grouping when it helps order skills:
-
-```bash
-ax sessions show <id> --by-role
-```
-
-If a subagent or child session appears central, expand it:
-
-```bash
-ax sessions show <id> --expand=<uuid>
-```
-
-### 4. Return an evidence-backed reconstruction
-
-Answer inline in chat. Include:
-
-- Anchor: the commit, date, topic, or recent-window basis used.
-- Sessions inspected: session IDs and why each mattered.
-- Ordered workflow: the steps that produced the result, with skills/tools when visible.
-- Key decisions: 2-4 steering points from the user or agent, with session references.
-- Evidence: commits, filenames, command results, or turn references from ax output.
-- Gaps: missing telemetry, ambiguous sessions, or places where ax data is inconclusive.
-
-Keep the reconstruction concise. The goal is to explain what happened well enough that the user can repeat the workflow, not to dump the entire session history.
+1. Anchor: the commit, date window or topic used.
+2. Sessions read, with a line on why each mattered.
+3. The ordered steps that led to the result, naming skills and tools where visible.
+4. Two to four decisions where the user or agent changed direction.
+5. Evidence: commit SHAs, file names, command output, turn references.
+6. Gaps: missing telemetry, ambiguous sessions, parts that ax cannot show.
 
 ## Examples
 
-### Example 1: Reconstruct from a topic
+### Example 1: from a topic to a workflow
 
-**Input**
-
-```text
-What made the live ingest dashboard fix work?
-```
-
-**Commands**
+User: "What made the retry fix in the billing webhook work?"
 
 ```bash
-ax recall "live ingest dashboard fix" --sources=commit --json
+ax recall "billing webhook retry" --sources=commit --json
 ax sessions near 9f31c2a --json
-ax sessions show codex:2026-06-14T19-22-10 --json
-ax sessions show codex:2026-06-14T19-22-10 --by-role
+ax sessions show 7c1d2e4a-58b0-4f0e-9a6d-3b5f21c8d0aa --by-role
 ```
 
-**Output**
+Reply shape:
 
 ```text
-Anchor: commit 9f31c2a, "serve studio from daemon root".
-
-Sessions inspected:
-- codex:2026-06-14T19-22-10: closest session to the commit; touched dashboard serving and live ingest code.
-
-Ordered workflow:
-1. Diagnosis: reproduced the hosted-studio loopback failure and identified same-origin serving as the fix.
-2. Implementation: updated daemon asset serving so the studio loads from http://127.0.0.1:1738/.
-3. Verification: checked API/version behavior and confirmed the Live tab degrades when compiled builds cannot run ingest.
-
-Key decisions:
-- The user wanted the local daemon URL to be the supported path, not the hosted mock studio.
-- Compiled binaries should serve the dashboard but report live_ingest: false instead of exposing a broken stream.
-
-Gaps: ax did not show browser screenshots for this session, so UI verification is inferred from command output and changed files.
+Anchor: commit 9f31c2a "make webhook retries idempotent" (2026-09-14).
+Sessions read: 7c1d2e4a... (Claude Code, 2h): closest to the commit, contains
+the failing replay and the final patch.
+Steps: 1) reproduced duplicate charges by replaying a stored event; 2) added an
+idempotency key column; 3) wrapped the handler in a transaction; 4) replayed 40
+events and checked there were no double writes.
+Decisions: the user rejected a Redis lock in favour of a database unique
+constraint (turn 31).
+Gaps: no test output was captured, so the replay result rests on the agent's summary.
 ```
 
-### Example 2: Reconstruct from a date
+### Example 2: from a date, with a subagent
 
-**Input**
-
-```text
-Extract the workflow around 2026-06-15 for the OTLP receiver work.
-```
-
-**Commands**
+User: "Extract the workflow around 2026-09-15 for the CSV export work."
 
 ```bash
-ax sessions around 2026-06-15 --days=3 --json
-ax sessions show claude:2026-06-15T10-04-33 --json
-ax sessions show claude:2026-06-15T10-04-33 --expand=2f2b5d9e-7f89-4a0f-b8ee-9657cdbb8c10
+ax sessions around 2026-09-15 --days=3 --json
+ax sessions show c04e8b71-2d3a-4c55-8e19-70f6a1b9d2e3 --json
+ax sessions show c04e8b71-2d3a-4c55-8e19-70f6a1b9d2e3 --expand=2f2b5d9e-7f89-4a0f-b8ee-9657cdbb8c10
 ```
 
-**Output**
+Reply shape:
 
 ```text
-Anchor: date window 2026-06-12 through 2026-06-18, filtered to OTLP receiver sessions.
-
-Sessions inspected:
-- claude:2026-06-15T10-04-33: main implementation session for /v1/metrics, /v1/traces, and /v1/logs.
-- expanded subagent 2f2b5d9e-7f89-4a0f-b8ee-9657cdbb8c10: schema and fixture validation.
-
-Ordered workflow:
-1. Spec framing: defined JSON-only OTLP ingestion and fail-open receiver behavior.
-2. Schema work: modeled the accepted OTLP metric, trace, and log subsets.
-3. Normalization: mapped harness service names and Codex log events into ax tables.
-4. Correlation: linked sessions to telemetry after transcript ingest.
-5. Verification: replayed representative payloads and checked database rows.
-
-Key decisions:
-- Codex events were treated as OTLP logs, not spans.
-- Telemetry cost stayed separate from transcript-derived cost to avoid double counting.
+Anchor: sessions between 2026-09-12 and 2026-09-18 touching export/*.
+Main session c04e8b71...: streaming CSV writer and the download endpoint.
+Subagent 2f2b5d9e...: built fixtures with quoted commas and multiline cells.
+Steps: 1) spec for column order; 2) streaming writer; 3) fixtures from the
+subagent; 4) manual check of a 200k-row export.
 ```
 
 ## Guidelines
 
-- Stay read-only by default. Do not run mutating ax commands, regenerate reports, or write recipe files unless the user explicitly asks for that as a separate task.
-- Prefer commit and session evidence over memory. If the ax data conflicts with recollection, state what the local graph shows.
-- Ask for clarification when topic search returns several unrelated commits or sessions.
-- Keep command output summaries short; cite the session or commit instead of pasting large JSON blobs.
-- If many skills are unclassified in `--by-role` output, still reconstruct the workflow from timestamps, summaries, tool calls, and commits. Mention that role ordering may be incomplete.
-- If no matching sessions exist, say that local ax data does not contain enough evidence. Do not invent a workflow.
+- The ids above are illustrative. Always take ids from ax output, never invent or shorten them.
+- Evidence beats memory. If ax data conflicts with what the user remembers, report what the graph shows.
+- If no matching session exists, say the local ax data lacks evidence. Do not make up a workflow.
+- If the roles in `--by-role` are mostly unclassified, order the steps by timestamps, tool calls and commits, and say the role grouping is incomplete.
+- Summarise, do not paste large JSON. Cite the session or commit instead.
+- `ax sessions near` needs to run inside the repository that holds the commit.
