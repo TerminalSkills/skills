@@ -4,7 +4,7 @@ slug: build-discord-bot
 description: Build a Discord bot with slash commands, buttons, modals, select menus, role management, and embed messages. Deploy to Railway or Fly.io for a 10k-member community server.
 skills:
   - typescript
-  - discord-bot-builder
+  - discord
   - postgresql
   - redis
 category: development
@@ -353,3 +353,7 @@ railway up
 - **Support tickets organized** — private ticket channels with audit trail replace chaotic DM moderation; mods handle 3x more issues
 - **Audit log complete** — every verification, ticket, warn, and role change logged to #audit-log with timestamps and user IDs
 - **Zero manual role work** — moderators freed from 4–5 hours/week of manual role assignments
+
+## Related Skills
+
+- [discord](/skills/discord) — official-docs reference for intents, slash-command registration (guild vs global), ephemeral replies, rate limits, webhooks and plain REST calls; use it to check this bot against current Discord behavior.

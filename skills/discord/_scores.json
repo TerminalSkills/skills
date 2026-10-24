@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f56689e13c3332c4f813d2df4d6dd4bcf66949b0efc0be14aed7760c99f69505",
+  "scoredAt": "2026-10-24T23:10:55.816Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Node.js and discord.js, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.7,
+    "baselineAvg": 27,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "register-ticket-command",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items, while Response B omits the required setContexts(0) call."
+      },
+      {
+        "name": "ephemeral-ping-ticket-bot",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements; Response B uses discord.py and does not meet the discord.js-specific criteria."
+      },
+      {
+        "name": "webhook-release-announcement",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B lacks the required WebhookClient instantiation."
+      }
+    ]
+  }
+}
