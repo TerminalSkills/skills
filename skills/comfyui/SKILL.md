@@ -61,6 +61,8 @@ Checkpoints go in `models/checkpoints/`, VAEs in `models/vae/`, LoRAs in `models
 ```bash
 wget -P models/checkpoints/ \
   "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors"
+# Verify against the SHA-256 Hugging Face publishes for this file (shown on its file page)
+echo "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b  models/checkpoints/sd_xl_base_1.0.safetensors" | sha256sum -c -
 ```
 
 The SDXL base file is about 6.9 GB. A node's dropdown only lists files present at server start or refresh.
