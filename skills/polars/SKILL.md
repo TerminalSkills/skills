@@ -1,14 +1,13 @@
 ---
 name: polars
-description: |
-  Polars is a blazingly fast DataFrame library written in Rust with a Python API.
-  Learn eager and lazy evaluation, expressions, groupby, joins, and how Polars
-  outperforms pandas for large datasets through parallel execution.
+description: >-
+  Polars is a fast DataFrame library written in Rust with Python bindings, built on Apache Arrow with lazy evaluation and a streaming engine for larger-than-memory data. Use it when a user asks to replace pandas for speed, read CSV or Parquet files, write expressions, group_by, join and window queries, or process a file bigger than RAM.
 license: Apache-2.0
 compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/pola-rs/polars
+  version: 1.1.0
   category: data-ai
   tags:
     - polars
@@ -20,9 +19,15 @@ metadata:
 
 # Polars
 
+## Overview
+
 Polars is a DataFrame library that leverages Rust's performance and Apache Arrow's columnar format. It's significantly faster than pandas for most operations, especially on large datasets, thanks to parallel execution and lazy evaluation.
 
-## Installation
+## Instructions
+
+### Installation
+
+Checked against Polars 2.0.0 (the API below ran on it).
 
 ```bash
 # Python
@@ -32,10 +37,10 @@ pip install polars
 pip install 'polars[all]'
 
 # Node.js
-npm install nodejs-polars
+npm install nodejs-polars   # separate project, API differs from Python
 ```
 
-## Basic Operations
+### Basic Operations
 
 ```python
 # basics.py: Create and manipulate DataFrames
@@ -67,7 +72,7 @@ df.filter((pl.col("city") == "NYC") & (pl.col("salary") > 80000))
 df.sort("salary", descending=True)
 ```
 
-## Expressions
+### Expressions
 
 ```python
 # expressions.py: Polars expression system — the core of Polars
@@ -103,7 +108,7 @@ df.with_columns(
 )
 ```
 
-## Lazy Evaluation
+### Lazy Evaluation
 
 ```python
 # lazy.py: Use lazy frames for optimized query plans
@@ -133,7 +138,7 @@ lazy_df = pl.scan_csv("sales_data.csv").filter(pl.col("amount") > 100)
 print(lazy_df.explain())  # Shows optimized plan with predicate pushdown
 ```
 
-## Joins
+### Joins
 
 ```python
 # joins.py: Join DataFrames efficiently
@@ -156,11 +161,18 @@ joined = orders.join(users, on="user_id", how="inner")
 # Left join
 all_orders = orders.join(users, on="user_id", how="left")
 
-# Join with different column names
+# Join keys with different names: left_on / right_on
 orders.join(users, left_on="user_id", right_on="user_id", how="inner")
+
+# Keep unmatched rows from both sides, one key column
+orders.join(users, on="user_id", how="full", coalesce=True)
+
+# Rows of orders with no matching user; validate fails fast on duplicate keys
+orders.join(users, on="user_id", how="anti")
+orders.join(users, on="user_id", how="left", validate="m:1")
 ```
 
-## I/O Operations
+### I/O Operations
 
 ```python
 # io.py: Read and write various formats
@@ -178,12 +190,15 @@ df.write_parquet("output.parquet", compression="zstd")
 df = pl.read_json("data.json")
 df.write_json("output.json")
 
+# Parse date columns while reading
+df = pl.read_csv("data.csv", try_parse_dates=True)
+
 # From pandas
 import pandas as pd
 pandas_df = pd.read_sql("SELECT * FROM users", engine)
 polars_df = pl.from_pandas(pandas_df)
 
-# SQL databases
+# SQL databases: pass a DB-API / SQLAlchemy connection (ran with sqlite3)
 df = pl.read_database("SELECT * FROM orders WHERE amount > 100", connection)
 
 # Scan (lazy) for large files — only reads what's needed
@@ -191,7 +206,24 @@ lazy = pl.scan_parquet("huge_dataset.parquet")
 result = lazy.filter(pl.col("status") == "active").head(1000).collect()
 ```
 
-## Comparison with Pandas
+### Larger-than-memory data
+
+`collect(engine="streaming")` runs the query in batches, and `sink_parquet` writes the result without materializing it.
+
+```python
+# streaming.py: process a Parquet file bigger than RAM
+import polars as pl
+
+lazy = pl.scan_parquet("events_2026.parquet").filter(pl.col("status") == "active")
+
+# Aggregate in streaming mode
+totals = lazy.group_by("country").agg(total=pl.col("amount").sum()).collect(engine="streaming")
+
+# Filter and write straight to disk
+lazy.sink_parquet("active_events.parquet")
+```
+
+### Comparison with Pandas
 
 ```python
 # comparison.py: Common pandas patterns translated to Polars
@@ -216,3 +248,40 @@ df.with_columns(
          .otherwise(pl.lit("C"))
 )
 ```
+
+## Examples
+
+### Example 1: Monthly revenue from a CSV
+
+**User request:** "Sum completed orders by month from sales_data.csv, newest first."
+
+```python
+import polars as pl
+
+monthly = (
+    pl.scan_csv("sales_data.csv", try_parse_dates=True)
+    .filter(pl.col("status") == "completed")
+    .group_by_dynamic("date", every="1mo")
+    .agg(revenue=(pl.col("quantity") * pl.col("unit_price")).sum())
+    .sort("date", descending=True)
+    .collect()
+)
+print(monthly)
+```
+
+Result: a DataFrame with one row per month and a `revenue` column (`date` must be sorted ascending in the source for `group_by_dynamic`; add `.sort("date")` before it if not).
+
+### Example 2: Speed up a slow pandas script
+
+**User request:** "This pandas script uses `apply` per row and takes minutes. Port it to Polars."
+
+Replace the row-wise `apply` with `with_columns` and `pl.when().then().otherwise()` expressions, read with `scan_parquet` instead of `read_csv`, and `collect()` once at the end. Compare `print(lazy.explain())` before running to confirm filters are pushed into the scan.
+
+## Guidelines
+
+- Prefer lazy (`scan_*`) over eager (`read_*`) for files; one `collect()` lets the optimizer prune columns and push filters down.
+- Avoid `map_elements` and Python lambdas; they run row by row without parallelism. Express the logic with `pl.col`, `pl.when` and `.over()`.
+- Polars has no index; use `join`, `over` and `group_by` instead of `loc`/`reset_index` habits.
+- Use `engine="streaming"` when data exceeds memory; not every operation streams, so check `explain()` if memory still spikes.
+- Convert with `df.to_pandas()` (needs pandas and pyarrow) only at the boundary of libraries that require it.
+- Pin the Polars version in production; the Python package and `nodejs-polars` are separate projects with different APIs.
