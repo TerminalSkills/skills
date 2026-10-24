@@ -1,6 +1,6 @@
 ---
 title: Build an AI Video Dubbing Pipeline
-description: "Build an automated video dubbing pipeline — extract audio, transcribe with timestamps, translate, generate dubbed audio in target language, and sync back to video."
+description: "Build an automated video dubbing pipeline — extract audio, transcribe with timestamps, translate, generate dubbed audio in the target language with a consented voice clone, and sync it back to the video."
 skills:
   - assemblyai
   - elevenlabs
@@ -14,417 +14,287 @@ tags: [dubbing, video, assemblyai, elevenlabs, ffmpeg, translation, content-loca
 
 ## The Problem
 
-You create YouTube content in English. 60% of your potential audience speaks Spanish or Portuguese. Hiring professional dubbing studios costs $300–500 per video and takes weeks. You want to automate dubbing: upload a video, pick a target language, and get back a dubbed video in under 10 minutes — with the original speaker's voice cloned in the target language.
+You publish YouTube videos in English, and part of your audience would rather watch in Spanish or Portuguese. A professional dubbing studio takes weeks and is priced per video. You want to automate it: give the pipeline a video and a target language, and get back a dubbed video where the speaker's own voice, cloned with their consent, speaks the translation.
+
+## Consent comes first
+
+Cloning a voice needs the speaker's explicit permission. Before you create or use any cloned voice:
+
+- Get the speaker's written consent that names the purpose (dubbing these videos into these languages). If the speaker is not you, keep the record.
+- Only upload recordings of that speaker to the clone endpoint, and clone only voices you are allowed to use under the ElevenLabs terms.
+- If you have no consent, do not clone: use a stock voice from your ElevenLabs voice library instead (look it up with `voices.search`).
+- Never dub a video of a person with a voice that listeners could take for theirs unless that person agreed, and say in the video description that the audio is AI-dubbed.
 
 ## Pipeline Overview
 
 ```
 Input video
-  ↓ FFmpeg — extract audio track
-  ↓ AssemblyAI — transcribe with word-level timestamps
-  ↓ GPT-4o — translate transcript (preserving timing marks)
-  ↓ ElevenLabs — generate dubbed audio (voice clone of original speaker)
-  ↓ FFmpeg — merge dubbed audio with video (preserving background sounds)
+  ↓ FFmpeg — extract a mono 16 kHz audio track (and optionally the background stem)
+  ↓ AssemblyAI — transcribe, get sentences with millisecond timestamps
+  ↓ LLM — translate each sentence, keeping its time slot in mind
+  ↓ ElevenLabs — speak each sentence with the consented voice
+  ↓ FFmpeg — place the clips at their timestamps over the background, keep the video stream
   ↓ Output: dubbed video
 ```
 
 ## Prerequisites
 
 ```bash
-npm install fluent-ffmpeg assemblyai openai elevenlabs node-fetch
-# Also requires ffmpeg installed: brew install ffmpeg / apt install ffmpeg
+npm install @elevenlabs/elevenlabs-js assemblyai openai
+npm install -D typescript tsx @types/node
+# ffmpeg and ffprobe must be on PATH: apt install ffmpeg / brew install ffmpeg
 ```
 
+Set `"type": "module"` in `package.json` (the scripts use top-level `await`). The unscoped `elevenlabs` package is deprecated in favour of `@elevenlabs/elevenlabs-js`, and `fluent-ffmpeg` is no longer supported, so the code below calls the `ffmpeg` and `ffprobe` binaries directly.
+
 ```bash
-# .env
+# .env (keep it out of git; load it with: node --env-file=.env ...)
 ASSEMBLYAI_API_KEY=...
 OPENAI_API_KEY=...
+TRANSLATE_MODEL=gpt-6.1-sol  # any chat model your account can use; ids are on https://developers.openai.com/api/docs/models (gpt-6-luna is the cheap one)
 ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=...  # Cloned or pre-built voice ID
+ELEVENLABS_VOICE_ID=...  # the consented clone (see Step 0) or a stock voice
 ```
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Extract Audio from Video
+### Step 0: Create the voice clone (only with consent)
 
 ```typescript
-// lib/extract-audio.ts — Use FFmpeg to extract the audio track
+// clone-voice.ts — run once per speaker, after you hold their consent
+import fs from 'node:fs';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
-import ffmpeg from 'fluent-ffmpeg';
-import path from 'path';
-import fs from 'fs';
+const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY });
+const voice = await client.voices.ivc.create({
+  name: 'Anna Keller (dubbing, consent on file 2026-10-12)',
+  files: [fs.createReadStream('samples/anna-01.mp3'), fs.createReadStream('samples/anna-02.mp3')],
+  removeBackgroundNoise: true,
+});
+console.log(voice.voiceId); // put this in ELEVENLABS_VOICE_ID
+```
 
-export async function extractAudio(videoPath: string): Promise<string> {
-  const audioPath = videoPath.replace(/\.[^.]+$/, '_audio.wav');
+Use a few minutes of clean, single-speaker audio. Instant cloning (`voices.ivc`) is the quick option; professional cloning needs more audio and identity verification in the ElevenLabs dashboard.
 
-  return new Promise((resolve, reject) => {
-    ffmpeg(videoPath)
-      .noVideo()
-      .audioCodec('pcm_s16le')  // WAV PCM — best quality for transcription
-      .audioFrequency(16000)    // 16kHz — optimal for speech recognition
-      .audioChannels(1)         // Mono
-      .save(audioPath)
-      .on('end', () => {
-        console.log(`Audio extracted: ${audioPath}`);
-        resolve(audioPath);
-      })
-      .on('error', reject);
-  });
-}
+### Step 1: Extract the audio
 
-/** Also extract background sounds (music, ambient) by removing speech.
- *  This allows mixing dubbed speech over the original background.
- */
-export async function extractBackground(videoPath: string): Promise<string> {
-  const bgPath = videoPath.replace(/\.[^.]+$/, '_background.wav');
+```typescript
+// lib/ffmpeg.ts — thin wrappers over the ffmpeg and ffprobe binaries
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
-  return new Promise((resolve, reject) => {
-    // Use FFmpeg's afftdn (adaptive noise reduction) as a rough separation
-    // For better separation, use Demucs (ML-based) via Python subprocess
-    ffmpeg(videoPath)
-      .noVideo()
-      .audioFilters([
-        'afftdn=nf=-25',        // Noise floor reduction
-        'highpass=f=200',       // Remove low-frequency speech
-        'volume=0.6',           // Slightly reduce background
-      ])
-      .save(bgPath)
-      .on('end', () => resolve(bgPath))
-      .on('error', reject);
-  });
+const run = promisify(execFile);
+
+export const ffmpeg = (args: string[]) => run('ffmpeg', ['-y', '-loglevel', 'error', ...args]);
+
+export async function durationMs(file: string): Promise<number> {
+  const { stdout } = await run('ffprobe', [
+    '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', file,
+  ]);
+  return Math.round(parseFloat(stdout) * 1000);
 }
 ```
 
-### Step 2: Transcribe with Word-Level Timestamps
+```typescript
+// lib/extract-audio.ts
+import { ffmpeg } from './ffmpeg';
+
+export async function extractAudio(video: string): Promise<string> {
+  const out = video.replace(/\.[^.]+$/, '_audio.wav');
+  // -vn drops video; 16 kHz mono 16-bit PCM is plenty for speech recognition
+  await ffmpeg(['-i', video, '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', out]);
+  return out;
+}
+```
+
+FFmpeg filters cannot remove a voice from a mix. If the video has music or ambience you want to keep, separate it with [Demucs](https://github.com/adefossez/demucs) (`pip install -U demucs`):
+
+```bash
+demucs --two-stems=vocals -o stems my-video_audio.wav
+# background without speech: stems/htdemucs/my-video_audio/no_vocals.wav
+```
+
+Skip this and Step 5 lowers the original track under the dub instead, which leaves the original voice faintly audible.
+
+### Step 2: Transcribe into timed sentences
 
 ```typescript
-// lib/transcribe.ts — AssemblyAI transcription with word timestamps
-
+// lib/transcribe.ts
 import { AssemblyAI } from 'assemblyai';
 
 const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY! });
 
-export interface TranscriptWord {
-  text: string;
-  start: number;  // milliseconds from start
-  end: number;
-  confidence: number;
-}
+export interface Segment { text: string; start: number; end: number } // milliseconds
 
-export interface TranscriptSegment {
-  text: string;
-  start: number;
-  end: number;
-  words: TranscriptWord[];
-}
-
-export async function transcribeWithTimestamps(audioPath: string, language = 'en'): Promise<TranscriptSegment[]> {
-  console.log('Uploading audio to AssemblyAI...');
-
+export async function transcribe(audioPath: string, language = 'en'): Promise<Segment[]> {
   const transcript = await client.transcripts.transcribe({
     audio: audioPath,
     language_code: language,
-    word_boost: [],
-    punctuate: true,
-    format_text: true,
-    // Get utterances (natural sentence-level segments) for better dubbing sync
-    speaker_labels: false,
-    utterances: true,
   });
+  // A failed job is returned, not thrown
+  if (transcript.status === 'error') throw new Error(`Transcription failed: ${transcript.error}`);
 
-  if (!transcript.utterances) {
-    throw new Error('Transcription failed: no utterances returned');
-  }
-
-  const segments: TranscriptSegment[] = transcript.utterances.map(utt => ({
-    text: utt.text,
-    start: utt.start,
-    end: utt.end,
-    words: utt.words?.map(w => ({
-      text: w.text,
-      start: w.start,
-      end: w.end,
-      confidence: w.confidence || 1,
-    })) || [],
-  }));
-
-  console.log(`Transcribed ${segments.length} segments`);
-  return segments;
+  const { sentences } = await client.transcripts.sentences(transcript.id);
+  return sentences.map(s => ({ text: s.text, start: s.start, end: s.end }));
 }
 ```
 
-### Step 3: Translate Transcript with Timing Context
+Omitting `speech_models` uses the current default model list. Sentences are a good dubbing unit.
+
+### Step 3: Translate with the time slot in mind
 
 ```typescript
-// lib/translate.ts — GPT-4o translation preserving timing context
-
+// lib/translate.ts
 import OpenAI from 'openai';
+import type { Segment } from './transcribe';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const openai = new OpenAI(); // reads OPENAI_API_KEY
 
-export interface TranslatedSegment {
-  original: string;
-  translated: string;
-  start: number;
-  end: number;
-  durationMs: number;
-}
+export interface Translated extends Segment { translated: string }
 
-export async function translateSegments(
-  segments: TranscriptSegment[],
-  targetLanguage: string,
-): Promise<TranslatedSegment[]> {
-  // Batch translate all segments in one API call for efficiency
-  const segmentList = segments.map((s, i) => `[${i}] (${s.durationMs}ms) ${s.text}`).join('\n');
+export async function translate(segments: Segment[], language: string): Promise<Translated[]> {
+  const list = segments.map((s, i) => `[${i}] (${s.end - s.start} ms) ${s.text}`).join('\n');
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+  const res = await openai.chat.completions.create({
+    model: process.env.TRANSLATE_MODEL!,
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
-        content: `You are a professional video dubbing translator.
-Translate each segment to ${targetLanguage}.
-Rules:
-- Keep the same emotional tone and speaking pace as the original
-- Each translated segment should be roughly the same length to fit in the same time slot (shown in ms)
-- Preserve proper nouns, brand names, and technical terms
-- Return JSON array: [{"index": 0, "translated": "..."}]`,
+        content: `You are a professional dubbing translator. Translate every numbered segment into ${language}.
+- Keep the tone and pace; the translation must be speakable in about the same time as the original (ms shown).
+- Keep product names and technical terms unchanged.
+- Reply with JSON only: {"translations":[{"index":0,"translated":"..."}]}`,
       },
-      { role: 'user', content: segmentList },
+      { role: 'user', content: list },
     ],
-    response_format: { type: 'json_object' },
   });
 
-  const parsed = JSON.parse(response.choices[0].message.content!);
-  const translations: Array<{ index: number; translated: string }> = parsed.translations || parsed;
-
-  return translations.map(t => ({
-    original: segments[t.index].text,
-    translated: t.translated,
-    start: segments[t.index].start,
-    end: segments[t.index].end,
-    durationMs: segments[t.index].end - segments[t.index].start,
-  }));
+  const parsed = JSON.parse(res.choices[0].message.content ?? '{}');
+  const items: { index: number; translated: string }[] = parsed.translations ?? [];
+  if (items.length !== segments.length) throw new Error('Translation count mismatch; retry');
+  return items.map(t => ({ ...segments[t.index], translated: t.translated }));
 }
 ```
 
-### Step 4: Generate Dubbed Audio with ElevenLabs
+For a long video, translate in batches of about 50 segments.
+
+### Step 4: Speak each sentence with ElevenLabs
 
 ```typescript
-// lib/generate-dub.ts — ElevenLabs TTS for each translated segment
+// lib/generate-dub.ts
+import fs from 'node:fs';
+import path from 'node:path';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+import { ffmpeg, durationMs } from './ffmpeg';
+import type { Translated } from './translate';
 
-import { ElevenLabsClient } from 'elevenlabs';
-import fs from 'fs';
-import path from 'path';
+const elevenlabs = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY });
 
-const elevenlabs = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! });
+export interface Clip { path: string; start: number }
 
-export async function generateDubbedSegments(
-  translations: TranslatedSegment[],
-  outputDir: string,
-  voiceId: string,
-): Promise<Array<{ path: string; start: number; durationMs: number }>> {
-  fs.mkdirSync(outputDir, { recursive: true });
-  const results = [];
+export async function generateDub(items: Translated[], dir: string, voiceId: string): Promise<Clip[]> {
+  fs.mkdirSync(dir, { recursive: true });
+  const clips: Clip[] = [];
 
-  for (let i = 0; i < translations.length; i++) {
-    const seg = translations[i];
-    const outputPath = path.join(outputDir, `segment_${i}.mp3`);
-
-    console.log(`Generating segment ${i + 1}/${translations.length}: "${seg.translated.slice(0, 50)}..."`);
-
-    const audio = await elevenlabs.generate({
-      voice: voiceId,
+  for (const [i, seg] of items.entries()) {
+    const file = path.join(dir, `segment_${i}.mp3`);
+    const audio = await elevenlabs.textToSpeech.convert(voiceId, {
       text: seg.translated,
-      model_id: 'eleven_multilingual_v2',  // Supports 29 languages
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.85,    // High similarity to original voice
-        style: 0.3,
-        use_speaker_boost: true,
-      },
+      modelId: 'eleven_multilingual_v2', // stable long-form narration, 29 languages
+      outputFormat: 'mp3_44100_128',
+      voiceSettings: { stability: 0.5, similarityBoost: 0.85, style: 0.3, useSpeakerBoost: true },
+      // Neighbouring text keeps the intonation continuous between clips
+      previousText: items[i - 1]?.translated,
+      nextText: items[i + 1]?.translated,
     });
+    // convert() returns a web ReadableStream of bytes
+    fs.writeFileSync(file, Buffer.from(await new Response(audio).arrayBuffer()));
 
-    // Write audio stream to file
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of audio) chunks.push(chunk);
-    fs.writeFileSync(outputPath, Buffer.concat(chunks));
-
-    // Check actual audio duration vs. target
-    const actualDuration = await getAudioDuration(outputPath);
-    const targetDuration = seg.durationMs / 1000;
-
-    // If dubbed audio is much longer than target, speed it up slightly (max 20%)
-    if (actualDuration > targetDuration * 1.15) {
-      const speedFactor = Math.min(actualDuration / targetDuration, 1.2);
-      await adjustAudioSpeed(outputPath, speedFactor);
+    // If the clip overruns its slot, speed it up by at most 20 % (atempo accepts 0.5-2.0)
+    const slot = seg.end - seg.start;
+    const actual = await durationMs(file);
+    if (actual > slot * 1.15) {
+      const fast = file.replace('.mp3', '_fast.mp3');
+      await ffmpeg(['-i', file, '-filter:a', `atempo=${Math.min(actual / slot, 1.2)}`, fast]);
+      fs.renameSync(fast, file);
     }
-
-    results.push({ path: outputPath, start: seg.start, durationMs: seg.durationMs });
+    clips.push({ path: file, start: seg.start });
   }
-
-  return results;
-}
-
-async function getAudioDuration(audioPath: string): Promise<number> {
-  return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(audioPath, (err, metadata) => {
-      if (err) reject(err);
-      else resolve(metadata.format.duration || 0);
-    });
-  });
-}
-
-async function adjustAudioSpeed(audioPath: string, speedFactor: number): Promise<void> {
-  const tmpPath = audioPath + '.tmp.mp3';
-  await new Promise((resolve, reject) => {
-    ffmpeg(audioPath)
-      .audioFilters(`atempo=${speedFactor}`)
-      .save(tmpPath)
-      .on('end', resolve)
-      .on('error', reject);
-  });
-  fs.renameSync(tmpPath, audioPath);
+  return clips;
 }
 ```
 
-### Step 5: Merge Dubbed Audio Back into Video
+`eleven_multilingual_v2` is the stable long-form model; check the ElevenLabs models page for newer ones before you commit to a model. Clips that still overrun can run into the next sentence, so for those shorten the translation and regenerate.
+
+### Step 5: Merge the dub back into the video
 
 ```typescript
-// lib/merge-video.ts — Combine video + background + dubbed segments
-
-import ffmpeg from 'fluent-ffmpeg';
-import path from 'path';
+// lib/merge-video.ts
+import { ffmpeg } from './ffmpeg';
+import type { Clip } from './generate-dub';
 
 export async function buildDubbedVideo(
-  originalVideo: string,
-  backgroundAudio: string,
-  segments: Array<{ path: string; start: number }>,
-  outputPath: string,
+  video: string,
+  clips: Clip[],
+  out: string,
+  backgroundStem?: string, // e.g. Demucs no_vocals.wav; omit to lower the original audio instead
 ): Promise<string> {
-  // Build FFmpeg complex filter to position each audio segment at the right timestamp
-  const inputs: string[] = [originalVideo, backgroundAudio];
-  const filterParts: string[] = [
-    `[1:a]volume=0.3[bg]`,  // Background at 30% volume
-  ];
+  const args = ['-i', video];
+  if (backgroundStem) args.push('-i', backgroundStem);
+  const first = backgroundStem ? 2 : 1; // input index of the first clip
+  clips.forEach(c => args.push('-i', c.path));
 
-  let currentMix = '[bg]';
+  const bgInput = backgroundStem ? '1:a' : '0:a';
+  const filters = [`[${bgInput}]volume=${backgroundStem ? 0.8 : 0.15}[bg]`];
+  clips.forEach((c, i) => filters.push(`[${first + i}:a]adelay=${c.start}:all=1[d${i}]`));
+  const labels = ['[bg]', ...clips.map((_, i) => `[d${i}]`)].join('');
+  // normalize=0 keeps every input at its own level (amix otherwise divides by the input count)
+  filters.push(`${labels}amix=inputs=${clips.length + 1}:normalize=0:duration=first[out]`);
 
-  segments.forEach((seg, i) => {
-    inputs.push(seg.path);
-    const inputIdx = i + 2;
-    const delayMs = seg.start;
-
-    // Delay dubbed segment to match original timing
-    filterParts.push(`[${inputIdx}:a]adelay=${delayMs}|${delayMs}[dub${i}]`);
-    filterParts.push(`${currentMix}[dub${i}]amix=inputs=2:normalize=0[mix${i}]`);
-    currentMix = `[mix${i}]`;
-  });
-
-  filterParts.push(`${currentMix}volume=2.0[out]`);
-
-  return new Promise((resolve, reject) => {
-    let cmd = ffmpeg();
-    inputs.forEach(input => cmd.input(input));
-
-    cmd
-      .complexFilter(filterParts.join(';'))
-      .map('[0:v]')  // Original video track
-      .map('[out]')  // Dubbed audio mix
-      .videoCodec('copy')  // Don't re-encode video — much faster
-      .audioCodec('aac')
-      .audioBitrate('192k')
-      .save(outputPath)
-      .on('progress', (progress) => {
-        console.log(`Processing: ${progress.percent?.toFixed(1)}%`);
-      })
-      .on('end', () => {
-        console.log(`Dubbed video saved: ${outputPath}`);
-        resolve(outputPath);
-      })
-      .on('error', reject);
-  });
+  await ffmpeg([
+    ...args,
+    '-filter_complex', filters.join(';'),
+    '-map', '0:v', '-map', '[out]',
+    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+    out,
+  ]);
+  return out;
 }
 ```
 
-### Step 6: Full Pipeline Orchestrator
+### Step 6: The orchestrator
 
 ```typescript
-// dub-video.ts — Run the full dubbing pipeline
-
-import path from 'path';
-import { extractAudio, extractBackground } from './lib/extract-audio';
-import { transcribeWithTimestamps } from './lib/transcribe';
-import { translateSegments } from './lib/translate';
-import { generateDubbedSegments } from './lib/generate-dub';
+// dub-video.ts — run with: node --env-file=.env --import tsx dub-video.ts input/my-video.mp4 Spanish
+import fs from 'node:fs';
+import path from 'node:path';
+import { extractAudio } from './lib/extract-audio';
+import { transcribe } from './lib/transcribe';
+import { translate } from './lib/translate';
+import { generateDub } from './lib/generate-dub';
 import { buildDubbedVideo } from './lib/merge-video';
 
-async function dubVideo(inputPath: string, targetLanguage: string) {
-  const baseName = path.basename(inputPath, path.extname(inputPath));
-  const workDir = `./tmp/${baseName}`;
-  const outputPath = `./output/${baseName}_${targetLanguage}.mp4`;
+const [input, language = 'Spanish', stem] = process.argv.slice(2);
+const name = path.basename(input, path.extname(input));
+fs.mkdirSync('output', { recursive: true });
 
-  console.log(`\n🎬 Dubbing "${baseName}" → ${targetLanguage}`);
-  console.time('Total pipeline time');
-
-  // Step 1: Extract audio
-  console.log('\n1/5 Extracting audio...');
-  const [audioPath, bgAudioPath] = await Promise.all([
-    extractAudio(inputPath),
-    extractBackground(inputPath),
-  ]);
-
-  // Step 2: Transcribe
-  console.log('\n2/5 Transcribing with AssemblyAI...');
-  const segments = await transcribeWithTimestamps(audioPath);
-
-  // Step 3: Translate
-  console.log(`\n3/5 Translating ${segments.length} segments to ${targetLanguage}...`);
-  const translations = await translateSegments(segments, targetLanguage);
-
-  // Step 4: Generate dubbed audio
-  console.log('\n4/5 Generating dubbed audio with ElevenLabs...');
-  const dubbedSegments = await generateDubbedSegments(
-    translations,
-    `${workDir}/segments`,
-    process.env.ELEVENLABS_VOICE_ID!,
-  );
-
-  // Step 5: Merge
-  console.log('\n5/5 Merging video with dubbed audio...');
-  await buildDubbedVideo(inputPath, bgAudioPath, dubbedSegments, outputPath);
-
-  console.timeEnd('Total pipeline time');
-  console.log(`\n✅ Done! Output: ${outputPath}`);
-  return outputPath;
-}
-
-// Run
-dubVideo('./input/my-video.mp4', 'Spanish')
-  .then(output => console.log(`Dubbed video: ${output}`))
-  .catch(console.error);
+const audio = await extractAudio(input);
+const segments = await transcribe(audio);
+const translated = await translate(segments, language);
+const clips = await generateDub(translated, `tmp/${name}`, process.env.ELEVENLABS_VOICE_ID!);
+const out = await buildDubbedVideo(input, clips, `output/${name}_${language}.mp4`, stem);
+console.log(`Dubbed video: ${out}`);
 ```
 
-## Typical Timing (10-minute video)
+Before you publish, listen to the whole result with a native speaker: automatic translation and timing both slip on idioms and fast speech.
 
-| Step | Time |
-|------|------|
-| Audio extraction | 5 sec |
-| AssemblyAI transcription | 90 sec |
-| GPT-4o translation | 15 sec |
-| ElevenLabs TTS (batch) | 3-5 min |
-| FFmpeg merge | 30 sec |
-| **Total** | **~7 minutes** |
+## Real-World Example
 
-## Cost per 10-Minute Video
-
-- AssemblyAI: ~$0.37 (at $0.37/hour)
-- GPT-4o translation: ~$0.08
-- ElevenLabs: ~$0.30 (at $0.30/1K chars, ~1000 chars)
-- **Total: ~$0.75 per video** vs. $300+ professional dubbing
+Anna runs a 40-video English tutorial channel. After she signs a one-page consent note for the dubbing project, she clones her voice from two clean recordings, runs the pipeline on her three most-watched videos for Spanish, and has a Spanish-speaking friend check the scripts. She uploads the results as extra audio tracks and states in each description that the Spanish audio is AI-dubbed with her permission. Segments that overrun their slot get a shorter translation rather than a faster voice.
 
 ## Related Skills
 
-- [assemblyai](../skills/assemblyai/) — Transcription, word timestamps, speaker diarization
-- [elevenlabs](../skills/elevenlabs/) — Multilingual TTS, voice cloning, audio generation
-- [ffmpeg](../skills/ffmpeg/) — Audio extraction, video merging, timing adjustments
+- [assemblyai](../skills/assemblyai/) — Transcription, sentence and word timestamps, speaker labels
+- [elevenlabs](../skills/elevenlabs/) — Multilingual speech, voice cloning (with consent), audio generation
+- [ffmpeg](../skills/ffmpeg/) — Audio extraction, mixing, timing adjustments
