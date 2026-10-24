@@ -6,10 +6,10 @@ description: >-
   disk image, recover accidentally deleted photos, pull embedded files out
   of a CTF blob, or carve artifacts from unallocated space.
 license: Apache-2.0
-compatibility: 'Foremost 1.5.7, Linux/macOS'
+compatibility: 'Foremost 1.5.7 (apt install foremost on Debian/Ubuntu), Linux'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - foremost
@@ -43,76 +43,90 @@ cat disk.sha256
 
 ### Step 2: Run Foremost
 
+Install with `sudo apt install foremost` (Debian and Ubuntu ship 1.5.7). Without `-t` it runs every built-in type (`-t all`).
+
 ```bash
-# Default run — uses built-in config, all supported types
+# Default run: all built-in types
 foremost -i disk.img -o recovered/
 
-# Specific types only (jpg, png, pdf, zip, doc, mp3, ...)
-foremost -t jpg,png,pdf -i disk.img -o recovered/
+# Specific types only (built-in: jpg gif png bmp avi exe mpg wav riff wmv mov pdf ole doc zip rar htm cpp mp4 ...)
+foremost -t jpg,png,pdf,zip -i disk.img -o recovered/
 
-# Verbose + quick mode (scan only file headers, faster)
-foremost -v -q -t all -i disk.img -o recovered/
+# Skip the first 100 blocks, or write only the audit file (a dry run)
+foremost -s 100 -t jpg -i disk.img -o recovered/
+foremost -w -i disk.img -o dry-run/
 
-# Output tree
-tree -L 2 recovered/
-# recovered/
-# ├── audit.txt
-# ├── jpg/
-# │   ├── 00000001.jpg
-# │   └── 00000125.jpg
-# ├── pdf/
-# │   └── 00000007.pdf
-# └── zip/
-#     └── 00000042.zip
+# Timestamp the output directory so reruns never collide
+foremost -T -v -t all -i disk.img -o recovered/
 ```
+
+Output layout (file names are the sector number where the file starts, not a running counter; the audit lists byte offsets):
+
+```console
+$ foremost -t png,zip -i blob.bin -o out1
+$ ls -R out1
+out1:
+audit.txt  png  zip
+
+out1/png:
+00000008.png
+
+out1/zip:
+00000013.zip
+```
+
+The output directory must be empty or absent. If it has files in it Foremost stops with "is not empty"; use a new name or `-T`.
+
+Quick mode (`-q`) only checks the start of each 512-byte sector. It is faster but misses files embedded inside other files and files that do not start on a sector boundary. Do not use it for CTF blobs, NTFS (small files live in the MFT), or any case where completeness matters.
 
 ### Step 3: Review the Audit File
 
-```bash
-# Summary of what was carved
-cat recovered/audit.txt
-# Foremost version 1.5.7 by Jesse Kornblum ...
-# Num      Name (bs=512)         Size      File Offset     Comment
-# 0:       00000001.jpg          185 KB    16384
-# 1:       00000007.pdf          1 MB      67108864
+```console
+$ cat recovered/audit.txt
+...
+Num	 Name (bs=512)	       Size	 File Offset	 Comment
 
-# Count files by type
-find recovered -type f -not -name audit.txt | awk -F/ '{print $(NF-1)}' | sort | uniq -c
+0:	00000008.png 	       69 B 	       4096 	  (1 x 1)
+1:	00000013.zip 	      334 B 	       7165 	 
+Finish: Sat Oct 24 16:37:55 2026
+
+2 FILES EXTRACTED
+png:= 1
+zip:= 1
 ```
 
-### Step 4: Custom File Types with foremost.conf
+Count files per type with `find recovered -type f -not -name audit.txt | awk -F/ '{print $(NF-1)}' | sort | uniq -c`.
+
+### Step 4: Custom File Types with a Config File
+
+Each line of `foremost.conf` is: extension, case-sensitive (`y`/`n`), maximum size in bytes, header, optional footer. Headers and footers accept `\x4F` hex, octal, `\s` for a space and `?` as a wildcard. The packaged default config is `/etc/foremost.conf`.
 
 ```bash
-# Copy the default config
 cp /etc/foremost.conf ./foremost.conf
+printf 'flag y 5000 CTFFLAG END\n' >> foremost.conf     # carve CTFFLAG ... END
 
-# Add a signature: extension  case  max-size  header  footer
-# Example: a custom "FLAG" binary starting with 'CTFFLAG' and ending with 'END'
-cat >> foremost.conf <<'EOF'
-flag y 5000 CTFFLAG END
-EOF
-
-# Run with the custom config
 foremost -c ./foremost.conf -i challenge.bin -o out/
-ls out/flag/
+ls out/flag/          # 00000000.flag
 ```
 
-### Step 5: Combine with Other Carvers
+The carved file includes the header and the footer. `-t` accepts only built-in type names (`-t flag` prints the usage text and does nothing); types defined in the config file are always searched for, whatever `-t` says.
+
+### Step 5: Combine with Other Tools
 
 ```bash
-# scalpel is foremost's faster fork; use it when foremost is too slow
+# scalpel: a fork of foremost; its config ships with every type commented out, uncomment the ones you need
 sudo apt install scalpel
 scalpel -c /etc/scalpel/scalpel.conf -o scalpel-out disk.img
 
-# binwalk — better for firmware and embedded filesystems
+# binwalk: firmware and embedded filesystems
 binwalk -e firmware.bin
 
-# photorec — interactive, stronger for photo/video recovery
+# photorec / testdisk: interactive recovery that understands filesystems
 sudo photorec /dev/sdb
 
-# strings + file — first-pass triage
+# First-pass triage
 strings -a disk.img | less
-file recovered/jpg/00000001.jpg
+file recovered/jpg/00000008.jpg
 ```
 
 ## Examples
@@ -130,7 +144,7 @@ sudo dd if=/dev/sdb of=sdcard.img bs=4M status=progress
 sudo sha256sum sdcard.img > sdcard.sha256
 
 # Unplug the card and work from the image only
-foremost -t jpg,png,raw,mov,mp4 -i sdcard.img -o photos/
+foremost -t jpg,png,mov,mp4 -i sdcard.img -o photos/
 
 ls photos/jpg | wc -l
 # 842
@@ -151,23 +165,22 @@ foremost -t all -i challenge.png -o carved/
 
 cat carved/audit.txt
 # 0: 00000000.png   2 MB    0
-# 1: 00000001.zip   45 KB   2097664
-# 2: 00000002.pdf   1 MB    2143000
+# 1: 00004097.zip   45 KB   2097664
+# 2: 00004186.pdf   1 MB    2143232
 
 # Inspect the carved ZIP
-unzip -l carved/zip/00000001.zip
+unzip -l carved/zip/00004097.zip
 # flag.txt
-unzip -p carved/zip/00000001.zip flag.txt
+unzip -p carved/zip/00004097.zip flag.txt
 # flag{foremost_carves_everything}
 ```
 
 ## Guidelines
 
-- **Never run Foremost against a live mounted device.** Always image first, hash the image, then carve.
-- Write-block the source media (physical write blocker, or at minimum mount read-only) to preserve chain of custody.
-- Carving is signature-based — it cannot recover file *names* or directory structure. Metadata is lost.
-- Overlapping or fragmented files are reconstructed poorly. For heavily fragmented disks, try `photorec` or a filesystem-aware tool like `extundelete`/`testdisk` first.
-- The output directory must NOT exist beforehand — Foremost refuses to overwrite it.
-- Foremost is single-threaded and slow on big images. `scalpel` is a faster fork for the same job.
-- For CTFs, always try `foremost -t all -i challenge.blob` as a reflex — it finds embedded ZIPs, PDFs, and images that `binwalk` sometimes misses.
-- Pair with `exiftool`, `strings`, and `file` on the recovered artifacts to pull metadata and hidden content.
+- Never run Foremost against a live, mounted device. Image first (`dd`, `dcfldd`), hash the image, then carve the copy. Work from a write-blocker or a read-only attachment to keep the source intact.
+- Carving is signature-based: it recovers neither file names nor directory structure, and fragmented files come out truncated or corrupt. For intact filesystems try `testdisk`, `photorec` or (ext3/ext4) `extundelete` first.
+- The output directory must be empty or absent; use `-T` for reruns.
+- Skip `-q` unless speed matters more than completeness (see Step 2).
+- Foremost is single-threaded and slow on large images; `scalpel` is the faster alternative for the same job.
+- Carved files from untrusted images can be malicious: open them in a sandbox or VM, not on the analysis host.
+- For firmware images `binwalk` is the better first tool; for CTF blobs run both.
