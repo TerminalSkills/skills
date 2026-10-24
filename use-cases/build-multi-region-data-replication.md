@@ -19,227 +19,171 @@ tags:
 
 ## The Problem
 
-Elias leads infrastructure at a 60-person SaaS with customers in the US, EU, and Asia-Pacific. All traffic routes to us-east-1. European users experience 200ms latency per API call; APAC users see 350ms. A customer in Tokyo needs 3 round trips to load a dashboard — over 1 second just in network latency. They need data replicas close to users. But writes still need to be consistent: if a user updates their profile in Frankfurt, the change must be visible immediately, even if the primary database is in Virginia.
+Elias leads infrastructure at a 60-person SaaS with customers in the US, EU, and Asia-Pacific. All traffic routes to us-east-1. Their measurements show European users waiting about 200 ms per API call and APAC users about 350 ms. A customer in Tokyo needs 3 round trips to load a dashboard, so over a second goes to network latency alone. They need data replicas close to users. But writes still need to be consistent: if a user updates their profile in Frankfurt, the change must be visible immediately, even if the primary database is in Virginia.
 
-## Step 1: Build the Region-Aware Data Layer
+This page uses PostgreSQL streaming replication (one primary, read-only standbys per region), and a regional Redis cache that is only a cache. Redis is not replicated between regions here; each region fills its own cache and the primary's write path deletes the affected keys everywhere.
+
+## The Solution
+
+Send every write to the primary. Serve reads from the nearest standby. After a write, hand the client the primary's WAL position (an LSN), and let the next read check whether the local standby has replayed that position. If it has not, read from the primary instead.
+
+The earlier version of this design measured lag with `NOW() - pg_last_xact_replay_timestamp()`. That is misleading: the PostgreSQL docs say the function returns the commit time of the last replayed transaction, so on an idle primary the "lag" grows forever although the standby is fully caught up. Comparing LSNs has no such problem.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set up replication
+
+On each standby, build it from a base backup of the primary with `pg_basebackup -R` (this writes `standby.signal` and the connection settings), then start it. Managed services (RDS, Cloud SQL, Azure) offer cross-region read replicas that do the same. Run `SELECT pg_is_in_recovery();` on a standby to confirm it returns `true`. See the PostgreSQL "High Availability, Load Balancing, and Replication" chapter for the full procedure.
+
+### Step 2: Build the region-aware data layer
 
 ```typescript
-// src/db/multi-region.ts — Region-aware database routing with read replicas
-import { Pool, PoolClient } from "pg";
+// src/db/multi-region.ts: region-aware routing with read replicas and LSN-based read-after-write
+import { Pool, QueryResult } from "pg";
 import { Redis } from "ioredis";
 
-interface RegionConfig {
+interface Region {
   name: string;
   isPrimary: boolean;
   pool: Pool;
   redis: Redis;
-  latencyMs: number;
 }
 
-const regions: Map<string, RegionConfig> = new Map();
+const regions = new Map<string, Region>();
 
-// Initialize region connections
-function initRegions(): void {
-  const regionConfigs = [
-    {
-      name: "us-east-1",
-      isPrimary: true,
-      dbUrl: process.env.DB_URL_US!,
-      redisUrl: process.env.REDIS_URL_US!,
-    },
-    {
-      name: "eu-west-1",
-      isPrimary: false,
-      dbUrl: process.env.DB_URL_EU!,
-      redisUrl: process.env.REDIS_URL_EU!,
-    },
-    {
-      name: "ap-northeast-1",
-      isPrimary: false,
-      dbUrl: process.env.DB_URL_AP!,
-      redisUrl: process.env.REDIS_URL_AP!,
-    },
-  ];
+const configs = [
+  { name: "us-east-1", isPrimary: true, db: process.env.DB_URL_US!, redis: process.env.REDIS_URL_US! },
+  { name: "eu-west-1", isPrimary: false, db: process.env.DB_URL_EU!, redis: process.env.REDIS_URL_EU! },
+  { name: "ap-northeast-1", isPrimary: false, db: process.env.DB_URL_AP!, redis: process.env.REDIS_URL_AP! },
+];
 
-  for (const config of regionConfigs) {
-    regions.set(config.name, {
-      name: config.name,
-      isPrimary: config.isPrimary,
-      pool: new Pool({ connectionString: config.dbUrl, max: 20 }),
-      redis: new Redis(config.redisUrl),
-      latencyMs: 0,
-    });
-  }
+for (const c of configs) {
+  const pool = new Pool({ connectionString: c.db, max: 20 });
+  const redis = new Redis(c.redis);
+  // Without these handlers a dropped idle connection (a standby restarting) crashes the process
+  pool.on("error", () => {});
+  redis.on("error", () => {});
+  regions.set(c.name, { name: c.name, isPrimary: c.isPrimary, pool, redis });
 }
 
-initRegions();
-
-// Get the closest region for reads
-function getClosestRegion(userRegion: string): RegionConfig {
-  return regions.get(userRegion) || regions.get("us-east-1")!;
+function closest(userRegion: string): Region {
+  return regions.get(userRegion) ?? primary();
 }
 
-// Get the primary region for writes
-function getPrimaryRegion(): RegionConfig {
-  for (const region of regions.values()) {
-    if (region.isPrimary) return region;
-  }
+function primary(): Region {
+  for (const r of regions.values()) if (r.isPrimary) return r;
   throw new Error("No primary region configured");
 }
 
-// Read from closest replica (eventually consistent)
-export async function readLocal(
-  userRegion: string,
-  query: string,
-  params?: any[]
-): Promise<any> {
-  const region = getClosestRegion(userRegion);
-  return region.pool.query(query, params);
+// Eventually consistent read from the nearest standby
+export function readLocal(userRegion: string, sql: string, params?: unknown[]): Promise<QueryResult> {
+  return closest(userRegion).pool.query(sql, params);
 }
 
-// Read from primary (strongly consistent — use for reads-after-writes)
-export async function readPrimary(query: string, params?: any[]): Promise<any> {
-  const primary = getPrimaryRegion();
-  return primary.pool.query(query, params);
+// Strongly consistent read from the primary
+export function readPrimary(sql: string, params?: unknown[]): Promise<QueryResult> {
+  return primary().pool.query(sql, params);
 }
 
-// Write to primary, then invalidate caches across regions
+// Write on the primary, delete cache keys in every region, return the WAL position of the write
 export async function writePrimary(
-  query: string,
-  params: any[],
+  sql: string,
+  params: unknown[],
   cacheKeys: string[] = []
-): Promise<any> {
-  const primary = getPrimaryRegion();
-  const result = await primary.pool.query(query, params);
+): Promise<{ result: QueryResult; lsn: string }> {
+  const p = primary();
+  const result = await p.pool.query(sql, params);
+  // The WAL position after our commit is at least the commit record's position
+  const { rows } = await p.pool.query("SELECT pg_current_wal_lsn()::text AS lsn");
 
-  // Invalidate caches in all regions
   if (cacheKeys.length > 0) {
-    const invalidationPromises = [];
-    for (const region of regions.values()) {
-      for (const key of cacheKeys) {
-        invalidationPromises.push(region.redis.del(key));
-      }
-    }
-    await Promise.allSettled(invalidationPromises);
+    await Promise.allSettled(
+      [...regions.values()].flatMap((r) => cacheKeys.map((k) => r.redis.del(k)))
+    );
   }
-
-  // Publish replication event for cross-region sync
-  await primary.redis.publish("replication:events", JSON.stringify({
-    type: "write",
-    table: extractTableName(query),
-    cacheKeys,
-    timestamp: Date.now(),
-  }));
-
-  return result;
+  return { result, lsn: rows[0].lsn };
 }
 
-// Read-after-write consistency: check if replica has caught up
+// Read-after-write: use the standby only if it has replayed the client's LSN
 export async function readConsistent(
   userRegion: string,
-  query: string,
-  params: any[],
-  writeTimestamp: number
-): Promise<any> {
-  const region = getClosestRegion(userRegion);
+  sql: string,
+  params: unknown[],
+  minLsn: string
+): Promise<QueryResult> {
+  const region = closest(userRegion);
+  if (region.isPrimary) return region.pool.query(sql, params);
 
-  if (region.isPrimary) {
-    return region.pool.query(query, params);
-  }
-
-  // Check replication lag
-  const { rows: [lag] } = await region.pool.query(`
-    SELECT EXTRACT(EPOCH FROM (NOW() - pg_last_xact_replay_timestamp())) * 1000 as lag_ms
-  `);
-
-  const replicationLagMs = parseFloat(lag?.lag_ms || "0");
-  const timeSinceWrite = Date.now() - writeTimestamp;
-
-  // If replica hasn't caught up, read from primary
-  if (timeSinceWrite < replicationLagMs + 100) {
-    return readPrimary(query, params);
-  }
-
-  return region.pool.query(query, params);
+  const { rows } = await region.pool.query(
+    "SELECT pg_last_wal_replay_lsn() >= $1::pg_lsn AS caught_up",
+    [minLsn]
+  );
+  return rows[0].caught_up ? region.pool.query(sql, params) : readPrimary(sql, params);
 }
 
-// Cache-first reads with regional locality
+// Cache-first read with regional locality
 export async function cachedRead(
   userRegion: string,
   cacheKey: string,
-  query: string,
-  params: any[],
-  ttlSeconds: number = 60
-): Promise<any> {
-  const region = getClosestRegion(userRegion);
-
-  // Check regional cache
+  sql: string,
+  params: unknown[],
+  ttlSeconds = 60
+): Promise<{ rows: unknown[]; fromCache: boolean }> {
+  const region = closest(userRegion);
   const cached = await region.redis.get(cacheKey);
   if (cached) return { rows: JSON.parse(cached), fromCache: true };
 
-  // Read from local replica
-  const result = await region.pool.query(query, params);
-
-  // Cache locally
+  const result = await region.pool.query(sql, params);
   await region.redis.setex(cacheKey, ttlSeconds, JSON.stringify(result.rows));
-
   return { rows: result.rows, fromCache: false };
 }
 
-function extractTableName(query: string): string {
-  const match = query.match(/(?:INTO|UPDATE|FROM|DELETE FROM)\s+(\w+)/i);
-  return match?.[1] || "unknown";
-}
-
-// Health check across regions
-export async function getRegionHealth(): Promise<Array<{
-  region: string;
-  isPrimary: boolean;
-  dbHealthy: boolean;
-  replicationLagMs: number;
-  cacheHealthy: boolean;
-}>> {
-  const health = [];
-
-  for (const region of regions.values()) {
+// Per-region health: a standby's lag is the byte distance between received and replayed WAL
+export async function getRegionHealth() {
+  const out = [];
+  for (const r of regions.values()) {
     let dbHealthy = false;
-    let replicationLagMs = 0;
+    let replayLagBytes = 0;
     let cacheHealthy = false;
-
     try {
-      await region.pool.query("SELECT 1");
+      await r.pool.query("SELECT 1");
       dbHealthy = true;
-
-      if (!region.isPrimary) {
-        const { rows: [lag] } = await region.pool.query(
-          "SELECT EXTRACT(EPOCH FROM (NOW() - pg_last_xact_replay_timestamp())) * 1000 as lag_ms"
+      if (!r.isPrimary) {
+        const { rows } = await r.pool.query(
+          "SELECT pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn())::bigint AS lag"
         );
-        replicationLagMs = parseFloat(lag?.lag_ms || "0");
+        replayLagBytes = Number(rows[0].lag ?? 0);
       }
-    } catch {}
-
+    } catch {
+      /* reported as unhealthy */
+    }
     try {
-      await region.redis.ping();
-      cacheHealthy = true;
-    } catch {}
-
-    health.push({
-      region: region.name,
-      isPrimary: region.isPrimary,
-      dbHealthy,
-      replicationLagMs: Math.round(replicationLagMs),
-      cacheHealthy,
-    });
+      cacheHealthy = (await r.redis.ping()) === "PONG";
+    } catch {
+      /* reported as unhealthy */
+    }
+    out.push({ region: r.name, isPrimary: r.isPrimary, dbHealthy, replayLagBytes, cacheHealthy });
   }
-
-  return health;
+  return out;
 }
 ```
 
-## Results
+### Step 3: Carry the LSN with the user
 
-- **EU user latency dropped from 200ms to 15ms** — reads served from eu-west-1 replica; only writes cross the Atlantic
-- **APAC dashboard load: 1.1s → 180ms** — regional cache + local replica eliminates 3 cross-Pacific round trips
-- **Read-after-write consistency maintained** — after a user updates their profile, subsequent reads automatically fall back to primary if the replica hasn't caught up
-- **Cross-region cache invalidation in under 50ms** — Redis pub/sub propagates invalidations; stale data window is minimal
-- **Replication lag monitored per-region** — health endpoint shows lag in milliseconds; alerts fire if any region falls behind by more than 5 seconds
+After a write, return `lsn` to the client (in a cookie or response header). On the next request from that user, pass it as `minLsn` to `readConsistent`. Reads that do not follow a write by the same user can use `readLocal` or `cachedRead`.
+
+For lag in seconds rather than bytes, run on the primary `SELECT replay_lag FROM pg_stat_replication;` (PostgreSQL 10 and later), which is measured from actual replay and does not grow while the primary is idle.
+
+### Step 4: Check it
+
+Write through the primary, then read from the standby with the returned LSN: while the standby is behind, `readConsistent` should hit the primary, and once `pg_last_wal_replay_lsn()` passes the LSN it should hit the standby. Pausing replay on a test standby with `SELECT pg_wal_replay_pause();` makes the fallback easy to see (`pg_wal_replay_resume()` undoes it).
+
+## Real-World Example
+
+Elias's team rolls this out region by region, starting with eu-west-1. Their own before/after measurement for a European user's profile read is about 200 ms from us-east-1 versus a single-digit-to-low-tens of milliseconds from the Frankfurt standby plus regional cache; their numbers will differ with provider and distance. They alert when a standby's `replayLagBytes` or `replay_lag` stays high, and they route all reads to the primary while a standby is unhealthy.
+
+## Related Skills
+
+- `typescript` for the typed data layer
+- `postgresql` for streaming replication, LSNs and `pg_stat_replication`
+- `redis` for the regional cache and invalidation
