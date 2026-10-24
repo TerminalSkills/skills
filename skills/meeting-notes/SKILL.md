@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: productivity
   tags: ["meetings", "notes", "summaries", "action-items", "transcripts"]
   use-cases:
@@ -143,13 +143,15 @@ mike: yep
 
 ### Authentication Bug
 - Login timeout affecting ~12% of users
-- Root cause identified as session configuration issue
+- Suspected cause: a session configuration issue (Mike's assessment, not yet confirmed)
 - Prioritized as P1 for current sprint
 
 ### New Dashboard
 - Designs are finalized and ready for implementation
-- Frontend work depends on API endpoints being available
-- Documentation update needed before release
+- Frontend work depends on API endpoints being available (Mike, by Wednesday)
+
+### Release Readiness
+- Documentation needs updating before release (Mike, by Friday)
 
 ## Action Items
 
@@ -163,49 +165,49 @@ mike: yep
 
 ### Example 2: Extract action items only
 
-**User request:** "Just pull out the action items from this meeting transcript"
+**User request:** "Just pull out the action items from this meeting transcript" (the sprint planning notes above)
 
-**Output format:**
+**Output:**
 ```markdown
-## Action Items from [Meeting Name]
+## Action Items from Sprint Planning
 
 | # | Task | Owner | Deadline | Status |
 |---|------|-------|----------|--------|
-| 1 | [Task] | [Person] | [Date] | Pending |
-| 2 | [Task] | [Person] | [Date] | Pending |
+| 1 | Fix login timeout (suspected session config issue) | Mike | End of sprint (date not stated) | Pending |
+| 2 | Deliver dashboard API endpoints | Mike | Wednesday | Pending |
+| 3 | Build dashboard frontend | Sarah | After the API endpoints | Blocked on #2 |
+| 4 | Update documentation before release | Mike | Friday | Pending |
 
 **Unassigned items (need owners):**
-- [Task with no clear owner]
-- [Task with no clear owner]
+- None. Note that Mike holds three of four tasks; worth confirming his capacity.
 ```
 
 ### Example 3: Generate follow-up email
 
-**User request:** "Turn these meeting notes into a follow-up email"
+**User request:** "Turn these meeting notes into a follow-up email to the team"
 
 **Output:**
 ```
-Subject: Meeting Summary & Action Items - [Topic] ([Date])
+Subject: Sprint planning recap and action items
 
 Hi team,
 
-Thanks for joining today's discussion on [topic]. Here's a quick recap:
+Thanks for joining sprint planning. Here is what we agreed:
 
-**Key Decisions:**
-- [Decision 1]
-- [Decision 2]
+Decisions:
+- The login timeout bug (about 12% of users) is P1 and goes into this sprint.
+- Dashboard designs are final; implementation starts now.
 
-**Action Items:**
-- @[Person]: [Task] by [deadline]
-- @[Person]: [Task] by [deadline]
+Action items:
+- Mike: fix the login timeout (session config) this sprint
+- Mike: dashboard API endpoints by Wednesday
+- Sarah: dashboard frontend, starting once the endpoints are ready
+- Mike: documentation update by Friday
 
-**Next Steps:**
-[What happens next and when the next meeting is]
-
-Let me know if I missed anything or if any details need correction.
+Reply if I missed anything or got a detail wrong.
 
 Best,
-[Name]
+John
 ```
 
 ## Guidelines
@@ -218,3 +220,7 @@ Best,
 - Use consistent formatting so summaries are scannable at a glance.
 - If the user provides a transcript with speaker labels, always maintain the association between speakers and their statements.
 - For recurring meetings, maintain a consistent structure so summaries are easy to compare week over week.
+- Never invent an owner, deadline or decision. If the notes do not say, write "not stated" and list the item as a question; do not turn an opinion or a suggestion into a decision.
+- Names in audio transcripts are often misspelled: match them against the attendee list before assigning tasks, and flag a name you cannot match.
+- Meeting content can be confidential (customers, salaries, security issues). Summarize only what the user gave you, keep it out of shared files unless asked, and ask before including sensitive remarks in a wide-distribution email.
+- Convert relative dates ("Wednesday", "next week") using the meeting date; if the meeting date is unknown, keep the original wording.
