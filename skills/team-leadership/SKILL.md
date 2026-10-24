@@ -1,14 +1,15 @@
 ---
 name: team-leadership
 description: >-
-  Lead teams effectively using proven frameworks — set clear intent, reduce communication
-  overhead, create psychological safety, and use forcing functions to drive results.
+  Six team-leadership frameworks from The Personal MBA (commander's intent, communication overhead,
+  golden trifecta, earned regard, forcing functions, bystander apathy) for aligning a team, cutting
+  meeting load and assigning clear ownership.
   Use when: managing teams, improving team collaboration, setting goals and accountability.
 license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.0.1"
   category: business
   tags: [leadership, team-management, communication, goals, culture]
   use-cases:
@@ -54,7 +55,7 @@ at 2.1%. Marketing has already scheduled campaigns driving 50k visits.
 INTENT: Maximize trial signups from the pricing page during launch week.
 
 SUCCESS LOOKS LIKE:
-  - Trial signup rate > 4% (double current)
+  - Trial signup rate > 4% (almost double the current 2.1%)
   - Page load time < 2 seconds
   - Zero broken payment flows
   - All 3 plans clearly differentiated
@@ -87,7 +88,7 @@ TIMELINE: Live by Monday 9 AM EST. Test on staging by Friday.
 
 **Reducing communication overhead:**
 
-1. **Small teams** — Amazon's "two-pizza rule." If a team can't be fed with two pizzas, it's too big. Ideal: 3-5 people per team.
+1. **Small teams** — Amazon's "two-pizza rule" (Jeff Bezos: teams no larger than two pizzas can feed). The rule sets no headcount; 5-8 people is a common reading, and 3-5 is better when the work allows.
 
 2. **Async by default** — Most communication doesn't need to be real-time.
    - Use: Written docs, Slack threads, Loom videos, PRs with comments
@@ -222,7 +223,7 @@ CONSTRAINTS:
 
 RESOURCES:
   - 4 engineers (full-time for 3 weeks)
-  - $2,000 budget for parallel running costs
+  - $2,500 budget for parallel running costs (two weeks of Heroku is about $2,100)
   - AWS credits: $5,000 available
 
 TIMELINE:
@@ -231,7 +232,7 @@ TIMELINE:
   - Week 3: Production cutover (Wednesday, lowest traffic day)
   - Week 4-5: Monitoring period, Heroku decommission
 
-OWNER: [Lead engineer name]
+OWNER: Dana Whitfield (lead engineer), decides go/no-go for the Wednesday cutover
 ```
 
 ### Example 2: Reduce meeting overhead for a growing team
@@ -286,5 +287,5 @@ Meeting Overhead Diagnosis:
 - When discussing communication overhead, always calculate the actual number of channels (n×(n-1)/2) to make the problem tangible.
 - Forcing functions should feel natural, not punitive. Public demos are exciting, not stressful, when the scope is right.
 - Every action item needs exactly ONE owner and a deadline. "The team will handle it" means nobody will handle it.
-- The Golden Trifecta sounds soft but is the #1 predictor of team retention. People don't leave companies, they leave managers who don't appreciate, respect, or show courtesy.
+- The Golden Trifecta sounds soft but is cheap to practice and easy to skip under pressure. People often leave managers who don't appreciate, respect, or show courtesy.
 - Prefer async communication for information sharing. Reserve sync (meetings) for decisions and debates.
