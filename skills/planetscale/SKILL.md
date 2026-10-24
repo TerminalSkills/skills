@@ -1,245 +1,136 @@
 ---
 name: planetscale
-description: Expert guidance for PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
+description: >-
+  PlanetScale is a managed database platform running Vitess (MySQL-compatible), Postgres and Neki (sharded Postgres), with Git-like database branches, deploy requests for non-blocking schema changes, and query insights. Use when asked to "set up PlanetScale", "create a PlanetScale branch", "run a deploy request", "use the pscale CLI", "connect to PlanetScale from serverless or edge functions", or "check slow queries on PlanetScale".
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: pscale CLI 0.348 or newer; Node.js 22+ for the serverless driver; a PlanetScale account on a paid plan
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/planetscale/cli
   tags:
   - database
   - mysql
-  - serverless
+  - postgres
   - branching
   - schema-change
 ---
 
-# PlanetScale — Serverless MySQL Platform
-
+# PlanetScale
 
 ## Overview
 
+PlanetScale hosts three engines: Vitess (MySQL-compatible), Postgres and Neki (horizontally sharded Postgres), each on network-attached storage or Metal (local NVMe). For Vitess databases the signature workflow is: branch the database, change the schema on the branch, open a deploy request, and let PlanetScale apply it online to production without locking tables. Everything is scriptable with the `pscale` CLI (checked against v0.348.0, October 2026).
 
-PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
-
+Facts that changed since early 2026 write-ups: there is no free Hobby plan (the Base plan is paid; Postgres single-node starts at $5/month), Postgres and Neki exist alongside Vitess, and foreign key constraints are supported on Vitess databases when you enable them in database settings.
 
 ## Instructions
 
-### CLI Operations
+### Install and sign in
 
 ```bash
-# Install PlanetScale CLI
-brew install planetscale/tap/pscale
-
-# Authenticate
-pscale auth login
-
-# Create a database
-pscale database create my-app --region us-east
-
-# Connect to your database (opens a local proxy)
-pscale connect my-app main --port 3306
-# Now connect your app to localhost:3306 with no password
-
-# Create a branch (like git branch, for schema changes)
-pscale branch create my-app add-orders-table
-
-# Connect to the branch for testing
-pscale connect my-app add-orders-table --port 3307
-
-# Open a shell on the branch
-pscale shell my-app add-orders-table
+brew install planetscale/tap/pscale        # macOS and Linux (Homebrew)
+scoop bucket add pscale https://github.com/planetscale/scoop-bucket.git && scoop install pscale   # Windows
+pscale auth login                          # opens a browser
+pscale auth check --format json            # verify, for scripts and agents
 ```
 
-### Schema Branching
+On Debian or RPM systems, download the `.deb`/`.rpm` from the CLI's GitHub releases page and verify it against the release's checksums file first. In CI, skip login and use a service token: `--service-token-id` and `--service-token` (or `pscale service-token create`). Every command takes `--org` and `-f json|csv|human`. `pscale --skill` prints a ready-made agent skill from the CLI itself.
 
-```sql
--- On the "add-orders-table" branch, make schema changes safely
--- These changes don't affect the main branch until you merge
-
-CREATE TABLE orders (
-  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
-  currency VARCHAR(3) NOT NULL DEFAULT 'USD',
-  status ENUM('pending', 'processing', 'completed', 'refunded') NOT NULL DEFAULT 'pending',
-  metadata JSON,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_user_id (user_id),
-  INDEX idx_status_created (status, created_at)
-);
-
--- Add columns to existing tables
-ALTER TABLE users ADD COLUMN stripe_customer_id VARCHAR(255);
-ALTER TABLE users ADD INDEX idx_stripe_customer (stripe_customer_id);
-```
+### Databases and branches
 
 ```bash
-# Create a deploy request (like a pull request for schema changes)
-pscale deploy-request create my-app add-orders-table
-
-# Review the deploy request
-pscale deploy-request diff my-app 1
-
-# Deploy (non-blocking — zero downtime)
-pscale deploy-request deploy my-app 1
-
-# Schema changes are applied without locking tables
-# PlanetScale uses Vitess's online DDL (gh-ost) under the hood
+pscale database create storefront --engine mysql --wait
+pscale database create billing-pg --engine postgresql --replicas 0 --wait   # single-node Postgres
+pscale branch create storefront add-orders-table --wait
+pscale branch schema storefront add-orders-table
+pscale shell storefront add-orders-table          # uses the local mysql (or psql) client
+pscale connect storefront add-orders-table --port 3307   # local proxy, no password
 ```
 
-### Application Integration
+Run `pscale region list` for valid region slugs and `pscale size cluster list` for cluster sizes. `pscale connect` and `deploy-request` are Vitess-only; `shell` works for MySQL and Postgres and needs the matching client installed.
+
+### Schema changes with deploy requests (Vitess)
+
+The target branch must have safe migrations enabled (branch settings), otherwise you cannot deploy into it.
+
+```bash
+pscale deploy-request create storefront add-orders-table --notes "Add orders table"
+pscale deploy-request diff storefront 12
+pscale deploy-request deploy storefront 12 --wait
+```
+
+Useful flags: `create --into`, `--auto-delete-branch`, `--disable-auto-apply` (then run `deploy-request apply`), `deploy --instant` (MySQL `ALGORITHM=INSTANT`, faster but cannot be reverted). Subcommands also include `cancel`, `close` and `revert`.
+
+### Connecting an app
+
+Create a branch password (`pscale password create storefront main web-prod --role readwriter --ttl 720h`), put the values in environment variables, and connect. For Vitess over HTTP (Vercel Edge, Cloudflare Workers) use the serverless driver; for Node servers a regular `mysql2` pool works.
 
 ```typescript
-// src/lib/db.ts — Connect to PlanetScale
+// src/lib/db.ts
 import { connect } from "@planetscale/database";
 
-// Serverless driver (HTTP-based, works in edge functions)
-const db = connect({
-  host: process.env.DATABASE_HOST,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-});
+const db = connect({ url: process.env.DATABASE_URL }); // mysql://user:pass@host from the password page
 
-// Query
-async function getOrders(userId: string) {
-  const results = await db.execute(
-    "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
+export async function recentOrders(userId: number) {
+  const { rows } = await db.execute(
+    "SELECT id, amount, status FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
     [userId]
   );
-  return results.rows;
+  return rows;
 }
 
-// Insert
-async function createOrder(order: { userId: string; amount: number; currency: string }) {
-  const result = await db.execute(
-    "INSERT INTO orders (user_id, amount, currency) VALUES (?, ?, ?)",
-    [order.userId, order.amount, order.currency]
-  );
-  return result.insertId;
-}
-
-// Transaction
-async function processRefund(orderId: string) {
-  await db.transaction(async (tx) => {
-    await tx.execute(
-      "UPDATE orders SET status = 'refunded' WHERE id = ? AND status = 'completed'",
-      [orderId]
-    );
-    const order = await tx.execute("SELECT * FROM orders WHERE id = ?", [orderId]);
-    await tx.execute(
-      "INSERT INTO refunds (order_id, amount) VALUES (?, ?)",
-      [orderId, order.rows[0].amount]
-    );
+export async function refund(orderId: number) {
+  return db.transaction(async (tx) => {
+    await tx.execute("UPDATE orders SET status = 'refunded' WHERE id = ? AND status = 'completed'", [orderId]);
+    return tx.execute("SELECT id, status FROM orders WHERE id = ?", [orderId]);
   });
 }
 ```
 
-### With Prisma ORM
+The serverless driver is for Vitess/MySQL only (`@planetscale/database` 2.x). For PlanetScale Postgres use a normal Postgres driver, or the Neon serverless driver for HTTP environments.
 
-```typescript
-// prisma/schema.prisma — PlanetScale with Prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"    // Required: PlanetScale doesn't support foreign keys
-}
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  plan      String   @default("free")
-  orders    Order[]
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("users")
-}
-
-model Order {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  amount    Decimal  @db.Decimal(10, 2)
-  status    String   @default("pending")
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@index([status, createdAt])
-  @@map("orders")
-}
-```
+### Insights
 
 ```bash
-# Push schema changes via Prisma (on a branch)
-pscale connect my-app add-orders-table --port 3309 &
-DATABASE_URL="mysql://root@localhost:3309/my-app" npx prisma db push
+pscale insights queries storefront main
+pscale insights recommendations storefront main    # unused or missing indexes
+pscale insights anomalies storefront main
+pscale audit-log list --limit 20
 ```
-
-### Insights and Monitoring
-
-```bash
-# View query insights (slow queries, most frequent queries)
-pscale query-insights my-app main
-
-# View database size and row counts
-pscale database show my-app
-
-# Audit log
-pscale audit-log list my-app
-```
-
-## Installation
-
-```bash
-# CLI
-brew install planetscale/tap/pscale
-
-# Serverless driver (Node.js)
-npm install @planetscale/database
-
-# With Prisma
-npm install prisma @prisma/client
-```
-
 
 ## Examples
 
+### Example 1: "Add an orders table to production without downtime"
 
-### Example 1: Setting up Planetscale with a custom configuration
-
-**User request:**
-
-```
-I just installed Planetscale. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Planetscale with custom functionality
-
-**User request:**
-
-```
-I want to add a custom schema branching to Planetscale. How do I build one?
+```bash
+pscale branch create storefront add-orders-table --wait
+pscale shell storefront add-orders-table
+# in the mysql prompt:
+#   CREATE TABLE orders (id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id BIGINT NOT NULL,
+#     amount DECIMAL(10,2) NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'pending',
+#     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_user (user_id));
+pscale deploy-request create storefront add-orders-table
+pscale deploy-request diff storefront 12
+pscale deploy-request deploy storefront 12 --wait
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Planetscale's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+Result: the diff shows one new table; after deploy the table exists on `main` and the schema was applied online.
 
+### Example 2: "Run my migration tool against a branch"
+
+```bash
+pscale connect storefront add-orders-table --port 3309 --execute-protocol mysql --execute 'npx prisma db push'
+```
+
+`--execute` runs the command while the proxy is up and exposes `DATABASE_URL` (override the variable name with `--execute-env-url`). The URL scheme defaults to `mysql2://`; pass `--execute-protocol mysql` for tools such as Prisma that expect `mysql://`. Result: the ORM changes land on the branch only; review them with a deploy request.
 
 ## Guidelines
 
-1. **Branch for every schema change** — Never modify main directly; create a branch, test, then deploy via deploy request
-2. **No foreign key constraints** — PlanetScale (Vitess) doesn't support FK constraints; use `relationMode = "prisma"` or enforce in application code
-3. **Serverless driver for edge** — Use `@planetscale/database` (HTTP-based) for Vercel Edge, Cloudflare Workers; use mysql2 for Node.js servers
-4. **Non-blocking migrations** — PlanetScale applies ALTER TABLE without locking; deploy schema changes during business hours safely
-5. **Deploy request review** — Treat deploy requests like pull requests; review the diff before deploying to production
-6. **Index before you need them** — Add indexes on columns you filter/sort by; PlanetScale's query insights shows which queries need them
-7. **Connection string from environment** — Use `pscale connect` for local dev (no password needed); use connection strings in production
-8. **Read replicas for read-heavy apps** — PlanetScale supports read-only regions; route read queries to replicas for lower latency
+- Never change `main` directly; branch, then deploy request. Review the diff and lint warnings (data loss, charset, unique keys) before deploying.
+- Foreign key constraints are off by default and PlanetScale does not recommend them at scale. Enable them per database in settings only if you need them (no open deploy requests allowed at that moment). Otherwise keep referential integrity in the application, and for Prisma set `relationMode = "prisma"`.
+- Use least-privilege passwords: set `--role` and `--ttl`, one password per service, and keep them in environment variables or a secret manager, never in the repository.
+- `pscale connect` binds to 127.0.0.1 by default; do not change `--host` to expose it.
+- Reverting a deploy request is possible for a limited time without losing new data; `--instant` deploys cannot be reverted.
+- Do not assume a free tier exists; check current plans at planetscale.com/docs/planetscale-plans before promising a cost.
