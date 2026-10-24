@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:1b5ef15e84358aa65c9a8de88d80ad890a7b34434941caed2028e56b0db7952b",
+  "scoredAt": "2026-10-24T23:16:37.231Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover all potential error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative that may be considered padded."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill relies on agent-specific plugin commands, limiting universal applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7,
+    "baselineAvg": 7,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "install-and-verify-superpowers",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the design document requirement, while Response B provides no content."
+      },
+      {
+        "name": "diagnose-superpowers-misbehaviour",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B includes the invocation of the diagnosing-superpowers skill but omits session ID syntax and the bug‑report bundle detail, whereas Response A provides no relevant information."
+      },
+      {
+        "name": "opt-out-superpowers-telemetry",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B correctly specifies the required environment variable and notes telemetry disabling, while Response A omits the required variable and fails to mention the optional visual companion."
+      }
+    ]
+  }
+}
