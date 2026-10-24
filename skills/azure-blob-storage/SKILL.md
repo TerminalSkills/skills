@@ -6,10 +6,11 @@ description: |
   optimization, generate SAS tokens for secure temporary access, and set lifecycle
   management policies.
 license: Apache-2.0
-compatibility: 'azure-cli, python, azcopy'
+compatibility: 'Azure CLI 2.x, Python 3.10+ with azure-storage-blob 12.31, AzCopy 10'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/Azure/azure-sdk-for-python
   category: devops
   tags:
     - azure
@@ -20,18 +21,24 @@ metadata:
 
 # Azure Blob Storage
 
+## Overview
+
 Azure Blob Storage is Microsoft's object storage solution for the cloud. It stores massive amounts of unstructured data — documents, images, videos, backups, and data lakes. Three access tiers (Hot, Cool, Archive) let you optimize costs based on access patterns.
 
-## Core Concepts
+## Instructions
+
+### Core Concepts
 
 - **Storage Account** — top-level namespace for all Azure Storage services
 - **Container** — groups blobs, similar to a directory or S3 bucket
 - **Blob** — a file (Block, Append, or Page blob types)
-- **Access Tier** — Hot (frequent), Cool (infrequent, 30d min), Archive (rare, 180d min)
-- **SAS Token** — Shared Access Signature for time-limited, scoped access
+- **Access Tier** — Hot (frequent), Cool (infrequent, 30d min), Cold (rare, 90d min), Archive (offline, 180d min; must be rehydrated before reading)
+- **SAS Token** — Shared Access Signature for time-limited, scoped access. A user delegation SAS (signed with Microsoft Entra credentials) is preferred over one signed with the account key; it can last at most 7 days
 - **Lifecycle Policy** — automatic tier transitions and deletion rules
 
-## Storage Account Setup
+### Storage Account Setup
+
+Commands below use `--auth-mode login`, so the signed-in identity needs a data-plane role on the account (for example Storage Blob Data Contributor); account Owner alone does not grant blob access.
 
 ```bash
 # Create a storage account
@@ -47,14 +54,14 @@ az storage account create \
 ```
 
 ```bash
-# Get connection string
+# Get connection string (contains the account key: keep it in an environment variable, never in code)
 az storage account show-connection-string \
   --name myappstorageprod \
   --resource-group my-app-rg \
   --query connectionString --output tsv
 ```
 
-## Container Operations
+### Container Operations
 
 ```bash
 # Create a container
@@ -64,15 +71,9 @@ az storage container create \
   --auth-mode login
 ```
 
-```bash
-# List containers
-az storage container list \
-  --account-name myappstorageprod \
-  --auth-mode login \
-  --query '[].name' --output tsv
-```
+The `static` and `backups` containers used in the examples below are created the same way (`--name static`, `--name backups`).
 
-## Blob Operations
+### Blob Operations
 
 ```bash
 # Upload a file
@@ -125,7 +126,9 @@ az storage blob set-tier \
   --auth-mode login
 ```
 
-## SAS Tokens
+Reading an Archive blob requires rehydration first: run `az storage blob set-tier --tier Hot --rehydrate-priority Standard ...` and wait (up to 15 hours for Standard priority; High priority is faster and costs more).
+
+### SAS Tokens
 
 ```bash
 # Generate a SAS token for a single blob (read access, 1 hour)
@@ -153,41 +156,37 @@ az storage container generate-sas \
 ```
 
 ```python
-# Generate SAS token with Python SDK
-from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+# User delegation SAS (pip install azure-storage-blob azure-identity)
+import os
 from datetime import datetime, timedelta, timezone
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient, BlobSasPermissions, generate_blob_sas
 
 account_name = "myappstorageprod"
-account_key = "your-account-key"
+service = BlobServiceClient(
+    f"https://{account_name}.blob.core.windows.net",
+    credential=DefaultAzureCredential(),
+)
+start = datetime.now(timezone.utc)
+expiry = start + timedelta(hours=1)
+delegation_key = service.get_user_delegation_key(start, expiry)
 
 sas_token = generate_blob_sas(
     account_name=account_name,
     container_name="uploads",
     blob_name="reports/q4.pdf",
-    account_key=account_key,
+    user_delegation_key=delegation_key,
     permission=BlobSasPermissions(read=True),
-    expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+    expiry=expiry,
 )
-url = f"https://{account_name}.blob.core.windows.net/uploads/reports/q4.pdf?{sas_token}"
-print(f"SAS URL: {url}")
+print(f"https://{account_name}.blob.core.windows.net/uploads/reports/q4.pdf?{sas_token}")
 ```
 
-```python
-# Generate SAS for upload (write permission)
-upload_sas = generate_blob_sas(
-    account_name=account_name,
-    container_name="uploads",
-    blob_name="user-uploads/avatar.jpg",
-    account_key=account_key,
-    permission=BlobSasPermissions(write=True, create=True),
-    expiry=datetime.now(timezone.utc) + timedelta(minutes=15)
-)
-```
+For an upload link use `BlobSasPermissions(create=True, write=True)` and a short expiry such as 15 minutes. A SAS signed with the account key (`account_key=os.environ["AZURE_STORAGE_KEY"]`) also works, but it cannot be revoked without rotating the key.
 
-## Lifecycle Management
+### Lifecycle Management
 
 ```json
-// lifecycle-policy.json — auto-tier and expire blobs
 {
   "rules": [
     {
@@ -225,6 +224,8 @@ upload_sas = generate_blob_sas(
 }
 ```
 
+Save the JSON above as `lifecycle-policy.json` (JSON allows no comments).
+
 ```bash
 # Apply lifecycle policy
 az storage account management-policy create \
@@ -233,13 +234,14 @@ az storage account management-policy create \
   --policy @lifecycle-policy.json
 ```
 
-## Python SDK Usage
+### Python SDK Usage
 
 ```python
 # Upload and download with Python SDK
+import os
 from azure.storage.blob import BlobServiceClient
 
-blob_service = BlobServiceClient.from_connection_string("your-connection-string")
+blob_service = BlobServiceClient.from_connection_string(os.environ["AZURE_STORAGE_CONNECTION_STRING"])
 container = blob_service.get_container_client("uploads")
 
 # Upload
@@ -257,29 +259,41 @@ for blob in container.list_blobs(name_starts_with="reports/"):
     print(f"{blob.name} ({blob.size} bytes, tier: {blob.blob_tier})")
 ```
 
-## AzCopy for Bulk Transfers
+### AzCopy for Bulk Transfers
 
 ```bash
-# Sync a local directory to blob storage
-azcopy sync './dist' 'https://myappstorageprod.blob.core.windows.net/static?SAS_TOKEN' \
+# Sync a local directory to blob storage (azcopy login uses your Entra identity)
+azcopy login
+azcopy sync './dist' 'https://myappstorageprod.blob.core.windows.net/static' \
   --delete-destination true
 ```
 
 ```bash
-# Copy between storage accounts
+# Copy between storage accounts (run azcopy login first; the source URL carries a SAS)
 azcopy copy \
-  'https://source.blob.core.windows.net/data/*?SAS' \
-  'https://dest.blob.core.windows.net/data/?SAS' \
+  "https://sourceprodstore.blob.core.windows.net/data/?$SOURCE_SAS" \
+  "https://destprodstore.blob.core.windows.net/data/" \
   --recursive
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: "Share the Q4 report with a customer for one hour"
+
+Run the user delegation SAS script above for `reports/q4.pdf`, and send the resulting URL. It opens the PDF until the expiry, then returns HTTP 403.
+
+### Example 2: "Move logs older than 30 days to cheaper storage and delete after a year"
+
+Save the lifecycle JSON above as `lifecycle-policy.json` and run the `az storage account management-policy create` command; blobs under `logs/` move to Cool after 30 days, Archive after 90 and are deleted after 365 days. Rules are evaluated about once a day, not immediately.
+
+## Guidelines
 
 - Disable public blob access by default; use SAS tokens for temporary sharing
 - Use lifecycle management to automatically move cold data to cheaper tiers
 - Use AzCopy for large-scale data transfers (parallel, resumable)
-- Enable soft delete for accidental deletion recovery (set retention period)
+- Enable soft delete for accidental deletion recovery: `az storage account blob-service-properties update --account-name myappstorageprod --resource-group my-app-rg --enable-delete-retention true --delete-retention-days 14`
 - Use managed identities and RBAC instead of account keys when possible
 - Set minimum TLS version to 1.2
-- Use Cool tier for data accessed less than once per month
-- Enable blob versioning for critical data protection
+- Use Cool tier for data accessed less than once per month; moving blobs out of Cool, Cold or Archive before the minimum retention period incurs an early-deletion charge
+- Enable blob versioning for critical data: the same command with `--enable-versioning true`
+- `--delete-destination true` in `azcopy sync` deletes destination blobs missing from the source; run with `--dry-run` first
