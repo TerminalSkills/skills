@@ -1,14 +1,16 @@
 ---
 name: azure-cosmos-db
-description: |
-  Build globally distributed apps with Azure Cosmos DB. Work with multiple data
-  models (document, key-value, graph), configure global replication with tunable
-  consistency levels, manage throughput with RU/s, and query with SQL API.
+description: >-
+  Azure Cosmos DB is Microsoft's globally distributed NoSQL database service. Use when someone asks to
+  "set up Cosmos DB", "create a container with a partition key", "query Cosmos DB with the Python SDK",
+  "choose a consistency level", "add a region", "process the change feed", or "reduce RU cost".
+  Covers the API for NoSQL: az CLI setup, Entra ID access, CRUD, SQL queries, change feed, throughput.
 license: Apache-2.0
-compatibility: 'azure-cli, python, nodejs'
+compatibility: 'Azure CLI 2.x, Python 3.9+ with azure-cosmos 4.x and azure-identity, an Azure subscription'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/Azure/azure-sdk-for-python
   category: devops
   tags:
     - azure
@@ -20,7 +22,9 @@ metadata:
 
 # Azure Cosmos DB
 
-Azure Cosmos DB is a globally distributed, multi-model database with guaranteed single-digit millisecond latency at the 99th percentile. It supports document (NoSQL), key-value, graph, and column-family data models with five tunable consistency levels.
+## Overview
+
+Azure Cosmos DB is a globally distributed database with single-digit millisecond reads and writes at the 99th percentile (Microsoft's SLA figure), and five tunable consistency levels. It exposes several APIs: NoSQL (documents, SQL-like queries; the one this skill covers), MongoDB, Cassandra, Gremlin and Table. The account's API is chosen at creation and cannot be changed. The `az cosmosdb sql ...` commands and the `azure-cosmos` SDK below are for the API for NoSQL (older docs call it the "SQL API").
 
 ## Core Concepts
 
@@ -31,7 +35,9 @@ Azure Cosmos DB is a globally distributed, multi-model database with guaranteed 
 - **Request Unit (RU)** — normalized cost of database operations
 - **Consistency Level** — Strong, Bounded Staleness, Session, Consistent Prefix, Eventual
 
-## Account and Database Setup
+## Instructions
+
+### Account and Database Setup
 
 ```bash
 # Create a Cosmos DB account with global replication
@@ -42,7 +48,19 @@ az cosmosdb create \
   --default-consistency-level Session \
   --locations regionName=eastus failoverPriority=0 \
   --locations regionName=westeurope failoverPriority=1 \
-  --enable-automatic-failover true
+  --enable-automatic-failover true \
+  --disable-local-auth true
+```
+
+`--disable-local-auth true` turns off account keys so only Microsoft Entra ID identities can reach the data (recommended for production; drop it if you still need keys). Grant the app's identity the built-in data role, whose id is `00000000-0000-0000-0000-000000000002` ("Cosmos DB Built-in Data Contributor"):
+
+```bash
+az cosmosdb sql role assignment create \
+  --account-name my-app-cosmos \
+  --resource-group my-app-rg \
+  --scope "/" \
+  --principal-id "$APP_PRINCIPAL_ID" \
+  --role-definition-id 00000000-0000-0000-0000-000000000002
 ```
 
 ```bash
@@ -66,16 +84,21 @@ az cosmosdb sql container create \
   --idx '{"indexingMode":"consistent","automatic":true,"includedPaths":[{"path":"/*"}],"excludedPaths":[{"path":"/payload/*"}]}'
 ```
 
-## CRUD Operations
+### CRUD Operations
 
 ```python
-# Initialize client and perform CRUD
-from azure.cosmos import CosmosClient, PartitionKey
+# pip install azure-cosmos azure-identity
+import os
+from azure.cosmos import CosmosClient
+from azure.identity import DefaultAzureCredential
 
+# Entra ID (works with az login locally and managed identity in Azure)
 client = CosmosClient(
     url="https://my-app-cosmos.documents.azure.com:443/",
-    credential="your-key-here"
+    credential=DefaultAzureCredential(),
 )
+# Key-based alternative (only if local auth is enabled):
+# client = CosmosClient(url, credential=os.environ["COSMOS_KEY"])
 database = client.get_database_client("app-db")
 container = database.get_container_client("orders")
 
@@ -89,7 +112,7 @@ order = {
     ],
     "total": 109.97,
     "status": "pending",
-    "createdAt": "2024-01-15T10:30:00Z"
+    "createdAt": "2026-10-15T10:30:00Z"
 }
 container.create_item(body=order)
 ```
@@ -103,8 +126,8 @@ print(f"Order: {item['status']}, Total: ${item['total']}")
 ```python
 # Replace (full update)
 item['status'] = 'shipped'
-item['shippedAt'] = '2024-01-16T14:00:00Z'
-container.replace_item(item=item['id'], body=item)
+item['shippedAt'] = '2026-10-16T14:00:00Z'
+container.replace_item(item=item['id'], body=item)  # use upsert_item(body=item) to insert-or-replace
 ```
 
 ```python
@@ -114,7 +137,7 @@ container.patch_item(
     partition_key="customer-123",
     patch_operations=[
         {"op": "set", "path": "/status", "value": "delivered"},
-        {"op": "add", "path": "/deliveredAt", "value": "2024-01-17T09:00:00Z"},
+        {"op": "add", "path": "/deliveredAt", "value": "2026-10-17T09:00:00Z"},
         {"op": "incr", "path": "/updateCount", "value": 1}
     ]
 )
@@ -125,7 +148,7 @@ container.patch_item(
 container.delete_item(item="order-001", partition_key="customer-123")
 ```
 
-## Querying
+### Querying
 
 ```python
 # SQL queries on Cosmos DB
@@ -160,7 +183,7 @@ result = container.query_items(
 count = list(result)[0]
 ```
 
-## Consistency Levels
+### Consistency Levels
 
 ```bash
 # Update default consistency level
@@ -180,24 +203,22 @@ az cosmosdb update \
 | Consistent Prefix | Reads never see out-of-order writes | Low | Social feeds |
 | Eventual | No ordering guarantee | Lowest | Non-critical analytics |
 
-## Change Feed
+### Change Feed
 
 ```python
-# Process change feed for event-driven architecture
-from azure.cosmos import CosmosClient
-
-container = CosmosClient(url, credential).get_database_client("app-db").get_container_client("orders")
-
-# Read changes from beginning
+# Process the change feed for an event-driven pipeline (azure-cosmos 4.17)
+# Reuses `container` from the CRUD section.
 change_feed = container.query_items_change_feed(
-    is_start_from_beginning=True,
-    partition_key_range_id="0"
+    start_time="Beginning",          # or "Now" (the default) or a datetime
+    max_item_count=100,
 )
 for change in change_feed:
     print(f"Changed item: {change['id']}, status: {change.get('status')}")
 ```
 
-## Global Distribution
+The older `is_start_from_beginning` and `partition_key_range_id` arguments are gone from current SDKs; scope a read with `partition_key=` or `feed_range=` (see `container.read_feed_ranges()`). To resume later, pass the `continuation` token you got from the previous response. The default mode shows only the latest version of changed items and does not include deletes; `mode="AllVersionsAndDeletes"` (needs continuous backup on the account) also reports deletes, but only from `start_time="Now"` or a `continuation` token, not from `"Beginning"`. For a durable multi-worker processor, use Azure Functions' Cosmos DB trigger or the .NET/Java change feed processor.
+
+### Global Distribution
 
 ```bash
 # Add a read region
@@ -217,10 +238,11 @@ az cosmosdb update \
   --enable-multiple-write-locations true
 ```
 
-## Throughput Management
+### Throughput Management
 
 ```bash
-# Enable autoscale on a container
+# Move a manual-throughput container to autoscale (the orders container above was
+# already created with --max-throughput, so it is autoscale and needs no migration)
 az cosmosdb sql container throughput migrate \
   --account-name my-app-cosmos \
   --resource-group my-app-rg \
@@ -238,7 +260,21 @@ az cosmosdb sql container throughput show \
   --name orders
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: Orders container for a shop
+
+**User request:** "Create a Cosmos DB database for my shop's orders, in two regions, no account keys."
+
+The agent runs the `az cosmosdb create` command with `--disable-local-auth true`, creates `app-db` and the `orders` container with `/customerId` as partition key, assigns the data role to the app's identity, and writes the Python client with `DefaultAzureCredential`. Result: `read_item("order-001", partition_key="customer-123")` returns the order for about 1 RU, and a query filtered on `customerId` stays in one partition.
+
+### Example 2: Why is this query expensive?
+
+**User request:** "My order list query uses 300 RU per call. Fix it."
+
+The agent finds that the query runs with `enable_cross_partition_query=True` and no `customerId` filter. It adds the partition key value to the query (`partition_key="customer-123"`), selects only the needed properties instead of `SELECT *`, and excludes `/payload/*` from the indexing policy. Result: the request charge drops because the query touches one logical partition and writes index fewer paths.
+
+## Guidelines
 
 - Choose partition key carefully — it determines scalability and query performance
 - Use Session consistency for most applications (best balance of performance and guarantees)
@@ -247,4 +283,7 @@ az cosmosdb sql container throughput show \
 - Use the change feed for event-driven patterns instead of polling
 - Enable automatic failover for production accounts
 - Exclude large payload paths from indexing to save RUs on writes
-- Use point reads (by id + partition key) instead of queries when possible — 1 RU
+- Use point reads (by id + partition key) instead of queries when possible — about 1 RU for a 1 KB item
+- Prefer Entra ID (`DefaultAzureCredential`) over account keys; keep any key in an environment variable or Key Vault, never in code
+- Handle HTTP 429 (rate limited): the SDK retries automatically, but sustained 429s mean the container needs more RU/s or a better partition key
+- Test locally with the Linux emulator (`mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-latest`); it covers only part of the API for NoSQL, so check the feature you need
