@@ -1,12 +1,18 @@
 ---
 name: zig
-description: Expert guidance for Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
+description: >-
+  Zig is a systems programming language with compile-time evaluation, seamless C interop,
+  no hidden control flow and no garbage collector. Use when writing, building, testing or
+  cross-compiling Zig code, porting C projects, or fixing code that broke on a new Zig
+  release (std.Io, Writergate, @cImport removal). Covers zig init, zig build, comptime
+  generics, explicit allocators and an HTTP server on Zig 0.17.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Zig 0.17.0 (code verified on x86_64 Linux); the standard library changes between releases"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
+  repository: https://github.com/ziglang/zig
   tags:
   - zig
   - systems
@@ -17,284 +23,244 @@ metadata:
 
 # Zig — Modern Systems Programming Language
 
-
 ## Overview
 
+Zig is a systems language with explicit allocators, errors as values, compile-time code execution (`comptime`), and a build system written in Zig itself. It cross-compiles to many targets from one install and can call C code. Zig has no 1.0 yet: the standard library changes in every release, so code from older tutorials often does not compile. This skill targets **0.17.0** (2026-10-01). Check `zig version` first and read the release notes at https://ziglang.org/download/ when your version differs.
 
-Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
+Changes that most often break old code:
 
+- `main` can take `std.process.Init` (`init.io`, `init.gpa`, `init.arena`, `init.minimal.args`). Anything that does I/O needs an `std.Io` value.
+- `std.io.getStdOut()` and the old `GenericWriter` APIs are gone. Writers are `*std.Io.Writer`, buffered, and must be flushed.
+- `std.net` moved to `std.Io.net`; `std.http.Server.init` takes an `*Io.Reader` and an `*Io.Writer`.
+- `std.ArrayList` is unmanaged: start from `.empty` and pass the allocator to every call.
+- `@cImport` was removed in 0.17 (deprecated in 0.16).
+- `std.heap.DebugAllocator` is deprecated in 0.17 in favour of a new safe allocator.
 
 ## Instructions
 
-### Build System
+### Install and build
 
 ```bash
-# Install Zig
-brew install zig    # macOS
-# Or download from https://ziglang.org/download/
+brew install zig        # macOS and Linuxbrew, currently 0.17.0
+# Or download the tarball for your platform from https://ziglang.org/download/ and compare
+# its hash with the shasum in https://ziglang.org/download/index.json before extracting:
+sha256sum zig-x86_64-linux-0.17.0.tar.xz
+# 1cbe9df9f27e6b78d14ccbca43b6703a404ef79ef1c463de901d7f088d4e2026
 
-# Create a project
-mkdir my-project && cd my-project
-zig init
-
-# Build and run
-zig build run
-
-# Test
-zig build test
-
-# Cross-compile (Zig's killer feature — no extra toolchains needed)
-zig build -Dtarget=x86_64-linux-gnu
-zig build -Dtarget=aarch64-macos
-zig build -Dtarget=x86_64-windows-gnu
+mkdir inventory-cli && cd inventory-cli
+zig init                # build.zig, build.zig.zon, src/main.zig, src/root.zig
+zig build run           # compile and run
+zig build test          # run all tests
+zig build -Dtarget=x86_64-windows-gnu -Doptimize=ReleaseSafe   # cross-compile, no extra toolchain
+zig test src/main.zig   # test one file (zig run src/main.zig fails here: the template imports the project module)
 ```
 
-### Core Language
+Targets use `<arch>-<os>[-<abi>]`, for example `aarch64-macos` or `x86_64-linux-musl`. `-Doptimize=` takes `Debug`, `ReleaseSafe`, `ReleaseFast` or `ReleaseSmall`.
+
+### Core language
+
+Run with `zig run core.zig`, test with `zig test core.zig`:
 
 ```zig
-// src/main.zig — Zig fundamentals
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-
-// Structs are the primary abstraction (no classes, no inheritance)
-const Task = struct {
-    id: u64,
-    title: []const u8,       // Slice — pointer + length, no null terminator
-    priority: Priority,
-    status: Status,
-
-    const Self = @This();
-
-    pub fn isOverdue(self: Self, now: i64) bool {
-        return self.due_date != null and self.due_date.? < now;
-    }
-
-    pub fn format(self: Self, writer: anytype) !void {
-        try writer.print("[{s}] {s} ({})\n", .{
-            @tagName(self.status),
-            self.title,
-            @tagName(self.priority),
-        });
-    }
-};
+const Io = std.Io;
 
 const Priority = enum { low, medium, high, urgent };
 const Status = enum { todo, in_progress, review, done, cancelled };
 
-// Error handling — errors are values, not exceptions
-const TaskError = error{
-    NotFound,
-    InvalidTransition,
-    TitleTooLong,
-    StorageFull,
+// Structs are the primary abstraction (no classes, no inheritance)
+const Task = struct {
+    id: u64,
+    title: []const u8, // slice: pointer + length
+    priority: Priority,
+    status: Status = .todo,
+    due_date: ?i64 = null,
+
+    pub fn isOverdue(self: Task, now: i64) bool {
+        return self.due_date != null and self.due_date.? < now;
+    }
+
+    pub fn format(self: Task, writer: *Io.Writer) Io.Writer.Error!void {
+        try writer.print("[{s}] {s} ({s})\n", .{ @tagName(self.status), self.title, @tagName(self.priority) });
+    }
 };
 
-// Explicit allocator — you choose where memory comes from
-fn createTask(allocator: Allocator, title: []const u8, priority: Priority) TaskError!*Task {
-    if (title.len > 256) return TaskError.TitleTooLong;
+// Errors are values, not exceptions
+const TaskError = error{ TitleTooLong, OutOfMemory };
 
-    const task = allocator.create(Task) catch return TaskError.StorageFull;
-    task.* = .{
-        .id = generateId(),
-        .title = allocator.dupe(u8, title) catch return TaskError.StorageFull,
-        .priority = priority,
-        .status = .todo,
-    };
+// The caller chooses where memory comes from
+fn createTask(allocator: Allocator, id: u64, title: []const u8, priority: Priority) TaskError!*Task {
+    if (title.len > 256) return error.TitleTooLong;
+    const task = try allocator.create(Task);
+    errdefer allocator.destroy(task);
+    task.* = .{ .id = id, .title = try allocator.dupe(u8, title), .priority = priority };
     return task;
 }
 
-pub fn main() !void {
-    // Arena allocator — free everything at once (fast, simple)
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();     // Free ALL memory when scope exits
-    const allocator = arena.allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.arena.allocator(); // freed automatically at process exit
+    const io = init.io;
 
-    const task = try createTask(allocator, "Implement auth", .high);
-    const stdout = std.io.getStdOut().writer();
-    try task.format(stdout);
+    const task = try createTask(allocator, 1, "Implement auth", .high);
+
+    var buf: [256]u8 = undefined;
+    var stdout: Io.File.Writer = .init(.stdout(), io, &buf);
+    try task.format(&stdout.interface);
+    try stdout.interface.print("overdue: {}\n", .{task.isOverdue(1_800_000_000)});
+    try stdout.interface.flush(); // buffered: flush before exit
+}
+
+test "title length is checked" {
+    const long: [300]u8 = @splat('x');
+    try std.testing.expectError(error.TitleTooLong, createTask(std.testing.allocator, 2, &long, .low));
 }
 ```
 
-### Comptime (Compile-Time Evaluation)
+### Comptime
+
+Generic types are functions from types to types, and `comptime` code runs at compile time:
 
 ```zig
-// comptime.zig — Zig's most powerful feature: code that runs at compile time
 const std = @import("std");
 
-// Generic data structures — type parameter resolved at compile time
-fn ArrayList(comptime T: type) type {
+// A generic container is a function that takes a type and returns a type
+fn Stack(comptime T: type) type {
     return struct {
-        items: []T,
-        capacity: usize,
-        allocator: std.mem.Allocator,
+        items: std.ArrayList(T) = .empty,
 
         const Self = @This();
 
-        pub fn init(allocator: std.mem.Allocator) Self {
-            return .{ .items = &.{}, .capacity = 0, .allocator = allocator };
+        pub fn push(self: *Self, gpa: std.mem.Allocator, item: T) !void {
+            try self.items.append(gpa, item);
         }
 
-        pub fn append(self: *Self, item: T) !void {
-            if (self.items.len >= self.capacity) {
-                try self.grow();
-            }
-            self.items.len += 1;
-            self.items[self.items.len - 1] = item;
+        pub fn pop(self: *Self) ?T {
+            return self.items.pop();
         }
 
-        fn grow(self: *Self) !void {
-            const new_cap = if (self.capacity == 0) 8 else self.capacity * 2;
-            self.items = try self.allocator.realloc(self.items, new_cap);
-            self.capacity = new_cap;
+        pub fn deinit(self: *Self, gpa: std.mem.Allocator) void {
+            self.items.deinit(gpa);
         }
     };
 }
 
-// Compile-time string formatting for embedded/no-alloc contexts
-fn comptimeConcat(comptime a: []const u8, comptime b: []const u8) *const [a.len + b.len]u8 {
+// Concatenate at compile time: the result is a constant, no allocation
+fn concat(comptime a: []const u8, comptime b: []const u8) *const [a.len + b.len]u8 {
     comptime {
         var result: [a.len + b.len]u8 = undefined;
         @memcpy(result[0..a.len], a);
         @memcpy(result[a.len..], b);
-        return &result;
+        const final = result;
+        return &final;
     }
 }
 
-// This is evaluated entirely at compile time — zero runtime cost
-const greeting = comptimeConcat("Hello, ", "Zig!");
-// greeting is a compile-time constant: "Hello, Zig!"
+const greeting = concat("Hello, ", "Zig!");
+
+test "stack of u32" {
+    const gpa = std.testing.allocator;
+    var s: Stack(u32) = .{};
+    defer s.deinit(gpa);
+    try s.push(gpa, 7);
+    try s.push(gpa, 9);
+    try std.testing.expectEqual(@as(?u32, 9), s.pop());
+}
+
+test "comptime concat" {
+    try std.testing.expectEqualStrings("Hello, Zig!", greeting);
+}
 ```
 
-### HTTP Server
+### HTTP server
 
 ```zig
-// src/server.zig — HTTP server with std.http
 const std = @import("std");
+const Io = std.Io;
+const net = Io.net;
 const http = std.http;
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
 
-    var server = try std.net.Server.init(.{
-        .address = try std.net.Address.parseIp("0.0.0.0", 8080),
-        .reuse_address = true,
-    });
-    defer server.deinit();
-
-    std.log.info("Server listening on :8080", .{});
+    const address = try net.IpAddress.parse("127.0.0.1", 8080);
+    var listener = try address.listen(io, .{ .reuse_address = true });
+    defer listener.deinit(io);
+    std.log.info("listening on 127.0.0.1:8080", .{});
 
     while (true) {
-        const connection = try server.accept();
-        // Handle each connection (in production, use a thread pool)
-        handleConnection(allocator, connection) catch |err| {
-            std.log.err("Connection error: {}", .{err});
-        };
+        const stream = try listener.accept(io);
+        handleConnection(io, stream) catch |err| std.log.err("connection error: {t}", .{err});
     }
 }
 
-fn handleConnection(allocator: std.mem.Allocator, connection: std.net.Server.Connection) !void {
-    defer connection.stream.close();
+fn handleConnection(io: Io, stream: net.Stream) !void {
+    defer stream.close(io);
 
-    var buf: [8192]u8 = undefined;
-    var server = http.Server.init(connection, &buf);
+    var recv_buf: [4096]u8 = undefined;
+    var send_buf: [4096]u8 = undefined;
+    var reader = stream.reader(io, &recv_buf);
+    var writer = stream.writer(io, &send_buf);
+    var server = http.Server.init(&reader.interface, &writer.interface);
 
     var request = try server.receiveHead();
-    const path = request.head.target;
-
-    if (std.mem.eql(u8, path, "/api/health")) {
-        try request.respond(
-            "{\"status\":\"ok\"}",
-            .{ .extra_headers = &.{.{ .name = "content-type", .value = "application/json" }} },
-        );
+    if (std.mem.eql(u8, request.head.target, "/api/health")) {
+        try request.respond("{\"status\":\"ok\"}", .{
+            .extra_headers = &.{.{ .name = "content-type", .value = "application/json" }},
+        });
     } else {
         try request.respond("Not Found", .{ .status = .not_found });
     }
 }
 ```
 
-### C Interop (Zero Overhead)
+Build with `zig build-exe server.zig`. It handles one connection at a time; use threads or `std.Io.Group` for concurrency. Bind to `127.0.0.1` unless the service must be reachable from other machines.
+
+### C interop
+
+`@cImport` is gone. For a handful of functions, declare them with `extern "c"` and link libc (`zig run -lc cinterop.zig`, or `exe.root_module.link_libc = true` in `build.zig`):
 
 ```zig
-// c_interop.zig — Call C libraries directly, no bindings generator needed
-const c = @cImport({
-    @cInclude("sqlite3.h");    // Include any C header
-});
+const std = @import("std");
 
-const Database = struct {
-    db: *c.sqlite3,
+// Declare the C functions you need; libc is linked with -lc / link_libc
+extern "c" fn strlen(s: [*:0]const u8) usize;
+extern "c" fn abs(n: c_int) c_int;
 
-    pub fn open(path: [*:0]const u8) !Database {
-        var db: ?*c.sqlite3 = null;
-        const rc = c.sqlite3_open(path, &db);
-        if (rc != c.SQLITE_OK) return error.DatabaseOpenFailed;
-        return .{ .db = db.? };
-    }
-
-    pub fn close(self: *Database) void {
-        _ = c.sqlite3_close(self.db);
-    }
-
-    pub fn exec(self: *Database, sql: [*:0]const u8) !void {
-        var err_msg: ?[*:0]u8 = null;
-        const rc = c.sqlite3_exec(self.db, sql, null, null, &err_msg);
-        if (rc != c.SQLITE_OK) {
-            if (err_msg) |msg| c.sqlite3_free(msg);
-            return error.QueryFailed;
-        }
-    }
-};
+pub fn main() void {
+    const word: [*:0]const u8 = "interop";
+    std.debug.print("strlen = {d}, abs(-42) = {d}\n", .{ strlen(word), abs(-42) });
+}
 ```
 
-## Installation
-
-```bash
-# macOS
-brew install zig
-
-# Linux (snap)
-snap install zig --classic
-
-# Or download binary from https://ziglang.org/download/
-
-# Build from source
-git clone https://github.com/ziglang/zig
-cd zig && cmake -B build && cmake --build build
-```
-
+For whole headers, use the official translate-c package from `build.zig` (`zig fetch --save git+https://codeberg.org/ziglang/translate-c#zig-0.17.x`, then `Translator.init(...)`); the 0.17 release notes show the full `build.zig` change. `zig cc` also works as a C compiler for cross-compiling C projects.
 
 ## Examples
 
+### Example 1: Fix code that stopped compiling after an upgrade
 
-### Example 1: Building a feature with Zig
+**User request:** "My Zig 0.13 CLI fails on 0.17 with `no member named 'getStdOut' in 'io'`. Make it build."
 
-**User request:**
+Run `zig version`, replace `std.io.getStdOut().writer()` with a buffered `Io.File.Writer` (see Core language), change `pub fn main() !void` to `pub fn main(init: std.process.Init) !void`, pass `init.io` where I/O happens, add `.empty` and an allocator argument to every `ArrayList` call, and end with `flush()`. Re-run `zig build test` until it is green.
 
-```
-Add a real-time collaborative build system to my React app using Zig.
-```
+### Example 2: Ship binaries for Linux and Windows from a Mac
 
-The agent installs the package, creates the component with proper Zig initialization, implements the build system with event handling and state management, and adds TypeScript types for the integration.
+**User request:** "Build my Zig service for Linux x86_64 and Windows from my MacBook."
 
-### Example 2: Migrating an existing feature to Zig
-
-**User request:**
-
-```
-I have a basic core language built with custom code. Migrate it to use Zig for better core language support.
+```bash
+zig build -Dtarget=x86_64-linux-musl -Doptimize=ReleaseSafe
+zig build -Dtarget=x86_64-windows-gnu -Doptimize=ReleaseSafe
+ls zig-out/bin
 ```
 
-The agent reads the existing implementation, maps the custom logic to Zig's API, rewrites the components using Zig's primitives, preserves existing behavior, and adds features only possible with Zig (like Comptime, HTTP Server).
-
+The result is a static `zig-out/bin/<name>` for musl and a `<name>.exe` (plus a `.pdb` file) for Windows; no Docker or cross toolchain is needed.
 
 ## Guidelines
 
-1. **Explicit allocators** — Every function that allocates takes an `Allocator` parameter; this gives you control over where memory comes from
-2. **Arena allocators for requests** — Use `ArenaAllocator` for request-scoped work; free everything at once with `deinit()`
-3. **`defer` for cleanup** — Always `defer` resource cleanup immediately after acquisition; prevents leaks and use-after-free
-4. **Comptime over runtime** — If something can be computed at compile time, it should be; use `comptime` parameters for zero-cost generics
-5. **Error unions for safety** — Use `!` (error union) return types; the compiler forces you to handle or propagate every error
-6. **C interop for ecosystems** — Use `@cImport` to call any C library directly; no FFI overhead, no bindings generator needed
-7. **Cross-compilation built-in** — Zig can cross-compile to 40+ targets with no extra toolchains; one binary, any platform
-8. **No hidden control flow** — No exceptions, no operator overloading, no hidden allocations; every function call is visible in the code
+1. **Explicit allocators.** Functions that allocate take an `Allocator`. In tests use `std.testing.allocator`, which fails the test on leaks.
+2. **Arenas for short-lived work.** `init.arena` lives for the whole process; create your own `std.heap.ArenaAllocator` per request and `deinit()` it.
+3. **`defer` and `errdefer`** right after acquiring a resource, so every error path cleans up.
+4. **Flush buffered writers**; output stays in the buffer otherwise.
+5. **Errors are values.** Use `!T` return types and `try`; avoid `catch unreachable` unless it truly cannot fail.
+6. **Pin the Zig version** (in CI and `minimum_zig_version` in `build.zig.zon`); upgrade deliberately and read the release notes.
+7. **Prefer `ReleaseSafe`** for production services: it keeps bounds and overflow checks, which `ReleaseFast` removes.
