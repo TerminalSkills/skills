@@ -214,20 +214,25 @@ gtid-mode = ON
 enforce-gtid-consistency = ON
 ```
 
-```sql
--- replication.sql: Configure replica to follow primary
--- On primary: create replication user
-CREATE USER 'repl'@'%' IDENTIFIED BY 'Rp7-9kQz-2xLm';
-GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+```bash
+# Generate the replication password once and keep it in your secret store
+REPL_PASSWORD="$(openssl rand -base64 24)"
 
--- On replica: start replication
+# On the primary: a replication user limited to the replica's network
+mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h primary-host <<SQL
+CREATE USER 'repl'@'10.0.0.%' IDENTIFIED BY '${REPL_PASSWORD}';
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'10.0.0.%';
+SQL
+
+# On the replica: follow the primary with GTID auto-positioning
+mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<SQL
 CHANGE REPLICATION SOURCE TO
-  SOURCE_HOST='primary-host',
-  SOURCE_USER='repl',
-  SOURCE_PASSWORD='Rp7-9kQz-2xLm',
-  SOURCE_AUTO_POSITION=1;
+  SOURCE_HOST='primary-host', SOURCE_USER='repl',
+  SOURCE_PASSWORD='${REPL_PASSWORD}', SOURCE_AUTO_POSITION=1,
+  SOURCE_SSL=1;   # caching_sha2_password (the default) needs TLS or the source's public key
 START REPLICA;
 SHOW REPLICA STATUS\G
+SQL
 ```
 
 ## Backup and Maintenance
