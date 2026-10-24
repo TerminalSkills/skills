@@ -1,14 +1,16 @@
 ---
 name: gsap
 description: >-
-  Create advanced animations with GSAP. Use when building complex timelines,
-  scroll-driven animations, SVG morphing, text animations, or high-performance
-  web animations beyond CSS capabilities.
+  GSAP is a JavaScript animation library for tweens, timelines, scroll-driven
+  animation (ScrollTrigger), SVG morphing and text splitting. Use it when building
+  complex timelines, scroll-linked animations, SVG morphing, text animations, or
+  high-performance web animations beyond CSS capabilities.
 license: Apache-2.0
 compatibility: 'Any JavaScript, React, Vue'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/greensock/GSAP
+  version: 1.1.0
   category: development
   tags: [gsap, animation, scrolltrigger, timeline, svg]
 ---
@@ -17,9 +19,13 @@ metadata:
 
 ## Overview
 
-GSAP (GreenSock Animation Platform) is the most powerful web animation library. Handles complex timelines, scroll-driven animations, SVG morphing, text effects, and physics-based motion. Used by Apple, Google, Nike for landing pages and product showcases. Free for most uses.
+GSAP (GreenSock Animation Platform) is the most powerful web animation library. Handles complex timelines, scroll-driven animations, SVG morphing, text effects, and physics-based motion. Since Webflow's support, GSAP and all its plugins (ScrollTrigger, SplitText, MorphSVG, DrawSVG, Flip and others) are free for everyone, including commercial use, under the Standard "no charge" license (https://gsap.com/standard-license). Checked against gsap 3.15.0 and @gsap/react 2.1.2 on npm (2026-10-24).
 
 ## Instructions
+
+```bash
+npm install gsap @gsap/react   # plugins ship inside the gsap package: import from 'gsap/ScrollTrigger', 'gsap/SplitText'
+```
 
 ### Step 1: Basic Animations
 
@@ -91,6 +97,9 @@ gsap.to('.horizontal-section', {
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 function AnimatedSection() {
   const container = useRef(null)
@@ -112,10 +121,51 @@ function AnimatedSection() {
 }
 ```
 
+### Step 5: Split text, responsive and reduced-motion
+
+`SplitText` (now free) splits text into chars, words and lines. Create it with `SplitText.create`, which can re-split on resize via `autoSplit` and call your animation from `onSplit`. `gsap.matchMedia()` runs setup only when a media query matches and reverts it afterwards, which is the clean way to honor `prefers-reduced-motion`.
+
+```typescript
+import gsap from 'gsap'
+import { SplitText } from 'gsap/SplitText'
+gsap.registerPlugin(SplitText)
+
+const mm = gsap.matchMedia()
+
+mm.add('(prefers-reduced-motion: no-preference)', () => {
+  SplitText.create('.hero-title', {
+    type: 'words,lines',
+    mask: 'lines',              // wrap lines for a reveal effect
+    autoSplit: true,            // re-split when fonts load or width changes
+    onSplit(self) {
+      return gsap.from(self.lines, { yPercent: 100, stagger: 0.08, duration: 0.8, ease: 'power3.out' })
+    },
+  })
+})
+```
+
+## Examples
+
+### Example 1: Hero entrance with a timeline
+
+**User request:** "Make the logo, nav links and CTA animate in one after another when the landing page loads."
+
+Use the Step 2 timeline: `gsap.timeline({ defaults: { duration: 0.6, ease: 'power2.out' } })`, `.from('.logo', ...)`, `.from('.nav-link', ..., '-=0.3')` and `.from('.cta-button', ..., '<')`. Each step starts when the previous one ends, minus the `-=0.3` overlap, and `'<'` starts the CTA together with the previous step. Call `tl.restart()` to replay.
+
+### Example 2: Fade-in sections in a React app
+
+**User request:** "In my Next.js page, cards should fade up when they scroll into view."
+
+Add `'use client'` to the component, register the plugins once (`gsap.registerPlugin(useGSAP, ScrollTrigger)`, as in Step 4), use Step 4's `useGSAP` with `scope: container`. Opening the page shows the cards hidden until the section reaches 80% of the viewport, and unmounting reverts the animation.
+
 ## Guidelines
 
-- GSAP is free for public websites. Commercial plugins (MorphSVG, SplitText) need a license.
+- GSAP and every plugin are free, including commercial use; the earlier "Club" paid tiers no longer apply. Read the Standard license for its terms.
+- Register each plugin once with `gsap.registerPlugin(...)` before using it; with `useGSAP` register `useGSAP` too.
+- Respect reduced motion: wrap animations in `gsap.matchMedia()` as in Step 5.
+- Prefer animating `x`, `y`, `scale`, `rotation` and `opacity` (transforms) over layout properties like `width` or `top`.
+- In React, create animations inside `useGSAP` and use `contextSafe` for event handlers so cleanup works.
 - Use `useGSAP` hook in React — it handles cleanup automatically on unmount.
 - ScrollTrigger with `scrub` creates scroll-linked animations (parallax, progress).
 - `stagger` animates multiple elements sequentially — cleaner than manual delays.
-- GSAP outperforms CSS animations for complex sequences — requestAnimationFrame-based.
+- Use CSS transitions for simple hover states; reach for GSAP when you need sequencing, scroll linking, or runtime control.
