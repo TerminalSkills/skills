@@ -8,17 +8,16 @@ description: >-
   metadata, or build image processing pipelines. Covers resizing, format
   conversion, compression, cropping, compositing, and metadata extraction.
 license: Apache-2.0
-compatibility: 'Node.js 18+ (Linux, macOS, Windows)'
+compatibility: 'Node.js 20.9+ (Linux, macOS, Windows; prebuilt libvips binaries, no system install needed)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: content
+  repository: https://github.com/lovell/sharp
   tags:
     - sharp
     - image
     - resize
-    - convert
-    - compress
     - thumbnail
     - webp
 ---
@@ -27,15 +26,17 @@ metadata:
 
 ## Overview
 
-Sharp is the fastest image processing library for Node.js, built on libvips. It handles resizing, format conversion (JPEG, PNG, WebP, AVIF, TIFF, GIF), compression, cropping, rotation, compositing, and metadata extraction. Use it for thumbnail generation, responsive image variants, web optimization, watermarking, and batch processing pipelines.
+Sharp (0.35.x) is a high-performance image processing library for Node.js built on libvips; resizing is typically 4-5x faster than ImageMagick. It reads JPEG, PNG, WebP, AVIF, TIFF, GIF, SVG and more, and writes JPEG, PNG, WebP, AVIF, TIFF and GIF. It ships prebuilt binaries for common platforms, so `npm install sharp` is enough (the package manager must install optional dependencies). Use it for thumbnails, responsive variants, web optimization, watermarking and batch pipelines.
 
 ## Instructions
 
 ### Step 1: Installation
 
 ```bash
-npm install sharp
+npm install sharp     # needs Node.js >= 20.9; pnpm add sharp / yarn add sharp / bun add sharp also work
 ```
+
+The examples are ES modules (`import sharp from 'sharp'`, top-level `await`), so use `.mjs` files or `"type": "module"` in `package.json`. `toFile()` resolves with an info object (`format`, `width`, `height`, `size`, ...) and rejects with an Error for a missing or corrupt input. You cannot write to the same path you read from.
 
 ### Step 2: Resize and Convert
 
@@ -60,7 +61,7 @@ await sharp('photo.jpg')
 
 // Convert to AVIF (best compression, modern browsers)
 await sharp('photo.jpg')
-  .avif({ quality: 50 })     // AVIF quality scale differs — 50 ≈ JPEG 80
+  .avif({ quality: 50 })     // AVIF quality numbers are not comparable to JPEG; compare file size and look
   .toFile('photo.avif')
 
 // PNG with compression
@@ -84,8 +85,7 @@ async function generateVariants(inputPath, outputDir) {
    *   inputPath: Source image path
    *   outputDir: Directory for output variants
    */
-  const image = sharp(inputPath)
-  const metadata = await image.metadata()
+  const metadata = await sharp(inputPath).metadata()
   const baseName = inputPath.replace(/\.[^.]+$/, '').split('/').pop()
 
   for (const width of sizes) {
@@ -151,11 +151,12 @@ await sharp('photo.jpg')
   }])
   .toFile('watermarked.jpg')
 
-// Text watermark (create text as SVG, then overlay)
+// Text watermark (SVG text is drawn with fonts installed on the server, so
+// use a generic family such as sans-serif and check the result on your host)
 const svgText = `
   <svg width="400" height="50">
     <text x="0" y="35" font-size="30" fill="white" opacity="0.5"
-          font-family="Arial">© 2025 My Company</text>
+          font-family="sans-serif">© 2026 Northwind Studio</text>
   </svg>`
 
 await sharp('photo.jpg')
@@ -192,11 +193,14 @@ console.log(metadata)
 const stats = await sharp('photo.jpg').stats()
 console.log(stats.channels[0])    // { min: 0, max: 255, sum: 12345678, mean: 128.5, ... }
 
-// Strip metadata (EXIF, ICC) for privacy
-await sharp('photo.jpg')
-  .rotate()                     // apply EXIF rotation first
-  .withMetadata({ orientation: undefined })   // strip EXIF
-  .toFile('stripped.jpg')
+// Output is stripped of EXIF/ICC/XMP by default (pixels are converted to sRGB),
+// so GPS and camera data are removed without extra calls. rotate() bakes in the orientation first.
+await sharp('photo.jpg').rotate().toFile('stripped.jpg')
+
+// Opt in to keeping metadata only when you need it
+await sharp('photo.jpg').keepExif().toFile('with-exif.jpg')              // EXIF only
+await sharp('photo.jpg').keepIccProfile().toFile('with-icc.jpg')         // colour profile only
+await sharp('photo.jpg').keepMetadata().toFile('with-everything.jpg')    // all metadata
 ```
 
 ### Step 7: Batch Processing
@@ -224,14 +228,11 @@ async function optimizeDirectory(inputDir, outputDir, maxWidth = 1920) {
     const outputName = file.replace(/\.[^.]+$/, '.webp')
     const outputPath = path.join(outputDir, outputName)
 
-    const meta = await sharp(inputPath).metadata()
-    const pipeline = sharp(inputPath)
-
-    if (meta.width > maxWidth) {
-      pipeline.resize(maxWidth)
-    }
-
-    await pipeline.webp({ quality: 80 }).toFile(outputPath)
+    await sharp(inputPath)
+      .rotate()
+      .resize({ width: maxWidth, withoutEnlargement: true })   // never upscale
+      .webp({ quality: 80 })
+      .toFile(outputPath)
     processed++
   }
 
@@ -248,7 +249,7 @@ The agent will:
 1. Accept the upload buffer via `sharp(buffer)`.
 2. Auto-rotate based on EXIF to handle phone photos.
 3. Generate three variants with `resize()` + `webp()`, using `fit: 'cover'` for the square crops.
-4. Strip EXIF metadata for privacy.
+4. Leave metadata at the default (stripped) for privacy.
 5. Return buffers or save to disk/S3.
 
 ### Example 2: Optimize a website's image assets for performance
@@ -262,10 +263,11 @@ The agent will:
 
 ## Guidelines
 
-- Sharp is the fastest Node.js image library (10-100x faster than ImageMagick/GraphicsMagick via Node bindings). Prefer it for server-side image processing.
-- Always call `.rotate()` before other transforms when processing user uploads — it applies EXIF orientation, preventing rotated phone photos.
-- Use WebP (quality 80) as the default web format — it's 25-35% smaller than JPEG at equivalent quality and supported by all modern browsers.
-- AVIF offers even better compression (50% smaller than JPEG) but encoding is slower. Use it for static assets, not real-time processing.
-- Sharp operations are chainable and lazy — they only execute when you call `.toFile()` or `.toBuffer()`. Chain all transforms before outputting.
-- For concurrent processing, Sharp uses a thread pool. It handles parallelism internally — you don't need to manage worker threads.
-- Strip EXIF metadata from user uploads for privacy — photos from phones contain GPS coordinates, camera model, and timestamps.
+- Always call `.rotate()` (no arguments) before other transforms on user uploads: it applies EXIF orientation, which phone photos depend on, and the metadata is dropped afterwards.
+- Output metadata is removed by default, so uploads lose GPS coordinates and camera data unless you call `keepExif()`, `keepIccProfile()` or `keepMetadata()`. `withMetadata()` also exists but keeps the metadata instead of stripping it.
+- For untrusted uploads keep the safe defaults: `failOn: 'warning'` aborts on damaged pixel data and `limitInputPixels` (about 268 million pixels) rejects decompression bombs. Do not set `unlimited: true` or `limitInputPixels: false` for user input, and validate type and size before decoding.
+- Use WebP quality 80 as a default web format and AVIF for static assets: AVIF compresses better but encodes more slowly (`effort` trades speed for size). Keep a JPEG or PNG fallback for old clients.
+- Pipelines are lazy and chainable; nothing runs until `toFile()`, `toBuffer()` or `toBuffer({ resolveWithObject: true })` (which also returns the output info).
+- Sharp uses libuv's thread pool plus libvips threads. Under heavy concurrency, process files with a bounded pool (for example 4 at a time) instead of `Promise.all` over thousands of files, and tune `sharp.concurrency()` and `sharp.cache()` if memory is tight.
+- Prefer `fit: 'cover'` for fixed-size thumbnails and `fit: 'inside'` with `withoutEnlargement: true` for max-width images.
+- Animated GIF and WebP inputs are read as a single frame unless opened with `sharp(file, { animated: true })`.
