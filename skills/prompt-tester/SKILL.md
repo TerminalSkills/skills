@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Works with any LLM-based workflow or AI agent system"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["prompt-engineering", "llm", "evaluation", "ai-agents"]
 ---
@@ -77,7 +77,7 @@ Create 2-3 prompt variants to compare:
 
 **Variant A (Concise):**
 ```
-Classify this support ticket into one category: billing, shipping_delay,
+Classify this support ticket into one category: payment_issue, shipping_delay,
 product_defect, account_access, feature_request, unclassifiable.
 Return JSON: {"category": "...", "priority": "high|medium|low"}
 ```
@@ -87,7 +87,7 @@ Return JSON: {"category": "...", "priority": "high|medium|low"}
 You are a support ticket classifier. Analyze the customer message and
 assign exactly one category and priority level.
 
-Categories: billing, shipping_delay, product_defect, account_access,
+Categories: payment_issue, shipping_delay, product_defect, account_access,
 feature_request, unclassifiable
 
 Rules:
@@ -98,7 +98,7 @@ Rules:
 
 Examples:
 Input: "I was charged twice for my subscription"
-Output: {"category": "billing", "priority": "high"}
+Output: {"category": "payment_issue", "priority": "high"}
 
 Input: "It would be nice to have dark mode"
 Output: {"category": "feature_request", "priority": "low"}
@@ -108,7 +108,71 @@ Now classify this message:
 
 ### 4. Run the evaluation
 
-Execute each prompt variant against all test cases and score:
+Run each variant against every case several times with the same model id and temperature 0 (or the lowest the provider allows), and score automatically wherever the answer can be checked by code. This harness (Python 3.9+, `pip install pyyaml`) works with any provider: fill in `call_model` with your SDK call, and run `python run_eval.py cases.yml A=variant_a.txt B=variant_b.txt`.
+
+```python
+"""run_eval.py: score prompt variants against a YAML test suite."""
+import json
+import statistics
+import sys
+import time
+
+import yaml  # pip install pyyaml
+
+
+def call_model(prompt: str, user_input: str) -> str:
+    """Replace the body with your provider call (temperature 0, a pinned model id).
+    Return the raw text of the reply."""
+    raise NotImplementedError
+
+
+def score_case(case: dict, raw: str) -> dict:
+    try:
+        out = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"format": False, "correct": False, "got": raw[:60]}
+    if not isinstance(out, dict):  # valid JSON but not an object, e.g. a list or null
+        return {"format": False, "correct": False, "got": raw[:60]}
+    return {
+        "format": set(out) == {"category", "priority"},
+        "correct": out.get("category") == case["expected_category"]
+        and out.get("priority") == case["expected_priority"],
+        "got": out.get("category"),
+    }
+
+
+def evaluate(prompt: str, cases: list, runs: int = 3) -> dict:
+    rows = []
+    for case in cases:
+        answers, latencies = [], []
+        for _ in range(runs):
+            start = time.perf_counter()
+            raw = call_model(prompt, case["input"])
+            latencies.append(time.perf_counter() - start)
+            answers.append(score_case(case, raw))
+        rows.append({
+            "id": case["id"],
+            "accuracy": sum(a["correct"] for a in answers) / runs,
+            "format": sum(a["format"] for a in answers) / runs,
+            "consistent": len({a["got"] for a in answers}) == 1,
+            "p50_latency_s": statistics.median(latencies),
+        })
+    return {
+        "accuracy": statistics.mean(r["accuracy"] for r in rows),
+        "format": statistics.mean(r["format"] for r in rows),
+        "consistency": statistics.mean(r["consistent"] for r in rows),
+        "p50_latency_s": statistics.median(r["p50_latency_s"] for r in rows),
+        "failed": [r["id"] for r in rows if r["accuracy"] < 1],
+    }
+
+
+if __name__ == "__main__":
+    suite = yaml.safe_load(open(sys.argv[1]))["test_cases"]
+    for name, path in (arg.split("=", 1) for arg in sys.argv[2:]):
+        print(name, evaluate(open(path).read(), suite))
+```
+
+For fields that code cannot check (tone, completeness of a summary), score with a second model call that sees only the rubric, the input and the answer, and spot-check a sample by hand because judge models favour long answers. Record the results in a table:
 
 ```
 ## Evaluation Results
@@ -199,4 +263,6 @@ and "only report issues you are confident about" instruction.
 - Keep a prompt changelog: version, date, changes, test results
 - The winning prompt isn't always the longest — sometimes concise prompts outperform
 - Document failure modes: knowing when a prompt breaks is as valuable as knowing when it works
-- For production prompts, add regression tests and rerun when updating the model version
+- For production prompts, add regression tests and rerun when updating the model version; always call a pinned model id, because an alias can change behind your back
+- Ask for structured output through the provider's JSON-schema or tool-calling option instead of hoping the prompt alone yields valid JSON
+- Keep a held-out set of cases you never tune on, so improvements are not overfitting to the visible tests
