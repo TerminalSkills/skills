@@ -1,147 +1,137 @@
 ---
 name: stagehand
 description: >-
-  Builds web automations with Stagehand by BrowserBase, the AI-powered browser
-  automation framework that controls web pages through natural language
-  instructions. Acts on, extracts data from, and observes pages using plain
-  English commands instead of brittle CSS selectors — powered by GPT-4o or
-  Claude for visual understanding of page layouts. Use when writing browser
-  automation, scraping dynamic sites, or replacing fragile Playwright selectors.
+  Stagehand is Browserbase's open-source SDK for browser agents. It adds three natural-language calls (act, extract, observe) on top of a Chrome browser you drive from TypeScript, Python or Go. Use this skill to automate sites that change often, pull schema-validated data from dynamic pages, log in without sending credentials to the model, and run the same script locally or on Browserbase. Use when someone says "automate this website with AI", "scrape a dynamic page", or "replace brittle Playwright selectors".
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Node.js 22.18+ (TypeScript SDK 4.x), local Chrome, an API key for a model provider (OpenAI, Anthropic, Google, Groq or Cerebras)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  category: automation
+  repository: https://github.com/browserbase/stagehand
   tags:
     - browser-automation
     - ai-agent
-    - computer-use
-    - web-automation
+    - web-scraping
     - natural-language
     - playwright
 ---
 
-# Stagehand — AI Browser Automation in Natural Language
+# Stagehand
 
-You are an expert in Stagehand by BrowserBase, the AI-powered browser automation framework that lets you control web pages using natural language instructions. You help developers build web automations that act, extract data, and observe pages using plain English commands instead of brittle CSS selectors — powered by GPT-4o or Claude for visual understanding of page layouts.
+## Overview
 
-## Core Capabilities
+Stagehand drives a real Chrome browser. You write normal navigation code (`page.goto`, `page.locator`) and call three AI primitives where a hard-coded selector would be fragile:
 
-### Setup and Basic Actions
+- `act(instruction)` performs one action ("click the sign in button").
+- `extract(instruction, schema)` returns data validated against a Zod schema (Pydantic in Python).
+- `observe(instruction)` returns candidate elements with real selectors and a description, without acting.
 
-```typescript
-import { Stagehand } from "@browserbasehq/stagehand";
+This skill covers the TypeScript SDK 4.x (`@browserbasehq/stagehand` 4.3.0 at the time of writing, Node 22.18 or newer). Version 4 is a rewrite: the 3.x API (`new Stagehand({ env, modelName })`, `stagehand.init()`, `stagehand.page`, `enableCaching`, `act({ action })`) does not exist any more. If a project pins 3.x (`npm view @browserbasehq/stagehand dist-tags` shows `v3-latest`), follow that version's docs instead of this page. Python (`pip install stagehand`) and Go SDKs exist with the same shape.
 
-const stagehand = new Stagehand({
-  env: "LOCAL",                           // "LOCAL" for Playwright, "BROWSERBASE" for cloud
-  modelName: "gpt-4o",
-  modelClientOptions: { apiKey: process.env.OPENAI_API_KEY },
-  enableCaching: true,                    // Cache AI decisions for repeated patterns
-});
+## Instructions
 
-await stagehand.init();
-const page = stagehand.page;              // Standard Playwright page object
+### 1. Install
 
-// Navigate
-await page.goto("https://app.example.com");
-
-// Act — natural language browser control
-await stagehand.act({ action: "Click the sign-in button" });
-await stagehand.act({ action: "Type 'user@example.com' into the email field" });
-await stagehand.act({ action: "Select 'Enterprise' from the plan dropdown" });
-await stagehand.act({ action: "Scroll down to the pricing section" });
-
-// Act with variables — keep credentials out of prompts
-await stagehand.act({
-  action: "Log in with username %user% and password %pass%",
-  variables: {
-    user: process.env.USERNAME!,
-    pass: process.env.PASSWORD!,
-  },
-});
+```bash
+npm install @browserbasehq/stagehand 'zod@~4.4.3'
+export OPENAI_API_KEY=...   # or the key of whichever provider you use
 ```
 
-### Extract Structured Data
+Stay on Zod 4.4.x, as the docs recommend; other minors can cause type errors in `extract()`. Stagehand never reads API keys from the environment on its own: your code passes them in. A local run needs Chrome installed.
+
+### 2. Launch a browser, create a session
 
 ```typescript
-// Extract structured data from any page
-const products = await stagehand.extract({
-  instruction: "Extract all product listings with name, price, rating, and availability",
-  schema: {
-    type: "object",
-    properties: {
-      products: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            price: { type: "number" },
-            rating: { type: "number" },
-            inStock: { type: "boolean" },
-          },
-          required: ["name", "price"],
-        },
-      },
-    },
-  },
-});
+import { localBrowser, Stagehand } from "@browserbasehq/stagehand";
 
-// Extract from complex pages (tables, nested layouts)
-const invoiceData = await stagehand.extract({
-  instruction: "Extract the invoice number, date, line items with quantities and amounts, and the total",
-  schema: invoiceSchema,
+const browser = await localBrowser.launch({
+  userDataDir: "./browser-data",   // keeps cookies between runs; omit for a fresh profile
+  // headless: true,               // also: executablePath, viewport, proxy, args
 });
-```
-
-### Observe — Find Elements Without Acting
-
-```typescript
-// Observe returns possible actions without performing them
-const actions = await stagehand.observe({
-  instruction: "Find all clickable navigation items",
-});
-// Returns: [{description: "Home link", selector: "xpath=...", ...}, ...]
-
-// Use observe for conditional logic
-const buttons = await stagehand.observe({
-  instruction: "Find the 'Accept cookies' button if it exists",
-});
-if (buttons.length > 0) {
-  await stagehand.act({ action: "Dismiss the cookie popup" });
+try {
+  const stagehand = await Stagehand.create({
+    browser,
+    model: { modelName: "openai/gpt-5.4-mini", apiKey: process.env.OPENAI_API_KEY },
+  });
+  try {
+    const [page] = await browser.context.pages();
+    await page.goto("https://news.ycombinator.com");
+    // ... act / extract / observe here
+  } finally {
+    await stagehand.close();      // close the session first, then the browser
+  }
+} finally {
+  await browser.close();
 }
 ```
 
-### Cloud Execution with BrowserBase
+`modelName` is `provider/model` with provider `openai`, `anthropic`, `google`, `groq` or `cerebras`. Pick a current small model for speed and cost; override per call with `{ model: {...} }`. Scripts run as ES modules (`.mts`, or `"type": "module"`) because of top-level `await`; run with `npx tsx script.mts`.
+
+### 3. act, observe, extract
 
 ```typescript
-// Run in cloud for parallel, scalable automation
-const stagehand = new Stagehand({
-  env: "BROWSERBASE",                     // Cloud-hosted browser
-  modelName: "gpt-4o",
-  browserbaseSessionCreateParams: {
-    projectId: process.env.BROWSERBASE_PROJECT_ID!,
-    proxies: true,                        // Residential proxy
-  },
-});
+import { z } from "zod/v4";
+
+await stagehand.act("click the 'Comments' link of the first story");
+
+const { data: links } = await stagehand.observe("find the pagination 'More' link");
+// links[0] = { selector, description, method?, arguments? }
+await stagehand.act(links[0]);      // replays the observed action without a second model call
+
+const { data } = await stagehand.extract(
+  "extract the top 5 stories",
+  z.object({
+    stories: z.array(z.object({ title: z.string(), points: z.number(), url: z.string() })).max(5),
+  }),
+);
+console.log(data.stories);
 ```
 
-## Installation
+Each call returns an object whose `data` holds the result (plus usage and cache metadata). `stagehand.metrics()` reports token counts. Options on any call: `timeout`, `model`, `page` (target a specific tab), `locator` (limit the model to one region, e.g. `page.locator("form")`) and `ignoreLocators`.
 
-```bash
-npm install @browserbasehq/stagehand
-# Requires: OPENAI_API_KEY or ANTHROPIC_API_KEY
-# Optional: BROWSERBASE_API_KEY + BROWSERBASE_PROJECT_ID for cloud
+### 4. Credentials
+
+Two safe patterns. Best: let `observe()` find the field, then fill it with Playwright-style code so the secret never reaches the model.
+
+```typescript
+const { data: email } = await stagehand.observe("find the email input");
+await page.locator(email[0].selector).fill(process.env.APP_EMAIL!);
 ```
 
-## Best Practices
+Alternative: `variables` with `%name%` placeholders. The model sees only the names; values are substituted locally.
 
-1. **Natural language for dynamic pages** — Use `act()` for pages that change layout frequently; CSS selectors break, natural language adapts
-2. **Variables for secrets** — Never put credentials in action strings; use the `variables` parameter
-3. **Enable caching** — Set `enableCaching: true` to avoid repeated AI calls for identical actions; huge cost savings
-4. **Combine with Playwright** — Use `stagehand.page` for stable interactions (login forms) and `stagehand.act()` for dynamic ones
-5. **Schema for extraction** — Always provide a Zod/JSON schema to `extract()`; structured output is more reliable than free-text
-6. **Observe before acting** — Use `observe()` to check if elements exist before acting; prevents errors on conditional UI
-7. **BrowserBase for scale** — Use cloud browsers for parallel automation; local is fine for development and testing
-8. **Model selection** — GPT-4o for speed, Claude for complex visual reasoning; both work well for most tasks
+```typescript
+await stagehand.act("type %password% into the password field",
+  { variables: { password: process.env.APP_PASSWORD! }, cache: false });
+```
+
+Pass `cache: false` on calls that carry credentials, since server-side caching on Browserbase sends variable values to the cache service. Turn logging down (`logging: { level: "off" }` in `Stagehand.create`) when handling sensitive data.
+
+### 5. Run on Browserbase
+
+```typescript
+import { browserbase, Stagehand } from "@browserbasehq/stagehand";
+
+const browser = await browserbase.launch({ apiKey: process.env.BROWSERBASE_API_KEY! });
+const stagehand = await Stagehand.create({ browser, cache: true });
+```
+
+With no `model`, Browserbase's Model Gateway selects and authenticates a model; a local browser cannot use the gateway and needs your own model key. `cache: true` serves identical repeated calls from Browserbase without spending tokens.
+
+## Examples
+
+### Example 1: "Get the invoice table out of our billing portal every Monday"
+Launch with a persistent `userDataDir`. On the first run sign in using the step 4 pattern. In later runs the session cookie is still there, so go straight to the page and call `extract("extract every invoice in the table", z.object({ invoices: z.array(z.object({ number: z.string(), amount: z.number(), paid: z.boolean() })) }))`. The result is a typed array such as `[{ number: "INV-2041", amount: 1290, paid: true }]`, ready to write to CSV.
+
+### Example 2: "My Playwright script breaks every time they redesign the checkout"
+Keep `page.goto` and the stable steps in plain code, and replace only the brittle clicks with `await stagehand.act("click the Place order button")`. The instruction survives layout changes because the model resolves the element each run; add `cache: true` on Browserbase to avoid paying for unchanged pages.
+
+## Guidelines
+
+- One small action per `act()`; split "log in and open billing and download the PDF" into separate calls.
+- Prefer `observe()` then `act(action)` or plain locators for steps you repeat, to cut model calls and make runs deterministic.
+- Always give `extract()` a schema; keep it narrow and use `.describe()` on fields that are ambiguous.
+- Model calls cost money and take seconds: do not use Stagehand for flows a plain selector handles reliably.
+- Close the session before the browser, in `finally` blocks, so Chrome processes do not leak.
+- Respect each site's terms of service and robots rules; never automate logins you are not authorized to use.
