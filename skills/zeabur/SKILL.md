@@ -1,237 +1,140 @@
 ---
 name: zeabur
-description: Expert guidance for Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.
+description: Zeabur is a cloud deployment platform that detects the framework of a project, builds it with its own zbpack builder and runs it as a managed service, with one-click databases and apps from a template marketplace. Use when deploying a Next.js, Node.js, Python, Go or Docker app to Zeabur, scripting deploys with the `zeabur` CLI, setting service variables or custom domains, or calling the Zeabur GraphQL API.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Node.js for `npx zeabur` (or any shell for the CLI binary); a Zeabur account and API key
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
   - paas
   - deployment
-  - serverless
-  - edge
   - docker
+  - cli
+  - graphql
+  repository: https://github.com/zeabur/cli
 ---
 
-# Zeabur — Modern Cloud Deployment Platform
-
+# Zeabur
 
 ## Overview
 
-
-Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.
-
+Zeabur builds and hosts services from a Git repository, a local directory or a Docker image. Its builder, zbpack, analyses the source (language, framework, package manager) and produces a container image without a Dockerfile. Databases, queues and apps come from a template marketplace, and the dashboard, CLI and public GraphQL API all drive the same backend. The CLI (`zeabur`, currently marked beta by its README) is run with `npx zeabur`; it was checked here at version 0.24.0.
 
 ## Instructions
 
-### CLI Deployment
+### CLI
 
 ```bash
-# Install Zeabur CLI
-npm install -g zeabur
+# log in: browser flow, or an API key created in the dashboard
+npx zeabur auth login
+npx zeabur auth login --token "$ZEABUR_TOKEN"
 
-# Login
-zeabur auth login
+# create a project in a region, then deploy the current directory
+npx zeabur project create --name shop-api   # asks for the region; `project create --help` shows -r/--region
+npx zeabur deploy --create --name shop-api --project-id 66a1c0ffee1234567890abcd
 
-# Deploy from current directory (auto-detects framework)
-zeabur deploy
-
-# Deploy with specific settings
-zeabur deploy --name my-api --region hkg  # Hong Kong region
-
-# Environment variables
-zeabur env set DATABASE_URL "postgres://..."
-zeabur env set NODE_ENV production
-zeabur env list
-
-# Manage domains
-zeabur domain add api.myapp.com
-zeabur domain list
+# redeploy an existing service
+npx zeabur deploy --service-id 66a1c0ffee1234567890abce --environment-id 66a1c0ffee1234567890abcf
 ```
 
-### Project Configuration
+Useful commands (all take `--help`; add `-i=false` or the full flags for scripts and CI, and `--json` for machine-readable output):
 
-```toml
-# zeabur.toml — Optional project configuration
-[build]
-# Override auto-detected build command
-command = "npm run build"
-output = "dist"
-
-[runtime]
-# Override start command
-command = "node dist/server.js"
-
-[env]
-# Default environment variables (overridden by dashboard/CLI)
-NODE_ENV = "production"
-PORT = "3000"
-
-[scaling]
-min_instances = 1
-max_instances = 5
-
-[health_check]
-path = "/health"
-interval = "30s"
+```bash
+npx zeabur project list
+npx zeabur context set project --name shop-api      # later commands reuse this context
+npx zeabur service list
+npx zeabur service restart --name shop-api --env-id 66a1c0ffee1234567890abcf
+npx zeabur deployment log -t build --service-name shop-api --env-id 66a1c0ffee1234567890abcf
+npx zeabur deployment log -t runtime --service-name shop-api --env-id 66a1c0ffee1234567890abcf -w
+npx zeabur variable create --name shop-api --env-id 66a1c0ffee1234567890abcf -k NODE_ENV=production -y
+npx zeabur variable env --env-id 66a1c0ffee1234567890abcf --name shop-api -f .env   # OVERWRITES the service's variables from a .env file
+npx zeabur variable list --name shop-api --env-id 66a1c0ffee1234567890abcf
+npx zeabur domain create --name shop-api --env-id 66a1c0ffee1234567890abcf --domain api.shopfront.dev -y
+npx zeabur template search postgres
 ```
 
-### Framework Auto-Detection
+There is no `zeabur env` or `zeabur domain add` command; variables live under `variable` (alias `var`) and domains under `domain create`. Other top-level commands: `service exec`, `service port-forward`, `service metric`, `template deploy`, `upload`, `server`, `workspace` (switch between personal and team accounts) and `api graphql`.
 
-Zeabur automatically detects and configures:
+### Build and start configuration
 
-```markdown
-## Supported Frameworks (auto-detected, zero config)
-- **Node.js**: Next.js, Nuxt, Remix, Express, Fastify, Hono, NestJS
-- **Python**: Django, Flask, FastAPI, Streamlit
-- **Go**: Gin, Echo, Fiber, standard net/http
-- **Rust**: Actix, Axum, Rocket
-- **Java**: Spring Boot, Quarkus
-- **PHP**: Laravel, Symfony
-- **Ruby**: Rails, Sinatra
-- **Static**: React, Vue, Svelte, Astro, Hugo, Gatsby
+zbpack reads an optional `zbpack.json` in the repository root (keys are snake_case). Each key can also be set as a service environment variable with the `ZBPACK_` prefix and upper-case name.
 
-## How it works:
-1. Push code to GitHub or deploy via CLI
-2. Zeabur detects the framework from package.json/requirements.txt/go.mod/etc.
-3. Builds using the appropriate buildpack (Nixpacks)
-4. Deploys to an isolated container with auto-scaling
-5. Provisions a subdomain with SSL (*.zeabur.app)
+```json
+{
+  "build_command": "pnpm run build",
+  "start_command": "node dist/server.js",
+  "app_dir": "apps/web",
+  "cache_dependencies": false
+}
 ```
 
-### Marketplace Services
+- `zbpack.NAME.json`, where NAME is the service name, overrides the defaults for one service; useful in monorepos (for example `zbpack.api.json`).
+- In a pnpm or Yarn workspace Zeabur deploys the first Node.js app it finds; set `app_dir` (`ZBPACK_APP_DIR`) to pick another. Nx and Rush monorepos are not auto-detected.
+- A `Dockerfile` in the repository is used instead of auto-detection.
+- To preview what zbpack decides locally you need its own CLI (Go, plus buildkit); normally read the build log instead.
 
-Deploy managed services alongside your application:
+### Frameworks and services
+
+Detection covers Node.js (Next.js, Nuxt, Remix, SvelteKit, NestJS, Express, Astro, Vite and others, with npm, Yarn, pnpm and Bun), plus Python, Go, Rust, Java, PHP, Ruby and static sites; the per-language guides in the docs list the current set. Pushing to the connected GitHub branch triggers a new deployment. Add databases and other apps from the marketplace inside the same project; a service exposes its connection values as variables (such as a host and `PORT`), and you reference them from another service with `${VARIABLE_NAME}`. Read the exact names on the database service's Variables tab rather than guessing.
+
+### Health checks and resources
+
+By default Zeabur probes the exposed port over TCP (every 10 s, 5 s timeout, 3 failures). A custom HTTP path (for example `/healthz`) is set in the service Settings, and the app must return 2xx there. A failed health check leaves the previous deployment serving. Services with a volume use a recreate strategy, so expect brief downtime. CPU and memory are changed in Settings and apply on the next deployment; billing follows the allocation.
+
+### GraphQL API
+
+Create an API key in the dashboard and send it as a Bearer token to `https://api.zeabur.com/graphql`. The schema is only available from the Apollo Explorer after login, so explore it there or use `npx zeabur api graphql`. Keys belong to a person, not a team; queries on team resources take an `ownerID` argument.
 
 ```typescript
-// Available marketplace services (one-click deploy via dashboard or API)
-const services = {
-  databases: [
-    "PostgreSQL",    // Managed Postgres with automatic backups
-    "MySQL",         // Managed MySQL/MariaDB
-    "MongoDB",       // Managed MongoDB
-    "Redis",         // Managed Redis for caching
-  ],
-  messaging: [
-    "RabbitMQ",      // Message broker
-    "Kafka",         // Event streaming (via Redpanda)
-  ],
-  search: [
-    "Meilisearch",   // Full-text search engine
-    "Elasticsearch",
-  ],
-  tools: [
-    "MinIO",         // S3-compatible object storage
-    "n8n",           // Workflow automation
-    "Umami",         // Web analytics
-    "Plausible",     // Privacy-focused analytics
-    "Ghost",         // Blog/CMS
-    "Strapi",        // Headless CMS
-  ],
-};
-
-// Services are deployed in the same project
-// Connection strings are auto-injected as environment variables
-// Example: DATABASE_URL is automatically available after adding PostgreSQL
+const res = await fetch("https://api.zeabur.com/graphql", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.ZEABUR_API_KEY}`,
+  },
+  body: JSON.stringify({ query: "query { me { username } }" }),
+});
+const { data, errors } = await res.json();
+if (errors) throw new Error(errors[0].message);
+console.log(data.me.username);
 ```
-
-### Git Integration
-
-```yaml
-# Automatic deployment on push
-# Configure in Zeabur dashboard:
-# 1. Connect GitHub/GitLab account
-# 2. Select repository
-# 3. Choose branch for auto-deploy
-# 4. Zeabur creates a webhook that triggers deployment on push
-
-# Branch-based environments:
-# - main → production (api.myapp.com)
-# - develop → staging (staging-api.myapp.com)
-# - PR branches → preview deployments (pr-123-api.zeabur.app)
-```
-
-### API Integration
-
-```typescript
-// scripts/zeabur-api.ts — Zeabur API for automation
-const ZEABUR_API = "https://gateway.zeabur.com/graphql";
-const ZEABUR_TOKEN = process.env.ZEABUR_TOKEN!;
-
-async function zeaburQuery(query: string, variables?: Record<string, any>) {
-  const response = await fetch(ZEABUR_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${ZEABUR_TOKEN}`,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  const result = await response.json();
-  if (result.errors) throw new Error(result.errors[0].message);
-  return result.data;
-}
-
-// List all services in a project
-async function listServices(projectId: string) {
-  return zeaburQuery(`
-    query ($projectId: ObjectID!) {
-      project(_id: $projectId) {
-        services {
-          _id
-          name
-          status
-          domains { domain }
-        }
-      }
-    }
-  `, { projectId });
-}
-
-// Restart a service
-async function restartService(serviceId: string) {
-  return zeaburQuery(`
-    mutation ($serviceId: ObjectID!) {
-      restartService(_id: $serviceId)
-    }
-  `, { serviceId });
-}
-```
-
 
 ## Examples
 
+### Example 1: Deploy a Next.js app from the terminal
 
-### Example 1: Setting up Zeabur for a microservices project
+**User request:** "Deploy this Next.js storefront to Zeabur and give it the DATABASE_URL from our Postgres."
 
-**User request:**
-
-```
-I have a Node.js API and a React frontend running in Docker. Set up Zeabur for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Install Zeabur CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting project configuration issues
-
-**User request:**
-
-```
-Zeabur is showing errors in our project configuration. Here are the logs: [error output]
+```bash
+export ZEABUR_TOKEN=...   # API key from the dashboard, never committed
+npx zeabur auth login --token "$ZEABUR_TOKEN"
+npx zeabur project list --json
+npx zeabur deploy --create --name storefront --project-id 66a1c0ffee1234567890abcd
+npx zeabur variable create --name storefront --env-id 66a1c0ffee1234567890abcf   -k 'DATABASE_URL=postgresql://${POSTGRES_USERNAME}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}' -y   # names as shown on the Postgres Variables tab
+npx zeabur deployment log -t build --service-name storefront --env-id 66a1c0ffee1234567890abcf
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Zeabur issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+The deploy command uploads the directory, zbpack picks the Next.js plan, and the log shows the build. The service gets a generated `*.zeabur.app` domain; `domain create` attaches your own.
 
+### Example 2: Deploy one app of a pnpm monorepo
+
+**User request:** "Our Turborepo has apps/docs and apps/web; Zeabur keeps deploying docs."
+
+Add `zbpack.json` to the repository root:
+
+```json
+{ "app_dir": "apps/web" }
+```
+
+Commit and push; the next deployment builds `apps/web`. For a second service from the same repository use `zbpack.api.json` named after that service so each gets its own commands.
 
 ## Guidelines
 
-1. **Let auto-detection work** — Don't add config unless Zeabur gets it wrong; framework detection handles 90% of cases
-2. **Use marketplace for databases** — Don't containerize your own Postgres; Zeabur's managed services handle backups and scaling
-3. **Branch-based environments** — Map branches to environments (main→prod, develop→staging) for consistent deployment workflows
-4. **Environment variable injection** — Marketplace services auto-inject connection strings; reference them by the standard variable names
-5. **Custom domains early** — Add your domain and point DNS before going live; Zeabur handles SSL automatically
-6. **Monitor build logs** — Check build logs when auto-detection fails; override with `zeabur.toml` if needed
-7. **Use regions strategically** — Deploy close to your users; Zeabur supports multiple regions including Asia
-8. **Scale based on traffic** — Configure auto-scaling with min/max instances; pay only for what you use
+- Let detection work; add `zbpack.json` or a Dockerfile only when the build log shows it chose wrongly.
+- Do not invent flags: run `npx zeabur <command> --help`, the CLI is still beta and changes.
+- Keep API keys in environment variables or CI secrets, never in the repository.
+- Use marketplace databases instead of running your own, and check their backup options in the service page before relying on them.
+- Listen on the `PORT` Zeabur injects; if the port never accepts connections the deployment fails its health check.
+- A service with a volume cannot do zero-downtime deploys.
