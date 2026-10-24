@@ -6,12 +6,12 @@ description: >-
   needs to instrument applications, write NRQL queries, create dashboards,
   configure alert policies, or integrate New Relic with their deployment pipeline.
 license: Apache-2.0
-compatibility: "New Relic One platform, Agent versions 8+"
+compatibility: "New Relic account; Node.js agent 14.x needs Node.js 22+; Linux infrastructure agent via apt/yum"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
-  tags: ["new-relic", "observability", "apm", "nrql", "browser-monitoring", "alerts"]
+  tags: ["new-relic", "observability", "apm", "nrql", "alerts"]
 ---
 
 # New Relic
@@ -22,12 +22,14 @@ Configure New Relic for application performance monitoring, infrastructure obser
 
 ## Instructions
 
-### Task A: Install APM Agent
+### Install the APM agent (Node.js)
 
 ```bash
 # Install New Relic Node.js agent
 npm install newrelic
 ```
+
+Agent 14.x requires Node.js 22 or newer (`engines.node` in the npm package); 12.x is the line for older Node. The license key is the ingest license key of the account, not a `NRAK-` user API key.
 
 ```javascript
 // newrelic.js — New Relic agent configuration (must be first require)
@@ -57,29 +59,36 @@ exports.config = {
 ```
 
 ```javascript
-// app.js — Load New Relic before anything else
+// app.js — load New Relic before anything else
 require('newrelic')
 const express = require('express')
 const app = express()
 
 app.get('/api/orders', async (req, res) => {
-  const orders = await db.query('SELECT * FROM orders LIMIT 100')
-  res.json(orders)
+  res.json([{ id: 'ord_1042', total: 59.9 }])
 })
+
+app.listen(3000)
 ```
 
-### Task B: Infrastructure Agent Setup
+For an ES-module app, rename `newrelic.js` to `newrelic.cjs` and start with `node --import newrelic/esm-loader.mjs -r newrelic app.js`.
+
+### Install the infrastructure agent (Ubuntu)
+
+Per the official apt instructions (use your release codename in place of `noble`):
 
 ```bash
-# Install infrastructure agent on Ubuntu
-curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash
-sudo NEW_RELIC_API_KEY="NRAK-XXXXXXXXX" NEW_RELIC_ACCOUNT_ID="1234567" \
-  /usr/local/bin/newrelic install -n infrastructure-agent-installer
+echo "license_key: ${NEW_RELIC_LICENSE_KEY}" | sudo tee -a /etc/newrelic-infra.yml
+curl -fsSL https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/newrelic-infra.gpg
+echo "deb https://download.newrelic.com/infrastructure_agent/linux/apt noble main" | sudo tee -a /etc/apt/sources.list.d/newrelic-infra.list
+sudo apt-get update && sudo apt-get install newrelic-infra -y
 ```
+
+Then add the options you need to `/etc/newrelic-infra.yml` and restart with `sudo systemctl restart newrelic-infra`:
 
 ```yaml
 # /etc/newrelic-infra.yml — Infrastructure agent config
-license_key: "<YOUR_LICENSE_KEY>"
+# license_key is already set by the echo step above
 display_name: "web-server-01"
 custom_attributes:
   environment: production
@@ -90,7 +99,13 @@ metrics_system_sample_rate: 15
 metrics_network_sample_rate: 15
 ```
 
-### Task C: NRQL Queries
+### Browser monitoring
+
+Create a Browser application in the New Relic UI (Add data > Browser monitoring), choose the copy/paste method and paste the generated `<script>` into `<head>` of every page, as high as possible. The snippet carries your application ID and keys; do not hand-write it. The same screen offers the npm `@newrelic/browser-agent` package for bundled apps.
+
+## Examples
+
+### NRQL queries
 
 ```sql
 -- Find slowest transactions in the last hour
@@ -126,18 +141,20 @@ TIMESERIES 1 hour
 -- Infrastructure: hosts with high CPU
 SELECT average(cpuPercent), max(memoryUsedPercent)
 FROM SystemSample
-FACET hostname
 WHERE environment = 'production'
+FACET hostname
 SINCE 30 minutes ago
 ```
 
-### Task D: Create Alert Policies via API
+The three calls below use a user API key (`NRAK-...`) in `NEW_RELIC_USER_API_KEY` and a real account ID in place of `1234567`; EU accounts post to `https://api.eu.newrelic.com/graphql`. Each returns the created `id` or `guid`.
+
+### Alert policy and condition via NerdGraph
 
 ```bash
 # Create an alert policy via NerdGraph API
-curl -X POST 'https://api.newrelic.com/graphql' \
+curl -sS -X POST 'https://api.newrelic.com/graphql' \
   -H "Content-Type: application/json" \
-  -H "Api-Key: ${NEW_RELIC_API_KEY}" \
+  -H "Api-Key: ${NEW_RELIC_USER_API_KEY}" \
   -d '{
     "query": "mutation { alertsPolicyCreate(accountId: 1234567, policy: { name: \"Payment Service - Production\", incidentPreference: PER_CONDITION_AND_TARGET }) { id name } }"
   }'
@@ -145,55 +162,36 @@ curl -X POST 'https://api.newrelic.com/graphql' \
 
 ```bash
 # Create a NRQL alert condition — High error rate
-curl -X POST 'https://api.newrelic.com/graphql' \
+curl -sS -X POST 'https://api.newrelic.com/graphql' \
   -H "Content-Type: application/json" \
-  -H "Api-Key: ${NEW_RELIC_API_KEY}" \
+  -H "Api-Key: ${NEW_RELIC_USER_API_KEY}" \
   -d '{
-    "query": "mutation { alertsNrqlConditionStaticCreate(accountId: 1234567, policyId: 987654, condition: { name: \"High Error Rate\", enabled: true, nrql: { query: \"SELECT percentage(count(*), WHERE error IS true) FROM Transaction WHERE appName = '\''payment-service'\''\" }, signal: { aggregationWindow: 300, aggregationMethod: EVENT_FLOW, aggregationDelay: 120 }, terms: [{ threshold: 5, thresholdOccurrences: ALL, thresholdDuration: 300, operator: ABOVE, priority: CRITICAL }, { threshold: 2, thresholdOccurrences: ALL, thresholdDuration: 300, operator: ABOVE, priority: WARNING }], violationTimeLimitSeconds: 86400 }) { id name } }"
+    "query": "mutation { alertsNrqlConditionStaticCreate(accountId: 1234567, policyId: 987654, condition: { name: \"High Error Rate\", enabled: true, nrql: { query: \"SELECT percentage(count(*), WHERE error IS true) FROM Transaction WHERE appName = '\''payment-service'\''\" }, signal: { aggregationWindow: 300, aggregationMethod: EVENT_FLOW, aggregationDelay: 120 }, terms: [{ threshold: 5, thresholdOccurrences: ALL, thresholdDuration: 300, operator: ABOVE, priority: CRITICAL }, { threshold: 2, thresholdOccurrences: ALL, thresholdDuration: 300, operator: ABOVE, priority: WARNING }], valueFunction: SINGLE_VALUE, violationTimeLimitSeconds: 86400 }) { id name } }"
   }'
 ```
 
-### Task E: Create Dashboards via NerdGraph
+### Dashboard via NerdGraph
 
 ```bash
 # Create a dashboard with multiple widgets
-curl -X POST 'https://api.newrelic.com/graphql' \
+curl -sS -X POST 'https://api.newrelic.com/graphql' \
   -H "Content-Type: application/json" \
-  -H "Api-Key: ${NEW_RELIC_API_KEY}" \
+  -H "Api-Key: ${NEW_RELIC_USER_API_KEY}" \
   -d '{
-    "query": "mutation { dashboardCreate(accountId: 1234567, dashboard: { name: \"Payment Service Overview\", permissions: PUBLIC_READ_WRITE, pages: [{ name: \"Overview\", widgets: [{ title: \"Throughput\", configuration: { line: { nrqlQueries: [{ accountIds: [1234567], query: \"SELECT rate(count(*), 1 minute) FROM Transaction WHERE appName = '\''payment-service'\'' TIMESERIES\" }] } }, rawConfiguration: { facet: { showOtherSeries: false } } }, { title: \"Error Rate\", configuration: { billboard: { nrqlQueries: [{ accountIds: [1234567], query: \"SELECT percentage(count(*), WHERE error IS true) AS '\''Error Rate'\'' FROM Transaction WHERE appName = '\''payment-service'\'' SINCE 1 hour ago\" }], thresholds: [{ alertSeverity: CRITICAL, value: 5 }, { alertSeverity: WARNING, value: 2 }] } } }] }] }) { entityResult { guid } } }"
+    "query": "mutation { dashboardCreate(accountId: 1234567, dashboard: { name: \"Payment Service Overview\", permissions: PUBLIC_READ_WRITE, pages: [{ name: \"Overview\", widgets: [{ title: \"Throughput\", configuration: { line: { nrqlQueries: [{ accountIds: [1234567], query: \"SELECT rate(count(*), 1 minute) FROM Transaction WHERE appName = '\''payment-service'\'' TIMESERIES\" }] } } }, { title: \"Error Rate\", configuration: { billboard: { nrqlQueries: [{ accountIds: [1234567], query: \"SELECT percentage(count(*), WHERE error IS true) AS '\''Error Rate'\'' FROM Transaction WHERE appName = '\''payment-service'\'' SINCE 1 hour ago\" }], thresholds: [{ alertSeverity: CRITICAL, value: 5 }, { alertSeverity: WARNING, value: 2 }] } } }] }] }) { entityResult { guid } } }"
   }'
 ```
 
-### Task F: Browser Monitoring
+### Example: "alert me when payment-service errors exceed 5%"
 
-```html
-<!-- index.html — Add New Relic browser agent snippet -->
-<head>
-  <script type="text/javascript">
-    ;window.NREUM||(NREUM={});NREUM.init={distributed_tracing:{enabled:true},
-    privacy:{cookies_enabled:true},ajax:{deny_list:["bam.nr-data.net"]}};
-    // Paste the full browser agent JS snippet from New Relic UI
-    // Settings > Application > Browser monitoring > Copy/paste method
-  </script>
-</head>
-```
+Run the policy mutation, copy the returned `id` into `policyId` of the condition mutation, then confirm it in the UI under Alerts > Alert conditions. The condition above opens a CRITICAL incident above 5% and a WARNING above 2% for 5 minutes.
 
-```bash
-# Configure browser monitoring via API for SPA
-curl -X POST 'https://api.newrelic.com/graphql' \
-  -H "Content-Type: application/json" \
-  -H "Api-Key: ${NEW_RELIC_API_KEY}" \
-  -d '{
-    "query": "mutation { agentApplicationSettingsUpdate(guid: \"YOUR_BROWSER_ENTITY_GUID\", settings: { browserConfig: { apdexTarget: 3.0 }, browserMonitoring: { distributedTracing: { enabled: true }, ajax: { enabled: true }, spa: { enabled: true } } }) { browserConfig { apdexTarget } } }"
-  }'
-```
-
-## Best Practices
+## Guidelines
 
 - Use distributed tracing across all services for end-to-end request visibility
 - Set meaningful Apdex thresholds per service based on actual SLA requirements
 - Use `FACET` in NRQL to break down metrics by deployment version, endpoint, or region
 - Configure alert notification channels (Slack, PagerDuty) before creating policies
 - Use workloads to group related entities and get unified health status
-- Exclude sensitive headers and parameters from agent collection
+- Exclude sensitive headers and parameters from agent collection; header names in `attributes.exclude` are camelCase (`request.headers.proxyAuthorization`)
+- Keep the license key and user API key in environment variables, never in a committed `newrelic.js`
