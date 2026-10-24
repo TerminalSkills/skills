@@ -3,13 +3,14 @@ name: loki
 description: >
   Loki is a horizontally scalable log aggregation system built by Grafana Labs. Unlike traditional log
   platforms that index the full text of every log line, Loki indexes only metadata labels, making it
-  significantly cheaper to operate. It integrates natively with Grafana for querying and visualization,
-  and uses LogQL — a query language inspired by PromQL — to filter, parse, and aggregate log streams.
+  significantly cheaper to operate. Use when someone asks to "set up Loki", "ship Docker logs to Loki",
+  "write a LogQL query", "replace Promtail with Alloy", or "show logs in Grafana".
 license: Apache-2.0
 compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/grafana/loki
+  version: 1.1.0
   category: data-ai
   tags:
     - logging
@@ -21,37 +22,35 @@ metadata:
 
 # Loki
 
-Loki is a log aggregation system designed to be cost-effective and easy to operate. It takes a fundamentally different approach from Elasticsearch or Splunk: instead of indexing log content, it indexes only the labels attached to log streams. The actual log lines are compressed and stored in chunks. This means writes are fast, storage is cheap, and you still get powerful querying through LogQL.
+## Overview
 
-This skill covers deploying Loki and Promtail with Docker, writing LogQL queries, and integrating Loki with Grafana for log exploration and alerting.
+Loki indexes only the labels attached to log streams; the log lines themselves are compressed into chunks. Writes are fast and storage is cheap, and LogQL (a PromQL-like language) still lets you filter, parse and aggregate lines. This skill covers a single-node Docker deployment (Loki 3.7), shipping logs with Grafana Alloy, LogQL queries, and the Grafana integration.
 
-## Docker Deployment
+Promtail reached end of life on 2 March 2026 and receives no updates. Use Grafana Alloy as the agent. Existing Promtail configs convert with `alloy convert --source-format=promtail --output=config.alloy promtail.yml`.
 
-A typical Loki setup has two components: the Loki server that stores and queries logs, and Promtail, an agent that ships logs from your hosts into Loki.
+## Instructions
+
+### Deploy Loki and Alloy with Docker Compose
 
 ```yaml
-# docker-compose.yml — Loki and Promtail deployment
-# Loki on port 3100, Promtail tails container logs via Docker socket
-
-version: "3.8"
-
+# docker-compose.yml
 services:
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.7.9
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"   # Loki has no authentication; do not expose it publicly
     volumes:
-      - ./loki-config.yml:/etc/loki/local-config.yaml
+      - ./loki-config.yml:/etc/loki/config.yml:ro
       - loki-data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/config.yml
 
-  promtail:
-    image: grafana/promtail:latest
+  alloy:
+    image: grafana/alloy:v1.21.2
     volumes:
-      - ./promtail-config.yml:/etc/promtail/config.yml
-      - /var/log:/var/log:ro
+      - ./config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: -config.file=/etc/promtail/config.yml
+      - /var/log/myapp:/var/log/myapp:ro
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
       - loki
 
@@ -59,12 +58,14 @@ volumes:
   loki-data:
 ```
 
-### Loki Configuration
+Read access to the Docker socket is effectively root on the host. Mount it only on hosts where that is acceptable.
+
+### Loki configuration
+
+Single instance, filesystem storage, 30-day retention. Retention needs `compactor.delete_request_store`; without it Loki 3.x refuses to start ("delete-request-store should be configured when retention is enabled"). Schema `v13` with `tsdb` is the current one.
 
 ```yaml
-# loki-config.yml — minimal Loki server configuration
-# Single-instance mode with filesystem storage and 30-day retention
-
+# loki-config.yml
 auth_enabled: false
 
 server:
@@ -99,140 +100,117 @@ limits_config:
 compactor:
   working_directory: /loki/compactor
   retention_enabled: true
+  delete_request_store: filesystem
 ```
 
-## Promtail Agent
+After start, `curl http://127.0.0.1:3100/ready` answers `ready` (it says "Ingester not ready: waiting for 15s" for the first 15 seconds). To test without an agent, push a line:
 
-Promtail discovers log targets, attaches labels, and pushes log entries to Loki. It can tail files, scrape journal entries, and read Docker container logs.
-
-```yaml
-# promtail-config.yml — Promtail agent configuration
-# Scrapes Docker container logs and labels them with container name and compose service
-
-server:
-  http_listen_port: 9080
-
-positions:
-  filename: /tmp/positions.yaml
-
-clients:
-  - url: http://loki:3100/loki/api/v1/push
-
-scrape_configs:
-  - job_name: docker
-    docker_sd_configs:
-      - host: unix:///var/run/docker.sock
-        refresh_interval: 5s
-    relabel_configs:
-      - source_labels: ['__meta_docker_container_name']
-        target_label: container
-        regex: '/(.+)'
-      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
-        target_label: service
-
-  - job_name: system
-    static_configs:
-      - targets: [localhost]
-        labels:
-          job: syslog
-          host: production-1
-          __path__: /var/log/syslog
+```bash
+curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:3100/loki/api/v1/push \
+  -d "{\"streams\":[{\"stream\":{\"service\":\"api\",\"job\":\"myapp\"},\"values\":[[\"$(date +%s%N)\",\"{\\\"level\\\":\\\"error\\\",\\\"status\\\":502,\\\"duration_ms\\\":1500}\"]]}]}"
 ```
 
-### Structured Metadata with Pipeline Stages
+A `204` means accepted. Query with `curl -G http://127.0.0.1:3100/loki/api/v1/query_range --data-urlencode 'query={service="api"}'`.
 
-Promtail can parse log lines and extract labels or structured metadata using pipeline stages:
+### Grafana Alloy agent
 
-```yaml
-# promtail-pipeline.yml — pipeline stages for JSON log parsing
-# Extracts level, method, and status from JSON application logs
+Alloy discovers targets, attaches labels and pushes to Loki. This config reads Docker container logs and JSON files:
 
-scrape_configs:
-  - job_name: app
-    static_configs:
-      - targets: [localhost]
-        labels:
-          job: myapp
-          __path__: /var/log/myapp/*.log
-    pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            method: method
-            status: status
-            duration: duration_ms
-      - labels:
-          level:
-      - timestamp:
-          source: timestamp
-          format: RFC3339
+```alloy
+// config.alloy
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.+)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.write.default.receiver]
+}
+
+local.file_match "myapp" {
+  path_targets = [{"__path__" = "/var/log/myapp/*.log", "job" = "myapp", "host" = "production-1"}]
+}
+
+loki.source.file "myapp" {
+  targets    = local.file_match.myapp.targets
+  forward_to = [loki.process.myapp.receiver]
+}
+
+loki.process "myapp" {
+  stage.json {
+    expressions = { level = "level", status = "status", duration = "duration_ms", ts = "timestamp" }
+  }
+  stage.labels {
+    values = { level = "" }   // low-cardinality fields only
+  }
+  stage.timestamp {
+    source = "ts"
+    format = "RFC3339"
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
 ```
 
-## LogQL Queries
+Check a config before deploying with `alloy validate config.alloy` and format it with `alloy fmt`. The Alloy UI listens on port 12345 and shows component health.
 
-LogQL is Loki's query language. It starts with a log stream selector (labels in curly braces) and optionally chains filter expressions and aggregations.
+### LogQL
 
-### Stream Selection and Filtering
+A query starts with a stream selector in braces, then optional line filters, parsers and label filters.
 
 ```logql
-# LogQL — all logs from the API service
-{service="api"}
+{service="api"}                                         # all lines of a service
+{service="api"} |= "timeout" | json | level="error"     # contains text, JSON-parsed, label filter
+{service="api"} |~ "POST|PUT" !~ "/healthz"             # regex include, regex exclude
+{service="api"} | json | status >= 500                  # numeric filter on parsed field
+{job="myapp"} | logfmt | duration > 1000
+  | line_format "slow request: {{.method}} {{.path}} took {{.duration}}ms"
 ```
 
-```logql
-# LogQL — API errors containing "timeout"
-{service="api"} |= "timeout" | logfmt | level="error"
-```
+Use `| json` for JSON lines and `| logfmt` for `key=value` lines; the wrong parser silently yields no results.
+
+Metric queries turn logs into time series:
 
 ```logql
-# LogQL — filter with regex, exclude health checks
-{service="api"} |~ "POST|PUT" !~ "/healthz"
-```
-
-### Parsing and Extracting Fields
-
-```logql
-# LogQL — parse JSON logs and filter by HTTP status
-{service="api"} | json | status >= 500
-```
-
-```logql
-# LogQL — parse logfmt and extract specific fields
-{job="myapp"} | logfmt | duration > 1000 | line_format "slow request: {{.method}} {{.path}} took {{.duration}}ms"
-```
-
-### Metric Queries
-
-LogQL can compute metrics from logs, turning log data into time-series:
-
-```logql
-# LogQL — error rate per service over 5-minute windows
 sum by (service) (rate({job="myapp"} |= "error" [5m]))
-```
-
-```logql
-# LogQL — 99th percentile request duration from parsed logs
 quantile_over_time(0.99, {service="api"} | json | unwrap duration_ms [5m]) by (method)
-```
-
-```logql
-# LogQL — top 5 noisiest log sources by volume
 topk(5, sum by (service) (rate({job=~".+"} [1h])))
 ```
 
-## Grafana Integration
+Selectors need at least one label matcher that is not empty-compatible; `{job=~".+"}` is the usual "everything" selector.
 
-Loki is a first-class data source in Grafana. Adding it lets you view logs alongside metrics on the same dashboard, which is essential for correlating issues.
+### Grafana integration
 
-### Provisioning Loki as a Data Source
+Provision Loki as a data source. `derivedFields` turns a trace ID in a log line into a link to a Tempo data source (`$$` stops Grafana from expanding the variable while reading the provisioning file):
 
 ```yaml
-# provisioning/datasources/loki.yml — Loki data source for Grafana
+# provisioning/datasources/loki.yml
 apiVersion: 1
 
 datasources:
   - name: Loki
     type: loki
+    uid: loki
     access: proxy
     url: http://loki:3100
     jsonData:
@@ -240,43 +218,27 @@ datasources:
       derivedFields:
         - name: TraceID
           matcherRegex: '"trace_id":"(\w+)"'
-          url: 'http://tempo:3200/api/traces/${__value.raw}'
+          url: '$${__value.raw}'
           datasourceUid: tempo
 ```
 
-The `derivedFields` configuration extracts trace IDs from log lines and creates clickable links to a tracing backend, connecting logs to traces with zero effort.
-
-### Log Panel in a Dashboard
+A logs panel in a dashboard:
 
 ```json
 {
-  "__comment": "dashboard-panel.json — Grafana log panel showing API errors",
   "type": "logs",
   "title": "API Errors",
   "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
   "datasource": { "type": "loki", "uid": "loki" },
-  "targets": [
-    {
-      "expr": "{service=\"api\"} | json | level=\"error\"",
-      "refId": "A"
-    }
-  ],
-  "options": {
-    "showTime": true,
-    "showLabels": true,
-    "wrapLogMessage": true,
-    "sortOrder": "Descending",
-    "enableLogDetails": true
-  }
+  "targets": [{ "expr": "{service=\"api\"} | json | level=\"error\"", "refId": "A" }],
+  "options": { "showTime": true, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
 }
 ```
 
-### Log-Based Alerts
-
-You can create Grafana alert rules that fire when log patterns exceed a threshold:
+A Grafana alert rule on log volume needs the query, a reduce step and a threshold step:
 
 ```yaml
-# provisioning/alerting/log-alerts.yml — alert on high error log volume
+# provisioning/alerting/log-alerts.yml
 apiVersion: 1
 
 groups:
@@ -286,22 +248,52 @@ groups:
     interval: 60s
     rules:
       - uid: high-error-logs
-        title: High Error Log Volume
-        condition: A
+        title: High error log volume
+        condition: C
         data:
           - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
             datasourceUid: loki
             model:
+              refId: A
               expr: 'sum(rate({service="api"} |= "error" [5m]))'
+              queryType: instant
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
               conditions:
-                - evaluator:
-                    type: gt
-                    params: [10]
+                - evaluator: { type: gt, params: [10] }
+        noDataState: OK
+        execErrState: Error
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "Error log rate exceeds 10/s for the API service"
+          summary: "API error log rate above 10 lines/s"
 ```
 
-Loki works best when you keep label cardinality low. Use labels for broad categories like service, environment, and host — not for high-cardinality values like user IDs or request IDs. Those belong in the log line itself, where LogQL can parse them on demand.
+## Examples
+
+### Example 1: Ship Docker Compose logs and find the failing service
+**User:** "Our compose stack has api, worker and nginx. Send all container logs to Loki and show me the api errors from the last hour."
+
+Use the compose file and `config.alloy` above, run `docker compose up -d`, wait for `ready`, then query `{service="api"} |= "error"` in Grafana Explore (or `query_range` with `start=` an hour ago). Each container's lines carry `container` and `service` labels. A matching line looks like `{"level":"error","status":502,"msg":"upstream timeout"}`.
+
+### Example 2: Replace Promtail
+**User:** "We still run Promtail and I read it is dead. Move us to Alloy."
+
+Run `alloy convert --source-format=promtail --output=config.alloy promtail-config.yml`, read the diagnostics it prints (anything it cannot convert is listed), run `alloy validate config.alloy`, swap the compose service for the `grafana/alloy` image, and compare `{job="syslog"}` counts for a few minutes before removing Promtail.
+
+## Guidelines
+
+- Keep label cardinality low: service, environment, host, level. User IDs and request IDs belong in the log line, parsed at query time with `| json`.
+- Pin image tags; `latest` moves across major versions and config changes (Loki 3.x needs `delete_request_store`, `schema: v13`).
+- Loki OSS has no built-in authentication. Put a reverse proxy in front, or bind to localhost, and set `X-Scope-OrgID` only if `auth_enabled: true` (multi-tenant).
+- Old entries are rejected when older than the ingestion window or out of order for the stream; set the timestamp in the agent rather than shipping stale files in bulk.
+- For production beyond one node use object storage (S3, GCS) instead of `filesystem`; filesystem mode cannot be shared between instances.
