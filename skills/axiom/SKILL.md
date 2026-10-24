@@ -1,11 +1,12 @@
 ---
 name: axiom
-description: Expert guidance for Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
+description: Axiom is a cloud log management and analytics platform for ingesting logs, traces and events and querying them with APL (Axiom Processing Language). Use when sending app logs to Axiom from Node.js, Pino or Next.js, writing APL queries, tailing datasets with the axiom CLI, or setting up monitors and alerts.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/axiomhq/axiom-js
+  version: 1.1.0
   category: devops
   tags:
   - logging
@@ -21,21 +22,22 @@ metadata:
 ## Overview
 
 
-Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
+Axiom is a cloud log management and analytics platform. You send events to named datasets over HTTP (SDKs, the CLI, Pino, Next.js integrations or OpenTelemetry), query them with APL, a Kusto-style query language, and build dashboards and monitors on top.
 
 
 ## Instructions
 
 ### Ingestion
 
+Create an API token in the Axiom Console with ingest permission for the dataset, and export it as `AXIOM_TOKEN`. `@axiomhq/js` 2.x needs Node.js 20 or newer and exports a named `Axiom` class. To target a region, pass `edge` (for example `eu-central-1.aws.edge.axiom.co`, no scheme) instead of putting a regional host in `url`; edge routing needs an API token (`xaat-`), not a personal one.
+
 ```typescript
-// Send logs via HTTP API
-import Axiom from "@axiomhq/js";
+import { Axiom } from "@axiomhq/js";
 
 const axiom = new Axiom({ token: process.env.AXIOM_TOKEN! });
 
-// Ingest events (batched automatically)
-await axiom.ingest("api-logs", [
+// ingest() queues events and sends them in batches in the background
+axiom.ingest("api-logs", [
   {
     level: "info",
     message: "Order processed",
@@ -44,35 +46,38 @@ await axiom.ingest("api-logs", [
     amount: 99.99,
     duration_ms: 245,
     region: "us-east-1",
-    _time: new Date().toISOString(),       // Optional: Axiom auto-sets if missing
+    _time: new Date().toISOString(), // optional: Axiom sets it when missing
   },
   {
     level: "error",
     message: "Payment failed",
     orderId: "ord_def789",
     error: "Card declined",
-    stripe_code: "card_declined",
     duration_ms: 1200,
   },
 ]);
 
-// Flush before process exit
+// Flush before the process exits
 await axiom.flush();
+
+// The same client can run APL queries
+const res = await axiom.query(`['api-logs'] | where level == 'error' | limit 10`);
 ```
 
 ```typescript
-// Structured logging with Pino → Axiom transport
+// Pino transport (npm install pino @axiomhq/pino)
 import pino from "pino";
 
-const logger = pino({
-  transport: {
+const logger = pino(
+  { level: "info" },
+  pino.transport({
     target: "@axiomhq/pino",
     options: {
-      dataset: "api-logs",
+      dataset: process.env.AXIOM_DATASET,
       token: process.env.AXIOM_TOKEN,
     },
-  },
-});
+  }),
+);
 
 logger.info({ orderId: "ord_123", userId: "usr_456", amount: 99.99 }, "Order created");
 logger.error({ orderId: "ord_123", error: "timeout" }, "Payment processing timeout");
@@ -122,128 +127,107 @@ logger.error({ orderId: "ord_123", error: "timeout" }, "Payment processing timeo
 | summarize active_users = dcount(userId) by bin(_time, 1h)
 ```
 
-### Vercel / Next.js Integration
+### Next.js
 
-```typescript
-// next.config.js — Send Vercel logs to Axiom automatically
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
-};
+`next-axiom` is deprecated (bug fixes only). New projects use `@axiomhq/nextjs`, which also captures Web Vitals, HTTP logs and traces without Vercel Drains.
 
-module.exports = nextConfig;
-
-// instrumentation.ts — Axiom + Vercel integration
-export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { AxiomWebVitals } = await import("@axiomhq/web-vitals");
-    // Auto-captures Web Vitals, server-side logs, and API route traces
-  }
-}
+```bash
+npm install --save @axiomhq/js @axiomhq/logging @axiomhq/nextjs @axiomhq/react
 ```
 
 ```typescript
-// app/api/route.ts — Structured logging in API routes
-import { withAxiom, AxiomRequest } from "next-axiom";
+// lib/axiom/axiom.ts
+import { Axiom } from "@axiomhq/js";
+export default new Axiom({ token: process.env.NEXT_PUBLIC_AXIOM_TOKEN! });
+```
 
-export const POST = withAxiom(async (req: AxiomRequest) => {
-  req.log.info("Processing webhook", { source: "stripe" });
+```typescript
+// lib/axiom/server.ts
+import axiomClient from "@/lib/axiom/axiom";
+import { Logger, AxiomJSTransport } from "@axiomhq/logging";
+import { createAxiomRouteHandler, nextJsFormatters } from "@axiomhq/nextjs";
 
-  try {
-    const body = await req.json();
-    await processWebhook(body);
-    req.log.info("Webhook processed", { eventType: body.type });
-    return Response.json({ ok: true });
-  } catch (error) {
-    req.log.error("Webhook failed", { error: error.message });
-    return Response.json({ error: "Failed" }, { status: 500 });
-  }
+export const logger = new Logger({
+  transports: [
+    new AxiomJSTransport({ axiom: axiomClient, dataset: process.env.NEXT_PUBLIC_AXIOM_DATASET! }),
+  ],
+  formatters: nextJsFormatters,
+});
+
+export const withAxiom = createAxiomRouteHandler(logger);
+```
+
+```typescript
+// app/api/webhooks/route.ts
+import { withAxiom, logger } from "@/lib/axiom/server";
+
+export const POST = withAxiom(async (req: Request) => {
+  const body = await req.json();
+  logger.info("Webhook received", { eventType: body.type });
+  return Response.json({ ok: true });
 });
 ```
 
-### CLI Queries
+For uncaught errors on Next.js 15+, add `export const onRequestError = createOnRequestError(logger);` (from `@axiomhq/nextjs`) in `instrumentation.ts`. For request logs, add `proxy.ts` (Next.js 16) or `middleware.ts` (15 and older) that calls `logger.info(...transformMiddlewareRequest(request))` and `event.waitUntil(logger.flush())`. A token used in client components is public: give it ingest-only permission on one dataset, or use the proxy transport.
+
+### CLI
+
+Install with `brew install --cask axiomhq/tap/axiom` or `go install github.com/axiomhq/cli/cmd/axiom@latest`. Log in with a personal access token (`xapt-`); the browser login flow currently fails with an OAuth error, so skip it.
 
 ```bash
-# Install CLI
-brew install axiomhq/tap/axiom
+# Interactive: prompts for token and organization ID
+axiom auth login --auto-login=false
 
-# Authenticate
-axiom auth login
+# Or no login at all: environment variables
+export AXIOM_TOKEN="xapt-..."   # personal access token from Settings > Profile
+export AXIOM_ORG_ID="acme-4xk2"  # only needed with several organizations
 
-# Query from terminal
-axiom query "['api-logs'] | where level == 'error' | take 10" -f json
-
-# Stream logs in real-time (like tail -f)
-axiom stream api-logs
-
-# Ingest from file
-cat access.log | axiom ingest nginx-logs
-
-# Ingest from pipe
-docker logs my-container 2>&1 | axiom ingest docker-logs
+axiom dataset list
+axiom query "['api-logs'] | where level == 'error' | take 10"
+axiom stream api-logs                        # live tail
+cat access.log | axiom ingest nginx-logs     # JSON, NDJSON or CSV
+docker logs api-gateway 2>&1 | axiom ingest docker-logs
 ```
 
 ### Monitors and Alerts
 
-```yaml
-# Axiom Monitors — alert on query results
-# Configure in UI or via Terraform provider
+Monitors run an APL query on a schedule and notify Slack, PagerDuty, email or a webhook. Create them in the Console (or with the Terraform provider). Examples:
 
-# Example: Error spike alert
-# Query: ['api-logs'] | where level == 'error' | summarize count() by bin(_time, 5m)
-# Condition: count > 100 in any 5-minute window
-# Notify: Slack #alerts channel
-
-# Example: Zero orders alert (business metric)
-# Query: ['api-logs'] | where message == 'Order processed' | summarize count() by bin(_time, 15m)
-# Condition: count == 0 for 15 minutes
-# Notify: PagerDuty
-```
+- Error spike: `['api-logs'] | where level == 'error' | summarize count() by bin(_time, 5m)`, threshold above 100.
+- Zero orders: `['api-logs'] | where message == 'Order processed' | summarize count() by bin(_time, 15m)`, comparison **below** 1 with **Alert on no data** enabled (a quiet period returns no rows rather than a 0).
 
 ## Installation
 
 ```bash
-# CLI
-brew install axiomhq/tap/axiom
-
-# Node.js SDK
-npm install @axiomhq/js
-
-# Pino transport
-npm install @axiomhq/pino
-
-# Next.js integration
-npm install next-axiom
-
-# Python
-pip install axiom-py
+npm install @axiomhq/js            # SDK (Node.js 20+)
+npm install pino @axiomhq/pino     # Pino transport
+npm install @axiomhq/winston       # Winston transport
+pip install axiom-py               # Python
+brew install --cask axiomhq/tap/axiom  # CLI
 ```
 
 
 ## Examples
 
+### Example 1: Ship Pino logs from an Express API
 
-### Example 1: Setting up Axiom for a microservices project
+**User request:** "Our Express API logs with Pino. Send those logs to an Axiom dataset called api-logs."
 
-**User request:**
+Install `pino @axiomhq/pino`, replace the logger with the `pino.transport({ target: "@axiomhq/pino", options: { dataset, token } })` setup from the Ingestion section, and read `AXIOM_TOKEN` (ingest-only API token) and `AXIOM_DATASET=api-logs` from the environment. Start the app, call an endpoint, then run `axiom stream api-logs` or open the dataset in the Console: each log line appears as an event with `level`, `msg` and your structured fields.
 
+### Example 2: Find the slowest endpoints
+
+**User request:** "Which endpoints had the worst p95 latency in the last hour?"
+
+```kusto
+['api-logs']
+| where _time > ago(1h) and isnotnull(duration_ms)
+| summarize p95 = percentile(duration_ms, 95), requests = count() by endpoint
+| order by p95 desc
+| take 10
 ```
-I have a Node.js API and a React frontend running in Docker. Set up Axiom for monitoring/deployment.
-```
 
-The agent creates the necessary configuration files based on patterns like `# Install CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting apl queries issues
-
-**User request:**
-
-```
-Axiom is showing errors in our apl queries. Here are the logs: [error output]
-```
-
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Axiom issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Paste it into the Console or pass it to `axiom query` as one quoted line; the result is a table with one row per endpoint, slowest first.
 
 
 ## Guidelines
@@ -251,8 +235,8 @@ The agent analyzes the error output, identifies the root cause by cross-referenc
 1. **Datasets as logical groups** — Create separate datasets for different log types (api-logs, frontend-events, infra-metrics); each has its own retention and access controls
 2. **Structured over unstructured** — Send JSON objects, not plain text; structured fields enable filtering, aggregation, and dashboards
 3. **APL for power queries** — Learn APL basics (where, summarize, project, join); it's far more powerful than regex-based log search
-4. **Vercel integration** — If on Vercel, use `next-axiom` for zero-config logging; Web Vitals, API traces, and server logs flow automatically
-5. **Stream for debugging** — Use `axiom stream` in terminal for real-time log tailing; faster than switching to a browser
-6. **Fixed pricing model** — Axiom charges per time (not per GB); ingest as much as you want without worrying about cost spikes
+4. **Vercel integration** — If on Vercel, use `@axiomhq/nextjs` (not the deprecated `next-axiom`) for route-handler logs, Web Vitals and request logs
+5. **Stream for debugging** — Use `axiom stream` in the terminal for real-time log tailing
+6. **Plans and limits** — Pricing and ingest limits depend on your plan; check the current pricing page before sending high volumes
 7. **Annotations for deploys** — Mark deployments as annotations in Axiom; correlate performance changes with releases
 8. **Monitors on business metrics** — Don't just monitor errors; monitor business KPIs (orders, signups, revenue) and alert when they drop
