@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8d575209c69db13919c46f23b5cb322fdc261ccf98b545e52318f12a88fe88db",
-  "scoredAt": "2026-05-13T10:11:33.263Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2666ea386dfa3f2ea44e1c043cc2650d4cf6de82a9b83580234cdc7e31f0a327",
+  "scoredAt": "2026-10-24T17:28:31.865Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment and AWS CLI, limiting cross-platform applicability."
+        "detail": "The skill assumes Python 3.10+ and AWS CLI v2, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 65,
-    "treatmentAvg": 97,
-    "multiplier": 1.49,
+    "multiplier": 1.43,
+    "baselineAvg": 40,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "Test URL-preview for SSRF on AWS EC2",
-        "baseline": 70,
-        "treatment": 97,
-        "rationale": "Treatment names the exact IAM credentials metadata path, full filter-bypass catalog (decimal/hex/short/userinfo/fragment/DNS rebind/gopher), and the blind-SSRF detection triad; baseline mentions metadata generally but misses precise endpoints and breadth of bypasses."
+        "name": "scan-and-rewrite-ssrf",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required grep pattern or the specific validate_url/PinnedHTTPConnection code with MAX_BYTES usage."
       },
       {
-        "name": "Harden Node link-unfurl endpoint + IMDSv2",
-        "baseline": 60,
-        "treatment": 96,
-        "rationale": "Treatment ports the BLOCKED_NETWORKS list including IPv6 fc00::/7 and link-local, enforces scheme allowlist, and gives the exact aws ec2 modify-instance-metadata-options --http-tokens required command; baseline lists the concepts without concrete IMDSv2 command or IPv6 ranges."
+        "name": "validate-url-bad-cases",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with correct imports, iteration, and expected output; Response B fails to import BlockedURL, misidentifies example.com, and does not show the required BLOCKED message."
+      },
+      {
+        "name": "harden-aws-metadata",
+        "baseline": 100,
+        "treatment": 70,
+        "rationale": "Response A includes both the exact command and an explanation, while Response B only provides the command without explanation."
       }
     ]
   }

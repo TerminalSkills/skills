@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:67d7110a7b6dba39dcad8d963ecfe5cd97d85ff947450c33344fe89d1e2c8e32",
-  "scoredAt": "2026-05-13T09:17:56.089Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2f2e78dc5e974ba31de261ad1ebce490da35c0d08ac70996bf8b3027f9017863",
+  "scoredAt": "2026-10-24T16:52:00.400Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that exceeds concise guidelines."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 96,
-    "multiplier": 2.91,
+    "multiplier": 1.44,
+    "baselineAvg": 68,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "db-service-mocking",
+        "name": "mock-database-service",
         "baseline": 35,
-        "treatment": 96,
-        "rationale": "Baseline used spyOn without auto-mock, omitted clearAllMocks, and used try/catch for the async error; treatment used jest.mock + jest.mocked, beforeEach clearAllMocks, and expect(...).rejects.toThrow for the not-found case."
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to mock the correct function, path, and test the rejection case."
       },
       {
-        "name": "ci-coverage-gate",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline only set a lines threshold, used wrong key, omitted --ci and artifact upload; treatment set all four coverageThresholds with ts-jest preset, ran npx jest --ci --coverage --maxWorkers, and uploaded coverage with actions/upload-artifact."
+        "name": "test-debounce-timers",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements exactly, while Response B uses a 100ms delay instead of the required 300ms, missing a key specification."
+      },
+      {
+        "name": "snapshot-react-component-jsdom",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric."
       }
     ]
   }

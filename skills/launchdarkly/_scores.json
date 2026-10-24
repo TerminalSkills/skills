@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:303ce06d3bff5277f4f4855df292fa8ee5ab4f69ab4dbc688cd23f3905eb7e95",
-  "scoredAt": "2026-05-13T09:22:03.190Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cf65cc18b74e567df246bb611494dad9652afe9894130c1ff86936110d7857e7",
+  "scoredAt": "2026-10-24T16:54:04.506Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Examples are limited to Node.js and React, not all listed languages."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 95,
-    "multiplier": 1.73,
+    "multiplier": 2,
+    "baselineAvg": 50,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Server-side 10% rollout of a new dashboard in Node.js",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment uses @launchdarkly/node-server-sdk with waitForInitialization, the kind:'user' context, client.variation with a meaningful default for unreachable-LD fallback, and the 10→25→50→100 dashboard rollout plus kill switch; baseline uses the older SDK and skips the context kind."
+        "name": "server-safe-flag-evaluation",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A covers every rubric requirement, while Response B omits the explicit flush and close calls."
       },
       {
-        "name": "React A/B test on checkout flow for pro-plan users",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Treatment wraps with withLDProvider + kind:'user' context, reads useFlags, and recommends a multivariate flag with plan-attribute targeting plus a kill switch and meaningful default per the guidelines; baseline uses a boolean flag without multivariate or plan targeting."
+        "name": "react-kill-switch-widget",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully covers all rubric items, while Response A is incomplete and missing key details."
+      },
+      {
+        "name": "gradual-rollout-enterprise",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items, while Response B omits the explicit default rule and uses a segment instead of a direct plan attribute rule."
       }
     ]
   }

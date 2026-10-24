@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bdc121ef96af8ca44a9fae57c0936873d632f7ea498b73b37c6085a319ce4889",
-  "scoredAt": "2026-05-13T14:41:17.593Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:47a2c298ff85df19037273dd1544942b5b95554b24ef7e607c7f44ef52e7f10f",
+  "scoredAt": "2026-10-24T16:31:49.654Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path usage."
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.22,
-    "baselineAvg": 18,
-    "treatmentAvg": 58,
+    "multiplier": 2.24,
+    "baselineAvg": 38,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "generate-biome-config",
-        "baseline": 5,
-        "treatment": 35,
-        "rationale": "Response B includes more required fields than A, but still misses many key properties, whereas A lacks almost everything."
+        "name": "migrate-eslint-prettier-to-biome",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully covers all rubric items, while Response A omits key steps like biome init, migration commands, and ci script updates."
       },
       {
-        "name": "migrate-eslint-to-biome",
+        "name": "configure-biome-ignore-and-import-sorting",
         "baseline": 30,
         "treatment": 80,
-        "rationale": "Response A correctly identifies the migration command, the creation of biome.json, and removal of ESLint config files, but omits the summary of migrated rules; Response B uses an incorrect command and also lacks the summary."
+        "rationale": "Response B covers most rubric items, missing only vcs.useIgnoreFile, while Response A misses all required settings."
+      },
+      {
+        "name": "ci-check-changed-files",
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response B better meets the rubric by showing the exact command and exit behavior, though it omits the 'never writes changes' detail; Response A lacks the command and that detail."
       }
     ]
   }

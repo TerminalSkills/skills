@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:630fb3ae8316bba808ca4df6056604244eda90fab2222c05616bd1c557111b0a",
-  "scoredAt": "2026-05-13T10:39:24.222Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:66c0dbd04a383d673ee570747955f0fed50d330a04b84a020f247e694644a491",
+  "scoredAt": "2026-10-24T17:44:32.899Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API failures."
+        "detail": "Missing handling for API errors, rate limits, and missing OAuth tokens."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment, limiting compatibility with agents that cannot run Node."
+        "detail": "The code examples assume a Node.js environment, limiting portability to other platforms."
       }
     ]
   },

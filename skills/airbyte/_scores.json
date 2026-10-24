@@ -1,53 +1,52 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:65011389bd1fb8d52aae0605dfbc2bf622214102daadc799bd09a6f421f22f30",
-  "scoredAt": "2026-05-13T13:49:35.585Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6ea81c9357df63fa5ecf87b414d172e72e537b86f25ede5cdb0e2b379273954c",
+  "scoredAt": "2026-10-24T16:23:34.959Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for Airbyte operations."
+        "detail": "The instructions do not cover error handling or edge cases such as missing environment variables or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation steps rely on macOS Homebrew and Docker, limiting portability to other platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to download docker-compose.yaml without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 1.66,
-    "baselineAvg": 38,
-    "treatmentAvg": 63,
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "stripe-to-bigquery-incremental-connection",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements with complete API calls and environment variable usage, while Response A is incomplete and missing key details."
+        "name": "install-airbyte-with-custom-host",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the localhost UI reference; Response B does not use abctl at all."
       },
       {
-        "name": "custom-internal-api-connector",
-        "baseline": 55,
-        "treatment": 25,
-        "rationale": "Response A provides a more complete stream implementation (though missing the source class), whereas Response B has a source but incorrect stream logic and missing required methods."
+        "name": "create-stripe-bigquery-connection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with all required POSTs and fields; Response A does not include any Airbyte API calls and thus fails to meet the rubric."
       }
     ]
   }

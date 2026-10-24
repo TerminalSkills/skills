@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:67e1a0ddded699b194ea2e8d2e7c4bf8bd5a606e1544e00292f18149b2c49f24",
-  "scoredAt": "2026-05-13T10:26:47.882Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3fc94f40895d926add0e88f89289571357399dce63233248fe74ae5829b23d4b",
+  "scoredAt": "2026-10-24T17:37:02.760Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Examples are Python-only, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 86,
-    "multiplier": 1.79,
+    "multiplier": 8.17,
+    "baselineAvg": 12,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Fine-tune Llama 3.1 8B on customer support transcripts",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment uploads JSONL via client.files.upload then calls client.fine_tuning.create with training_file, model=meta-llama/Llama-3.1-8B-Instruct-Reference, n_epochs, suffix; baseline tends to describe generic OpenAI fine-tuning and misses Together's specific SDK call and Reference-model naming."
+        "name": "structured-json-output-recipe",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "B includes all required steps while A does not."
       },
       {
-        "name": "Swap from OpenAI to a Together-hosted Llama 3.1 70B Turbo model",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment keeps the OpenAI SDK and changes base_url to https://api.together.xyz/v1 with model meta-llama/Llama-3.1-70B-Instruct-Turbo and the TOGETHER_API_KEY env var; baseline often suggests rewriting to a different SDK rather than using the documented OpenAI-compatible base_url swap."
+        "name": "generate-flux-image",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric while Response A does not use the required client call, model, prompt, or parameters."
+      },
+      {
+        "name": "fine-tune-support-bot",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits file upload, status waiting, and proper job retrieval."
       }
     ]
   }

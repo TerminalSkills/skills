@@ -1,53 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fc75f0c9bed16b9b76ca33df173fdd74e9b6e3b1cf8103ab4408f115888d34ab",
-  "scoredAt": "2026-05-13T14:00:28.892Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:55f977af53a4edc83eacfb46bf20626ef8fdbd5280e6692961c55dcbd821f84f",
+  "scoredAt": "2026-10-24T16:24:23.709Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill examples lack coverage of error handling and edge cases."
+        "detail": "The skill lacks coverage of error handling and edge cases, focusing only on happy paths."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and redundant comments that could be trimmed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific Python and Node.js environments, limiting portability across other platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Installation commands lack checksum verification, increasing risk of tampered packages."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 1.17,
-    "baselineAvg": 75,
-    "treatmentAvg": 88,
+    "multiplier": 5.2,
+    "baselineAvg": 7,
+    "treatmentAvg": 52,
     "scenarios": [
       {
-        "name": "stream-parquet-batch-processing",
-        "baseline": 70,
-        "treatment": 75,
-        "rationale": "Both responses correctly use ParquetFile, iter_batches, and pc.filter, but neither computes mean; A is more direct and avoids unnecessary Table conversion, giving it a slight edge."
+        "name": "parquet-predicate-aggregation",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B meets most rubric requirements but misses top‑5 slicing and dict conversion; Response A fails to use pq.read_table and proper aggregation."
       },
       {
-        "name": "arrow-ipc-python-js-interop",
-        "baseline": 80,
+        "name": "duckdb-arrow-query",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required exact query string or uses .fetchall() as specified."
+      },
+      {
+        "name": "ipc-streaming-between-python-and-js",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A omits the required tableFromIPC usage."
+        "rationale": "Response B fully implements the required Python and JavaScript code, while Response A is incomplete and lacks the necessary code."
       }
     ]
   }

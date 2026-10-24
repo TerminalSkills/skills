@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7beab74a7589fbd2b7300b276b73ab9569be06686a9c5c1e6d7ec3025fe48fc2",
-  "scoredAt": "2026-05-13T09:28:51.586Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7a6dd68129ee0ae5cbceb42c666e439a673fef2acc1799b12ccac4fa8ae3106b",
+  "scoredAt": "2026-10-24T16:56:01.683Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases, such as connection failures or invalid arguments."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 97,
-    "multiplier": 4.85,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Discover all capabilities of an MCP server",
-        "baseline": 15,
-        "treatment": 98,
-        "rationale": "Baseline spawned a raw child_process with hand-rolled JSON-RPC and missed prompts/list and client.close(); treatment used the Client + StdioClientTransport SDK with all three discovery methods and cleanup."
+        "name": "list-tools-resources-stdio",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, A does not."
       },
       {
-        "name": "Anthropic agent loop using MCP tools",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline used a fake mcpClient API and terminated on a text-block flag instead of stop_reason end_turn, and dropped tool_use_id; treatment followed the documented loop with proper id mapping and callTool."
+        "name": "call-get-weather-remote-error",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A provides only a minimal JSON payload and lacks the required imports, instantiation, connection, and error handling."
+      },
+      {
+        "name": "read-config-resource",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully follows the rubric by importing and using Client, connecting, reading the resource, iterating contents, checking for text, and printing MIME type and text; Response A does not use Client or readResource and thus fails the rubric."
       }
     ]
   }

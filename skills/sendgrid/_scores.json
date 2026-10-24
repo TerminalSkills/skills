@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:43a9a56b1777524d12bc3264b62e832bc653f230b2826f472691d473ade3c422",
-  "scoredAt": "2026-05-13T10:06:44.846Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:074e346242fad700566f75420414f4565a768b829ce701c2fd2b41271d19343d",
+  "scoredAt": "2026-10-24T17:23:48.574Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as API failures or invalid email addresses."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one example is provided, which does not fully demonstrate the breadth of the skill."
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment and does not provide equivalent guidance for other platforms, limiting cross-platform applicability."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Missing checksum verification for npm and pip installations."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 96,
-    "multiplier": 2.0,
+    "multiplier": 9.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Bulk personalized send to 8,000 users",
-        "baseline": 40,
-        "treatment": 96,
-        "rationale": "Treatment uses dynamic templates with per-recipient dynamicTemplateData and batches at the 1000 messages/call SendGrid limit; baseline loops sgMail.send with inline HTML and misses both the template approach and batching limit."
+        "name": "send-test-welcome-sandbox",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with correct code, environment variable usage, sandbox flag, and 200 status mention, while Response A uses curl instead of sgMail.send and lacks key details."
       },
       {
-        "name": "Event webhook for bounces and unsubscribes",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment parses the events array, handles bounce, spamreport, and unsubscribe with distinct DB updates per the skill's webhook example; baseline covers bounce/unsubscribe generically but misses the spamreport branch and events-array shape."
+        "name": "bulk-promotional-scheduled-send",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
+      },
+      {
+        "name": "verify-sendgrid-webhook",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required SendGrid library usage and signature verification steps."
       }
     ]
   }

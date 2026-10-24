@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5acf7c37d2662e268fcb8400608bb78652d51665b2548c110ba908f97955aaa2",
-  "scoredAt": "2026-05-13T10:40:30.080Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c82c69ed3665aa6a89a00a1eefc991f9b8852585321d4b4815a5696243eb2b64",
+  "scoredAt": "2026-10-24T17:45:35.312Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "detail": "The skill does not cover all error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 88,
-    "multiplier": 2.93,
+    "multiplier": 1.85,
+    "baselineAvg": 53,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Trigger a Zap from a checkout backend on order completion, then segment customers in a Code step",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline gets the generic webhook POST right but misses Zapier Code step semantics; treatment uses the documented hooks.zapier.com/hooks/catch URL and the inputData/output = [{...}] pattern from the skill."
+        "name": "build-no-code-zap-with-paths",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required Paths step and paid‑plan note."
       },
       {
-        "name": "Build a custom Zapier integration with newOrder trigger and createContact action",
-        "baseline": 20,
-        "treatment": 88,
-        "rationale": "Baseline fabricates SDK shape and misses the (z, bundle) convention; treatment uses the documented App.triggers/actions structure with z.request and bundle.meta.page pagination."
+        "name": "trigger-zap-from-backend-webhook",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Response B fully meets all rubric items, including the explicit fire‑and‑forget statement, while Response A omits that detail."
+      },
+      {
+        "name": "build-custom-zapier-integration-cli",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the use of bundle.meta.page in the trigger and fails to mention register and promote commands."
       }
     ]
   }

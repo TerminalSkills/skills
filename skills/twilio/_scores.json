@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b82512c34cb2aa27eabca6b0c1751a25a82e8ef6f058c0ff1e0558d11570f580",
-  "scoredAt": "2026-05-13T10:28:48.925Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5b0e838d2d54dd1a6b47bc927ef3443f3d35ac9f5813e3b5f07866a02e967e77",
+  "scoredAt": "2026-10-24T17:37:56.069Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not include error handling for rate limiting, expired codes, or invalid numbers in the provided code snippets."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js/TypeScript environment with Next.js API routes, limiting compatibility with other platforms."
+        "detail": "The instructions do not cover all error scenarios and edge cases comprehensively."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
+    "multiplier": 1.55,
+    "baselineAvg": 60,
     "treatmentAvg": 93,
-    "multiplier": 4.65,
     "scenarios": [
       {
-        "name": "Add SMS-based 2FA to a Next.js signup flow",
-        "baseline": 28,
-        "treatment": 92,
-        "rationale": "Baseline rolls a custom OTP with Redis storage and raw SMS, missing the Verify API entirely; treatment uses verify.v2.services().verifications.create and verificationChecks.create with channel:'sms' and E.164 numbers."
+        "name": "send-mms-image",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, correctly using client.messages.create with a media URL array, setting from to the environment variable, specifying a US E.164 number, and logging the message SID."
       },
       {
-        "name": "Handle incoming SMS and auto-reply with order status",
-        "baseline": 12,
-        "treatment": 94,
-        "rationale": "Baseline returns JSON from the webhook with the wrong content type and ignores TwiML; treatment parses formData for From/Body, builds twilio.twiml.MessagingResponse, and returns text/xml."
+        "name": "validate-twilio-webhook",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both responses implement signature validation, 403 handling, TwiML greeting, and XML content type, but neither uses MessagingResponse as required by the rubric."
+      },
+      {
+        "name": "whatsapp-template-message",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the required Twilio-specific elements."
       }
     ]
   }

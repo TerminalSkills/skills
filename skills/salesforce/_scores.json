@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:493553807edd8b0175dcf97255971a82590f5d88a3de8673d1a54d14bd84c52e",
-  "scoredAt": "2026-05-13T10:05:10.666Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b2a62f76efafecd9140948d346cc9a6369f9b8823dd84dc26de3094087df77f4",
+  "scoredAt": "2026-10-24T17:22:51.316Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling for token expiration or network failures, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions include verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Node.js and Salesforce CLI, limiting applicability to agents without these environments."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 94,
-    "multiplier": 1.96,
+    "multiplier": 1.25,
+    "baselineAvg": 80,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "high-value opportunity trigger + fiscal-year pipeline SOQL",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline writes a working trigger but performs DML inside the loop and uses THIS_YEAR rather than THIS_FISCAL_YEAR; treatment matches the bulk-safe collect-then-insert pattern and the exact aggregate SOQL."
+        "name": "composite-create-account-contact-opportunity",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing a POST to /composite with allOrNone:true, a compositeRequest array containing an Account and a Contact that references it via @{referenceId.id}, and using the API_VERSION variable in the URLs."
       },
       {
-        "name": "CDC opportunity sync + Stripe webhook to SF",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Baseline reaches for outbound messages or generic polling and misses the exact /data/OpportunityChangeEvent channel and ChangeEventHeader payload shape, while treatment matches CDC subscription and PATCH-by-custom-external-id flow."
+        "name": "bulk-api-upsert-contacts",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements exactly, while Response A uses POST instead of PUT for the batch upload, missing a rubric requirement."
+      },
+      {
+        "name": "apex-trigger-create-task-high-value",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B fails to set ActivityDate to Date.today().addDays(3)."
       }
     ]
   }

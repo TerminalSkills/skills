@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c7a4273d705dfb37a61d530ca34e061f8386482a2836e21f50a3201bed0c468a",
-  "scoredAt": "2026-05-13T10:25:26.953Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b3d440af13c3077282306c577b7a526477a5e7a43e3b82c7494cb609f5a67bdd",
+  "scoredAt": "2026-10-24T17:34:55.348Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "conciseness",
+        "detail": "The instructions contain extensive explanatory text that may be considered padded."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Thanos sidecar with S3 long-term storage",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment includes the required 2h min/max block duration tuning on Prometheus, S3 bucket.yml, and both gRPC 10901 + HTTP 10902 endpoints; baseline typically omits the 2h block tuning that the skill calls out as required for sidecar compatibility."
+        "name": "setup-thanos-sidecar",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A omits several mandatory flags."
       },
       {
-        "name": "Thanos compactor downsampling and retention",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Treatment specifies per-resolution retention (raw=30d, 5m=90d, 1h=365d), the single-compactor-per-bucket rule, and --wait/--wait-interval; baseline tends to omit per-resolution retention and the singleton constraint."
+        "name": "configure-thanos-querier",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A lacks the required flags, endpoints file, and correct HTTP address."
+      },
+      {
+        "name": "run-thanos-compactor",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A omits several key flags and uses incorrect values."
       }
     ]
   }

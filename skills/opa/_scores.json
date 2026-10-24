@@ -1,41 +1,30 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:086b6e799da87f25a745058807897328cc6cd63ae70d6a010539b25216bca9db",
-  "scoredAt": "2026-05-13T09:44:18.109Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7024bc2321392191e4d2517aed1729c8108ac3059ad3796067112f7820b76d24",
+  "scoredAt": "2026-10-24T17:09:31.977Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error scenarios or edge cases in instructions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions assume macOS (brew) and may not work on Windows or Linux without modifications."
+        "detail": "The skill does not comprehensively cover all error scenarios and edge cases across its examples and guidelines."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "installation",
-        "detail": "Missing checksum verification for installation artifacts."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
     "baselineAvg": 43,

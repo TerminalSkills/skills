@@ -1,52 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d6e6f51abf86d98eae01dc8f17e168728f318905d8fd69c749232e76402dd2d9",
-  "scoredAt": "2026-05-13T10:04:38.737Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:26474284025b91a683d2fa3fc341efb571410247afa0aa2fad2922f3cbead102",
+  "scoredAt": "2026-10-24T17:22:00.941Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling or edge cases such as permission errors or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes rsync is available on Linux/macOS, limiting compatibility with other platforms."
+        "category": "examples",
+        "detail": "Hardcoded API key in example guard; should use config and constant-time comparison."
       }
     ]
   },
-  "security": {
-    "verdict": "SAFE",
-    "issues": []
-  },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 93,
-    "multiplier": 1.75,
+    "multiplier": 4.35,
+    "baselineAvg": 20,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Auth-guarded POST /api/users with admin-only check",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Baseline produced an axum/actix-style extractor sketch and missed Rocket's Outcome-based guard contract; treatment used #[post(\"/users\", format = \"json\", data = \"<input>\")], implemented FromRequest reading the Authorization header with Outcome::Success/Error, and returned Status::Forbidden for non-admins."
+        "name": "auth-guard-fairing",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B includes most required elements (route, guard, fairing, launch) while Response A is incomplete; however B still misses the /api mount and uses Forbidden for invalid keys, so it scores lower than a perfect answer."
       },
       {
-        "name": "Global JSON 404 catcher with shared DbPool state",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Baseline used #[catch(404)] but forgot to register catchers and used a plain global for DB access; treatment defined catchers returning Json<serde_json::Value>, registered them via .register(\"/\", catchers![...]), attached DbPool::init(), and injected it through &State<DbPool> in handlers."
+        "name": "db-pool-postgres",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B fails to meet key requirements such as the correct feature flag, database name, and Rocket.toml configuration."
+      },
+      {
+        "name": "unit-test-local-client",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required #[cfg(test)] module and ContentType usage, missing key elements."
       }
     ]
   }

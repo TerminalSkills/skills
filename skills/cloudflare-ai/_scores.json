@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:152487ad394652f1ac58369731800d57392ccb583b71ba4e2558954c39975495",
-  "scoredAt": "2026-05-13T15:36:07.004Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:123355865f5a5c83a3acca761fc0f414d8d43d63eb9f52b9faabf35d078332ef",
+  "scoredAt": "2026-10-24T16:37:37.585Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not handle error scenarios or edge cases."
-      },
-      {
-        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Cloudflare Workers AI and cannot run on other platforms."
+        "detail": "The skill is vendor-locked to Cloudflare Workers AI, limiting cross-platform applicability."
       }
     ]
   },
@@ -33,20 +28,26 @@
   },
   "impact": {
     "multiplier": 10,
-    "baselineAvg": 10,
+    "baselineAvg": 0,
     "treatmentAvg": 100,
     "scenarios": [
+      {
+        "name": "rag-help-center",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, Response B does not."
+      },
       {
         "name": "streaming-chat-endpoint",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B uses a different API and binding, missing the required AI.run call."
+        "rationale": "A fully meets the rubric, B does not."
       },
       {
-        "name": "rag-pipeline-worker",
-        "baseline": 20,
+        "name": "image-generation-endpoint",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses incorrect bindings, model identifiers, and incomplete logic."
+        "rationale": "Response B fulfills every rubric requirement, while Response A does not use env.AI.run or return a JPEG via Uint8Array."
       }
     ]
   }

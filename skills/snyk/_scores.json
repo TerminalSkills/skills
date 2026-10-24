@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4f17daf08558b444fb5797066405b224d12485915d7a45789c2eabdd6648d5f3",
-  "scoredAt": "2026-05-13T10:08:42.463Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:179ade25365f960379ca652a8c68aa91575c6f920c8f9ac48ee8b1c04c68851b",
+  "scoredAt": "2026-10-24T17:26:20.506Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in the instructions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples provided to illustrate usage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 65,
-    "treatmentAvg": 89,
-    "multiplier": 1.37,
+    "multiplier": 3.62,
+    "baselineAvg": 13,
+    "treatmentAvg": 47,
     "scenarios": [
       {
-        "name": "CI gate on high-severity deps plus Docker scan",
-        "baseline": 75,
-        "treatment": 88,
-        "rationale": "Baseline already knows snyk auth, snyk test --severity-threshold=high, and snyk container test from common usage; treatment additionally invokes snyk monitor for continuous monitoring and uses --file=Dockerfile as documented in the skill."
+        "name": "add-snyk-dependency-gate",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B is closer to the rubric because it uses an npx command (though missing the @1 tag), whereas Response A uses a different Snyk action."
       },
       {
-        "name": "Auto-fix vulnerable npm deps plus Terraform IaC scan",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Baseline suggests snyk wizard (not in the skill) and steers toward tfsec/checkov for IaC; treatment uses snyk fix for auto-generated dependency upgrade PRs and snyk iac test (with --report to upload) for Terraform/K8s manifests as documented."
+        "name": "scan-docker-image-with-base-image-advice",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A includes most of the required elements but omits the --exclude-base-image-vulns flag, whereas Response B does not provide the required Snyk command at all."
+      },
+      {
+        "name": "generate-sarif-from-iac-scan",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Both responses omit the required severity threshold flag, but Response B correctly names the SARIF file as iac.sarif, whereas Response A uses a different name and also lacks the threshold."
       }
     ]
   }

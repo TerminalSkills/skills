@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:55e38e06641cb3ddbdceced8e347d747779808081154e1efd79c325c3e6c1f78",
-  "scoredAt": "2026-05-13T09:42:12.007Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c5bc070c68640443e3919b23012f1635ee6973412831eed70c2e1b57c04b7e88",
+  "scoredAt": "2026-10-24T17:48:10.983Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, focusing only on happy path examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 91,
-    "multiplier": 2.6,
+    "multiplier": 4.15,
+    "baselineAvg": 20,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Multi-channel order shipped workflow",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline sends notifications via direct provider SDKs (Twilio, SendGrid) rather than composing a Novu workflow; treatment uses workflow() from @novu/framework with step.inApp, step.email, and a conditional step.sms gated on payload.status and a zod payloadSchema."
+        "name": "welcome-email-sms-workflow",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the exact workflow name, while Response B omits the workflow definition, bridge, sync, and trigger details."
       },
       {
-        "name": "30-minute digest of user activity",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline proposes a cron job and manual buffering of events rather than using step.digest; treatment uses workflow() with step.digest({amount:30, unit:'minutes'}) feeding into step.email that consumes digestedEvents.events."
+        "name": "comment-digest-workflow",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the exact 60‑minute digest setting, while Response B does not implement a Novu workflow at all."
+      },
+      {
+        "name": "react-inbox-bell",
+        "baseline": 0,
+        "treatment": 90,
+        "rationale": "Response A covers all rubric items with detailed implementation, while Response B omits the required Novu SDK, hash logic, and Inbox component entirely."
       }
     ]
   }

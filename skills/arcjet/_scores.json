@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b337e090c2c0a8896ead14a29f4ca35d47479fe4459766729e9835cd52f5c3df",
-  "scoredAt": "2026-05-13T14:11:42.641Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e6e6726e3c554bc3a99c9159a8fa03fb745a26c01e3ef0a08faa7ef3097486d0",
+  "scoredAt": "2026-10-24T16:26:25.917Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
+    "multiplier": 8.5,
     "baselineAvg": 3,
-    "treatmentAvg": 100,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "add-token-bucket-rate-limiter",
-        "baseline": 5,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not use Arcjet at all."
+        "name": "global-nextjs-middleware-token-bucket",
+        "baseline": 0,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric requirements but misses the required capacity of 20; Response B fails to use Arcjet and thus does not satisfy any rubric criteria."
       },
       {
-        "name": "protect-signup-from-bots",
+        "name": "nextjs-signup-email-validation",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not mention Arcjet or the required Next.js implementation."
+        "rationale": "Response A fully meets the rubric, Response B does not."
+      },
+      {
+        "name": "express-api-key-rate-limit",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric requirements but omits the requested:1 argument; Response B does not use Arcjet at all and thus fails the rubric."
       }
     ]
   }

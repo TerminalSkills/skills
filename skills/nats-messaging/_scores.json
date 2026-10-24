@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:856dbfa74ec33976e47fb7bba9a683c89eb691c5adabeab9b2c14eca54d83a80",
-  "scoredAt": "2026-05-13T09:39:17.043Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5f10fae260c7c22d84f483856cfe5e298cd5a6e6e959b73484ef08b9742eb58e",
+  "scoredAt": "2026-10-24T17:02:38.557Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases in its examples."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment, limiting cross-platform applicability."
+        "detail": "The skill assumes a Node.js environment and does not provide guidance for other platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 91,
-    "multiplier": 2.39,
+    "multiplier": 9.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Durable JetStream ORDERS stream with explicit ack",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment correctly uses jetstreamManager.streams.add, AckPolicy.Explicit, and msg.ack(); baseline mixes patterns and often omits durable consumer creation."
+        "name": "jetstream-stream-consumer",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items except the specific publish subject, while Response B fails to use the required APIs and subject patterns."
       },
       {
-        "name": "NATS KV session store with watch",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Treatment uses js.views.kv with put/get/delete plus kv.watch() iterator, while baseline tends to default to Redis or pub/sub workarounds."
+        "name": "request-reply-user-info",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not use NATS at all."
+      },
+      {
+        "name": "kv-session-store",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses a different system and misses all required Kvm steps."
       }
     ]
   }

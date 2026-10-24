@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:78a573176d54de57a936baebda75e206fd9f2996b392e45e0c1d36311cc4c9a9",
-  "scoredAt": "2026-05-13T14:15:27.439Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c76427babda1038f56c066669c448a6dcc9d0c9785d44c029b25ab5f7e7761d7",
+  "scoredAt": "2026-10-24T16:27:49.642Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for content collection failures or integration conflicts."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks runnable code snippets or concrete implementation examples to directly execute."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on the happy path."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.85,
-    "baselineAvg": 13,
-    "treatmentAvg": 63,
+    "multiplier": 4,
+    "baselineAvg": 18,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "faq-site-with-vue-accordion",
-        "baseline": 15,
-        "treatment": 75,
-        "rationale": "Response A covers most rubric items but omits the content field and image component; Response B fails to meet Astro-specific requirements."
+        "name": "blog-with-collections-and-transitions",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified collection, routing, or transition setup."
       },
       {
-        "name": "hybrid-landing-page-with-contact-form",
-        "baseline": 10,
+        "name": "react-search-island",
+        "baseline": 30,
         "treatment": 50,
-        "rationale": "Response B better meets the Astro-specific requirements, while Response A is a Next.js example and misses key Astro features."
+        "rationale": "Response A better meets the rubric: it runs `npx astro add react`, passes docs via frontmatter, and creates a filtering component, but incorrectly uses `client:visible` instead of `client:idle`; Response B fails to run the correct install command, uses dummy data instead of frontmatter, and also uses `client:visible`."
+      },
+      {
+        "name": "dynamic-page-with-image-optimization",
+        "baseline": 25,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but incorrectly uses 'product' instead of 'products' in getEntry; Response B misses the server adapter, wrong collection name, and uses a different image integration."
       }
     ]
   }

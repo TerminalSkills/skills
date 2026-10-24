@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:19b3e2610b530b741c54f8249e088a5f9034216e082e8389e24dd2008521fb60",
-  "scoredAt": "2026-05-13T09:46:51.728Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7f0f6acdf9c91205826e38b48b1b3ea319ae38d7a45d14302e269276129fc401",
+  "scoredAt": "2026-10-24T17:11:07.537Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not explicitly handle error scenarios or edge cases such as API failures or rate limiting beyond brief mentions."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose explanations that could be trimmed."
+        "detail": "The skill contains extensive explanatory comments and verbose sections that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on Node.js and TypeScript, limiting its applicability to agents that support these runtimes."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 88,
-    "multiplier": 1.96,
+    "multiplier": 9.2,
+    "baselineAvg": 0,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Send HTML sprint report with PDF attachment",
-        "baseline": 50,
-        "treatment": 87,
-        "rationale": "Treatment posts to /users/{userId}/sendMail with contentType HTML, a base64 fileAttachment carrying the correct @odata.type and contentType, and saveToSentItems true, while baseline produces a hand-rolled SMTP/nodemailer flow that ignores the Graph API contract."
+        "name": "send-html-email-with-attachment",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not include the required POST request to /users/${userId}/sendMail."
       },
       {
-        "name": "Auto-organize emails from a client domain",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment first creates the folder via POST /users/{userId}/mailFolders and then posts a messageRule with senderContains, moveToFolder, and markAsRead, while baseline tries to script Outlook desktop rules or skips creating the folder programmatically."
+        "name": "read-unread-messages-with-filter",
+        "baseline": 0,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric requirements but omits attachments select/expand, while Response B fails to provide any relevant code."
+      },
+      {
+        "name": "create-folder-and-rule",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required POST requests and details, while Response B is unrelated."
       }
     ]
   }

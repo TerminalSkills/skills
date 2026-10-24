@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e7de4d09c3df82bf87dffc5d4ec1ea9dc48da6457e54b859c5928f38b53afded",
-  "scoredAt": "2026-05-13T10:36:15.520Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:109d4a86ea82d4fc979b5f775f8fa72e283f81cd996daf9c226d926aa912b5c3",
+  "scoredAt": "2026-10-24T17:40:55.728Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API usage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The skill lacks concrete usage examples demonstrating how to apply the provided code."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 86,
-    "multiplier": 1.79,
+    "multiplier": 4.24,
+    "baselineAvg": 17,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "Sync blog posts from an external source into Webflow CMS",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment hits POST https://api.webflow.com/v2/collections/{id}/items with a Bearer WEBFLOW_API_TOKEN, sends fieldData with name/slug/post-body/thumbnail-image, sets isArchived/isDraft, then calls the /items/publish endpoint with itemIds; baseline guesses at v1 endpoints or uses a flat body without fieldData and skips the publish step."
+        "name": "create-and-publish-cms-items",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response A better matches the rubric, using the correct insert and publish endpoints and fieldData mapping, though it misses isDraft:false and 429 handling; Response B uses wrong endpoints and field names."
       },
       {
-        "name": "Design responsive landing page with reusable components",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment names the documented breakpoints (991/767/478), recommends combo classes like .button-primary.is-large, uses Symbols for navbar/footer/CTA, and orders work desktop -> tablet -> mobile so styles inherit downward; baseline gives generic CSS media-query advice without Webflow's specific combo-class and symbol patterns."
+        "name": "setup-form-submission-webhook",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the required use of webflow.webhooks.verifySignature, whereas Response B fails to meet the core Webflow webhook requirements."
+      },
+      {
+        "name": "publish-site-to-custom-domain",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B includes the required API call details and headers, while Response A only describes UI steps and omits the API requirements."
       }
     ]
   }

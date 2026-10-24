@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7006387a0a4c2db861643aaca169ef64a503d77f95058f3afc871bf7f0e6b5e0",
-  "scoredAt": "2026-05-13T08:47:07.808Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2a4058e93eac9103f4a44dc2fbe5202b3cb89f8b1470e47e69bbeb44929e3ab5",
+  "scoredAt": "2026-10-24T16:40:09.565Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 88,
-    "multiplier": 2.67,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Typed payment errors per failure mode",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline used plain TS discriminated unions and try/catch without Effect's tagged-class + catchTag pattern, while the treatment surfaced the error union in Effect.Effect<S,E,R> and dispatched on _tag."
+        "name": "typed-error-user-lookup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B does not meet the specified error class, Effect usage, or catchTag pattern."
       },
       {
-        "name": "Swap Prisma for fakes via DI",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline relied on constructor injection or factory patterns; treatment defined Context.Tag, supplied Layer.succeed for live and test, and ran with Effect.provide."
+        "name": "product-repo-service-layer",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Context.Service, Effect, or Layer at all."
+      },
+      {
+        "name": "concurrent-fetch-with-retry",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B does not use Effect at all."
       }
     ]
   }

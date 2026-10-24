@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:35132a3812dfe8c5ba924b27927adbdd14bcbd0ccb9c8418fdf04f38e74ea560",
-  "scoredAt": "2026-05-13T08:49:43.018Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4d5d4da896e779ac8fa6d3cedb5f46f96b0bd237164c9730cc21809c0113bce7",
+  "scoredAt": "2026-10-24T16:43:48.513Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
+    "multiplier": 3.78,
+    "baselineAvg": 23,
     "treatmentAvg": 87,
-    "multiplier": 2.72,
     "scenarios": [
       {
-        "name": "Templated per-customer detail page from PostgreSQL",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment uses pages/[param].md routing with ${params.x} in SQL fences, a sources/<name>/connection.yaml for postgres, and components like DataTable/LineChart with the documented prop shape; baseline writes generic SQL/HTML without Evidence's file conventions."
+        "name": "create-sales-report",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B includes the required init with --warehouse bigquery, page creation with line_chart and table, and shows validate and dev, while Response A lacks many rubric items."
       },
       {
-        "name": "Cohort retention dashboard with interactive filters",
-        "baseline": 34,
-        "treatment": 86,
-        "rationale": "Treatment uses named sql blocks (```sql cohort_data), Dropdown with DropdownOption value/valueLabel, ${inputs.x.value} parameters, and the Heatmap/BigValue components per the skill; baseline lacks Evidence's input syntax and component names."
+        "name": "migrate-legacy-project",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Response A includes all required Evidence CLI commands and guidance for fixing validation errors, while Response B omits the migration steps and evidence migrate commands."
+      },
+      {
+        "name": "self-host-evidence-server",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required base image or environment variable names."
       }
     ]
   }

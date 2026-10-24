@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:349d11f76dd1f23b0a8af320ce1f42760c6fbba1a5f3beb7046380bad13621b1",
-  "scoredAt": "2026-05-13T09:16:47.874Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e621dd6a98e45bf56d7cfb4e14d878ed07338cb40a785d84e965b30a37cdee7f",
+  "scoredAt": "2026-10-24T16:50:17.052Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill lacks coverage of error handling and edge cases for API interactions and content creation."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 89,
-    "multiplier": 1.71,
+    "multiplier": 1.49,
+    "baselineAvg": 37,
+    "treatmentAvg": 55,
     "scenarios": [
       {
-        "name": "Publish a 5-image carousel to an Instagram Business account via the Graph API",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment follows the documented two-step container/publish flow — POST /{ig-account-id}/media with is_carousel_item:true for each image, then a CAROUSEL container with children:[...mediaIds], then POST /media_publish with creation_id; baseline conflates carousels into a single multipart upload or invents endpoints."
+        "name": "plan-2-week-vegan-chef-calendar",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response B better covers caption structure, alt text per slide, CTA, and hashtag limits, while Response A lacks body/CTA and detailed alt text."
       },
       {
-        "name": "Plan a 2-week Reels-first content strategy for a small fitness coach account",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment applies the documented 40/30/20/10 content mix, posts 9:16 Reels with hooks in the first 1-2s and mandatory captions/subtitles, uses 4:5 carousels with a slide-1 hook and CTA last slide, and recommends 5-15 hashtags (niche/medium/broad split); baseline gives a generic 'post 3x a week with hashtags' plan."
+        "name": "node-script-publish-reel",
+        "baseline": 45,
+        "treatment": 35,
+        "rationale": "Response A implements the Reel creation, publishing, and polling steps (though with some inaccuracies), whereas Response B only covers the OAuth flow and omits the core Reel operations, so A covers more rubric items."
+      },
+      {
+        "name": "compare-reel-carousel-analytics",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B correctly lists the required media‑level insights calls but omits the account‑level call and unsupported‑metric note; Response A fails to match the required metrics and lacks key calls."
       }
     ]
   }

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:50bdf35c2212b22997dadd23010ff498670844d6fa0ee59034a5fe289be0dd6a",
-  "scoredAt": "2026-05-13T09:16:36.871Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f60895a781760e2ecf4556fe25c6ca45fcacd61445d6c64978d5c1030f01944a",
+  "scoredAt": "2026-10-24T16:48:50.957Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for Inngest functions."
+        "category": "conciseness",
+        "detail": "The skill file contains repeated filler lines that reduce conciseness."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Build a 24-hour user activation drip with reminder if not activated",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment wraps each side effect in step.run() so retries skip completed work, uses step.sleep('wait-for-activation', '24 hours') for durable delay, and branches on a step.run-cached activation check; baseline uses setTimeout or a cron and a DB flag, losing durability and retry-safety."
+        "name": "batch-process-with-summary",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use Inngest or the required constructs."
       },
       {
-        "name": "Debounce noisy 'user/updated' events to sync a CRM at most 100 times per hour",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment configures createFunction with debounce: { period: '5m', key: 'event.data.userId' } and rateLimit: { limit: 100, period: '1h' } on a function bound to event 'user/updated'; baseline rolls its own Redis-based debounce/rate limiter."
+        "name": "daily-session-cleanup-cron",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no relevant content."
+      },
+      {
+        "name": "debounced-crm-sync",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not use Inngest at all."
       }
     ]
   }

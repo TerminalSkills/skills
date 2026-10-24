@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:94d6bcf37339b01f5ec01144c2b3948f94e10a1b6e5b73a07db7952e0afbc49c",
-  "scoredAt": "2026-05-13T15:29:19.037Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a30f49caf3f2bc1003ce16196e3086e396ec609887b101b6defd5996cd2c292b",
+  "scoredAt": "2026-10-24T16:36:15.767Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API failures or missing data."
+        "detail": "The instructions do not cover error handling or edge cases such as authentication failures or rate limiting beyond basic guidance."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment and uses fetch, limiting cross-platform compatibility."
+        "detail": "The skill is vendor-locked to Clay and assumes specific AI agent platforms (Claude Code, Codex, Cursor), limiting compatibility with other agents."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.2,
-    "baselineAvg": 25,
-    "treatmentAvg": 55,
+    "multiplier": 1.39,
+    "baselineAvg": 67,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "add-lead-with-enrichment",
-        "baseline": 30,
-        "treatment": 50,
-        "rationale": "Response A meets the required POST request and body but omits enrichment details and response JSON, while Response B uses incorrect endpoints and lacks the required statements."
+        "name": "build-table-with-enrichment-and-ai",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy all rubric requirements with detailed, runnable instructions."
       },
       {
-        "name": "setup-icp-webhook",
+        "name": "setup-webhook-source-for-leads",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits the correct key name and token usage note."
+      },
+      {
+        "name": "call-public-api-run-routine",
         "baseline": 20,
-        "treatment": 60,
-        "rationale": "Response B covers most rubric items but misses the ClayWebhook interface reference and filter_matched trigger, whereas Response A lacks the required checks, interface reference, and JSON response."
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits 429 handling; Response B uses incorrect endpoints and headers, missing key rubric requirements."
       }
     ]
   }

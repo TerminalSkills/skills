@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e8419bc248f9b15fa8482a0250fedcf89dd330bd0b53e6d68c12828d96127a43",
-  "scoredAt": "2026-05-13T14:22:55.949Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:490fb71f6e96b8ebea3ab08966b98b9af4368bbd6a7a36c0ff81fd6da4b11027",
+  "scoredAt": "2026-10-24T16:31:02.628Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error scenarios or edge cases."
+        "detail": "The skill does not cover error handling or edge cases for the provided commands."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "credentialHardcoding",
-        "detail": "Hardcoded client_secret in provider-details."
-      }
-    ]
+    "issues": []
   },
   "impact": {
-    "multiplier": 2,
-    "baselineAvg": 50,
-    "treatmentAvg": 100,
+    "multiplier": 5.13,
+    "baselineAvg": 15,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "create-user-pool-with-email-mfa",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B satisfies every rubric requirement, while Response A omits several key flags and settings."
+        "name": "create-user-pool-with-mfa",
+        "baseline": 0,
+        "treatment": 55,
+        "rationale": "Response B includes some correct commands but omits required schema, tier, and has an incorrect symbol requirement, whereas Response A provides no content."
       },
       {
-        "name": "setup-google-federation-hosted-ui",
-        "baseline": 80,
+        "name": "add-google-login-and-hosted-ui",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric items, while Response A omits the openid scope and the name/username mappings."
+        "rationale": "Response A includes all required commands with correct details; Response B does not provide the required commands."
+      },
+      {
+        "name": "verify-cognito-access-token",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items and demonstrates group extraction, though it deviates from the exact function signature and omits id‑token audience checks; Response B fails key requirements such as the specified imports, function name, and use of RSAAlgorithm.from_jwk."
       }
     ]
   }

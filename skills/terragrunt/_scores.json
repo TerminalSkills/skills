@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cf3d1581781809c0226ff96809b2abdf855bf09bf94cc102cc66d15b1ac87ce1",
-  "scoredAt": "2026-05-13T10:25:01.339Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b093f1503283a900527d49d0cee6f4eee8f415f392ad1a1ecdcb68785043bad0",
+  "scoredAt": "2026-10-24T17:33:53.053Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, focusing only on happy path usage."
+        "detail": "The instructions do not explicitly cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Installation instructions rely on brew, which may not be available on all platforms, indicating minor platform assumptions."
+        "detail": "The installation steps assume macOS/Unix tools like brew and mise, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 4.65,
+    "baselineAvg": 20,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Shared remote state and provider inheritance across accounts",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline duplicates backend.tf per module and lacks the generate/include/path_relative_to_include patterns; treatment uses all three to inherit a single root config."
+        "name": "add-staging-environment",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully covers the rubric, while Response B deviates from the required Terragrunt‑based steps and omits key details."
       },
       {
-        "name": "Orchestrate VPC, database, and ECS API with dependency wiring",
+        "name": "run-plan-specific-units",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline relies on terraform_remote_state and manual ordering; treatment declares dependency blocks and uses terragrunt run-all apply to deploy in dependency order."
+        "treatment": 80,
+        "rationale": "Response A meets most rubric requirements but omits --no-auto-approve, while Response B uses terraform instead of terragrunt and misses several required flags."
+      },
+      {
+        "name": "add-tflint-hook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required before_hook block, while Response B provides no content."
       }
     ]
   }

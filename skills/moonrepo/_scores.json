@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ed409373dc7cdae392e62a0c8d148936abddac9de60d4c6e6eeafaab72c6cc7d",
-  "scoredAt": "2026-05-13T09:37:17.666Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0e7aa05fed9d06d5090d821be6dac24f5d8905640349f98a57c4f0c90654f2d8",
+  "scoredAt": "2026-10-24T17:00:35.872Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 93,
-    "multiplier": 2.66,
+    "multiplier": 6.53,
+    "baselineAvg": 15,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Migrate Turborepo to moon with affected CI",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Treatment correctly produces .moon/workspace.yml plus per-project moon.yml files with inputs/outputs/deps and uses moon ci, whereas baseline misses the project-level config and the moon ci command."
+        "name": "setup-monorepo-with-caching-ci",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required workspace, toolchain, and per-project moon.yml files, and its CI workflow does not meet the specified criteria."
       },
       {
-        "name": "Pin Node.js and pnpm versions",
-        "baseline": 30,
-        "treatment": 93,
-        "rationale": "Treatment writes .moon/toolchain.yml with the documented node.version and pnpm.version structure, while baseline falls back to .nvmrc or volta instead of moon's toolchain."
+        "name": "migrate-turborepo-to-moonrepo",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Response B fully covers all rubric requirements, while Response A omits the migration extension, task conversion details, and caching verification."
+      },
+      {
+        "name": "run-affected-tasks-with-dependencies",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not address the required Moon commands or flags."
       }
     ]
   }

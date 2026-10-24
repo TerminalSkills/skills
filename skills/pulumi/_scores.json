@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f4fea9b670b98017c3f83821dcd00947953600a120c68a25c2cab3c7ebc5370f",
-  "scoredAt": "2026-05-13T09:58:37.522Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f35f2d20fa3ebea1d1791cf519c5f74f27fdb0067f2f34a770925ad96949ebe8",
+  "scoredAt": "2026-10-24T17:17:17.508Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack coverage of error scenarios and edge cases."
+        "detail": "The instructions lack coverage of error handling and edge cases such as failed login or missing configuration."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions include OS-specific package manager commands, limiting portability across platforms."
       }
     ]
   },
@@ -27,21 +32,15 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 1.67,
+    "baselineAvg": 60,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Reusable VPC ComponentResource",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline implements the VPC as a plain function returning resources without extending pulumi.ComponentResource or registering outputs, while the treatment subclasses ComponentResource, parents child resources, and exposes outputs for cross-stack consumption."
-      },
-      {
-        "name": "Per-environment config with secrets",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline creates dev/staging/prod stacks but stores the database password with plain pulumi config set instead of pulumi config set --secret, whereas the treatment uses --secret for every stack and reads it via requireSecret in code."
+        "name": "create-component-with-secret",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement, while Response B omits the aws-typescript scaffold, correct config syntax, --yes flag, and stack output command."
       }
     ]
   }

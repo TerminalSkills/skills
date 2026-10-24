@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0366cba7b04ffec85150eecc7717d9ce0ae781c38dd7f3f8029ccae5f63cd1eb",
-  "scoredAt": "2026-05-13T15:05:25.529Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9c8c0f47fae506c530ec487aa3b3eed5c03b0a158fce53e9759e4aa0a9e22d99",
+  "scoredAt": "2026-10-24T16:33:09.697Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for missing environment variables or network failures."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a React/Next.js environment and uses specific environment variables, limiting cross-platform applicability."
+        "detail": "The skill assumes a Next.js environment, which may not be available in all AI agents."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 5,
-    "treatmentAvg": 100,
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "embed-feedback-widget",
+        "name": "embed-canny-widget",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A includes the required data attributes and exact Tailwind classes, while Response B lacks the data attributes and uses different styling."
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to include the required div, render call, and contains unrelated content."
       },
       {
-        "name": "create-feature-request-api",
-        "baseline": 10,
+        "name": "create-and-list-ideas",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B meets the rubric except for the missing 'under review' status, while Response A does not use the required Canny API calls."
+      },
+      {
+        "name": "verify-canny-webhook",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A uses different endpoints and headers, missing the required calls."
+        "rationale": "Response A satisfies every rubric requirement, while Response B omits the required Webhook import and verification method."
       }
     ]
   }

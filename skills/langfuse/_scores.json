@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b441b963530a8c2584e01098efec6b19999b7a9e895942205bed1e6772bdac58",
-  "scoredAt": "2026-05-13T09:21:18.459Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2a90bbf2bb65d8887daeb306bf6c2c8ade9cbf31a5e5d2b16f01eb58fb914d93",
+  "scoredAt": "2026-10-24T16:52:55.936Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases such as missing API keys or network failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 89,
-    "multiplier": 2.78,
+    "multiplier": 10,
+    "baselineAvg": 7,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Trace a RAG pipeline as nested spans with cost tracking",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline used generic print/logging without Langfuse-specific tracing primitives; treatment used @observe and @observe(as_type=\"generation\") with langfuse_context.update_current_trace for nested spans and metadata."
+        "name": "add-tracing-to-fastapi-endpoint",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses deprecated or incorrect APIs and misses key requirements."
       },
       {
-        "name": "Fetch a versioned prompt and score the resulting trace",
-        "baseline": 33,
-        "treatment": 90,
-        "rationale": "Baseline managed prompts in files with custom logging; treatment used langfuse.get_prompt(name, version=N) with prompt.compile and langfuse.score(trace_id, name, value, data_type) per the SKILL.md."
+        "name": "fetch-and-compile-production-prompt",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use get_client().get_prompt or update_current_generation."
+      },
+      {
+        "name": "run-evaluation-experiment-on-dataset",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Langfuse or the required API at all."
       }
     ]
   }

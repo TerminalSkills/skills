@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:df597b9eb3ed05a7ab6a6cd0af707d505d4cf5e6cb32b623bc0aee97c146ffa1",
-  "scoredAt": "2026-05-13T10:00:39.175Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0e811528107ff174e660d9cb730bc1abee3a62a493b2d05b3866983e0af531c8",
+  "scoredAt": "2026-10-24T17:20:45.206Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases for form submission and dynamic fields."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 88,
-    "multiplier": 2.05,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Signup form with strong password rules and confirm-password matching",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment wires up `useForm` with `zodResolver`, a Zod schema with `.regex` rules plus `.refine` for confirmPassword equality, and surfaces `formState.errors`/`isSubmitting` per the skill, while baseline manages state with `useState` and ad-hoc validation, missing the uncontrolled-input performance pattern."
+        "name": "signup-form-with-zod-validation",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits defaultValues, proper setError handling for 409, and root error display."
       },
       {
-        "name": "Invoice builder with add/remove line items and a live total",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses `useFieldArray` with `append`/`remove`, `register('items.${index}.quantity', { valueAsNumber: true })`, and `watch('items')` to compute the live total — the exact pattern in the skill — while baseline manages the array via `useState` and manual mutators that the rubric does not credit."
+        "name": "dynamic-invoice-form-with-total",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use React Hook Form or any of the required features."
+      },
+      {
+        "name": "nextjs-server-action-form",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement, while Response B does not use useForm, zodResolver, defaultValues, setError, or the required button disabling logic."
       }
     ]
   }

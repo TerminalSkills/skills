@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a2e84a0495bfc7d69a0a357748f32d92d2645aaee0913c4c0dbb1af1b47eee11",
-  "scoredAt": "2026-05-13T09:44:46.902Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fbec9ade834a9c987df93d1ac08f41d86461575fb852aa2cf60291cb136efd80",
+  "scoredAt": "2026-10-24T17:10:18.023Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Codex CLI, not generic for any AI agent."
+        "detail": "Instructions do not cover error handling or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 95,
-    "multiplier": 5.28,
+    "multiplier": 3.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 33,
     "scenarios": [
       {
-        "name": "Set up Codex CLI in suggest mode with project conventions",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline tends to confuse Codex CLI with GitHub Copilot CLI and misses the project-context mechanism, while treatment uses npm install -g @openai/codex, --approval-mode suggest, and a checked-in codex.md as documented."
+        "name": "run-pnpm-with-network-access",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets the rubric requirements while Response A does not include the required codex exec command."
       },
       {
-        "name": "Sandbox Codex CLI to ./src and ./tests with no network",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline reaches for Docker or seccomp wrappers instead of the built-in config, while treatment edits ~/.codex/config.yaml setting sandbox.enabled, sandbox.network false, and sandbox.writable_paths exactly as documented."
+        "name": "generate-todo-json-report",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required single-sentence Codex prompt and include extraneous flags or entirely different approaches, so neither meets the rubric."
+      },
+      {
+        "name": "review-changes-against-main",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required single-line codex review command with the --base main flag and omit the necessary flag while including disallowed ones."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b0ba034fa48ab7731ad64b5eaabcc1330918de6cf6f933d6f646681f99529b7e",
-  "scoredAt": "2026-05-13T14:17:51.465Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:2568613ab2646f27281dda62044ff55d2cc2b1159a1a894e2e1d00f175ecef51",
+  "scoredAt": "2026-10-24T16:29:01.267Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.69,
-    "baselineAvg": 58,
-    "treatmentAvg": 98,
+    "multiplier": 1.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "express-hash-chain-audit",
-        "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response A fully meets all rubric requirements, while Response B uses a constraint instead of a trigger to block UPDATE/DELETE, missing that key element."
+        "name": "create-audit-table",
+        "baseline": 90,
+        "treatment": 30,
+        "rationale": "Response A likely contains the full, exact implementation required by the rubric, whereas Response B is incomplete—its audit_verify function is truncated and it may miss some required details."
       },
       {
-        "name": "aws-cloudtrail-immutable-s3-hipaa",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Response B fully meets the rubric with correct 6‑year compliance retention, log validation, and HIPAA reference, while Response A omits the 6‑year retention, validation, and HIPAA mention."
+        "name": "node-audit-insert",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A fails to match the required function signature, table name, and connection string."
+      },
+      {
+        "name": "s3-object-lock-bucket",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A includes the required commands with correct JSON but uses a placeholder bucket name, while Response B also uses a placeholder name and adds unnecessary steps, making A more aligned with the rubric."
       }
     ]
   }

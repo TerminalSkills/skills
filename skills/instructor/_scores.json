@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7d34dfe4b33b366dfe45ffeaaac9455bbf43494f7e1b6e6de4963f8f081cb79c",
-  "scoredAt": "2026-05-13T09:16:55.501Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f1792591d924f670537a4c89c85e962d90b8aab9fc49688be689d818d16d8439",
+  "scoredAt": "2026-10-24T16:51:11.624Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 92,
-    "multiplier": 1.84,
+    "multiplier": 9.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Extract contacts from email text into a validated Pydantic schema with retries",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses instructor.from_openai(OpenAI()), passes response_model=ExtractedContacts and max_retries=3, and leverages Field(description=...) to guide extraction; baseline calls OpenAI directly with json_mode and a hand-rolled parser, missing Instructor's validation-retry loop."
+        "name": "extract-product-reviews-with-retries",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric by using instructor.from_provider, client.create with a validated rating field, max_retries=3, and showing retry logic; Response A does not meet these requirements."
       },
       {
-        "name": "Stream partial sentiment-analysis objects from a local Ollama model",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment uses instructor.from_openai with base_url='http://localhost:11434/v1' and mode=instructor.Mode.JSON, defines Literal-typed fields for sentiment/emotions, and iterates client.chat.completions.create_partial; baseline streams raw text from Ollama and tries to parse JSON manually."
+        "name": "stream-contact-extraction-anthropic",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not."
+      },
+      {
+        "name": "local-ollama-json-mode-with-raw-completion",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements, while Response B does not use the required API calls or settings."
       }
     ]
   }

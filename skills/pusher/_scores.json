@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d71eba41523f5e23aafb9e78377c921dd68582f72a4b0046832015d36518cdfd",
-  "scoredAt": "2026-05-13T09:58:56.119Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bcbbe72a889a3853ecfff896d3359d71f31e8339b93b9221c826bed7d3a16123",
+  "scoredAt": "2026-10-24T17:19:49.019Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 60,
+    "score": 100,
     "dimensions": {
-      "clarity": "FAIL",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit instructions for the agent, making it vague and ambiguous."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is tailored to Node.js and React, limiting applicability to other platforms."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios or edge cases, such as network failures or authentication errors beyond a simple 403."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 6.92,
+    "baselineAvg": 13,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Presence channel with auth",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline uses the older pusher.authenticate() method and only binds pusher:subscription_succeeded while omitting member_added/member_removed and the avatar field, whereas the treatment uses authorizeChannel with user_info and binds all three presence lifecycle events."
+        "name": "exclude-sender-trigger",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A includes the required trigger with socket_id and await, but only catches a generic error instead of Pusher.RequestError, while Response B provides no trigger at all."
       },
       {
-        "name": "Batch trigger to multiple channels",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline issues two separate pusher.trigger() calls instead of using pusher.triggerBatch() with an array of {channel, name, data} objects to send both events in a single API call as the treatment does."
+        "name": "presence-channel-subscription",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B fully satisfies the rubric with correct client setup and event bindings, while Response A uses Echo abstractions and wrong auth endpoint, missing required events."
+      },
+      {
+        "name": "verify-pusher-webhook",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use the required pusher.webhook helper, uses a different raw body type, and implements custom HMAC logic instead of the specified verification method."
       }
     ]
   }

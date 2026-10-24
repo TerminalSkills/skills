@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:605551978bd08b5cd29d00d9bc09bc71b27d05a192ac58d67834db565115478b",
-  "scoredAt": "2026-05-13T08:49:24.007Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ee3db3105a6dfb9023b26738e3b86672b53b75d46e1e28a4d5dcc86ce6a013ce",
+  "scoredAt": "2026-10-24T16:41:10.302Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 95,
-    "multiplier": 2.5,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Set up ESLint 9 flat config for a TypeScript React project",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline defaults to legacy .eslintrc JSON format and fails the flat config rubric; treatment matches eslint.config.js array pattern with @eslint/js, typescript-eslint, and scoped files globs."
+        "name": "migrate-legacy-config",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the required migration command, notes manual review, and states the new flat config file, while Response A omits the command and key details."
       },
       {
-        "name": "Add ESLint as a blocking GitHub Actions check that fails on warnings",
+        "name": "add-custom-rule-no-hardcoded-urls",
         "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline produces a working workflow but typically omits --max-warnings 0; treatment uses the exact flag pattern from the skill to treat warnings as CI errors."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required flat config style or plugins.custom.rules."
+      },
+      {
+        "name": "ci-eslint-max-warnings",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B provides no content."
       }
     ]
   }

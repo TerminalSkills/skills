@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:68aafb8cf7c4e5b13c8b4d1a63d5fa966ed504ff75c0be6f7f792a6d8eb4496c",
-  "scoredAt": "2026-05-13T09:13:13.546Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c47efb5292685c1693efeffbfd8932f6bf759f04ce2d98dbb72a3f8d8d54d940",
+  "scoredAt": "2026-10-24T16:47:06.437Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not handle error scenarios or edge cases such as missing Hotjar script or undefined window.hj."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a web environment and Next.js, limiting its applicability to other platforms."
+        "detail": "The instructions do not cover error handling or edge cases such as missing site ID or script load failures."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 90,
-    "multiplier": 1.8,
+    "multiplier": 3.41,
+    "baselineAvg": 27,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Fix missing heatmap data on client-side routed pages in a Next.js App Router SPA",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment called window.hj('stateChange', pathname) inside a useEffect keyed on usePathname() exactly as documented; baseline reinstalled the script per route or used router events without the documented stateChange call."
+        "name": "add-hotjar-production-only",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with a HotjarInit component, production-only init, correct identify and event calls, while Response A misuses the identify signature, uses a different event name, and lacks a proper HotjarInit component."
       },
       {
-        "name": "Trigger an NPS survey after a successful purchase and tag the recording so it's filterable",
+        "name": "trigger-survey-and-hide-field",
         "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment used window.hj('trigger', 'post_purchase_nps') plus window.hj('tagRecording', [tag]) per the documented Survey API and tagRecording helpers; baseline embedded a third-party survey component and missed the API trigger mode + tagRecording pattern."
+        "treatment": 80,
+        "rationale": "Response A meets the event trigger and suppression requirements but omits tagRecording, while Response B fails to use the required event trigger and also lacks tagRecording."
+      },
+      {
+        "name": "spa-route-change-and-csp-nonce",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
       }
     ]
   }

@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:81bf01434f3b39504170aa0892b7f4731de910c0f5f03eb7e3fb5df420afca45",
-  "scoredAt": "2026-05-13T13:44:41.991Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5cb4c437b62b8a52d6e61897756fbc3603b56c593bce8aa2a5ae6ecaedfcec34",
+  "scoredAt": "2026-10-24T16:22:47.244Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack coverage of error handling and edge cases, focusing only on happy paths."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The examples are tailored to the Claude model, limiting use with other AI agents."
+        "detail": "The instructions assume Linux with NVIDIA GPU and conda, limiting cross-platform applicability."
       }
     ]
   },
@@ -33,20 +28,26 @@
   },
   "impact": {
     "multiplier": 9,
-    "baselineAvg": 0,
+    "baselineAvg": 3,
     "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "full-research-pipeline",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits explicitly stating the best hypothesis, while Response B provides no content."
-      },
-      {
-        "name": "experiment-design",
+        "name": "generate-limited-ideas",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B satisfies all rubric items, including the required mention of ExperimentDesigner.design, while Response A does not mention ExperimentDesigner.design and thus fails that key requirement."
+        "rationale": "Response A fully satisfies the rubric by creating the required Markdown file, running the ideation script with correct parameters, and ensuring a JSON output with hypotheses and experiments; Response B only lists ideas without any file creation or script execution."
+      },
+      {
+        "name": "run-idea-with-custom-config",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits --num_cite_rounds, whereas Response A provides no relevant instructions."
+      },
+      {
+        "name": "run-idea-with-dataset-and-code",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric by detailing file placement, command flags, and expected outputs, whereas Response A merely requests more information and does not provide any actionable steps."
       }
     ]
   }

@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4f9e592d9a5d057ebe2f96cdd3eb5daf8d4b57fd0ce9bde01d98074eaa07dc5d",
-  "scoredAt": "2026-05-13T09:27:19.188Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1f68284b1476d6b02fdd65652d5bf8d681402626ce7723ab1e59d2633c52a58c",
+  "scoredAt": "2026-10-24T16:55:09.417Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill file provides descriptive guidance but lacks step-by-step runnable procedures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one realistic example is provided, falling short of the required two examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 86,
-    "multiplier": 2.69,
+    "multiplier": 2.24,
+    "baselineAvg": 38,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Invoice processing scenario with conditional routing",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment lays out a Gmail trigger to Filter to Drive to OpenAI to Router branching on amount with downstream Slack/QuickBooks modules, matching the scenario structure pattern; baseline suggests generic workflow steps without Make's trigger/router/filter vocabulary."
+        "name": "schedule-iterator-http-retry",
+        "baseline": 65,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items, including the store incomplete executions setting, while Response A omits that requirement and uses a different mapping syntax."
       },
       {
-        "name": "Custom API call with array iteration and retryable error route",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment uses the HTTP module with {{1.field}} mapping syntax, an Iterator for array items, and a Break error route for retryable failures; baseline writes code that doesn't reflect Make's iterator/aggregator and Break/Resume/Rollback error-handler model."
+        "name": "webhook-filter-aggregator-slack",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers all rubric items except the JSON > Parse JSON note, while Response B omits the aggregator module and the note, scoring lower."
+      },
+      {
+        "name": "router-commit-mysql-blueprint",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
       }
     ]
   }

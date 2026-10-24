@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:612ef2b5dde4578c2b288aa474643da0ef7036e3cdf51719dfec7f97fcb5c15d",
-  "scoredAt": "2026-05-13T14:20:00.716Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:7db4bcbd18632fe4d2936b53bfdb7f691acf40cd133b00748d1d10432894be5d",
+  "scoredAt": "2026-10-24T17:47:00.846Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,41 +18,41 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage."
+        "detail": "The skill does not cover error handling for installation failures or API errors."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Minor platform assumptions (bash scripts) limit cross-platform compatibility."
+        "detail": "Installation scripts rely on bash commands, which may not run natively on Windows without WSL or Git Bash."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksumMissing",
-        "detail": "Missing checksum verification for downloaded model file."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 4,
-    "baselineAvg": 25,
-    "treatmentAvg": 100,
+    "multiplier": 2.18,
+    "baselineAvg": 38,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "lora-image-generation",
-        "baseline": 0,
+        "name": "install-and-launch-with-api",
+        "baseline": 45,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits the required prompt tag, negative_prompt, and uses an unsupported payload structure."
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key steps such as exporting COMMANDLINE_ARGS, running ./webui.sh, and confirming the server address."
       },
       {
-        "name": "inpainting-with-mask",
+        "name": "txt2img-with-sampler-and-scheduler",
         "baseline": 50,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits denoising_strength and does not show saving the output image."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the scheduler field and mislabels the sampler_name, making it incomplete."
+      },
+      {
+        "name": "batch-generate-multiple-prompts",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response A uses the correct localhost endpoint and loops over prompts, but omits required steps, cfg_scale, and negative_prompt; Response B uses an incorrect endpoint and payload fields, missing all rubric requirements."
       }
     ]
   }

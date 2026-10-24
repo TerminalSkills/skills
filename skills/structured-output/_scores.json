@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6093ad795c037905a2890bd9af776e949a871f6171e8d7051e5eeee12757d860",
-  "scoredAt": "2026-05-13T10:15:50.905Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ca5d53c1d019962a0933c358b2ab43081f3bde6c71333ce7d6bd424db7d310b5",
+  "scoredAt": "2026-10-24T17:31:02.703Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,8 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover network errors, rate limiting, or other API failure scenarios."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill relies on vendor-specific APIs (OpenAI, Anthropic) and does not support arbitrary AI agents."
+        "detail": "The skill assumes Node.js or Python environments and OpenAI/Anthropic APIs, limiting applicability to other providers."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 93,
-    "multiplier": 1.69,
+    "multiplier": 3.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 33,
     "scenarios": [
       {
-        "name": "Extract invoice fields with OpenAI guaranteed JSON",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment uses openai.beta.chat.completions.parse with zodResponseFormat and a Zod schema as in the skill, while baseline relies on response_format json_object plus manual parsing and validation."
+        "name": "openai-structured-product-review",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required Zod schema and parsing logic."
       },
       {
-        "name": "Force structured event extraction from Claude",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment forces output via Anthropic tools with tool_choice {type: 'tool', name: ...} and pulls the tool_use block, while baseline prompts Claude to emit raw JSON and parses it."
+        "name": "anthropic-structured-event-extraction",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to include the required Zod schema definition and parsing logic."
+      },
+      {
+        "name": "instructor-structured-email-analysis",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not provide any code or structure."
       }
     ]
   }

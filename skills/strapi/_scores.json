@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7c78ef29676b57ce316ba37635b065d1358e9419f0a0e54666e09fe507c4a9bc",
-  "scoredAt": "2026-05-13T10:12:35.554Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7962c09a438219f0881004af68400e7e60df72c41e62f19c2dbaa057a9e3a0b1",
+  "scoredAt": "2026-10-24T17:29:24.251Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, limiting completeness."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 97,
-    "multiplier": 4.85,
+    "multiplier": 3,
+    "baselineAvg": 30,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Fetch published articles with selective populate, sort, and pagination",
-        "baseline": 15,
-        "treatment": 98,
-        "rationale": "Baseline uses populate=* anti-pattern and lacks the publishedAt filter, sort param, and Bearer token; treatment matches every documented query-string convention."
+        "name": "setup-strapi-postgres-pnpm",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response A includes the exact command and most rubric items, missing only the TypeScript note and .env detail; Response B uses incorrect flags and omits key requirements."
       },
       {
-        "name": "Custom incrementViews controller endpoint",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline misses createCoreController factory and uses strapi.db.query instead of entityService with the api::article.article uid; treatment follows the documented controller pattern exactly."
+        "name": "fetch-articles-with-pagination",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, Response B does not provide the required TypeScript function."
+      },
+      {
+        "name": "custom-article-views-controller",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses the wrong service API, route format, and omits permission details."
       }
     ]
   }

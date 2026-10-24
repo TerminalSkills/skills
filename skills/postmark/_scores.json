@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:68c9765617fb6ff38c070636352ef3245014911ad63a9a9eb46ae800b632af44",
-  "scoredAt": "2026-05-13T09:52:44.661Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7df7422dd0e2bca7d005af5a0399cb1e41643caf4935f16ae7679005af50ec0d",
+  "scoredAt": "2026-10-24T17:13:46.360Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Instructions only provide Node.js examples despite claiming multi-language compatibility."
+        "detail": "The skill is specific to Node.js, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 2.45,
     "baselineAvg": 40,
-    "treatmentAvg": 91,
-    "multiplier": 2.28,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Order shipped email with template",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline reached for sendEmail with hardcoded HtmlBody and skipped MessageStream; treatment used sendEmailWithTemplate with TemplateAlias, TemplateModel variables, and MessageStream: 'outbound' as documented."
+        "name": "send-password-reset-template",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits MessageStream, Tag, and uses the wrong environment variable."
       },
       {
-        "name": "Bulk invoice send",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Baseline looped sendEmail 300 times without batching or Tag usage; treatment used sendEmailBatch in a single call with a Tag for analytics tracking."
+        "name": "batch-invoice-email",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Response A meets all rubric requirements, including batching, correct method, fields, token usage, and error filtering, while Response B omits the Tag and MessageStream fields, uses a different token variable, and a different method name, falling short of full compliance."
+      },
+      {
+        "name": "inbound-support-webhook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet key requirements."
       }
     ]
   }

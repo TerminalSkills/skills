@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:53a7a39f724b13b65bc0761ce06dd2e03208b37f4d9960f5f4acd99211ed6b5d",
-  "scoredAt": "2026-05-13T09:56:45.406Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c80b2f5549f513008426c53e54f8a9d29c3082acd987fe995f80c34f9b2fdf08",
+  "scoredAt": "2026-10-24T17:16:19.007Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error scenarios or edge cases such as missing dependencies or server failures."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 8.2,
+    "baselineAvg": 7,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Scheduled ETL flow with retries on 30-minute cron",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline reaches for @task/@flow and serve(cron=) but hand-rolls retry logic and omits get_run_logger; treatment uses @task(retries=, retry_delay_seconds=), get_run_logger(), and the documented prefect deploy --cron plus prefect worker start --pool workflow."
+        "name": "deploy-retry-cache-flow",
+        "baseline": 20,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric items but misnames the pool and includes a serve block, whereas Response B does not use Prefect at all."
       },
       {
-        "name": "Concurrent batch processing with exponential backoff and caching",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline falls back to ThreadPoolExecutor and gets no Prefect-native concurrency, caching, or exponential backoff; treatment uses .submit()/.result() concurrency along with retry_delay_seconds=[10,60], cache_key_fn=task_input_hash, and timeout_seconds=300 from the skill."
+        "name": "failure-hook-slack-notification",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "B covers most rubric items except the function name mismatch, while A does not meet any of the rubric requirements."
+      },
+      {
+        "name": "serve-concurrent-url-processor",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
       }
     ]
   }

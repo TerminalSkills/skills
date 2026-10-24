@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e65720c1ce4297494f2c558807d044aa5646c8b917f56975f2f040c2de01b646",
-  "scoredAt": "2026-05-13T14:04:04.374Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a21e13bcf1bae56beb71d607c627c09ba7d7b8ac76ca7e5a9ba0301aacc5c521",
+  "scoredAt": "2026-10-24T16:25:33.725Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f33689cb45cbc6d61afbed0b0a56c36bb4a4b0ff6c1c0ea607a6d82c9f26b32c",
-  "scoredAt": "2026-05-13T10:39:02.400Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9af67a75077fc623e0796a41231ff216ba54a1bd6281504533dea9f74cd7eed9",
+  "scoredAt": "2026-10-24T17:42:46.326Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as tool failures or false positives."
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific package managers (brew, cargo, snap) that may not be available on all platforms, limiting cross-platform compatibility."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 93,
-    "multiplier": 1.69,
+    "multiplier": 1.15,
+    "baselineAvg": 52,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "Automated scan of a search endpoint for reflected XSS using the right tools",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline suggested Burp/manual payloads and never named dalfox; treatment used the skill's exact dalfox url ... --skip-bav (and dalfox file ... --output) plus XSStrike's python3 xsstrike.py -u ... --fuzzer commands."
+        "name": "dalfox-reflected-xss-scan",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items with concrete command, example findings, context, payload, and remediation; Response B lacks explicit remediation suggestions."
       },
       {
-        "name": "Implement a strict nonce-based CSP that blocks injected scripts",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Baseline produced a reasonable CSP but lacked frame-ancestors 'none' and base-uri 'self' and was vague on per-request nonce generation; treatment matched the skill's CSP block (default-src 'self'; script-src 'self' 'nonce-{random}'; frame-ancestors 'none'; base-uri 'self'; form-action 'self') with the server-generated nonce flow."
+        "name": "dom-xss-detection-in-js",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Response B acknowledges the lack of file but lists potential sinks and sources, slightly more relevant than A which only provides a scanner skeleton without any analysis."
+      },
+      {
+        "name": "implement-csp-and-encoding",
+        "baseline": 65,
+        "treatment": 60,
+        "rationale": "Both responses provide nonce‑based CSP headers and demonstrate user input encoding, but neither includes the required nh3.clean sanitization; Response A is marginally better because it uses encode_html and gives a more complete CSP example."
       }
     ]
   }

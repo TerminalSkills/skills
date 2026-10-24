@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cac1077e29f9d72e7f09eca24f609886fbfeb6dcb4f62274386984b924491c74",
-  "scoredAt": "2026-05-13T15:51:30.298Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:7eb8eb9f53ce1e32ba166ef10f7b29b3b05882924e80493977b30264748aff29",
+  "scoredAt": "2026-10-24T16:38:47.724Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling for rate limiting, authentication failures, or missing fields."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is Node.js specific and may not work with other AI agent platforms."
+        "detail": "The skill uses Node.js-specific features, limiting cross-platform compatibility."
       }
     ]
   },

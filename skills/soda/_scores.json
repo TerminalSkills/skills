@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5e60fcedf17e6fcd70c9bc737af166df2fd73b09ced49773df208d32ba825554",
-  "scoredAt": "2026-05-13T10:09:37.974Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cf8753a20f77332652f66f7b9c70fa60f17efd132a0f2c28437eeeb8468b4ba9",
+  "scoredAt": "2026-10-24T17:27:45.393Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases comprehensively."
+        "category": "crossPlatform",
+        "detail": "The skill requires a Python environment with soda-core, limiting cross-platform compatibility."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 88,
-    "multiplier": 2.2,
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Write SodaCL checks for orders freshness, completeness, validity",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented SodaCL syntax: freshness(created_at) < 2h, missing_count, duplicate_count, invalid_count with valid values list; baseline writes generic SQL assertions and misses the YAML check DSL."
+        "name": "postgres-data-source-contract",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention soda or the required YAML files."
       },
       {
-        "name": "Programmatic scan that fails CI on data quality issues",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment uses Scan() with set_data_source_name, add_configuration_yaml_file, add_sodacl_yaml_str, scan.execute(), and scan.has_check_fails() per the skill; baseline invents an SDK shape and misses the failure-check method."
+        "name": "python-local-verify",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items but omits the explicit call to result.assert_ok(); Response B does not follow the rubric at all."
+      },
+      {
+        "name": "run-only-schema-rowcount",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric by providing the correct soda contract verify command and explanation, while Response B does not include the required command or context."
       }
     ]
   }

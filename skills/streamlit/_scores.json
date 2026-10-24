@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c9ac172c5f572ddfc743b97f70f67192f4411e473229da927437c8ed3c90a4ac",
-  "scoredAt": "2026-05-13T10:12:43.565Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:993258be772ece1ede267c438651e8888f1a654f43aa7ab620fc1e5e9bd4c287",
+  "scoredAt": "2026-10-24T17:30:31.568Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling for data loading, caching failures, or deployment errors."
+        "detail": "Instructions lack coverage of all error scenarios and edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill includes OpenAI API usage, which is vendor-specific and may limit compatibility with other AI providers."
+        "detail": "Skill assumes a Python environment, limiting compatibility with non-Python agents."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 97,
-    "multiplier": 2.77,
+    "multiplier": 1.75,
+    "baselineAvg": 53,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Sales dashboard with filters, KPIs, and trend chart from parquet",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline lacks wide layout, @st.cache_data, sidebar filter placement, and st.columns/st.metric KPI row; treatment applies all four documented patterns."
+        "name": "multi-page-dashboard-chat",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items, while Response B lacks navigation, proper charting, and chat components."
       },
       {
-        "name": "Streaming OpenAI chat with persistent history",
-        "baseline": 35,
-        "treatment": 98,
-        "rationale": "Baseline uses session_state but misses st.chat_message, st.chat_input, st.write_stream streaming, and st.secrets; treatment uses every documented chat pattern."
+        "name": "cached-parquet-dashboard",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response B covers more rubric items (plotly chart with width='stretch', metric, cache) than Response A, but both miss the slider and dataframe formatting requirements."
+      },
+      {
+        "name": "feedback-form-validation",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, whereas Response B omits clear_on_submit and uses a different function name instead of save_feedback."
       }
     ]
   }

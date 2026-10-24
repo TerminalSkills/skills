@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2e799919b9b5849a98567b5601e0ad7d74f8772be5e311ea72e392356d65e846",
-  "scoredAt": "2026-05-13T09:08:52.581Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a1e199e6f7ddcae6a0554967d633ce129a61b2022e0d988f168f2f0a554ca2c6",
+  "scoredAt": "2026-10-24T16:45:28.837Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack coverage of error scenarios and edge cases."
+        "detail": "The skill does not explicitly address error scenarios or edge cases, limiting its robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 91,
-    "multiplier": 2.28,
+    "multiplier": 1.14,
+    "baselineAvg": 50,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "Recommend a GTM motion for a remote-design-team PM tool with motion contrast",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline picks a motion intuitively with vague metrics; treatment applies the documented requirements checklist, names PLG's Signup→Activation→Conversion metrics, and contrasts SLG and CLG using documented criteria."
+        "name": "gtm-motion-selection",
+        "baseline": 60,
+        "treatment": 55,
+        "rationale": "Both responses miss the rubric’s requirement to cite a skill‑documentation example and list a motion requirement, but Response B covers more aspects of product characteristics, revenue model, and metrics, making it slightly better."
       },
       {
-        "name": "6-week launch campaign for a B2B analytics platform across three phases",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Baseline lists tactics without time-boxed phases; treatment maps pre-launch deliverables (waitlist, 5-10 design partners, 90s demo, load testing), the documented launch-day sequence, and post-launch activation/source-attribution metrics."
+        "name": "gtm-strategy-review",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Response A offers a structured checklist and next steps, slightly more helpful than Response B's minimal request."
+      },
+      {
+        "name": "growth-loop-design",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Response A explicitly names a loop type (Product‑Led Sales Loop) with key metrics, explains compounding, and gives concrete steps; Response B lacks a named loop type, though it covers stages and actions."
       }
     ]
   }

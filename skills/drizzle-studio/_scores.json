@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2a7142e081c76fba6ef74a91ab2d964cb8c6a72b0158642f6d3d4c4879291084",
-  "scoredAt": "2026-05-13T08:46:27.254Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c008616da7cb3fc99c43de460d6abf24a2e62eb4919877d236491b6015b479e3",
+  "scoredAt": "2026-10-24T16:39:16.759Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one example is provided, lacking multiple realistic demonstrations."
+        "detail": "The instructions do not cover all error scenarios and edge cases."
       }
     ]
   },

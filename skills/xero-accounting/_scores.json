@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b696da2fd1c969f0f4f2ef8c6bced5577c20ebb1f73f7c25aad8044cb4af5495",
-  "scoredAt": "2026-05-13T10:38:49.335Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:78a9a23d8c9e54c7825347e83c1bc23d10bfbf726564e4d43e148631003fe716",
+  "scoredAt": "2026-10-24T17:41:53.349Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not handle token file missing or network errors."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The implementation only provides Python code, lacking Node.js support."
+        "detail": "The skill assumes a Python runtime, limiting compatibility with non-Python agents."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 7,
+    "baselineAvg": 7,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Sync a Stripe payment to Xero as a paid invoice",
-        "baseline": 45,
-        "treatment": 89,
-        "rationale": "Treatment uses upsert_contact, create_invoice with ACCREC and AUTHORISED status, and mark_invoice_paid against the Payments endpoint as documented; baseline writes ad-hoc requests, often missing the Xero-Tenant-Id header, AUTHORISED status, or the separate Payments call."
+        "name": "create-and-pay-subscription-invoice",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A follows the required API calls and prints the invoice number, missing only the status flag, while Response B uses a different platform and does not meet the rubric requirements."
       },
       {
-        "name": "Pull monthly P&L summary for March 2025",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment calls Reports/ProfitAndLoss with fromDate/toDate params and parses SummaryRow cells per the skill; baseline often guesses report endpoints or omits the tenant header and SummaryRow row-type filtering."
+        "name": "import-bank-transactions-with-errors",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by calling the correct import_transactions function with the specified account ID, transaction list, endpoint, and error printing; Response B does not meet any of those requirements."
+      },
+      {
+        "name": "generate-monthly-pl-report",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response A calls profit_and_loss with the correct dates but does not parse rows; Response B never calls the function, so A is better."
       }
     ]
   }

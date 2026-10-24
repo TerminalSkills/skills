@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0d4c1ef2856fb653ead141377d4680c1992926a23ac72e681d8b02078060653a",
-  "scoredAt": "2026-05-13T09:12:50.341Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3b1e682d33830f6657d5a7b621226c1be29434c21c4183a6c9ffb1ad2b4f4f88",
+  "scoredAt": "2026-10-24T16:46:07.297Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases in the examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 31,
+    "multiplier": 6.2,
+    "baselineAvg": 15,
     "treatmentAvg": 93,
-    "multiplier": 3.0,
     "scenarios": [
       {
-        "name": "Workers API with CORS, JWT, and RPC client",
-        "baseline": 32,
-        "treatment": 91,
-        "rationale": "Baseline hand-rolls CORS/JWT middleware and uses plain fetch on the client, missing built-ins; treatment imports hono/cors, hono/jwt, and logger, reads c.get('jwtPayload'), exports AppType = typeof routes, and consumes with hc<AppType> from hono/client."
+        "name": "protected-profile-endpoint",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response B meets all technical requirements except the explicit onError handler, while Response A fails to meet the JWT, zValidator, and onError specifications."
       },
       {
-        "name": "JSX HTML response + streamText endpoint",
+        "name": "stream-report-endpoint",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by using streamText with the correct loop and timing, while Response A does not use streamText at all and is in a different framework."
+      },
+      {
+        "name": "rpc-client-call",
         "baseline": 30,
-        "treatment": 94,
-        "rationale": "Baseline returns a raw HTML string and a hand-rolled ReadableStream; treatment uses c.html(<jsx/>) and c.streamText with stream.write/stream.sleep exactly as the skill documents."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric requirements, while Response A deviates by using createClient instead of hc, omitting AppType import, and not following the specified API call pattern."
       }
     ]
   }

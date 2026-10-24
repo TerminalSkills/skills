@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2c40b5a8209ce26aeb100c340822d0a1cad37fa4f362d8a3135eaf13f07c6fdb",
-  "scoredAt": "2026-05-13T10:26:33.644Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9227db0736440b6ad1dad4ec493765249fa5df8f6fcfb38c0c3b90c1821f51ee",
+  "scoredAt": "2026-10-24T17:36:12.686Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling for ingestion and query operations."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Node.js environment and fetch API, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for pip install tinybird-cli."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 6.38,
+    "baselineAvg": 13,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Build product analytics dashboard with DAU endpoint",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline gestures at Tinybird CLI and HTTP API but misses .datasource SCHEMA/ENGINE syntax, the ?name=events ingestion path, and the NODE/SQL pipe file structure with uniqExact/toDate aggregation."
+        "name": "setup-daily-active-users",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric while Response B lacks the required Tinybird CLI steps and files."
       },
       {
-        "name": "Usage metering API for billing",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Baseline writes generic SQL with $1 placeholders and misses Tinybird's template parameter syntax ({{ String(...) }}), the NODE/SQL > pipe file format, and the /v0/pipes/<name>.json query string contract."
+        "name": "usage-metering-mv-jwt",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response A includes most of the required components (endpoint, JWT, materialized view) but misses the AggregatingMergeTree engine, month aggregation, and deploy command, whereas Response B lacks all specified elements."
+      },
+      {
+        "name": "bulk-ingest-python-429",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B misses key elements such as the correct endpoint, NDJSON format, Retry-After handling, .pipe file, and fetch example."
       }
     ]
   }

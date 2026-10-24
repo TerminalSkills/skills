@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b5df462aa7b84b7178ee73d05a8ec6344dfa8a0bf473e549031970e3de2602ab",
-  "scoredAt": "2026-05-13T09:47:41.035Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6c63e9f186706eb6834288973cc1533b046ee0d2c724988a2aae3839e4e811f5",
+  "scoredAt": "2026-10-24T17:12:20.908Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, only happy path examples."
+        "detail": "The skill does not cover error handling scenarios or edge cases for API failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 4.83,
+    "baselineAvg": 18,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Trigger Alertmanager incident via Events API",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment posts to events.pagerduty.com/v2/enqueue with routing_key, dedup_key, severity, source, and custom_details including runbook link; baseline used a generic curl missing dedup_key and proper payload structure."
+        "name": "create-service-with-escalation-and-grouping",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but misses num_loops and includes an extra field; Response B is incomplete and omits key requirements."
       },
       {
-        "name": "Create service with business-hours urgency and intelligent grouping",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment uses POST /services with alert_grouping_parameters type=intelligent, incident_urgency_rule type=use_support_hours, and support_hours configuration; baseline omitted the urgency rule structure and grouping."
+        "name": "trigger-acknowledge-resolve-alert",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
+      },
+      {
+        "name": "create-weekly-schedule-and-query-oncall",
+        "baseline": 35,
+        "treatment": 80,
+        "rationale": "Response B meets the rubric requirements with only a minor formatting issue, while Response A lacks key details and uses the wrong endpoint."
       }
     ]
   }

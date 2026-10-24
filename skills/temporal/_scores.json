@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2c6aa16856f6d621bb4de6cd64e9e79b2124713326f1c83ce314812d6daf3c64",
-  "scoredAt": "2026-05-13T10:24:34.417Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2de5199e976e73194a39f7765e079be28e4677258b949309f1a39b501f872552",
+  "scoredAt": "2026-10-24T17:32:31.765Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions focus on happy path and lack coverage of error handling and edge cases."
+        "detail": "Instructions do not cover error scenarios or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Instructions are specific to TypeScript, limiting applicability to other supported languages."
+        "detail": "Skill assumes a Node.js environment and TypeScript SDK, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 8.5,
+    "baselineAvg": 2,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Durable order workflow surviving restarts during a 2-hour wait",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline uses setTimeout and ad-hoc Redis state; treatment uses proxyActivities with startToCloseTimeout/retry plus workflow sleep so Temporal resumes after crashes."
+        "name": "order-workflow-with-compensation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       },
       {
-        "name": "Start a workflow from an API and observe status and result",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline falls back to BullMQ; treatment uses Client.workflow.start with taskQueue/workflowId/args and handle.describe()/handle.result() as documented."
+        "name": "daily-report-scheduler",
+        "baseline": 5,
+        "treatment": 55,
+        "rationale": "Response A meets most Temporal requirements but omits the required sleep('24h') scheduling, whereas Response B does not use Temporal at all."
+      },
+      {
+        "name": "event-stream-processor-with-continue-as-new",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
       }
     ]
   }

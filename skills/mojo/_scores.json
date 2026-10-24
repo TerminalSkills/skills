@@ -1,68 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c839d5fc8659e17bf09f8057ca37c99715623053cb6f38a8dc5dfd2b0aed6450",
-  "scoredAt": "2026-05-13T09:36:37.975Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4c4c58250507c41d0e108b27a334b05420fb6a78c695763b4d6f529c56718331",
+  "scoredAt": "2026-10-24T16:58:25.866Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 63,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are primarily code examples without explicit textual guidance, making it unclear how to apply the skill."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not address error handling or edge cases, focusing only on happy paths."
+        "detail": "The skill does not cover all potential error scenarios or edge cases, such as installation failures or unsupported Python versions."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "File contains extensive comments and explanations, adding unnecessary verbosity."
-      },
-      {
-        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Modular's Mojo language, limiting compatibility with other AI agents."
+        "detail": "The skill assumes specific operating systems and architectures, limiting its applicability to other platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Installation script uses curl piped to sh without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 92,
-    "multiplier": 5.11,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "SIMD ReLU activation in Mojo",
-        "baseline": 15,
-        "treatment": 92,
-        "rationale": "Baseline answers with NumPy/C scalar code and never references vectorize, simdwidthof, or DTypePointer SIMD load/store; treatment implements the documented @parameter+vectorize pattern end to end."
+        "name": "compute-mean-std-with-numpy",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits required imports, uses the wrong random function, and lacks size conversion and count printing."
       },
       {
-        "name": "Parallel grayscale conversion across CPU cores",
-        "baseline": 20,
-        "treatment": 92,
-        "rationale": "Baseline falls back to multiprocessing/NumPy and omits parallelize plus the cast[DType.*]() conversions; treatment uses parallelize[process_row](height) with the BT.601 luminance formula exactly as documented."
+        "name": "migrate-old-mojo-snippet",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to replace the import correctly, omit the raises clause, and does not address the main function signature."
+      },
+      {
+        "name": "vectorize-relu-simd",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet any of the specified requirements."
       }
     ]
   }
