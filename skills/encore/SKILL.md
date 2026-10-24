@@ -8,11 +8,12 @@ description: >-
   built-in". Covers API definition, databases, pub/sub, cron, and
   auto-provisioned infrastructure.
 license: Apache-2.0
-compatibility: "TypeScript or Go. Encore Cloud or self-hosted."
+compatibility: "Encore CLI, Node.js (Encore.ts) or Go (Encore.go), Docker running for local databases. Deploys to Encore Cloud, your own AWS/GCP account, or self-hosted Docker."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/encoredev/encore
   tags: ["backend", "encore", "framework", "infrastructure", "type-safe"]
 ---
 
@@ -20,169 +21,176 @@ metadata:
 
 ## Overview
 
-Encore is a backend framework where infrastructure is part of the code — define an API endpoint and Encore provisions the cloud resources automatically. Databases, pub/sub, cron jobs, and caching are declared in your TypeScript/Go code, not in Terraform files. Encore understands your application architecture and generates infrastructure, API documentation, and architecture diagrams from the code. Local development mirrors production exactly.
+Encore is an open-source backend framework (TypeScript via the `encore.dev` npm package, or Go) where infrastructure is declared in application code. You write `api()` endpoints, `new SQLDatabase(...)`, `new Topic(...)` and `new CronJob(...)`; the Encore CLI compiles the app, runs the resources locally (Postgres in Docker, an in-process broker), and Encore Cloud provisions the real ones in AWS or GCP. It also generates API docs, a service catalog, a client library and distributed traces from the same source. This skill covers Encore.ts (`encore.dev` 1.58.x).
 
 ## When to Use
 
-- Building cloud backends without managing infrastructure manually
-- Want type-safe APIs with automatic documentation
-- Need databases, pub/sub, and cron without configuring them
-- Rapid prototyping that scales to production
-- Teams that want to focus on business logic, not DevOps
+- Building a typed REST backend where databases, pub/sub and cron should not need Terraform
+- Splitting a monolith into services that call each other as plain functions
+- Self-hosting a compiled backend as a Docker image
 
 ## Instructions
 
 ### Setup
 
 ```bash
-# Install Encore CLI (macOS/Linux)
-brew install encoredev/tap/encore
-
-# Create a new app
-encore app create my-app --lang=ts
-cd my-app
-encore run  # Local dev server with hot reload
+brew install encoredev/tap/encore      # macOS and Linux with Homebrew
+encore version
+encore app create orders-api --lang=ts # asks to sign in to Encore Cloud unless --platform=false
+cd orders-api
+encore run                             # local server + dashboard (needs Docker for databases)
 ```
 
-### Define API Endpoints
+On Windows or Linux without Homebrew, the docs provide an installer script; download it, read it, then run it rather than piping it into a shell. `encore app create --example=ts/url-shortener` starts from a working example instead of an empty app.
+
+A service is a directory containing an `encore.service.ts` file with `import { Service } from "encore.dev/service"; export default new Service("user");`; put it next to the endpoints below. The local dashboard (printed by `encore run`, `http://localhost:9400`) shows requests, traces and the architecture diagram.
+
+### Define API endpoints
 
 ```typescript
-// backend/user/user.ts — API endpoints are just exported functions
-import { api } from "encore.dev/api";
+// user/user.ts — service "user"
+import { api, APIError } from "encore.dev/api";
 import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-// Database declared in code — Encore provisions it automatically
-const db = new SQLDatabase("users", {
-  migrations: "./migrations",
-});
+const db = new SQLDatabase("users", { migrations: "./migrations" });
 
-interface User {
-  id: number;
-  email: string;
-  name: string;
-}
+interface User { id: number; email: string; name: string }
 
-// POST /user.create — Type-safe request/response
 export const create = api(
   { method: "POST", path: "/user", expose: true },
   async (params: { email: string; name: string }): Promise<User> => {
-    const row = await db.queryRow`
-      INSERT INTO users (email, name)
-      VALUES (${params.email}, ${params.name})
-      RETURNING id, email, name
-    `;
+    const row = await db.queryRow<User>`
+      INSERT INTO users (email, name) VALUES (${params.email}, ${params.name})
+      RETURNING id, email, name`;
     return row!;
-  }
+  },
 );
 
-// GET /user/:id — Path parameters are typed
 export const get = api(
   { method: "GET", path: "/user/:id", expose: true },
-  async (params: { id: number }): Promise<User> => {
-    const row = await db.queryRow`
-      SELECT id, email, name FROM users WHERE id = ${params.id}
-    `;
-    if (!row) throw new Error("User not found");
+  async ({ id }: { id: number }): Promise<User> => {
+    const row = await db.queryRow<User>`SELECT id, email, name FROM users WHERE id = ${id}`;
+    if (!row) throw APIError.notFound("user not found");   // returns HTTP 404
     return row;
-  }
+  },
 );
 
-// GET /user — List with query params
 export const list = api(
   { method: "GET", path: "/user", expose: true },
-  async (params: { limit?: number; offset?: number }): Promise<{ users: User[] }> => {
-    const rows = await db.query`
-      SELECT id, email, name FROM users
-      ORDER BY id DESC
-      LIMIT ${params.limit ?? 20} OFFSET ${params.offset ?? 0}
-    `;
-    return { users: rows };
-  }
+  async (p: { limit?: number; offset?: number }): Promise<{ users: User[] }> => {
+    const users = await db.queryAll<User>`
+      SELECT id, email, name FROM users ORDER BY id DESC
+      LIMIT ${p.limit ?? 20} OFFSET ${p.offset ?? 0}`;
+    return { users };
+  },
+);
+```
+
+```sql
+-- user/migrations/1_create_users.up.sql
+CREATE TABLE users (
+  id BIGSERIAL PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL
+);
+```
+
+Rules worth knowing:
+
+- Endpoints are private unless `expose: true`; private ones can only be called by other services and cron jobs. `auth: true` requires an auth handler.
+- For GET, HEAD and DELETE the parameters come from the query string; for other methods from the JSON body unless the field is typed `Query<number>`, `Header<"X-Request-Id">` and so on.
+- Migrations are `<number>_<name>.up.sql` files that run in order; there are no automatic down migrations.
+- `db.query` returns an async iterator (`for await (const row of rows)`); use `queryAll` for an array and `exec` for statements without rows.
+- Add a new database or topic while `encore run` is running and you must restart it.
+
+### Call another service
+
+```typescript
+// orders/orders.ts
+import { api } from "encore.dev/api";
+import { user } from "~encore/clients";      // generated typed client, no HTTP code
+
+export const summary = api(
+  { method: "GET", path: "/orders/:userId/summary", expose: true },
+  async ({ userId }: { userId: number }): Promise<{ owner: string }> => {
+    const u = await user.get({ id: userId });
+    return { owner: u.name };
+  },
 );
 ```
 
 ### Pub/Sub
 
 ```typescript
-// backend/notifications/notifications.ts — Event-driven with pub/sub
+// notifications/events.ts
 import { Topic, Subscription } from "encore.dev/pubsub";
 
-// Declare a topic — Encore provisions the message broker
-export const userCreated = new Topic<{ userId: number; email: string }>("user-created");
+export interface UserCreated { userId: number; email: string }
 
-// Publish events
-export async function notifyUserCreated(userId: number, email: string) {
-  await userCreated.publish({ userId, email });
-}
+export const userCreated = new Topic<UserCreated>("user-created", {
+  deliveryGuarantee: "at-least-once",       // required; or "exactly-once"
+});
 
-// Subscribe to events
-const _ = new Subscription(userCreated, "send-welcome-email", {
+new Subscription(userCreated, "send-welcome-email", {
   handler: async (event) => {
-    await sendEmail(event.email, {
-      subject: "Welcome!",
-      body: "Thanks for signing up.",
-    });
+    await mailer.sendWelcome(event.email);  // must be idempotent: delivery can repeat
   },
 });
 ```
 
-### Cron Jobs
+Publish with `await userCreated.publish({ userId: 42, email: "maria@northwind.io" })`. A handler that throws is retried, then the event goes to a dead-letter queue.
+
+### Cron jobs
 
 ```typescript
-// backend/reports/cron.ts — Scheduled tasks
+// reports/cron.ts
+import { api } from "encore.dev/api";
 import { CronJob } from "encore.dev/cron";
 
-// Runs daily at 9 AM UTC — Encore handles scheduling
-const dailyReport = new CronJob("daily-report", {
-  title: "Generate Daily Report",
-  schedule: "0 9 * * *",
-  endpoint: generateReport,
+export const generateReport = api({}, async (): Promise<void> => {
+  // build and send the daily report; must be idempotent and take no parameters
 });
 
-export const generateReport = api(
-  { method: "POST", path: "/reports/daily" },
-  async (): Promise<{ generated: boolean }> => {
-    const stats = await db.query`SELECT ...`;
-    await sendSlackReport(stats);
-    return { generated: true };
-  }
-);
+new CronJob("daily-report", {
+  title: "Generate daily report",
+  schedule: "0 9 * * *",                    // cron expression (UTC); or every: "6h"
+  endpoint: generateReport,
+});
 ```
 
-### Deploy
+`every` must divide 24 hours evenly (`10m`, `6h`, not `7h`). Cron jobs do not run in `encore run` or preview environments, so call the endpoint by hand to test. On the free Encore Cloud tier a job runs at most once an hour at a random minute.
+
+### Test, deploy, self-host
 
 ```bash
-# Deploy to Encore Cloud (auto-provisions all infrastructure)
-git push encore main
-
-# Or self-host with Docker
-encore build docker my-app:latest
-docker run my-app:latest
+encore test                                   # runs your test runner with Encore's test setup
+git push encore                               # build and deploy to Encore Cloud (staging)
+encore build docker --config=infra.json orders-api:1.0.0
+docker run -e PORT=8080 -p 127.0.0.1:8080:8080 orders-api:1.0.0
 ```
+
+`encore app create` adds a git remote named `encore`. A self-hosted image needs an infrastructure config file (`--config`) whenever the app uses databases, pub/sub, caches or secrets; the image does not run migrations and does not trigger cron jobs, so apply migrations yourself and call the cron endpoints from your own scheduler.
 
 ## Examples
 
 ### Example 1: Build a SaaS backend
 
-**User prompt:** "Build a backend for a project management tool with users, projects, and real-time updates."
+**User prompt:** "Build a backend for a project management tool with users, projects and email notifications when a project is created."
 
-The agent will define Encore services with databases, pub/sub for real-time events, and cron for notifications — all infrastructure auto-provisioned.
+Create services `user` and `project`, each with its own `SQLDatabase` and migrations. `project.create` calls `user.get` through `~encore/clients` to check the owner, inserts the row, then publishes `ProjectCreated` to a topic. A `notifications` service subscribes and sends the email. Result: `encore run` starts everything, the dashboard at `http://localhost:9400` shows one trace spanning `project.create`, `user.get` and the database queries, and `curl -X POST localhost:4000/project -d '{"ownerId":7,"name":"Q4 launch"}'` returns the created project.
 
-### Example 2: Microservices with service-to-service calls
+### Example 2: Split a monolith into services
 
-**User prompt:** "Split our monolith into microservices with type-safe internal communication."
+**User prompt:** "Split our Express monolith into billing and accounts services with type-safe internal calls."
 
-The agent will create Encore services that call each other with typed function calls (no HTTP clients to write), with automatic tracing and documentation.
+Move each area into its own directory with its own `api()` endpoints, make internal ones private (no `expose`), and replace HTTP clients with `import { accounts } from "~encore/clients"`. Result: renaming a field in `accounts.get` becomes a compile error in `billing`, and the Flow diagram in the dashboard shows the dependency between the two services.
 
 ## Guidelines
 
-- **Infrastructure is code** — databases, pub/sub, cron declared in TypeScript
-- **`api()` for endpoints** — type-safe request/response with automatic validation
-- **`SQLDatabase` for databases** — Encore provisions Postgres automatically
-- **`Topic` / `Subscription` for events** — pub/sub without message broker setup
-- **`CronJob` for schedules** — declare in code, Encore handles execution
-- **`encore run` for local dev** — mirrors production environment exactly
-- **Auto-generated docs** — API documentation from your type definitions
-- **Architecture diagrams** — Encore understands your service graph
-- **Tracing built-in** — distributed tracing across services without config
-- **`expose: true` for public APIs** — internal services are private by default
+- Declare databases, topics and cron jobs at the top level of a module; the compiler reads them statically and rejects them inside functions.
+- Keep subscription handlers and cron endpoints idempotent; both can run more than once.
+- Throw `APIError` (`APIError.notFound`, `APIError.invalidArgument`) instead of `Error`, otherwise clients get a 500.
+- Keep secrets out of code: define them with `secret("StripeKey")` from `encore.dev/config` and set them with `encore secret set`.
+- Docker must be running for local databases; port 4000 is the app, 9400 the dashboard.
+- Encore Cloud is optional: you can deploy to your own AWS/GCP account or build a Docker image, but then provisioning, migrations and cron scheduling become yours.
+- Not a fit when you need a framework you already depend on (NestJS, Express middleware) to own the HTTP layer; Encore owns the request lifecycle.
