@@ -1,6 +1,7 @@
 ---
 name: percy
 description: When the user wants to perform visual testing with automated screenshot comparison using Percy by BrowserStack. Also use when the user mentions "percy," "visual testing," "screenshot comparison," "visual diff," "percy snapshot," or "BrowserStack visual." For Storybook-specific visual testing, see chromatic.
+license: Apache-2.0
 metadata:
   author: terminal-skills
   version: "1.0.0"

@@ -4,7 +4,7 @@ description: >-
   Build autonomous financial research agents that analyze stocks, SEC filings, earnings calls,
   and market data to produce investment reports. Use when: automating investment research,
   building AI-powered stock analysis, creating financial due diligence agents.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+"
 metadata:
   author: terminal-skills

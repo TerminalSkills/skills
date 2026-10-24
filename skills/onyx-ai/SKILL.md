@@ -4,7 +4,7 @@ description: >-
   Deploy and configure Onyx, a self-hosted AI chat platform with RAG and 25+ data
   connectors. Use when: setting up private ChatGPT alternative, connecting AI to
   company documents, building enterprise AI assistant with Confluence/Slack/Drive access.
-license: MIT
+license: Apache-2.0
 compatibility: "Docker, Python 3.10+"
 metadata:
   author: terminal-skills

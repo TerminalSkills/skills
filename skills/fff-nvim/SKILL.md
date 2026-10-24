@@ -2,7 +2,7 @@
 name: fff-nvim
 description: >-
   fff (Fast File Finder, fff.nvim) is a Rust file-search toolkit with typo-resistant path and content search, frecency ranking and an in-memory index, shipped as a Neovim picker, an MCP server for AI agents, Node and Bun, Rust and C libraries. Use when the user wants faster file search or grep for Claude Code, Codex or Cursor, a Telescope replacement in Neovim, or a search library for an agent tool.
-license: MIT
+license: Apache-2.0
 compatibility: "Neovim (prebuilt binary or Rust toolchain), Node.js or Bun for the SDK, Linux, macOS, Windows"
 metadata:
   author: terminal-skills

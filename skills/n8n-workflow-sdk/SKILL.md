@@ -6,7 +6,7 @@ description: >-
   JSON and SDK code, and push the result to an n8n instance. Use when a user
   asks to create n8n workflows programmatically, generate workflow JSON,
   version-control workflows, or let an AI agent write n8n workflows.
-license: Sustainable Use License
+license: Apache-2.0
 compatibility: 'Node.js 20+, TypeScript or modern JavaScript; an n8n instance and API key to deploy'
 metadata:
   author: terminal-skills

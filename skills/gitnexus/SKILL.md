@@ -9,7 +9,7 @@ description: >-
   a feature flows through the code, review the impact of uncommitted changes,
   run Cypher queries on a code graph, or explore a repository in the GitNexus
   web UI.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 22.18+ or 24.11+. Linux, macOS or Windows. An MCP-capable agent (Claude Code, Cursor, Codex, OpenCode, Windsurf) for the MCP tools."
 metadata:
   author: terminal-skills

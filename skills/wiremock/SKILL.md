@@ -1,6 +1,7 @@
 ---
 name: wiremock
 description: When the user wants to create HTTP mock servers with advanced request matching, recording, and proxying using WireMock. Also use when the user mentions "wiremock," "HTTP mocking," "request stubbing," "API recording," "wire mock," or "HTTP stub server." For GUI-based API mocking, see mockoon.
+license: Apache-2.0
 metadata:
   author: terminal-skills
   version: "1.0.0"

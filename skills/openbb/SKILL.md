@@ -5,7 +5,7 @@ description: >-
   interface to financial data: stocks, ETFs, crypto, forex, macro economics and SEC filings.
   Use when building financial analysis tools, feeding market data to AI agents, creating
   quantitative research pipelines, or accessing free financial data APIs from Python.
-license: AGPL-3.0
+license: Apache-2.0
 compatibility: "Python 3.10+; openbb 5.x"
 metadata:
   author: terminal-skills

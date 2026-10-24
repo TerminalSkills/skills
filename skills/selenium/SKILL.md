@@ -1,6 +1,7 @@
 ---
 name: selenium
 description: When the user wants to automate browser testing across multiple browsers using Selenium WebDriver. Also use when the user mentions "selenium," "WebDriver," "browser automation," "cross-browser testing," "browser testing," "headless Chrome testing," or "Selenium Grid." For mobile testing, see appium.
+license: Apache-2.0
 metadata:
   author: terminal-skills
   version: "1.0.0"

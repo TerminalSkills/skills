@@ -5,7 +5,7 @@ description: >-
   and no internet dependency. Use when: building AI tools for offline use,
   creating self-contained knowledge systems, deploying AI in air-gapped
   environments.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+, Ollama"
 metadata:
   author: terminal-skills

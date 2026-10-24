@@ -4,7 +4,7 @@ description: >-
   Browse, search, and self-host a community prompt library with 1000+ curated prompts.
   Use when: finding proven prompts for specific tasks, building a team prompt library,
   learning prompt patterns from community-tested examples.
-license: MIT
+license: Apache-2.0
 compatibility: "Any AI agent, Docker for self-hosting"
 metadata:
   author: terminal-skills

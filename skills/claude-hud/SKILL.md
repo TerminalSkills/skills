@@ -5,7 +5,7 @@ description: >-
   usage, active tools, running sub-agents, and task progress in real-time.
   Use when: monitoring AI agent activity, building developer tools for
   AI-assisted coding, creating status dashboards for agent workflows.
-license: MIT
+license: Apache-2.0
 compatibility: "Claude Code, Node.js 18+"
 metadata:
   author: terminal-skills

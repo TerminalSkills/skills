@@ -2,7 +2,7 @@
 name: vibe-voice
 description: >-
   Run Microsoft's VibeVoice, open-source voice AI for long-form speech recognition with speaker labels and timestamps, plus real-time text-to-speech. Use when: transcribing meetings or podcasts with diarization, adding hotwords for domain terms, streaming speech recognition, serving ASR through vLLM, or building a voice assistant with a 0.5B streaming TTS model.
-license: MIT
+license: Apache-2.0
 compatibility: "Python 3.10+, NVIDIA GPU recommended (CPU build available for ASR), ffmpeg"
 metadata:
   author: terminal-skills
