@@ -10,7 +10,7 @@ persona: >-
   Field researcher needing AI assistance in remote areas with no internet —
   medical references, survival guides, technical manuals, and general knowledge
   accessible via a local AI assistant.
-skills: [offline-ai-toolkit, ollama]
+skills: [offline-ai-toolkit, ollama, opendataloader-pdf]
 tags: [offline, knowledge-base, local-ai, field-work, ollama, self-contained]
 ---
 
@@ -27,315 +27,216 @@ Build a completely self-contained AI knowledge system that works without any int
 ## Architecture
 
 ```
-┌──────────────────────────────────────────┐
-│              Your Laptop / Pi            │
-│                                          │
-│  ┌──────────┐    ┌───────────────────┐   │
-│  │  Ollama   │    │  Knowledge DB     │   │
-│  │ (LLM)    │◄──►│  (SQLite + FTS5)  │   │
-│  │ llama3.1 │    │  + embeddings     │   │
-│  └──────────┘    └───────────────────┘   │
-│       ▲                    ▲             │
-│       │                    │             │
-│  ┌──────────────────────────────────┐    │
-│  │     Python Backend (FastAPI)      │    │
-│  │  RAG: query → search → prompt     │    │
-│  └──────────────────────────────────┘    │
-│       ▲                                  │
-│       │                                  │
-│  ┌──────────────────────────────────┐    │
-│  │      PWA Interface (Browser)      │    │
-│  │  Chat UI — works fully offline    │    │
-│  └──────────────────────────────────┘    │
-└──────────────────────────────────────────┘
+Laptop / Pi (no network needed after setup)
+  PWA chat UI (service worker)  ->  FastAPI backend (127.0.0.1:8080)
+                                      |-- SQLite + FTS5 + embedding BLOBs (knowledge.db)
+                                      '-- Ollama (127.0.0.1:11434): llama3.1:8b + nomic-embed-text
 ```
 
 ## Step-by-Step Walkthrough
 
-### 1. Hardware Preparation
+### 1. Check the hardware
 
-**Minimum requirements:**
-- 8GB RAM laptop (16GB recommended)
-- 50GB free storage
-- Any modern CPU (Apple M1+ or Intel i5+ recommended)
-- No GPU required (CPU inference is fine for 8B models)
+- 8 GB RAM minimum for an 8B model (16 GB is comfortable); `phi3:mini` runs in 4 GB.
+- About 20 GB free disk for models plus content; no GPU needed, CPU inference is slower but works.
+- For a second machine, put everything on a USB drive (step 9).
 
-**Portable setup:**
-- All software + knowledge on a 128GB USB drive
-- Boot from USB or run as portable apps
-- Works on any laptop you can borrow in the field
+### 2. Install Ollama and pull models (while online)
 
-### 2. Install Ollama and Models (While Online)
+Follow the `ollama` skill. On macOS `brew install ollama`; on Linux download `ollama-linux-amd64.tar.zst` (or the arm64 build) from the Ollama GitHub releases page, check it against the `sha256sum.txt` published with the release, and extract it under `/usr`. Do not pipe an install script into a shell.
 
 ```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Pull models — choose based on your RAM
-ollama pull phi3:mini            # 2.3GB — minimal, fast, 4GB RAM
-ollama pull llama3.1:8b          # 4.7GB — balanced, 8GB RAM
-ollama pull nomic-embed-text     # 274MB — embeddings (required)
-
-# Optional specialized models:
-ollama pull medllama2            # Medical knowledge
-ollama pull codellama:7b         # Programming help
-
-# Verify everything works
-ollama run phi3:mini "What is photosynthesis?"
+ollama serve &                  # skip if the desktop app or the systemd service already runs it
+ollama pull llama3.1:8b         # 4.9 GB, general answers
+ollama pull phi3:mini           # 2.2 GB, fallback for 4 GB machines
+ollama pull nomic-embed-text    # 274 MB, embeddings (required)
+ollama list
 ```
 
-### 3. Download Knowledge Content
+Ollama listens on `127.0.0.1:11434` by default; leave `OLLAMA_HOST` alone so nothing is exposed on the field network.
+
+### 3. Download the knowledge content (while online)
+
+Wikipedia's REST `page/html` endpoint returns raw HTML, which is poor material for embeddings. The MediaWiki API returns plain-text articles; Wikipedia asks for a descriptive `User-Agent`, and `redirects=1` resolves renamed titles such as `Fracture_(bone)` to `Bone fracture`.
 
 ```python
-# Run this script WHILE YOU HAVE INTERNET
+# fetch_wikipedia.py
+import os, requests
 
+HEADERS = {"User-Agent": "offline-kb-builder (contact: you@example.org)"}
+TOPICS = ["First aid", "Water purification", "Hypothermia", "Dehydration",
+          "Snakebite", "Bone fracture", "Knot", "Navigation", "Shelter"]
+
+os.makedirs("knowledge/wikipedia", exist_ok=True)
+for topic in TOPICS:
+    r = requests.get("https://en.wikipedia.org/w/api.php", headers=HEADERS, timeout=30, params={
+        "action": "query", "prop": "extracts", "explaintext": 1, "redirects": 1,
+        "format": "json", "formatversion": 2, "titles": topic})
+    r.raise_for_status()
+    page = r.json()["query"]["pages"][0]
+    if page.get("extract"):
+        name = page["title"].replace("/", "_")
+        open(f"knowledge/wikipedia/{name}.txt", "w", encoding="utf-8").write(page["extract"])
+        print("ok", page["title"])
+    else:
+        print("missing", topic)
+```
+
+For whole encyclopedias, bundle a Kiwix ZIM file and serve it with `kiwix-serve` next to this system instead of fetching article by article.
+
+Manuals, WHO guidelines, papers: convert PDFs to Markdown with the `opendataloader-pdf` skill (needs Java 11+) and drop the output into `knowledge/manuals/`. Field notes go in `knowledge/personal/`.
+
+```bash
+pip install -U opendataloader-pdf
+python3 -c "import opendataloader_pdf as o; o.convert(input_path=['pdfs/'], output_dir='knowledge/manuals', format='markdown', quiet=True)"
+```
+
+Then pull the Markdown/text into the database in the next step.
+
+### 4. Build the database and embeddings
+
+Create `knowledge_db.py` with `init_knowledge_db()`, `get_embedding()`, `embed_all_documents()`, `search_knowledge()` and `ask_offline()` from the `offline-ai-toolkit` skill (they use Ollama's `/api/embed` and `/api/generate`). The skill has no file importer, so add this one:
+
+```python
+# append to knowledge_db.py
+from pathlib import Path
+
+def ingest_local_files(folder, conn, category):
+    for path in sorted(Path(folder).rglob("*")):
+        if path.suffix.lower() not in {".txt", ".md"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if text.strip():
+            conn.execute("INSERT INTO documents (title, source, content, category) VALUES (?, ?, ?, ?)",
+                         (path.stem, str(path), text, category))
+    conn.commit()
+    conn.execute("INSERT INTO fts_documents(fts_documents) VALUES ('rebuild')")  # keep keyword search in sync
+    conn.commit()
+```
+
+```python
+from knowledge_db import init_knowledge_db, ingest_local_files, embed_all_documents
+
+conn = init_knowledge_db("knowledge.db")
+for folder, category in [("knowledge/wikipedia", "encyclopedia"),
+                         ("knowledge/manuals", "reference"),
+                         ("knowledge/personal", "personal")]:
+    ingest_local_files(folder, conn, category)
+embed_all_documents(conn, chunk_size=400)      # words per chunk; slow on CPU for big corpora
+print(conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0], "chunks")
+```
+
+The skill's `search_knowledge()` compares the query against every stored chunk in pure Python, which is fine for tens of thousands of chunks; beyond that, load the vectors into a numpy matrix.
+
+### 5. Build the backend API
+
+```python
+# server.py
+import sqlite3
 import requests
-import json
-
-# === Wikipedia: Top 10,000 articles ===
-def download_wikipedia_vital(output_dir='./knowledge/wikipedia'):
-    """Download Wikipedia's vital articles."""
-    import os
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Start with essential topics
-    topics = [
-        # Survival & Emergency
-        'First_aid', 'Water_purification', 'Shelter_(building)',
-        'Fire-making', 'Navigation', 'Knot', 'Hypothermia',
-        'Dehydration', 'Snakebite', 'Fracture_(bone)',
-
-        # Science & Nature
-        'Human_body', 'Plant', 'Animal', 'Weather',
-        'Geology', 'Astronomy', 'Physics', 'Chemistry',
-
-        # Practical Skills
-        'Agriculture', 'Fishing', 'Hunting', 'Cooking',
-        'Sewing', 'Carpentry', 'Metalworking',
-
-        # Geography & Culture
-        'Earth', 'Continent', 'Ocean', 'Mountain',
-
-        # Add hundreds more based on your field
-    ]
-
-    for topic in topics:
-        url = f"https://en.wikipedia.org/api/rest_v1/page/html/{topic}"
-        try:
-            r = requests.get(url, timeout=15)
-            if r.status_code == 200:
-                filepath = f"{output_dir}/{topic}.html"
-                with open(filepath, 'w') as f:
-                    f.write(r.text)
-                print(f"✅ {topic}")
-        except Exception as e:
-            print(f"❌ {topic}: {e}")
-
-# === Technical Manuals ===
-# Download PDFs of relevant manuals for your field
-# Medical: WHO guidelines, first aid manuals
-# Engineering: repair manuals, specifications
-# Agriculture: farming guides, plant identification
-
-# === Personal Documents ===
-# Research papers, field notes, team protocols
-# Copy to ./knowledge/personal/
-```
-
-### 4. Build and Populate the Knowledge Database
-
-```python
-# Use init_knowledge_db() from offline-ai-toolkit skill
-
-from knowledge_db import init_knowledge_db, ingest_local_files
-
-conn = init_knowledge_db('knowledge.db')
-
-# Ingest all downloaded content
-ingest_local_files('./knowledge/wikipedia', conn, category='encyclopedia')
-ingest_local_files('./knowledge/manuals', conn, category='reference')
-ingest_local_files('./knowledge/personal', conn, category='personal')
-
-print(f"Total documents: {conn.execute('SELECT COUNT(*) FROM documents').fetchone()[0]}")
-```
-
-### 5. Generate Embeddings
-
-```python
-# Use embed_all_documents() from offline-ai-toolkit skill
-# This takes time — 1-5 hours depending on content volume
-
-from knowledge_db import embed_all_documents
-
-embed_all_documents(conn, chunk_size=400)
-
-total = conn.execute('SELECT COUNT(*) FROM embeddings').fetchone()[0]
-print(f"Generated {total} embedding chunks")
-
-# Database size check:
-import os
-size_mb = os.path.getsize('knowledge.db') / (1024 * 1024)
-print(f"Knowledge DB: {size_mb:.1f} MB")
-```
-
-### 6. Build the Backend API
-
-```python
-# server.py — FastAPI backend for the PWA
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import sqlite3
+from knowledge_db import ask_offline
 
 app = FastAPI()
-
-# Serve PWA static files
-app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 
 class Question(BaseModel):
     question: str
     model: str = "llama3.1:8b"
 
+# Plain `def` routes: FastAPI runs them in a thread pool, so the blocking Ollama calls do not stall the server.
 @app.post("/ask")
-async def ask(q: Question):
-    conn = sqlite3.connect('knowledge.db')
-    result = ask_offline(q.question, conn, model=q.model)
-    conn.close()
-    return result
+def ask(q: Question):
+    conn = sqlite3.connect("knowledge.db")
+    try:
+        return ask_offline(q.question, conn, model=q.model)
+    finally:
+        conn.close()
 
 @app.get("/status")
-async def status():
-    """Check system health."""
-    import requests
+def status():
     try:
-        r = requests.get('http://localhost:11434/api/tags', timeout=2)
-        models = [m['name'] for m in r.json().get('models', [])]
-    except:
+        tags = requests.get("http://127.0.0.1:11434/api/tags", timeout=2).json()
+        models = [m["name"] for m in tags.get("models", [])]
+    except requests.RequestException:
         models = []
-
-    conn = sqlite3.connect('knowledge.db')
-    docs = conn.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
-    chunks = conn.execute('SELECT COUNT(*) FROM embeddings').fetchone()[0]
+    conn = sqlite3.connect("knowledge.db")
+    docs = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+    chunks = conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0]
     conn.close()
+    return {"ollama": bool(models), "models": models, "documents": docs, "chunks": chunks}
 
-    return {
-        'ollama': len(models) > 0,
-        'models': models,
-        'documents': docs,
-        'chunks': chunks
-    }
-
-# Run: uvicorn server:app --host 0.0.0.0 --port 8080
+app.mount("/app", StaticFiles(directory="pwa", html=True), name="pwa")
 ```
 
-### 7. Set Up the PWA
+```bash
+pip install fastapi uvicorn requests
+uvicorn server:app --host 127.0.0.1 --port 8080
+```
 
-Use the PWA from the `offline-ai-toolkit` skill. Add a service worker for true offline capability:
+Binding to `127.0.0.1` keeps the assistant private to the laptop. If teammates must use it over a local hotspot, bind to that interface's address deliberately, since the API has no authentication.
+
+### 6. Build the PWA
+
+Create `pwa/index.html` with a chat box that POSTs `{question}` to `/ask`, and a `pwa/manifest.json`. Register a service worker so the UI itself loads with no network. The worker lives at `pwa/sw.js` so its scope is `/app/`; service workers run on `localhost` without HTTPS.
 
 ```javascript
-// sw.js — Service Worker for offline caching
-const CACHE_NAME = 'offline-ai-v1';
-const URLS_TO_CACHE = ['/', '/index.html', '/manifest.json'];
+// pwa/sw.js
+const CACHE = 'offline-ai-v1';
+const ASSETS = ['./', './index.html', './manifest.json'];
 
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(URLS_TO_CACHE))
-    );
-});
-
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => response || fetch(event.request))
-    );
+self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))));
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;            // /ask is a POST and must reach the backend
+  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request)));
 });
 ```
 
-### 8. Test Fully Offline
+In `index.html`: `navigator.serviceWorker.register('./sw.js')`. Open `http://127.0.0.1:8080/app/` once while the backend runs so the worker installs.
+
+### 7. Test fully offline
+
+Turn Wi-Fi off (`nmcli networking off` on NetworkManager systems, or the OS toggle), start Ollama and uvicorn, and ask:
 
 ```bash
-# Disconnect from internet
-nmcli networking off  # or turn off WiFi
-
-# Start Ollama
-ollama serve &
-
-# Start backend
-uvicorn server:app --host 0.0.0.0 --port 8080 &
-
-# Open browser to http://localhost:8080/app
-
-# Test queries:
-# "How do I purify water in the wild?"
-# "What are the symptoms of hypothermia?"
-# "How to set a broken bone?"
+curl -s http://127.0.0.1:8080/status
+curl -s http://127.0.0.1:8080/ask -H 'content-type: application/json' \
+  -d '{"question": "What are the symptoms of hypothermia?"}'
 ```
 
-### 9. Package for Portability
+Check that the answer's `sources` come from your corpus. The skill's prompt tells the model to answer only from the context, so a question outside the corpus should return "I don't have information about that."
 
-```bash
-# Option A: Docker (runs anywhere with Docker)
-cat > Dockerfile << 'EOF'
-FROM python:3.11-slim
-RUN pip install fastapi uvicorn requests
-COPY . /app
-WORKDIR /app
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
-EOF
+### 8. Package for portability
 
-# Option B: USB drive with everything
-mkdir /media/usb/offline-ai
-cp -r . /media/usb/offline-ai/
-cp knowledge.db /media/usb/offline-ai/
-# Include Ollama binary + model files
-```
+Copy the project folder, `knowledge.db`, the Ollama tarball and the model store (`~/.ollama/models`) to a USB drive. On the target machine extract Ollama, copy the models directory to `~/.ollama/models`, run `ollama list` to confirm both models appear, and start uvicorn. Test once on that machine before you leave.
 
-### 10. Sync When Back Online
+### 9. Sync when back online
 
-```python
-# When you return to connectivity:
-# 1. Upload field notes for backup
-# 2. Download new knowledge content
-# 3. Update models to latest versions
-# 4. Re-generate embeddings for new content
-
-# Use sync_knowledge() from offline-ai-toolkit skill
-```
+Back up field notes, refresh the downloaded articles, run `ollama pull` for newer model versions, then re-run steps 3 and 4. If you change the embedding model, re-embed everything: vectors from different models are not comparable.
 
 ## Storage Budget
 
-| Content | Size | Documents |
-|---------|------|-----------|
-| Wikipedia (1,000 articles) | ~50MB | 1,000 |
-| Technical manuals (PDFs) | ~200MB | 50 |
-| Embeddings database | ~500MB | 10,000 chunks |
-| Ollama models (phi3 + llama3.1) | ~7GB | 2 models |
-| **Total** | **~8GB** | |
-
-## Use Case Examples
-
-| Scenario | Query | Knowledge Source |
-|----------|-------|-----------------|
-| Medical emergency | "Treating a deep cut without sutures" | First aid manual |
-| Navigation | "How to find north without a compass" | Survival guides |
-| Plant ID | "Edible plants in tropical forests" | Botany articles |
-| Repair | "Fix a broken solar panel" | Technical manuals |
-| Research | "Properties of local soil types" | Personal notes + geology |
+| Content | Size |
+|---------|------|
+| Wikipedia, 1,000 plain-text articles | about 30-100 MB |
+| 50 technical manuals as Markdown | tens of MB |
+| Embeddings (nomic-embed-text, 768 floats = 3 KB per chunk) | about 3 MB per 1,000 chunks, plus the chunk text |
+| Ollama models: llama3.1:8b + phi3:mini | about 7.1 GB |
 
 ## Real-World Example
 
-A marine biologist prepares for a 3-month expedition to a remote Pacific atoll with no cell service. Before departure, she downloads 2,000 Wikipedia articles on marine species, coral biology, and oceanography, plus 30 PDF field guides and her team's 500 pages of prior research notes. The knowledge database totals 8GB including the llama3.1:8b model. On the atoll, when she encounters an unfamiliar fish species, she queries the system: "What reef fish have vertical blue stripes and a yellow tail fin?" The vector search surfaces relevant articles from her marine biology corpus, and the LLM synthesizes an answer pointing to the Thalassoma lutescens family. She also uses it daily to cross-reference water temperature readings against coral bleaching thresholds from her downloaded NOAA datasets. The system handles 50+ queries per day on her MacBook Air without any connectivity.
+A marine biologist prepares for a 3-month expedition to an atoll with no cell service. Before leaving she fetches 2,000 Wikipedia articles on reef species and oceanography, converts 30 PDF field guides with `opendataloader-pdf`, adds her team's 500 pages of notes, and builds the database on her laptop. On the atoll she asks, "Which reef fish have vertical blue stripes and a yellow tail?" Retrieval returns passages from her field guides and the model summarizes them with the sources listed, which she then confirms against the guide's photos before logging a species. She treats the model as a fast index into her own library, not as an authority.
 
 ## Limitations
 
-- Model quality is lower than cloud APIs (8B vs 200B+ parameters)
-- No real-time information (knowledge is frozen at download time)
-- Embedding search can miss relevant content (supplement with FTS)
-- First query is slow (model loading) — subsequent queries are fast
+- An 8B model reasons less well than large cloud models, and the answers are only as good as the corpus. Do not rely on it for medical decisions; use it to find the relevant passage in the first-aid manual and read the passage.
+- Knowledge is frozen at download time.
+- Vector search can miss exact terms (drug names, part numbers); the FTS5 table gives you keyword search as a complement.
+- The first query after start-up is slow while the model loads.
 
 ## Related Skills
 
-- `offline-ai-toolkit` — core offline AI implementation
-- `ollama` — local model management
-- `opendataloader-pdf` — parse PDFs for knowledge ingestion
+- `offline-ai-toolkit` - SQLite knowledge base, embeddings, vector search and RAG functions
+- `ollama` - installing and managing the local models
+- `opendataloader-pdf` - converting PDF manuals to Markdown for ingestion
