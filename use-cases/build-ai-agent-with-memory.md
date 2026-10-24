@@ -1,5 +1,6 @@
 ---
 title: "Build an AI Agent with Persistent Memory"
+slug: build-ai-agent-with-memory
 description: "Create a long-running AI agent that remembers you across sessions using episodic, semantic, and procedural memory stores."
 skills: [anthropic-sdk, langchain, agent-memory]
 difficulty: advanced
@@ -9,275 +10,291 @@ tags: [ai, agents, memory, vector-db, postgres, langchain, anthropic]
 
 # Build an AI Agent with Persistent Memory
 
-> **Persona:** You're building a personal AI assistant that actually *knows* you — your preferences, past decisions, ongoing projects. Every time it starts, it picks up right where you left off.
+## The Problem
 
-Most AI assistants are amnesiac by design. You want one that remembers. This guide walks you through a three-tier memory architecture: episodic (what happened), semantic (what's true), and procedural (how to behave).
+Most AI assistants forget everything when the session ends. You say you prefer TypeScript and short answers, and next week you say it again. You want an assistant that picks up where you left off without stuffing every old conversation into the prompt.
 
-## Memory Architecture
+## The Solution
 
-```
-┌─────────────────────────────────────────────────┐
-│                   AI Agent                       │
-│                                                   │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────┐ │
-│  │  Episodic   │  │   Semantic   │  │Procedural│ │
-│  │  (history)  │  │   (facts)    │  │(behaviors│ │
-│  └──────┬──────┘  └──────┬───────┘  └────┬────┘ │
-└─────────┼────────────────┼───────────────┼──────┘
-          │                │               │
-     Postgres          pgvector /       Postgres
-    (raw turns)      Pinecone (embeds)  (rules table)
-```
+Split memory into three stores, all in one PostgreSQL database, and retrieve from them before every reply:
 
-## Setup
+- **Episodic** (what happened): the turns of a session, plus a rolling summary of older turns so the prompt stays small.
+- **Semantic** (what is true): short facts about the user, stored as embeddings in pgvector and recalled by meaning.
+- **Procedural** (how to behave): explicit rules such as "keep answers under five sentences", edited by the user, not inferred.
+
+Claude answers with all three in the prompt, then a cheaper model extracts new durable facts and writes them back. Every row carries a `user_id`, so users never see each other's memories. For file-based and SQLite variants, see the [agent-memory](/skills/agent-memory) skill.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install and create the schema
+
+Use PostgreSQL with the pgvector extension (for example the `pgvector/pgvector` Docker image, bound to `127.0.0.1`). Embeddings come from OpenAI because Anthropic offers no embeddings model; any LangChain embeddings class works instead.
 
 ```bash
-npm install @anthropic-ai/sdk langchain @langchain/community pg pgvector
+npm init -y && npm pkg set type=module
+npm install @anthropic-ai/sdk "@langchain/core@^1.1.38" @langchain/community @langchain/openai pg
+npm install -D typescript tsx @types/pg @types/node
+export ANTHROPIC_API_KEY=... OPENAI_API_KEY=...   # your own keys, never committed
+export DATABASE_URL=postgresql://postgres:$PGPASSWORD@127.0.0.1:5432/postgres
 ```
 
-```typescript
-// memory/types.ts
-export interface EpisodicMemory {
-  id: string;
-  sessionId: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  summary?: string;
-}
-
-export interface SemanticMemory {
-  id: string;
-  fact: string;
-  embedding: number[];
-  source: string;
-  confidence: number;
-  createdAt: Date;
-}
-
-export interface ProceduralMemory {
-  id: string;
-  trigger: string;
-  behavior: string;
-  priority: number;
-}
+```sql
+CREATE TABLE episodic_memory (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL, session_id TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  content TEXT NOT NULL,
+  summarized BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+CREATE INDEX ON episodic_memory (user_id, session_id, created_at);
+CREATE TABLE session_summaries (
+  user_id TEXT NOT NULL, session_id TEXT NOT NULL,
+  summary TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, session_id)
+);
+CREATE TABLE procedural_memory (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL, behavior TEXT NOT NULL,
+  priority INT NOT NULL DEFAULT 0, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- semantic_memory is created by PGVectorStore.initialize()
 ```
 
-## Episodic Memory — Conversation History
+### Step 2: Episodic memory
 
 ```typescript
-// memory/episodic.ts
-import { Pool } from 'pg';
+// memory/db.ts — one pool for everything
+import pg from "pg";
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+// memory/episodic.ts — what happened: raw turns plus a rolling summary of older ones
+import type { Pool } from "pg";
+import Anthropic from "@anthropic-ai/sdk";
 
+export interface Turn { role: "user" | "assistant"; content: string }
 export class EpisodicStore {
+  private client = new Anthropic();
   constructor(private db: Pool) {}
 
-  async save(sessionId: string, role: string, content: string) {
+  async save(userId: string, sessionId: string, role: Turn["role"], content: string) {
     await this.db.query(
-      `INSERT INTO episodic_memory (session_id, role, content, timestamp)
-       VALUES ($1, $2, $3, NOW())`,
-      [sessionId, role, content]
+      `INSERT INTO episodic_memory (user_id, session_id, role, content) VALUES ($1, $2, $3, $4)`,
+      [userId, sessionId, role, content],
     );
   }
 
-  async getRecent(sessionId: string, limit = 20): Promise<EpisodicMemory[]> {
+  async context(userId: string, sessionId: string, limit = 20) {
     const { rows } = await this.db.query(
-      `SELECT * FROM episodic_memory
-       WHERE session_id = $1
-       ORDER BY timestamp DESC LIMIT $2`,
-      [sessionId, limit]
+      `SELECT role, content FROM episodic_memory
+       WHERE user_id = $1 AND session_id = $2 AND NOT summarized
+       ORDER BY created_at DESC, id DESC LIMIT $3`,
+      [userId, sessionId, limit],
     );
-    return rows.reverse();
+    const { rows: s } = await this.db.query(
+      `SELECT summary FROM session_summaries WHERE user_id = $1 AND session_id = $2`,
+      [userId, sessionId],
+    );
+    return { turns: rows.reverse() as Turn[], summary: (s[0]?.summary as string | undefined) ?? "" };
   }
 
-  // Summarize old turns to stay within context window
-  async consolidate(sessionId: string, keepLast = 10) {
-    const old = await this.db.query(
-      `SELECT content, role FROM episodic_memory
-       WHERE session_id = $1
-       ORDER BY timestamp ASC
-       LIMIT (SELECT COUNT(*) - $2 FROM episodic_memory WHERE session_id = $1)`,
-      [sessionId, keepLast]
+  async consolidate(userId: string, sessionId: string, keepLast = 10) {
+    const { rows: old } = await this.db.query(
+      `SELECT id, role, content FROM episodic_memory
+       WHERE user_id = $1 AND session_id = $2 AND NOT summarized
+       ORDER BY created_at ASC, id ASC`,
+      [userId, sessionId],
     );
-    if (old.rows.length === 0) return;
+    const fold = old.slice(0, Math.max(0, old.length - keepLast));
+    if (fold.length === 0) return;
 
-    const summary = await summarizeWithClaude(old.rows);
+    const { summary: previous } = await this.context(userId, sessionId, 0);
+    const res = await this.client.messages.create({
+      model: "claude-haiku-5-5",
+      max_tokens: 600,
+      messages: [{
+        role: "user",
+        content: `Update this running summary of a conversation with the new turns. Keep decisions, open questions and commitments. Reply with the summary only.\n\nCurrent summary:\n${previous || "(none)"}\n\nNew turns:\n${fold.map((t) => `${t.role}: ${t.content}`).join("\n")}`,
+      }],
+    });
+    const summary = res.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+
     await this.db.query(
-      `UPDATE episodic_memory SET summary = $1
-       WHERE session_id = $2 AND id = (
-         SELECT id FROM episodic_memory WHERE session_id = $2 ORDER BY timestamp ASC LIMIT 1
-       )`,
-      [summary, sessionId]
+      `INSERT INTO session_summaries (user_id, session_id, summary) VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, session_id) DO UPDATE SET summary = EXCLUDED.summary, updated_at = now()`,
+      [userId, sessionId, summary],
     );
+    await this.db.query(`UPDATE episodic_memory SET summarized = true WHERE id = ANY($1::uuid[])`, [fold.map((t) => t.id)]);
   }
 }
 ```
 
-## Semantic Memory — Vector-Based Fact Retrieval
+### Step 3: Semantic memory with pgvector
+
+`PGVectorStore` comes from `@langchain/community` and manages its own table. Filtering by `userId` in the search keeps users apart.
 
 ```typescript
-// memory/semantic.ts
-import { OpenAIEmbeddings } from '@langchain/openai';
-import { PGVectorStore } from '@langchain/community/vectorstores/pgvector';
+// memory/semantic.ts — what is true about the user, retrieved by meaning
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { PGVectorStore } from "@langchain/community/vectorstores/pgvector";
+import type { EmbeddingsInterface } from "@langchain/core/embeddings";
+import type { Pool } from "pg";
 
 export class SemanticStore {
-  private vectorStore: PGVectorStore;
+  private constructor(private store: PGVectorStore) {}
 
-  async initialize(pool: Pool) {
-    this.vectorStore = await PGVectorStore.initialize(
-      new OpenAIEmbeddings({ model: 'text-embedding-3-small' }),
-      { pool, tableName: 'semantic_memory' }
-    );
+  static async create(pool: Pool, embeddings: EmbeddingsInterface = new OpenAIEmbeddings({ model: "text-embedding-3-small" })) {
+    const store = await PGVectorStore.initialize(embeddings, {
+      pool,
+      tableName: "semantic_memory",
+      distanceStrategy: "cosine",
+    });
+    return new SemanticStore(store);
   }
 
-  async remember(fact: string, metadata: Record<string, unknown>) {
-    await this.vectorStore.addDocuments([
-      { pageContent: fact, metadata }
-    ]);
+  async remember(userId: string, fact: string, source = "conversation") {
+    await this.store.addDocuments([{ pageContent: fact, metadata: { userId, source, createdAt: new Date().toISOString() } }]);
   }
 
-  // Retrieve top-k relevant facts before each response
-  async recall(query: string, k = 5): Promise<string[]> {
-    const docs = await this.vectorStore.similaritySearch(query, k);
-    return docs.map(d => d.pageContent);
+  async recall(userId: string, query: string, k = 5): Promise<string[]> {
+    const docs = await this.store.similaritySearch(query, k, { userId });
+    return docs.map((d) => d.pageContent);
   }
 }
 ```
 
-## The Agent — Bringing It Together
+### Step 4: Procedural memory
 
 ```typescript
-// agent.ts
-import Anthropic from '@anthropic-ai/sdk';
+// memory/procedural.ts — how to behave: explicit rules the user (or you) can edit
+import type { Pool } from "pg";
 
+export class ProceduralStore {
+  constructor(private db: Pool) {}
+  async add(userId: string, behavior: string, priority = 0) {
+    await this.db.query(`INSERT INTO procedural_memory (user_id, behavior, priority) VALUES ($1, $2, $3)`, [userId, behavior, priority]);
+  }
+
+  async getAll(userId: string): Promise<string[]> {
+    const { rows } = await this.db.query(
+      `SELECT behavior FROM procedural_memory WHERE user_id = $1 ORDER BY priority DESC, created_at`, [userId]);
+    return rows.map((r) => r.behavior as string);
+  }
+}
+```
+
+### Step 5: The agent
+
+The reply uses `claude-sonnet-5-5`; fact extraction uses `claude-haiku-5-5` with a JSON schema in `output_config.format`, so the result always parses and you do not strip code fences by hand.
+
+```typescript
+// agent.ts — retrieve, answer, then write back
+import Anthropic from "@anthropic-ai/sdk";
+import type { EpisodicStore } from "./memory/episodic.js";
+import type { SemanticStore } from "./memory/semantic.js";
+import type { ProceduralStore } from "./memory/procedural.js";
+const FACTS_SCHEMA = {
+  type: "object",
+  properties: { facts: { type: "array", items: { type: "string" } } },
+  required: ["facts"],
+  additionalProperties: false,
+} as const;
+const text = (res: Anthropic.Message) => res.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
 export class MemoryAgent {
-  private client = new Anthropic();
+  private client = new Anthropic(); // reads ANTHROPIC_API_KEY
+  private pending: Promise<void> = Promise.resolve(); // background fact write-back
 
   constructor(
     private episodic: EpisodicStore,
     private semantic: SemanticStore,
     private procedural: ProceduralStore,
-    private sessionId: string
+    private userId: string,
+    private sessionId: string,
   ) {}
 
   async chat(userMessage: string): Promise<string> {
-    // 1. Retrieve relevant memories
-    const [history, facts, rules] = await Promise.all([
-      this.episodic.getRecent(this.sessionId),
-      this.semantic.recall(userMessage),
-      this.procedural.getAll(),
+    const [{ turns, summary }, facts, rules] = await Promise.all([
+      this.episodic.context(this.userId, this.sessionId),
+      this.semantic.recall(this.userId, userMessage),
+      this.procedural.getAll(this.userId),
     ]);
 
-    // 2. Build context-aware system prompt
-    const systemPrompt = `You are a personal AI assistant with persistent memory.
+    const system = `You are a personal assistant with persistent memory.
 
-FACTS YOU KNOW ABOUT THE USER:
-${facts.join('\n')}
+Facts you know about the user (retrieved by relevance, may be outdated):
+${facts.map((f) => `- ${f}`).join("\n") || "- none yet"}
 
-BEHAVIORAL RULES:
-${rules.map(r => `- ${r.behavior}`).join('\n')}
+Rules to follow:
+${rules.map((r) => `- ${r}`).join("\n") || "- none"}
 
-Use these memories naturally — don't list them, just incorporate them.`;
+Earlier in this conversation: ${summary || "nothing summarized yet"}
 
-    // 3. Call Claude with full context
-    const messages = [
-      ...history.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user' as const, content: userMessage }
-    ];
-
-    const response = await this.client.messages.create({
-      model: 'claude-opus-4-5',
+Use memories naturally. Do not recite them.`;
+    const res = await this.client.messages.create({
+      model: "claude-sonnet-5-5",
       max_tokens: 1024,
-      system: systemPrompt,
-      messages,
+      system,
+      messages: [...turns, { role: "user", content: userMessage }],
     });
+    const reply = text(res);
+    await this.episodic.save(this.userId, this.sessionId, "user", userMessage);
+    await this.episodic.save(this.userId, this.sessionId, "assistant", reply);
 
-    const reply = response.content[0].type === 'text'
-      ? response.content[0].text : '';
-
-    // 4. Save to episodic memory
-    await this.episodic.save(this.sessionId, 'user', userMessage);
-    await this.episodic.save(this.sessionId, 'assistant', reply);
-
-    // 5. Extract and store new facts (async, non-blocking)
-    this.extractAndStoreFacts(userMessage, reply);
-
+    this.pending = this.learn(userMessage, reply).catch((err) => console.error("memory write-back failed", err));
     return reply;
   }
+  flush() { return this.pending; } // wait for the write-back before exiting or starting another session
 
-  private async extractAndStoreFacts(user: string, assistant: string) {
-    // Use Claude to extract durable facts from the exchange
-    const extraction = await this.client.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 256,
+  private async learn(user: string, assistant: string) {
+    const res = await this.client.messages.create({
+      model: "claude-haiku-5-5",
+      max_tokens: 400,
+      output_config: { format: { type: "json_schema", schema: FACTS_SCHEMA } },
       messages: [{
-        role: 'user',
-        content: `Extract durable facts about the user from this exchange.
-Return JSON array of strings. Empty array if none.
-User: ${user}
-Assistant: ${assistant}`
-      }]
+        role: "user",
+        content: `List durable facts about the user stated in this exchange (preferences, projects, constraints). Return an empty list if there are none.\n\nUser: ${user}\nAssistant: ${assistant}`,
+      }],
     });
-    // Parse and store extracted facts
-    const text = extraction.content[0].type === 'text' ? extraction.content[0].text : '[]';
-    const facts = JSON.parse(text) as string[];
-    for (const fact of facts) {
-      await this.semantic.remember(fact, { source: 'conversation', date: new Date().toISOString() });
-    }
+    const { facts } = JSON.parse(text(res)) as { facts: string[] };
+    for (const fact of facts) await this.semantic.remember(this.userId, fact);
   }
 }
 ```
 
-## Database Schema
-
-```sql
--- Episodic memory
-CREATE TABLE episodic_memory (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id TEXT NOT NULL,
-  role TEXT NOT NULL,
-  content TEXT NOT NULL,
-  summary TEXT,
-  timestamp TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Semantic memory (requires pgvector extension)
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE semantic_memory (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  content TEXT NOT NULL,
-  embedding vector(1536),
-  metadata JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-CREATE INDEX ON semantic_memory USING hnsw (embedding vector_cosine_ops);
-
--- Procedural memory
-CREATE TABLE procedural_memory (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  trigger TEXT,
-  behavior TEXT NOT NULL,
-  priority INT DEFAULT 0
-);
-```
-
-## Running the Agent
-
+### Step 6: Run it
 ```typescript
-const agent = new MemoryAgent(episodic, semantic, procedural, 'user-123');
+// main.ts
+import { pool } from "./memory/db.js";
+import { EpisodicStore } from "./memory/episodic.js";
+import { SemanticStore } from "./memory/semantic.js";
+import { ProceduralStore } from "./memory/procedural.js";
+import { MemoryAgent } from "./agent.js";
+const procedural = new ProceduralStore(pool);
+await procedural.add("user-123", "Keep answers under five sentences unless asked for detail.");
+const make = async (sessionId: string) =>
+  new MemoryAgent(new EpisodicStore(pool), await SemanticStore.create(pool), procedural, "user-123", sessionId);
 
-// Session 1
-await agent.chat("I prefer TypeScript over Python for backend work");
-await agent.chat("My current project is a B2B SaaS for logistics");
+const s1 = await make("2026-10-24");
+await s1.chat("I prefer TypeScript over Python for backend work.");
+await s1.chat("My current project is a B2B SaaS for logistics.");
+await s1.flush(); // facts are written in the background
 
-// Session 2 (weeks later) — agent remembers
-const reply = await agent.chat("What stack should I use for the new microservice?");
-// → "Given your preference for TypeScript and your logistics SaaS context, I'd suggest..."
+// weeks later, new session id: facts come back from semantic memory
+const s2 = await make("2026-11-12");
+console.log(await s2.chat("What stack should I use for the new microservice?"));
 ```
 
-## What to Build Next
+Run it with `npx tsx main.ts`. Once a session passes about 20 turns, call `episodic.consolidate(userId, sessionId)` from a background job.
 
-- **Memory decay:** Lower confidence scores for old facts over time
-- **Conflict resolution:** When new facts contradict old ones, ask the user
-- **Memory export:** Let users view/edit/delete their stored memories
-- **Multi-user isolation:** Namespace all stores by user ID
+## Real-World Example
+
+A solo founder runs this for her logistics SaaS. It stores "prefers TypeScript" and "building a B2B logistics product". Three weeks later, a question about a new microservice gets a TypeScript answer that mentions her logistics context, although the session started empty.
+
+## Keep memory honest
+- **Let users see and delete memories.** List `semantic_memory` rows by `userId` and expose delete.
+- **Facts go stale.** The prompt calls them "may be outdated"; ask the user when a new fact contradicts a recalled one.
+- **Cost and privacy.** Every exchange adds a Haiku call and embeddings; skip extraction on trivial messages. Never store secrets as facts, and tell users what is remembered.
+
+## Related Skills
+- [anthropic-sdk](/skills/anthropic-sdk) — the Messages API calls and structured outputs
+- [langchain](/skills/langchain) — the pgvector store and embeddings interface
+- [agent-memory](/skills/agent-memory) — file-based, SQLite and Chroma memory patterns, consolidation
