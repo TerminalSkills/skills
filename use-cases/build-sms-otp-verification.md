@@ -1,13 +1,14 @@
 ---
 title: Build SMS OTP Verification
 slug: build-sms-otp-verification
-description: Build a secure SMS OTP verification system with rate limiting, delivery tracking, fallback channels, brute-force protection, and cost optimization through smart retry logic.
+description: Build a secure SMS one-time-code flow with Twilio, Redis and Hono — per-number rate limits, hashed codes, atomic brute-force lockout, and an audit log in PostgreSQL.
 skills:
   - typescript
   - redis
   - postgresql
   - hono
   - zod
+  - twilio
 category: development
 tags:
   - sms
@@ -21,247 +22,204 @@ tags:
 
 ## The Problem
 
-Marco leads engineering at a 20-person fintech app. They use email-based verification, but completion rates are 62% — users check email later or never. Fraud is increasing because email verification is easy to bypass. They want SMS OTP for critical actions (login, payment confirmation, account changes), but SMS costs $0.01-0.08 per message. Without rate limiting, a single attacker could cost them thousands. They also need fallback when SMS fails and protection against OTP brute-forcing.
+Marco leads engineering at a 20-person fintech app. They verify users by email, but many users check email later or never, and email is easy to bypass. They want SMS one-time codes for critical actions (login, payment confirmation, account changes). SMS is billed per message, so without rate limiting a single attacker can run up the bill by requesting codes for a few numbers all day, and a 6-digit code is only 1,000,000 guesses, so verification attempts must be capped atomically.
 
-## Step 1: Build the OTP System
+## The Solution
+
+A Hono API validated with zod, codes and counters in Redis, the Twilio Messages API for delivery, and PostgreSQL for an audit trail. Design rules:
+
+- The code is generated with `crypto.randomInt` and stored only as an HMAC keyed with a server secret, never in plaintext.
+- Every counter is a Redis `INCR`, so parallel requests cannot slip past a limit.
+- A wrong guess is counted before it is compared, so racing many guesses at once does not buy extra attempts.
+- Codes are single use, and the code goes only to the phone number. There is no email fallback: a code that can be redirected to a mailbox is no longer proof of owning the phone.
+
+Install `ioredis pg hono @hono/node-server @hono/zod-validator zod`, and `typescript @types/node @types/pg` as dev dependencies. Tested with ioredis 6, hono 4.13, @hono/zod-validator 0.9, zod 4.6 and pg 8.23.
+
+## Step 1: Audit table
+
+```sql
+CREATE TABLE otp_events (
+  id          bigserial PRIMARY KEY,
+  phone_hmac  text        NOT NULL,   -- HMAC of the number, never the number itself
+  purpose     text        NOT NULL,
+  event       text        NOT NULL,   -- 'sent' | 'verified' | 'failed' | 'locked'
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX otp_events_phone_idx ON otp_events (phone_hmac, created_at DESC);
+```
+
+## Step 2: The OTP module
 
 ```typescript
-// src/auth/otp.ts — SMS OTP with rate limiting, brute-force protection, and fallback
-import { pool } from "../db";
+// src/otp.ts — SMS OTP with rate limiting, single use and atomic attempt counting
 import { Redis } from "ioredis";
-import { createHash, randomInt } from "node:crypto";
+import { Pool } from "pg";
+import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 
 const redis = new Redis(process.env.REDIS_URL!);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const SECRET = process.env.OTP_SECRET!; // at least 32 random bytes, kept out of the repo
 
 interface OTPConfig {
-  length: number;              // 4 or 6 digits
+  length: number;
   expirySeconds: number;
-  maxAttempts: number;         // max verification tries before lockout
-  cooldownSeconds: number;     // minimum time between sends
+  maxAttempts: number;      // wrong guesses before lockout
+  cooldownSeconds: number;  // minimum time between sends
   maxSendsPerHour: number;
   maxSendsPerDay: number;
 }
 
-const CONFIGS: Record<string, OTPConfig> = {
+const CONFIGS = {
   login: { length: 6, expirySeconds: 300, maxAttempts: 3, cooldownSeconds: 60, maxSendsPerHour: 5, maxSendsPerDay: 10 },
   payment: { length: 6, expirySeconds: 180, maxAttempts: 3, cooldownSeconds: 30, maxSendsPerHour: 10, maxSendsPerDay: 20 },
   account_change: { length: 6, expirySeconds: 600, maxAttempts: 5, cooldownSeconds: 60, maxSendsPerHour: 5, maxSendsPerDay: 10 },
-};
+} satisfies Record<string, OTPConfig>;
 
-interface SendResult {
-  success: boolean;
-  error?: string;
-  retryAfter?: number;         // seconds until can resend
-  channel: "sms" | "whatsapp" | "email";  // actual delivery channel
-  expiresIn: number;
+export type Purpose = keyof typeof CONFIGS;
+export const purposes = Object.keys(CONFIGS) as [Purpose, ...Purpose[]];
+
+const hmac = (...parts: string[]) => createHmac("sha256", SECRET).update(parts.join("\u0000")).digest("hex");
+
+async function audit(phone: string, purpose: string, event: string) {
+  await pool.query("INSERT INTO otp_events (phone_hmac, purpose, event) VALUES ($1, $2, $3)", [hmac("phone", phone), purpose, event]);
 }
 
-// Send OTP
-export async function sendOTP(
-  phone: string,
-  purpose: string,
-  options?: { preferredChannel?: "sms" | "whatsapp" }
-): Promise<SendResult> {
-  const config = CONFIGS[purpose] || CONFIGS.login;
-  const normalizedPhone = normalizePhone(phone);
-  const rateLimitKey = `otp:rate:${normalizedPhone}`;
-
-  // Check cooldown
-  const lastSent = await redis.get(`otp:cooldown:${normalizedPhone}`);
-  if (lastSent) {
-    const elapsed = Date.now() - parseInt(lastSent);
-    const remaining = Math.ceil((config.cooldownSeconds * 1000 - elapsed) / 1000);
-    if (remaining > 0) {
-      return { success: false, error: "Please wait before requesting another code", retryAfter: remaining, channel: "sms", expiresIn: 0 };
-    }
-  }
-
-  // Check hourly/daily limits
-  const hourKey = `otp:hourly:${normalizedPhone}:${Math.floor(Date.now() / 3600000)}`;
-  const dayKey = `otp:daily:${normalizedPhone}:${new Date().toISOString().slice(0, 10)}`;
-
-  const [hourCount, dayCount] = await Promise.all([
-    redis.incr(hourKey).then(async (v) => { await redis.expire(hourKey, 3600); return v; }),
-    redis.incr(dayKey).then(async (v) => { await redis.expire(dayKey, 86400); return v; }),
-  ]);
-
-  if (hourCount > config.maxSendsPerHour) {
-    return { success: false, error: "Too many requests. Try again in an hour.", channel: "sms", expiresIn: 0 };
-  }
-  if (dayCount > config.maxSendsPerDay) {
-    return { success: false, error: "Daily limit reached. Try again tomorrow.", channel: "sms", expiresIn: 0 };
-  }
-
-  // Generate OTP
-  const code = generateOTP(config.length);
-  const hashedCode = hashOTP(code, normalizedPhone);
-
-  // Store OTP
-  const otpKey = `otp:code:${normalizedPhone}:${purpose}`;
-  await redis.setex(otpKey, config.expirySeconds, JSON.stringify({
-    hash: hashedCode,
-    attempts: 0,
-    maxAttempts: config.maxAttempts,
-    createdAt: Date.now(),
-  }));
-
-  // Set cooldown
-  await redis.setex(`otp:cooldown:${normalizedPhone}`, config.cooldownSeconds, String(Date.now()));
-
-  // Send via preferred channel with fallback
-  let channel: "sms" | "whatsapp" | "email" = options?.preferredChannel || "sms";
-  let delivered = false;
-
-  // Try SMS first
-  if (channel === "sms") {
-    delivered = await sendSMS(normalizedPhone, `Your verification code is: ${code}. Expires in ${Math.floor(config.expirySeconds / 60)} min.`);
-  }
-
-  // Fallback to WhatsApp if SMS fails
-  if (!delivered && channel === "sms") {
-    channel = "whatsapp";
-    delivered = await sendWhatsApp(normalizedPhone, code, config.expirySeconds);
-  }
-
-  // Last resort: email fallback
-  if (!delivered) {
-    channel = "email";
-    const { rows: [user] } = await pool.query("SELECT email FROM users WHERE phone = $1", [normalizedPhone]);
-    if (user?.email) {
-      delivered = await sendEmailOTP(user.email, code, purpose, config.expirySeconds);
-    }
-  }
-
-  if (!delivered) {
-    return { success: false, error: "Could not deliver verification code. Please try again.", channel, expiresIn: 0 };
-  }
-
-  // Log for analytics
-  await pool.query(
-    `INSERT INTO otp_sends (phone_hash, purpose, channel, created_at) VALUES ($1, $2, $3, NOW())`,
-    [createHash("sha256").update(normalizedPhone).digest("hex").slice(0, 16), purpose, channel]
-  );
-
-  return { success: true, channel, expiresIn: config.expirySeconds };
+/** Increment a fixed-window counter and return its new value. */
+async function bump(key: string, ttlSeconds: number): Promise<number> {
+  const res = await redis.multi().incr(key).expire(key, ttlSeconds).exec();
+  return Number(res![0][1]);
 }
 
-// Verify OTP
-export async function verifyOTP(
-  phone: string,
-  purpose: string,
-  code: string
-): Promise<{ valid: boolean; error?: string; remainingAttempts?: number }> {
-  const normalizedPhone = normalizePhone(phone);
-  const otpKey = `otp:code:${normalizedPhone}:${purpose}`;
+export async function sendOTP(phone: string, purpose: Purpose) {
+  const cfg = CONFIGS[purpose];
 
-  // Check lockout
-  const lockoutKey = `otp:lockout:${normalizedPhone}`;
-  const locked = await redis.get(lockoutKey);
-  if (locked) {
-    const ttl = await redis.ttl(lockoutKey);
-    return { valid: false, error: `Account locked. Try again in ${ttl} seconds.` };
+  // Cooldown: SET NX is atomic, so two simultaneous requests cannot both pass
+  const cooled = await redis.set(`otp:cooldown:${phone}`, "1", "EX", cfg.cooldownSeconds, "NX");
+  if (!cooled) {
+    return { ok: false as const, error: "Please wait before requesting another code", retryAfter: await redis.ttl(`otp:cooldown:${phone}`) };
   }
 
-  const stored = await redis.get(otpKey);
-  if (!stored) {
-    return { valid: false, error: "Code expired or not found. Request a new one." };
+  const hour = await bump(`otp:hour:${phone}:${Math.floor(Date.now() / 3_600_000)}`, 3600);
+  const day = await bump(`otp:day:${phone}:${new Date().toISOString().slice(0, 10)}`, 86_400);
+  if (hour > cfg.maxSendsPerHour || day > cfg.maxSendsPerDay) {
+    return { ok: false as const, error: "Too many codes requested. Try again later." };
   }
 
-  const data = JSON.parse(stored);
+  const code = String(randomInt(10 ** (cfg.length - 1), 10 ** cfg.length));
+  const key = `otp:code:${phone}:${purpose}`;
+  await redis.multi().del(key).hset(key, { hash: hmac(phone, purpose, code), attempts: 0 }).expire(key, cfg.expirySeconds).exec();
 
-  // Check attempts
-  if (data.attempts >= data.maxAttempts) {
-    await redis.del(otpKey);
-    await redis.setex(lockoutKey, 900, "1"); // 15-minute lockout
-    return { valid: false, error: "Too many failed attempts. Account locked for 15 minutes." };
+  if (!(await sendSMS(phone, `Your verification code is ${code}. It expires in ${Math.ceil(cfg.expirySeconds / 60)} min.`))) {
+    await redis.del(key, `otp:cooldown:${phone}`); // let the user retry right away
+    return { ok: false as const, error: "Could not deliver the code. Please try again." };
   }
 
-  // Verify hash
-  const inputHash = hashOTP(code, normalizedPhone);
-  if (inputHash !== data.hash) {
-    data.attempts++;
-    await redis.setex(otpKey, await redis.ttl(otpKey), JSON.stringify(data));
-    return {
-      valid: false,
-      error: "Invalid code",
-      remainingAttempts: data.maxAttempts - data.attempts,
-    };
+  await audit(phone, purpose, "sent");
+  return { ok: true as const, expiresIn: cfg.expirySeconds };
+}
+
+export async function verifyOTP(phone: string, purpose: Purpose, code: string) {
+  const cfg = CONFIGS[purpose];
+  const lockKey = `otp:lockout:${phone}`;
+  if (await redis.exists(lockKey)) {
+    return { valid: false as const, error: `Locked. Try again in ${await redis.ttl(lockKey)} seconds.` };
   }
 
-  // Valid — clean up
-  await redis.del(otpKey);
-  await redis.del(`otp:cooldown:${normalizedPhone}`);
+  const key = `otp:code:${phone}:${purpose}`;
+  const storedHash = await redis.hget(key, "hash");
+  if (!storedHash) return { valid: false as const, error: "Code expired or not found. Request a new one." };
 
-  // Log verification
-  await pool.query(
-    `INSERT INTO otp_verifications (phone_hash, purpose, attempts_used, verified_at) VALUES ($1, $2, $3, NOW())`,
-    [createHash("sha256").update(normalizedPhone).digest("hex").slice(0, 16), purpose, data.attempts + 1]
-  );
+  // Count the attempt first: INCR is atomic, so parallel guesses each use up one attempt
+  const attempts = await redis.hincrby(key, "attempts", 1);
+  if (attempts > cfg.maxAttempts) {
+    await redis.del(key);
+    await redis.set(lockKey, "1", "EX", 900);
+    await audit(phone, purpose, "locked");
+    return { valid: false as const, error: "Too many failed attempts. Locked for 15 minutes." };
+  }
 
-  return { valid: true };
+  const given = Buffer.from(hmac(phone, purpose, code));
+  const expected = Buffer.from(storedHash);
+  const match = given.length === expected.length && timingSafeEqual(given, expected);
+  if (!match) {
+    await audit(phone, purpose, "failed");
+    return { valid: false as const, error: "Invalid code", remainingAttempts: cfg.maxAttempts - attempts };
+  }
+
+  // DEL returns 1 for exactly one caller, so a code cannot be used twice by racing requests
+  if ((await redis.del(key)) !== 1) return { valid: false as const, error: "Code already used." };
+  await redis.del(`otp:cooldown:${phone}`);
+  await audit(phone, purpose, "verified");
+  return { valid: true as const };
 }
 
-// Generate cryptographically secure OTP
-function generateOTP(length: number): string {
-  const max = Math.pow(10, length);
-  const min = Math.pow(10, length - 1);
-  return String(randomInt(min, max));
-}
-
-// Hash OTP with phone as salt (prevents rainbow table attacks)
-function hashOTP(code: string, phone: string): string {
-  return createHash("sha256").update(`${code}:${phone}:${process.env.OTP_SECRET}`).digest("hex");
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/[\s\-\(\)]/g, "").replace(/^00/, "+");
-}
-
-async function sendSMS(phone: string, message: string): Promise<boolean> {
-  try {
-    const res = await fetch("https://api.twilio.com/2010-04-01/Accounts/" + process.env.TWILIO_SID + "/Messages.json", {
-      method: "POST",
-      headers: {
-        "Authorization": "Basic " + Buffer.from(`${process.env.TWILIO_SID}:${process.env.TWILIO_TOKEN}`).toString("base64"),
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({ To: phone, From: process.env.TWILIO_FROM!, Body: message }),
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
-async function sendWhatsApp(phone: string, code: string, expirySeconds: number): Promise<boolean> {
-  // WhatsApp Business API fallback
-  try {
-    const res = await fetch(`https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_ID}/messages`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messaging_product: "whatsapp", to: phone,
-        type: "template", template: {
-          name: "otp_verification", language: { code: "en" },
-          components: [{ type: "body", parameters: [{ type: "text", text: code }] }],
-        },
-      }),
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
-async function sendEmailOTP(email: string, code: string, purpose: string, expirySeconds: number): Promise<boolean> {
-  await redis.rpush("email:send:queue", JSON.stringify({
-    to: email, subject: `Your verification code: ${code}`,
-    template: "otp_email", data: { code, purpose, expiresIn: Math.floor(expirySeconds / 60) },
-  }));
-  return true;
+async function sendSMS(to: string, body: string): Promise<boolean> {
+  const sid = process.env.TWILIO_ACCOUNT_SID!;
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + Buffer.from(`${sid}:${process.env.TWILIO_AUTH_TOKEN}`).toString("base64"),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    // MessagingServiceSid also works in place of From
+    body: new URLSearchParams({ To: to, From: process.env.TWILIO_FROM!, Body: body }),
+    signal: AbortSignal.timeout(10_000),
+  }).catch(() => null);
+  return !!res?.ok;
 }
 ```
 
+Twilio accepts the request with `201`; `res.ok` only means the message was queued. To learn whether it reached the handset, pass a `StatusCallback` URL in the request and record the delivered/failed events your endpoint receives (validate Twilio's `X-Twilio-Signature` header before trusting them).
+
+## Step 3: HTTP routes with zod validation
+
+Phone numbers must be E.164 (`+14155550123`); rejecting everything else at the edge means the Redis keys are canonical.
+
+```typescript
+// src/server.ts
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { purposes, sendOTP, verifyOTP } from "./otp";
+
+const phone = z.string().regex(/^\+[1-9]\d{7,14}$/, "Use E.164 format, e.g. +14155550123");
+const sendSchema = z.object({ phone, purpose: z.enum(purposes) });
+const verifySchema = sendSchema.extend({ code: z.string().regex(/^\d{6}$/) });
+
+const app = new Hono();
+
+app.post("/otp/send", zValidator("json", sendSchema), async (c) => {
+  const { phone, purpose } = c.req.valid("json");
+  const result = await sendOTP(phone, purpose);
+  return c.json(result, result.ok ? 200 : 429);
+});
+
+app.post("/otp/verify", zValidator("json", verifySchema), async (c) => {
+  const { phone, purpose, code } = c.req.valid("json");
+  const result = await verifyOTP(phone, purpose, code);
+  return c.json(result, result.valid ? 200 : 400);
+});
+
+serve({ fetch: app.fetch, port: 3000, hostname: "127.0.0.1" }); // put a reverse proxy in front
+```
+
+Also rate limit `/otp/send` per client IP at the proxy. The per-number limits stop one number from being drained, but not one attacker cycling through many numbers.
+
 ## Results
 
-- **Verification completion: 62% → 94%** — SMS arrives in seconds; users verify without leaving the app; no more "check your email later"
-- **Brute-force attacks neutralized** — 3 wrong attempts = 15-minute lockout; hashed OTPs in Redis; no plaintext codes stored
-- **SMS costs controlled** — rate limiting caps at 10/day per number; an attacker can't trigger thousands of messages; monthly SMS cost stays under $200
-- **Fallback prevents delivery failures** — SMS fails → WhatsApp → email; 99.7% delivery rate across all channels; users always get their code
-- **Fraud reduced 80%** — payment confirmation requires OTP; stolen credentials alone aren't enough; chargebacks from account takeover dropped to near zero
+What Marco's team gets from this design:
+
+- Codes arrive over the phone network and users verify without leaving the app.
+- Brute-forcing a 6-digit code is capped at 3 to 5 guesses per code and a 15-minute lockout, enforced by atomic Redis counters.
+- SMS spend per number is bounded by the hourly and daily limits and the cooldown; Twilio bills per message segment, so check its pricing page for your destination countries.
+- The Redis and PostgreSQL data contain only HMACs, never codes or raw phone numbers in the audit table.
+
+## Related Skills
+
+- [typescript](/skills/typescript): types for the OTP module and server
+- [redis](/skills/redis): counters, expiring keys and atomic operations
+- [postgresql](/skills/postgresql): the audit table
+- [hono](/skills/hono): the HTTP API
+- [zod](/skills/zod): request validation
+- [twilio](/skills/twilio): SMS delivery
