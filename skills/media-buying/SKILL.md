@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags:
     - media-buying
@@ -31,10 +31,10 @@ Plan and execute paid media across programmatic, direct, and social channels. Op
 
 ### Budget allocation framework
 
-Allocate budget across channels based on funnel stage:
+Allocate budget across channels based on funnel stage. The percentages and CPM/CPC/CPA ranges below are planning heuristics, not sourced benchmarks; replace them with your own account data.
 
 ```
-AWARENESS (top of funnel) — 30-40% of budget
+AWARENESS (top of funnel) — 30-40% of budget (heuristic)
 ├── Programmatic display (CPM $2-8)
 ├── YouTube/CTV (CPM $10-25)
 ├── Podcast sponsorships (CPM $15-30)
@@ -53,7 +53,7 @@ CONVERSION (bottom) — 20-30%
 └── Affiliate partnerships (CPA-based)
 ```
 
-### Media plan template
+### Media plan template (all figures illustrative)
 
 ```markdown
 ## Media Plan — Q2 2026
@@ -74,15 +74,15 @@ CONVERSION (bottom) — 20-30%
 
 ```
 1. User visits a webpage with ad space
-2. Publisher's SSP sends bid request to ad exchange (10ms)
+2. Publisher's SSP sends bid request to ad exchange (typical RTB timing; illustrative)
 3. Ad exchange broadcasts to connected DSPs
-4. DSPs evaluate user data + campaign rules → submit bid (50ms)
+4. DSPs evaluate user data + campaign rules → submit bid (illustrative timing)
 5. Highest bidder wins, ad is served (~100ms total)
 
 Key players:
 - DSP: Where advertisers buy (DV360, The Trade Desk, Amazon DSP)
 - SSP: Where publishers sell (Google Ad Manager, Magnite)
-- DMP: Audience data (Oracle, Lotame)
+- DMP/CDP: Audience data (Lotame, Adobe Audience Manager)
 ```
 
 **DSP campaign structure**: Advertiser → Campaign → Insertion Order (by objective) → Line Item (by audience) → Creatives.
@@ -91,11 +91,13 @@ Key players:
 
 ```
 AUDIENCE: First-party data, third-party (DMP), contextual, lookalike, intent signals
-INVENTORY: Domain allowlists/blocklists, app vs web, viewability (>70%), ad position
+INVENTORY: Domain allowlists/blocklists, app vs web, viewability (MRC standard: 50% of pixels for 1 continuous second for display, 30% for large display ads of 242,500+ pixels, 50% for 2 continuous seconds for video), ad position
 ENVIRONMENTAL: Geography, device, dayparting, frequency caps, browser/OS
 ```
 
 ### Buying models
+
+All ranges below are illustrative, not benchmarks.
 
 ```
 CPM  (Cost Per 1000 impressions): Awareness/reach. Range: $2-50
@@ -109,20 +111,20 @@ CPL  (Cost Per Lead): B2B lead gen. Range: $20-200
 
 ```
 Pre-bid: Domain allow/blocklists, category exclusions, keyword blocklists,
-         brand safety vendors (IAS, DoubleVerify, Oracle Moat)
-Post-bid: Viewability measurement (>50% pixels, >1 sec), IVT detection,
+         brand safety vendors (Integral Ad Science, DoubleVerify)
+Post-bid: Viewability measurement (MRC standard, see above), IVT detection,
           brand suitability scoring, placement reports
 ```
 
 ### Cross-channel optimization
 
-**Attribution windows**: Google 30-day click, Meta 7-day click / 1-day view, LinkedIn 30-day click / 7-day view, Programmatic 30-day click / 14-day view.
+**Attribution windows**: each platform sets its own click and view windows, and they change over time. Read the current setting in each platform's ad settings before you compare CPA across channels. Meta's Ads Manager offers several click and view windows; do not assume a fixed default. Do not mix windows in one blended CPA.
 
-**Budget reallocation**: Review weekly. Move 10-20% from high-CPA to low-CPA channels, wait 7 days, remeasure. If CPA increases after budget increase, you've hit diminishing returns — pull back. Optimize for marginal CPA, not average CPA.
+**Budget reallocation**: Review weekly. A heuristic is to move 10-20% from high-CPA to low-CPA channels, wait about a week, and remeasure. If CPA increases after budget increase, you've hit diminishing returns — pull back. Optimize for marginal CPA, not average CPA.
 
 ### Negotiating direct deals
 
-For premium placements (homepage takeovers, newsletter sponsorships, podcast ads): request rate card and negotiate 20-40% below, ask for added value (bonus impressions, social posts), request performance guarantees and historical data, negotiate cancellation terms, get makegood policy in writing.
+For premium placements (homepage takeovers, newsletter sponsorships, podcast ads): request the rate card and negotiate a discount (the size depends on the deal; no benchmark is implied), ask for added value (bonus impressions, social posts), request performance guarantees and historical data, negotiate cancellation terms, get makegood policy in writing.
 
 ## Examples
 
@@ -148,8 +150,8 @@ We're a financial services company running programmatic display across 500+ publ
 
 - Always set up brand safety (allowlists, blocklists, verification vendors) before launching programmatic campaigns
 - Optimize for marginal CPA, not average CPA — the next dollar should go to the cheapest conversion
-- Never reallocate more than 20% of a channel's budget in a single week to avoid resetting algorithmic learning
-- Use frequency caps to prevent ad fatigue (typically 3-5 impressions per user per day for display)
+- Avoid large one-week budget moves (a heuristic cap of about 20% per channel per week) because sudden changes can disturb platform learning phases
+- Use frequency caps to limit ad fatigue; set the cap from your own frequency-versus-conversion data (3-5 per day is a common starting heuristic, not a standard)
 - Always request historical performance data and makegood policies before signing direct deals
 - Review placement reports weekly to catch brand safety issues early
-- Include viewability thresholds (>70%) in all programmatic line items
+- Include viewability thresholds in all programmatic line items: the MRC standard is the minimum, and a stricter buyer threshold (e.g. 70%) is a choice you make, not a standard
