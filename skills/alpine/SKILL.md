@@ -5,38 +5,46 @@ description: |
   markup. It provides reactive data, event handling, and DOM manipulation through
   HTML attributes — like a modern jQuery replacement with declarative syntax.
 license: Apache-2.0
-compatibility: 'any web server, html'
+compatibility: 'Alpine.js 3.17.x; any web server or bundler; modern browsers'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/alpinejs/alpine
   category: development
   tags:
     - javascript
     - html
     - lightweight
     - reactive
-    - declarative
-    - progressive-enhancement
 ---
 
 # Alpine.js
 
-Alpine.js adds reactive behavior directly in HTML markup using `x-` attributes. It's ideal for adding interactivity to server-rendered pages without a build step or SPA framework.
+## Overview
+
+Alpine.js adds reactive behavior directly in HTML markup using `x-` attributes. It's ideal for adding interactivity to server-rendered pages without a build step or SPA framework. The current release is 3.17.5 (npm, October 2026); all snippets below were run against it in a DOM test.
+
+## Instructions
+
+Load Alpine with `defer`, put `x-data` on the element that owns the state, and use directives (`x-show`, `x-text`, `x-model`, `x-for`, `@event`) inside it. Reusable logic goes into `Alpine.data()`, shared state into `Alpine.store()`.
 
 ## Installation
 
 ```html
 <!-- index.html — add Alpine via CDN -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<!-- Or: npm install alpinejs -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.5/dist/cdn.min.js"></script>
+<!-- Or install the npm package named alpinejs. Plugins (@alpinejs/persist, mask, intersect, focus, collapse, anchor)
+     are separate scripts that must load BEFORE the core script. -->
 ```
 
 ```javascript
 // main.js — npm module setup
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
-Alpine.start();
+Alpine.start();   // call once, after registering Alpine.data / Alpine.store / plugins
 ```
+
+If the page runs under a strict Content-Security-Policy without `unsafe-eval`, use the `@alpinejs/csp` build, which does not use `eval`/`new Function` and so limits what inline expressions may contain.
 
 ## Core Directives
 
@@ -91,7 +99,7 @@ Alpine.start();
 <!-- templates/loops.html — iterating over data -->
 <div x-data="{ items: ['Apples', 'Bananas', 'Cherries'], newItem: '' }">
   <ul>
-    <template x-for="(item, index) in items" :key="index">
+    <template x-for="(item, index) in items" :key="item">
       <li>
         <span x-text="item"></span>
         <button @click="items.splice(index, 1)">×</button>
@@ -146,19 +154,6 @@ Alpine.start();
     <a href="/settings">Settings</a>
     <button @click="$dispatch('logout')">Logout</button>
   </div>
-</div>
-```
-
-```html
-<!-- templates/tabs.html — tabs component -->
-<div x-data="{ activeTab: 'general' }">
-  <nav>
-    <button @click="activeTab = 'general'" :class="{ active: activeTab === 'general' }">General</button>
-    <button @click="activeTab = 'security'" :class="{ active: activeTab === 'security' }">Security</button>
-  </nav>
-
-  <div x-show="activeTab === 'general'">General settings...</div>
-  <div x-show="activeTab === 'security'">Security settings...</div>
 </div>
 ```
 
@@ -237,9 +232,9 @@ Alpine.start();
   });
 </script>
 
-<div x-data @click="$store.notifications.add('Button clicked!')">Click me</div>
+<div x-data="{}" @click="$store.notifications.add('Button clicked!')">Click me</div>
 
-<div x-data>
+<div x-data="{}">
   <template x-for="n in $store.notifications.items" :key="n.id">
     <div class="toast" x-text="n.text" @click="$store.notifications.remove(n.id)"></div>
   </template>
@@ -268,7 +263,13 @@ Alpine.start();
 </div>
 ```
 
-## Key Patterns
+## Examples
+
+**"Add a dropdown that closes when I click elsewhere."** Use the dropdown above: `@click.outside="open = false"` on the wrapper and `@keydown.escape.window` on the menu. Result: the menu toggles on click, closes on outside click or Escape.
+
+**"Search as I type without a framework."** `<input @input.debounce.300ms="search($event.target.value)">` calls `search` 300 ms after the last keystroke; define `search` in `Alpine.data('searchBox', ...)` and use `x-data="searchBox"`.
+
+## Guidelines
 
 - Use `x-data` on a parent element to define reactive scope — everything inside shares that state
 - Use `x-show` for toggling visibility (CSS), `x-if` for conditional DOM insertion
@@ -277,3 +278,6 @@ Alpine.start();
 - Use `Alpine.data()` to extract reusable components with methods and computed properties
 - Use `Alpine.store()` for global state shared across components
 - Pairs excellently with htmx: Alpine handles UI state, htmx handles server communication
+- Give `x-for` a unique `:key` (an id), not the index, when items can be removed or reordered; `x-for` and `x-if` must sit on a `<template>` with exactly one root element.
+- Never put user-supplied HTML into `x-html`; use `x-text` for untrusted strings.
+- Alpine 3 is current; htmx 2.x is the stable line (a 4.0 release is tagged `next`), and Alpine initializes elements htmx swaps in automatically.
