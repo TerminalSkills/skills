@@ -1,16 +1,13 @@
 ---
 name: svelte
 description: >-
-  You are an expert in Svelte 5 and SvelteKit 2. You help developers build web
-  applications using runes ($state, $derived, $effect, $props, $bindable,
-  $inspect), snippets, stores, transitions, and actions — compiling to minimal
-  vanilla JavaScript with no virtual DOM. Use when building Svelte apps,
-  migrating from Svelte 4, or working with SvelteKit.
+  Svelte is a compiler-based UI framework that turns components into minimal vanilla JavaScript with no virtual DOM; SvelteKit adds routing, SSR and deployment adapters. Covers Svelte 5 runes ($state, $derived, $effect, $props, $bindable, $inspect), snippets, stores, transitions and actions, plus SvelteKit 3 setup. Use when building Svelte apps, migrating from Svelte 4, or working with SvelteKit.
 license: Apache-2.0
-compatibility: "Svelte 5.0+, SvelteKit 2.0+ (optional)"
+compatibility: "Svelte 5.57.1+, SvelteKit 3 (optional; needs Node 22.17+ and TypeScript 6)"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
+  repository: https://github.com/sveltejs/svelte
   category: development
   tags: ["svelte", "frontend", "runes", "reactive", "sveltekit"]
 ---
@@ -19,7 +16,7 @@ metadata:
 
 ## Overview
 
-Svelte shifts work from runtime to compile time, producing minimal vanilla JavaScript with no virtual DOM. Svelte 5 introduces **runes** — explicit reactivity primitives that replace `$:` declarations and stores. SvelteKit 2 provides SSR, routing, and deployment adapters.
+Svelte shifts work from runtime to compile time, producing minimal vanilla JavaScript with no virtual DOM. Svelte 5 introduces **runes** — explicit reactivity primitives that replace `$:` declarations and stores. SvelteKit provides SSR, routing, and deployment adapters; this skill was checked against Svelte 5.57 and SvelteKit 3.
 
 ## Instructions
 
@@ -76,7 +73,7 @@ Svelte shifts work from runtime to compile time, producing minimal vanilla JavaS
   $effect(() => {
     if (!query) return;
     const controller = new AbortController();
-    fetch(`/api/search?q=${query}`, { signal: controller.signal })
+    fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal })
       .then(r => r.json()).then(data => { results = data; });
     return () => controller.abort();
   });
@@ -190,7 +187,14 @@ export function getCounter() {
 | `<slot name="header" />` | `{@render header?.()}` |
 | Svelte stores | `$state` in `.svelte.ts` files |
 
-### SvelteKit 2
+### SvelteKit 3
+
+```bash
+npx sv create my-shop --template minimal --types ts --no-add-ons --install npm
+cd my-shop && npm run dev
+```
+
+Changes from SvelteKit 2 that break copied code: Svelte options and the adapter are passed to the `sveltekit()` plugin in `vite.config.ts` (there is no `svelte.config.js`); the `$lib` alias is gone, so import with `#lib/...` and the full file extension (`#lib/stores/cart.ts`, `#lib/state/counter.svelte.ts`, `#lib/Button.svelte`); `base`/`assets` are removed from `$app/paths`; Node 22.17+, Vite 8 and TypeScript 6 are required.
 
 ```svelte
 <!-- +page.svelte -->
@@ -200,19 +204,16 @@ export function getCounter() {
 <h1>{data.title}</h1>
 ```
 
-```bash
-npx sv create my-app          # SvelteKit project
-npm create vite@latest -- --template svelte-ts  # standalone Svelte
-```
-
 ## Examples
 
 ### Example 1: Shopping cart with stores
 
+`src/lib/stores/cart.ts` exports `cart` (a `writable<CartItem[]>`), `cartTotal` (a `derived` sum of price times quantity) and `removeFromCart(id)` (`cart.update(items => items.filter(i => i.id !== id))`). The component renders the items and, for a cart holding two keyboards at 49.50, shows `Total: $99.00`.
+
 ```svelte
 <!-- CartSummary.svelte -->
 <script lang="ts">
-  import { cart, cartTotal, removeFromCart } from "$lib/stores/cart";
+  import { cart, cartTotal, removeFromCart } from "#lib/stores/cart.ts";
 </script>
 <div class="cart">
   {#each $cart as item (item.id)}
@@ -233,10 +234,13 @@ npm create vite@latest -- --template svelte-ts  # standalone Svelte
   let loading = $state(false);
 
   $effect(() => {
+    const controller = new AbortController();
     loading = true;
-    fetch(`/api/users/${userId}`)
+    fetch(`/api/users/${userId}`, { signal: controller.signal })
       .then(r => r.json())
-      .then(data => { user = data; loading = false; });
+      .then(data => { user = data; loading = false; })
+      .catch(e => { if (e.name !== "AbortError") loading = false; });
+    return () => controller.abort();  // cancels the stale request when userId changes
   });
 </script>
 {#if loading}<p>Loading...</p>
@@ -250,6 +254,7 @@ npm create vite@latest -- --template svelte-ts  # standalone Svelte
 3. **Stores vs runes** — Use `$state` in `.svelte.ts` for new code; writable/derived stores still work
 4. **Transitions built-in** — Use `transition:fade`, `transition:fly`; no animation library needed
 5. **Small bundles** — Svelte compiles away; typical app ships 5-10KB vs 40KB+ for React
-6. **SvelteKit for full-stack** — SSR, routing, API endpoints, deployment adapters
+6. **SvelteKit for full-stack** — SSR, routing, API endpoints, deployment adapters. In SvelteKit 3 use `#lib/...` imports with extensions, not `$lib`
 7. **TypeScript** — Use `<script lang="ts">` for type-safe components
 8. **Actions for DOM** — Use `use:action` for reusable DOM behavior (click-outside, tooltip)
+9. **Do not export reassigned `$state`** — a module-level `$state` that is reassigned cannot be exported directly; export getter functions or mutate an object instead (as in `counter.svelte.ts`)
