@@ -30,7 +30,7 @@ Versions checked on 2026-10-24: `redis-om` (npm) 0.4.7, `redis-om` (PyPI) 1.2.0.
 
 ```bash
 npm install redis-om redis@4
-docker run -d --name redis-stack -p 127.0.0.1:6379:6379 redis/redis-stack-server:latest
+docker run -d --name redis-stack -p 127.0.0.1:6379:6379 redis/redis-stack-server:7.4.0-v8
 ```
 
 `redis-om` 0.4.7 depends on node-redis 4. Install `redis@4` yourself: a bare `npm install redis` now brings v6, and passing that client to a `Repository` is not the version redis-om was built for.
