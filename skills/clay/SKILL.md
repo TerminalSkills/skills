@@ -1,188 +1,123 @@
 ---
 name: clay
 description: >-
-  You are an expert in Clay, the data enrichment and outbound sales platform
-  that pulls from 75+ data providers to build rich prospect profiles. You help
-  teams automate lead discovery, enrich contacts with firmographic and
-  technographic data, score leads against ICP criteria, and trigger
-  personalized outreach sequences — replacing manual research with automated,
-  data-driven prospecting.
+  Clay is a go-to-market data platform that finds companies and people,
+  enriches them through many data providers (waterfalls), scores leads with AI
+  and syncs them to a CRM or sequencer. Use when someone asks to "enrich leads
+  with Clay", "build a prospect list", "set up a Clay table", "send data to a
+  Clay webhook", "call the Clay API", "use the Clay CLI or plugin in Claude
+  Code", "score leads against our ICP", or "automate outbound research".
 license: Apache-2.0
-compatibility: ''
+compatibility: "Clay workspace (free plan or paid; webhooks, HTTP API and CRM sync need higher tiers). API and CLI need an API key or `clay login`; the agent plugin needs Claude Code, Codex or Cursor."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Marketing & Growth
+  version: "1.1.0"
+  category: business
   tags:
     - lead-enrichment
     - data-enrichment
     - outbound-sales
     - prospecting
     - b2b
-    - crm
 ---
 
-# Clay — AI-Powered Lead Enrichment and Outbound Automation
+# Clay
 
-You are an expert in Clay, the data enrichment and outbound sales platform that pulls from 75+ data providers to build rich prospect profiles. You help teams automate lead discovery, enrich contacts with firmographic and technographic data, score leads against ICP criteria, and trigger personalized outreach sequences — replacing manual research with automated, data-driven prospecting.
+## Overview
 
-## Core Capabilities
+Clay is a spreadsheet-style workspace for B2B prospecting. A table holds one lead or company per row; columns are imported data, provider enrichments, AI research (Claygent and AI columns), formulas, or actions that push data elsewhere. Provider waterfalls try several data vendors in order for one field (work email, phone) and stop at the first hit.
 
-### Table Setup and Enrichment
+Usage is metered in two units: **Actions** (platform work such as running an enrichment or sending data out) and **Data Credits** (what vendors charge for data and AI). Plans are Free, Launch, Growth and Enterprise; exact prices and allowances change, so read them from https://www.clay.com/pricing and https://university.clay.com/docs/plans-and-billing before quoting any number.
 
-```markdown
-## Clay Table Structure
+There are four ways in, from least to most programmatic:
 
-A Clay table is a spreadsheet with superpowers. Each row is a lead.
-Columns can be:
-- **Imported** — CSV upload, CRM sync, or webhook
-- **Enriched** — Auto-populated from 75+ data sources
-- **AI-generated** — GPT/Claude processes enriched data into insights
+1. The Clay web app (tables, enrichment columns, AI columns).
+2. A **webhook source**: a table with a unique URL that accepts JSON POSTs.
+3. The **Public API** (`https://api.clay.com/public/v0`) with a `clay-api-key` header.
+4. The **agent plugin and `clay` CLI** for Claude Code, Codex and Cursor.
 
-## Example: ICP-Matched Lead Table
+## Instructions
 
-| Column          | Source          | Description                              |
-|-----------------|-----------------|------------------------------------------|
-| Company Name    | Import          | From LinkedIn export or CRM              |
-| Domain          | Enrichment      | Company website from Clearbit            |
-| Employee Count  | Enrichment      | From LinkedIn/Crunchbase                 |
-| Funding Stage   | Enrichment      | Series A/B/C from Crunchbase             |
-| Tech Stack      | Enrichment      | BuiltWith/Wappalyzer detection           |
-| API Endpoints   | Enrichment      | Custom: count public API docs pages      |
-| Decision Maker  | Enrichment      | VP Eng/CTO from LinkedIn + Apollo        |
-| Email           | Enrichment      | Verified email from Hunter/Apollo        |
-| Recent News     | Enrichment      | Latest press from Google News            |
-| LinkedIn Post   | Enrichment      | Latest post from contact's LinkedIn      |
-| ICP Score       | AI Formula      | 0-100 score based on all enrichment data |
-| Personalized Opener | AI Formula | GPT-generated first line for cold email  |
+### 1. Build a table in the app
+
+1. Create a workbook, add a table, and import companies by domain (CSV, CRM import, or a Clay search).
+2. Add enrichment columns (company data, work email waterfall, job-change signals) from the Enrich menu. Start with the domain; most other fields derive from it.
+3. Add an AI column for scoring or an opener. Give it the enriched columns as inputs and ask for a fixed output (for example a number 0-100 plus one sentence of reasoning).
+4. Run on a handful of rows first and check spend in the credit usage view before running the whole table. Credit budgets and spend limits exist in workspace settings.
+
+### 2. Send rows in with a webhook source
+
+In a workbook choose **+ Add**, search for Webhooks, and pick **Monitor webhook**. Clay shows a URL and a ready-made cURL command. Optionally add an authentication token; it is displayed once, so copy it immediately. Each POST body is a JSON object whose keys become columns.
+
+```bash
+curl -X POST "$CLAY_WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"company": "Northwind Traders", "domain": "northwindtraders.com", "contact_email": "dana.ruiz@northwindtraders.com"}'
 ```
 
-### API Integration
+Use the exact URL and authentication header that Clay shows for your table. A webhook source accepts at most 50,000 submissions in total, even after rows are deleted; after that you create a new source (Enterprise can enable auto-delete tables for unlimited submissions). Check your plan: the 14-day trial includes webhooks.
 
-```typescript
-// Fetch enriched leads from Clay table
-const response = await fetch(`https://api.clay.com/v3/tables/${tableId}/rows`, {
-  headers: {
-    "Authorization": `Bearer ${process.env.CLAY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-});
+### 3. Send results out
 
-const { data: rows } = await response.json();
+To push a qualified lead to your own service, add an **HTTP API** column to the table (it supports GET, POST, PUT and DELETE to any endpoint; Growth plan and up), conditioned on your score column, and map the cells you want into the JSON body. For CRM destinations use the native HubSpot or Salesforce actions.
 
-// Filter to qualified leads
-const qualified = rows.filter(row => (
-  row.icpScore >= 70 &&
-  row.emailVerified === true &&
-  row.employeeCount >= 20
-));
+### 4. Call the Public API
 
-// Add a new lead via API (triggers enrichment automatically)
-await fetch(`https://api.clay.com/v3/tables/${tableId}/rows`, {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${process.env.CLAY_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    rows: [
-      { "Company": "Acme Corp", "Domain": "acme.com" },
-      { "Company": "Beta Inc", "Domain": "beta.io" },
-    ],
-  }),
-});
-// Clay automatically enriches all configured columns
+Create a key under API and CLI, API keys tab in the Clay app, or run `clay api-keys create --name "lead-sync"`. The key is shown once; keep it in an environment variable and server-side only.
+
+```bash
+export CLAY_PUBLIC_API_KEY="..."   # from your secret store
+
+curl https://api.clay.com/public/v0/me -H "clay-api-key: $CLAY_PUBLIC_API_KEY"
+
+# Run a custom function (routine id format function:t_...) on up to 100 items
+curl -X POST "https://api.clay.com/public/v0/routines/function:t_abc123/run" \
+  -H "Content-Type: application/json" -H "clay-api-key: $CLAY_PUBLIC_API_KEY" \
+  -d '{"items": [{"id": "row-1", "inputs": {"domain": "northwindtraders.com"}}]}'
+# -> {"routine_run_id": "run_xyz789", ...}
+
+curl "https://api.clay.com/public/v0/routines/run/run_xyz789/results" -H "clay-api-key: $CLAY_PUBLIC_API_KEY"
+# 202 with progress counters while running; 200 with status "complete" and a data array when done
 ```
 
-### Enrichment Providers
+Other endpoints: `GET /credits/balance`, `POST /search/query-mode` (company and people search with Clay's advanced query language; fetch `GET /search/query-mode/reference` for the field list), `POST /routines/{id}/run-batch/start` for larger JSONL batches, and `POST /tables/query` (Enterprise only, reads existing table data). The filters-mode search endpoints are deprecated. The API is rate limited per workspace: on `429` wait for `Retry-After` and back off. The OpenAPI spec is at https://developers.clay.com/openapi.json.
 
-```markdown
-## Available Data Sources (75+)
+### 5. Use the plugin and CLI from a coding agent
 
-**Company Data:**
-- Clearbit, Crunchbase, LinkedIn (company), BuiltWith, Wappalyzer
-- Google Maps, Glassdoor, G2, TrustRadius
+In Claude Code:
 
-**Contact Data:**
-- Apollo, Hunter, Lusha, RocketReach, Snov.io
-- LinkedIn (person), Twitter/X profile
-
-**Technographic:**
-- BuiltWith, Wappalyzer, SimilarTech
-- Custom HTTP header checks, robots.txt analysis
-
-**Intent & News:**
-- Google News, Crunchbase funding alerts
-- Job posting analysis (hiring signals)
-- Website change detection
-
-**AI Enrichment:**
-- GPT/Claude for custom analysis
-- "Summarize this company's value proposition in one sentence"
-- "Score this lead 0-100 against our ICP: B2B SaaS, 20-100 employees, uses Node.js"
+```text
+/plugin marketplace add clay-run/agent-plugins
+/plugin install clay@clay-plugins
+/clay:setup
 ```
 
-### Webhook Triggers
+`clay:setup` installs the `clay` CLI and signs you in through the browser (use `clay login --device` on a headless machine). The CLI writes JSON to stdout and an error envelope to stderr; exit code 3 means sign in again, 4 means rate limited. `clay whoami` confirms the connection.
 
-```typescript
-// Clay fires webhooks when rows change or meet conditions
-// Example: trigger outbound sequence when ICP score reaches 80+
+## Examples
 
-// Webhook payload from Clay
-interface ClayWebhook {
-  table_id: string;
-  row_id: string;
-  trigger: string;                     // "row_updated" | "filter_matched"
-  data: {
-    company: string;
-    contactEmail: string;
-    contactName: string;
-    icpScore: number;
-    personalizedOpener: string;
-  };
-}
+### Example 1: Score a list of accounts against an ICP
 
-// Handle webhook — start email sequence
-app.post("/api/clay-webhook", async (req, res) => {
-  const payload: ClayWebhook = req.body;
+**User prompt:** "I have 300 SaaS company domains in a CSV. Find the VP of Engineering at each, get a verified work email, and score fit for dev-tools outreach."
 
-  if (payload.data.icpScore >= 80) {
-    await startEmailSequence({
-      to: payload.data.contactEmail,
-      name: payload.data.contactName,
-      company: payload.data.company,
-      opener: payload.data.personalizedOpener,
-    });
-  }
+Import the CSV into a Clay table. Add a people-search or role-lookup column for "VP Engineering", then a work-email waterfall column on the result. Add an AI column with the prompt "Score 0-100 for a 20-200 person B2B SaaS company that hires engineers; reply with the number only" using company size, tech stack and open roles as inputs. Test on 10 rows, check credits used, then run all 300 and filter to scores of 70 or more.
 
-  res.json({ ok: true });
-});
-```
+Result: a table with name, email, score and the data behind it, ready to export or sync.
 
-## Installation
+### Example 2: Push form leads into Clay from your backend
 
-```markdown
-## Setup
-1. Create account at https://clay.com
-2. Create a table with your ICP columns
-3. Configure enrichment providers (drag-and-drop)
-4. Set up AI formulas for scoring and personalization
-5. API key: Settings → API → Generate key
+**User prompt:** "When someone signs up on our site, enrich them in Clay and tell me if they're a fit."
 
-## Pricing
-- Free: 100 enrichments/month
-- Starter: $149/month (2,000 enrichments)
-- Explorer: $349/month (10,000 enrichments)
-- Pro: $800/month (50,000 enrichments)
-```
+Create a webhook-source table, copy its URL and token into the server's environment as `CLAY_WEBHOOK_URL`, and POST the sign-up as JSON (see section 2). Add enrichment columns for company size and funding plus the scoring column; when the score passes your threshold, an HTTP API column posts the row to your `/internal/qualified-leads` endpoint.
 
-## Best Practices
+Result: each sign-up appears as a row within seconds, enriched automatically, and only qualified rows call your service.
 
-1. **Start with domain** — Import company domains; Clay enriches everything else automatically
-2. **ICP scoring formula** — Use AI formulas to score leads 0-100; automate which leads get outreach
-3. **Waterfall enrichment** — Clay tries multiple providers for each data point; if Apollo has no email, it tries Hunter, then Lusha
-4. **Webhook to CRM** — Trigger webhooks when leads qualify; auto-create deals in HubSpot/Salesforce
-5. **Email verification** — Always verify emails before sending; Clay has built-in verification from multiple providers
-6. **Personalization at scale** — Use AI columns to generate openers based on LinkedIn posts, tech stack, and recent news
-7. **Job posting signals** — Enrich with job postings; companies hiring engineers are growing and more likely to buy dev tools
-8. **Refresh cadence** — Re-enrich leads monthly; tech stacks, headcount, and contacts change frequently
+## Guidelines
+
+- Start every table from the domain, and test on a small sample before a full run; waterfalls and AI columns spend Data Credits per row.
+- Verify emails before sending and respect opt-out rules (CAN-SPAM, GDPR); Clay finds data, you remain responsible for how it is used.
+- Treat the webhook URL, webhook token and API key as secrets. Never put them in browser code or a public repository.
+- Do not invent Clay REST paths. The Public API has only the endpoints listed above; reading arbitrary table rows needs the Enterprise `tables/query` endpoint.
+- Re-run enrichment periodically (titles, headcount and tech stacks go stale), but reuse saved enrichment data where possible to avoid paying twice.
+- Plan limits, prices and feature gating change often; confirm on the pricing page rather than relying on remembered numbers.
+- Clay is not a sending tool by itself; its native Sequencer or your existing outreach tool sends the mail.
