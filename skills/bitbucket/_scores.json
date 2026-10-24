@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1a1368aeae186f32d6492c63feccf25b9da1b9900603b1fd6376a0b44a582037",
-  "scoredAt": "2026-05-13T14:42:19.389Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:0c3371bb4ca353a5f39672b67234f0472689fcfb9af82e081352c9a59e0457db",
+  "scoredAt": "2026-10-24T18:58:53.140Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+        "detail": "The skill does not cover error handling, pagination, or rate limiting scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain extensive explanatory comments that may be considered verbose."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5.44,
-    "baselineAvg": 18,
-    "treatmentAvg": 98,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "create-repo-with-ci-and-protection",
+        "name": "create-repo-with-ci-and-branch-protection",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies every rubric requirement, while Response A is incomplete or missing key elements."
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric; neither includes the required Bitbucket API calls or pipeline configuration."
       },
       {
-        "name": "pr-with-jira-and-slack-webhook",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies all rubric requirements with explicit POST calls, reviewers, close_source_branch, webhook registration, and Slack handler, whereas Response A lacks the required Bitbucket API calls and webhook setup."
+        "name": "create-pr-with-jira-link-and-webhook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not address any of the required Bitbucket API calls or webhook handler."
+      },
+      {
+        "name": "setup-environment-and-trigger-migrations-pipeline",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required API calls with correct endpoints and payloads, while Response B uses Azure CLI commands unrelated to the specified endpoints."
       }
     ]
   }

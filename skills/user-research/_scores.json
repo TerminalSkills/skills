@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:aa3bf8e4618eb3cfd0f190892e6ff1bfc7f65f13416c246cb20e83a692ee98fb",
-  "scoredAt": "2026-05-13T10:32:36.804Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:20d72ca5684134feac0f341d2184ba0f36eeae226e0adde675817663951ad7b7",
+  "scoredAt": "2026-10-24T20:10:03.312Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 95,
-    "multiplier": 2.5,
+    "multiplier": 1.29,
+    "baselineAvg": 48,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "Interview script for remote design teams",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline uses future-intent questions like 'Would you pay for' and recommends 10-15 participants, violating the past-behavior rule and 5-8 sample guidance; treatment uses 'walk me through the last time', includes the documented sections with timing, the anything-I-should-have-asked closing, and the 5 interviews = 80% insights rule."
+        "name": "draft-interview-guide",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric criteria, while Response B misses explicit silence and desired outcomes sections."
       },
       {
-        "name": "Feature-priority survey for SaaS users",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline frames the survey as discovery (asking which features to build) and mixes satisfaction, ranking, NPS, and open-ended in one survey, violating one-topic and discover-vs-quantify rules; treatment opens with surveys-quantify-not-discover, enforces under-5-minutes/one-topic, uses specific CES + forced ranking + 1-2 open questions, and gives 30/100/200 sample-size guidance."
+        "name": "summarize-personas",
+        "baseline": 35,
+        "treatment": 5,
+        "rationale": "Response B offers a detailed workflow and template, whereas Response A merely requests data; B is still incomplete but more aligned with the rubric."
+      },
+      {
+        "name": "design-ease-survey",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B meets most rubric criteria, including a CES 1‑7 question, randomization, and open‑ended feedback, whereas Response A lacks the required scale, randomization, and explicit 'Other' option."
       }
     ]
   }

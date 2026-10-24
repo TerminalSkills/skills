@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:db557c76e0ff890438f85ba0e61d123734cfa8bebe2ef6d1a3cd3a67bd1501ef",
-  "scoredAt": "2026-05-13T09:34:51.454Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0f952d83eed1a4d4c832c8cb374d98065e418618c092a73f991fc36d6fe0d580",
+  "scoredAt": "2026-10-24T19:30:35.210Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage in its code examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 98,
-    "multiplier": 3.5,
+    "multiplier": 9.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Adaptive Card deployment notification via incoming webhook",
-        "baseline": 35,
-        "treatment": 98,
-        "rationale": "Baseline used the legacy MessageCard format with OpenUri actions; treatment posts the AdaptiveCard 1.5 payload with FactSet and Action.OpenUrl exactly as the skill specifies."
+        "name": "send-deployment-notification",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A uses a different card format, curl, and lacks the required fetch logic and environment variable usage."
       },
       {
-        "name": "Slash-command Teams bot with system status card",
-        "baseline": 20,
-        "treatment": 97,
-        "rationale": "Baseline hand-rolled an Express endpoint with no Bot Framework primitives; treatment uses ActivityHandler.onMessage, CardFactory.adaptiveCard with FactSet, and BotFrameworkAdapter on /api/messages as the skill prescribes."
+        "name": "create-channel-and-meeting",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified implementation details."
+      },
+      {
+        "name": "status-bot",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A meets almost all rubric requirements, missing only the note about DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS; Response B fails to use the required Teams SDK imports and patterns."
       }
     ]
   }

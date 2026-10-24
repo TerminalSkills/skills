@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:70e32b53a21e48781fc2fb84442418716dc15b76aaa8debb8e672cd282d2e884",
-  "scoredAt": "2026-05-13T10:16:29.517Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:c47e6ae4689e334af208add39ec8b5ea0c28957a1efda8ac0ba69b6f8e79a3a7",
+  "scoredAt": "2026-10-24T20:02:16.816Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions only cover happy path scenarios and do not address error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanatory text that could be trimmed for brevity."
+        "detail": "The skill does not cover error scenarios or edge cases, focusing mainly on happy path examples."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 68,
-    "treatmentAvg": 95,
-    "multiplier": 1.4,
+    "multiplier": 4.46,
+    "baselineAvg": 13,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "Svelte 4 to Svelte 5 runes migration",
-        "baseline": 75,
-        "treatment": 95,
-        "rationale": "Baseline correctly migrates state/derived/props but leaves <slot /> in place; treatment applies every mapping in the skill's migration table including {@render children()}."
+        "name": "migrate-svelte4-to-svelte5",
+        "baseline": 10,
+        "treatment": 15,
+        "rationale": "Response A explicitly mentions rewriting with $state, $derived, $props, and @render, aligning slightly more with the rubric than Response B, which only requests the original code."
       },
       {
-        "name": "Convert named slots to typed snippets",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline guesses at snippet syntax and omits default children rendering; treatment uses {#snippet row(item)}, {@render row(item)}, and {@render children?.()} exactly as documented."
+        "name": "sveltekit-3-vercel-fetch",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "B covers most rubric but misses #lib imports; A likely less complete."
+      },
+      {
+        "name": "form-with-state-raw-and-inspect",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       }
     ]
   }

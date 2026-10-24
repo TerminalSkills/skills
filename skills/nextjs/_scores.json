@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f3ac9196846437d9030d991e234d9fe1d70a0dc505bf0d96b709c552d20521a6",
-  "scoredAt": "2026-05-13T13:31:48.630Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:03d8af40e9e3394cb4863b323ebf8565e39345a22b4f61c55ae64cd34c761294",
+  "scoredAt": "2026-10-24T19:39:37.503Z",
   "backend": "ollama",
-  "model": "qwen2.5-coder:14b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.16,
-    "baselineAvg": 73,
-    "treatmentAvg": 85,
+    "multiplier": 5.29,
+    "baselineAvg": 17,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "create-dashboard",
-        "baseline": 60,
-        "treatment": 85,
-        "rationale": "Response A covers most of the rubric requirements including layout.tsx, async Server Components with database queries, loading.tsx for Suspense-based streaming, and uses revalidate option in fetch calls. Response B misses some key elements like using 'use server' directive, proper widget separation, and does not include ISR revalidation."
+        "name": "cached-order-detail-page",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B is not provided."
       },
       {
-        "name": "implement-auth",
-        "baseline": 70,
-        "treatment": 85,
-        "rationale": "Response A covers most of the rubric but does not include the useOptimistic() hook for instant form feedback. Response B includes the useOptimistic() hook but lacks session management with encrypted cookies."
+        "name": "upgrade-nextjs-14-to-16",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet any of them."
       },
       {
-        "name": "optimize-images",
-        "baseline": 90,
-        "treatment": 85,
-        "rationale": "Response B slightly exceeds Response A by including more detailed configuration options in next.config.js, such as deviceSizes and imageSizes, which are not mentioned in Response A."
+        "name": "server-action-ship-order",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response A correctly implements revalidateTag('order-list', 'max') and useActionState, but omits updateTag('order-${id}'); Response B lacks both the max parameter and updateTag, making it less complete."
       }
     ]
   }

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e432e15d16c7279a2e81c4aa1a48272bcaf6d2f410c4c14c38ce620cac59fd71",
-  "scoredAt": "2026-05-13T10:28:04.003Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d091f3847ffaa8caa56d95003af5d2d93020c998225f81d292bf3a3d9ff0d522",
+  "scoredAt": "2026-10-24T20:08:37.247Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in instructions."
+        "detail": "Missing handling for missing tsup installation or tsconfig errors, not covering all edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Node.js environment; not applicable to non-Node agents."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 93,
-    "multiplier": 1.55,
+    "multiplier": 8.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Dual ESM+CJS library with type declarations",
-        "baseline": 62,
-        "treatment": 94,
-        "rationale": "Baseline picks the right format/dts flags but typically writes an imprecise package.json exports map missing .d.cts and types-first ordering; treatment includes clean:true and the documented exports shape exactly."
+        "name": "multi-entry-subpath-build",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide the required tsup config or package exports map."
       },
       {
-        "name": "Multi-entry React component library",
-        "baseline": 58,
-        "treatment": 92,
-        "rationale": "Baseline often uses a single entry or omits external/subpath exports; treatment uses the entry-object map, splitting+treeshake, react in external, and matching subpath exports per the skill's examples."
+        "name": "env-specific-builds",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response A includes the required tsup.config.ts with most properties and explains the output, missing only clean:true in the first config; Response B does not use tsup and omits the required configuration entirely."
+      },
+      {
+        "name": "zero-config-npm-publish",
+        "baseline": 15,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items but incorrectly includes a tsup.config.ts, whereas Response B omits key fields like type, main, module, exports, and the required scripts."
       }
     ]
   }

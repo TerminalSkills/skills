@@ -1,57 +1,64 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cd8d2ac0fe164d243c8371a8ed70d3ddcb69383f7f3741d2bac04964b49a2ee8",
-  "scoredAt": "2026-05-13T10:06:27.705Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:77a47e0f98bb8bff6602a022e7bee68af70039894e436c24a7851970680a4f7c",
+  "scoredAt": "2026-10-24T19:56:04.969Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error handling or edge cases, only happy path."
+        "detail": "The instructions do not cover all possible error scenarios and edge cases."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Node.js environment, minor platform assumption."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples provided."
+        "category": "checksum",
+        "detail": "GitHub Actions are pinned to tags instead of commit SHAs, which may allow unexpected changes."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "GitHub Actions are pinned to tags instead of commit SHAs, which may allow unexpected changes."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 96,
-    "multiplier": 1.75,
+    "multiplier": 4.1,
+    "baselineAvg": 20,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Full .releaserc.json with changelog + git plugins",
-        "baseline": 40,
-        "treatment": 97,
-        "rationale": "Treatment installs semantic-release + @semantic-release/changelog + @semantic-release/git and wires the full plugin chain (commit-analyzer, release-notes-generator, changelog, npm, git with assets, github) on main; baseline uses the legacy CLI wizard and omits the explicit plugin list and assets."
+        "name": "setup-github-actions-release",
+        "baseline": 55,
+        "treatment": 70,
+        "rationale": "Both responses omit the required .releaserc.json content, but Response B includes the necessary id-token permission and a clearer reference to the plugin order, giving it a higher score."
       },
       {
-        "name": "CI wiring with GITHUB_TOKEN and NPM_TOKEN",
-        "baseline": 70,
+        "name": "preview-release-dry-run",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Both cover CI on main with both tokens; treatment additionally spells out the feat→minor / fix→patch / BREAKING CHANGE→major conventional-commits mapping the skill teaches."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention semantic-release at all."
+      },
+      {
+        "name": "configure-beta-prerelease-branch",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the stable line and npm install note; Response B provides no content."
       }
     ]
   }

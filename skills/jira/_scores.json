@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c42e8c195cea801455132eb37ae84195f3f7344a94a91bc918fb197a1bae71f2",
-  "scoredAt": "2026-05-13T09:18:03.944Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:690996df26c8791c26584dc2c1eaf7341de51b309109168adfd1d75e158e2e8a",
+  "scoredAt": "2026-10-24T19:20:20.158Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as pagination beyond the first page or handling rate limits."
+        "detail": "The skill does not cover error handling for authentication failures, rate limiting, or pagination beyond the first page."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose explanatory comments that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment with fetch and Buffer, limiting cross-platform compatibility."
+        "detail": "The skill contains extensive comments and explanations that increase verbosity beyond what is strictly necessary."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 94,
-    "multiplier": 3.13,
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "bulk-stale-report",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline used v2 search without pagination or >30d flag; treatment paginated POST /rest/api/3/search with status!=Done and updated<=-14d JQL, grouped by assignee, and flagged >30 days as critical."
+        "name": "create-scrum-project-with-sprint",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is incomplete and uses the wrong template."
       },
       {
-        "name": "epic-cascade-webhook",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline skipped webhook registration, hardcoded transition IDs, and used parent= instead of Epic Link; treatment registered via POST /webhook, inspected changelog status->Done, used \"Epic Link\" JQL, and fetched transitions dynamically per child."
+        "name": "generate-stale-issues-report",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric with a POST /search/jql call, correct JQL, requested fields, grouping, and top assignee; Response A lacks the required POST call, field specification, and explicit grouping details."
+      },
+      {
+        "name": "create-tech-debt-issue-type-and-issue",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required hierarchyLevel and uses a plain-text description instead of ADF."
       }
     ]
   }

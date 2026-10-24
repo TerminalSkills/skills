@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:704a66034381ed9689f48a6cbbddd979b53b7a77f2771b3080ba48850bf8f096",
-  "scoredAt": "2026-05-13T10:38:37.983Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7d9a22d3787ddc2981878916ac244af1f5f28a9a46aea70e6c3565947668784c",
+  "scoredAt": "2026-10-24T20:12:44.346Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,30 +18,47 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases, such as authentication failures and external API errors."
+        "detail": "The instructions do not cover all error scenarios and edge cases."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
-  },
-  "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 82,
-    "multiplier": 2.05,
-    "scenarios": [
+    "verdict": "SUSPICIOUS",
+    "issues": [
       {
-        "name": "Wire a Next.js frontend to Xano signup/login/me endpoints",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment hits the documented /api:auth/auth/signup, /auth/login, and /auth/me routes on the instance URL and forwards the returned authToken as a Bearer token; baseline often invents endpoint paths or assumes a different auth scheme."
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Missing checksum verification for npm install of @xano/cli."
       },
       {
-        "name": "Build a 'create post' function stack with free-plan limit",
-        "baseline": 35,
-        "treatment": 79,
-        "rationale": "Treatment describes the function stack steps from the skill (precondition auth, conditional on plan/post_count, Add Record, Return) rather than writing server code; baseline writes a generic Express handler that ignores Xano's visual function-stack model."
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Missing checksum verification for npx install of @xano/developer-mcp."
+      }
+    ]
+  },
+  "impact": {
+    "multiplier": 5.17,
+    "baselineAvg": 12,
+    "treatmentAvg": 62,
+    "scenarios": [
+      {
+        "name": "create-authenticated-user-table",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B covers many rubric items but omits the required MCP add command, uses a custom login endpoint instead of the pre-built one, and lists sandbox push commands instead of the specified workspace push commands, resulting in a moderate score; Response A is incomplete or missing key details, earning a low score."
+      },
+      {
+        "name": "add-paginated-orders-endpoint",
+        "baseline": 15,
+        "treatment": 65,
+        "rationale": "Response A covers most Xano-specific requirements and CLI steps (though missing the claude mcp add and table definition), while Response B is unrelated to Xano and omits all rubric items."
+      },
+      {
+        "name": "create-daily-newsletter-task",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A includes the Xano task structure, schedule, external API call, and env var usage, but omits several required CLI commands; Response B is unrelated to Xano and lacks all required elements."
       }
     ]
   }

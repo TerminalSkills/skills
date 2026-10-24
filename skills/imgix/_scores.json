@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:186cdf547e6650230ec23ed82ab215e33d0b7c2b838ea4139b5c0fe1b3d16a73",
-  "scoredAt": "2026-05-13T09:15:59.357Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0cd5095561b1e07668a4894e7ff00a3abb922240f0e5def6c61eb9e530c91c71",
+  "scoredAt": "2026-10-24T19:18:19.907Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 4.18,
+    "baselineAvg": 22,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Serve a responsive face-cropped hero image via imgix",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment uses `@imgix/js-core` `ImgixClient` with `secureURLToken`, then `buildURL`/`buildSrcSet` passing `auto: 'format,compress'`, `fit: 'crop'`, `crop: 'faces'`, and an aspect ratio (`ar`); baseline hand-constructed query strings and missed `crop=faces`, signed URLs, and `buildSrcSet`."
+        "name": "open-graph-image-url",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use client.buildURL, secureURLToken, or produce a signed URL with an 's=' parameter."
       },
       {
-        "name": "Generate a thumbnail for a hosted MP4 video",
+        "name": "responsive-product-srcset",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use client.buildSrcSet or the required Imgix parameters."
+      },
+      {
+        "name": "react-imgix-product-component",
         "baseline": 45,
-        "treatment": 86,
-        "rationale": "Treatment uses `client.buildURL` against the `.mp4` path with `fm: 'jpg'`, `frame: 1`, `w`, `h`, and `fit: 'crop'` exactly as documented in Step 3; baseline reached for ffmpeg or a separate thumbnail service instead of imgix's URL-based frame extraction."
+        "treatment": 75,
+        "rationale": "Response A satisfies most rubric items except the signed URL requirement, while Response B fails on import style, signed URL, sizes, ar, and loading attributes."
       }
     ]
   }

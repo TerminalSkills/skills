@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7a7cca8f9c59658e67fb23739335a6de81b847d4d5b4e249e039f6fcf26276fd",
-  "scoredAt": "2026-05-13T10:12:10.198Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4f177c5222808034e9a2601cc8b7b5db544ca484d11276ee32f4c140fdeb7609",
+  "scoredAt": "2026-10-24T20:19:34.087Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not specific and may be ambiguous for the agent."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 97,
-    "multiplier": 2.77,
+    "multiplier": 8.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Order workflow ASL with retries, Choice, and Parallel fan-out",
-        "baseline": 40,
-        "treatment": 98,
-        "rationale": "Baseline writes a linear ASL chain missing the Retry block, Choice branching, and Parallel branches; treatment includes all three plus the documented Retry fields (IntervalSeconds, MaxAttempts, BackoffRate)."
+        "name": "jsonata-order-processing-machine",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but lacks a separate Assign state; Response B is empty."
       },
       {
-        "name": "Human approval step waiting on external callback",
-        "baseline": 30,
-        "treatment": 96,
-        "rationale": "Baseline proposes an out-of-band callback Lambda but omits the .waitForTaskToken ARN and $$.Task.Token wiring; treatment uses the documented sqs:sendMessage.waitForTaskToken pattern with TimeoutSeconds."
+        "name": "add-retries-to-chargecard",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B includes most required elements and correct retry configuration, but omits two error types; Response A fails to meet several key requirements."
+      },
+      {
+        "name": "approval-before-refund",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is not provided."
       }
     ]
   }

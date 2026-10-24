@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:13118fd4f89a8b44f5639b23222e06880a11c1bab64752b347b8090c16d8ed87",
-  "scoredAt": "2026-05-13T10:26:20.761Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:01844d125473991c8abb80ac412a1f434854e5ebad5d8ea1d91c27d2778ec0da",
+  "scoredAt": "2026-10-24T20:06:44.838Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path."
+        "detail": "Missing explicit handling of missing environment variables or build errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Node.js 22/24 and Next.js, limiting applicability to other platforms."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 94,
-    "multiplier": 2.85,
+    "multiplier": 9,
+    "baselineAvg": 3,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "TinaCMS blog posts with live visual editing in Next.js",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline points to defineConfig generally but misses the isTitle/isBody/format: 'mdx' field markers, the useTina({ query, variables, data }) live-editing hook, and the npx tinacms dev -c 'next dev' wrapping command."
+        "name": "init-pages-collection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B discusses Sanity instead of TinaCMS and misses all required steps."
       },
       {
-        "name": "Visual page builder with Hero and Features blocks",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Baseline understands the blocks pattern but misses Tina's specific object + list: true + templates schema, the per-template fields definition, and rendering via the generated @/tina/__generated__/client + TinaMarkdown."
+        "name": "list-tutorial-posts",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response A correctly uses the generated client, applies the required filter, sort, and last parameters, and maps edges to node objects, but it does not explicitly return an array of titles as the rubric demands; Response B does not use the client at all and therefore fails to meet the rubric."
+      },
+      {
+        "name": "ci-offline-build",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
       }
     ]
   }

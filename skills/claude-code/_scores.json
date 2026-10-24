@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cf95e398e35fba99d85f8af0fafa786903610ad19773869eef0d64aaa64e8ab6",
-  "scoredAt": "2026-05-13T15:25:52.485Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:4d4391da5cf3e6f715c02f9de3e0581b72b1e27b00101f70aba1e3cb5d539e0c",
+  "scoredAt": "2026-10-24T19:04:05.850Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy paths."
+        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
       },
       {
         "severity": "HIGH",
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 60,
+    "multiplier": 9.2,
+    "baselineAvg": 5,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "setup-claude-code-project",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items, while Response A is missing entirely."
+        "name": "setup-nextjs-project",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric items, while Response A lacks the required brew install, claude invocation, /init, specific test commands, and .gitignore entry."
       },
       {
-        "name": "refactor-stripe-webhook",
-        "baseline": 80,
-        "treatment": 40,
-        "rationale": "Response A covers the extraction of handlers, Zod schemas, and route dispatching, missing only tests and verification, while Response B is incomplete and repetitive, lacking full implementation details."
+        "name": "configure-permissions",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B directly provides the required .claude/settings.json with the correct allow and deny entries, while Response A does not include such a file."
+      },
+      {
+        "name": "add-mcp-server",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers the required commands but omits the list output, while Response B provides no content."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:06d0fdbeca5dbd308cf215d9be3d0a5d4cc68adb4f17a9d4d37cbaee4ba4d171",
-  "scoredAt": "2026-05-13T09:50:31.590Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ff04d08b1d80d16dd7e0695e0f754be676002874868d14a1c6623f400ad3a03a",
+  "scoredAt": "2026-10-24T19:44:45.372Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only demonstrates happy path examples and does not cover error handling or edge cases."
+        "detail": "The instructions lack explicit error handling and edge case coverage for API failures and network issues."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 95,
-    "multiplier": 1.98,
+    "multiplier": 3.91,
+    "baselineAvg": 23,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Serverless index with namespaced metadata upsert",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline often misses the serverless spec shape and namespace API; treatment uses createIndex with spec.serverless and index.namespace().upsert with rich metadata exactly as the skill shows."
+        "name": "create-vector-index-and-query",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits several key elements such as namespace usage and specific index creation options."
       },
       {
-        "name": "Filtered semantic search for RAG",
-        "baseline": 50,
-        "treatment": 94,
-        "rationale": "Baseline filters in JS or misuses operators; treatment uses the $eq/$gte filter operators on the query call and pipes matches into an OpenAI completion per the skill's RAG example."
+        "name": "integrated-embedding-faq-search",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items, while Response A lacks the required integrated‑embedding index and namespace usage."
+      },
+      {
+        "name": "delete-namespace-and-index",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully implements the required steps, while Response A provides no content."
       }
     ]
   }

@@ -1,47 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3fe2cfbff0c6089ce6fdd3912f826fc0f173746162030713a12c336e6d6bad73",
-  "scoredAt": "2026-05-13T12:15:47.503Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:32e6383806a167b71c1915f3baaf14ff19116671358884f15509d71beee0e77d",
+  "scoredAt": "2026-10-24T18:48:00.898Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error scenarios and edge cases comprehensively."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.28,
-    "baselineAvg": 57,
-    "treatmentAvg": 73,
+    "multiplier": 0.76,
+    "baselineAvg": 83,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "multi-platform-campaign-structure",
-        "baseline": 20,
-        "treatment": 60,
-        "rationale": "Response A covers the required campaign structure, CBO, exclusions, UTM links, and a creative brief, but fails to provide at least three ads per ad set and leaves retention ad sets incomplete; Response B lacks ad‑set detail, CBO, exclusions, UTM links, and a full creative brief."
+        "name": "reallocate-budget-for-max-roas",
+        "baseline": 55,
+        "treatment": 0,
+        "rationale": "Response B gives a budget plan but omits conversion data reasoning, while Response A is empty."
       },
       {
-        "name": "declining-roas-bid-optimization",
-        "baseline": 75,
-        "treatment": 95,
-        "rationale": "Response A covers all rubric items with detailed actions, while Response B lacks explicit weekly targets and frequency control."
+        "name": "retargeting-funnel-for-new-product",
+        "baseline": 100,
+        "treatment": 90,
+        "rationale": "Response A provides a more detailed, structured plan with clear tier definitions, exclusion logic, and bid strategies, while Response B also meets the rubric but with slightly less depth."
       },
       {
-        "name": "cross-platform-attribution-framework",
-        "baseline": 75,
-        "treatment": 65,
-        "rationale": "Response A provides a more comprehensive UTM scheme, holdout plan, and weekly template, but both lack an attribution model and explicit double‑counting adjustment; A covers more rubric items overall."
+        "name": "linkedin-creative-testing-plan",
+        "baseline": 95,
+        "treatment": 100,
+        "rationale": "Both responses meet all rubric items, but Response A is more concise and directly aligns phases with budget percentages, giving it a slight edge."
       }
     ]
   }

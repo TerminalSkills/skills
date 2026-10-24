@@ -1,58 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c5755d46206b4077c14c0a270a16345ce9840af67efbcfc8e84fc4713454d6c7",
-  "scoredAt": "2026-05-13T09:07:35.812Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b49fb4b6024ebe10eb0ec9a86da9d4cf76c02cc93a30c424a9c46bd1c631e036",
+  "scoredAt": "2026-10-24T19:14:21.429Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The skill does not explicitly cover error handling or edge cases for authentication failures or command errors."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Gemini CLI and does not work with other AI agents."
+        "detail": "Platform-specific notes (e.g., macOS Seatbelt) suggest limited cross-platform compatibility."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "Downloading and executing installer script from GitHub without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 91,
-    "multiplier": 3.25,
+    "multiplier": 3.22,
+    "baselineAvg": 18,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "Whole-codebase circular dependency analysis",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline reaches for madge/depcruise generic tools; treatment uses gemini --model gemini-2.5-pro with the 1M-token whole-codebase prompt and GEMINI.md auto-loading from the skill."
+        "name": "install-gemini-cli",
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response B covers the npm and Homebrew install commands, the package name, and the required verification step, while Response A lacks the explicit verification command and omits key rubric points."
       },
       {
-        "name": "Multi-modal QA screenshot triage",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline falls back to Python SDK or web UI; treatment uses the exact gemini --image bug1.png --image bug2.png one-shot pattern documented in the skill."
+        "name": "generate-release-notes-headless",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric, providing the export and command, but it uses the wrong output filename, whereas Response A fails to meet any rubric criteria."
+      },
+      {
+        "name": "add-mcp-server-docs",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the add and list commands but omits the required --scope project flag and the note about .gemini/settings.json, whereas Response A provides no content at all."
       }
     ]
   }

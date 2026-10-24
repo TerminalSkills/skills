@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:66d601714f9c54c6eba915bac024a4a24205e25a2b432598b0d2f4e3cd3395d4",
-  "scoredAt": "2026-05-13T10:01:20.810Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b7b55959dcc2792f23deed1393bb2990d50bd3aab523fff8d57d0ba2ef069309",
+  "scoredAt": "2026-10-24T19:52:36.154Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for async selectors and atom families."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 94,
-    "multiplier": 4.09,
+    "multiplier": 7.69,
+    "baselineAvg": 13,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Todo filter with independent re-renders",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline uses Context which re-renders everything together; treatment splits state into todosAtom + filterAtom, derives filteredTodos and todoStats selectors, and uses useRecoilValue vs useRecoilState to scope subscriptions."
+        "name": "dark-mode-toggle-persistence",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "A meets all rubric points; B misses key name, guard, and useRecoilState requirement."
       },
       {
-        "name": "Async user profile with Suspense",
-        "baseline": 20,
-        "treatment": 93,
-        "rationale": "Baseline manages loading flags manually with useState/useEffect; treatment uses a selectorFamily async get, reads via useRecoilValue, and wraps the consumer in Suspense for native loading integration."
+        "name": "async-selector-loadable-refactor",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully replaces the Suspense-wrapped selector with useRecoilValueLoadable and handles all states correctly, while Response B uses a different selector and does not meet the rubric's requirement."
+      },
+      {
+        "name": "per-user-draft-note-atomfamily",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully satisfies the rubric, B does not."
       }
     ]
   }

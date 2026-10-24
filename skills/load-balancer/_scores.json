@@ -1,36 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c3fb0668e34bb680c451c89cefdb2b83ed8ec1fdebcb8bef786ccb03c2bbf62d",
-  "scoredAt": "2026-05-13T09:25:32.615Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cfcc9174a2b3e7ff8b8efab15a29e8fd6e2c79b5e78caaae9dd1e54d5a8c99f2",
+  "scoredAt": "2026-10-24T19:27:19.790Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly cover error handling or edge cases beyond basic configuration, focusing mainly on happy path scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text and multiple code examples, which may be considered verbose for a concise skill file."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill includes platform-specific commands (e.g., apt install certbot) and assumes a Linux environment, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

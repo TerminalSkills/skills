@@ -1,52 +1,59 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:87ddc420e4bc15f277fb451f55b5bb62eb3b6929a0ab30ffac1d689308292b94",
-  "scoredAt": "2026-05-13T10:10:51.667Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4f7e863d409715ee7725f6a47ccde97a3c876abb65e2e9d87fbb065e5ad7dd1a",
+  "scoredAt": "2026-10-24T19:58:51.753Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing tables or concurrency issues."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions are missing for Windows, limiting cross-platform applicability."
+        "detail": "The instructions do not cover error handling or edge cases such as CSV import failures or connection errors."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "installation",
+        "detail": "Installation commands lack checksum verification, potentially allowing tampered packages."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 96,
-    "multiplier": 1.92,
+    "multiplier": 1.38,
+    "baselineAvg": 60,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Node.js SQLite with WAL, foreign keys, and transactional bulk insert",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline reaches for node-sqlite3 with manual BEGIN/COMMIT rather than the better-sqlite3 driver + db.transaction() pattern the skill prescribes."
+        "name": "import-csv-duplicates",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required .import --csv flag and header output."
       },
       {
-        "name": "Add FTS5 full-text search to a posts table",
-        "baseline": 55,
-        "treatment": 96,
-        "rationale": "Baseline creates an FTS5 table but omits content=posts/content_rowid=id and orders by bm25() instead of rank; treatment uses the external-content pattern with rank as the skill documents."
+        "name": "nodejs-wal-transaction",
+        "baseline": 50,
+        "treatment": 50,
+        "rationale": "Both responses omit the required Database('myapp.db') name, but otherwise satisfy the rest of the rubric."
+      },
+      {
+        "name": "fts5-fulltext-search",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B omits the required INSERT INTO posts_fts(posts_fts) VALUES ('rebuild') statement."
       }
     ]
   }

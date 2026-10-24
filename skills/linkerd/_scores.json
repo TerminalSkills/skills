@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:29ca223545fe229fa6e52d5c426bb33a18d4816b91c9e06736da6f656cd4deab",
-  "scoredAt": "2026-05-13T09:24:34.469Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3ceb8c498b48f9091b7c06dfb84367f7f82908fe8a4057ec2c85132cfae7d153",
+  "scoredAt": "2026-10-24T19:26:24.914Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not cover error handling or edge cases in installation and configuration steps."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Linux/macOS environments, not Windows."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Uses curl piped to sh without checksum verification for installing Linkerd CLI."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 6.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Set up a 90/10 canary rollout for an existing service using Linkerd",
+        "name": "install-and-verify-mtls",
         "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment creates a `split.smi-spec.io/v1alpha2 TrafficSplit` with `web-app-stable` weight 900 and `web-app-canary` weight 100 plus the three backing Services; baseline uses Argo Rollouts or NGINX ingress weighting and never touches the SMI TrafficSplit resource."
+        "treatment": 100,
+        "rationale": "Response B fully meets all rubric items, while Response A omits key steps such as CRD installation, Viz stack, namespace annotation, and SECURED/MESHED verification."
       },
       {
-        "name": "Enforce that only meshed pods in the namespace can talk to the api-service on port 8080",
-        "baseline": 38,
-        "treatment": 86,
-        "rationale": "Treatment writes a `policy.linkerd.io/v1beta2 Server` selecting `app: api-service` port 8080, an `AuthorizationPolicy` targetRef-ing that Server, and a `MeshTLSAuthentication` matching `*.default.serviceaccount.identity.linkerd.cluster.local`; baseline writes NetworkPolicies and misses Linkerd's mTLS identity-based authz model."
+        "name": "canary-rollout-with-traffic-splitting",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention HTTPRoute, linkerd viz, or the required commands."
+      },
+      {
+        "name": "restrict-service-with-authorization-policy",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with Linkerd resources and verification, while Response B uses Istio and omits required Linkerd objects."
       }
     ]
   }

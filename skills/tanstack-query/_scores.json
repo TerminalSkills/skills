@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:530eabc54b80300431c00c97c132a244912a363c8ebaea34a101145c4363e138",
-  "scoredAt": "2026-05-13T10:23:02.945Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:48d14815be05b6ac6d8f3ec9775eb5169b9a052f0c9865bdc012bdf2ad34abc4",
+  "scoredAt": "2026-10-24T20:04:34.136Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to React and may not work with other frameworks or environments."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 98,
-    "multiplier": 5.44,
+    "multiplier": 9.5,
+    "baselineAvg": 7,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Optimistic-update mutation for creating a todo with rollback on error",
-        "baseline": 20,
-        "treatment": 98,
-        "rationale": "Baseline manages local useState for optimistic UI; treatment uses useMutation with onMutate calling cancelQueries + getQueryData snapshot + setQueryData, returns { previous } for onError rollback, and invalidateQueries on onSettled."
+        "name": "infinite-scroll-feed",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "B meets all rubric criteria; A does not use useInfiniteQuery."
       },
       {
-        "name": "Cursor-based infinite-scroll feed",
-        "baseline": 15,
-        "treatment": 98,
-        "rationale": "Baseline reimplements pagination with useState + manual cursor; treatment uses useInfiniteQuery with initialPageParam, getNextPageParam consuming lastPage.nextCursor, and renders data.pages with hasNextPage / isFetchingNextPage gating the load-more button."
+        "name": "optimistic-todo-create",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A implements the required useMutation logic and rollback/invalidation, missing only the greyed pending UI detail, while Response B lacks useMutation entirely and fails to meet the core requirements."
+      },
+      {
+        "name": "suspense-user-profile",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A is missing."
       }
     ]
   }

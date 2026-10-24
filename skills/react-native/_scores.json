@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:08dea5a8d83f7691da488768b8d4eb4485a5513aa86e380ec6f217d3a3694361",
-  "scoredAt": "2026-05-13T10:00:44.546Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bfd7579a74b7e80057e93394c0b2af73a2a52f6cd8740fbbf4026c480a03facf",
+  "scoredAt": "2026-10-24T19:51:53.641Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack coverage of error handling and edge cases such as network failures, biometric unavailability, and large dataset performance issues."
+        "detail": "Instructions do not cover all error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 87,
-    "multiplier": 2.02,
+    "multiplier": 1.85,
+    "baselineAvg": 53,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Paginated social feed with pull-to-refresh and optimized images",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment combines the skill's documented stack (`FlatList` with `onEndReached`/`refreshControl`, React Query infinite query, `expo-image`, Reanimated for the double-tap like) while the baseline typically reaches for `ScrollView` or `Image` and fetches in `useEffect`, missing the performance patterns the rubric rewards."
+        "name": "setup-expo-project-with-navigation",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits the required `npx create-expo-app@latest my-cool-app` command."
       },
       {
-        "name": "Face ID login with secure token storage and PIN fallback for a banking app",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses `expo-local-authentication` for biometrics, stores tokens in `expo-secure-store`, falls back to PIN, and persists session via Zustand — exactly the skill's pattern — while baseline reaches for `AsyncStorage`, which the skill explicitly flags as unencrypted."
+        "name": "large-list-with-flatlist",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements, while Response B omits the required RefreshControl prop for pull-to-refresh."
+      },
+      {
+        "name": "biometric-login-with-secure-store",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A uses different libraries and omits key Expo modules and Zustand."
       }
     ]
   }

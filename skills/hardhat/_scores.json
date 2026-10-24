@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c3cad481d4bbbd288c596f55e3c0960113c68f3b63c9f05530f47e1f27be9394",
-  "scoredAt": "2026-05-13T09:11:29.943Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d74bb57070cd9f55e4fc6bf4705aef9dec899bb763438edb27783256848c605d",
+  "scoredAt": "2026-10-24T19:16:41.726Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling for missing environment variables or network failures."
+        "detail": "The instructions do not cover error scenarios or edge cases, such as missing environment variables or network failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 93,
-    "multiplier": 2.16,
+    "multiplier": 4.6,
+    "baselineAvg": 20,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Bootstrap TypeScript Hardhat project with ERC20 tests",
+        "name": "setup-erc20-project-and-tests",
         "baseline": 30,
-        "treatment": 93,
-        "rationale": "Baseline installs bare hardhat and writes generic ethers tests; treatment installs @nomicfoundation/hardhat-toolbox, uses loadFixture for snapshot/revert, revertedWithCustomError for ERC20 errors, and runs --gas-report/coverage."
+        "treatment": 95,
+        "rationale": "Response B meets all rubric items, while Response A lacks network.create()/loadFixture, gas-stats, and custom error test."
       },
       {
-        "name": "Deploy contract to Sepolia and verify on Etherscan",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline covers deploy script but omits verification configuration; treatment configures networks.sepolia + etherscan.apiKey via env vars and runs npx hardhat verify --network sepolia as the skill prescribes."
+        "name": "deploy-erc20-to-sepolia-with-ignition",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B covers the required keystore commands, Ignition module, and deploy/verify command, but omits the hardhat.config.ts content; Response A lacks keystore commands, hardhat config, and the specific deploy command, so it scores lower."
+      },
+      {
+        "name": "test-on-mainnet-fork-with-impersonation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required hardhat.config.ts format, type, or test API specifications."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:82a9a220ef17778bb2081af7ac19e12a22d366a3be8f20c7d2214a358346ef8c",
-  "scoredAt": "2026-05-13T14:27:10.166Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:fc91895b67ece2f20177598cc6122875960920f9b5b94704789ae2269ec46142",
+  "scoredAt": "2026-10-24T18:53:43.840Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, focusing only on happy path operations."
+        "detail": "The skill covers happy path but lacks error handling and edge case scenarios."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2,
-    "baselineAvg": 20,
-    "treatmentAvg": 40,
+    "multiplier": 7.15,
+    "baselineAvg": 13,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "provision-multi-az-postgres",
+        "name": "multi-az-postgres-creation",
         "baseline": 0,
-        "treatment": 0,
-        "rationale": "Neither response provides the required aws rds create-db-instance CLI command with the specified flags; both are incomplete."
+        "treatment": 80,
+        "rationale": "Response A includes almost all required CLI flags except the missing --master-user-secret-kms-key-id, while Response B provides Terraform code and no aws rds create-db-instance command, failing the rubric."
       },
       {
-        "name": "setup-aurora-serverless-with-replica",
+        "name": "aurora-serverless-v2-cluster",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required flags and a writer instance; Response B omits key flags and uses the wrong scaling option."
+      },
+      {
+        "name": "cross-region-replica-and-pitr",
         "baseline": 40,
-        "treatment": 80,
-        "rationale": "Response B includes the required CLI commands for cluster, writer/reader, and replica, missing only the modify-db-instance step, while Response A uses Terraform and omits several rubric items."
+        "treatment": 100,
+        "rationale": "Response A includes all required flags for both commands, while Response B omits the mandatory kms-key-id and subnet group for the replica creation."
       }
     ]
   }

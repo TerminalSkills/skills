@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9c6b043fd4cbe5d1e1d8fa72e8c0023ee601a05df7f9ffefbcf364875033b0b4",
-  "scoredAt": "2026-05-13T09:11:21.880Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4fc812d70d29e37fbce0dad0e40e589eb5c34bb93adeb0520099d49a0a02a770",
+  "scoredAt": "2026-10-24T19:14:58.312Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions focus on happy path scenarios and do not cover error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js/Bun environment, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 1.47,
+    "baselineAvg": 43,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "Speed up a slow Vitest suite running on jsdom",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline tweaks vitest pool settings without solving the underlying DOM cost; treatment installs happy-dom and sets environment: 'happy-dom' in vitest.config plus the per-file @vitest-environment directive as documented."
+        "name": "vitest-happy-dom-switch",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Response B more fully meets the rubric by explicitly showing time command usage, example output, and a clear before/after comparison, whereas Response A provides the steps but lacks a concrete example of the time comparison."
       },
       {
-        "name": "Server-side HTML parsing and extraction without a browser",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline reaches for jsdom or cheerio, missing the skill entirely; treatment imports Window from happy-dom, populates document.body.innerHTML, queries with querySelector, and calls window.happyDOM.close() to release resources."
+        "name": "standalone-html-parsing",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide any code or steps described in the rubric."
+      },
+      {
+        "name": "jest-happy-dom-setup",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits the required @happy-dom/jest-environment package and uses the wrong environment string."
       }
     ]
   }

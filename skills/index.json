@@ -311,7 +311,7 @@
     {
       "name": "airflow",
       "slug": "airflow",
-      "description": "Apache Airflow is a platform for programmatically authoring, scheduling, and monitoring workflows. Learn to write DAGs, use operators, set up connections, configure scheduling, and deploy with Docker Compose.",
+      "description": "Apache Airflow is a platform for authoring, scheduling and monitoring workflows as Python DAGs. Use when the user wants to write a DAG, schedule an ETL or data pipeline, use the TaskFlow API, add connections and variables, run Airflow locally or with Docker Compose, or upgrade DAGs from Airflow 2 to Airflow 3.",
       "category": "data-ai",
       "tags": []
     },
@@ -404,7 +404,7 @@
     {
       "name": "angular",
       "slug": "angular",
-      "description": "Angular is Google's TypeScript-based frontend framework for building scalable single-page applications. It provides components, dependency injection, RxJS-based reactivity, routing, forms, HTTP client, and a powerful CLI for development.",
+      "description": "Angular is Google's TypeScript framework for building single-page web applications with components, signals, dependency injection, routing, forms, an HTTP client and the ng CLI. Use when the user wants to create an Angular app, write standalone components, use signals, set up lazy routes, guards, interceptors or reactive forms, or upgrade an older Angular project. Trigger words: angular, ng new, ng serve, standalone component, signals, rxjs.",
       "category": "development",
       "tags": []
     },
@@ -578,7 +578,7 @@
     {
       "name": "archiver",
       "slug": "archiver",
-      "description": "Create ZIP and TAR archives programmatically with Archiver — bundle files, directories, and streams into compressed archives with progress tracking. Use when tasks involve generating downloadable bundles, backing up directories, creating deployment packages, or building export features that zip multiple files together.",
+      "description": "Archiver is a Node.js library that builds ZIP and TAR (optionally gzipped) archives as streams from files, directories, globs, strings and buffers. Use when a task involves zipping files in Node, generating downloadable bundles, backing up a directory to .tar.gz, building a deployment package, or streaming a ZIP in an HTTP response without a temporary file.",
       "category": "documents",
       "tags": [
         "zip",
@@ -780,7 +780,7 @@
     {
       "name": "aws-rds",
       "slug": "aws-rds",
-      "description": "Manage Amazon RDS for fully managed relational databases. Provision MySQL, PostgreSQL, and Aurora instances with automated backups and patching. Configure read replicas for scaling, snapshots for recovery, and Aurora Serverless for variable workloads.",
+      "description": "Amazon RDS is AWS's managed relational database service: it provisions MySQL, PostgreSQL, MariaDB, Oracle, SQL Server and Aurora databases and handles backups, patching and failover. Use this skill with the AWS CLI to create a Multi-AZ instance, an Aurora Serverless v2 cluster, read replicas, snapshots and point-in-time restores, parameter groups, and Secrets Manager-managed passwords, or when the user asks how to set up, back up, scale or monitor a database on RDS.",
       "category": "devops",
       "tags": []
     },
@@ -847,14 +847,20 @@
     {
       "name": "azure-cli",
       "slug": "azure-cli",
-      "description": "Azure Command Line Interface for managing Microsoft Azure resources. Use when the user needs to create VMs, manage storage accounts, deploy functions, configure resource groups, and automate Azure operations from the terminal.",
+      "description": "The Azure CLI (`az`) manages Microsoft Azure resources from the terminal. Use when the user needs to sign in to Azure, create resource groups, VMs, storage accounts, Function apps, AKS clusters or virtual networks, query resources with JMESPath, or script Azure operations in CI.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "azure",
+        "cli",
+        "cloud",
+        "microsoft",
+        "devops"
+      ]
     },
     {
       "name": "azure-cosmos-db",
       "slug": "azure-cosmos-db",
-      "description": "Build globally distributed apps with Azure Cosmos DB. Work with multiple data models (document, key-value, graph), configure global replication with tunable consistency levels, manage throughput with RU/s, and query with SQL API.",
+      "description": "Azure Cosmos DB is Microsoft's globally distributed NoSQL database service. Use when someone asks to \"set up Cosmos DB\", \"create a container with a partition key\", \"query Cosmos DB with the Python SDK\", \"choose a consistency level\", \"add a region\", \"process the change feed\", or \"reduce RU cost\". Covers the API for NoSQL: az CLI setup, Entra ID access, CRUD, SQL queries, change feed, throughput.",
       "category": "devops",
       "tags": []
     },
@@ -1086,7 +1092,7 @@
     {
       "name": "bookkeeping-automation",
       "slug": "bookkeeping-automation",
-      "description": "Automate bookkeeping workflows by parsing bank statements (CSV/OFX/QIF), categorizing transactions using rules or AI, reconciling accounts, generating expense reports, and detecting duplicates. Use when: automating transaction categorization, building reconciliation pipelines, processing bank exports, or generating expense summaries without manual data entry.",
+      "description": "Automate bookkeeping workflows by parsing bank statements (CSV/OFX/QIF), categorizing transactions using rules or an LLM, reconciling accounts, generating expense reports, and detecting duplicates. Use when: automating transaction categorization, building reconciliation pipelines, processing bank exports, or generating expense summaries without manual data entry.",
       "category": "business",
       "tags": [
         "bookkeeping",
@@ -1416,7 +1422,7 @@
     {
       "name": "chalk-advanced",
       "slug": "chalk-advanced",
-      "description": "Style terminal output with Chalk. Use when adding colors to CLI output, formatting log messages, building styled terminal UIs, or creating developer tools with colored output.",
+      "description": "Chalk colors and styles text in the terminal with a chainable API for Node.js (bold, underline, 16/256/truecolor, backgrounds). Use when adding colors to CLI output, formatting log messages, styling errors and warnings, honoring --no-color and FORCE_COLOR, or building developer tools with readable output.",
       "category": "development",
       "tags": [
         "chalk",
@@ -1556,7 +1562,7 @@
     {
       "name": "claude-code",
       "slug": "claude-code",
-      "description": "Build software with Claude Code, the AI-powered CLI coding agent. Use when a user asks to set up Claude Code, configure CLAUDE.md project files, use slash commands, manage permissions, create hooks, or optimize agentic coding workflows.",
+      "description": "Claude Code is Anthropic's AI coding agent for the terminal, IDEs, desktop and web: it reads a codebase, edits files, runs commands and tests, and iterates. Use when a user asks to install or set up Claude Code, write CLAUDE.md or rules, set permissions, add MCP servers, create hooks, or run claude -p in scripts and CI.",
       "category": "development",
       "tags": [
         "ai-coding",
@@ -1635,7 +1641,7 @@
     {
       "name": "clickhouse",
       "slug": "clickhouse",
-      "description": "ClickHouse is a columnar OLAP database built for real-time analytical queries over massive datasets. It supports a familiar SQL interface with powerful aggregation functions, materialized views for pre-computed rollups, and high-throughput inserts that make it ideal for event tracking, time-series analytics, and ad-hoc exploration of billions of rows.",
+      "description": "ClickHouse is a columnar OLAP database for real-time analytical queries over billions of rows. It speaks SQL, stores data in MergeTree tables, and rolls up data at insert time with materialized views. Use when the user wants to run ClickHouse in Docker, design MergeTree tables, load events or logs, write aggregation or retention queries, build rollups, or connect from Node.js. Trigger words: clickhouse, olap, mergetree, columnar database, analytics database.",
       "category": "data-ai",
       "tags": []
     },
@@ -2035,8 +2041,8 @@
     {
       "name": "convex",
       "slug": "convex",
-      "description": "Assists with building real-time reactive backends using Convex. Use when creating databases with automatic client sync, reactive queries, file storage, scheduled functions, or full-text and vector search. Trigger words: convex, reactive backend, real-time database, useQuery, useMutation, convex functions, convex schema.",
-      "category": "data-ai",
+      "description": "Convex is a reactive backend where the database, server functions and file storage are written in TypeScript and query results update live in every connected client. Use when building a Convex app: schema and indexes, queries, mutations and actions, useQuery and useMutation in React, auth, pagination, file uploads, scheduled functions and cron jobs, full-text and vector search. Trigger words: convex, reactive backend, convex schema, convex functions, npx convex dev.",
+      "category": "development",
       "tags": [
         "convex",
         "real-time",
@@ -2119,7 +2125,7 @@
     {
       "name": "cosign",
       "slug": "cosign",
-      "description": "Expert guidance for Cosign, the Sigstore tool for signing, verifying, and attaching metadata to container images and other OCI artifacts. Helps developers implement supply chain security by signing images in CI/CD, verifying signatures before deployment, and attaching SBOMs and vulnerability scan results as attestations.",
+      "description": "Sign, verify and attest container images and other OCI artifacts with Cosign, the Sigstore tool. Use when a user asks to sign an image in CI, verify a signature before deploying, do keyless signing with GitHub OIDC, attach an SBOM or provenance attestation, or enforce signed images in Kubernetes with Kyverno.",
       "category": "devops",
       "tags": []
     },
@@ -2475,9 +2481,15 @@
     {
       "name": "deno-deploy",
       "slug": "deno-deploy",
-      "description": "You are an expert in Deno Deploy, the globally distributed serverless platform by Deno. You help developers deploy TypeScript/JavaScript applications to 35+ edge locations with zero cold starts, built-in KV storage, BroadcastChannel for real-time, cron scheduling, and npm compatibility — running code within milliseconds of users worldwide without managing infrastructure.",
-      "category": "Cloud & Serverless",
-      "tags": []
+      "description": "Deno Deploy is a serverless platform that runs JavaScript and TypeScript apps on Deno, with integrated builds, Deno KV databases, cron jobs and preview URLs. Use when deploying a Deno, Node or framework app to console.deno.com, using the `deno deploy` command, setting environment variables per context, attaching Deno KV, or migrating off Deploy Classic and `deployctl`.",
+      "category": "devops",
+      "tags": [
+        "deno",
+        "serverless",
+        "typescript",
+        "deploy",
+        "edge"
+      ]
     },
     {
       "name": "dependency-updater",
@@ -3109,7 +3121,7 @@
     {
       "name": "falco",
       "slug": "falco",
-      "description": "Expert guidance for Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.",
+      "description": "Falco is the CNCF runtime security tool that watches Linux system calls and Kubernetes audit events and alerts on suspicious behavior in containers and hosts. Use when installing Falco with Helm, Docker or apt, writing or tuning custom detection rules (shell in container, sensitive file read, unexpected outbound connection, crypto miner), routing alerts to Slack or a SIEM with Falcosidekick, or fixing rule load errors.",
       "category": "devops",
       "tags": []
     },
@@ -3228,7 +3240,7 @@
     {
       "name": "figma-api",
       "slug": "figma-api",
-      "description": "Interact with the Figma REST API to read design files, export assets, extract components, and pull design tokens programmatically. Use when tasks involve automating design handoff, syncing design tokens to code, exporting icons/images from Figma, or building integrations between Figma and development pipelines.",
+      "description": "The Figma REST API returns design files as JSON and renders nodes to images. Use it to read files, export icons and images, list published components, extract color and text styles as design tokens, and receive webhooks when files change. Use when the user asks to automate design handoff, sync Figma styles to code, export assets from Figma in a script or CI job, or integrate Figma with a build pipeline. Trigger words: figma api, figma token, figma export, design tokens, figma webhook.",
       "category": "design",
       "tags": [
         "figma",
@@ -3609,8 +3621,8 @@
     {
       "name": "gemini-cli",
       "slug": "gemini-cli",
-      "description": "You are an expert in Gemini CLI, Google's open-source terminal-based AI agent powered by Gemini models. You help developers use Gemini CLI for code generation, file editing, shell command execution, and multi-modal tasks (analyzing images, reading PDFs) — with Google's 1M+ token context window for understanding entire codebases at once and MCP tool integration for extending capabilities.",
-      "category": "Developer Tools",
+      "description": "Gemini CLI is Google's open-source AI agent for the terminal: it reads and edits code, runs shell commands, and connects to MCP servers using Gemini models. Use when someone asks to \"install Gemini CLI\", \"run gemini in a script\", \"set up GEMINI.md\", \"add an MCP server to Gemini CLI\", \"sandbox Gemini CLI\", or \"log in to Gemini CLI\". Covers current install, authentication (the unpaid Google-account tier ended 18 June 2026), headless mode, GEMINI.md, MCP, and sandboxing.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3954,7 +3966,7 @@
     {
       "name": "hardhat",
       "slug": "hardhat",
-      "description": "Develop and test Ethereum smart contracts with Hardhat. Use when a user asks to set up a Solidity development environment, test smart contracts, deploy to testnets, or debug Ethereum transactions.",
+      "description": "Hardhat 3 is a development environment for Ethereum smart contracts: it compiles Solidity, runs tests on a built-in simulated chain, deploys with Ignition and verifies on block explorers. Use when a user asks to set up a Solidity project, test or deploy smart contracts, fork mainnet, or check gas and coverage.",
       "category": "development",
       "tags": []
     },
@@ -4230,7 +4242,7 @@
     {
       "name": "i18next",
       "slug": "i18next",
-      "description": "Internationalize JavaScript apps with i18next. Use when adding translations, handling plurals, loading locale files dynamically, or i18n for React/Vue/Node.",
+      "description": "Internationalize JavaScript apps with i18next, the translation framework behind react-i18next. Use when adding translations, handling plurals, formatting numbers and currencies, loading locale files by namespace, detecting the user's language, or i18n for React, Node.js and vanilla JS.",
       "category": "development",
       "tags": [
         "i18next",
@@ -4341,7 +4353,7 @@
     {
       "name": "imgix",
       "slug": "imgix",
-      "description": "Optimize and transform images with imgix. Use when serving responsive images, implementing image CDN, adding real-time transformations, or optimizing Core Web Vitals with image delivery.",
+      "description": "Optimize and transform images with imgix, a real-time image CDN driven by URL parameters. Use when serving responsive images, implementing an image CDN, signing image URLs, adding real-time transformations, extracting video thumbnails, or optimizing Core Web Vitals with image delivery.",
       "category": "content",
       "tags": [
         "imgix",
@@ -4662,8 +4674,8 @@
     {
       "name": "kaboom",
       "slug": "kaboom",
-      "description": "You are an expert in Kaboom.js (now maintained as Kaplay), the beginner-friendly game library for making browser games quickly. You help developers build games using Kaboom's component-based entity system, built-in physics, sprite loading, scene management, and event system — where games can be built in under 100 lines of code while still supporting complex gameplay through composable components.",
-      "category": "Game Development",
+      "description": "Build 2D browser games in JavaScript with Kaboom.js, whose maintained successor is KAPLAY. Offers an entity-component system, built-in physics, sprite animation, scenes and ASCII-map levels. Use when a user asks for a quick browser game, a game-jam prototype, a platformer or a Kaboom/Kaplay project, or wants to migrate a Kaboom game to KAPLAY.",
+      "category": "development",
       "tags": []
     },
     {
@@ -4890,8 +4902,8 @@
     {
       "name": "langtrace",
       "slug": "langtrace",
-      "description": "You are an expert in Langtrace, the open-source observability platform for LLM applications built on OpenTelemetry. You help developers trace LLM calls, RAG pipelines, agent tool use, and chain executions with automatic instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+ providers — providing cost tracking, latency analysis, token usage, and quality evaluation in a self-hostable dashboard.",
-      "category": "AI & Machine Learning",
+      "description": "Langtrace is an open-source, OpenTelemetry-based observability platform for LLM applications that records traces, token usage, cost and latency for LLM, vector database and framework calls. Use when the user wants to trace OpenAI or Anthropic calls, debug a RAG pipeline or agent, group calls into one trace, collect user feedback on responses, or self-host an LLM tracing dashboard.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -5096,7 +5108,7 @@
     {
       "name": "linkerd",
       "slug": "linkerd",
-      "description": "Linkerd lightweight service mesh for Kubernetes. Use when the user needs automatic mTLS, traffic splitting, retries, and observability with minimal resource overhead and operational complexity.",
+      "description": "Linkerd is a lightweight service mesh for Kubernetes that adds automatic mTLS, retries, timeouts, traffic splitting, authorization policy and golden-metric observability without changing application code. Use when installing Linkerd, meshing a namespace, running a canary rollout, restricting which services can call each other, or linking clusters.",
       "category": "devops",
       "tags": []
     },
@@ -5195,7 +5207,7 @@
     {
       "name": "load-balancer",
       "slug": "load-balancer",
-      "description": "Configure and optimize load balancers and reverse proxies using Nginx, HAProxy, and cloud ALBs. Use when someone asks to \"set up load balancing\", \"configure Nginx reverse proxy\", \"set up HAProxy\", \"add SSL termination\", \"configure health checks\", \"proxy WebSocket connections\", \"rate limit traffic\", or \"set up failover\". Covers L4/L7 balancing, SSL, rate limiting, caching, WebSocket proxying, and health checks.",
+      "description": "Configures load balancers and reverse proxies with Nginx and HAProxy: upstream pools, least-connections balancing, HTTPS termination, health checks, rate limiting, sticky sessions and WebSocket proxying. Use when someone asks to \"set up load balancing\", \"configure an Nginx reverse proxy\", \"set up HAProxy\", \"add SSL termination\", \"configure health checks\", \"proxy WebSocket connections\", \"rate limit traffic\", or \"set up failover\".",
       "category": "devops",
       "tags": []
     },
@@ -5216,7 +5228,7 @@
     {
       "name": "log-analyzer",
       "slug": "log-analyzer",
-      "description": "Analyze application logs, server logs, and error traces to identify root causes, patterns, and anomalies. Use when debugging production incidents, investigating error spikes, parsing crash reports, or correlating events across multiple log sources. Trigger words: logs, errors, stack trace, crash, exception, debug, incident, 500 errors, timeout, latency spike.",
+      "description": "Analyzes application logs, server logs, and error traces to identify root causes, patterns, and anomalies. Use when debugging production incidents, investigating error spikes, parsing crash reports, or correlating events across multiple log sources. Trigger words: logs, errors, stack trace, crash, exception, debug, incident, 500 errors, timeout, latency spike.",
       "category": "devops",
       "tags": [
         "logs",
@@ -5623,7 +5635,7 @@
     {
       "name": "microsoft-teams",
       "slug": "microsoft-teams",
-      "description": "Build bots, automate workflows, and manage Microsoft Teams programmatically via Microsoft Graph API. Use when someone asks to \"build a Teams bot\", \"automate Teams messages\", \"create Teams channels\", \"integrate with Teams\", \"Teams webhook\", \"send Teams notifications\", \"manage Teams meetings\", or \"Teams app development\". Covers Graph API for messaging, channels, meetings, bots with Bot Framework, incoming webhooks, and Power Automate integration.",
+      "description": "Build bots, automate workflows, and manage Microsoft Teams programmatically via Microsoft Graph API. Use when someone asks to \"build a Teams bot\", \"automate Teams messages\", \"create Teams channels\", \"integrate with Teams\", \"Teams webhook\", \"send Teams notifications\", \"manage Teams meetings\", or \"Teams app development\". Covers Workflows webhooks (the replacement for discontinued Office 365 connectors), Graph API for channels and meetings, and bots with the Teams SDK.",
       "category": "development",
       "tags": []
     },
@@ -5744,7 +5756,7 @@
     {
       "name": "mlflow",
       "slug": "mlflow",
-      "description": "Open-source platform for managing the ML lifecycle. Track experiments with metrics and parameters, register and version models, deploy models to various targets, and build reproducible ML pipelines. Integrates with all major ML frameworks.",
+      "description": "MLflow is an open-source platform for tracking machine-learning experiments, versioning models in a registry and serving them as a REST API. Use it when the user wants to log parameters, metrics and artifacts, compare runs, register a model with aliases like \"production\", set up a shared tracking server, or serve a trained model locally. Covers MLflow 3 (name= in log_model, signatures, skops serialization for scikit-learn).",
       "category": "data-ai",
       "tags": []
     },
@@ -6004,7 +6016,7 @@
     {
       "name": "neo4j",
       "slug": "neo4j",
-      "description": "Neo4j is the leading graph database for connected data. Learn Cypher query language, node and relationship modeling, graph algorithms, and integration with Node.js using the official neo4j-driver.",
+      "description": "Neo4j is a graph database that stores nodes and relationships and is queried with Cypher. Use when a user asks to model connected data, write Cypher queries, find shortest paths or recommendations, create indexes and constraints, run Neo4j in Docker, or connect from Node.js or Python with the official drivers. Covers social graphs, fraud detection, knowledge graphs and vector search.",
       "category": "data-ai",
       "tags": []
     },
@@ -6058,7 +6070,7 @@
     {
       "name": "next-intl",
       "slug": "next-intl",
-      "description": "Internationalize Next.js apps with next-intl. Use when adding multi-language support, locale routing, date/number formatting, or translating UI content.",
+      "description": "next-intl adds internationalization to Next.js App Router apps: locale-prefixed routing, ICU message translation, and locale-aware date, number and list formatting in Server and Client Components. Use when the user asks to add multi-language support, translate a Next.js site, set up /de or /fr routes, switch language, or format dates and plurals per locale.",
       "category": "development",
       "tags": [
         "i18n",
@@ -6078,7 +6090,7 @@
     {
       "name": "nextjs",
       "slug": "nextjs",
-      "description": "Assists with building production-grade React applications using Next.js. Use when working with the App Router, Server Components, Server Actions, Middleware, or deploying to Vercel or self-hosted environments. Trigger words: nextjs, next.js, app router, server components, server actions, react framework, ssr, isr.",
+      "description": "Assists with building production-grade React applications using Next.js 16. Use when working with the App Router, Server Components, Server Actions, the proxy file (formerly middleware), Cache Components, or deploying to Vercel or self-hosted environments. Trigger words: nextjs, next.js, app router, server components, server actions, use cache, proxy.ts, react framework, ssr, isr.",
       "category": "development",
       "tags": [
         "nextjs",
@@ -6150,7 +6162,7 @@
     {
       "name": "nitro",
       "slug": "nitro",
-      "description": "Build server-side applications with Nitro — the engine behind Nuxt server routes and Analog. Use when someone asks to \"create an API server\", \"deploy to edge\", \"build server routes\", \"universal JavaScript server\", \"Nitro server\", \"deploy to Cloudflare Workers/Vercel/Netlify/Deno\", or \"isomorphic server\". Covers API routes, middleware, storage, caching, WebSocket, task scheduling, and deployment to 15+ platforms with zero config changes.",
+      "description": "Nitro is a server engine that builds file-routed web servers once and deploys them to Node.js, Bun, Deno, Cloudflare, Vercel, Netlify or AWS Lambda; it is the server layer of Nuxt. Use when someone asks to \"create an API server\", \"build server routes\", \"deploy to Cloudflare Workers, Vercel or Netlify\", \"universal JavaScript server\", or \"Nitro server\". Covers routes, middleware, storage, caching, scheduled tasks and presets.",
       "category": "development",
       "tags": [
         "server",
@@ -6579,8 +6591,8 @@
     {
       "name": "opentofu",
       "slug": "opentofu",
-      "description": "You are an expert in OpenTofu, the open-source fork of Terraform maintained by the Linux Foundation. You help developers and platform teams provision cloud infrastructure using HCL (HashiCorp Configuration Language), with full compatibility with existing Terraform modules, state files, and providers — plus new features like client-side state encryption, OCI registry support, and removed BSL license restrictions.",
-      "category": "Infrastructure & DevOps",
+      "description": "OpenTofu is the open-source (MPL-2.0, Linux Foundation) fork of Terraform: it provisions cloud infrastructure from HCL files with the `tofu` command and reads existing Terraform configurations, providers and state. Use when someone asks to \"set up OpenTofu\", \"migrate from Terraform to OpenTofu\", \"encrypt Terraform state\", \"write a tofu module\", \"add tests to my infrastructure code\", or \"store state in S3 with locking\".",
+      "category": "devops",
       "tags": []
     },
     {
@@ -6678,7 +6690,7 @@
     {
       "name": "otel-js",
       "slug": "otel-js",
-      "description": "Instrument Node.js apps with OpenTelemetry. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices.",
+      "description": "OpenTelemetry for Node.js adds distributed tracing and metrics to a service and exports them over OTLP to any backend. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices. Covers the current SDK (resourceFromAttributes, ESM loader hook, OTLP endpoint rules).",
       "category": "devops",
       "tags": []
     },
@@ -7079,7 +7091,7 @@
     {
       "name": "pinecone",
       "slug": "pinecone",
-      "description": "Pinecone is a managed vector database for AI and machine learning applications. Learn to create indexes, upsert embeddings, query by similarity, use namespaces and metadata filtering for semantic search and RAG pipelines.",
+      "description": "Pinecone is a managed vector database for AI applications. Use it to create serverless indexes, upsert embeddings or text records, query by similarity, split data into namespaces, filter on metadata, and build semantic search and RAG pipelines with the Node.js or Python SDK.",
       "category": "data-ai",
       "tags": []
     },
@@ -7241,7 +7253,7 @@
     {
       "name": "porter",
       "slug": "porter",
-      "description": "Expert guidance for Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.",
+      "description": "Porter is a platform as a service that gives a Heroku-style deploy experience on your own AWS, GCP or Azure account, running apps on a managed Kubernetes cluster it provisions for you. Use when someone asks to deploy an app on Porter, write a porter.yaml, run `porter apply`, tail logs, run a one-off command, set environment groups, add Postgres or Redis, set up preview environments, or deploy from CI.",
       "category": "devops",
       "tags": []
     },
@@ -7578,7 +7590,7 @@
     {
       "name": "pydantic",
       "slug": "pydantic",
-      "description": "Validate and serialize data with Pydantic. Use when a user asks to validate API inputs, parse JSON/env config, define data models in Python, serialize objects, or implement data validation with type hints.",
+      "description": "Pydantic validates and serializes Python data using type hints: define a model class and it parses, coerces and checks input, then dumps it back to dicts or JSON. Use when a user asks to validate API request bodies, parse JSON, load typed settings from environment variables, define data models, write custom validators, parse tagged unions of event types, or migrate code from Pydantic v1 to v2.",
       "category": "development",
       "tags": []
     },
@@ -7839,8 +7851,8 @@
     {
       "name": "recoil",
       "slug": "recoil",
-      "description": "You are an expert in Recoil, the state management library by Meta for React applications. You help developers manage application state with atoms (shared state units), selectors (derived/async state), and atom families — providing a graph-based state model that integrates naturally with React's concurrent features, avoids unnecessary re-renders, and handles async data fetching as first-class state.",
-      "category": "Frontend Development",
+      "description": "Recoil is Meta's atom-and-selector state management library for React. The repository was archived in January 2025 and the library does not run on React 19, so use this skill to maintain existing React 18 or older apps. Use when the user has code with atom, selector, useRecoilState or RecoilRoot, asks how Recoil atoms, selectors and families work, or wants to migrate away from Recoil.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7872,9 +7884,15 @@
     {
       "name": "redis-om",
       "slug": "redis-om",
-      "description": "You are an expert in Redis OM (Object Mapping), the high-level client for working with Redis as a primary database. You help developers define schemas, store JSON documents, perform full-text search, vector similarity search, and build real-time applications — using Redis Stack's JSON, Search, and Vector capabilities through an ORM-like interface instead of raw commands.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Redis OM maps JavaScript or Python objects to Redis JSON documents or hashes and builds RediSearch indexes from the schema, so you can save, fetch and search entities without raw Redis commands. Use when you need to model data in Redis as a primary database, add full-text, tag, numeric or geo search to Redis data, or set up redis-om in Node.js (TypeScript) or Python (FastAPI, Pydantic).",
+      "category": "development",
+      "tags": [
+        "redis",
+        "orm",
+        "search",
+        "json",
+        "database"
+      ]
     },
     {
       "name": "referral-program",
@@ -8341,7 +8359,7 @@
     {
       "name": "semantic-release",
       "slug": "semantic-release",
-      "description": "Automate versioning and package publishing with semantic-release. Use when a user asks to automate npm publishing, generate changelogs, handle semantic versioning in CI, or automate GitHub releases.",
+      "description": "Automates versioning and publishing: reads commit messages, picks the next semantic version, writes release notes and a changelog, tags the commit, publishes to npm and creates the GitHub release. Use when a user asks to automate npm publishing, set up semantic-release in GitHub Actions, generate a CHANGELOG, or stop bumping versions by hand.",
       "category": "development",
       "tags": []
     },
@@ -8724,7 +8742,7 @@
     {
       "name": "spring-boot",
       "slug": "spring-boot",
-      "description": "Spring Boot is a Java framework that simplifies building production-ready applications. It provides auto-configuration, embedded servers, and opinionated defaults for REST APIs, data access with JPA, security, and monitoring via Actuator.",
+      "description": "Spring Boot is a Java framework for building production-ready applications: auto-configuration, embedded servers and opinionated defaults for REST APIs, JPA data access, Spring Security and Actuator monitoring. Use when a user asks to create a Spring Boot project, build a REST API with JPA and Flyway, secure it with JWT, or write MockMvc tests. Covers Spring Boot 4 (Spring Framework 7).",
       "category": "development",
       "tags": []
     },
@@ -8751,7 +8769,7 @@
     {
       "name": "sqlite",
       "slug": "sqlite",
-      "description": "SQLite is a self-contained, serverless, zero-configuration embedded SQL database engine. Learn CLI usage, Node.js integration with better-sqlite3, Python's built-in sqlite3 module, and best practices for schema design, indexing, and WAL mode.",
+      "description": "SQLite is a serverless, zero-configuration embedded SQL database that keeps a whole database in one file. Use when creating or querying a .db file with the sqlite3 shell, importing CSV, using SQLite from Node.js (better-sqlite3) or Python (sqlite3), turning on WAL mode and foreign keys, adding FTS5 full-text search, or taking a safe backup.",
       "category": "data-ai",
       "tags": []
     },
@@ -8859,8 +8877,8 @@
     {
       "name": "step-functions",
       "slug": "step-functions",
-      "description": "You are an expert in AWS Step Functions, the serverless orchestration service for building workflows as state machines. You help developers coordinate Lambda functions, API calls, and AWS services using visual workflows with branching, parallel execution, error handling, retries, and human approval steps — building reliable, observable distributed systems without custom orchestration code.",
-      "category": "Cloud & Serverless",
+      "description": "AWS Step Functions runs serverless workflows defined as state machines in Amazon States Language (ASL): Lambda and direct AWS service calls with branching, parallel and map steps, retries, error catching and human approval callbacks. Use when a user wants to orchestrate Lambda functions, build an AWS workflow or saga, add retries and error handling to a multi-step process, wait for an approval, or write ASL JSON with JSONata.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -9012,7 +9030,7 @@
     {
       "name": "svelte",
       "slug": "svelte",
-      "description": "You are an expert in Svelte 5 and SvelteKit 2. You help developers build web applications using runes ($state, $derived, $effect, $props, $bindable, $inspect), snippets, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM. Use when building Svelte apps, migrating from Svelte 4, or working with SvelteKit.",
+      "description": "Svelte is a compiler-based UI framework that turns components into minimal vanilla JavaScript with no virtual DOM; SvelteKit adds routing, SSR and deployment adapters. Covers Svelte 5 runes ($state, $derived, $effect, $props, $bindable, $inspect), snippets, stores, transitions and actions, plus SvelteKit 3 setup. Use when building Svelte apps, migrating from Svelte 4, or working with SvelteKit.",
       "category": "development",
       "tags": [
         "svelte",
@@ -9025,7 +9043,7 @@
     {
       "name": "sveltekit",
       "slug": "sveltekit",
-      "description": "Assists with building full-stack web applications using SvelteKit. Use when creating Svelte apps with file-based routing, server-side rendering, form actions, or API endpoints. Trigger words: sveltekit, svelte, svelte routing, form actions, svelte hooks, svelte adapter, svelte load function.",
+      "description": "Assists with building full-stack web applications using SvelteKit, the Svelte framework with file-based routing, server-side rendering, form actions and API endpoints. Use when creating or upgrading a SvelteKit app, writing load functions, form actions, hooks or +server.ts endpoints, or picking an adapter. Trigger words: sveltekit, svelte, svelte routing, form actions, svelte hooks, svelte adapter, svelte load function, sveltekit 3.",
       "category": "development",
       "tags": [
         "sveltekit",
@@ -9234,8 +9252,8 @@
     {
       "name": "tanstack-query",
       "slug": "tanstack-query",
-      "description": "You are an expert in TanStack Query (formerly React Query), the data-fetching and server state management library. You help developers build React applications with automatic caching, background refetching, optimistic updates, pagination, infinite scroll, and offline support — replacing manual `useEffect` + `useState` patterns with declarative, type-safe data fetching hooks.",
-      "category": "Frontend Development",
+      "description": "TanStack Query (formerly React Query) fetches, caches and updates server data in React apps, replacing hand-written useEffect + useState fetching. Use it when the user wants caching, background refetching, mutations with optimistic updates, infinite scroll, Suspense or Next.js server prefetching with v5 hooks such as useQuery, useMutation and useInfiniteQuery.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9559,9 +9577,15 @@
     {
       "name": "tinacms",
       "slug": "tinacms",
-      "description": "Expert guidance for TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.",
+      "description": "TinaCMS is an open-source headless CMS that keeps content as Markdown, MDX or JSON files in your Git repository and gives editors a visual editing interface. Use when you need to set up TinaCMS in a Next.js site, define collections and fields in tina/config.ts, query content with the generated GraphQL client, or add live visual editing for a blog or marketing pages.",
       "category": "content",
-      "tags": []
+      "tags": [
+        "cms",
+        "headless-cms",
+        "git-backed",
+        "markdown",
+        "visual-editing"
+      ]
     },
     {
       "name": "tinybase",
@@ -9627,7 +9651,7 @@
     {
       "name": "trading-agents",
       "slug": "trading-agents",
-      "description": "Build multi-agent LLM trading systems for financial analysis and automated trading decisions. Use when: building AI-powered investment research, automating financial analysis pipelines, creating multi-agent systems that analyze markets, news, and fundamentals.",
+      "description": "TradingAgents is an open-source multi-agent LLM framework that analyzes a stock or crypto ticker with analyst, bull/bear researcher, trader, risk and portfolio-manager agents and returns a rated trading decision. Use when running TradingAgents from its CLI or Python API, configuring its LLM providers and data vendors, backtesting its past decisions, or building a similar multi-agent financial analysis pipeline with LangGraph.",
       "category": "data-ai",
       "tags": [
         "trading",
@@ -9728,7 +9752,7 @@
     {
       "name": "turborepo",
       "slug": "turborepo",
-      "description": "Assists with managing JavaScript/TypeScript monorepos using Turborepo. Use when configuring build pipelines, setting up caching, pruning workspaces for Docker, or optimizing CI/CD for monorepo projects. Trigger words: turborepo, turbo, monorepo, pipeline, workspace, remote cache, turbo.json.",
+      "description": "Turborepo is a build system for JavaScript/TypeScript monorepos that caches task outputs and runs tasks in dependency order. Use when configuring build pipelines, setting up caching, pruning workspaces for Docker, or optimizing CI/CD for monorepo projects. Trigger words: turborepo, turbo, monorepo, pipeline, workspace, remote cache, turbo.json.",
       "category": "development",
       "tags": [
         "turborepo",
@@ -10599,7 +10623,7 @@
     {
       "name": "xano",
       "slug": "xano",
-      "description": "Expert guidance for Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.",
+      "description": "Xano is a no-code/low-code backend platform for building REST APIs, a PostgreSQL database and user authentication without server code. Use when someone asks to \"build a backend with Xano\", \"create a Xano API\", \"write XanoScript\", \"add login and signup to Xano\", \"connect a frontend to Xano\", or \"manage a Xano workspace from the CLI\". Covers tables, API endpoints, auth, background tasks, webhooks, and the Xano CLI and Developer MCP for working with AI agents.",
       "category": "development",
       "tags": []
     },
@@ -10797,7 +10821,6 @@
     "Data Engineering",
     "Developer Tools",
     "Frontend Development",
-    "Game Development",
     "Infrastructure & DevOps",
     "Marketing & Growth",
     "Web Development",
@@ -10815,5 +10838,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T14:50:54.039Z"
+  "updatedAt": "2026-10-24T20:19:47.993Z"
 }

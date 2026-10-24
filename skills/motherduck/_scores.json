@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:09993a5bfc62ddde4bbca4115bf07db6df511c310c227fd2bea1b2830f680793",
-  "scoredAt": "2026-05-13T09:37:36.939Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:345063eb7de9e990c3921ee292c7cc59109ff2c28e2d6cac603ed75457d68e4a",
+  "scoredAt": "2026-10-24T19:32:47.366Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in instructions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to MotherDuck, not generic across AI agents."
+        "detail": "The skill does not cover error handling or edge cases such as missing tokens or network failures."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "External data sources are loaded without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 92,
-    "multiplier": 2.04,
+    "multiplier": 9.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Hybrid local-cloud join in Python",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Treatment uses the exact md:analytics connection plus single-query JOIN of cloud table with read_parquet on local file, while baseline falls back to two-step export/import patterns."
+        "name": "load-csv-and-summarize",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A closely follows the rubric with the correct CREATE OR REPLACE TABLE syntax and a .df() result, though it uses a different column name; Response B diverges from the required syntax, column names, and lacks a .df()/.show() display."
       },
       {
-        "name": "Daily KPI materialization script",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment mirrors the CREATE OR REPLACE TABLE daily_kpis pattern with conditional aggregates and 90-day filter on md:analytics, while baseline writes generic SQL without MotherDuck connection idioms."
+        "name": "share-database-with-finance",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items; Response A does not."
+      },
+      {
+        "name": "incremental-load-from-s3",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the exact INSERT statement required by the rubric, while Response A does not."
       }
     ]
   }

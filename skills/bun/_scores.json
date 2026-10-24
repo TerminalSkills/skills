@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:307d8de608a44a0da19a8e78b6a76b5a6998120825c32d565eaaa7b4219cf68c",
-  "scoredAt": "2026-05-13T14:59:05.925Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:4bc3fd40034023382058afda7fbb4ed5a048acc45dd30ee8eb7874efb63c80b7",
+  "scoredAt": "2026-10-24T20:16:05.014Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Bun is installed, limiting cross-platform applicability."
+        "detail": "The instructions do not cover error scenarios or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.31,
-    "baselineAvg": 65,
-    "treatmentAvg": 85,
+    "multiplier": 1.03,
+    "baselineAvg": 75,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "bundle-typescript-library",
-        "baseline": 50,
-        "treatment": 70,
-        "rationale": "Both responses miss the required Bun.build() call, but B includes all necessary flags and treeshake, making it more complete."
+        "name": "init-bun-prisma-project",
+        "baseline": 60,
+        "treatment": 65,
+        "rationale": "Both responses omit the required dev‑dependency flag, but A provides a clearer path resolution and script execution, giving it a slightly higher score."
       },
       {
-        "name": "write-bun-tests",
-        "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, including mock.module(), while Response A uses vi.mock instead of mock.module() and thus misses a key element."
+        "name": "migrate-node-express-to-bun",
+        "baseline": 65,
+        "treatment": 75,
+        "rationale": "Response A covers more rubric items, including bun install and script updates, but misses node_modules deletion; Response B omits bun install and node_modules deletion, making it slightly less complete."
+      },
+      {
+        "name": "bundle-react-app-with-bun",
+        "baseline": 100,
+        "treatment": 90,
+        "rationale": "Response A directly provides the required bun build command with all flags, while Response B achieves the same via a script, slightly less concise."
       }
     ]
   }

@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:93835bbbac83457e925312b7ec3bc49f2257ae7db095cca3eaa554e863c30486",
-  "scoredAt": "2026-05-13T16:30:36.707Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:d9009141b84419eae2b8fbccd10fa194890506fc734c6f95674528f98d85ccb8",
+  "scoredAt": "2026-10-24T19:08:25.825Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases in the code example or installation instructions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one code example is provided, lacking multiple realistic demonstrations."
+        "detail": "The instructions cover some error scenarios but do not comprehensively address all potential error cases and edge conditions."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Uses curl to download and pipe a shell script from an external source without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 3,
-    "baselineAvg": 25,
-    "treatmentAvg": 75,
+    "multiplier": 9.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "deploy-counter-api",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response B covers most rubric items but uses a different project name, while Response A lacks key elements such as Hono, JSON responses, and deploy commands."
+        "name": "create-app-with-kv-and-prod-deploy",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A omits all required commands and flags."
       },
       {
-        "name": "cron-cleanup-urls",
-        "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response B meets the core Deno.cron, KV, and deployctl requirements (though project name differs), while Response A uses Cloudflare Workers instead of Deno.cron and omits the required deployctl command."
+        "name": "add-env-vars-with-secret-and-load-file",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with all required commands and context, while Response A provides no content."
+      },
+      {
+        "name": "add-cron-job-before-serve",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different KV import and setInterval instead of Deno.cron, missing key requirements."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c5a4283bfc17505aaa5655a4fcb05d222f498fea2c53c9d1112de836e7ffe25a",
-  "scoredAt": "2026-05-13T13:58:19.778Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:ba348970bb4dd862d5218814c1f7df8b3e419e80311e50c013c5751a7a88f097",
+  "scoredAt": "2026-10-24T18:50:53.560Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file focuses on happy path scenarios and does not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "lazy-loaded-standalone-article-list",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A satisfies all rubric items, while Response B is a Svelte component and does not meet the Angular-specific requirements."
+        "name": "create-project-with-lazy-route",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric items, while Response A misses the exact commands, path, and standalone requirements."
       },
       {
-        "name": "functional-auth-guard",
+        "name": "auth-guard-interceptor-setup",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A is an Express middleware unrelated to Angular guards."
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a class-based guard, NgModule configuration, and omits the required functional guard and interceptor signatures."
+      },
+      {
+        "name": "signal-based-search-component",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items but omits the standalone flag, whereas Response B provides no content."
       }
     ]
   }

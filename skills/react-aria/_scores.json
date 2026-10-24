@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:80bad66df5c9579cadd9200b9b178082a0feca6301b889ce4ee78df7e25f783e",
-  "scoredAt": "2026-05-13T10:00:27.407Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:80f0d74b55b7ccf25aaf79e267e5bbd0b9398ff3d53faac2c4dbe3b44cd30e27",
+  "scoredAt": "2026-10-24T19:50:36.718Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions only cover happy path examples and do not address error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a React 18+ environment, limiting its applicability to other frameworks or platforms."
+        "detail": "The instructions lack coverage of error scenarios and edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 94,
-    "multiplier": 3.92,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Accessible select dropdown",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Treatment composes react-aria-components Select/Label/Button/Popover/ListBox/ListBoxItem with onSelectionChange and inherits keyboard + screen-reader behavior; baseline rolls a custom combobox with manual ARIA attributes that misses the primitive composition the rubric requires."
+        "name": "accessible-role-select",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by using the required react-aria-components and wiring callbacks, while Response B does not use any of the specified components."
       },
       {
-        "name": "Modal focus trap",
-        "baseline": 22,
-        "treatment": 95,
-        "rationale": "Treatment wraps the dialog in FocusScope with contain/restoreFocus/autoFocus exactly as documented; baseline implements a manual tab-key focus trap that does not match the React Aria FocusScope pattern the rubric checks for."
+        "name": "live-validation-signin-form",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not use the required react-aria-components."
+      },
+      {
+        "name": "focus-trapping-delete-dialog",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required components and behavior, while Response B does not use any react-aria-components and thus fails to meet the specifications."
       }
     ]
   }

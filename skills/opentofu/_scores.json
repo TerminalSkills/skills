@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:135e61fe0bec4a094f327274bfccc8657e24b54197df5c760fcd17d74116a305",
-  "scoredAt": "2026-05-13T09:45:50.835Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f53e1c35c0d2b10f57bab856815c39dc391d9d6d9c26e3ba39bc7340a99b23a6",
+  "scoredAt": "2026-10-24T19:42:40.986Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The instructions do not cover error scenarios or edge cases, limiting completeness."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Installation script fetched via curl without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 97,
-    "multiplier": 1.94,
+    "multiplier": 3.9,
+    "baselineAvg": 20,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "Enable client-side state encryption with AWS KMS for production",
-        "baseline": 30,
-        "treatment": 98,
-        "rationale": "Baseline reached for S3 server-side encryption — the wrong feature — and missed OpenTofu's exclusive encryption block, key_provider, aes_gcm method, and enforced state stanza that the treatment delivered."
+        "name": "install-opentofu-macos",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to use the required commands and output format."
       },
       {
-        "name": "Import an existing S3 bucket and stand up production-ready ECS Fargate",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Baseline used `terraform import` and hard-coded desired_count; treatment used `tofu import` and the environment-conditional desired_count pattern while matching the FARGATE service shape."
+        "name": "configure-s3-backend-with-variables",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but uses a different variable name, while Response B fails to include the required use_lockfile setting and does not use the variable in the backend block."
+      },
+      {
+        "name": "add-vpc-subnet-test",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B is closer to the rubric, providing the required HCL structure and assertion, though it misnames the file and run block; Response A fails to meet the rubric entirely."
       }
     ]
   }

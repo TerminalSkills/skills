@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2688794282735240eb5f3f1cc91c2ad4fee3f46a24f09544353486030f858b7f",
-  "scoredAt": "2026-05-13T14:34:11.152Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8bd95bc0f679fb7c46ba271a2a802a0f9cf1f78fd95daaefae7f49a62bcd5740",
+  "scoredAt": "2026-10-24T18:57:39.123Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Azure and assumes specific tools, limiting cross-platform applicability."
+        "detail": "The skill is vendor-locked to Azure Functions and does not support other platforms."
       }
     ]
   },
@@ -32,21 +37,15 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
+    "multiplier": 2.75,
     "baselineAvg": 20,
-    "treatmentAvg": 80,
+    "treatmentAvg": 55,
     "scenarios": [
       {
-        "name": "create-hourly-timer-function",
+        "name": "blob-trigger-image-processing",
         "baseline": 20,
-        "treatment": 60,
-        "rationale": "Response A covers most rubric items (Node.js code, schedule, handler, func new) but misses func init and exact naming; Response B is in C# and omits all required Node.js elements."
-      },
-      {
-        "name": "setup-order-orchestrator",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A omits key activities and uses the wrong starter pattern."
+        "treatment": 55,
+        "rationale": "Response A covers most rubric items but misses the exact storage account name, SKU, and publish command; Response B fails to meet key requirements such as the correct trigger syntax, runtime, and deployment details."
       }
     ]
   }

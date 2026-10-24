@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:23386a9861314fb66b4539c6a04f6dd18f575d823c3976561a9c4d852a4ad617",
-  "scoredAt": "2026-05-13T09:19:09.735Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:25766bb627dde6d2de3d6016b581bae4794b2568c212df0ececed1cb2078c526",
+  "scoredAt": "2026-10-24T19:23:04.339Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, focusing only on happy path examples."
+        "detail": "The instructions do not cover error handling or edge cases for asset loading and runtime failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 88,
-    "multiplier": 2.1,
+    "multiplier": 4.28,
+    "baselineAvg": 18,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Simple platformer with coin pickup",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Baseline used a generic canvas/Phaser-style loop without the kaplay component array, body(), area(), onCollide, or isGrounded() patterns the rubric requires; treatment composed the entity from component array, used onCollide for coins, and gated jump on isGrounded()."
+        "name": "basic-platformer",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A provides no content."
       },
       {
-        "name": "Patrolling enemy as a reusable component",
-        "baseline": 38,
-        "treatment": 86,
-        "rationale": "Baseline wrote a class with setInterval-style movement and no plug-in component shape; treatment defined a function returning {id, add, update} and mounted it inside the component array next to body()/area() with a tag, matching the documented custom-component pattern."
+        "name": "kaboom-to-kaplay-migration",
+        "baseline": 55,
+        "treatment": 70,
+        "rationale": "Response B addresses more rubric items, including prefixing global functions, whereas Response A omits gravity handling and prefixing."
+      },
+      {
+        "name": "ascii-level-with-patrolling-enemy",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits enemy spawning loop and collision detection, while Response B provides no content."
       }
     ]
   }

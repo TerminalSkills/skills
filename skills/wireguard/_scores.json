@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:90ac7564176c66665ba7f279f1f29cb7f7c6940b7ce9f561eea10c66e3082520",
-  "scoredAt": "2026-05-13T10:37:40.438Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d3731ba023bfab436490e0364c8377bb6603e5f70970d4a8ce45e086a7549afc",
+  "scoredAt": "2026-10-24T20:11:21.636Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,41 +18,41 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error handling or edge cases."
+        "detail": "The instructions lack explicit error handling or edge case guidance."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes Debian/Ubuntu and iptables, not cross-platform."
+        "detail": "The skill is tailored to Linux environments and does not support other operating systems."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "Installs Pi-hole via curl piped to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 89,
-    "multiplier": 1.62,
+    "multiplier": 2.02,
+    "baselineAvg": 42,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Automated peer provisioning script",
-        "baseline": 52,
-        "treatment": 90,
-        "rationale": "Treatment followed the documented add-peer.sh pattern using wg set wg0 peer with preshared-key, derived next IP from existing AllowedIPs, and emitted qrencode -t ansiutf8 output; baseline produced peer keys but lacked live wg set and QR rendering."
+        "name": "split-tunnel-with-qr",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B provides no relevant content."
       },
       {
-        "name": "Site-to-site tunnel between two offices",
-        "baseline": 58,
-        "treatment": 88,
-        "rationale": "Treatment correctly placed both LAN CIDRs and tunnel /32 in AllowedIPs on each side, enabled IP forwarding and FORWARD iptables, and omitted PersistentKeepalive on server-to-server links per the skill's guidance; baseline used AllowedIPs = 0.0.0.0/0 which breaks site-to-site routing."
+        "name": "office-site-to-site",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A omits the ufw rule for UDP 51820 and is slightly less comprehensive."
+      },
+      {
+        "name": "pi-hole-dns-integration",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Response A provides more comprehensive steps and starts WireGuard before Pi‑hole, but both miss key rubric items such as pihole‑FTL dns.listeningMode, explicit client DNS setting to 10.10.0.1, and monitoring commands; A covers more of the required content."
       }
     ]
   }

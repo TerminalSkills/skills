@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e004d94b10185f03f87d4c5f57bc42a8ea7ea0bb6b598af0f010cb38cf45e26e",
-  "scoredAt": "2026-05-13T08:52:30.479Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d7c9056a61b92bde1113b710a72a6e283742ec8f61adbcb1273b188d7fb81c1c",
+  "scoredAt": "2026-10-24T19:11:53.457Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is implemented in Node.js, limiting cross-platform compatibility."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 4.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Export icon nodes as 2x SVG from a Figma file",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented /v1/images/{fileKey} endpoint with ids, format=svg, scale=2 and X-Figma-Token header exactly as in SKILL.md; baseline picks a plausible but incorrect endpoint shape and omits the scale param."
+        "name": "extract-design-tokens",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items (fetch, retry, parsing, typing) but omits the required geometry=paths query; Response B is incomplete and lacks all required functionality."
       },
       {
-        "name": "Extract color and typography design tokens from a Figma file",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment walks figmaFile.document recursively, reads node.styles.fill / node.fills[0].color, converts rgba->hex, and pulls TEXT node.style fields per SKILL.md; baseline produces vague pseudocode without the styles-map indirection."
+        "name": "export-asset-png",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric: correct API call, proper handling of null URLs, correct file naming, and use of node:fs/promises; Response A fails to name files correctly and does not properly log null URLs."
+      },
+      {
+        "name": "figma-webhook-file-update",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with correct endpoint, payload fields, and a timing-safe passcode check; Response B uses the wrong API endpoint, incorrect payload structure, and a non-timing-safe passcode comparison, failing to satisfy the rubric."
       }
     ]
   }

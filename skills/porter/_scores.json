@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:39d85ab81f9ae3f29fae65347d7bf267b19cb8d2cd166fef704a986ddc5dc9ba",
-  "scoredAt": "2026-05-13T09:52:12.186Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f818ba974605a54434222130372ababf4bfb6e5c999094dc0fa5b8756e7e1f21",
+  "scoredAt": "2026-10-24T19:46:03.020Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, limiting guidance for troubleshooting."
+        "detail": "The skill does not cover all error scenarios and edge cases, such as handling invalid YAML or missing required fields."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The file contains extensive explanatory text that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The installation instructions use macOS-specific brew commands, restricting compatibility with other platforms."
+        "detail": "The skill contains extensive explanatory text that may be considered padded, reducing conciseness."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 86,
-    "multiplier": 1.91,
+    "multiplier": 7.8,
+    "baselineAvg": 2,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "porter.yaml for web + worker + cron with autoscaling",
-        "baseline": 48,
-        "treatment": 88,
-        "rationale": "Treatment authored a version: v2 porter.yaml declaring web/worker/job service types, autoscaling with targetCPU, a predeploy migrate step, and secret: true env vars, matching the skill's schema; baseline produced raw Kubernetes manifests with no Porter primitives."
+        "name": "deploy-node-api-with-worker-and-job",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Porter at all."
       },
       {
-        "name": "Per-PR preview environments with isolated database",
-        "baseline": 42,
-        "treatment": 84,
-        "rationale": "Treatment enabled previews in porter.yaml with addons of type postgresql and per-app predeploy migrate+seed using the documented preview block; baseline manually scripted namespace-per-branch in kubectl with no Porter preview configuration."
+        "name": "add-redis-datastore-and-redeploy-with-tag",
+        "baseline": 5,
+        "treatment": 35,
+        "rationale": "Response A partially meets the redeploy and envGroups requirements but omits the required addons section and configuration, while Response B fails to address Porter at all."
+      },
+      {
+        "name": "run-one-off-seed-and-rollback-on-failure",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with the required commands and logic, while Response A provides no content."
       }
     ]
   }

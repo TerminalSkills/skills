@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5ff5a7556e1a06399e3db275fdfe6b48fd3b57e74b9db701cc15fd99b7105cb4",
-  "scoredAt": "2026-05-13T09:21:42.409Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d3800fa66069c5a21c3599d94e0f5d99338a909517040789947ebb6e2d205b79",
+  "scoredAt": "2026-10-24T19:25:10.799Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 86,
-    "multiplier": 3.07,
+    "multiplier": 4.09,
+    "baselineAvg": 22,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Add automatic LLM tracing to a TypeScript app that uses OpenAI and Pinecone",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment calls Langtrace.init from @langtrase/typescript-sdk with batch:true and per-provider instrumentations (openai, pinecone) before SDK imports as the skill documents; baseline writes manual OpenTelemetry spans or generic logging and misses the auto-instrumentation pattern."
+        "name": "trace-support-chat-with-feedback",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A does not mention Langtrace at all."
       },
       {
-        "name": "Trace a Python RAG pipeline as a single grouped trace with custom user-tier attributes",
-        "baseline": 25,
-        "treatment": 84,
-        "rationale": "Treatment uses @with_langtrace_root_span for the RAG function and @with_additional_attributes for user.tier/feature tagging from langtrace_python_sdk; baseline writes its own span context manager and lacks the documented root-span + additional-attributes decorators."
+        "name": "debug-rag-pipeline-console",
+        "baseline": 15,
+        "treatment": 90,
+        "rationale": "Response B fully satisfies the rubric with correct init parameters, root span wrapping, and console output, whereas Response A uses a different tracer and lacks the required init and wrapping."
+      },
+      {
+        "name": "self-host-dashboard-custom-otlp",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response B covers the cloning, .env editing, docker compose, SDK init with api_host and custom_remote_exporter, and init before importing OpenAI, while Response A lacks several key steps."
       }
     ]
   }

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ff9a560124267b475f08a9e9b535e87d615d1403aa8420f8a778d489eb72b905",
-  "scoredAt": "2026-05-13T15:59:25.156Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9e95855487a1eb1b88bffebac051244349b5659adc6765be0f92a2cb08156d82",
+  "scoredAt": "2026-10-24T19:06:10.217Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The instructions focus on happy paths and do not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Convex and Node.js, making it unsuitable for other AI agents."
       }
     ]
   },

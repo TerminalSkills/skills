@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d88ce55d8c627b502b2167f03e2d6e2ec457398f4c0a55b4cf652ea91d07bc11",
-  "scoredAt": "2026-05-13T09:46:41.016Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2bf59f31dc1cd46929729a0f952a26e17e931bf55f370fab7ee8752e095f4b5c",
+  "scoredAt": "2026-10-24T19:43:36.869Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling for installation or runtime failures."
+        "detail": "The instructions do not cover error handling or edge cases such as missing environment variables or instrumentation failures."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is limited to Node.js environments and does not support other runtimes."
+        "detail": "The skill is specific to Node.js and relies on Node-specific modules, making it vendor-locked and not cross-platform."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.60,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Auto-instrument an Express + Postgres API",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment wires NodeSDK with getNodeAutoInstrumentations, OTLPTraceExporter pointed at /v1/traces, ignoreIncomingPaths for /health and /ready, and loads via `node --import ./instrumentation.ts`, while baseline tends to register instrumentation after app import and misses the OTLP endpoint pattern."
+        "name": "instrument-fastify-with-custom-db-span",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B omits key elements such as resource attributes, metric exporter, proper instrumentation setup, and custom span handling."
       },
       {
-        "name": "Trace order processing with payment child span",
-        "baseline": 55,
-        "treatment": 87,
-        "rationale": "Treatment uses tracer.startActiveSpan with nested chargePayment span, setAttribute, recordException, and SpanStatusCode.ERROR on failure, while baseline relies on console logs or a flat span without recordException/status propagation."
+        "name": "send-traces-to-honeycomb-with-env-headers",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric; Response A is missing."
+      },
+      {
+        "name": "run-esm-express-with-otlp-loader",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully meets rubric, B does not."
       }
     ]
   }

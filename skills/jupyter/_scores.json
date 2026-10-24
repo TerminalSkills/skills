@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:221beb8c5645a934fb26617952b5eb228744cab0b4363494c8f0d62ac230a41e",
-  "scoredAt": "2026-05-13T09:18:38.955Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:dee56475a87f306334827ac3f02b7a5e088694f5294a0a020bf67d0e78630cdd",
+  "scoredAt": "2026-10-24T19:21:41.346Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "crossPlatform",
+        "detail": "Installation instructions use Unix-style paths, which may not work on Windows environments."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 94,
-    "multiplier": 2.19,
+    "multiplier": 4.23,
+    "baselineAvg": 22,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Parameterized weekly EDA notebook",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline suggests generic pandas EDA and may mention nbconvert but omits papermill, --no-input, and jupytext/nbstripout; treatment hits all three rubric checks."
+        "name": "pdf-report-with-chromium",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric while Response A is empty."
       },
       {
-        "name": "Reproducible kernel environment for shared notebooks",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline reaches for requirements.txt/Docker but misses the ipykernel install command, %pip in first cell, and Restart-and-Run-All workflow that the skill prescribes."
+        "name": "papermill-weekly-reports",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no content."
+      },
+      {
+        "name": "custom-kernel-jupytext-sync",
+        "baseline": 65,
+        "treatment": 80,
+        "rationale": "Response A includes the required set-formats and sync commands and the kernel registration, but omits the %pip cell and kernel confirmation; Response B lacks the set-formats command and the %pip cell, making it slightly less complete."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7f8195286d8c387b585068ecbbc5345d6759d54924eff1b3db1ddd134aa839db",
-  "scoredAt": "2026-05-13T09:57:20.156Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:939761021bd39732d38ac43821b20c6dcb5112d6a32d075415b3592fb6d20cd3",
+  "scoredAt": "2026-10-24T19:48:36.121Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 1.73,
+    "baselineAvg": 52,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Create product vision and strategy for a remote-design PM tool",
-        "baseline": 25,
-        "treatment": 93,
-        "rationale": "Baseline collapses into feature lists with no pillars or DHM test; treatment builds the full top-down Strategy Stack (Mission, Vision, Pillars, quarterly Outcomes, Features last) and applies DHM (Delight, Hard-to-copy, Margin-enhancing) to each pillar."
+        "name": "define-product-vision-and-pillars",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Response A covers the vision, pillars, and DHM statements (though it misses the mission reference), while Response B lacks DHM statements and the mission reference."
       },
       {
-        "name": "Differentiate a B2B analytics platform against Amplitude and Mixpanel",
-        "baseline": 30,
-        "treatment": 94,
-        "rationale": "Baseline gives generic comparison-table differentiation; treatment applies all five Dunford components including indirect alternatives (spreadsheets, in-house data hire), maps unique attributes to value outcomes, and produces a positioning statement using the documented For/Unlike template."
+        "name": "craft-positioning-and-competitive-map",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a correct positioning statement and a 2×2 map, while Response B lacks a proper 2×2 map and empty quadrant identification."
+      },
+      {
+        "name": "design-pricing-strategy-for-saas",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items, including value metric, tier structure, pricing models, Van Westendorp/Conjoint references, and a pricing page framework, though it omits explicit revenue goals; Response B lacks Van Westendorp/Conjoint references, a clear pricing page framework, and revenue goals, making it less complete."
       }
     ]
   }

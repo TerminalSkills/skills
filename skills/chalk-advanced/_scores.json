@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ec7f24febc43b515498d3c93cee350846b9412aed3e487f03866874a2bb57158",
-  "scoredAt": "2026-05-13T15:14:56.700Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e256d353ad96e05a567de0b4ceb7aab9ac7e458ee018532140c07534b6a74a63",
+  "scoredAt": "2026-10-24T19:03:05.803Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill only demonstrates happy path usage and does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js 16+ environment and ESM modules, limiting compatibility with other platforms."
+        "detail": "The skill is Node.js specific and does not support other runtime environments, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 0,
-    "treatmentAvg": 50,
+    "multiplier": 2.16,
+    "baselineAvg": 38,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "reusable-logging-utility",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet the rubric: A is in Python, not JavaScript, and B lacks the required style keys and does not fully style the message."
+        "name": "basic-styling-output",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response A correctly uses the chalk chainable API for all required styles, while Response B only demonstrates escape codes without using chalk."
       },
       {
-        "name": "styled-stats-table",
+        "name": "reusable-logger",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric, while Response B does not meet the required language or library specifications."
+        "rationale": "Response A fully satisfies the rubric, while Response B deviates from the required structure and does not meet the specifications."
+      },
+      {
+        "name": "color-detection-and-no-color",
+        "baseline": 70,
+        "treatment": 60,
+        "rationale": "Response A correctly imports the modules but fails to use chalkStderr.red, while Response B uses chalkStderr.red but incorrectly imports chalkStderr, making A slightly better."
       }
     ]
   }

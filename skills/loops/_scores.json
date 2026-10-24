@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c73988edec0969e658e726e945667ade496463cce8b1a93e34573b75a5dcdbf3",
-  "scoredAt": "2026-05-13T09:26:14.012Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fb7ab25fa28e1e5a4cd1d0353a0e09bfe06b860aec22542b47336cf63e43b875",
+  "scoredAt": "2026-10-24T19:29:36.782Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "Not all edge cases and error scenarios are explicitly covered."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 95,
-    "multiplier": 2.88,
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Send welcome transactional email on signup",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Treatment hits the exact /api/v1/transactional endpoint with transactionalId and dataVariables keys; baseline guesses generic template/data fields and may use the wrong endpoint."
+        "name": "send-welcome-email",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B does not use loops API."
       },
       {
-        "name": "Trigger plan-upgrade automation via event",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment posts to /api/v1/events/send with eventName and eventProperties matching the documented schema; baseline invents a /track or /events endpoint with non-matching field names."
+        "name": "trigger-upgrade-workflow",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a loops.sendEvent call and RateLimitExceededError handling, while Response A does not use loops.sendEvent at all."
+      },
+      {
+        "name": "add-custom-contact-property",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required loops API calls and error handling, while Response A uses HubSpot endpoints and does not meet the rubric."
       }
     ]
   }

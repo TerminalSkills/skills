@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4790f951ee25ea1a10a4e88ef00f4a4c3633dcb3d36035820485211b3905db09",
-  "scoredAt": "2026-05-13T09:40:10.859Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b7183d28b99fc8e6c128dc6999bcd81ed4484facb4da9e0efbd0c620e45d01df",
+  "scoredAt": "2026-10-24T19:38:20.053Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, only the happy path."
+        "detail": "The skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Next.js and may not work with other frameworks or environments."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 97,
-    "multiplier": 3.88,
+    "multiplier": 7,
+    "baselineAvg": 10,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "next-intl setup with en/de/fr locales, as-needed prefix, and a plural message",
-        "baseline": 25,
-        "treatment": 97,
-        "rationale": "Baseline hand-rolls dictionaries and middleware and reaches for Intl.PluralRules; treatment wires createMiddleware with localePrefix 'as-needed', getRequestConfig, useTranslations, and ICU plural syntax in messages JSON."
+        "name": "add-spanish-support",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers some steps but omits middleware matcher, next.config.ts plugin, and layout locale setup, while Response A has no content."
       },
       {
-        "name": "Dashboard greeting + medium-formatted last-login date via ICU",
-        "baseline": 25,
-        "treatment": 97,
-        "rationale": "Baseline relies on toLocaleDateString and a manual locale switch; treatment uses useTranslations('Dashboard') with ICU {date, date, medium}, delegating locale-aware formatting to next-intl."
+        "name": "language-switcher-component",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "B meets almost all rubric requirements except the useLocale import source, while A fails to meet any."
+      },
+      {
+        "name": "format-date-and-currency",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers all required formatting and locale setup but omits getTranslations; Response B lacks server‑side locale handling, setRequestLocale, getFormatter, and getTranslations."
       }
     ]
   }

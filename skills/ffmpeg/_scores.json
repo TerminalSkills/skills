@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:92f647f3ca74931264bed4e06457830d949b153b42619a52edcc3a2010e6fa6d",
-  "scoredAt": "2026-05-13T08:52:02.512Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b56d71e47357559c0e0af1be1066d7824320c579c1d2119c1d9622402c8a7b18",
+  "scoredAt": "2026-10-24T19:10:45.450Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing files or unsupported formats."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text that could be trimmed for brevity."
+        "detail": "The skill does not cover error handling or edge cases for unsupported formats or ffmpeg failures."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Installation steps for Windows are missing, limiting cross-platform usability."
+        "detail": "The code uses bash syntax that may not work on Windows without a Unix-like shell, indicating minor platform assumptions."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 68,
-    "treatmentAvg": 90,
-    "multiplier": 1.32,
+    "multiplier": 1.67,
+    "baselineAvg": 60,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Batch-convert yt-dlp WebM downloads to iPhone-friendly MP4",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Treatment uses the documented for-loop with -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart and recommends ffprobe to check if stream copy is possible; baseline gives an ffmpeg command but typically omits +faststart and the ffprobe pre-check."
+        "name": "convert-mkv-to-mp4-stream-copy",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses include an ffmpeg command with -i, -c copy, -movflags +faststart, and outputting the same base name with a .mp4 extension."
       },
       {
-        "name": "Create a high-quality 480px GIF from a 3-second segment",
-        "baseline": 65,
-        "treatment": 88,
-        "rationale": "Treatment uses the two-step palettegen/paletteuse filter chain with fps=15, scale=480:-1:flags=lanczos as documented; baseline produces a one-shot GIF without palette generation, yielding worse colors."
+        "name": "extract-and-normalize-audio",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes a single ffmpeg command that satisfies all rubric items, while Response B splits the process into separate steps and never uses the loudnorm filter on the video input in one command."
+      },
+      {
+        "name": "create-gif-with-palette",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric items exactly, while Response B omits the required 480 width scale, though it otherwise satisfies the rest."
       }
     ]
   }

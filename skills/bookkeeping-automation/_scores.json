@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f1de622f33cafad2cf62299fa04f0f546918c3de60f94003ec95dde6ca1481f4",
-  "scoredAt": "2026-05-13T14:52:03.484Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:cdb4373f81165bd6148cbc64d8cd625a85a02e236ef144092fc69186015bc411",
+  "scoredAt": "2026-10-24T18:59:54.344Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage."
+        "detail": "The skill does not explicitly handle all error scenarios and edge cases."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on OpenAI library, limiting cross-platform compatibility."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and comments that could be trimmed."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6.67,
-    "baselineAvg": 15,
-    "treatmentAvg": 100,
+    "multiplier": 8.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "full-csv-categorization-report",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A meets all rubric requirements with correct function calls; Response B does not use the specified functions or API calls."
+        "name": "parse-csv-categorize-report",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits printing the count of Uncategorized rows, while Response B does not use the required skill modules or functions at all."
       },
       {
-        "name": "ofx-reconciliation",
-        "baseline": 30,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key functions and details."
+        "name": "reconcile-ofx",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric by importing the required functions, parsing the OFX file, dropping duplicates, calling reconcile with all parameters, and printing the expected dictionary keys; Response A does not import or use the specified modules or functions and therefore fails to meet the rubric."
+      },
+      {
+        "name": "detect-duplicates-multiple-feeds",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B fully follows the rubric by using the specified helper functions and printing duplicate groups, whereas Response A uses pandas and does not meet the rubric requirements."
       }
     ]
   }

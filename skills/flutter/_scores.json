@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0c7259228dc3b61684d95796ae8075fcf2385dd6473ed357029af0018eb1ee46",
-  "scoredAt": "2026-05-13T08:53:52.713Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7407655db18ac36aaa0b213a68cf00ad3da30a9fe06c6453ea891c9cc8683717",
+  "scoredAt": "2026-10-24T19:13:36.284Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack coverage of error scenarios and edge cases."
+        "detail": "The instructions do not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory sections that could be trimmed."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 2.12,
+    "baselineAvg": 33,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Login state with Riverpod",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline relies on setState in a StatefulWidget; treatment models AuthState with isLoading/error/user, exposes AuthNotifier via StateNotifierProvider, and drives the UI through ref.watch."
+        "name": "create-flutter-project-with-dependencies",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Both miss the exact org flag, but B lists each dependency command separately, whereas A combines them into one command."
       },
       {
-        "name": "Dio HTTP client with JWT interceptor and 401 refresh",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline uses the http package and per-call retry; treatment wires Dio BaseOptions plus an InterceptorsWrapper that reads token from secure storage on every request and retries via _dio.fetch after token refresh."
+        "name": "add-auth-notifier-with-dio",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items (Notifier, build, login, storage, provider) but misses the explicit ref.read(apiClientProvider) call; Response A uses StateNotifier and a different API call, missing several rubric requirements."
+      },
+      {
+        "name": "setup-go-router-auth-guard",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets almost all rubric requirements except the missing '/project/:id' route, while Response A fails to use a Provider<GoRouter>, ValueNotifier, or the specified redirect logic."
       }
     ]
   }

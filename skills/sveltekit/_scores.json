@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:26d7b5789a8917c0b416052f45dc16cd164e222b67b85508bfaab1716f093aa9",
-  "scoredAt": "2026-05-13T10:16:33.236Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:84925ba68287db7d64e664aff1fc2dd0e3bed4aa88d9b01551f1e8c2eaf870ab",
+  "scoredAt": "2026-10-24T20:03:24.230Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases, such as handling missing routes or API errors."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 8.7,
+    "baselineAvg": 10,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "CRUD task list with SvelteKit form actions and progressive enhancement",
+        "name": "create-project-with-api",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment uses +page.server.ts actions returning fail()/redirect() with use:enhance and the form prop in +page.svelte; baseline uses client-side fetch that breaks without JS."
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric, using the correct `npx sv create` command and `Response.json`, while Response A fails on the command, adapter setup, and JSON response format."
       },
       {
-        "name": "Hybrid prerendered marketing + authed dashboard on Vercel",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment combines prerender=true on marketing pages, adapter-vercel, and hooks.server.ts with sequence() to gate /dashboard server-side; baseline uses adapter-auto and client-side localStorage auth."
+        "name": "form-action-validation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is unrelated to SvelteKit and fails to meet any of the specified requirements."
+      },
+      {
+        "name": "auth-middleware-logging",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is unrelated to SvelteKit and fails to meet any of the specified requirements."
       }
     ]
   }

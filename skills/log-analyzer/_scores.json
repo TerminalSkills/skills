@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:eaf1d21b31d2aaaec624bb4c98066991e79d451db76761f276b882c14eacd096",
-  "scoredAt": "2026-05-13T09:25:52.534Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fc507e16534efb073e925357d5891d8b05172892550a80a8eb98c6d5b128ea53",
+  "scoredAt": "2026-10-24T19:28:11.964Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly address handling malformed or corrupted log entries, which are common edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The instructions lack runnable code snippets or concrete command examples, limiting immediate execution."
+        "category": "crossPlatform",
+        "detail": "The skill relies on Linux-specific command-line utilities, limiting compatibility with non-Linux environments."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 91,
-    "multiplier": 1.9,
+    "multiplier": 1.51,
+    "baselineAvg": 35,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Investigate 500 error spike in OrderService",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment establishes a chronological HH:MM:SS timeline, identifies the FIRST error (connection refused) instead of the most frequent, and produces a Root Cause + Recommended Actions block with concrete next steps; baseline groups by frequency and gives vague follow-ups."
+        "name": "analyze-json-error-distribution",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric, providing the required jq pipeline and table, while Response A lacks the full table columns and root‑cause explanation."
       },
       {
-        "name": "Diagnose 6-hour OOM crash loop in Java service",
+        "name": "analyze-plaintext-first-error",
+        "baseline": 5,
+        "treatment": 10,
+        "rationale": "Response A at least requests the necessary logs, whereas Response B outright refuses to analyze, making A marginally better."
+      },
+      {
+        "name": "analyze-compressed-syslog-errors",
         "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment traces linear heap growth over the time window, pinpoints the SessionCache.put allocation hotspot from the stack trace, and outputs the Error Distribution table plus actionable fixes (eviction policy, max-size, heap dump flag); baseline diagnoses OOM but misses the structured table and concrete remediation list."
+        "treatment": 80,
+        "rationale": "Response A better meets the rubric, using zgrep, sed, and providing first/last timestamps, though it lacks the exact table format; Response B falls short by using zcat, missing sed stripping, and not presenting the required table."
       }
     ]
   }

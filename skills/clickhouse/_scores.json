@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2fd2e390ab8e268b8d20b2648d91e714453cb38c3f6c325f0037ec927ab06806",
-  "scoredAt": "2026-05-13T15:31:31.629Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:59babe046ad2b287298bc3471b0bc106ea71121279e49b1e05d6952f368aa7fc",
+  "scoredAt": "2026-10-24T19:04:57.289Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,30 +18,47 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for deployment and data operations."
+        "detail": "Instructions do not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksumMissing",
+        "detail": "Docker image tag is specified without a digest, making it possible to pull a different image version."
+      }
+    ]
   },
   "impact": {
-    "multiplier": 2.05,
-    "baselineAvg": 43,
-    "treatmentAvg": 88,
+    "multiplier": 8.33,
+    "baselineAvg": 12,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "deploy-and-query-dau",
-        "baseline": 40,
+        "name": "run-clickhouse-docker-auth",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A meets all rubric requirements, while Response B omits partitioning, ordering, and uses count(DISTINCT) instead of uniqExact."
+        "rationale": "Response A meets all rubric requirements; Response B lacks required image, user, password, ports, ulimit, volume, and curl syntax."
       },
       {
-        "name": "nodejs-insert-and-query-dau",
-        "baseline": 45,
-        "treatment": 75,
-        "rationale": "Response B covers most rubric items (import, client setup, insert with format, JSON result, close) but misses parameterized days and uniqExact; Response A lacks format, uniqExact, parameterization, and client close."
+        "name": "design-merge-tree-events-table",
+        "baseline": 15,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A misses key requirements."
+      },
+      {
+        "name": "nodejs-insert-query-dau",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to use createClient, environment variables, proper insert/query syntax, and result.json()."
       }
     ]
   }

@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:36986cb06305339288feea14eae79a5bf34dd0d33a042f58001daad9425f2c17",
-  "scoredAt": "2026-05-13T13:50:51.274Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a2b28695258ccc4cf6a3e2d6bd97bda76746355d6e6ca67989fd0f63b97ba2a2",
+  "scoredAt": "2026-10-24T18:49:51.292Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes macOS/Linux and does not support Windows."
+        "detail": "The instructions assume Linux/macOS/WSL2 environments, limiting cross-platform compatibility."
       }
     ]
   },
@@ -33,31 +28,37 @@
       {
         "severity": "MEDIUM",
         "category": "checksum",
-        "detail": "Docker images are referenced without checksums, which could allow tampering."
+        "detail": "Missing checksum verification for constraints file download."
       },
       {
         "severity": "MEDIUM",
-        "category": "credentials",
-        "detail": "Hardcoded credentials in environment variables may expose secrets."
+        "category": "checksum",
+        "detail": "Missing checksum verification for docker-compose.yaml download."
       }
     ]
   },
   "impact": {
-    "multiplier": 3.2,
-    "baselineAvg": 25,
-    "treatmentAvg": 80,
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "taskflow-http-postgres-dag",
-        "baseline": 50,
-        "treatment": 60,
-        "rationale": "Both responses miss the PostgresOperator requirement, but B correctly uses the @dag decorator while A does not, giving B a slight edge."
+        "name": "taskflow-dynamic-mapping-dag",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but lacks the @dag decorator, so it scores high but not perfect; Response A is not provided, so it receives a minimal score."
       },
       {
-        "name": "docker-compose-setup-with-connection",
+        "name": "upgrade-airflow2-dag-to-airflow3",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
+        "treatment": 95,
+        "rationale": "Response A covers all rubric requirements with detailed code, while Response B is empty."
+      },
+      {
+        "name": "docker-compose-airflow-local-run",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A omits key steps such as .env creation, docker‑compose init, and the required docker compose run commands."
       }
     ]
   }

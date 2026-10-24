@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:afb504c01976c507b7ca503a4c7eba0dc8813dd98eb5da7f8ddb80679e73c47b",
-  "scoredAt": "2026-05-13T10:28:16.983Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:89bb13852db88153b3eae5e1695e57f50eb9a39310ae40d087beed7ee2dd4cf9",
+  "scoredAt": "2026-10-24T20:09:21.984Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing configuration files or invalid task definitions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks runnable code snippets or detailed step-by-step procedures that can be directly executed by users."
+        "detail": "The instructions do not cover error handling or edge cases, such as missing configuration files or invalid task definitions."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 91,
-    "multiplier": 3.64,
+    "multiplier": 3.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Configure turbo.json so building @app/web first builds workspace deps and caches output",
-        "baseline": 28,
-        "treatment": 92,
-        "rationale": "Baseline uses dependsOn:['build'] (non-topological) and skips outputs; treatment uses dependsOn:['^build'] with the topological prefix, declares outputs:['.next/**','dist/**'], and sets empty outputs:[] for lint."
+        "name": "setup-mono-repo-tasks",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A satisfies almost all rubric requirements except the missing package.json details, while Response B fails on several key points such as the schema URL, task structure, env placement, and lint task."
       },
       {
-        "name": "Create a minimal Docker context for deploying just @app/api",
-        "baseline": 22,
-        "treatment": 90,
-        "rationale": "Baseline COPYs the whole monorepo into the image and installs everything; treatment uses turbo prune --scope=@app/api in a pruner stage so only the targeted package and its dependencies enter the Docker context."
+        "name": "run-filtered-build",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required --dry=json flag, so neither meets the rubric."
+      },
+      {
+        "name": "docker-prune-buildfile",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B correctly implements the multi-stage Dockerfile with node:24-slim, turbo prune, out/json and out/full handling, and build steps, but omits the .dockerignore mention; Response A fails on base image, file copying, and .dockerignore."
       }
     ]
   }

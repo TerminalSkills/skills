@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:72d1dce72d2db42c676ee941442ea1c78171f4946d4099d1123aaa29bb02094d",
-  "scoredAt": "2026-07-06T21:29:13.686Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:783bc99beb2fada9c7f8dcac9106e1c5bf1d648f619f1bd96e616c62705df82a",
+  "scoredAt": "2026-10-24T19:54:58.043Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.7,
-    "baselineAvg": 7,
-    "treatmentAvg": 97,
+    "multiplier": 3.48,
+    "baselineAvg": 25,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "migrate-openai-to-routerbase",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required client initialization, base URL, API key handling, and smoke test."
+        "name": "migrate-openai-sdk",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric with correct imports, base_url, env key, and a valid RouterBase model ID, while Response A does not use OpenAI or set the required base_url."
       },
       {
         "name": "design-fallback-routing",
-        "baseline": 20,
-        "treatment": 90,
-        "rationale": "Response A meets almost all rubric requirements, only deviating slightly by using a custom retry check instead of the specified isRetryableRouterBaseError, whereas Response B lacks the required array, retry logic, and smoke test."
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Both responses omit the required JavaScript snippet, but Response B better satisfies the rubric by explicitly listing the non‑retryable error codes and providing a more complete retry policy."
       },
       {
-        "name": "generate-image-with-routerbase",
-        "baseline": 0,
+        "name": "async-image-generation",
+        "baseline": 20,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A uses a different endpoint and omits required fields."
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to meet key requirements."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ea1aef51090ee3704fd54c89d6c65c02187f49dcc6b5d960ddc0980d9272f9bd",
-  "scoredAt": "2026-05-13T10:01:38.477Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1cf333405a7f1e2a1fda0396f0bcb17c3444db4da2f6423e5524acf836be1ba7",
+  "scoredAt": "2026-10-24T20:17:36.163Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file lacks error handling and edge case coverage."
+        "detail": "The instructions do not cover all possible error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 86,
-    "multiplier": 2.69,
+    "multiplier": 4,
+    "baselineAvg": 25,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "product-catalog-fulltext-geo",
-        "baseline": 33,
-        "treatment": 87,
-        "rationale": "Treatment defines a `Schema` with `text`, `number` (sortable), `string[]`, and `point` field types, creates a `Repository`, calls `createIndex()` once, and queries with `.where('description').matches(...)`, `.is.between(...)`, and `.where('location').inRadius(...)`; baseline drops to raw FT.CREATE/FT.SEARCH commands or recommends a different stack like Elasticsearch."
+        "name": "node-create-product-schema",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items, while Response A lacks required imports, fields, and EntityId usage."
       },
       {
-        "name": "article-vector-similarity-search",
-        "baseline": 30,
-        "treatment": 84,
-        "rationale": "Treatment stores embeddings as `number[]` in the Schema and runs `.where('embedding').nearest(queryEmbedding, k)` through the Repository's search builder against Redis Stack; baseline reaches for pgvector or a separate vector DB and doesn't use the Redis OM Schema/Repository abstraction documented in the skill."
+        "name": "node-search-in-stock-electronics",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric criteria; Response B does not use the required API."
+      },
+      {
+        "name": "python-store-and-query-product",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks required fields, indexing, and correct query syntax."
       }
     ]
   }

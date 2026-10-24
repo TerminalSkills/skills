@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ca56b56059ae3de3e79c60b6a3b71f350228d9ef0beafeae72f0c50b6748f1df",
-  "scoredAt": "2026-05-13T09:59:01.269Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5100356172b813a64bcae2b971590c1c54f7f8ba396ba5588880f69e35837959",
+  "scoredAt": "2026-10-24T19:49:28.772Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 2.15,
+    "baselineAvg": 27,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "API request validation with custom rules",
-        "baseline": 45,
+        "name": "fastapi-request-validation",
+        "baseline": 30,
         "treatment": 95,
-        "rationale": "Baseline uses Pydantic v1 @validator decorators with the values dict pattern instead of v2's @field_validator and @model_validator(mode=\"after\"), while the treatment uses both v2 decorators correctly for the cross-field date check."
+        "rationale": "Response A fully meets the rubric by defining a UserCreate model, a FastAPI route using it, and showing 422 errors for name, email, and age; Response B uses a different model and does not address the required fields or error example."
       },
       {
-        "name": "Type-safe environment configuration",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline relies on python-dotenv plus a plain BaseModel with manual os.getenv calls and string coercion, while the treatment uses pydantic_settings.BaseSettings with model_config env_file binding and typed list[str]/bool fields that auto-coerce."
+        "name": "env-settings-fail-fast",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric requirements but omits secret key retrieval and explicit ValidationError example, while Response B does not implement the required Pydantic Settings class at all."
+      },
+      {
+        "name": "webhook-discriminated-union",
+        "baseline": 20,
+        "treatment": 0,
+        "rationale": "Response A partially implements discriminated models but lacks the required Annotated union, TypeAdapter, and validate_json call; Response B provides no content."
       }
     ]
   }
