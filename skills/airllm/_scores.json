@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f961c91a51ec8c63929e9444459bcc7ccf480d850719ba4ebcb309020edb6a9b",
+  "scoredAt": "2026-10-24T23:10:07.536Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific hardware (NVIDIA GPU or Apple silicon with mlx) and does not support all AI agent platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 8,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "run-70b-with-compression",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required code and details."
+      },
+      {
+        "name": "test-tiny-model-on-cpu",
+        "baseline": 15,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items (imports AutoModel, sets device, layer_shards_saving_path, max_seq_len, uses generate with required flags, decodes output) but misses the exact max_new_tokens=10 and printing model type; Response B fails to import AutoModel, omits layer_shards_saving_path and max_seq_len, and uses a different API, so it covers far fewer rubric requirements."
+      },
+      {
+        "name": "measure-speed-with-profiling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies rubric; Response A is empty."
+      }
+    ]
+  }
+}
