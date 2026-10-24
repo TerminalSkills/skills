@@ -58,10 +58,25 @@ function parseFrontmatter(content) {
   const catMatch = fm.match(/^\s*category:\s*(.+)$/m);
   if (catMatch) result.category = catMatch[1].trim().replace(/^["']|["']$/g, '');
 
-  // Tags
-  const tagsMatch = fm.match(/^\s*tags:\s*\[([^\]]*)\]/m);
-  if (tagsMatch) {
-    result.tags = tagsMatch[1].split(',').map(t => t.trim().replace(/^["']|["']$/g, ''));
+  // Tags: a comma-separated string (Agent Skills spec: metadata values are strings),
+  // or the older YAML forms — a flow list [a, b] or a block list of "- a" lines.
+  const tagsLine = fm.match(/^(\s*)tags:[ \t]*(.*)$/m);
+  if (tagsLine) {
+    const value = tagsLine[2].trim();
+    let items = [];
+    if (value.startsWith('[')) {
+      items = value.replace(/^\[|\]$/g, '').split(',');
+    } else if (value) {
+      items = value.replace(/^["']|["']$/g, '').split(',');
+    } else {
+      const after = fm.slice(tagsLine.index + tagsLine[0].length).split('\n').slice(1);
+      for (const line of after) {
+        const item = line.match(/^\s+-\s+(.*)$/);
+        if (!item) break;
+        items.push(item[1]);
+      }
+    }
+    result.tags = items.map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
   }
 
   return result;
