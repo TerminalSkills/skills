@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8603c5731a3f030a4d0fbdf2d312d4c869c5237cf28c6c4e1afa3d8a6f9203be",
-  "scoredAt": "2026-05-13T09:17:26.558Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1e561ba2f0568ca3a6313326fd545a7d2f1ac9255f7cb5f63c597352edea1071",
+  "scoredAt": "2026-10-24T14:21:14.336Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases such as misconfiguration or IPv6 support."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill is Linux-only and does not support other operating systems."
+        "detail": "The skill assumes a Linux environment with root access, limiting applicability to other platforms."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 1.18,
     "baselineAvg": 68,
-    "treatmentAvg": 92,
-    "multiplier": 1.35,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "SSH-safe basic iptables firewall",
-        "baseline": 72,
-        "treatment": 94,
-        "rationale": "Treatment establishes conntrack ESTABLISHED,RELATED accept before dropping, allows lo, opens 22/80/443, sets DROP policy, and persists with iptables-save to /etc/iptables/rules.v4; baseline covers the basic ACCEPT/DROP but commonly omits the conntrack-before-policy ordering."
+        "name": "minimal-firewall-with-rollback",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response A covers most rubric items but uses the wrong set name and omits the ICMP limit, while Response B misses the set, ICMP limit, rollback via at, and boot enable step."
       },
       {
-        "name": "UFW with PostgreSQL restricted to 10.0.0.0/8",
-        "baseline": 64,
-        "treatment": 90,
-        "rationale": "Treatment uses the exact ufw default deny/allow, allow ssh, 80/tcp, 443/tcp, and ufw allow from 10.0.0.0/8 to any port 5432 pattern; baseline often forgets the from-CIDR-to-port syntax or omits ufw enable."
+        "name": "migrate-iptables-to-nftables",
+        "baseline": 95,
+        "treatment": 85,
+        "rationale": "Response B explicitly demonstrates iptables-translate on a sample rule, shows the add rule syntax, writes to /etc/nftables.conf, and enables persistence, while Response A focuses on bulk conversion with iptables-restore-translate and omits a direct iptables-translate example."
+      },
+      {
+        "name": "vpn-nat-with-nftables",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with the exact IP‑forwarding command, nftables syntax, and persistence steps, while Response B omits the required exact sysctl command but otherwise covers the rest."
       }
     ]
   }

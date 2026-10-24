@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fa72196194f6edb464442e2b0caf51120d075f811c14db92ba97e118177a210d",
-  "scoredAt": "2026-05-13T14:57:43.866Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:518f48abdf945ab5668498cf0efc9817cf2a4707d151e244b373a90c4aa3bbde",
+  "scoredAt": "2026-10-24T13:57:43.741Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling for malformed spec files or missing required parameters."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 0.85,
-    "baselineAvg": 68,
-    "treatmentAvg": 58,
+    "multiplier": 2.48,
+    "baselineAvg": 23,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "generate-floor-plan-with-spec",
-        "baseline": 80,
-        "treatment": 50,
-        "rationale": "Response A covers most rubric items, including spec values and room dimensions, while Response B omits key confirmations and spec usage details."
+        "name": "generate-retail-building-with-custom-spec",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required steps of locating and parsing BUILDING_SPEC.md, applying constraints, validating rooms, and reporting violations; B offers more detail but still fails to cover the rubric."
       },
       {
-        "name": "validate-and-auto-correct-model",
-        "baseline": 55,
-        "treatment": 65,
-        "rationale": "Both responses identify the violation and propose a width expansion, but neither references the spec file or confirms all rooms meet minimums; A is slightly more precise in the width calculation."
+        "name": "validate-bedroom-areas-in-existing-model",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Both responses cover spec loading, parsing, scanning, and reporting, but neither fully implements an auto‑fix or re‑validation; Response A attempts a width adjustment logic (though incomplete), giving it a slight edge over Response B."
+      },
+      {
+        "name": "create-spec-template-for-new-project",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B includes all required sections with placeholders and fallback notes, while Response A lacks the specific sections and placeholders mandated by the rubric."
       }
     ]
   }

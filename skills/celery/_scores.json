@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e01f824bab8c77821287461a69f0b0bb74005ac225a607e4ecf099ec263e0da4",
-  "scoredAt": "2026-05-13T15:11:44.296Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6dd194826dbd4e6c99f0c3ec18ebe029a57af1372910efed2066c3f1b9975065",
+  "scoredAt": "2026-10-24T14:02:48.275Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases for every task."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5.33,
-    "baselineAvg": 15,
-    "treatmentAvg": 80,
+    "multiplier": 8.2,
+    "baselineAvg": 2,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "retry-task-with-exponential-backoff",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A meets most rubric items (correct countdown and retry call) but has an incorrect max_retries value, whereas Response B fails on several key points including the countdown formula and default_retry_delay."
+        "name": "async-receipt-retry-rate-limit",
+        "baseline": 5,
+        "treatment": 80,
+        "rationale": "Response B covers almost all rubric items except the apply_async call, while Response A does not meet any of the Celery-specific requirements."
       },
       {
-        "name": "chain-three-tasks",
+        "name": "nightly-report-beat-worker",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any tasks or chain."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet the required task names, arguments, or command specifics."
+      },
+      {
+        "name": "chain-group-inspect",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response B includes the required Celery chain, group, and active worker inspection, whereas Response A does not use Celery at all."
       }
     ]
   }

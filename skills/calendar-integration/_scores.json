@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:36c91d95b598619c6a9d409b23aab1ed891d5c925a990e04dc608452d140746e",
-  "scoredAt": "2026-05-13T15:04:43.249Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a609d72eeb56664ab7a1cc8f55b0a2b7c1e07a6c88508e1f873343c3b7d4955b",
+  "scoredAt": "2026-10-24T14:00:46.302Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -18,17 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks explicit error handling and edge case coverage, focusing only on happy paths."
+        "detail": "The skill does not cover error handling or edge cases such as token expiration or rate limiting."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The documentation contains extensive explanatory text that could be trimmed for brevity."
+        "detail": "The file contains extensive explanatory comments that add verbosity beyond necessary code."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The implementation relies on Node.js/TypeScript libraries, limiting compatibility with agents that do not support these runtimes."
+        "detail": "The skill relies on Node.js specific libraries and TypeScript syntax, limiting portability to other environments."
       }
     ]
   },
@@ -37,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.5,
-    "baselineAvg": 0,
-    "treatmentAvg": 75,
+    "multiplier": 4.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "schedule-recurring-standup-outlook",
+        "name": "find-common-free-slot-and-create-meet",
         "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response A covers authentication, event creation, attendees, Teams meeting flags, and a weekly recurrence, but it uses a recurrence object instead of the exact rule string required by the rubric; Response B is empty."
+        "treatment": 30,
+        "rationale": "Response A contains some code but omits the explicit API calls and required request body fields, whereas Response B is empty."
       },
       {
-        "name": "find-free-slot-google-meet",
+        "name": "create-recurring-outlook-teams-meeting",
         "baseline": 0,
-        "treatment": 70,
-        "rationale": "Response B implements most steps but omits creating the event and adding the third attendee, whereas Response A is missing entirely."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
+      },
+      {
+        "name": "setup-google-calendar-webhook-and-renew",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers the required watch call, renewal logic, and syncToken usage, but omits the X‑Goog‑Channel‑Expiration header; Response B lacks the token, syncToken, and header details."
       }
     ]
   }

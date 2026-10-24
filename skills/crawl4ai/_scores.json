@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4e37e9219c1d01e19fcfb39fd5d0d67351d46f706ad8d8a936c2e8e9489eae7e",
-  "scoredAt": "2026-05-13T16:04:36.587Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a974605037cfb3c4689770f5b6b290c52c0a40a3a5431f0813b243218b760d83",
+  "scoredAt": "2026-10-24T14:45:36.111Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Examples do not cover error handling or edge cases such as network failures or timeouts."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill relies on Python-specific libraries, limiting use to Python agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 9.8,
-    "baselineAvg": 3,
-    "treatmentAvg": 98,
+    "multiplier": 7.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "llm-structured-extraction",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required AsyncWebCrawler, CrawlerRunConfig, or LLMExtractionStrategy."
-      },
-      {
-        "name": "css-extraction-with-js-scroll",
+        "name": "llm-extraction-product-list",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use AsyncWebCrawler, CrawlerRunConfig, or JsonCssExtractionStrategy and therefore fails to meet the rubric."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet any of them."
+      },
+      {
+        "name": "css-extraction-lazy-load",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the exact wait_for selector, while Response B does not use the required JsonCssExtractionStrategy or CrawlerRunConfig at all."
+      },
+      {
+        "name": "deep-crawl-with-session",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric but omits the required login js_code and uses the wrong max_pages value, whereas Response B provides no relevant content."
       }
     ]
   }

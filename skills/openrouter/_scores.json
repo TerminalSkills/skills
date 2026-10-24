@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2c00ee706a12f90c7b09061f2a9dfc7befc2beadbc9839698a0ee57c7038e572",
-  "scoredAt": "2026-05-13T09:45:38.830Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e9dd38f1dd21ca53b11bbf2f78ba99c658b216ea5aff32be291efaaa42d11ba6",
+  "scoredAt": "2026-10-24T14:29:14.191Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, limiting robustness."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment with OpenAI SDK, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 9.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Cost-optimized multi-model fallback chain",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses OpenRouter's documented route: 'fallback' with a models array (gpt-4o-mini -> claude-sonnet -> gpt-4o) on a single openai SDK client pointed at openrouter.ai/api/v1; baseline wires up three separate SDKs and writes manual try/catch fallback logic."
+        "name": "fallback-support-bot",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a TypeScript snippet, models array, and explanation, while Response B uses Python and lacks the required TypeScript and models array."
       },
       {
-        "name": "Side-by-side latency and token comparison across 4 providers",
-        "baseline": 35,
-        "treatment": 84,
-        "rationale": "Treatment uses one OpenAI SDK client with baseURL override and Promise.all across model slugs (openai/gpt-4o, anthropic/claude-sonnet-4-20250514, google/gemini-2.0-flash, meta-llama/llama-3.1-70b-instruct) plus HTTP-Referer and X-Title headers as documented; baseline juggles per-provider SDKs and misses the unified usage/cost reporting."
+        "name": "provider-routing-price-limit",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A provides the required TypeScript snippet and most rubric items, missing only a brief mention of load‑balancing; Response B fails to meet the rubric at all."
+      },
+      {
+        "name": "compare-model-cost-latency",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a JavaScript/TypeScript snippet, while Response A is a Python script and does not meet the required language or API usage."
       }
     ]
   }

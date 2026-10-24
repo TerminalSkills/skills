@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:58fc78e73308c56c907e69f1b38434c3435eda36e0a995e40281c2e1d7454a6b",
-  "scoredAt": "2026-05-13T09:13:37.369Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:33a5283c5dc1bd665614d9fc55d47d38fceca28b9c332392b7bacc40ada73443",
+  "scoredAt": "2026-10-24T14:19:17.726Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill documentation does not cover error handling or edge cases, focusing only on happy path examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 92,
-    "multiplier": 1.67,
+    "multiplier": 7.2,
+    "baselineAvg": 2,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "Build a debounced live-search box without writing JS",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Treatment uses hx-get with hx-trigger=\"input changed delay:300ms\" and hx-target on the results div, exactly as the skill's triggers section; baseline writes manual fetch+setTimeout JS."
+        "name": "live-search-as-you-type",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not include any htmx attributes or a results container."
       },
       {
-        "name": "Delete-a-row-and-update-counter pattern in a server-rendered app",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment combines hx-delete with hx-target=\"closest article\"/hx-swap=\"outerHTML swap:300ms\" and uses hx-swap-oob to refresh the counter from one response, matching the skill's OOB pattern."
+        "name": "delete-article-with-confirmation",
+        "baseline": 5,
+        "treatment": 35,
+        "rationale": "Response B includes htmx attributes but not the exact target and swap values required, while Response A lacks htmx attributes entirely."
+      },
+      {
+        "name": "real-time-article-updates-sse",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A includes the required SSE container and swap attributes (though the child div is misplaced), whereas Response B provides no correct markup at all."
       }
     ]
   }

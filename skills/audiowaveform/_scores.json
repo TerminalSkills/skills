@@ -1,63 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:61617e98107e9463bbf3be5c9154ff9549e8c280ccfc707e5a33507a9e584ac0",
-  "scoredAt": "2026-05-13T14:16:58.493Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c96e62391f0bd3a796592524325a8900d12b72fb12e4ffaa1677e53abc2fa624",
+  "scoredAt": "2026-10-24T13:56:32.260Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases, limiting robustness."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose explanations and multiple examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Linux/macOS and does not support Windows."
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksumMissing",
-        "detail": "Installation steps clone source code without verifying checksums."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 4.61,
+    "baselineAvg": 18,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "generate-clip-waveform-png",
+        "name": "batch-waveform-for-wavesurfer",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric, Response B does not use audiowaveform and misses required flags."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet the specified script and waveform details and lacks the required wavesurfer.js snippet."
       },
       {
-        "name": "convert-dat-to-json-and-png",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B follows the rubric exactly, while Response A does not use audiowaveform and misses the required steps."
+        "name": "social-media-og-waveform",
+        "baseline": 25,
+        "treatment": 85,
+        "rationale": "Response A meets the key requirements (audiowaveform, correct flags, file names, confirmation of creation) and is close to full compliance, while Response B uses a different tool, wrong file names, and does not satisfy the rubric."
+      },
+      {
+        "name": "bar-style-waveform-clip",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response A meets most rubric items but uses width 1200 instead of 1000, while Response B does not use the required audiowaveform command or exact flags."
       }
     ]
   }

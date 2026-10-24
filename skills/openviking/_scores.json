@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a59f512505e97b97dc76d708b6d6ec4301c9252b0e51df41e3c34d6c82ba8b8d",
-  "scoredAt": "2026-05-13T09:46:00.758Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:62f8379bcbddc86eecd0c2b5c87a4c6edaddcf04ce3056ec40be61efa21c3709",
+  "scoredAt": "2026-10-24T14:46:36.506Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling for file operations and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 95,
-    "multiplier": 2.71,
+    "multiplier": 5.47,
+    "baselineAvg": 15,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Build a filesystem-paradigm context manager with hierarchical scoping for a coding agent",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline produced flat CRUD with no SCOPE_RULES, scope-layered loading, lessons inclusion, or '---'-separated '## path' formatting; treatment implemented all four."
+        "name": "setup-local-server-and-cli",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response B covers almost all rubric items, while Response A omits the required commands and config files."
       },
       {
-        "name": "Self-evolving lessons.md after a failed task",
+        "name": "import-docs-and-search",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline appended a flat line with local time and no current.md archive or LLM lesson extraction; treatment archived task/current.md to a UTC-timestamped history file and used the LLM to append a structured lesson via the ContextManager."
+        "treatment": 60,
+        "rationale": "Response B uses the required ov commands (add-resource, find, overview, read) albeit with a different URI, whereas Response A uses unrelated openviking commands and misses the rubric's specific ov syntax."
+      },
+      {
+        "name": "record-conversation-and-extract-memories",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully follows the rubric with all required commands, while Response B does not use the specified OpenViking session workflow at all."
       }
     ]
   }

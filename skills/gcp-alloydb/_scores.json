@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1f4a0d593727147ae3b14dfa579256f909a0e7d2c4a22ca8c6c6308ed30cf5f3",
-  "scoredAt": "2026-05-13T09:05:34.433Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:68dc3d4ffbb750e8e8bc2cde9af5a46a06576cb63acec6b04496b7ed62ebde22",
+  "scoredAt": "2026-10-24T14:15:56.269Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "PASS"
@@ -18,35 +18,52 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The instructions focus on happy path scenarios and do not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains verbose explanatory sections that could be trimmed for brevity."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Google Cloud, requiring GCP-specific tools and services, limiting portability across platforms."
+        "detail": "The skill is tightly coupled to GCP services and does not support other cloud providers or generic AI agents."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Auth Proxy binary is downloaded without a checksum, increasing risk of tampering."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 92,
-    "multiplier": 1.84,
+    "multiplier": 5.29,
+    "baselineAvg": 17,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Production cluster with HA primary and read pool",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment uses gcloud alloydb clusters create then gcloud alloydb instances create --instance-type=PRIMARY --availability-type=REGIONAL with database-flags cloudsql.iam_authentication=on, plus a READ_POOL instance via --read-pool-node-count; baseline often conflates cluster+instance and skips IAM auth flag."
+        "name": "setup-production-cluster-with-read-pool",
+        "baseline": 30,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but misses the cluster availability flag, while Response B omits several key commands and flags."
       },
       {
-        "name": "Add native vector search to a products table",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment uses CREATE EXTENSION google_ml_integration, the embedding('textembedding-gecko@003', description) function and a scann index with num_leaves; baseline typically suggests pgvector with ivfflat/hnsw and an external embedding pipeline."
+        "name": "enable-vector-search-on-existing-database",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required extensions, uses the wrong vector dimension, lacks an SQL UPDATE, and does not use the specified similarity operator or filter."
+      },
+      {
+        "name": "terraform-provision-alloydb-cluster",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as cluster_id, initial_user, correct backup policy, and instance configuration."
       }
     ]
   }

@@ -1,53 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d25c68b812be025fefac3e681151667e735d13fa0b351f511b9370ee517903b4",
-  "scoredAt": "2026-05-13T13:27:08.183Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6269ceca887d16fb92fd53c29569db6bdcd30d29ee5fb07e1ee137b6e2faffb7",
+  "scoredAt": "2026-10-24T14:06:12.623Z",
   "backend": "ollama",
-  "model": "qwen2.5-coder:14b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes the Coolify CLI is available, which may not be compatible with all AI agents."
+        "category": "checksum",
+        "detail": "Missing checksums for brew and go install commands."
       }
     ]
   },
-  "security": {
-    "verdict": "SAFE",
-    "issues": []
-  },
   "impact": {
-    "multiplier": 1.4,
-    "baselineAvg": 63,
-    "treatmentAvg": 88,
+    "multiplier": 8.7,
+    "baselineAvg": 8,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "deploy-nextjs-with-env-sync",
-        "baseline": 70,
-        "treatment": 80,
-        "rationale": "Response A correctly uses the `coolify app env sync` command with the `--file` flag, mentions that the sync is non-destructive, and provides the correct deployment and log monitoring commands. Response B incorrectly uses `coolify env:set` instead of `coolify app env sync`, omits mentioning that the sync is non-destructive, and uses `coolify logs` instead of `coolify app deployments logs <deployment-uuid>` for monitoring."
+        "name": "switch-contexts-between-multiple-instances",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully follows the rubric with context commands; Response A uses profiles/config files, violating the rubric."
       },
       {
-        "name": "debug-failed-deployment",
-        "baseline": 80,
-        "treatment": 95,
-        "rationale": "Response A covers all elements of the rubric comprehensively and correctly, while Response B includes some useful additional information but does not explicitly mention the first diagnostic step using the `coolify app deployments logs` command."
+        "name": "trigger-deployment-via-rest-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not provide the required curl command."
       },
       {
-        "name": "postgres-with-nightly-backups",
-        "baseline": 40,
-        "treatment": 89,
-        "rationale": "Response B follows the rubric closely, while Response A deviates by suggesting a manual backup script instead of using Coolify's built-in backup functionality."
+        "name": "create-postgresql-with-s3-backups",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A follows the required CLI syntax more closely, though it omits the note about pre‑configuring S3 and uses the database name instead of UUID; Response B uses incorrect commands and flags, failing to meet the rubric."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "2.0.0",
-  "skillHash": "sha256:546e7ba431c3cca62aff3cf12e0a6f3b5e7bf0dee304a108522bc790eb1a1ce5",
-  "scoredAt": "2026-05-13T15:28:35.611Z",
+  "version": "2.1.0",
+  "skillHash": "sha256:8b9a0cbfd8fafa78fc863db1511c8d07d583f48518860cb3b2f26ef8dabcb295",
+  "scoredAt": "2026-10-24T14:04:50.123Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is specific to Claude Code and does not support other AI agents."
+        "detail": "The skill is vendor-locked to Claude Code and does not support other AI agents."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 0,
-    "treatmentAvg": 50,
+    "multiplier": 9.8,
+    "baselineAvg": 2,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "initialize-and-capture-session",
+        "name": "install-claude-mem-with-provider",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B covers some but not all rubric items, while A misses all."
+        "treatment": 100,
+        "rationale": "Response B includes all required commands and details, while Response A omits the npx install command and relevant status check."
       },
       {
-        "name": "search-and-list-memories",
+        "name": "search-memory-for-auth-flow",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A does not mention the required command or tools."
+      },
+      {
+        "name": "repair-and-update-claude-mem",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B includes the required commands but omits config details; Response A does not mention claude-mem at all."
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required npx commands and explanations."
       }
     ]
   }

@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e67dc080d65604d795a1fd424f7cc9866035e1477925ed83cff4a435f3b7b4ce",
-  "scoredAt": "2026-05-13T10:36:38.485Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:25ec0228d4594761d891cb3cab193b250ad971d05fd63870dbe390f3c743ae4b",
+  "scoredAt": "2026-10-24T14:40:21.618Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as missing headers or environment variables."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill provides Node.js/TypeScript code, limiting its applicability to other languages or frameworks."
+        "detail": "The skill assumes a Node.js environment and uses Node-specific modules, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 1.6,
+    "baselineAvg": 52,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Stripe webhook handler with replay protection",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment uses stripe.webhooks.constructEvent on the raw req.text() body with the stripe-signature header, plus the Redis SET NX EX 172800 processOnce pattern for idempotency; baseline parses JSON before verifying signatures and lacks a dedup store with the documented 48h TTL."
+        "name": "stripe-signature-verification",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B covers more rubric items, including express.raw, stripe.webhooks.constructEvent, processOnce usage, and 400 on signature failure, whereas Response A lacks processOnce and immediate 200 response."
       },
       {
-        "name": "GitHub webhook receiver hardened against forged events",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment reads x-hub-signature-256, prepends 'sha256=' to the HMAC, compares with crypto.timingSafeEqual on the raw body, and dispatches by x-github-event; baseline uses string === comparison and parsed JSON, missing the timing-safe and raw-body requirements called out in the skill."
+        "name": "github-retry-deduplication",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "A covers most rubric items but returns 202 instead of 200, while B lacks key elements."
+      },
+      {
+        "name": "slack-request-verification",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to return the correct 401 status for signature mismatches."
       }
     ]
   }

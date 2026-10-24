@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3282ac9d783dfd076d72b71af88a2b49f5c27dfcb343771b4b8ae47137152195",
-  "scoredAt": "2026-05-13T09:24:28.209Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:81d9bbffdad16c739f0f617ad3d071a911a0cb0999e5f070f656fff5f2ee981b",
+  "scoredAt": "2026-10-24T14:25:24.229Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API failures."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+        "detail": "The skill contains verbose explanations that may be considered padded, reducing conciseness."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 1.51,
+    "baselineAvg": 53,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Write a LinkedIn post announcing a seed funding round",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment delivers the 2-line scroll-stopping hook, mobile line breaks, 800-1300 char body, open-ended question CTA, 3-5 hashtags, and explicitly puts the funding announcement link in the first comment; baseline produces a generic post with the link in the body and a closed CTA."
+        "name": "product-launch-post",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric criteria, while Response B lacks an open‑ended CTA, missing a key requirement."
       },
       {
-        "name": "TypeScript scheduled posting to a LinkedIn company page via the API",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses POST /v2/posts with author urn:li:organization:..., LinkedIn-Version header, w_organization_social scope, lifecycleState PUBLISHED, and the OAuth2 token exchange against LINKEDIN_TOKEN_URL; baseline reaches for the older /v2/ugcPosts shape, misses the version header, and guesses at scopes."
+        "name": "carousel-company-post",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric while Response A deviates significantly from the required endpoints and payload structure."
+      },
+      {
+        "name": "weekly-poll-scheduler",
+        "baseline": 70,
+        "treatment": 45,
+        "rationale": "Response B covers more rubric items, including lifecycleState, visibility, X-Restli-Protocol-Version, cron scheduling, and scope reference, whereas Response A lacks many required details."
       }
     ]
   }

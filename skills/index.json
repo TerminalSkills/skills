@@ -96,7 +96,7 @@
     {
       "name": "actix-web",
       "slug": "actix-web",
-      "description": "Actix Web is a powerful, high-performance web framework for Rust. It provides async handlers, type-safe extractors, middleware, and integrates with the Rust ecosystem for building fast, reliable, and memory-safe web services.",
+      "description": "Actix Web is a high-performance async web framework for Rust. It provides type-safe extractors, routing, middleware and a built-in test harness for building fast, memory-safe HTTP APIs. Use when a user asks to build a Rust REST API, add an Actix handler or middleware, handle errors with ResponseError, share a database pool, or test an Actix service.",
       "category": "development",
       "tags": []
     },
@@ -1263,7 +1263,7 @@
     {
       "name": "cal-com",
       "slug": "cal-com",
-      "description": "Expert guidance for Cal.com, the open-source scheduling platform for building booking and appointment systems. Helps developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.",
+      "description": "Cal.com is an open-source scheduling platform for booking pages, availability and calendar sync, with an embed, a REST API v2 and webhooks. Use when the user wants to add a booking widget to a React or plain site, create event types, list free slots, create, cancel or reschedule bookings through the Cal.com API, verify booking webhooks, set up round-robin team events, or self-host a community edition (Cal.diy) with Docker.",
       "category": "development",
       "tags": []
     },
@@ -1375,7 +1375,7 @@
     {
       "name": "celery",
       "slug": "celery",
-      "description": "Run background tasks in Python with Celery. Use when a user asks to process tasks asynchronously, schedule periodic jobs, run background workers, build task queues in Python, or offload heavy processing from web requests.",
+      "description": "Celery is a Python distributed task queue: web code puts jobs on a broker (Redis or RabbitMQ) and separate worker processes run them, with retries, schedules, rate limits and result storage. Use when a user asks to process tasks asynchronously, schedule periodic jobs, run background workers, build task queues in Python, or offload heavy processing from web requests in Django, Flask or FastAPI.",
       "category": "development",
       "tags": []
     },
@@ -2139,8 +2139,8 @@
     {
       "name": "crawl4ai",
       "slug": "crawl4ai",
-      "description": "You are an expert in Crawl4AI, the open-source web crawler built for AI applications. You help developers extract clean, structured data from websites for LLM training, RAG pipelines, and content analysis — with automatic markdown conversion, JavaScript rendering, CSS-based extraction, LLM-powered structured extraction, and session management for multi-page crawling.",
-      "category": "AI & Machine Learning",
+      "description": "Crawl4AI is an open-source Python web crawler that turns web pages into clean markdown and structured data for LLMs. Use it when asked to scrape a site for a RAG pipeline, convert pages to markdown, render JavaScript pages, extract JSON with CSS selectors or an LLM, or crawl many pages or a whole site with sessions and deep crawling.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2975,8 +2975,8 @@
     {
       "name": "eventbridge",
       "slug": "eventbridge",
-      "description": "You are an expert in Amazon EventBridge, the serverless event bus for building event-driven architectures. You help developers route events between AWS services, SaaS applications, and custom microservices using event rules, patterns, transformations, dead-letter queues, and scheduling — decoupling producers from consumers with content-based routing that scales automatically.",
-      "category": "Cloud & Serverless",
+      "description": "Amazon EventBridge is AWS's serverless event bus: it routes events from AWS services, SaaS apps and your own code to targets using pattern-matching rules. Use when a user wants to publish custom events, write event patterns, add dead-letter queues or input transformers, replay an archive, or run something on a schedule (EventBridge Scheduler).",
+      "category": "devops",
       "tags": []
     },
     {
@@ -2996,7 +2996,7 @@
     {
       "name": "excalidraw",
       "slug": "excalidraw",
-      "description": "Expert guidance for Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.",
+      "description": "Excalidraw is an open-source virtual whiteboard, shipped as a React component, for hand-drawn style diagrams. Use it to embed a whiteboard in a React or Next.js app, generate diagrams from code or Mermaid text, export PNG/SVG/.excalidraw files, or wire up collaboration. Triggers - \"add Excalidraw to my app\", \"generate an architecture diagram\", \"export a diagram as SVG\".",
       "category": "development",
       "tags": []
     },
@@ -3332,7 +3332,7 @@
     {
       "name": "flask",
       "slug": "flask",
-      "description": "Flask is a lightweight Python micro web framework that provides the essentials for web development without imposing structure. It uses Jinja2 templates and Werkzeug WSGI toolkit, with a rich ecosystem of extensions for databases, auth, and more.",
+      "description": "Flask is a lightweight Python web framework built on Werkzeug and Jinja2; it gives you routing, requests, templates and a test client and leaves the rest to extensions. Use this skill when the user wants to build a Flask app or JSON API, set up an application factory with blueprints, add Flask-SQLAlchemy, Flask-Migrate or Flask-Login, write pytest tests for a Flask app, or run it with the flask CLI and gunicorn.",
       "category": "development",
       "tags": []
     },
@@ -4493,7 +4493,7 @@
     {
       "name": "iptables",
       "slug": "iptables",
-      "description": "Configure Linux firewall with iptables/nftables. Use when a user asks to set up a firewall, block ports, allow specific traffic, configure NAT, or secure a Linux server network.",
+      "description": "iptables and nftables are the Linux kernel packet-filtering tools used to build host firewalls, open or block ports and set up NAT. Use when a user asks to set up a firewall on a Linux server, block or allow a port or IP, restrict SSH, configure masquerade or port forwarding, persist rules across reboots, migrate from iptables to nftables, or fix Docker and ufw conflicts.",
       "category": "devops",
       "tags": []
     },
@@ -4624,7 +4624,7 @@
     {
       "name": "just",
       "slug": "just",
-      "description": "Run project commands with just (a modern make alternative). Use when a user asks to define project commands, replace Makefile, create a command runner, or standardize dev scripts.",
+      "description": "just is a command runner that saves project commands in a justfile and runs them with `just <recipe>`, like make without the build-system baggage. Use when a user asks to define project commands, replace a Makefile, create a command runner, standardize dev scripts, add recipe arguments, load .env files, or split recipes into modules.",
       "category": "development",
       "tags": []
     },
@@ -4710,7 +4710,7 @@
     {
       "name": "keystonejs",
       "slug": "keystonejs",
-      "description": "Expert guidance for KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.",
+      "description": "Keystone is an open-source headless CMS and application framework for Node.js that turns a TypeScript schema into a GraphQL API, a Prisma database layer and an Admin UI. Use it to define content schemas, add sessions and role-based access control, write lifecycle hooks, extend the GraphQL API, or upgrade a Keystone 6 project to @keystone-6/core 8 (Prisma 7 adapters, Next 16).",
       "category": "content",
       "tags": []
     },
@@ -5089,7 +5089,7 @@
     {
       "name": "linkedin-marketing",
       "slug": "linkedin-marketing",
-      "description": "Create, optimize, and automate LinkedIn content for personal branding, lead generation, and B2B marketing. Use when someone asks to \"write a LinkedIn post\", \"grow on LinkedIn\", \"LinkedIn content strategy\", \"LinkedIn API integration\", \"automate LinkedIn posting\", \"LinkedIn carousel\", \"LinkedIn analytics\", or \"LinkedIn outreach\". Covers content creation with platform-specific formatting, API integration, analytics, and growth strategies.",
+      "description": "Create, optimize, and automate LinkedIn content for personal branding, lead generation, and B2B marketing. Use when someone asks to \"write a LinkedIn post\", \"grow on LinkedIn\", \"LinkedIn content strategy\", \"LinkedIn API integration\", \"automate LinkedIn posting\", \"LinkedIn carousel\", \"LinkedIn analytics\", or \"LinkedIn outreach\". Covers post formatting, the LinkedIn Posts API with image and document uploads, company page posting, analytics access, and growth strategy.",
       "category": "business",
       "tags": []
     },
@@ -5905,7 +5905,7 @@
     {
       "name": "n8n",
       "slug": "n8n",
-      "description": "Build workflow automations with n8n. Use when a user asks to automate business workflows, connect APIs visually, build integrations between apps, self-host a Zapier alternative, or create data pipelines with a visual editor.",
+      "description": "n8n is a fair-code workflow automation platform with a visual editor, webhook and schedule triggers, JavaScript and Python code nodes and 1500+ integrations, self-hosted or in n8n Cloud. Use when a user asks to automate business workflows, connect APIs visually, build integrations between apps, self-host a Zapier alternative, receive webhooks, or create data pipelines with a visual editor.",
       "category": "automation",
       "tags": []
     },
@@ -6546,8 +6546,8 @@
     {
       "name": "openrouter",
       "slug": "openrouter",
-      "description": "You are an expert in OpenRouter, the unified API gateway for accessing 200+ LLMs through a single OpenAI-compatible endpoint. You help developers route requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with automatic fallbacks, cost tracking, rate limiting, and model comparison — enabling multi-model strategies without managing multiple API keys and SDKs.",
-      "category": "AI & Machine Learning",
+      "description": "OpenRouter is a unified API gateway that reaches hundreds of LLMs from OpenAI, Anthropic, Google, Meta and others through one OpenAI-compatible endpoint and one API key. Use when a user wants to call several models from one codebase, add model fallbacks, route to the cheapest or fastest provider, compare model cost and latency, use free models, or cap spend per key.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -6599,7 +6599,7 @@
     {
       "name": "openviking",
       "slug": "openviking",
-      "description": "Manage AI agent context (memory, resources, skills) using OpenViking's file system paradigm. Use when: building agents with persistent context, managing agent memories across sessions, implementing hierarchical context delivery for complex agent systems.",
+      "description": "OpenViking is an open-source context database for AI agents: one virtual file system under viking:// that holds an agent's knowledge, memories and skills, with generated summaries and semantic search. Use when the user wants persistent agent memory across sessions, wants to import docs or repos for agents to search, asks about the ov CLI, openviking-server or viking:// URIs, or wants to connect Claude Code, Codex or Cursor to a shared memory server.",
       "category": "data-ai",
       "tags": [
         "context-database",
@@ -7100,8 +7100,8 @@
     {
       "name": "pipedream",
       "slug": "pipedream",
-      "description": "You are an expert in Pipedream, the workflow automation platform built for developers. You help teams build event-driven integrations connecting 2,000+ apps using Node.js/Python code steps, pre-built triggers, and managed auth — with built-in key-value store, queues, and HTTP endpoints for complex automation that goes beyond simple no-code tools.",
-      "category": "Automation & Integration",
+      "description": "Pipedream is a developer-focused integration platform: event-driven workflows built from Node.js or Python code steps and managed OAuth for 3,000+ apps. Its Workflows product shuts down on 31 March 2027, so the skill covers maintaining or exporting existing workflows and moving to Pipedream Connect (managed auth, MCP servers). Use when the user asks to build or fix a Pipedream workflow, use a data store, answer webhooks, migrate off Pipedream, or add the Pipedream SDK.",
+      "category": "automation",
       "tags": []
     },
     {
@@ -7618,8 +7618,8 @@
     {
       "name": "qdrant",
       "slug": "qdrant",
-      "description": "You are an expert in Qdrant, the high-performance vector search engine written in Rust. You help developers build semantic search, RAG retrieval, recommendation systems, and anomaly detection with billion-scale vector collections, advanced filtering, multi-vector support, and hybrid search — providing sub-millisecond query latency with rich payload filtering that other vector DBs can't match.",
-      "category": "AI & Machine Learning",
+      "description": "Qdrant is an open-source vector database written in Rust for similarity search over embeddings, with payload filtering, named and sparse vectors, hybrid search and quantization. Use when someone asks to set up Qdrant, build semantic search or RAG retrieval, store embeddings, filter vector search by metadata, combine dense and keyword search, or move from the removed search() and recommend() calls to query().",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -9495,9 +9495,15 @@
     {
       "name": "thirdweb",
       "slug": "thirdweb",
-      "description": "You are an expert in thirdweb, the complete web3 development platform that provides SDKs, pre-built smart contracts, wallet infrastructure, and payment solutions. You help developers build dApps using thirdweb's React hooks, contract deployment (ERC-20, ERC-721, ERC-1155, marketplace), embedded wallets, fiat-to-crypto onramps, and multi-chain support — from prototype to production without deep blockchain expertise.",
-      "category": "Blockchain & Web3",
-      "tags": []
+      "description": "thirdweb is a web3 development platform: a TypeScript and React SDK for connecting wallets, reading and writing smart contracts, deploying prebuilt ERC-20, ERC-721, ERC-1155 and marketplace contracts, in-app (email and social login) wallets, server wallets for backend transactions, and fiat-to-crypto purchase widgets. Use it when someone asks to add a wallet connect button, mint an NFT from a backend, deploy a token without writing Solidity, or onboard users without MetaMask.",
+      "category": "development",
+      "tags": [
+        "web3",
+        "sdk",
+        "smart-contracts",
+        "nft",
+        "wallet"
+      ]
     },
     {
       "name": "threejs",
@@ -9542,7 +9548,7 @@
     {
       "name": "timesfm",
       "slug": "timesfm",
-      "description": "Forecast time series data using Google's TimesFM foundation model with zero-shot prediction. Use when: forecasting sales or demand, predicting server metrics, financial time series analysis, anomaly detection without training custom models.",
+      "description": "Forecasts time series with Google's pretrained TimesFM foundation model, zero-shot and with no training step. Use when the user asks to forecast sales or demand, predict server metrics, get prediction intervals, add covariates, or flag anomalies against a forecast without building a custom model.",
       "category": "data-ai",
       "tags": [
         "forecasting",
@@ -9775,7 +9781,7 @@
     {
       "name": "twitter-x-marketing",
       "slug": "twitter-x-marketing",
-      "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, Spaces, and API automation. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 integration, thread creation, analytics, and growth tactics.",
+      "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, polls, and API automation with the X API v2. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 posting and media upload, thread creation, metrics, and growth tactics.",
       "category": "business",
       "tags": []
     },
@@ -10412,8 +10418,7 @@
         "3d",
         "shaders",
         "glsl",
-        "gpu",
-        "graphics"
+        "gpu"
       ]
     },
     {
@@ -10431,7 +10436,7 @@
     {
       "name": "webhook-security",
       "slug": "webhook-security",
-      "description": "Secure webhook endpoints. Use when a user asks to verify webhook signatures, prevent replay attacks, handle webhook retries, or implement secure webhook receivers for Stripe, GitHub, Slack, or any provider.",
+      "description": "Verifies webhook signatures, blocks replayed requests and deduplicates retries on a webhook receiver. Use when a user asks to verify webhook signatures, prevent replay attacks, handle webhook retries, or build a secure webhook endpoint for Stripe, GitHub, Slack, or any HMAC-signing provider.",
       "category": "devops",
       "tags": []
     },
@@ -10601,7 +10606,7 @@
     {
       "name": "xata",
       "slug": "xata",
-      "description": "Expert guidance for Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. Helps developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.",
+      "description": "Xata is a managed PostgreSQL platform with instant copy-on-write database branching, zero-downtime schema migrations (pgroll), data anonymization and scale to zero. Use when the user wants to create a Xata project or branch, get a Postgres connection string, give a coding agent or pull request its own isolated database, run `xata roll` migrations, clone a production database, or asks about the old Xata TypeScript SDK (retired February 2026).",
       "category": "development",
       "tags": []
     },
@@ -10621,7 +10626,7 @@
     {
       "name": "xquik-twitter",
       "slug": "xquik-twitter",
-      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, exporting followers, monitoring tweets, posting tweets or replies, sending DMs, Xquik Twitter automation, or approval-gated Twitter actions.",
+      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, listing followers, exporting followers, monitoring accounts or keywords, or Xquik Twitter research and social listening.",
       "category": "automation",
       "tags": [
         "xquik",
@@ -10810,5 +10815,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T13:07:24.691Z"
+  "updatedAt": "2026-10-24T14:50:54.039Z"
 }

@@ -1,47 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:41fe9fbf26cdc6ecc7a39f6150b71b024e9c638fa1e15e8a39f4ee7facab64bf",
-  "scoredAt": "2026-10-03T22:22:18.159Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.1.0",
+  "skillHash": "sha256:a0ddceedc82282ed9f609d8c670313d5b0c6f7145f96341a8efebbd3a258248e",
+  "scoredAt": "2026-10-24T14:19:55.304Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux/macOS environments, limiting cross-platform compatibility."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 9.4,
-    "baselineAvg": 2,
-    "treatmentAvg": 94,
+    "multiplier": 4.89,
+    "baselineAvg": 18,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "ssh-bastion-password-spray",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Response B fully implements the Hydra password-spray approach with -L/-p, -t 1 low concurrency, -o logging, and notes authorization as the precondition, while Response A refuses outright and provides no rubric-required technical content."
+        "name": "ssh-brute-force-with-stop",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a correct Hydra command, while Response A uses sshpass and does not meet the Hydra requirements."
       },
       {
-        "name": "http-login-form-ctf",
+        "name": "rdp-password-spraying-with-delay",
         "baseline": 0,
-        "treatment": 92,
-        "rationale": "Response A provides the correct hydra command with -l admin -P wordlist, ^USER^/^PASS^ placeholders, correct path, and F=Login failed matching the observed string, fully satisfying the rubric, while Response B refuses entirely despite the clearly stated CTF context and gives no usable content."
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no relevant content."
       },
       {
-        "name": "ftp-credential-audit-with-resume",
-        "baseline": 0,
-        "treatment": 95,
-        "rationale": "Response A gives the correct hydra command with -f and ftp://, plus a clear explanation of hydra.restore and -R resume, fully satisfying the rubric, while Response B refuses entirely and provides no requested content."
+        "name": "http-form-brute-force-ctf",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Response B includes the required :F=Login failed syntax but omits the -f flag, whereas Response A includes -f but uses the wrong failure string syntax; thus B is slightly closer to the rubric."
       }
     ]
   }

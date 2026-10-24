@@ -1,52 +1,59 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b4f43985bedf5033e9c5975bd707f60a1ac065bb6195692e61f4e5ceab83ef73",
-  "scoredAt": "2026-05-13T10:26:15.878Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f95869ae1c03a76a8e4ac55eacebf58aae2bd824b17518689a8a0099782f0544",
+  "scoredAt": "2026-10-24T14:36:59.645Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing data or invalid frequency values."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to Python 3.10+ with PyTorch, not platform-agnostic."
+        "detail": "The skill does not cover all error scenarios and edge cases, such as handling missing weights or network failures."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Weights are downloaded from Hugging Face without checksum verification."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "30-day demand forecast from yearly daily sales",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline knows TimesFM exists but invents a model.predict API and misses the TimesFmHparams/TimesFmCheckpoint constructor, huggingface_repo_id checkpoint, and tfm.forecast([history], freq=[1]) calling convention."
+        "name": "forecast-daily-sales",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not use TimesFM."
       },
       {
-        "name": "Anomaly detection on hourly CPU metrics",
-        "baseline": 35,
-        "treatment": 94,
-        "rationale": "Baseline has the threshold math (mean + 2*std) but misses the freq=[0] high-frequency setting and the 3x-horizon history sizing guideline that determine forecast quality."
+        "name": "cpu-anomaly-detection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use TimesFM at all."
+      },
+      {
+        "name": "multivariate-price-volume-promotion",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B does not use TimesFM3 at all."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7f711e7003ccbe5d385815adf7def38b9935fea02f6c6dc60adeb840f0c975e4",
-  "scoredAt": "2026-05-13T08:49:55.216Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7e7117383b3c7e7e93fcf7e0580f83e68c4ca790a07631b57399dace7af84be9",
+  "scoredAt": "2026-10-24T14:13:39.816Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for export, import, or collaboration scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 4.35,
+    "baselineAvg": 20,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Programmatic architecture diagram generation",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment uses the documented Excalidraw element shape with roughness, fontFamily:1, startBinding/endBinding, and seed for hand-drawn variation; baseline guesses generic JSON without proper bindings or element fields."
+        "name": "add-nextjs-board-with-localstorage",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric items, while Response B lacks the required debounce, CSS import, and API callback."
       },
       {
-        "name": "Embedding Excalidraw with PNG export at retina scale",
-        "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment correctly uses excalidrawAPI.getSceneElements/getFiles with exportToBlob and getDimensions for 2x scale plus explicit container height; baseline misses the API ref pattern and the getDimensions scale option."
+        "name": "generate-architecture-diagram-and-export-svg",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with proper use of convertToExcalidrawElements, api.updateScene, and exportToSvg, while Response B merely provides static SVG markup without any of the required Excalidraw API interactions."
+      },
+      {
+        "name": "convert-mermaid-to-excalidraw-and-export-png",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A implements most required steps but uses the wrong download name and does not use api.addFiles; Response B is incomplete and does not satisfy the rubric."
       }
     ]
   }

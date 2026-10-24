@@ -1,49 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d31bb8de66195032dbda5e50a0fc40e185e5940065c024b18976b6e6bdd0a5fc",
-  "scoredAt": "2026-05-13T09:06:53.008Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:aaacbcaf5ad3fe4a0662b4b14463d7afccad6f9fd0d3b1917b93d79c8835376d",
+  "scoredAt": "2026-10-24T14:18:11.856Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases, focusing only on happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6",
+    "multiplier": 2.13,
+    "baselineAvg": 40,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Hardened production cluster with Cloud SQL access",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline created a Standard cluster and stored Cloud SQL credentials in a Secret; treatment used create-auto with private nodes, master authorized networks, --workload-pool, and KSA->GSA binding with roles/iam.workloadIdentityUser."
+        "name": "autopilot-cluster-with-gateway-hpa-pdb",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required create-auto command, default Managed Prometheus note, and matching labels across all resources, while Response B uses the wrong cluster creation command and omits the default Prometheus detail."
       },
       {
-        "name": "Cheap interruptible vLLM L4 inference",
+        "name": "autopilot-gpu-spot-inference",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with complete YAMLs and quota note, while Response A lacks the required Deployment and PodMonitoring manifests."
+      },
+      {
+        "name": "standard-cluster-workload-identity",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline mentioned GPUs and preemptible generically; treatment created a Spot L4 node pool with autoscaling 0->10 and used the gke-accelerator nodeSelector with matching inference toleration."
+        "treatment": 55,
+        "rationale": "Response B includes the required cluster creation command and is closer to the rubric, while Response A omits the cluster command and key IAM bindings."
       }
     ]
   }

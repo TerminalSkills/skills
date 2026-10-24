@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a009af87e0109550777ba1c62c5edde7f0b4961cf7ce7c35d64ad9cefa051409",
-  "scoredAt": "2026-05-21T09:10:16.099Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:f29cbb4177bd115c340b0b1fecab7d19564631f9873631aa16d144906aff5ef8",
+  "scoredAt": "2026-10-24T14:42:55.411Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases for API failures."
+        "detail": "The instructions lack explicit handling of error scenarios and edge cases such as API failures or missing parameters."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Hermes Agent and assumes specific plugin environment."
+        "detail": "The skill is tightly coupled to Hermes Agent and its specific plugin architecture, limiting portability to other AI agents."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5.2,
-    "baselineAvg": 0,
-    "treatmentAvg": 52,
+    "multiplier": 6,
+    "baselineAvg": 2,
+    "treatmentAvg": 60,
     "scenarios": [
       {
         "name": "search-tweets-and-read-replies",
         "baseline": 0,
-        "treatment": 55,
-        "rationale": "Response A outlines the required API calls but omits the summary of tweet IDs, reply counts, notable users, and the explicit no‑write statement, whereas Response B provides no relevant content."
+        "treatment": 85,
+        "rationale": "Response A largely follows the required sequence and provides a summary, but omits the original tweet text; Response B fails to meet any rubric criteria."
       },
       {
-        "name": "reply-with-approval",
+        "name": "list-user-followers-page-by-page",
         "baseline": 0,
         "treatment": 0,
-        "rationale": "Both responses omit the required tweet_read, tweet_action, and reply ID/URL steps; B only marginally better by including an approval prompt."
+        "rationale": "Both responses fail to provide the required follower usernames, pagination details, and total follower count as specified in the rubric."
       },
       {
-        "name": "export-followers",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully meets the rubric, while Response A does not provide any relevant content."
+        "name": "create-keyword-monitor-with-approval",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B meets the rubric requirements, while Response A does not."
       }
     ]
   }

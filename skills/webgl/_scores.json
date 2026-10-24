@@ -1,62 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:37dea501f666e86a411416d1e1e53cdaad1baa0d3090be38f2b8ed4ca509368e",
-  "scoredAt": "2026-05-13T10:36:22.708Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ebf4b30bafdbd70859a43a4f5aee1e5b819b1729100bf326c6172739ab722b2c",
+  "scoredAt": "2026-10-24T14:39:14.733Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 63,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit usage instructions, making it ambiguous how to integrate the provided functions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling is limited; the init function throws on WebGL2 absence and does not implement the described WebGL1 fallback."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The code snippets are not tied together with a usage example, so users cannot see how to orchestrate initialization, shader compilation, geometry creation, and rendering."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic example is provided to demonstrate how to use the functions together to render a scene."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 82,
-    "multiplier": 1.58,
+    "multiplier": 1.7,
+    "baselineAvg": 47,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Render a lit textured triangle in WebGL2",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment wires canvas.getContext('webgl2'), compiles GLSL #version 300 es shaders with the documented layout(location=0/1/2) attributes and uModelView/uProjection uniforms, creates a VAO+VBO with vertexAttribPointer, and drives requestAnimationFrame; baseline uses WebGL1 idioms (attribute/varying, no VAO) and skips the depth test + viewport setup."
+        "name": "spinning-textured-triangle",
+        "baseline": 50,
+        "treatment": 50,
+        "rationale": "Both responses implement all required steps but do not use the specified helper function names from the rubric, so they receive equal partial credit."
       },
       {
-        "name": "Animated rotating mesh with diffuse lighting",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Treatment uses gl.enable(gl.DEPTH_TEST), the in vec3 aNormal channel with mat3(uModelView)*aNormal, sampler2D uTexture sampling, and clears COLOR+DEPTH per frame in the render loop; baseline omits depth testing, uses ad-hoc lighting math, and does not bind a VAO before drawing each frame."
+        "name": "diagnose-black-canvas",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response A covers WebGL debugging steps while Response B focuses on 2D canvas and misses all rubric requirements."
+      },
+      {
+        "name": "handle-context-loss",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, including explicit deletion of GPU resources, whereas Response B omits the deletion step."
       }
     ]
   }

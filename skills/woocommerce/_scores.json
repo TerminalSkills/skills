@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6264772d7aea8261f9619b265d2dc28202b08ae8019136785986c15718a42217",
-  "scoredAt": "2026-05-13T10:38:00.588Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c7453acba878d08cfea9263604f157a21d8d02e15fcbb2b23a16fbdf32cfb353",
+  "scoredAt": "2026-10-24T14:49:06.470Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions lack handling for API rate limits, error responses, and pagination beyond totals, leaving edge cases unaddressed."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Skill file contains additional explanatory text beyond concise instructions."
+        "detail": "The file contains extensive explanatory text and background information that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 88,
-    "multiplier": 2.67,
+    "multiplier": 5.53,
+    "baselineAvg": 15,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Admin list+complete processing orders via REST",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline crafts raw HTTP basic-auth requests with often-wrong endpoint shapes; treatment imports @woocommerce/woocommerce-rest-api, instantiates with consumerKey/consumerSecret and version wc/v3, then uses woo.get('orders', { status: 'processing' }) and woo.put with the documented signature."
+        "name": "create-simple-product-via-rest",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use the required WooCommerceRestApi or process.env."
       },
       {
-        "name": "Add checkout delivery notes + bulk discount",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline edits theme templates or recommends a plugin; treatment hooks woocommerce_after_order_notes with woocommerce_form_field for the textarea and woocommerce_cart_calculate_fees calling $cart->add_fee('Bulk discount', -10) gated on get_subtotal() > 100."
+        "name": "add-custom-checkout-field",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A does not use the required WooCommerce hook or function, while Response B uses the correct hook and function but uses the wrong field ID and lacks a clear note that the hook applies only to block checkout."
+      },
+      {
+        "name": "verify-webhook-signature",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits ping handling, timing-safe comparison, and uses a different raw body method."
       }
     ]
   }

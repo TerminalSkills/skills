@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1e3c56c58b4f849c4c594768c66053907997b0bac714346d13f88d826b3410cd",
-  "scoredAt": "2026-05-13T16:13:16.169Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e071be85a4b698457a1511ccc4155349df18246fcd67be614c047006d669e214",
+  "scoredAt": "2026-10-24T14:08:38.996Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases, only happy path."
+        "detail": "The instructions lack explicit error handling or edge case scenarios."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.32,
-    "baselineAvg": 25,
-    "treatmentAvg": 83,
+    "multiplier": 3.4,
+    "baselineAvg": 20,
+    "treatmentAvg": 68,
     "scenarios": [
       {
-        "name": "custom-login-command",
-        "baseline": 30,
-        "treatment": 65,
-        "rationale": "Response A implements the required command and test logic, though it omits aliasing and waiting, whereas Response B fails to meet key rubric items such as command name, aliasing, waiting, and selector usage."
+        "name": "e2e-login-with-session-and-intercept",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric criteria, while Response A fails on data-cy selectors, uses cy.wait, and does not fully satisfy the requirements."
       },
       {
-        "name": "ci-parallel-recording",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B is incomplete and missing key elements."
+        "name": "setup-vue-component-testing",
+        "baseline": 40,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric by correctly importing mount, declaring the chainable, and using JSX mounting, whereas Response A misses the chainable declaration, uses the wrong import, and does not use JSX or getByRole."
+      },
+      {
+        "name": "ci-parallel-recording-with-cypress",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "B contains more relevant details than the empty A"
       }
     ]
   }

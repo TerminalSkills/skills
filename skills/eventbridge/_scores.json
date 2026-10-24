@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:64183db252b4153a684d39d68db9a28067edac8bdfed0b7313438b21f97ee3c3",
-  "scoredAt": "2026-05-13T08:49:35.973Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b3699ee7e0b1c7a4da382ac8cd19950a6055345233db8021a046c85bcc62adcf",
+  "scoredAt": "2026-10-24T14:10:45.634Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 41,
-    "treatmentAvg": 87,
-    "multiplier": 2.12,
+    "multiplier": 6.13,
+    "baselineAvg": 15,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Route high-value orders to a Lambda with a DLQ",
-        "baseline": 42,
-        "treatment": 88,
-        "rationale": "Treatment defines AWS::Events::EventBus + AWS::Events::Rule with EventPattern using numeric matcher [{ \"numeric\": [\">=\", 1000] }] and Targets DeadLetterConfig; baseline uses ad-hoc CloudFormation without the documented numeric matcher or per-target DLQ structure."
+        "name": "publish-user-signed-up-event",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
       },
       {
-        "name": "Publish OrderCreated events and transform for analytics target",
-        "baseline": 40,
-        "treatment": 86,
-        "rationale": "Treatment uses PutEventsCommand with Source/DetailType/Detail/EventBusName entries plus an InputTransformer with InputPathsMap and InputTemplate as shown; baseline calls the SDK but omits InputTransformer reshaping and uses default bus."
+        "name": "cloudformation-rule-order-created-dlq",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not provide the necessary CloudFormation resources."
+      },
+      {
+        "name": "scheduler-daily-report-berlin",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items (schedule expression, timezone, flexible window, target and role) but misnames the resource; Response A uses CLI instead of CloudFormation and omits several required properties."
       }
     ]
   }

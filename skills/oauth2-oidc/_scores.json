@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bea7ac9b43a58e55f8b593a68a225381ed36f331830258b0c105fe2d2b9e43dd",
-  "scoredAt": "2026-05-13T09:42:39.560Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9823d7d9fce0aa56fd64cff59b91700622a64574508287b84cf157783b610e51",
+  "scoredAt": "2026-10-24T14:28:14.437Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as token expiration or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level actions but lacks runnable code or concrete implementation steps."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that may distract from core instructions."
       }
     ]
   },
@@ -32,24 +27,28 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 86,
-    "multiplier": 1.56,
+    "multiplier": 1.54,
+    "baselineAvg": 50,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Next.js social login with Google and GitHub",
-        "baseline": 58,
-        "treatment": 88,
-        "rationale": "Treatment uses Authorization Code + PKCE with state and nonce validation, auto-configures from the /.well-known/openid-configuration discovery endpoint, exchanges the code and validates ID token JWT signature plus exp/iss/aud, and stores the session in httpOnly+secure+sameSite=lax cookies with single-use refresh token rotation — never localStorage; baseline uses NextAuth defaults and stores tokens in localStorage, violating the skill's mandated patterns."
+        "name": "nextjs-social-login-pkce",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response B covers more rubric items (PKCE, state/nonce, cookie handling) than Response A, though it still omits token exchange, ID‑token validation, GitHub profile fetch, and refresh‑token rotation."
       },
       {
-        "name": "REST API JWT validation middleware",
-        "baseline": 52,
-        "treatment": 84,
-        "rationale": "Treatment fetches JWKS from the provider's discovery endpoint, verifies signature plus exp, iss, and aud on every request, returns 401 for invalid tokens and 403 for insufficient scopes, and requests only minimum scopes (openid email); baseline statically pastes a public key and skips the iss/aud checks and the 401-vs-403 distinction."
+        "name": "api-jwt-validation",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Response B explicitly fetches the JWKS via the discovery endpoint, verifies all required claims, checks scope, and handles 401/403, whereas Response A uses a hard‑coded JWKS URL and separates scope checking into a separate helper."
+      },
+      {
+        "name": "spa-logout-token-revocation",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B covers revocation, id_token_hint, post_logout_redirect_uri, and uses the end_session_endpoint, while Response A omits id_token_hint, post_logout_redirect_uri, and does not use the end_session_endpoint, making B more complete."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
   }
 }

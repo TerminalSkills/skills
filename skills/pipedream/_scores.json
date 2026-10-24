@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bd5e90fc23264782e98a608440750bee7a2d2c8a5519bfa4dfbaebac3112ef9f",
-  "scoredAt": "2026-05-13T09:50:48.902Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e0ab46079cc5c7ea8c2539491e405dcb833ed84a74e4f3b39bf50592b2d76fbd",
+  "scoredAt": "2026-10-24T14:31:17.093Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 94,
-    "multiplier": 4.09,
+    "multiplier": 2.83,
+    "baselineAvg": 30,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Stripe webhook deduplication via data store",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for external Postgres/Redis; treatment uses the built-in data_store prop, this.db.get/set, and $.flow.exit exactly as the skill documents."
+        "name": "prevent-duplicate-slack-alerts",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements with detailed, runnable code, while Response B provides no content."
       },
       {
-        "name": "HTTP endpoint with signature validation",
-        "baseline": 20,
-        "treatment": 93,
-        "rationale": "Baseline reverts to an Express server; treatment reads steps.trigger.event and uses $.respond + $.flow.exit for short-circuit responses per the skill."
+        "name": "export-and-migrate-workflow",
+        "baseline": 50,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items (export, pd init connect, secrets) but misses deploy/publish and reconnecting accounts; Response B omits key steps and uses different CLI, missing several rubric requirements."
+      },
+      {
+        "name": "verify-shared-secret-webhook",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items (HTTP trigger, timingSafeEqual, 202 response, early exit) but uses different header and env names; Response B lacks timingSafeEqual, uses wrong response method, and omits the immediate flag."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:66cae8cd8a6e19d67b6cd9454aabcdd4dfb83c267954b036b9107cd0cc90395b",
-  "scoredAt": "2026-05-13T08:48:22.720Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c7b932dc9a6a4346ea2a0bad4fda9c93491abf9acdf4c01421c10ffe56f09d13",
+  "scoredAt": "2026-10-24T14:09:40.815Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as database failures or network errors."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 15,
-    "treatmentAvg": 92,
-    "multiplier": 6.13,
+    "multiplier": 10,
+    "baselineAvg": 8,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Build an Encore TypeScript backend with users service, Postgres database, and CRUD endpoints",
-        "baseline": 15,
-        "treatment": 92,
-        "rationale": "Baseline tends to hallucinate Encore APIs (decorators, classes) or fall back to Express; treatment uses the exact api() config-object pattern and SQLDatabase constructor with migrations directory and tagged-template queries."
+        "name": "user-crud-service",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use Encore or the required API patterns."
       },
       {
-        "name": "Add a daily cron job that publishes an event other services can subscribe to",
-        "baseline": 15,
-        "treatment": 92,
-        "rationale": "Baseline reaches for external cron and brokers or invents decorators; treatment correctly uses Encore's first-party CronJob, Topic.publish, and Subscription primitives from encore.dev/cron and encore.dev/pubsub."
+        "name": "user-created-notification",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with correct Topic/Subscription definitions, publish call, and top‑level declarations, while Response A lacks the required Topic abstraction and publish logic."
+      },
+      {
+        "name": "daily-report-cron",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not define an api endpoint or use Encore."
       }
     ]
   }

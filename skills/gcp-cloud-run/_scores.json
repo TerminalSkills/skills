@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:f0695b68f9f9ec9c51fa38b4a9931caad4e6e2d246a52ea3220dd348c1c078a5",
-  "scoredAt": "2026-05-13T09:06:21.256Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:ae743e2e9e696aa611cb914ad4b665326b3c25792481a86b6153d444f6dd8e6e",
+  "scoredAt": "2026-10-24T14:16:37.283Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases such as permission errors or region mismatches."
+        "detail": "The instructions lack coverage of error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 92,
-    "multiplier": 1.67,
+    "multiplier": 2.25,
+    "baselineAvg": 40,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Safe canary rollout of new revision",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses --no-traffic deploy then update-traffic --to-revisions with explicit percentages and --to-latest promotion; baseline omits the no-traffic+revision-pinning canary pattern."
+        "name": "deploy-service-with-canary",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response B includes the required --source flag and most of the other flags, whereas Response A uses --image and omits --set-env-vars, making B the better answer."
       },
       {
-        "name": "Migrate Kafka consumer off a VM",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses gcloud run worker-pools deploy with min-instances=1, the documented use case for pull-based work; baseline reaches for Cloud Run services or GKE instead of worker pools."
+        "name": "create-and-execute-job",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A includes all required flags exactly as specified, while Response B uses the incorrect --timeout flag instead of --task-timeout, missing a key rubric element."
+      },
+      {
+        "name": "update-service-env-and-secrets",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A exactly matches the required command and flags, while Response B uses placeholders, incorrect flag names, and does not meet the rubric."
       }
     ]
   }

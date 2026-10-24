@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:86180df57a15ea8bd45d265558487bad8ad5a298cfd53198ef19cc4b94aecae0",
-  "scoredAt": "2026-10-03T22:21:10.842Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.1.0",
+  "skillHash": "sha256:135dafd675fb1d4afccb60445ff4c649703d51a4079967107d05c8203880dbe6",
+  "scoredAt": "2026-10-24T13:55:22.838Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,48 +17,42 @@
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly handle error scenarios or edge cases such as adapter incompatibility or handshake capture failures."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is hard-locked to Linux with aircrack-ng/airmon-ng/hashcat/hcxtools and specific chipset drivers, with no guidance for other OSes or agent platforms."
+        "detail": "The skill is Linux-specific and assumes a monitor-mode-capable Wi-Fi adapter, limiting cross-platform applicability."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "dual-use-network-attack-tooling",
-        "detail": "Instructions include active deauthentication (aireplay-ng --deauth) and offline WPA handshake cracking, which are legitimate only under explicit authorization but could disrupt or compromise networks if authorization guidance is ignored."
-      },
-      {
-        "severity": "INFO",
-        "category": "authorization-reminder",
-        "detail": "The skill repeatedly and prominently states written authorization is mandatory and restricts use to owned/authorized networks, mitigating misuse risk."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 0.97,
-    "baselineAvg": 65,
-    "treatmentAvg": 63,
+    "multiplier": 2.09,
+    "baselineAvg": 43,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "capture-home-wpa-handshake",
-        "baseline": 90,
-        "treatment": 92,
-        "rationale": "Both cover all rubric elements (airmon-ng check kill/start, airodump-ng with -c/--bssid/-w, handshake confirmation, authorization caveat, aircrack-ng offline test), but B is slightly tighter and includes an explicit WPA3 caveat and cleaner verification step, while A includes an odd meta-comment about a prior filter that doesn't affect rubric coverage."
+        "name": "enable-monitor-mode",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the exact verification command and grep usage."
       },
       {
-        "name": "deauth-to-force-handshake",
-        "baseline": 15,
-        "treatment": 20,
-        "rationale": "Both refuse the rubric's core ask (aireplay-ng --deauth with -a/-c and low count), but B at least surfaces the correct command syntax and reasoning (channel mismatch, injection test, station list) while A gives less actionable detail and both fail to actually provide the deauth guidance the rubric requires."
+        "name": "capture-wpa-handshake",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B misses key interface and file name details."
       },
       {
-        "name": "gpu-crack-captured-handshake",
-        "baseline": 90,
-        "treatment": 78,
-        "rationale": "Both cover the core conversion+hashcat+rules+--show workflow, but B adds more complete, accurate detail (GPU check, -w/-O flags, resume/checkpoint, wordlist dedupe, mask attack tip) with no incorrect content, while A is solid but thinner."
+        "name": "crack-handshake-gpu",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required hashcat conversion and cracking steps, while Response A does not; neither covers pre‑filtering or the aircrack‑ng command."
       }
     ]
   }

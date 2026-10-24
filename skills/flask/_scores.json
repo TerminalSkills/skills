@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ca7b74bdd0aec4d6ba9f9a457f4f47d7f570c35d1fa366f8843f12dd2886e247",
-  "scoredAt": "2026-05-13T08:53:32.794Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:125d62b2cbca5ecb6a90ef063894044ff057aa9e906b108ed61fa560950e0344",
+  "scoredAt": "2026-10-24T14:14:43.520Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Skill file lacks at least two realistic usage examples."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that could be trimmed for conciseness."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 56,
-    "treatmentAvg": 84,
-    "multiplier": 1.5,
+    "multiplier": 2.57,
+    "baselineAvg": 30,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Scaffold a multi-feature Flask app with auth",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment uses the application factory create_app pattern, separate extensions.py module, blueprints registered with url_prefix, and TestConfig for tests as documented; baseline often uses a single app.py with app = Flask(__name__) at module level and db.create_all(), which the skill explicitly warns against."
+        "name": "create-app-factory-with-blueprints",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers more rubric items, including login_manager and the @bp.get decorator, while Response B omits login_manager and the required db.session.execute usage."
       },
       {
-        "name": "Set up database migrations for an existing Flask app",
-        "baseline": 58,
-        "treatment": 83,
-        "rationale": "Treatment uses Flask-Migrate via flask --app app db init/migrate/upgrade and rejects db.create_all() in production, plus initializes migrate via init_app inside create_app; baseline frequently recommends raw Alembic or db.create_all(), missing the skill's prescribed pattern."
+        "name": "pytest-login-create-post",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response B meets most rubric items but omits author verification, whereas Response A fails to use fixtures or test_client."
+      },
+      {
+        "name": "add-post-column-migration",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric with correct mapped_column usage, proper CLI commands, and verification steps, while Response A uses the older db.Column syntax, incorrect column length, and omits the required --app flag, falling short of the rubric."
       }
     ]
   }

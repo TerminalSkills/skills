@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b4b06e8d624e92b8e30c4ea5a5a0b63e8427836f3544dbe44b9fa127e0d602b7",
-  "scoredAt": "2026-05-13T09:19:46.117Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:db081d1e534dd2f9537bb164f4d32aa0bea4c0c42caad50bcc71af0e95fb254e",
+  "scoredAt": "2026-10-24T14:24:16.220Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, focusing mainly on happy paths."
+        "detail": "The skill does not cover error handling or edge cases for missing environment variables or database connection failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to KeystoneJS and does not generalize to other platforms."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 90,
-    "multiplier": 2.57,
+    "multiplier": 3.06,
+    "baselineAvg": 18,
+    "treatmentAvg": 55,
     "scenarios": [
       {
-        "name": "Restrict authors to editing their own posts and only admins to deleting",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Treatment defined operation.delete with hasRole('admin'), filter.query/update returning Prisma-style where clauses keyed on session.itemId, and an item.update check — exactly the three-layer model (operation/filter/item) the skill teaches; baseline wrote a single resolver guard and didn't use filter access to hide non-owned posts from list queries."
+        "name": "role-based-access-with-hooks",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A covers the required keystone.ts, access rules, and hooks (though incomplete), while Response B lacks key elements such as statelessSessions, onConnect seeding, and the specified hooks."
       },
       {
-        "name": "Revalidate the Next.js frontend when a post transitions to published",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment used afterOperation.update comparing originalItem.status to item.status and POSTed to FRONTEND_URL/api/revalidate, plus a validateInput hook to block publishing empty content; baseline put the revalidation call in a custom GraphQL mutation, missing the lifecycle-hook pattern and the validation gate."
+        "name": "upgrade-keystone-6-to-8",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "No content provided for either response, so cannot assess rubric coverage."
+      },
+      {
+        "name": "custom-graphql-extensions",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response A meets the rubric with only a missing note, while Response B fails to use gWithContext and Keystone conventions."
       }
     ]
   }
