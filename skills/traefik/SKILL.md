@@ -37,11 +37,20 @@ Traefik is a modern reverse proxy and load balancer designed for containerized e
 # Traefik watches Docker events and configures routing from container labels
 
 services:
+  socket-proxy:              # read-only Docker API for Traefik; only container listing is allowed
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    environment:
+      CONTAINERS: 1          # POST and every other section stay disabled by default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [socket]
+
   traefik:
     image: traefik:v3.7      # pin a minor version; v3.7.16 was the newest release checked
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
       - "--providers.docker.exposedByDefault=false"    # only route labeled containers
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
@@ -56,17 +65,21 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro    # Docker auto-discovery
       - letsencrypt:/letsencrypt                         # TLS certificate storage
+      - ./dashboard-users:/etc/traefik/dashboard-users:ro  # created with `htpasswd -nB admin > dashboard-users`
+    networks: [socket, default]
     labels:
-      # Dashboard at traefik.shipfast.io (protected by basicauth)
-      # users value: output of `htpasswd -nb admin <password>` with every $ doubled to $$ in compose files
+      # Dashboard at traefik.shipfast.io (protected by basicauth; hashes stay out of the compose file)
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.shipfast.io`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/"
+      - "traefik.http.middlewares.auth.basicauth.usersfile=/etc/traefik/dashboard-users"
+
+networks:
+  socket:
+    internal: true           # the Docker API proxy is not reachable from outside
 
 volumes:
   letsencrypt:
@@ -161,7 +174,8 @@ labels:
 # Basic auth
 labels:
   # the name `auth` is already used by the dashboard in Step 1, so pick another
-  - "traefik.http.middlewares.panel-auth.basicauth.users=admin:$$2y$$05$$Qp3sX0nKq1VvBzC9Zr7hYuT1o0jHc4l7s0m3NfE5wJ8aD2kLbGq6i"
+  # usersfile is a path inside the Traefik container (mount it like the dashboard file)
+  - "traefik.http.middlewares.panel-auth.basicauth.usersfile=/etc/traefik/panel-users"
   - "traefik.http.routers.protected.middlewares=panel-auth"
 
 # Compress responses
