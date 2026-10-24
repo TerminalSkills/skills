@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with Claude Code, Cursor, Windsurf, Aider, GitHub Copilot"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["vibe-coding", "ai-coding", "workflow", "productivity", "claude-code"]
   use-cases:
@@ -48,15 +48,15 @@ Never skip Review. You own the code. The AI is the keyboard, you're the brain.
 
 AI agents work best when they can understand your project at a glance. Key files:
 
-**`CLAUDE.md` / `AGENTS.md`** — Project context for the AI agent:
+**`CLAUDE.md` / `AGENTS.md`** — Project context for the AI agent. Claude Code reads `CLAUDE.md`; Codex, Cursor and many other agents read `AGENTS.md`. Claude Code also reads `AGENTS.md`, but only when the project has no `CLAUDE.md`. To keep one shared file, write the context in `AGENTS.md` and put a single line `@AGENTS.md` in `CLAUDE.md` (Claude-only notes go below it). Running `/init` in Claude Code drafts a first version from your codebase; edit it down to what the agent cannot discover itself.
 ```markdown
-# Project: MyApp
+# Project: Invoicely
 
 ## What this is
 A SaaS app for freelancers to track invoices and clients.
 
 ## Stack
-- Next.js 15, TypeScript, Tailwind CSS, shadcn/ui
+- Next.js 16 (App Router), TypeScript, Tailwind CSS, shadcn/ui
 - Prisma + PostgreSQL (Supabase)
 - Auth.js with GitHub OAuth
 - Stripe for billing
@@ -99,7 +99,7 @@ Add a user settings page
 Create a user settings page at app/settings/page.tsx.
 It should let users update: display name, email, avatar URL.
 Use the existing UserForm pattern from app/profile/page.tsx.
-Fetch current user with getServerSession, update via PATCH /api/user.
+Get the current user from the session helper in lib/auth.ts, update via PATCH /api/user.
 Add a Zod schema for the update payload.
 Show a toast on success using the sonner setup in lib/toast.ts.
 ```
@@ -225,21 +225,25 @@ This keeps your history readable and makes it easy to revert if the AI went off 
 ### Example 1: Starting a new project with Claude Code
 
 ```bash
-# 1. Create project
-npx create-next-app@latest myapp --typescript --tailwind --app
+# 1. Create the project (recent create-next-app versions also write an AGENTS.md)
+npx create-next-app@latest invoicely --typescript --tailwind --app
+cd invoicely
 
-# 2. Write CLAUDE.md
-cat > CLAUDE.md << 'EOF'
-# MyApp
-Next.js 15 + TypeScript + Prisma + Supabase + Auth.js + Stripe
-[... stack and conventions ...]
+# 2. Add your stack and conventions to AGENTS.md, and let Claude Code share it
+cat >> AGENTS.md << 'EOF'
+
+## Project: Invoicely
+Next.js 16 + TypeScript + Prisma + Supabase + Auth.js + Stripe
+- All DB queries live in lib/db/, validated with Zod
+- Run `npm run typecheck` before finishing a task
 EOF
+echo "@AGENTS.md" > CLAUDE.md
 
 # 3. Start Claude Code
 claude
 
 # 4. Prompt:
-"Read CLAUDE.md. Set up the project:
+"Read AGENTS.md. Set up the project:
 1. Install Prisma and configure with Supabase connection string from .env
 2. Create the initial User and Account models for Auth.js
 3. Add the Auth.js configuration with GitHub OAuth
@@ -257,7 +261,7 @@ The client has existing invoices. I need to either:
 a) Block deletion if invoices exist (return an error)
 b) Cascade delete the invoices too
 
-Looking at the business rules in CLAUDE.md, what approach makes sense,
+Looking at the business rules in AGENTS.md, what approach makes sense,
 and how should I implement it?
 ```
 
@@ -282,5 +286,6 @@ Please:
 - **Invest in CLAUDE.md/AGENTS.md** — 30 minutes writing context saves hours of prompt repetition
 - **Small files beat large files** — better AI comprehension, easier diffs, more modular
 - **Test after every generation** — catch problems early before they compound
+- **Check new dependencies** — models sometimes name packages that do not exist or are abandoned; look each one up in the registry before installing it
 - **Tell the AI your constraints** — token budgets, existing patterns, what NOT to change
 - **When stuck, be more specific** — vague prompts produce vague code
