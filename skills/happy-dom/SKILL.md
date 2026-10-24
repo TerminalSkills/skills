@@ -7,11 +7,12 @@ description: >-
   or "server-side DOM". Covers test environment setup, Vitest/Jest integration,
   SSR testing, and performance comparison with jsdom.
 license: Apache-2.0
-compatibility: "Node.js 18+. Vitest, Jest, or standalone."
+compatibility: "happy-dom 21 needs Node.js 20+; Vitest 5 needs Node.js 22.12+. Vitest, Jest, Bun, or standalone."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/capricorn86/happy-dom
   tags: ["testing", "dom", "happy-dom", "jsdom", "vitest"]
 ---
 
@@ -19,12 +20,14 @@ metadata:
 
 ## Overview
 
-Happy DOM is a JavaScript DOM implementation for Node.js — 3-10x faster than jsdom. It provides `window`, `document`, `HTMLElement`, and 1000+ Web APIs without launching a browser. Use it as the test environment for Vitest or Jest when testing UI components, or for server-side DOM manipulation (email templates, HTML generation, scraping).
+Happy DOM is a JavaScript implementation of a web browser without a GUI, for Node.js and Bun. It provides `window`, `document`, `HTMLElement`, custom elements, `MutationObserver`, `fetch` and many other Web APIs without launching a browser, and is usually faster to start than jsdom. Use it as the test environment for Vitest or Jest when testing UI components, or for server-side DOM manipulation (email templates, HTML generation, scraping).
+
+Security: older releases let page scripts escape the sandbox and run code on the host (several critical advisories, for example GHSA-37j7-fg3j-429f fixed in 20.0.0, and further high-severity ones up to 21.0.3). Always install the latest release (21.0.4 at the time of writing, `npm view happy-dom version`). Since 20.0 JavaScript evaluation of page scripts is off by default; leave it off, and never feed untrusted HTML or URLs to a Window with `enableJavaScriptEvaluation: true`.
 
 ## When to Use
 
 - Test environment for React/Vue/Svelte component tests (faster than jsdom)
-- Vitest setup — Happy DOM is the recommended environment
+- Vitest, Jest or Bun test environment (Vitest supports it out of the box)
 - Server-side HTML generation or manipulation
 - Parsing and extracting data from HTML strings
 - Email template rendering on the server
@@ -48,14 +51,15 @@ export default defineConfig({
 });
 ```
 
-That's it — all tests now run with Happy DOM providing DOM APIs.
+That's it — all tests now run with Happy DOM providing DOM APIs. For Testing Library matchers add `setupFiles: ["./setup.ts"]` containing `import "@testing-library/jest-dom/vitest";` and install `@testing-library/react`, `@testing-library/dom` and `@testing-library/jest-dom`. Verified with Vitest 5.0.5, happy-dom 21.0.4 and React Testing Library 16.
 
 ### Per-File Environment
 
 ```typescript
-// tests/component.test.ts — Override environment for specific tests
+// tests/component.test.tsx — JSX needs a .tsx file. Override environment for specific tests
 // @vitest-environment happy-dom
 
+import { expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 test("renders heading", () => {
@@ -72,6 +76,12 @@ module.exports = {
   testEnvironment: "@happy-dom/jest-environment",
 };
 ```
+
+Install it with `npm install -D @happy-dom/jest-environment happy-dom`.
+
+### Timers and async work
+
+`await window.happyDOM.waitUntilComplete()` waits for pending timers, fetches and other async tasks started on that window (verified for `window.setTimeout`). Under Vitest the global `setTimeout` is not Happy DOM's, so `waitUntilComplete()` and the timer settings do not cover it; use `vi.useFakeTimers()` or Testing Library's `waitFor` instead.
 
 ### Standalone Usage
 
@@ -118,7 +128,7 @@ await window.happyDOM.close();
 // email.ts — Render email templates server-side
 import { Window } from "happy-dom";
 
-function renderEmailTemplate(template: string, data: Record<string, string>): string {
+async function renderEmailTemplate(template: string, data: Record<string, string>): Promise<string> {
   const window = new Window();
   const document = window.document;
 
@@ -131,7 +141,7 @@ function renderEmailTemplate(template: string, data: Record<string, string>): st
   }
 
   const html = document.body.innerHTML;
-  window.happyDOM.close();
+  await window.happyDOM.close();
   return html;
 }
 ```
@@ -142,7 +152,7 @@ function renderEmailTemplate(template: string, data: Record<string, string>): st
 
 **User prompt:** "Our Vitest tests using jsdom take 45 seconds. Make them faster."
 
-The agent will switch the test environment to Happy DOM (one config change), verify all tests still pass, and benchmark the improvement (typically 3-5x faster).
+The agent will install `happy-dom`, switch the test environment to it (one config change), run the suite to see which tests still pass, and time both runs (`npx vitest run`) to report the real difference.
 
 ### Example 2: Parse and extract data from HTML
 
@@ -153,11 +163,11 @@ The agent will use Happy DOM to parse HTML strings, query elements with CSS sele
 ## Guidelines
 
 - **One config line for Vitest** — `environment: "happy-dom"` in vitest.config.ts
-- **3-10x faster than jsdom** — measurable improvement on large test suites
-- **1000+ Web APIs** — `fetch`, `FormData`, `URL`, `MutationObserver`, `IntersectionObserver`
+- **Faster startup than jsdom** — measure on your own suite before and after switching
+- **Many Web APIs** — `fetch`, `FormData`, `URL`, `MutationObserver`, custom elements; not every browser API exists, so check a missing one before assuming a bug
+- **Keep it updated** — pin `happy-dom` to the latest release; old versions have critical sandbox-escape advisories
 - **Not 100% browser-identical** — some edge cases differ; test critical paths in a real browser
-- **`window.happyDOM.close()`** — clean up resources in standalone usage
+- **`await window.happyDOM.close()`** — clean up resources in standalone usage; `window.happyDOM.abort()` cancels pending work
 - **Works with Testing Library** — `@testing-library/react` works unchanged
-- **Lighter than jsdom** — less memory, faster startup
 - **SSR testing** — render components server-side and assert on HTML output
 - **Per-file override** — `// @vitest-environment happy-dom` for specific tests
