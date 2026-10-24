@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:767bb391eae9948483dade9517524498f01176a9152f53047336c2550869f179",
+  "scoredAt": "2026-10-24T23:22:10.783Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios and edge cases, such as handling network failures or missing cassette files."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and padding, making it longer than necessary for quick reference."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.47,
+    "baselineAvg": 17,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "stop-live-api-with-secret-scrubbing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not."
+      },
+      {
+        "name": "refresh-stale-cassette-for-shipping-api",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by deleting the cassette, running pytest with --record-mode=rewrite, and showing a git diff, whereas Response B omits the required rewrite flag and diff command."
+      },
+      {
+        "name": "match-on-custom-parameters-for-local-server",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits the @pytest.mark.vcr requirement, whereas Response A provides no content."
+      }
+    ]
+  }
+}
