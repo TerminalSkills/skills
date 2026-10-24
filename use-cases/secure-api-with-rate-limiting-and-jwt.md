@@ -50,35 +50,43 @@ refresh tokens (7 days, stored in DB so I can revoke them). Include the
 user's role in the access token claims. Roles are: viewer, editor, admin.
 ```
 
-The token service (`auth/jwt.ts`) implements four operations:
+The token service (`auth/jwt.ts`) implements four operations. Access tokens use `jsonwebtoken` 9 with RS256, a `kid` in the header for key rotation, and a verify call that pins the algorithm, issuer and audience:
 
 ```typescript
-// Issue a 15-minute access token with role claim
-issueAccessToken(user): {
-  // Payload: { sub: user.id, role: user.role, iat, exp }
-  // Algorithm: RS256 with 2048-bit key pair
-}
+import jwt from 'jsonwebtoken';
+import { createHash, randomBytes } from 'node:crypto';
 
-// Issue an opaque refresh token stored in the database
-issueRefreshToken(user): {
-  // crypto.randomBytes(64).toString('hex')
-  // Stored as hash in refresh_tokens table (user_id, token_hash, expires_at)
-  // Expiry: 7 days
-}
+type Role = 'viewer' | 'editor' | 'admin';
+const privateKey = process.env.JWT_PRIVATE_KEY!; // PEM, loaded from config/jwt-private.pem
+const publicKey = process.env.JWT_PUBLIC_KEY!;
 
-// Validate signature and expiration
-verifyAccessToken(token): decoded payload or rejection
+// 15-minute access token: { sub, role, iss, aud, iat, exp }
+export const issueAccessToken = (user: { id: string; role: Role }) =>
+  jwt.sign({ role: user.role }, privateKey, {
+    algorithm: 'RS256', expiresIn: '15m', subject: user.id,
+    issuer: 'app', audience: 'api', keyid: 'key-1',
+  });
 
-// Rotate: invalidate old token, issue new pair
-// Detects reuse of revoked tokens -> revokes entire token family
-rotateRefreshToken(oldToken): { newAccessToken, newRefreshToken }
+// Validates signature and expiry; throws TokenExpiredError / JsonWebTokenError
+export const verifyAccessToken = (token: string) =>
+  jwt.verify(token, publicKey, { algorithms: ['RS256'], issuer: 'app', audience: 'api' }) as jwt.JwtPayload & { role: Role };
+
+// Opaque refresh token: random value to the client, only its SHA-256 hash in
+// refresh_tokens (user_id, token_hash, family_id, expires_at = now + 7 days)
+export const issueRefreshToken = () => {
+  const token = randomBytes(64).toString('hex');
+  return { token, hash: createHash('sha256').update(token).digest('hex') };
+};
+
+// rotateRefreshToken(oldToken): mark the old row used, issue a new pair.
+// A token that is already used or revoked means reuse -> revoke the whole family.
 ```
 
 The refresh token rotation with reuse detection is the key security feature. If an attacker steals a refresh token and the legitimate user also tries to use it, the reuse triggers and all tokens in that family get revoked. Both parties have to re-authenticate, but the attacker is locked out.
 
 The `requireAuth` middleware reads the Bearer token from the Authorization header, verifies it, and attaches the decoded user to `req.user`. The `requireRole('admin')` higher-order middleware checks `req.user.role` against the allowed roles.
 
-Key pair files (`jwt-private.pem`, `jwt-public.pem`) go in `config/` and are added to `.gitignore` -- generated per environment, never committed.
+Key pair files (`jwt-private.pem`, `jwt-public.pem`) go in `config/` and are added to `.gitignore` -- generated per environment, never committed. Browser clients should keep the refresh token in an `httpOnly`, `Secure` cookie rather than in `localStorage`.
 
 ### Step 3: Apply Role-Based Access Control to Endpoints
 
@@ -123,13 +131,13 @@ Add rate limiting. I want:
 Use Redis as the backing store.
 ```
 
-Three limiter configurations in `middleware/rate-limiter.ts`, all backed by Redis with a sliding window algorithm (smoother than fixed windows):
+Three limiter configurations in `middleware/rate-limiter.ts`, all backed by Redis with a sliding window algorithm (smoother than fixed windows). Behind a load balancer or reverse proxy, configure Express `trust proxy` correctly first, or `req.ip` is the proxy's address and every client shares one bucket:
 
-**Global limiter** -- keyed on `req.ip`, 100 requests per 60-second window. Applied to all public routes. Response headers include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` so clients can self-throttle.
+**Global limiter** -- keyed on `req.ip`, 100 requests per 60-second window. Applied to all public routes. Response headers include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` (a widespread convention, not a standard; the IETF `RateLimit` header draft is the eventual replacement) so clients can self-throttle.
 
 **Authenticated limiter** -- keyed on `req.user.id` (applied after `requireAuth`), 300 requests per 60-second window. Skips the limit entirely when `req.user.role === 'admin'` -- admins running data exports shouldn't hit artificial ceilings.
 
-**Login limiter** -- keyed on `req.ip`, 5 attempts per 15-minute window. This is the brute-force protection. After 5 failed attempts, the response is `429 Too many login attempts. Try again in N minutes.` with a `Retry-After` header.
+**Login limiter** -- keyed on `req.ip`, 5 attempts per 15-minute window. This is the brute-force protection. After 5 attempts in the window, the response is `429 Too many login attempts. Try again in N minutes.` with a `Retry-After` header.
 
 Route application:
 
@@ -140,7 +148,7 @@ app.use('/projects', requireAuth, authenticatedLimiter);
 app.use('/analytics', requireAuth, requireRole('admin'));  // no limiter
 ```
 
-Redis key pattern: `rl:{type}:{key}` with TTL matching the window duration. If Redis goes down, the limiters fail open (allow requests) rather than locking out all users -- a deliberate design choice that prioritizes availability over strict enforcement during infrastructure issues.
+Redis key pattern: `rl:{type}:{key}` with TTL matching the window duration. If Redis goes down, the limiters fall back to an in-memory counter per process and log the failure loudly. They do not fail open: an attacker who can knock Redis over must not get unlimited login attempts. The per-process counters are looser than the shared ones, but the limit still applies.
 
 ### Step 5: Test the Full Security Stack
 
@@ -160,7 +168,7 @@ The test suite (`tests/auth-security.test.ts`) covers 18 cases across four areas
 
 **Rate limiting** (5 tests): Returns 429 after 100 unauthenticated requests, returns 429 after 5 login attempts in 15 minutes, authenticated user gets the 300 request per minute allowance, admin bypasses the authenticated rate limit, and rate limit headers are present in all responses.
 
-All tests use `ioredis-mock` for speed and a separate PostgreSQL schema that resets between suites. The full suite runs in under 8 seconds.
+All tests use `ioredis-mock` for speed and a separate PostgreSQL schema that resets between suites. Add one case that stops the Redis connection and checks the in-memory fallback still returns 429.
 
 ## Real-World Example
 
