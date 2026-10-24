@@ -1,160 +1,189 @@
 ---
 name: apollo-client
 description: >-
-  You are an expert in Apollo Client, the comprehensive GraphQL client for
-  React applications. You help developers fetch data with GraphQL queries and
-  mutations, manage local and remote state with Apollo's normalized cache,
-  implement optimistic UI updates, handle pagination, and configure
-  authentication — providing a complete data management solution for
-  GraphQL-powered apps.
+  Apollo Client is the GraphQL client for React with a normalized in-memory
+  cache. Use when someone asks to "set up Apollo Client", "fetch GraphQL data in
+  React", "add pagination with fetchMore", "do optimistic updates with
+  useMutation", "send an auth header with Apollo", "handle GraphQL errors", or
+  "migrate Apollo Client 3 to 4".
 license: Apache-2.0
-compatibility: ''
+compatibility: "React 18 or 19, @apollo/client 4.x, graphql 16, rxjs 7. TypeScript recommended."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Frontend Development
+  version: "1.1.0"
+  category: development
   tags:
     - graphql
     - react
     - cache
     - state-management
-    - typescript
     - data-fetching
+  repository: https://github.com/apollographql/apollo-client
 ---
 
 # Apollo Client — GraphQL Client for React
 
-You are an expert in Apollo Client, the comprehensive GraphQL client for React applications. You help developers fetch data with GraphQL queries and mutations, manage local and remote state with Apollo's normalized cache, implement optimistic UI updates, handle pagination, and configure authentication — providing a complete data management solution for GraphQL-powered apps.
+## Overview
 
-## Core Capabilities
+Apollo Client fetches GraphQL data into React components and keeps it in a normalized cache keyed by `__typename` and `id`, so one update refreshes every query that shows that entity. This skill targets **version 4** (4.3.5 at the time of writing). Version 4 moved a lot compared with 3.x: React hooks and `ApolloProvider` import from `@apollo/client/react`, the client takes a `link` instead of `uri`/`headers`, links are classes (`HttpLink`, `SetContextLink`, `ErrorLink`), `rxjs` is a peer dependency, and errors are typed classes. Apollo also ships its own guide inside the package at `node_modules/@apollo/client/skills/apollo-client/`.
 
-### Setup and Queries
+## Instructions
+
+### Install and create the client
+
+```bash
+npm install @apollo/client graphql rxjs
+```
 
 ```tsx
-import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from "@apollo/client";
+// src/apollo.tsx
+import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
+import type { ReactNode } from "react";
 
-const client = new ApolloClient({
-  uri: "https://api.example.com/graphql",
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          posts: { keyArgs: ["filter"], merge(existing = [], incoming) { return [...existing, ...incoming]; } },
-        },
-      },
-    },
-  }),
-  headers: { Authorization: `Bearer ${getToken()}` },
+export const client = new ApolloClient({
+  link: new HttpLink({ uri: "https://api.northwind.dev/graphql", credentials: "include" }),
+  cache: new InMemoryCache(),
 });
 
-const GET_POSTS = gql`
-  query GetPosts($limit: Int!, $offset: Int!, $filter: PostFilter) {
-    posts(limit: $limit, offset: $offset, filter: $filter) {
-      id
-      title
-      excerpt
-      author { id name avatar }
-      createdAt
-    }
+export function Providers({ children }: { children: ReactNode }) {
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+}
+```
+
+`uri`, `headers` and `credentials` on `new ApolloClient({...})` were removed in 4.0; configure them on `HttpLink`. Prefer HttpOnly cookies (`credentials: "include"`) for sessions.
+
+### Queries (typed)
+
+Attach types to the document with `TypedDocumentNode` (or use GraphQL Code Generator); do not pass generics at the hook call site. Check `dataState` or `data` before using the result.
+
+```tsx
+import { gql, type TypedDocumentNode } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
+
+type PostsData = { posts: { id: string; title: string; excerpt: string }[] };
+type PostsVars = { limit: number; offset: number };
+
+export const GET_POSTS: TypedDocumentNode<PostsData, PostsVars> = gql`
+  query GetPosts($limit: Int!, $offset: Int!) {
+    posts(limit: $limit, offset: $offset) { id title excerpt }
   }
 `;
 
-function PostList({ filter }: { filter?: PostFilter }) {
-  const { data, loading, error, fetchMore } = useQuery(GET_POSTS, {
-    variables: { limit: 10, offset: 0, filter },
-  });
-
-  if (loading) return <Skeleton />;
-  if (error) return <Error message={error.message} />;
-
+export function PostList() {
+  const { data, error, fetchMore } = useQuery(GET_POSTS, { variables: { limit: 10, offset: 0 } });
+  if (error) return <p>Failed to load: {error.message}</p>;
+  if (!data) return <p>Loading…</p>;
   return (
     <div>
-      {data.posts.map(post => <PostCard key={post.id} post={post} />)}
-      <button onClick={() => fetchMore({ variables: { offset: data.posts.length } })}>
-        Load more
-      </button>
+      {data.posts.map((p) => <article key={p.id}><h3>{p.title}</h3><p>{p.excerpt}</p></article>)}
+      <button onClick={() => fetchMore({ variables: { offset: data.posts.length } })}>Load more</button>
     </div>
   );
 }
 ```
 
-### Mutations with Optimistic Updates
+For offset pagination, merge pages in the cache rather than in the component. Without a merge policy on the cache your client uses, `fetchMore` replaces the list with the new page instead of appending it. Pass this cache to the `ApolloClient` in `src/apollo.tsx`:
+
+```ts
+import { InMemoryCache } from "@apollo/client";
+import { offsetLimitPagination } from "@apollo/client/utilities";
+
+const cache = new InMemoryCache({
+  typePolicies: { Query: { fields: { posts: offsetLimitPagination() } } },
+});
+// With extra arguments that select a different list: offsetLimitPagination(["filter"])
+// For Relay connections: relayStylePagination() from the same module.
+```
+
+`useSuspenseQuery`, `useBackgroundQuery`, `useLazyQuery`, `useFragment` and `skipToken` live in `@apollo/client/react` too.
+
+### Mutations with optimistic UI
+
+`optimisticResponse` must be a complete result for the mutation, including `__typename`. The `update` function runs twice: once for the optimistic data and again for the server result.
 
 ```tsx
-const CREATE_POST = gql`
-  mutation CreatePost($input: CreatePostInput!) {
-    createPost(input: $input) { id title excerpt author { id name } createdAt }
+import { gql, type TypedDocumentNode } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
+
+type AddPostData = { addPost: { __typename: "Post"; id: string; title: string; excerpt: string } };
+type AddPostVars = { title: string; body: string };
+
+const ADD_POST: TypedDocumentNode<AddPostData, AddPostVars> = gql`
+  mutation AddPost($title: String!, $body: String!) {
+    addPost(title: $title, body: $body) { id title excerpt }
   }
 `;
 
-function CreatePostForm() {
-  const [createPost, { loading }] = useMutation(CREATE_POST, {
+export function useAddPost() {
+  return useMutation(ADD_POST, {
     optimisticResponse: (vars) => ({
-      createPost: {
-        __typename: "Post",
-        id: "temp-id",
-        title: vars.input.title,
-        excerpt: vars.input.body.slice(0, 200),
-        author: { __typename: "User", id: currentUser.id, name: currentUser.name },
-        createdAt: new Date().toISOString(),
-      },
+      addPost: { __typename: "Post" as const, id: `temp-${Date.now()}`, title: vars.title, excerpt: vars.body.slice(0, 120) },
     }),
-    update(cache, { data: { createPost } }) {
+    update(cache, { data }) {
+      if (!data) return;
       cache.modify({
         fields: {
-          posts(existing = []) {
-            const ref = cache.writeFragment({ data: createPost, fragment: POST_FRAGMENT });
-            return [ref, ...existing];
+          posts(existing = [], { toReference }) {
+            return [toReference(data.addPost)!, ...existing];
           },
         },
       });
     },
   });
-
-  const handleSubmit = (data) => createPost({ variables: { input: data } });
-  return <Form onSubmit={handleSubmit} loading={loading} />;
 }
 ```
 
-### Authentication
+Use `refetchQueries: [GET_POSTS]` instead when the server result is easier to refetch than to patch.
 
-```tsx
-import { ApolloClient, createHttpLink, ApolloLink } from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
-import { onError } from "@apollo/client/link/error";
+### Auth headers and error handling
 
-const httpLink = createHttpLink({ uri: "/graphql" });
+Links compose with `.concat()` / `ApolloLink.from`. Use `SetContextLink` for headers and `ErrorLink` for global errors; the handler receives a single `error` (not `graphQLErrors` / `networkError` as in 3.x). Identify the kind of error with the static `is` helpers from `@apollo/client/errors`.
 
-const authLink = setContext((_, { headers }) => ({
-  headers: { ...headers, authorization: `Bearer ${localStorage.getItem("token")}` },
+```ts
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client";
+import { SetContextLink } from "@apollo/client/link/context";
+import { ErrorLink } from "@apollo/client/link/error";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
+
+const authLink = new SetContextLink(({ headers }) => ({
+  headers: { ...headers, authorization: `Bearer ${sessionStorage.getItem("access_token") ?? ""}` },
 }));
 
-const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors?.some(e => e.extensions?.code === "UNAUTHENTICATED")) {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+const errorLink = new ErrorLink(({ error }) => {
+  if (CombinedGraphQLErrors.is(error) && error.errors.some((e) => e.extensions?.code === "UNAUTHENTICATED")) {
+    sessionStorage.removeItem("access_token");
+    window.location.assign("/login");
   }
 });
 
-const client = new ApolloClient({
-  link: ApolloLink.from([errorLink, authLink, httpLink]),
+export const client = new ApolloClient({
+  link: ApolloLink.from([errorLink, authLink, new HttpLink({ uri: "https://api.northwind.dev/graphql" })]),
   cache: new InMemoryCache(),
 });
 ```
 
-## Installation
+Retry with `RetryLink` from `@apollo/client/link/retry`. In development, call `loadDevMessages()` and `loadErrorMessages()` from `@apollo/client/dev` to get readable error text.
 
-```bash
-npm install @apollo/client graphql
-```
+## Examples
 
-## Best Practices
+### Example 1: Add Apollo to a Vite React app
 
-1. **Normalized cache** — Apollo normalizes data by `__typename:id`; updates to one entity propagate everywhere
-2. **Optimistic updates** — Provide `optimisticResponse` for mutations; UI updates instantly, corrects on server response
-3. **Type policies** — Configure `typePolicies` for pagination merging, field read/write policies
-4. **Code generation** — Use `graphql-codegen` to generate TypeScript types from your schema; fully typed queries
-5. **Error link** — Use `onError` link for global error handling (auth refresh, logging, retry)
-6. **Fragments** — Define reusable fragments for entity fields; share between queries and mutations
-7. **Cache updates** — Use `update` function or `refetchQueries` after mutations; prefer cache.modify for performance
-8. **Polling and subscriptions** — Use `pollInterval` for simple real-time, WebSocket subscriptions for true real-time
+**Request:** "Hook our React app up to the GraphQL API at https://api.northwind.dev/graphql and list posts."
+
+Install `@apollo/client graphql rxjs`, add `src/apollo.tsx` from above (with the `offsetLimitPagination` cache from the pagination snippet), wrap `<App />` in `<Providers>` in `main.tsx`, and render `<PostList />`. The page shows "Loading…" and then ten posts; "Load more" appends the next ten through the offset policy.
+
+### Example 2: Migrate a 3.x codebase to 4
+
+**Request:** "We upgraded to @apollo/client 4 and everything stopped compiling."
+
+Change `import { useQuery, ApolloProvider } from "@apollo/client"` to `@apollo/client/react`; replace `new ApolloClient({ uri, headers })` with `link: new HttpLink({ uri, headers })`; replace `setContext`/`onError`/`createHttpLink` with `SetContextLink`/`ErrorLink`/`HttpLink`; install `rxjs`; and read errors through `CombinedGraphQLErrors.is(error)` instead of `error.graphQLErrors`. Run `npx tsc --noEmit` to find the remainder; Apollo's migration guide lists the rest.
+
+## Guidelines
+
+- Always request `id` (or your configured key fields) on entities, or normalization and cache updates silently fail.
+- Define `TypedDocumentNode`s or generate types with GraphQL Code Generator; avoid `any` data.
+- Do not keep access tokens in `localStorage` if cookies are possible; tokens there are readable by any script on the page.
+- Set `keyArgs` in type policies for any paginated field that also takes filters, or different filters will share one list.
+- Prefer `cache.modify` / `refetchQueries` over manually rewriting query results.
+- For Next.js App Router and other SSR frameworks, use the framework integration packages and guides rather than a client created at module scope on the server.
