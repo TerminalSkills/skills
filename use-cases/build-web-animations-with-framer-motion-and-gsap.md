@@ -9,6 +9,7 @@ skills:
   - motion
   - gsap
   - tailwindcss
+  - react-bits
 category: development
 tags:
   - animation
@@ -302,3 +303,7 @@ export function Stats() {
 ## Summary
 
 Sam's landing page now feels premium. Sections reveal smoothly on scroll, features stagger in with spring physics, and the hero headline animates character-by-character. Framer Motion handles the React component animations declaratively (variants, `whileInView`, `AnimatePresence`), while GSAP handles the complex stuff: scroll-pinned horizontal showcases, parallax effects, and timeline sequences. The key: animations guide attention to CTAs and key content instead of being decorative. Conversion rate on the landing page increased 23% after adding purposeful animations.
+
+## Related Skills
+
+- [react-bits](/skills/react-bits) — when you would rather drop in a ready-made animated component (split text, aurora backgrounds, cursor effects) through the shadcn CLI than hand-write the animation

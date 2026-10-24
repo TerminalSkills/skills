@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3f5c141397d368571d694565a5709356782a5f85d9b64741ccbe694ed8b70f61",
+  "scoredAt": "2026-10-24T23:26:05.648Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.75,
+    "baselineAvg": 12,
+    "treatmentAvg": 57,
+    "scenarios": [
+      {
+        "name": "add-aurora-splittext-tailwind",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention the required shadcn command or component creation."
+      },
+      {
+        "name": "add-blurtext-no-tailwind",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers most rubric items but omits the exact curl command and compile confirmation, whereas Response A fails to meet any requirement."
+      },
+      {
+        "name": "copy-magnet-manually",
+        "baseline": 35,
+        "treatment": 20,
+        "rationale": "Response B provides a usage example and import statement, whereas Response A does not; neither includes the required curl command, dependency list, or compile confirmation."
+      }
+    ]
+  }
+}
