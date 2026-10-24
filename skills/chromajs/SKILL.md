@@ -7,25 +7,29 @@ description: >-
   color palettes, theming, accessibility checks, or data visualization color
   scales.
 license: Apache-2.0
-compatibility: "Node.js 14+ or browser"
+compatibility: "chroma-js 3.x; Node.js (ESM or CommonJS) or any modern browser"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/gka/chroma.js
   category: design
   tags: ["color", "palette", "accessibility", "chroma", "design-tokens"]
 ---
 
 # chroma.js
 
-Color manipulation library for JavaScript. Handles conversions, scales, blending, and WCAG contrast calculations.
+## Overview
 
-## Setup
+chroma.js is a small JavaScript library for color conversion, color scales, mixing and WCAG contrast calculations. Current release is 3.2.0 (ES module package with a CommonJS build behind `require`). It ships no TypeScript types; they come from `@types/chroma-js`. Out-of-gamut or invalid input throws, so validate user-supplied strings with `chroma.valid()`.
+
+## Instructions
 
 ```bash
-# Install chroma.js — works in Node and browser.
 npm install chroma-js
 npm install -D @types/chroma-js
 ```
+
+Use `import chroma from "chroma-js"` (ESM) or `const chroma = require("chroma-js")` (CommonJS).
 
 ## Basic Color Operations
 
@@ -41,13 +45,16 @@ const green = chroma(120, 1, 0.5, "hsl");
 // Convert between formats
 console.log(red.hex());       // "#ff0000"
 console.log(red.rgb());       // [255, 0, 0]
-console.log(red.hsl());       // [0, 1, 0.5]
-console.log(red.lab());       // [53.23, 80.11, 67.22]
+console.log(red.hsl());       // [0, 1, 0.5, 1]  (hue, saturation, lightness, alpha)
+console.log(red.lab());       // [53.24, 80.09, 67.20]
+console.log(red.oklch());     // [0.628, 0.258, 29.23]
+console.log(red.css("oklch")); // "oklch(62.8% 0.26 29.23deg)"
 
 // Adjust properties
 const lighter = red.brighten(2);
 const muted = red.desaturate(1.5);
 const translucent = red.alpha(0.5);
+console.log(translucent.hex()); // "#ff000080"  (hex keeps alpha when it is below 1)
 ```
 
 ## Generating Color Scales
@@ -69,6 +76,10 @@ const diverging = chroma
 
 // Generate 7 discrete colors from a scale
 const palette = chroma.scale(["#fce4ec", "#880e4f"]).colors(7);
+
+// ColorBrewer palettes by name; correctLightness() evens out perceived brightness
+const ylgnbu = chroma.scale("YlGnBu").colors(5);
+const even = chroma.scale(["#fafa6e", "#2A4858"]).mode("lch").correctLightness();
 ```
 
 ## Accessible Contrast Checking
@@ -88,9 +99,11 @@ export function checkContrast(fg: string, bg: string) {
   };
 }
 
-// Find the best text color for a given background
+// Pick black or white text, whichever has the higher contrast with the background
 export function autoTextColor(bg: string): string {
-  return chroma(bg).luminance() > 0.45 ? "#000000" : "#ffffff";
+  return chroma.contrast(bg, "#ffffff") >= chroma.contrast(bg, "#000000")
+    ? "#ffffff"
+    : "#000000";
 }
 ```
 
@@ -130,3 +143,34 @@ console.log(mixed.hex()); // perceptual midpoint
 // Average multiple colors
 const avg = chroma.average(["#ddd", "#ff0", "#09f"], "lab");
 ```
+
+## Examples
+
+**"Is gray text #777 on white OK for body copy?"**
+
+```typescript
+import { checkContrast } from "./src/colors/accessibility";
+console.log(checkContrast("#777777", "#ffffff"));
+// { ratio: 4.48, aa: false, aaLarge: true, aaa: false }
+```
+
+Ratio 4.48 is just under the 4.5 AA threshold, so darken the gray (for example `#767676` passes at 4.54).
+
+**"Give me a 5-step heatmap legend from light yellow to dark blue-green."**
+
+```typescript
+import chroma from "chroma-js";
+console.log(chroma.scale(["#fafa6e", "#2A4858"]).mode("lch").colors(5));
+// [ '#fafa6e', '#86d780', '#23aa8f', '#007882', '#2a4858' ]
+```
+
+The LCH mode keeps the midpoints saturated instead of muddy.
+
+## Guidelines
+
+- `chroma.contrast()` implements the WCAG 2 ratio (AA: 4.5 for body text, 3 for large text; AAA: 7). It is not APCA; for APCA use `chroma.contrastAPCA(text, background)`.
+- Mix and interpolate in `lab`, `lch` or `oklch`; RGB interpolation gives dull, darker midpoints. `hsl` hue interpolation can take the long way round.
+- `brighten`/`darken`/`saturate`/`desaturate` take a step count in LCH units (default 1), not a percentage.
+- Color methods return new objects; nothing mutates in place.
+- Wrap user-provided strings in `chroma.valid(input)` before constructing, since invalid input throws.
+- Do not rely on `luminance()` thresholds for text color; compare contrast against black and white instead.
