@@ -23,126 +23,187 @@ tags:
 
 Sam leads security at a 25-person API company. API keys live forever — some customers haven't rotated in 3 years. When a key leaks, there's no automated way to rotate; customer must generate a new key and update all their integrations manually (2-4 hours downtime). Compliance requires 90-day key rotation but there's no enforcement. Some keys are embedded in client mobile apps — rotating them breaks the app until a new version is deployed. They need automated rotation: schedule key rotation, generate replacement with overlap period, notify clients, track compliance, and handle graceful rollover.
 
-## Step 1: Build the Rotation Scheduler
+## The Solution
+
+Rotation is a two-key overlap. Starting a rotation creates a second active key with the same scopes and rate limit and returns its value once. The old key keeps working for a grace period, then a cron job revokes it. Keys are stored only as SHA-256 hashes, so the plaintext can never be re-sent later; it is shown in the API response and nowhere else. The stack uses [PostgreSQL](/skills/postgresql) for keys and rotations, [Redis](/skills/redis) for the notification queue and key cache, [Hono](/skills/hono) with [Zod](/skills/zod) for the endpoint, and [TypeScript](/skills/typescript) throughout.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Create the tables
+
+```sql
+CREATE TABLE api_keys (
+  id text PRIMARY KEY,
+  name text NOT NULL,
+  key_hash text NOT NULL UNIQUE,
+  organization_id text NOT NULL,
+  scopes text[] NOT NULL DEFAULT '{}',
+  rate_limit int NOT NULL DEFAULT 1000,
+  status text NOT NULL DEFAULT 'active',  -- active | revoked
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  revoked_at timestamptz
+);
+
+CREATE TABLE key_rotations (
+  id text PRIMARY KEY,
+  key_id text NOT NULL REFERENCES api_keys(id),
+  new_key_id text NOT NULL REFERENCES api_keys(id),
+  status text NOT NULL,                   -- grace_period | completed
+  grace_end_at timestamptz NOT NULL,
+  completed_at timestamptz,
+  reason text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT NOW()
+);
+CREATE INDEX ON key_rotations (grace_end_at) WHERE status = 'grace_period';
+```
+
+### Step 2: Rotation logic
+
+`pg` and `ioredis` are the two drivers; install them with `npm i pg ioredis hono @hono/zod-validator zod`. The insert of the new key and the rotation row happen in one transaction, and `FOR UPDATE` stops two concurrent rotations of the same key.
 
 ```typescript
-import { pool } from "../db";
+import { Pool } from "pg";
 import { Redis } from "ioredis";
-import { randomBytes, scryptSync, createHash } from "node:crypto";
-const redis = new Redis(process.env.REDIS_URL!);
+import { randomBytes, createHash } from "node:crypto";
 
-interface KeyRotation {
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const redis = new Redis(process.env.REDIS_URL!);
+
+// API keys are 256 random bits, so a plain SHA-256 is enough for lookup.
+// (Slow hashes such as scrypt are for low-entropy passwords.)
+const hashKey = (raw: string) => createHash("sha256").update(raw).digest("hex");
+
+export interface Rotation {
   id: string;
   keyId: string;
-  oldKeyPrefix: string;
-  newKeyPrefix: string;
-  status: "scheduled" | "in_progress" | "grace_period" | "completed" | "failed";
-  scheduledAt: string;
-  graceEndAt: string;
-  completedAt: string | null;
+  newKeyId: string;
+  graceEndAt: Date;
   reason: string;
 }
 
-// Schedule key rotation
-export async function scheduleRotation(keyId: string, options?: { gracePeriodHours?: number; reason?: string; immediate?: boolean }): Promise<KeyRotation> {
-  const gracePeriod = options?.gracePeriodHours ?? 72;
-  const id = `rot-${randomBytes(6).toString("hex")}`;
-
-  // Generate new key
-  const newRawKey = randomBytes(32).toString("hex");
-  const newPrefix = newRawKey.slice(0, 8);
-  const newLookupHash = createHash("sha256").update(`sk_live_${newRawKey}`).digest("hex");
-
-  const { rows: [oldKey] } = await pool.query("SELECT prefix, organization_id, scopes, rate_limit FROM api_keys WHERE id = $1", [keyId]);
-  if (!oldKey) throw new Error("Key not found");
-
-  // Create new key with same permissions
-  const newKeyId = `key-${randomBytes(6).toString("hex")}`;
-  await pool.query(
-    `INSERT INTO api_keys (id, prefix, lookup_hash, hashed_key, name, organization_id, scopes, rate_limit, status, created_by, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', 'rotation-scheduler', NOW())`,
-    [newKeyId, newPrefix, newLookupHash, scryptSync(`sk_live_${newRawKey}`, randomBytes(16), 64).toString("hex"),
-     `Rotated from ${oldKey.prefix}***`, oldKey.organization_id, oldKey.scopes, oldKey.rate_limit]
-  );
-
-  const scheduledAt = options?.immediate ? new Date().toISOString() : new Date(Date.now() + 86400000).toISOString();
-  const graceEndAt = new Date(new Date(scheduledAt).getTime() + gracePeriod * 3600000).toISOString();
-
-  const rotation: KeyRotation = {
-    id, keyId, oldKeyPrefix: oldKey.prefix, newKeyPrefix: newPrefix,
-    status: options?.immediate ? "grace_period" : "scheduled",
-    scheduledAt, graceEndAt, completedAt: null,
-    reason: options?.reason || "Scheduled rotation",
-  };
-
-  await pool.query(
-    `INSERT INTO key_rotations (id, key_id, old_prefix, new_prefix, status, scheduled_at, grace_end_at, reason, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-    [id, keyId, oldKey.prefix, newPrefix, rotation.status, scheduledAt, graceEndAt, rotation.reason]
-  );
-
-  // Notify customer
-  await redis.rpush("notification:queue", JSON.stringify({
-    type: "key_rotation", organizationId: oldKey.organization_id,
-    message: `API key ${oldKey.prefix}*** will be rotated. New key available. Old key valid until ${graceEndAt}.`,
-    data: { rotationId: id, newKeyPrefix: newPrefix, graceEndAt },
-  }));
-
-  return rotation;
+/** Create the replacement key. The raw value is returned once and never stored. */
+export async function startRotation(
+  keyId: string,
+  opts: { gracePeriodHours?: number; reason?: string } = {},
+): Promise<{ rotation: Rotation; newKey: string }> {
+  const grace = opts.gracePeriodHours ?? 72;
+  const newKey = `sk_live_${randomBytes(32).toString("base64url")}`;
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows: [old] } = await client.query(
+      "SELECT name, organization_id, scopes, rate_limit FROM api_keys WHERE id = $1 AND status = 'active' FOR UPDATE",
+      [keyId],
+    );
+    if (!old) throw new Error("Active key not found");
+    const newKeyId = `key_${randomBytes(6).toString("hex")}`;
+    await client.query(
+      `INSERT INTO api_keys (id, name, key_hash, organization_id, scopes, rate_limit, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW())`,
+      [newKeyId, `${old.name} (rotated)`, hashKey(newKey), old.organization_id, old.scopes, old.rate_limit],
+    );
+    const id = `rot_${randomBytes(6).toString("hex")}`;
+    const reason = opts.reason ?? "Scheduled rotation";
+    const { rows: [row] } = await client.query(
+      `INSERT INTO key_rotations (id, key_id, new_key_id, status, grace_end_at, reason, created_at)
+       VALUES ($1, $2, $3, 'grace_period', NOW() + $4 * INTERVAL '1 hour', $5, NOW())
+       RETURNING grace_end_at`,
+      [id, keyId, newKeyId, grace, reason],
+    );
+    await client.query("COMMIT");
+    // Tell the customer a rotation started; the new key itself goes only to the caller.
+    await redis.rpush("notification:queue", JSON.stringify({
+      type: "key_rotation", organizationId: old.organization_id, rotationId: id, graceEndAt: row.grace_end_at,
+    }));
+    return { rotation: { id, keyId, newKeyId, graceEndAt: row.grace_end_at, reason }, newKey };
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
-// Process scheduled rotations
-export async function processRotations(): Promise<{ started: number; completed: number; failed: number }> {
-  let started = 0, completed = 0, failed = 0;
-
-  // Start scheduled rotations
-  const { rows: scheduled } = await pool.query(
-    "SELECT * FROM key_rotations WHERE status = 'scheduled' AND scheduled_at <= NOW()"
-  );
-  for (const rot of scheduled) {
-    await pool.query("UPDATE key_rotations SET status = 'grace_period' WHERE id = $1", [rot.id]);
-    started++;
-  }
-
-  // Complete grace periods
-  const { rows: grace } = await pool.query(
-    "SELECT * FROM key_rotations WHERE status = 'grace_period' AND grace_end_at <= NOW()"
-  );
-  for (const rot of grace) {
-    try {
-      await pool.query("UPDATE api_keys SET status = 'revoked' WHERE id = $1", [rot.key_id]);
-      await pool.query("UPDATE key_rotations SET status = 'completed', completed_at = NOW() WHERE id = $1", [rot.id]);
-      // Clear cache
-      const keys = await redis.keys(`apikey:*`);
-      if (keys.length) await redis.del(...keys);
-      completed++;
-    } catch { failed++; }
-  }
-
-  return { started, completed, failed };
-}
-
-// Check compliance (keys older than max age)
-export async function checkCompliance(maxAgeDays: number = 90): Promise<Array<{ keyId: string; prefix: string; orgId: string; ageDays: number }>> {
+/** Run from cron every few minutes: revoke old keys whose grace period is over. */
+export async function finishExpiredRotations(): Promise<number> {
   const { rows } = await pool.query(
-    `SELECT id, prefix, organization_id, EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400 as age_days
-     FROM api_keys WHERE status = 'active' AND created_at < NOW() - $1 * INTERVAL '1 day'
-     ORDER BY created_at ASC`,
-    [maxAgeDays]
+    `WITH due AS (
+       SELECT id, key_id FROM key_rotations
+       WHERE status = 'grace_period' AND grace_end_at <= NOW()
+       FOR UPDATE SKIP LOCKED
+     ), done AS (
+       UPDATE key_rotations r SET status = 'completed', completed_at = NOW()
+       FROM due WHERE r.id = due.id RETURNING due.key_id
+     )
+     UPDATE api_keys k SET status = 'revoked', revoked_at = NOW()
+     FROM done WHERE k.id = done.key_id RETURNING k.key_hash`,
   );
-  return rows.map((r: any) => ({ keyId: r.id, prefix: r.prefix, orgId: r.organization_id, ageDays: Math.floor(parseFloat(r.age_days)) }));
+  // Drop only the cached entries of the revoked keys.
+  if (rows.length) await redis.del(...rows.map((r) => `apikey:${r.key_hash}`));
+  return rows.length;
 }
 
-// Emergency rotation (immediate, short grace)
-export async function emergencyRotate(keyId: string, reason: string): Promise<KeyRotation> {
-  return scheduleRotation(keyId, { gracePeriodHours: 4, reason: `EMERGENCY: ${reason}`, immediate: true });
+/** Active keys older than the compliance window (default 90 days). */
+export async function overdueKeys(maxAgeDays = 90) {
+  const { rows } = await pool.query(
+    `SELECT id, organization_id, FLOOR(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400)::int AS age_days
+     FROM api_keys WHERE status = 'active' AND created_at < NOW() - $1 * INTERVAL '1 day'
+     ORDER BY created_at`,
+    [maxAgeDays],
+  );
+  return rows as { id: string; organization_id: string; age_days: number }[];
 }
 ```
 
-## Results
+### Step 3: The HTTP endpoint
 
-- **Zero-downtime rotation** — new key active alongside old; 72-hour grace period; client migrates at their pace; old key revoked automatically after grace
-- **Compliance enforced** — cron checks keys older than 90 days; auto-schedules rotation; compliance dashboard shows 100% coverage; audit passed
-- **Emergency rotation: 2-4 hours → 5 minutes** — leaked key → emergency rotate → 4-hour grace → old key dead; no manual steps
-- **Client notification** — email + in-app alert with new key prefix and deadline; client updates integration; no surprise revocation
-- **Audit trail** — every rotation logged with reason, dates, and status; compliance can verify rotation history per key
+Zod validates the grace period, and the response is marked `no-store` so proxies never cache the new key.
+
+```typescript
+import { Hono } from "hono";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { startRotation } from "./rotation";
+
+const app = new Hono();
+
+const body = z.object({
+  gracePeriodHours: z.number().int().min(1).max(24 * 30).default(72),
+  reason: z.string().max(200).optional(),
+});
+
+app.post("/keys/:id/rotate", zValidator("json", body), async (c) => {
+  // Add your own auth middleware: the caller must own this key's organization.
+  const { gracePeriodHours, reason } = c.req.valid("json");
+  const { rotation, newKey } = await startRotation(c.req.param("id"), { gracePeriodHours, reason });
+  c.header("Cache-Control", "no-store");
+  return c.json({ rotation, newKey }, 201); // newKey is shown exactly once
+});
+
+// Emergency: leaked key, 4-hour overlap (same auth middleware as above)
+app.post("/keys/:id/emergency-rotate", async (c) => {
+  const { rotation, newKey } = await startRotation(c.req.param("id"), { gracePeriodHours: 4, reason: "EMERGENCY: suspected leak" });
+  c.header("Cache-Control", "no-store");
+  return c.json({ rotation, newKey }, 201);
+});
+
+export default app;
+```
+
+### Step 4: Run the scheduler
+
+Call `finishExpiredRotations()` from a cron job or a worker timer every few minutes. Call `overdueKeys(90)` daily and either email the owners or call `startRotation` for each result. Your auth middleware should read `apikey:<hash>` from Redis before Postgres; that is the cache entry the scheduler deletes on revocation, so set a short TTL (for example 5 minutes) on it as a second safety net.
+
+## Real-World Example
+
+Sam leads security at a 25-person API company. Some customer keys are three years old, and compliance wants 90-day rotation. Sam deploys the endpoint and the cron job. The nightly `overdueKeys(90)` report goes to the customers' account owners, who rotate from the dashboard: the new key appears once, the old one keeps working for 72 hours, and the cron job revokes it afterwards. When a key leaks in a public repository, support calls the emergency endpoint, hands the customer the new key and the old one dies four hours later. The `key_rotations` table gives auditors a per-key history of reasons and dates.
+
+Mobile apps that embed a key still need a release to pick up a new one. For them, set a longer `gracePeriodHours` (up to 30 days here) and plan the rotation around the app release cycle, or move the secret out of the app to a backend.
+
+## Related Skills
+
+- [typescript](/skills/typescript) - typed rotation code
+- [redis](/skills/redis) - notification queue and key cache
+- [postgresql](/skills/postgresql) - key and rotation tables
+- [hono](/skills/hono) - the rotation endpoint
+- [zod](/skills/zod) - request validation
