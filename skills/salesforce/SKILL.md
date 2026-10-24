@@ -9,10 +9,11 @@ description: >-
   Connected Apps, or automate Salesforce workflows. Covers Sales Cloud, Service
   Cloud, APIs, Apex, LWC, and DevOps.
 license: Apache-2.0
-compatibility: 'Any HTTP client (REST/SOAP APIs), Salesforce CLI (sf/sfdx), Node.js 18+'
+compatibility: 'Any HTTP client (REST/SOAP APIs); Salesforce CLI (sf) 2.x, which needs Node.js 22+; Node.js 18+ for the TypeScript snippets'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/forcedotcom/cli
+  version: 1.1.0
   category: business
   tags:
     - salesforce
@@ -32,9 +33,9 @@ Build on the Salesforce platform — the world's largest CRM. This skill covers 
 
 ### Step 1: Authentication — Connected App & OAuth2
 
-Create a Connected App (Setup → App Manager → New Connected App), enable OAuth, set scopes: `api`, `refresh_token`, `full`.
+Create a Connected App (Setup → App Manager → New Connected App), enable OAuth, set scopes: `api` and `refresh_token` (add `web` only for browser flows). Avoid `full`, which grants everything the user can do. Server-to-server use needs the JWT flow's certificate uploaded to the app and the app's users pre-authorized. Newer orgs steer new integrations to External Client Apps; the same flows apply there.
 
-**JWT Bearer Flow (server-to-server):**
+**JWT Bearer Flow (server-to-server).** Use `https://test.salesforce.com` as `aud` and token host for sandboxes, or your My Domain URL:
 ```typescript
 import jwt from "jsonwebtoken";
 import fs from "fs";
@@ -55,10 +56,12 @@ async function getSalesforceToken(clientId: string, username: string) {
 }
 ```
 
-**API helper:**
+**API helper.** Pick the version from the highest entry returned by `GET {instanceUrl}/services/data/` and keep it in one place:
 ```typescript
+const API_VERSION = process.env.SF_API_VERSION ?? "60.0";
+
 async function sf(method: string, path: string, token: string, instanceUrl: string, body?: any) {
-  const res = await fetch(`${instanceUrl}/services/data/v60.0${path}`, {
+  const res = await fetch(`${instanceUrl}/services/data/v${API_VERSION}${path}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
@@ -110,7 +113,7 @@ await sf("POST", "/sobjects/Contact", token, instanceUrl, {
 });
 await sf("POST", "/sobjects/Opportunity", token, instanceUrl, {
   Name: "TechStart — Enterprise License", AccountId: account.id,
-  StageName: "Qualification", Amount: 150000, CloseDate: "2026-06-30",
+  StageName: "Qualification", Amount: 150000, CloseDate: "2026-12-31",
 });
 
 // Update and upsert
@@ -121,23 +124,25 @@ await sf("PATCH", `/sobjects/Account/External_ID__c/TECHSTART-001`, token, insta
 await sf("POST", "/composite", token, instanceUrl, {
   allOrNone: true,
   compositeRequest: [
-    { method: "POST", url: "/services/data/v60.0/sobjects/Account", referenceId: "newAccount", body: { Name: "NewCo" } },
-    { method: "POST", url: "/services/data/v60.0/sobjects/Contact", referenceId: "newContact",
-      body: { LastName: "Doe", AccountId: "@{newAccount.id}" } },
+    { method: "POST", url: `/services/data/v${API_VERSION}/sobjects/Account`, referenceId: "newAccount", body: { Name: "NewCo" } },
+    { method: "POST", url: `/services/data/v${API_VERSION}/sobjects/Contact`, referenceId: "newContact",
+      body: { LastName: "Okafor", AccountId: "@{newAccount.id}" } },
   ],
 });
 ```
 
 ### Step 4: Bulk API 2.0
 
+An upsert needs an external ID field (a custom field marked External ID); standard `Email` does not qualify.
+
 ```typescript
 const job = await sf("POST", "/jobs/ingest", token, instanceUrl, {
-  object: "Contact", operation: "upsert", externalIdFieldName: "Email", contentType: "CSV",
+  object: "Contact", operation: "upsert", externalIdFieldName: "External_ID__c", contentType: "CSV",
 });
-await fetch(`${instanceUrl}/services/data/v60.0/jobs/ingest/${job.id}/batches`, {
+await fetch(`${instanceUrl}/services/data/v${API_VERSION}/jobs/ingest/${job.id}/batches`, {
   method: "PUT",
   headers: { Authorization: `Bearer ${token}`, "Content-Type": "text/csv" },
-  body: `FirstName,LastName,Email,AccountId\nMarta,Schmidt,marta@techstart.io,${accountId}`,
+  body: `FirstName,LastName,External_ID__c,AccountId\nMarta,Schmidt,TECHSTART-C-001,${accountId}`,
 });
 await sf("PATCH", `/jobs/ingest/${job.id}`, token, instanceUrl, { state: "UploadComplete" });
 ```
@@ -174,30 +179,37 @@ global class DealAPI {
 }
 ```
 
-**Platform Events** — define `Deal_Closed__e` with fields in Setup, publish from Apex with `EventBus.publish(event)`, subscribe externally via CometD Streaming API.
+Always bulkify triggers (no SOQL or DML inside the loop) and keep one trigger per object. **Platform Events** — define `Deal_Closed__e` with fields in Setup, publish from Apex with `EventBus.publish(event)`, subscribe externally via CometD Streaming API.
 
 ### Step 6: SFDX & CI/CD
 
 ```bash
 sf project generate --name my-project && cd my-project
 sf org login web --alias myorg
-sf project retrieve start --target-org myorg
+sf project retrieve start --source-dir force-app --target-org myorg
 sf project deploy start --source-dir force-app --target-org myorg
-sf apex test run --target-org myorg --code-coverage --result-format human
+sf apex test run --target-org myorg --test-level RunLocalTests --wait 10 --code-coverage --result-format human
 ```
 
 **GitHub Actions deploy:**
 ```yaml
 steps:
   - uses: actions/checkout@v4
+  - uses: actions/setup-node@v4
+    with: { node-version: 22 }
   - run: npm install -g @salesforce/cli
-  - run: echo "${{ secrets.SF_AUTH_URL }}" > auth.txt && sf org login sfdx-url --sfdx-url-file auth.txt --alias prod
+  - run: |
+      printf '%s' "$SF_AUTH_URL" > "$RUNNER_TEMP/auth.txt"
+      sf org login sfdx-url --sfdx-url-file "$RUNNER_TEMP/auth.txt" --alias prod
+      rm "$RUNNER_TEMP/auth.txt"
+    env:
+      SF_AUTH_URL: ${{ secrets.SF_AUTH_URL }}
   - run: sf project deploy start --source-dir force-app --target-org prod --test-level RunLocalTests
 ```
 
 ### Step 7: Integration Patterns
 
-**Change Data Capture (SF → external):**
+**Change Data Capture (SF → external).** Enable the object under Setup → Change Data Capture. Subscribe with the Pub/Sub API (gRPC, current) or the CometD Streaming API; `client` below stands for a CometD client:
 ```typescript
 client.subscribe("/data/OpportunityChangeEvent", async (event: any) => {
   const { changeType, recordIds } = event.payload.ChangeEventHeader;
@@ -212,11 +224,12 @@ client.subscribe("/data/OpportunityChangeEvent", async (event: any) => {
 
 **External webhook → Salesforce (Stripe example):**
 ```typescript
+// Verify the Stripe-Signature header on the raw body first (stripe.webhooks.constructEvent).
 app.post("/webhook/stripe", async (req, res) => {
   if (req.body.type === "payment_intent.succeeded") {
     const payment = req.body.data.object;
     const opp = await sf("GET",
-      `/query?q=${encodeURIComponent(`SELECT Id FROM Opportunity WHERE Stripe_Payment_ID__c = '${payment.id}'`)}`,
+      `/query?q=${encodeURIComponent(`SELECT Id FROM Opportunity WHERE Stripe_Payment_ID__c = '${String(payment.id).replace(/['\\]/g, "\\$&")}'`)}`,
       token, instanceUrl);
     if (opp.records.length > 0) {
       await sf("PATCH", `/sobjects/Opportunity/${opp.records[0].Id}`, token, instanceUrl, { StageName: "Closed Won" });
@@ -238,13 +251,14 @@ The agent will write an `after insert` Apex trigger on Opportunity that checks `
 
 **User prompt:** "Set up Change Data Capture to sync closed-won opportunities to our PostgreSQL database in real time, and create an inbound webhook endpoint that updates Salesforce opportunities when Stripe payments succeed."
 
-The agent will subscribe to `/data/OpportunityChangeEvent` via CometD, filter for UPDATE events where StageName changed to "Closed Won", fetch the full record, and upsert it into PostgreSQL. For the inbound flow, it will create an Express endpoint at `/webhook/stripe` that extracts the payment ID from the Stripe event, queries Salesforce for the matching opportunity by custom field `Stripe_Payment_ID__c`, and patches the stage to "Closed Won" with the payment date.
+The agent will subscribe to `/data/OpportunityChangeEvent` via CometD, filter for CREATE and UPDATE events, fetch the full record, and upsert it into PostgreSQL. For the inbound flow, it will create an Express endpoint at `/webhook/stripe` that extracts the payment ID from the Stripe event, queries Salesforce for the matching opportunity by custom field `Stripe_Payment_ID__c`, and patches the stage to "Closed Won".
 
 ## Guidelines
 
 - **Use the Composite API for related record creation** — creating an Account, Contact, and Opportunity in a single composite call with `@{referenceId.id}` references is faster and ensures atomicity with `allOrNone: true`.
 - **Paginate all SOQL queries** — results over 2,000 records return a `nextRecordsUrl`; always loop until it is null to avoid silently missing data.
 - **Prefer Bulk API 2.0 for large data loads** — anything over a few hundred records should use the Bulk API with CSV upload to avoid governor limits and API call quotas.
-- **Always test Apex with `RunLocalTests`** — Salesforce requires 75% code coverage for production deploys; run `sf apex test run` before every deployment to catch failures early.
+- **Always test Apex with `RunLocalTests`** — Salesforce requires 75% code coverage for production deploys; run `sf apex test run --wait 10` (without `--wait` it returns a run ID at once) before every deployment to catch failures early.
 - **Sanitize SOQL inputs** — never interpolate user input directly into SOQL strings; use bind variables in Apex or parameterize queries to prevent SOQL injection.
-- **Handle CSRF tokens for on-premise S/4HANA** — write operations against on-premise Salesforce instances may require fetching an `X-CSRF-Token` header first; cloud instances using OAuth2 do not need this.
+- **Respect API limits** — each org has a rolling 24-hour API request allocation; check `GET /limits` and batch with Composite or Bulk before polling in loops.
+- **Keep secrets out of code** — the JWT private key, consumer key and auth URL come from a secret store or environment variables, never the repository; use a dedicated integration user with a minimal permission set.
