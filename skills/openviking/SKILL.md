@@ -1,20 +1,19 @@
 ---
 name: openviking
 description: >-
-  Manage AI agent context (memory, resources, skills) using OpenViking's file system paradigm.
-  Use when: building agents with persistent context, managing agent memories across sessions,
-  implementing hierarchical context delivery for complex agent systems.
+  OpenViking is an open-source context database for AI agents: one virtual file system under viking:// that holds an agent's knowledge, memories and skills, with generated summaries and semantic search. Use when the user wants persistent agent memory across sessions, wants to import docs or repos for agents to search, asks about the ov CLI, openviking-server or viking:// URIs, or wants to connect Claude Code, Codex or Cursor to a shared memory server.
 license: Apache-2.0
-compatibility: "Python 3.10+"
+compatibility: "Server: Python 3.10+ and uv, plus an embedding model and a VLM. Client: Node.js and npm for the ov CLI, or Python for openviking-sdk. OpenViking 0.5.x"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/volcengine/OpenViking
   tags: [context-database, agent-memory, openviking, context-management, file-system]
   use-cases:
     - "Give AI agents organized, persistent context that survives across sessions"
-    - "Build a context hierarchy: project → task → subtask with scoped memories"
-    - "Implement self-evolving context that agents update based on what they learn"
+    - "Import project docs and repositories so agents can search them by meaning"
+    - "Share one memory server between Claude Code, Codex and Cursor"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
@@ -22,216 +21,144 @@ metadata:
 
 ## Overview
 
-Manage AI agent context using a file-system paradigm — context is organized as files and directories that agents can read, write, and navigate. Inspired by ByteDance's OpenViking, this approach treats context like a filesystem: hierarchical, scoped, persistent, and self-evolving. Agents don't just consume context — they organize and update it.
+OpenViking (volcengine/OpenViking, AGPL-3.0 server) is a context database for agents. Everything an agent knows lives in a virtual file system addressed by `viking://` URIs, and agents use file-like commands on it: `ls`, `tree`, `read`, `write`, `grep`, `find`. Checked against version 0.5.2 (PyPI, 2026-10-23) and the `ov` CLI 0.5.1.
 
-## Core Concepts
+Layout of the tree:
 
 ```
-context/
-├── project/
-│   ├── README.md          # Project overview (always loaded)
-│   ├── architecture.md     # System design context
-│   └── decisions/          # Architecture decision records
-├── task/
-│   ├── current.md          # Active task context
-│   └── history/completed/  # Past task context for reference
-├── memory/
-│   ├── facts.md            # Known facts about the project
-│   ├── lessons.md          # Lessons learned from mistakes
-│   └── preferences.md      # User preferences and patterns
-└── skills/
-    ├── coding-style.md     # Code conventions
-    └── tools.md            # Available tools and how to use them
+viking://
+├── resources/                 # imported docs, repos, web pages
+│   └── my_project/
+└── user/{user_id}/
+    ├── memories/              # preferences, experience, extracted from sessions
+    ├── resources/             # private imports
+    └── skills/
 ```
 
-**Key idea:** Context is not a flat prompt. It's a tree with scoping rules — agents see context relevant to their current scope, not everything at once.
+Every processed directory gets generated summaries, so an agent can check relevance cheaply before opening content:
+
+- L0 abstract: one sentence (`ov abstract`).
+- L1 overview: structure and key points (`ov overview`).
+- L2 details: the original file (`ov read`).
+
+Architecture: OpenViking is a server (HTTP, default port 1933). Clients are the `ov` CLI (npm), the SDKs (Python `openviking-sdk`, TypeScript `@openviking/sdk`, Go) and agent plugins. The server needs an embedding model and a VLM to build summaries and vectors.
 
 ## Instructions
 
-When a user asks to build agent memory, persistent context, or hierarchical context systems:
+### 1. Get a server
 
-1. **Design the context tree** — Map out what context exists and how it's organized
-2. **Define scoping rules** — What context loads at each level (project, task, subtask)
-3. **Implement CRUD** — Agents need to read, create, update, and delete context files
-4. **Add self-evolution** — Agents update context based on outcomes and learnings
+Self-hosted (uv required):
 
-### Context Manager Implementation
-
-```python
-"""File-system based context manager for AI agents."""
-import os, json
-from pathlib import Path
-from datetime import datetime, timezone
-from typing import Optional
-
-class ContextManager:
-    """Manages hierarchical context for AI agents."""
-
-    def __init__(self, root: str = "./context"):
-        self.root = Path(root)
-        self.root.mkdir(parents=True, exist_ok=True)
-
-    def read(self, path: str) -> Optional[str]:
-        full = self.root / path
-        return full.read_text() if full.is_file() else None
-
-    def write(self, path: str, content: str, metadata: Optional[dict] = None):
-        full = self.root / path
-        full.parent.mkdir(parents=True, exist_ok=True)
-        header = ""
-        if metadata:
-            meta = {**metadata, "updated": datetime.now(timezone.utc).isoformat()}
-            header = f"<!-- meta: {json.dumps(meta)} -->\n\n"
-        full.write_text(header + content)
-
-    def list(self, path: str = "") -> list[str]:
-        full = self.root / path
-        if not full.is_dir():
-            return []
-        return [str(p.relative_to(self.root)) for p in sorted(full.rglob("*")) if p.is_file()]
-
-    def delete(self, path: str):
-        full = self.root / path
-        if full.is_file():
-            trash = self.root / ".trash" / path
-            trash.parent.mkdir(parents=True, exist_ok=True)
-            full.rename(trash)
-
-    def search(self, query: str, path: str = "") -> list[tuple[str, str]]:
-        results = []
-        for filepath in self.list(path):
-            content = self.read(filepath)
-            if content and query.lower() in content.lower():
-                idx = content.lower().index(query.lower())
-                snippet = content[max(0, idx - 50):idx + len(query) + 50]
-                results.append((filepath, snippet))
-        return results
+```bash
+uv tool install openviking --upgrade
+openviking-server init      # wizard, writes ~/.openviking/ov.conf
+openviking-server doctor    # checks the model configuration
+openviking-server           # runs in the foreground
+curl http://127.0.0.1:1933/health
 ```
 
-### Hierarchical Context Delivery
+`init` supports Volcengine, OpenAI, Kimi, GLM and local Ollama providers. The alternative is the Volcengine-hosted OpenViking Service (endpoint `https://api.vikingdb.cn-beijing.volces.com/openviking`, API key from the console). Docker and production notes: docs.openviking.ai, Deployment guide.
 
-```python
-class ScopedContext:
-    """Delivers context based on the agent's current scope."""
+### 2. Install and connect the CLI
 
-    SCOPE_RULES = {
-        "project": ["project/README.md", "memory/facts.md", "memory/preferences.md", "skills/coding-style.md"],
-        "task": ["task/current.md"],
-        "subtask": [],
-    }
-
-    def __init__(self, ctx: ContextManager):
-        self.ctx = ctx
-
-    def get_context(self, scope: str = "task", subtask_id: Optional[str] = None) -> str:
-        parts = []
-        for path in self.SCOPE_RULES["project"]:
-            content = self.ctx.read(path)
-            if content:
-                parts.append(f"## {path}\n{content}")
-        if scope in ("task", "subtask"):
-            for path in self.SCOPE_RULES["task"]:
-                content = self.ctx.read(path)
-                if content:
-                    parts.append(f"## {path}\n{content}")
-        if scope == "subtask" and subtask_id:
-            content = self.ctx.read(f"task/subtasks/{subtask_id}.md")
-            if content:
-                parts.append(f"## Subtask: {subtask_id}\n{content}")
-        lessons = self.ctx.read("memory/lessons.md")
-        if lessons:
-            parts.append(f"## Lessons Learned\n{lessons}")
-        return "\n\n---\n\n".join(parts)
+```bash
+npm install -g @openviking/cli
+ov language en              # required once, or most commands exit with code 2
+ov config                   # interactive: OpenViking Service or Custom URL
+ov health
 ```
 
-### Self-Evolving Context
+For scripts, save a named connection and pass the key through the environment, not the command line:
 
-Agents don't just read context — they update it based on what they learn:
+```bash
+printf '%s' "$OPENVIKING_API_KEY" | ov config add custom --name team-memory --url http://127.0.0.1:1933 --api-key-stdin --activate -o json
+ov config validate
+```
+
+The client config is `~/.openviking/ovcli.conf` (fields `url`, `api_key`, `timeout`, `output`); it is separate from the server's `ov.conf`.
+
+### 3. Import, browse, search, read
+
+```bash
+ov add-resource ./docs --to viking://resources/billing-docs --wait
+ov tree viking://resources/billing-docs -L 2
+ov overview viking://resources/billing-docs
+ov find "how are refunds retried" -u viking://resources/billing-docs
+ov grep "idempotency" -u viking://resources/billing-docs -i
+ov read viking://resources/billing-docs/refunds.md --offset 0 --limit 40
+```
+
+- `add-resource` accepts a file, folder, URL, repository or sitemap. `--to` needs a URI that does not exist yet; `--parent` needs an existing directory; `-p` creates the parent. Without `--wait`, poll `ov task status TASK_ID`.
+- `find` is semantic search; `-L 0,1,2` limits levels, `--context-type memory|resource|skill` limits the kind, `-t` sets a score threshold.
+- `ov write URI --content "..."` updates an existing file (`--append`, `--from-file`).
+
+### 4. Memories and sessions
+
+```bash
+ov add-memory "The deployment owner for billing is Priya Raman"      # experimental
+ov session new
+ov session add-message SESSION_ID --role user --content "We moved billing to Postgres 16"
+ov session commit SESSION_ID      # archives the messages and extracts memories
+ov find "billing database" --context-type memory
+```
+
+Commit extracts memories as Markdown under `viking://user/{user_id}/memories/`; extraction runs in the background, so a search right after the commit may find nothing.
+
+### 5. Python SDK
+
+```bash
+python3 -m pip install openviking-sdk      # import name: openviking_sdk
+```
 
 ```python
-class EvolvingAgent:
-    def __init__(self, ctx: ContextManager, llm):
-        self.ctx = ctx
-        self.llm = llm
+import os
+from openviking_sdk import SyncHTTPClient
 
-    async def complete_task(self, task: str, result: str, success: bool):
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
-        current = self.ctx.read("task/current.md")
-        if current:
-            self.ctx.write(f"task/history/{timestamp}.md", current)
-        if not success:
-            lesson = await self.llm.invoke(
-                f"Task: {task}\nResult: {result}\n\nWhat went wrong? Extract a concise lesson."
-            )
-            existing = self.ctx.read("memory/lessons.md") or ""
-            self.ctx.write("memory/lessons.md", f"{existing}\n\n### {timestamp}\n{lesson.content}")
-        new_facts = await self.llm.invoke(
-            f"Task: {task}\nResult: {result}\n\nAny new facts discovered? List them or say NONE."
-        )
-        if "NONE" not in new_facts.content:
-            existing = self.ctx.read("memory/facts.md") or ""
-            self.ctx.write("memory/facts.md", f"{existing}\n\n### Discovered {timestamp}\n{new_facts.content}")
+client = SyncHTTPClient(url="http://127.0.0.1:1933", api_key=os.environ["OPENVIKING_API_KEY"])
+client.initialize()
+client.add_resource("./docs", to="viking://resources/billing-docs", wait=True)
+hits = client.find("how are refunds retried", target_uri="viking://resources/billing-docs", limit=5)
+client.create_session(session_id="billing-review")
+client.session(session_id="billing-review").add_message(role="user", content="Refund retries use exponential backoff")
+client.session(session_id="billing-review").commit()
+client.close()
 ```
+
+The SDK also reads `OPENVIKING_URL`, `OPENVIKING_API_KEY` and `~/.openviking/ovcli.conf`; explicit arguments win.
+
+### 6. Connect a coding agent
+
+The project ships memory plugins for Claude Code, Codex, Cursor, TRAE, OpenCode, OpenClaw, Hermes and an MCP route (docs.openviking.ai, section Agent integrations). The README's installer is `curl -fsSL https://openviking.ai/install | bash`; it is a script, so download it, read the header and run it only if you accept what it does. Use a user key, not the root key.
 
 ## Examples
 
-### Example 1: Setting Up Agent Memory for a Web App Project
+### Example 1: "Let my agent search our API docs by meaning"
 
-```python
-ctx = ContextManager("./my-project-context")
-
-# Initialize project context
-ctx.write("project/README.md", "# E-commerce Platform\nNext.js + Postgres + Stripe")
-ctx.write("memory/facts.md", "- Database: PostgreSQL 16\n- Auth: NextAuth with Google OAuth")
-ctx.write("memory/preferences.md", "- Use TypeScript strict mode\n- Prefer server components")
-ctx.write("skills/coding-style.md", "- camelCase variables\n- Zod for validation")
-
-# Agent reads scoped context for a task
-scoped = ScopedContext(ctx)
-context = scoped.get_context(scope="task")
-# Returns: project README + facts + preferences + coding style + current task
+```console
+$ ov add-resource ./docs/api --to viking://resources/payments-api --wait
+$ ov find "webhook signature verification" -u viking://resources/payments-api -n 3
 ```
 
-### Example 2: LangChain Tool Integration
+The second command returns up to three matches with a `viking://resources/payments-api/...` URI and a score each. The agent then calls `ov overview` on the best directory and `ov read` on the file it needs, instead of loading all the docs.
 
-```python
-from langchain_core.tools import tool
+### Example 2: "Make Claude Code remember my preferences across sessions"
 
-ctx = ContextManager("./agent-context")
-
-@tool
-def read_context(path: str) -> str:
-    """Read a context file to recall project info, decisions, or lessons."""
-    return ctx.read(path) or f"No context at {path}"
-
-@tool
-def write_context(path: str, content: str) -> str:
-    """Save learnings, decisions, or facts to context."""
-    ctx.write(path, content, metadata={"source": "agent"})
-    return f"Written to {path}"
-
-@tool
-def search_context(query: str) -> str:
-    """Search all context files for relevant information."""
-    results = ctx.search(query)
-    return "\n".join(f"[{p}] ...{s}..." for p, s in results[:5]) or "No matches."
-
-tools = [read_context, write_context, search_context]
+```console
+$ ov session new
+$ ov session add-message SESSION_ID --role user --content "I prefer pytest fixtures over unittest setUp, and Ruff for linting"
+$ ov session commit SESSION_ID
+$ ov find "testing preferences" --context-type memory
 ```
+
+Extraction runs in the background, so the search may find nothing right after the commit; once it finishes, it returns memory files under `viking://user/maria/memories/` (the docs show `preferences/` and `entities/` subdirectories, but which files appear depends on the extraction). With the Claude Code plugin installed, hooks do the add and commit steps automatically.
 
 ## Guidelines
 
-1. **Scope aggressively** — Don't load all context every time. Use hierarchical scoping to keep prompts focused
-2. **Metadata headers** — Add timestamps and source info to context files for auditability
-3. **Soft delete** — Move to `.trash` instead of deleting. Context that seems useless now may matter later
-4. **Token budgeting** — Set a max token budget per scope level. Compact if exceeded
-5. **Version context** — Use git or timestamps to track how context evolves over time
-6. **Separate facts from opinions** — Keep factual knowledge separate from preferences and lessons
-7. **Periodic cleanup** — Run compaction weekly. Archive context not accessed in 30 days
-
-## Dependencies
-
-```bash
-pip install langchain-core langchain-openai    # For LangChain integration
-# No external deps needed for core ContextManager — it's pure Python + filesystem
-```
+- Set the display language once (`ov language en`); in non-interactive shells the CLI otherwise exits with code 2.
+- Auth: the server picks `api_key` mode when `root_api_key` is set, otherwise `dev` mode (no auth, everyone is root). Configure authentication before exposing the server beyond localhost. A root key administers accounts but cannot read data in `api_key` mode; give agents a user key.
+- Keep keys in environment variables or `--api-key-stdin`, never in command text or committed files.
+- Semantic processing needs working embedding and VLM models; run `openviking-server doctor` first when imports stall.
+- Read cheaply: `abstract` or `overview` before `read`. Use `find` with `-u` to search a subtree instead of the whole store.
+- `add-memory`, `search` and the `compile` command are marked experimental in the CLI.
+- AGPL-3.0 applies to the self-hosted server; check it before embedding the server in a closed product. Prefer the HTTP SDKs, which only call a server.
+- If you only need a few static notes in the repo, a `CLAUDE.md` or a plain `docs/` folder is simpler than running a server.
