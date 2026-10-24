@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7c581c32912b37113c8262d40b21f260f1d9af3334fa6708983c57ad8963c676",
+  "scoredAt": "2026-10-24T23:14:47.918Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases such as network failures or LLM errors."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "build-local-graph-with-docs",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required graphify commands; Response B does not."
+      },
+      {
+        "name": "find-affected-nodes-by-function",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required graphify extract and affected commands, while Response B omits both and uses an unrelated Cypher query."
+      },
+      {
+        "name": "trace-shortest-path-between-functions",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A gives the required command (though with extra commentary), whereas Response B does not provide the command at all."
+      }
+    ]
+  }
+}
