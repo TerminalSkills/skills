@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Any AI coding agent. No dependencies."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["spec", "planning", "rfc", "architecture", "design-doc"]
 ---
@@ -43,55 +43,31 @@ User Request → Extract Requirements → Write Spec → Validate Spec → Imple
 
 ### Step 1: Requirement Extraction
 
-Before writing anything, extract structured requirements from the user's request.
+Before writing anything, turn the request into testable requirements. If the answers are not in the request, ask the user; do not guess silently.
 
-```typescript
-// requirements.ts — Extract structured requirements from natural language
-/**
- * Turns vague requests into concrete, testable requirements.
- * Each requirement gets a priority, acceptance criteria,
- * and explicit out-of-scope markers.
- */
+```markdown
+## Requirements
 
-interface Requirement {
-  id: string;                      // REQ-001, REQ-002, etc.
-  title: string;
-  description: string;
-  priority: "must" | "should" | "could" | "wont";  // MoSCoW
-  acceptanceCriteria: string[];    // Testable conditions
-  outOfScope?: string[];           // Explicitly excluded
-}
+### REQ-001: Invite a teammate by email (must)
+- Acceptance: an owner can submit an email; an invitation row is created with status `pending` and a 7-day expiry.
+- Acceptance: inviting an address that is already a member returns 409 with `already_member`.
+- Out of scope: bulk CSV invites.
 
-interface RequirementsDoc {
-  projectName: string;
-  overview: string;
-  stakeholders: string[];
-  requirements: Requirement[];
-  assumptions: string[];
-  constraints: string[];
-  openQuestions: string[];         // Things that need clarification
-}
+### REQ-002: Expired invitations are rejected (must)
+- Acceptance: accepting an invitation after `expires_at` returns 410 and creates no membership.
 
-/**
- * Template for requirement extraction prompt.
- * The agent uses this to interview the user or analyze the request.
- */
-const EXTRACTION_PROMPT = `
-Analyze the following request and extract structured requirements.
+## Assumptions
+- Email delivery goes through the existing transactional provider.
 
-For each requirement:
-1. Write a clear, testable acceptance criterion
-2. Assign priority (must/should/could/won't)
-3. Note anything explicitly out of scope
-4. Flag assumptions that need validation
-5. List open questions that could change the design
-
-Be specific. "Fast" is not a requirement. "Page loads in <2 seconds on 3G" is.
-"Secure" is not a requirement. "All API endpoints require JWT auth with 15-min expiry" is.
-`;
+## Open questions
+- Can admins, or only owners, send invitations?
 ```
 
+Rules: every requirement gets an id, a MoSCoW priority (must, should, could, won't), and acceptance criteria that a test can assert. "Fast" is not a requirement; "p95 below 300 ms for 1,000 members" is. "Secure" is not one either; "invite tokens are single-use and expire after 7 days" is.
+
 ### Step 2: Write the Technical Spec
+
+Save it in the repository (for example `docs/specs/<feature>.md`) so it is reviewed like code.
 
 ```markdown
 # Technical Spec Template
@@ -160,149 +136,75 @@ Non-obvious logic. Decision trees. State machines.
 - [External documentation]
 ```
 
-### Step 3: Spec Validation Checklist
+### Step 3: Validate the spec
 
-Before implementation, validate the spec against this checklist:
+Read the spec as a reviewer before any code exists. Check that: every requirement has a testable criterion; failure modes (invalid input, timeouts, partial failure) are described; authorization and data exposure are addressed; there is a rollback or migration path; open questions are empty or explicitly deferred. A small linter catches the mechanical part (missing sections, vague words); save it as `validate-spec.ts` and run it on Node 22.7 or later (the file uses `export` and top-level `await`, which need 22.7+ syntax detection; 22.18+ and 24 need no flag):
 
 ```typescript
-// validate-spec.ts — Automated spec validation
-/**
- * Checks a technical spec for common issues:
- * - Vague requirements without acceptance criteria
- * - Missing error handling considerations
- * - No rollback/migration plan
- * - Unaddressed security concerns
- */
-
-interface ValidationResult {
-  category: string;
-  check: string;
-  status: "pass" | "warn" | "fail";
+interface Finding {
+  category: "completeness" | "quality" | "reliability" | "security" | "operations";
+  status: "fail" | "warn";
   message: string;
 }
 
-export function validateSpec(spec: string): ValidationResult[] {
-  const results: ValidationResult[] = [];
+const REQUIRED_HEADINGS = ["Overview", "Goals", "Non-Goals", "Technical Design", "Testing Strategy", "Rollout Plan"];
+const VAGUE_TERMS = ["fast", "secure", "scalable", "user-friendly", "robust", "efficient"];
 
-  // Completeness checks
-  const requiredSections = [
-    "Overview", "Goals", "Non-Goals", "Technical Design",
-    "Testing Strategy", "Rollout Plan",
-  ];
-  for (const section of requiredSections) {
-    results.push({
-      category: "completeness",
-      check: `Has "${section}" section`,
-      status: spec.toLowerCase().includes(section.toLowerCase()) ? "pass" : "fail",
-      message: spec.includes(section) ? "Present" : `Missing "${section}" section`,
-    });
-  }
+export function validateSpec(spec: string): Finding[] {
+  const findings: Finding[] = [];
+  const headings = [...spec.matchAll(/^#{1,4}\s+(?:\d+(?:\.\d+)*\.?\s+)?(.+?)\s*$/gm)].map((m) => m[1].toLowerCase());
 
-  // Quality checks
-  const vagueTerms = ["fast", "secure", "scalable", "user-friendly", "robust", "efficient"];
-  for (const term of vagueTerms) {
-    const regex = new RegExp(`\\b${term}\\b`, "gi");
-    const matches = spec.match(regex);
-    if (matches && matches.length > 0) {
-      results.push({
-        category: "quality",
-        check: `No vague term: "${term}"`,
-        status: "warn",
-        message: `Found "${term}" ${matches.length} time(s) — replace with measurable criteria`,
-      });
+  for (const name of REQUIRED_HEADINGS) {
+    if (!headings.some((h) => h.includes(name.toLowerCase()))) {
+      findings.push({ category: "completeness", status: "fail", message: `Missing section "${name}"` });
     }
   }
-
-  // Error handling check
-  if (!spec.toLowerCase().includes("error") && !spec.toLowerCase().includes("failure")) {
-    results.push({
-      category: "reliability",
-      check: "Addresses error handling",
-      status: "fail",
-      message: "No mention of error handling or failure scenarios",
-    });
+  for (const term of VAGUE_TERMS) {
+    const hits = spec.match(new RegExp(`\\b${term}\\b`, "gi"));
+    if (hits) findings.push({ category: "quality", status: "warn", message: `"${term}" appears ${hits.length}x; replace with a measurable criterion` });
   }
+  const has = (re: RegExp) => re.test(spec);
+  if (!has(/\b(error|failure|timeout)s?\b/i)) findings.push({ category: "reliability", status: "fail", message: "No error or failure handling described" });
+  if (!has(/\b(authentication|authorization|security|permission)s?\b/i)) findings.push({ category: "security", status: "warn", message: "No authentication, authorization or security notes" });
+  if (!has(/\b(rollback|migration)\b/i)) findings.push({ category: "operations", status: "warn", message: "No rollback or migration plan" });
+  return findings;
+}
 
-  // Security check
-  if (!spec.toLowerCase().includes("auth") && !spec.toLowerCase().includes("security")) {
-    results.push({
-      category: "security",
-      check: "Addresses security",
-      status: "warn",
-      message: "No mention of authentication or security considerations",
-    });
-  }
-
-  // Migration/rollback check
-  if (!spec.toLowerCase().includes("rollback") && !spec.toLowerCase().includes("migration")) {
-    results.push({
-      category: "operations",
-      check: "Has rollback plan",
-      status: "warn",
-      message: "No rollback or migration strategy mentioned",
-    });
-  }
-
-  return results;
+if (process.argv[2]) {
+  const fs = await import("node:fs");
+  const out = validateSpec(fs.readFileSync(process.argv[2], "utf8"));
+  for (const f of out) console.log(`${f.status.toUpperCase()} [${f.category}] ${f.message}`);
+  process.exit(out.some((f) => f.status === "fail") ? 1 : 0);
 }
 ```
 
-### Step 4: Spec-to-Code Implementation
-
-Once the spec is validated, implement systematically — one section at a time, verifying against acceptance criteria.
-
-```typescript
-// implement.ts — Convert spec sections to implementation tasks
-/**
- * Breaks a spec into ordered implementation tasks.
- * Each task maps to a spec section and includes
- * the acceptance criteria as test assertions.
- */
-
-interface ImplementationTask {
-  id: string;
-  specSection: string;          // Which spec section this implements
-  description: string;
-  files: string[];              // Files to create or modify
-  acceptanceCriteria: string[]; // From the spec — become test assertions
-  dependencies: string[];       // Task IDs that must complete first
-  estimatedMinutes: number;
-}
-
-function specToTasks(spec: string): ImplementationTask[] {
-  // Parse spec sections and generate implementation order
-  // Data model first, then API, then business logic, then tests
-  return [
-    {
-      id: "IMPL-001",
-      specSection: "4.2 Data Model",
-      description: "Create database schema and migrations",
-      files: ["prisma/schema.prisma", "prisma/migrations/"],
-      acceptanceCriteria: [
-        "All tables from spec exist with correct columns and types",
-        "Foreign keys and indexes match spec",
-        "Migration runs cleanly on empty database",
-      ],
-      dependencies: [],
-      estimatedMinutes: 30,
-    },
-    {
-      id: "IMPL-002",
-      specSection: "4.3 API Design",
-      description: "Implement API endpoints with types",
-      files: ["src/routes/", "src/types/"],
-      acceptanceCriteria: [
-        "All endpoints from spec are implemented",
-        "Request/response types match spec exactly",
-        "Error responses follow spec format",
-      ],
-      dependencies: ["IMPL-001"],
-      estimatedMinutes: 60,
-    },
-    // ... more tasks
-  ];
-}
+```console
+$ node --experimental-strip-types validate-spec.ts docs/specs/team-invitations.md
+FAIL [completeness] Missing section "Rollout Plan"
+WARN [quality] "secure" appears 2x; replace with a measurable criterion
 ```
+
+The linter is only a floor. A spec can pass it and still be wrong, so the human review of the design is the real gate.
+
+### Step 4: Implement against the spec
+
+Work section by section, in dependency order: data model, API, business logic, UI. Turn each acceptance criterion into a test first or alongside, then make it pass. Keep an implementation checklist in the spec itself:
+
+```markdown
+## 6. Implementation Plan
+- [x] IMPL-001 Migration: `invitations` table with unique (team_id, email) (spec 4.2)
+- [ ] IMPL-002 POST /teams/:id/invitations returning 201, 409, 422 (spec 4.3, REQ-001)
+- [ ] IMPL-003 Accept endpoint with expiry check (spec 4.3, REQ-002)
+```
+
+When implementation forces a design change, update the spec in the same commit and say why. At the end, walk the acceptance criteria one by one and record which test proves each.
+
+### Tools that implement this workflow
+
+You do not need a tool, but two exist:
+
+- **Kiro** (AWS agentic IDE and CLI) generates `.kiro/specs/<name>/requirements.md`, `design.md` and `tasks.md` for a feature, and `bugfix.md` for bug specs, then executes the tasks.
+- **GitHub Spec Kit** installs with `uv tool install specify-cli` (Python 3.11+ and `uv` required), then `specify init my-project --integration copilot`. In the agent chat it provides the commands `/speckit-constitution`, `/speckit-specify`, `/speckit-plan`, `/speckit-tasks` and `/speckit-implement`. Command names depend on the agent integration; check its README before relying on them.
 
 ## Examples
 
@@ -328,7 +230,7 @@ The agent will:
 
 ## Guidelines
 
-- **Spec before code, always** — 30 minutes planning saves 3 hours of wrong implementation
+- **Spec before code for anything non-trivial** — skip the full template for a one-line fix; a short spec is still a spec
 - **Testable acceptance criteria** — "works correctly" is useless; "returns 404 for deleted users" is testable
 - **Non-goals are as important as goals** — explicitly exclude scope to prevent creep
 - **Open questions block implementation** — resolve them before writing code
