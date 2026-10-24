@@ -1,14 +1,14 @@
 ---
 name: pinecone
 description: |
-  Pinecone is a managed vector database for AI and machine learning applications.
-  Learn to create indexes, upsert embeddings, query by similarity, use namespaces
-  and metadata filtering for semantic search and RAG pipelines.
+  Pinecone is a managed vector database for AI applications. Use it to create serverless
+  indexes, upsert embeddings or text records, query by similarity, split data into namespaces,
+  filter on metadata, and build semantic search and RAG pipelines with the Node.js or Python SDK.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: 'Pinecone account and API key; Node.js 22+ (@pinecone-database/pinecone 9) or Python 3.10+ (pinecone 10)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
   tags:
     - pinecone
@@ -20,197 +20,171 @@ metadata:
 
 # Pinecone
 
-Pinecone is a fully managed vector database that makes it easy to store, index, and query high-dimensional vectors for similarity search, recommendation systems, and RAG (Retrieval-Augmented Generation).
+## Overview
 
-## Installation
+Pinecone is a fully managed vector database for similarity search, recommendations and RAG (retrieval-augmented generation). Two ways to use an index:
+
+- **Bring your own vectors**: create an index with a fixed `dimension`, compute embeddings yourself, `upsert` vectors, `query` by vector.
+- **Integrated embedding**: create the index for a hosted embedding model (`createIndexForModel`), upsert text records and search with text (`upsertRecords`, `searchRecords`). No separate embedding step.
+
+Create an API key in the Pinecone console and export it as `PINECONE_API_KEY`. Never hard-code it.
+
+## Instructions
+
+### Install
 
 ```bash
-# Node.js client
-npm install @pinecone-database/pinecone
-
-# Python client
-pip install pinecone-client
+npm install @pinecone-database/pinecone     # Node.js 22 or newer
+pip install pinecone                         # Python 3.10 or newer
 ```
 
-## Create an Index
+The Python package used to be called `pinecone-client`; that name is deprecated and stops at version 6.0.0. Install `pinecone`.
 
-```javascript
-// create-index.js: Initialize Pinecone and create a serverless index
-const { Pinecone } = require('@pinecone-database/pinecone');
+### Create an index (own vectors)
 
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+```typescript
+import { Pinecone } from '@pinecone-database/pinecone'
 
-async function createIndex() {
-  await pc.createIndex({
-    name: 'knowledge-base',
-    dimension: 1536, // OpenAI text-embedding-3-small
-    metric: 'cosine',
-    spec: {
-      serverless: {
-        cloud: 'aws',
-        region: 'us-east-1',
-      },
-    },
-  });
-}
+const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
 
-createIndex().catch(console.error);
+await pc.createIndex({
+  name: 'knowledge-base',
+  dimension: 1536,              // must equal your embedding model's output size
+  metric: 'cosine',
+  spec: { serverless: { cloud: 'aws', region: 'us-east-1' } },
+  deletionProtection: 'disabled',
+  waitUntilReady: true,
+  suppressConflicts: true,      // no error if the index already exists
+})
 ```
 
-## Upsert Vectors
+### Upsert and query
 
-```javascript
-// upsert.js: Store embeddings with metadata in Pinecone
-const index = pc.index('knowledge-base');
+In the Node.js SDK every call takes an options object, and records go in `records`. A namespace is selected with `index.namespace(name)`.
 
-// Upsert vectors with metadata
-await index.namespace('articles').upsert([
-  {
-    id: 'article-1',
-    values: embedding1, // Float32Array of dimension 1536
-    metadata: {
-      title: 'Introduction to Vector Databases',
-      source: 'blog',
-      category: 'technology',
-      published: '2026-01-15',
-    },
-  },
-  {
-    id: 'article-2',
-    values: embedding2,
-    metadata: {
-      title: 'Building RAG Applications',
-      source: 'docs',
-      category: 'ai',
-      published: '2026-02-01',
-    },
-  },
-]);
-```
+```typescript
+const index = pc.index('knowledge-base')
+const articles = index.namespace('articles')
 
-## Query Vectors
+await articles.upsert({
+  records: [
+    { id: 'article-1', values: embedding1, metadata: { title: 'Introduction to Vector Databases', category: 'technology', year: 2026 } },
+    { id: 'article-2', values: embedding2, metadata: { title: 'Building RAG Applications', category: 'ai', year: 2026 } },
+  ],
+})
 
-```javascript
-// query.js: Find similar vectors with metadata filtering
-const index = pc.index('knowledge-base');
-
-// Simple similarity search
-const results = await index.namespace('articles').query({
+const results = await articles.query({
   vector: queryEmbedding,
   topK: 5,
   includeMetadata: true,
-  includeValues: false,
-});
-
-results.matches.forEach(match => {
-  console.log(`${match.id}: ${match.score} — ${match.metadata.title}`);
-});
-
-// Query with metadata filter
-const filtered = await index.namespace('articles').query({
-  vector: queryEmbedding,
-  topK: 10,
-  filter: {
-    category: { $eq: 'technology' },
-    published: { $gte: '2026-01-01' },
-  },
-  includeMetadata: true,
-});
+  filter: { category: { $eq: 'technology' }, year: { $gte: 2026 } },
+})
+for (const match of results.matches) console.log(match.id, match.score, match.metadata?.title)
 ```
 
-## Python Client
+Metadata filters support `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`, `$exists`, `$and`, `$or`. Range operators (`$gt`, `$gte`, `$lt`, `$lte`) work on numbers, so store dates as epoch numbers or years. Upsert in batches of up to 1,000 records, keeping each request under 2 MB.
+
+### Integrated embedding (text in, text out)
+
+```typescript
+await pc.createIndexForModel({
+  name: 'docs-search',
+  cloud: 'aws',
+  region: 'us-east-1',
+  embed: { model: 'llama-text-embed-v2', fieldMap: { text: 'chunk_text' } },
+  waitUntilReady: true,
+})
+
+const docs = pc.index('docs-search').namespace('handbook')
+await docs.upsertRecords({
+  records: [{ id: 'vacation-1', chunk_text: 'Employees get 25 vacation days per year.', team: 'hr' }],
+})
+const hits = await docs.searchRecords({
+  query: { topK: 3, inputs: { text: 'How many vacation days do I get?' } },
+  fields: ['chunk_text', 'team'],
+})
+console.log(hits.result.hits.map(h => [h._id, h._score, h.fields]))
+```
+
+`fieldMap.text` names the record field that gets embedded. Records are flat: extra fields become metadata. Upsert text records in batches of at most 96 (the 1,000 limit applies only to records with vectors). Pinecone's docs now call this the legacy integrated-index flow; it is still supported by the SDKs shown here.
+
+### Python
 
 ```python
-# app.py: Pinecone with Python client
-from pinecone import Pinecone
 import os
+from pinecone import Pinecone
 
-pc = Pinecone(api_key=os.environ['PINECONE_API_KEY'])
-index = pc.Index('knowledge-base')
+pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+index = pc.Index("knowledge-base")          # resolves the host; pc.index(name=...) is equivalent
 
-# Upsert
 index.upsert(
-    vectors=[
-        {'id': 'doc-1', 'values': embedding, 'metadata': {'title': 'Hello'}},
-    ],
-    namespace='articles',
+    vectors=[{"id": "doc-1", "values": embedding, "metadata": {"title": "Hello", "category": "technology"}}],
+    namespace="articles",
 )
-
-# Query
 results = index.query(
-    namespace='articles',
-    vector=query_embedding,
-    top_k=5,
-    include_metadata=True,
-    filter={'category': {'$eq': 'technology'}},
+    namespace="articles", vector=query_embedding, top_k=5,
+    include_metadata=True, filter={"category": {"$eq": "technology"}},
 )
+for match in results["matches"]:
+    print(match["id"], match["score"], match["metadata"]["title"])
 
-for match in results['matches']:
-    print(f"{match['id']}: {match['score']:.3f} — {match['metadata']['title']}")
-
-# List and delete
-index.delete(ids=['doc-1'], namespace='articles')
-index.delete(delete_all=True, namespace='old-data')
+index.delete(ids=["doc-1"], namespace="articles")
+index.delete(delete_all=True, namespace="old-data")
 ```
 
-## RAG Pipeline Example
+In the current Python SDK, methods take keyword arguments only (`index.query(top_k=5, ...)`). Integrated-embedding indexes use `pc.create_index_for_model(...)`, `index.upsert_records(namespace=..., records=[...])` and `index.search(namespace=..., query={"top_k": 3, "inputs": {"text": "..."}})`.
 
-```javascript
-// rag.js: Retrieval-Augmented Generation with Pinecone + OpenAI
-const { OpenAI } = require('openai');
-const { Pinecone } = require('@pinecone-database/pinecone');
+### Manage indexes and data
 
-const openai = new OpenAI();
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-const index = pc.index('knowledge-base');
+```typescript
+console.log(await pc.listIndexes())
+console.log(await index.describeIndexStats())          // dimension, totalRecordCount, per-namespace counts
+await index.namespace('old-data').deleteAll()          // remove one namespace
+await articles.deleteMany({ filter: { category: { $eq: 'ai' } } })
+await pc.deleteIndex('knowledge-base')                 // irreversible; fails while deletionProtection is 'enabled'
+```
 
-async function askQuestion(question) {
-  // 1. Generate embedding for the question
-  const embeddingRes = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: question,
-  });
-  const queryVector = embeddingRes.data[0].embedding;
+## Examples
 
-  // 2. Find relevant documents
-  const searchResults = await index.namespace('articles').query({
-    vector: queryVector,
-    topK: 5,
-    includeMetadata: true,
-  });
+### Example 1: Semantic search over support articles
 
-  const context = searchResults.matches
-    .map(m => m.metadata.content)
-    .join('\n\n');
+**User request:** "Make our help-center articles searchable by meaning"
 
-  // 3. Generate answer with context
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+Create `docs-search` with `createIndexForModel` as above, chunk each article into passages of a few hundred words, upsert them with `upsertRecords` (`id`, `chunk_text`, `url`, `product`), then call `searchRecords` with the user's question and `query: { topK: 3, inputs: { text: question }, filter: { product: { $eq: 'billing' } } }` (the filter goes inside `query`) to restrict to one product. The response lists hits with `_score` and the requested `fields`; show the `url` of the top three.
+
+### Example 2: RAG answer with your own embeddings
+
+**User request:** "Answer questions from our knowledge base using an LLM"
+
+```typescript
+import OpenAI from 'openai'
+
+const openai = new OpenAI()                         // reads OPENAI_API_KEY
+const articles = pc.index('knowledge-base').namespace('articles')
+
+async function ask(question: string) {
+  const emb = await openai.embeddings.create({ model: 'text-embedding-3-small', input: question })
+  const found = await articles.query({ vector: emb.data[0].embedding, topK: 5, includeMetadata: true })
+  const context = found.matches.map(m => m.metadata?.content).join('\n\n')
+  const chat = await openai.chat.completions.create({
+    model: process.env.CHAT_MODEL!,                 // a chat model your account can use
     messages: [
-      { role: 'system', content: `Answer based on this context:\n\n${context}` },
+      { role: 'system', content: `Answer only from this context:\n\n${context}` },
       { role: 'user', content: question },
     ],
-  });
-
-  return completion.choices[0].message.content;
+  })
+  return chat.choices[0].message.content
 }
 ```
 
-## Index Management
+`text-embedding-3-small` returns 1536 dimensions, so the index must be created with `dimension: 1536`. Store the passage text in metadata (`content`) at upsert time, or keep it in your own database keyed by `id`.
 
-```javascript
-// manage.js: List, describe, and manage Pinecone indexes
-// List all indexes
-const indexes = await pc.listIndexes();
-console.log(indexes);
+## Guidelines
 
-// Describe index stats
-const stats = await index.describeIndexStats();
-console.log(stats); // { dimension, totalRecordCount, namespaces: {...} }
-
-// Delete a namespace
-await index.namespace('old-data').deleteAll();
-
-// Delete the entire index
-await pc.deleteIndex('knowledge-base');
-```
+- The index `dimension` and `metric` are fixed at creation. Changing embedding model means a new index and a full re-embed.
+- Query and upsert with the same embedding model; mixing models gives meaningless scores.
+- Use namespaces to separate tenants or datasets; queries never cross namespaces. Always pass the namespace on both write and read.
+- Writes are eventually consistent: a fresh upsert may take a moment to show up in queries.
+- Keep metadata small and filterable (ids, categories, numbers); put large text in your own store.
+- Enable `deletionProtection: 'enabled'` on production indexes. Deleting an index or `deleteAll` cannot be undone.
+- Keep `PINECONE_API_KEY` in the environment or a secret manager, and use a separate key and project for development.
