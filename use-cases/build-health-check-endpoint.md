@@ -23,201 +23,202 @@ tags:
 
 Tomás leads SRE at a 40-person company. Their load balancer health check hits `/` and checks for HTTP 200. When the database goes down, the app still returns 200 on `/` (it's a static page). Traffic keeps flowing to a broken server. Kubernetes restarts pods randomly because liveness probes don't distinguish between "app crashed" and "database is slow." They need health checks that verify all dependencies, report degraded states, and give Kubernetes the right signals.
 
-## Step 1: Build the Health Check System
+## The Solution
+
+Three separate endpoints, because Kubernetes asks three different questions:
+
+- `/healthz` (liveness): is the process alive? It checks nothing external, so a slow database never gets pods killed.
+- `/readyz` (readiness): can this pod serve traffic right now? It checks the dependencies the request path needs and returns 503 when one is down.
+- `/health` (diagnostics): the detailed report for dashboards, with `healthy`, `degraded` and `unhealthy` states and per-dependency latency. Not wired to any probe.
+
+An optional `/startupz` can hold the other probes off while a slow app boots. In Kubernetes, a `startupProbe` disables liveness and readiness checks until it first succeeds.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Install
+
+```bash
+npm install hono @hono/node-server pg ioredis zod
+npm install -D typescript tsx @types/node @types/pg
+```
+
+### Step 2: Build the health checks
 
 ```typescript
-// src/health/checks.ts — Comprehensive health checks with dependency verification
-import { pool } from "../db";
-import { Redis } from "ioredis";
+// src/health/checks.ts: dependency checks, probes and a cached detailed report
+import { statfs } from "node:fs/promises";
 import { Hono } from "hono";
+import { Pool } from "pg";
+import { Redis } from "ioredis";
+import { z } from "zod";
 
-const redis = new Redis(process.env.REDIS_URL!);
+const env = z
+  .object({
+    DATABASE_URL: z.string().url(),
+    REDIS_URL: z.string().url(),
+    APP_VERSION: z.string().default("unknown"),
+    HEALTH_CACHE_MS: z.coerce.number().int().min(0).default(10_000),
+  })
+  .parse(process.env);
 
-type HealthStatus = "healthy" | "degraded" | "unhealthy";
+// Short timeouts: a health check must fail fast instead of hanging with the dependency
+const pool = new Pool({ connectionString: env.DATABASE_URL, max: 2, connectionTimeoutMillis: 2000, query_timeout: 3000 });
+pool.on("error", () => {}); // an idle connection dropped by a restarting database would otherwise crash the process
+const redis = new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1, commandTimeout: 2000, enableOfflineQueue: false });
+redis.on("error", () => {}); // outages show up in the check result, not as unhandled events
 
-interface HealthCheck {
+type Status = "healthy" | "degraded" | "unhealthy";
+interface Check {
   name: string;
-  status: HealthStatus;
+  status: Status;
   latencyMs: number;
   message?: string;
-  details?: Record<string, any>;
-}
-
-interface HealthResponse {
-  status: HealthStatus;
-  version: string;
-  uptime: number;
-  timestamp: string;
-  checks: HealthCheck[];
+  details?: Record<string, unknown>;
 }
 
 const startTime = Date.now();
+const uptime = () => Math.round((Date.now() - startTime) / 1000);
 
-// Individual dependency checks
-async function checkPostgres(): Promise<HealthCheck> {
+async function timed(name: string, fn: () => Promise<Omit<Check, "name" | "latencyMs">>): Promise<Check> {
   const start = Date.now();
   try {
-    const { rows } = await pool.query("SELECT 1 as ok, pg_postmaster_start_time() as started, current_setting('max_connections') as max_conn");
-    const activeConns = await pool.query("SELECT count(*) as active FROM pg_stat_activity");
-    const latency = Date.now() - start;
-
-    return {
-      name: "postgresql",
-      status: latency > 1000 ? "degraded" : "healthy",
-      latencyMs: latency,
-      details: {
-        activeConnections: parseInt(activeConns.rows[0].active),
-        maxConnections: parseInt(rows[0].max_conn),
-        serverStarted: rows[0].started,
-      },
-    };
-  } catch (err: any) {
-    return { name: "postgresql", status: "unhealthy", latencyMs: Date.now() - start, message: err.message };
+    return { name, latencyMs: Date.now() - start, ...(await fn()) };
+  } catch (err) {
+    return { name, status: "unhealthy", latencyMs: Date.now() - start, message: (err as Error).message };
   }
 }
 
-async function checkRedis(): Promise<HealthCheck> {
-  const start = Date.now();
-  try {
+const checkPostgres = () =>
+  timed("postgresql", async () => {
+    const t = Date.now();
+    await pool.query("SELECT 1");
+    const latency = Date.now() - t;
+    return { status: latency > 1000 ? "degraded" : "healthy" };
+  });
+
+const checkRedis = () =>
+  timed("redis", async () => {
+    const t = Date.now();
     const pong = await redis.ping();
-    const info = await redis.info("memory");
-    const usedMemory = info.match(/used_memory_human:(.+)/)?.[1]?.trim();
-    const latency = Date.now() - start;
+    const latency = Date.now() - t;
+    return { status: pong !== "PONG" ? "unhealthy" : latency > 500 ? "degraded" : "healthy" };
+  });
 
+const checkDisk = () =>
+  timed("disk", async () => {
+    const s = await statfs("/");
+    const usedPercent = Math.round((1 - s.bavail / s.blocks) * 100);
     return {
-      name: "redis",
-      status: latency > 500 ? "degraded" : pong === "PONG" ? "healthy" : "unhealthy",
-      latencyMs: latency,
-      details: { usedMemory },
-    };
-  } catch (err: any) {
-    return { name: "redis", status: "unhealthy", latencyMs: Date.now() - start, message: err.message };
-  }
-}
-
-async function checkDiskSpace(): Promise<HealthCheck> {
-  const start = Date.now();
-  try {
-    const { execSync } = require("node:child_process");
-    const output = execSync("df -h / | tail -1").toString();
-    const parts = output.trim().split(/\s+/);
-    const usedPercent = parseInt(parts[4]);
-
-    return {
-      name: "disk",
       status: usedPercent > 90 ? "unhealthy" : usedPercent > 80 ? "degraded" : "healthy",
-      latencyMs: Date.now() - start,
-      details: { total: parts[1], used: parts[2], available: parts[3], usedPercent: `${usedPercent}%` },
+      details: { usedPercent, availableGB: Math.round((s.bavail * s.bsize) / 1e9) },
     };
-  } catch (err: any) {
-    return { name: "disk", status: "degraded", latencyMs: Date.now() - start, message: err.message };
+  });
+
+const checkMemory = () =>
+  timed("memory", async () => {
+    const m = process.memoryUsage();
+    const heapUsedMB = Math.round(m.heapUsed / 1048576);
+    return { status: heapUsedMB > 1500 ? "degraded" : "healthy", details: { heapUsedMB, rssMB: Math.round(m.rss / 1048576) } };
+  });
+
+// For third-party dependencies you can live without: they can only make the app "degraded"
+export const checkExternal = (name: string, url: string, timeoutMs = 5000) =>
+  timed(name, async () => {
+    const t = Date.now();
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    return { status: res.ok && Date.now() - t < 3000 ? "healthy" : "degraded", details: { statusCode: res.status } };
+  });
+
+const rank: Record<Status, number> = { healthy: 0, degraded: 1, unhealthy: 2 };
+
+async function runAllChecks() {
+  const checks = await Promise.all([checkPostgres(), checkRedis(), checkDisk(), checkMemory()]);
+  const status = checks.reduce<Status>((w, c) => (rank[c.status] > rank[w] ? c.status : w), "healthy");
+  return { status, version: env.APP_VERSION, uptime: uptime(), timestamp: new Date().toISOString(), checks };
+}
+
+// Cache the report in-process so frequent pollers cannot turn /health into load on the database
+let cached: { at: number; value: Awaited<ReturnType<typeof runAllChecks>> } | undefined;
+async function getReport() {
+  if (!cached || Date.now() - cached.at > env.HEALTH_CACHE_MS) {
+    cached = { at: Date.now(), value: await runAllChecks() };
   }
+  return cached.value;
 }
 
-async function checkMemory(): Promise<HealthCheck> {
-  const start = Date.now();
-  const mem = process.memoryUsage();
-  const heapUsedMB = Math.round(mem.heapUsed / 1024 / 1024);
-  const heapTotalMB = Math.round(mem.heapTotal / 1024 / 1024);
-  const rssMB = Math.round(mem.rss / 1024 / 1024);
-
-  return {
-    name: "memory",
-    status: heapUsedMB > 1500 ? "degraded" : "healthy",
-    latencyMs: Date.now() - start,
-    details: { heapUsedMB, heapTotalMB, rssMB },
-  };
-}
-
-async function checkExternalAPI(name: string, url: string, timeoutMs: number = 5000): Promise<HealthCheck> {
-  const start = Date.now();
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    const latency = Date.now() - start;
-
-    return {
-      name,
-      status: res.ok ? (latency > 3000 ? "degraded" : "healthy") : "degraded",
-      latencyMs: latency,
-      details: { statusCode: res.status },
-    };
-  } catch (err: any) {
-    return { name, status: "unhealthy", latencyMs: Date.now() - start, message: err.message };
-  }
-}
-
-// Full health check
-async function runAllChecks(): Promise<HealthResponse> {
-  const checks = await Promise.all([
-    checkPostgres(),
-    checkRedis(),
-    checkDiskSpace(),
-    checkMemory(),
-  ]);
-
-  // Determine overall status
-  const hasUnhealthy = checks.some((c) => c.status === "unhealthy");
-  const hasDegraded = checks.some((c) => c.status === "degraded");
-  const overallStatus: HealthStatus = hasUnhealthy ? "unhealthy" : hasDegraded ? "degraded" : "healthy";
-
-  return {
-    status: overallStatus,
-    version: process.env.APP_VERSION || "unknown",
-    uptime: Math.round((Date.now() - startTime) / 1000),
-    timestamp: new Date().toISOString(),
-    checks,
-  };
-}
-
-// Routes
 const app = new Hono();
 
-// Kubernetes liveness probe — is the process alive?
-app.get("/healthz", (c) => {
-  return c.json({ status: "ok", uptime: Math.round((Date.now() - startTime) / 1000) });
-});
+// Liveness: the process answers. No dependency checks on purpose.
+app.get("/healthz", (c) => c.json({ status: "ok", uptime: uptime() }));
 
-// Kubernetes readiness probe — can we serve traffic?
+// Readiness: 503 takes the pod out of the Service endpoints without restarting it
 app.get("/readyz", async (c) => {
-  const dbCheck = await checkPostgres();
-  const redisCheck = await checkRedis();
-
-  const ready = dbCheck.status !== "unhealthy" && redisCheck.status !== "unhealthy";
-  return c.json(
-    { ready, database: dbCheck.status, cache: redisCheck.status },
-    ready ? 200 : 503
-  );
+  const [db, cache] = await Promise.all([checkPostgres(), checkRedis()]);
+  const ready = db.status !== "unhealthy" && cache.status !== "unhealthy";
+  return c.json({ ready, database: db.status, cache: cache.status }, ready ? 200 : 503);
 });
 
-// Detailed health check (for monitoring dashboards)
+// Detailed report: 503 only when something is down; "degraded" still answers 200
 app.get("/health", async (c) => {
-  const health = await runAllChecks();
-  const statusCode = health.status === "unhealthy" ? 503 : health.status === "degraded" ? 200 : 200;
-
-  // Cache for 10 seconds to prevent health check storms
-  c.header("Cache-Control", "max-age=10");
-  return c.json(health, statusCode);
+  const report = await getReport();
+  return c.json(report, report.status === "unhealthy" ? 503 : 200);
 });
 
-// Startup probe — has the app finished initializing?
+// Startup: the app is initialized once the database answers
 app.get("/startupz", async (c) => {
-  const dbReady = await checkPostgres();
-  if (dbReady.status === "unhealthy") {
-    return c.json({ started: false, reason: "Database not ready" }, 503);
-  }
-  return c.json({ started: true });
+  const db = await checkPostgres();
+  return db.status === "unhealthy" ? c.json({ started: false, reason: "database not ready" }, 503) : c.json({ started: true });
 });
 
 export default app;
 ```
 
-## Results
+Serve it on a private port with `@hono/node-server`:
 
-- **Database outage detected in 10 seconds** — readiness probe fails when PostgreSQL is unhealthy; load balancer stops sending traffic; no more 200 OK on broken servers
-- **Kubernetes stops unnecessary restarts** — liveness probe (lightweight `/healthz`) only fails if the process is hung; readiness probe handles dependency issues; pods aren't killed for slow database queries
-- **Degraded mode visible on dashboard** — `/health` endpoint shows "degraded" when Redis latency spikes above 500ms; team investigates before it becomes an outage
-- **Disk space alerts before crash** — health check flags disk usage above 80%; team cleans up logs before the server fills up and crashes at 100%
-- **10-second cache prevents check storms** — monitoring tools polling every second don't overload the database with health check queries
+```typescript
+// src/server.ts
+import { serve } from "@hono/node-server";
+import app from "./health/checks";
+
+serve({ fetch: app.fetch, port: 8080, hostname: "0.0.0.0" }); // pods are reached over the pod network
+```
+
+Do not expose `/health` on the public internet: it reveals versions, memory and dependency names. Route it only to your monitoring network, or keep only the probe endpoints reachable from outside.
+
+### Step 3: Wire the probes in Kubernetes
+
+```yaml
+containers:
+  - name: api
+    startupProbe:
+      httpGet: { path: /startupz, port: 8080 }
+      periodSeconds: 5
+      failureThreshold: 30     # up to 150 s to boot before the pod is restarted
+    livenessProbe:
+      httpGet: { path: /healthz, port: 8080 }
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 3
+    readinessProbe:
+      httpGet: { path: /readyz, port: 8080 }
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 2
+```
+
+Any HTTP status from 200 up to but not including 400 counts as success, so a 503 from `/readyz` marks the pod not ready. Point your external load balancer's health check at `/readyz` too, not at `/`.
+
+### Step 4: Check it
+
+Start the server with a reachable Postgres and Redis and `curl` all four paths. Then stop Postgres: `/readyz` and `/health` should turn 503 while `/healthz` stays 200, which is exactly the signal Kubernetes needs.
+
+## Real-World Example
+
+Tomás's team points the load balancer and the Kubernetes readiness probe at `/readyz`, and the liveness probe at `/healthz`. When the database fails over, pods go not-ready within a few probe periods (`periodSeconds` times `failureThreshold`) and stop receiving traffic, but they are not restarted, so they come back by themselves once the database returns. A Grafana panel polls `/health` through the internal network and shows "degraded" when Redis latency passes 500 ms or disk use passes 80%.
+
+## Related Skills
+
+- `hono` for the routes
+- `zod` for validating the configuration
+- `postgresql` and `redis` for the dependency checks
+- `typescript` for the typed report
