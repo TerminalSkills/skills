@@ -9,8 +9,9 @@ license: Apache-2.0
 compatibility: 'Linux, aircrack-ng 1.7+, monitor-mode-capable Wi-Fi adapter'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/aircrack-ng/aircrack-ng
   tags:
     - aircrack-ng
     - wireless-security
@@ -80,8 +81,15 @@ aircrack-ng handshake-01.cap
 ### Step 4: Crack the Handshake Offline
 
 ```bash
-# Dictionary attack with rockyou
-aircrack-ng -w /usr/share/wordlists/rockyou.txt -b AA:BB:CC:DD:EE:FF handshake-01.cap
+# On Kali, rockyou.txt ships gzipped — decompress it once:
+[ -f /usr/share/wordlists/rockyou.txt ] || sudo gunzip -k /usr/share/wordlists/rockyou.txt.gz
+
+# WPA passphrases are 8-63 characters; aircrack-ng skips shorter/longer
+# candidates, so pre-filter a generic wordlist to save time:
+grep -E '^.{8,63}$' /usr/share/wordlists/rockyou.txt > /tmp/rockyou-wpa.txt
+
+# Dictionary attack with the length-filtered wordlist
+aircrack-ng -w /tmp/rockyou-wpa.txt -b AA:BB:CC:DD:EE:FF handshake-01.cap
 # KEY FOUND! [ correcthorsebattery ]
 
 # With a rule-transformed wordlist (via john)
@@ -160,4 +168,5 @@ hashcat -m 22000 corporate.hc22000 --show
 - Only the WPA 4-way handshake is required for offline cracking; longer captures waste disk space.
 - For modern networks, convert the capture to `.hc22000` and crack on a GPU with hashcat — CPU aircrack-ng is an order of magnitude slower.
 - WPA3 SAE is not vulnerable to the classic offline handshake attack; aircrack-ng is for WPA/WPA2-PSK.
+- WPA/WPA2-PSK passphrases are 8-63 characters; `aircrack-ng` silently skips any wordlist entry outside that range, so pre-filtering a large wordlist saves real time.
 - Tear down monitor mode after the engagement so the host doesn't leak frames in routine use.
