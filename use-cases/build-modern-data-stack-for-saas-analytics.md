@@ -15,218 +15,245 @@ Oscar's job: build a data stack that ingests data from 8 sources, transforms it 
 
 ## Step 1: Data Ingestion with Airbyte
 
-The company's data lives in Stripe (billing), HubSpot (CRM), PostgreSQL (product database), Intercom (support), Mixpanel (analytics), Google Sheets (finance models), Slack (activity signals), and GitHub (engineering metrics). Airbyte connects to all of them with pre-built connectors and syncs to the warehouse on a schedule.
+The company's data lives in Stripe (billing), HubSpot (CRM), PostgreSQL (product database), Intercom (support), Mixpanel (analytics), Google Sheets (finance models), Slack (activity signals), and GitHub (engineering metrics). Airbyte has a pre-built connector for each of them and syncs to the warehouse on a schedule.
 
-```yaml
-# airbyte/connections.yaml — Airbyte connection configuration
-# Self-hosted via Docker: docker compose up -d
+Airbyte's supported way to self-host is `abctl`, which runs Airbyte in a local Kubernetes cluster on top of Docker (the old `docker compose` install is no longer the documented route). Install it with Homebrew, or download the release archive for your OS from [github.com/airbytehq/abctl/releases](https://github.com/airbytehq/abctl/releases), then:
 
-# Stripe → Warehouse (billing data)
-stripe_connection:
-  source: stripe
-  destination: bigquery                    # or snowflake, postgres, clickhouse
-  config:
-    account_id: "acct_xxx"
-    client_secret: "${STRIPE_SECRET_KEY}"
-  streams:
-    - name: subscriptions
-      sync_mode: incremental               # Only new/changed records
-      cursor_field: created
-    - name: invoices
-      sync_mode: incremental
-      cursor_field: created
-    - name: charges
-      sync_mode: incremental
-    - name: customers
-      sync_mode: full_refresh              # Full sync — customer data changes
-  schedule:
-    type: cron
-    cron_expression: "0 */2 * * *"         # Every 2 hours
-
-# HubSpot → Warehouse (CRM data)
-hubspot_connection:
-  source: hubspot
-  destination: bigquery
-  config:
-    credentials:
-      access_token: "${HUBSPOT_ACCESS_TOKEN}"
-  streams:
-    - name: contacts
-      sync_mode: incremental
-    - name: deals
-      sync_mode: incremental
-    - name: companies
-      sync_mode: incremental
-  schedule:
-    type: cron
-    cron_expression: "0 */4 * * *"         # Every 4 hours
-
-# Product Database → Warehouse (usage data)
-postgres_connection:
-  source: postgres
-  destination: bigquery
-  config:
-    host: "prod-db.internal.company.com"
-    port: 5432
-    database: "app_production"
-    username: "${DB_READONLY_USER}"
-    password: "${DB_READONLY_PASS}"
-    ssl: true
-    replication_method: CDC                # Change Data Capture — real-time
-  streams:
-    - name: users
-      sync_mode: incremental
-    - name: events
-      sync_mode: incremental
-      cursor_field: created_at
-    - name: workspaces
-      sync_mode: incremental
+```bash
+brew tap airbytehq/tap && brew install abctl   # or unpack the release archive and put abctl on your PATH
+abctl local install                            # UI at http://localhost:8000
+abctl local credentials                        # prints the generated admin password
 ```
+
+Oscar creates the destination (BigQuery) and one connection per source in the UI. The settings that matter:
+
+| Source | Key settings | Sync mode / schedule |
+|---|---|---|
+| Stripe | `account_id`, restricted API key as `client_secret`, `start_date`; lookback window if you want late changes re-read | Incremental, every 2 hours; `customers` full refresh |
+| HubSpot | Private app access token | Incremental, every 4 hours |
+| PostgreSQL | Read-only user, SSL on | CDC for `events` (needs logical replication on the database), otherwise incremental by cursor |
+| Intercom, Mixpanel, Google Sheets, GitHub | Per-connector credentials | Incremental where the stream supports it |
+
+Use `Incremental | Append + Deduped` for streams with a cursor, so the warehouse always holds one current row per primary key. Keep credentials out of the repo: enter them in the Airbyte UI, which stores them as secrets. Connection setup can also be scripted with the [Airbyte Terraform provider](https://registry.terraform.io/providers/airbytehq/airbyte/latest) once the first one works by hand.
 
 ## Step 2: Custom Ingestion with dlt (Data Load Tool)
 
-Some data sources don't have Airbyte connectors or need custom logic. Oscar uses dlt — a Python library that turns any API into a data pipeline in 30 lines.
+Slack activity is a signal Oscar wants for engagement metrics, and he wants control over which channels are read and which fields are kept. dlt turns a Python generator into a pipeline: it creates the tables, tracks the incremental cursor, and loads into the same warehouse. (dlt also ships a verified Slack source: `dlt init slack bigquery`. Writing the resource by hand is the right call when you need only a few derived fields.)
 
 ```python
-# pipelines/slack_activity.py — Custom Slack activity ingestion
+# pipelines/slack_activity.py
 import dlt
-from dlt.sources.rest_api import rest_api_source
+from dlt.sources.helpers import requests
 
-@dlt.source
-def slack_activity():
-    """Ingest Slack channel activity for team engagement metrics.
+CHANNELS = ["C0GENERAL", "C0PRODUCT", "C0ENGINEERING"]
 
-    Tracks message volume, reaction counts, and active users per channel
-    to correlate team engagement with product metrics.
-    """
-    @dlt.resource(
-        write_disposition="merge",         # Upsert — update existing, insert new
-        primary_key="ts",                  # Slack message timestamp is unique ID
-        columns={"ts": {"data_type": "text"}, "channel": {"data_type": "text"}},
-    )
+
+@dlt.source(name="slack_activity")
+def slack_activity(slack_token: str = dlt.secrets.value):
+    @dlt.resource(write_disposition="merge", primary_key=["channel", "ts"])
     def messages(
-        last_ts=dlt.sources.incremental("ts", initial_value="0")
+        last_ts=dlt.sources.incremental("ts", initial_value="0"),
     ):
-        """Fetch messages from key Slack channels incrementally."""
-        import requests
-        channels = ["C0GENERAL", "C0PRODUCT", "C0ENGINEERING"]
+        headers = {"Authorization": f"Bearer {slack_token}"}
+        for channel in CHANNELS:
+            cursor = None
+            while True:
+                params = {"channel": channel, "oldest": last_ts.last_value, "limit": 200}
+                if cursor:
+                    params["cursor"] = cursor
+                resp = requests.get(
+                    "https://slack.com/api/conversations.history",
+                    params=params,
+                    headers=headers,
+                )
+                data = resp.json()
+                if not data.get("ok"):
+                    raise RuntimeError(f"Slack error for {channel}: {data.get('error')}")
+                for msg in data["messages"]:
+                    yield {
+                        "ts": msg["ts"],
+                        "channel": channel,
+                        "user": msg.get("user"),
+                        "text_length": len(msg.get("text", "")),
+                        "reaction_count": len(msg.get("reactions", [])),
+                        "thread_reply_count": msg.get("reply_count", 0),
+                        "has_attachment": bool(msg.get("files")),
+                    }
+                cursor = data.get("response_metadata", {}).get("next_cursor")
+                if not cursor:
+                    break
 
-        for channel in channels:
-            response = requests.get("https://slack.com/api/conversations.history", params={
-                "channel": channel,
-                "oldest": last_ts.last_value,
-                "limit": 200,
-            }, headers={"Authorization": f"Bearer {dlt.secrets['slack_token']}"})
+    return messages
 
-            data = response.json()
-            for msg in data.get("messages", []):
-                yield {
-                    "ts": msg["ts"],
-                    "channel": channel,
-                    "user": msg.get("user"),
-                    "text_length": len(msg.get("text", "")),
-                    "reaction_count": len(msg.get("reactions", [])),
-                    "thread_reply_count": msg.get("reply_count", 0),
-                    "has_attachment": bool(msg.get("files")),
-                }
 
-    return messages()
-
-# Run the pipeline
 if __name__ == "__main__":
     pipeline = dlt.pipeline(
         pipeline_name="slack_activity",
         destination="bigquery",
         dataset_name="raw_slack",
     )
-    load_info = pipeline.run(slack_activity())
-    print(f"Loaded {load_info.loads_ids} — {load_info.metrics}")
+    print(pipeline.run(slack_activity()))
 ```
 
-## Step 3: Data Quality with Soda
+Credentials come from `.dlt/secrets.toml` (git-ignored) or environment variables: `SOURCES__SLACK_ACTIVITY__SLACK_TOKEN` for the Slack bot token (scopes `channels:history`, `groups:history` for private channels; the bot must be invited to each channel) and `DESTINATION__BIGQUERY__CREDENTIALS__PROJECT_ID`, `__PRIVATE_KEY`, `__CLIENT_EMAIL` for BigQuery. `pip install "dlt[bigquery]"` then `python pipelines/slack_activity.py`. Merge disposition with a `(channel, ts)` primary key makes re-runs idempotent.
 
-Bad data is worse than no data. Oscar sets up Soda checks that run after every sync and alert the team when data quality drops below thresholds.
+## Step 3: Transform with dbt
 
-```yaml
-# soda/checks/stripe_checks.yaml — Data quality checks for billing data
-checks for raw_stripe.subscriptions:
-  # Freshness — data should be less than 3 hours old
-  - freshness(created) < 3h:
-      name: "Subscription data is fresh"
+Raw tables are not metrics. Oscar models them with dbt: staging models rename and cast, marts hold business logic. `pip install dbt-bigquery`, then `dbt build` runs models and tests together.
 
-  # Completeness — no missing critical fields
-  - missing_count(customer_id) = 0:
-      name: "Every subscription has a customer"
-  - missing_count(status) = 0:
-      name: "Every subscription has a status"
-
-  # Validity — values are within expected ranges
-  - invalid_count(status) = 0:
-      valid values: [active, past_due, canceled, trialing, paused]
-      name: "All subscription statuses are valid"
-
-  # Volume — catch data pipeline breaks
-  - row_count > 0:
-      name: "Subscriptions table is not empty"
-  - anomaly detection for row_count:
-      name: "No unusual changes in subscription volume"
-      severity: warn
-
-checks for raw_stripe.invoices:
-  - freshness(created) < 3h
-  - missing_count(amount_paid) = 0
-  - values in (currency) must be in ['usd', 'eur', 'gbp']:
-      name: "Only expected currencies"
-  - failed_count(amount_paid) = 0:
-      fail condition: amount_paid < 0
-      name: "No negative invoice amounts"
-
-checks for mart_finance.mrr_monthly:
-  # Business logic checks on transformed data
-  - avg(mrr) between 150000 and 250000:
-      name: "MRR is in expected range ($150K-$250K)"
-  - anomaly detection for sum(mrr):
-      name: "No sudden MRR spikes or drops"
-      severity: critical
+```sql
+-- models/staging/stripe/stg_stripe__subscription_mrr.sql
+-- One row per subscription per month, from paid invoices on monthly plans.
+-- (Annual plans need amount_paid / 12 spread over 12 months; add that when you have them.)
+select
+    subscription as subscription_id,
+    date_trunc(date(created), month) as month,
+    sum(amount_paid) / 100 as mrr
+from {{ source('raw_stripe', 'invoices') }}
+where subscription is not null
+  and status = 'paid'
+group by 1, 2
 ```
+
+```sql
+-- models/marts/finance/mrr_events.sql
+-- Fill every month between a subscription's first invoice and today with 0,
+-- so a cancellation shows up as a month with MRR 0.
+with bounds as (
+    select subscription_id, min(month) as first_month
+    from {{ ref('stg_stripe__subscription_mrr') }}
+    group by 1
+),
+spine as (
+    select subscription_id, month
+    from bounds,
+        unnest(generate_date_array(first_month, date_trunc(current_date(), month), interval 1 month)) as month
+),
+monthly as (
+    select
+        spine.subscription_id,
+        spine.month,
+        coalesce(s.mrr, 0) as mrr
+    from spine
+    left join {{ ref('stg_stripe__subscription_mrr') }} s
+        on s.subscription_id = spine.subscription_id and s.month = spine.month
+),
+changes as (
+    select
+        subscription_id,
+        month as event_date,
+        mrr - coalesce(lag(mrr) over (partition by subscription_id order by month), 0) as mrr_change,
+        lag(mrr) over (partition by subscription_id order by month) as previous_mrr,
+        mrr
+    from monthly
+)
+select
+    *,
+    case
+        when previous_mrr is null then 'new'
+        when mrr = 0 then 'churn'
+        when previous_mrr = 0 then 'reactivation'
+        when mrr > previous_mrr then 'expansion'
+        else 'contraction'
+    end as event_type
+from changes
+where mrr_change != 0
+```
+
+Declare the Airbyte table once in `models/staging/stripe/sources.yml` (`sources: - name: raw_stripe`, `tables: - name: invoices`; add `schema: raw_stripe` if the Airbyte dataset name differs from the source name), and point the dbt BigQuery profile at `dataset: mart_finance` so the model lands in `mart_finance.mrr_events`, the table the Metabase question reads.
+
+## Step 4: Data Quality with Soda
+
+Bad data is worse than no data. Current Soda (v4) checks are written as data contracts, one YAML file per dataset, and run with `soda contract verify`. The older SodaCL `checks for ...` files and `soda scan` command belong to Soda Core 3 and are not part of the current CLI.
 
 ```bash
-# Run checks after dbt transform
-soda scan -d bigquery -c soda/configuration.yml soda/checks/stripe_checks.yaml
-
-# Output:
-# Scan summary:
-# 12/12 checks PASSED
-# 0 checks WARNED
-# 0 checks FAILED
+pip install soda-core soda-bigquery
 ```
 
-## Step 4: Self-Serve Dashboards with Metabase
+```yaml
+# soda/ds_config.yml
+type: bigquery
+name: warehouse
+connection:
+  account_info_json_path: ${env.GOOGLE_APPLICATION_CREDENTIALS}
+  dataset: raw_stripe
+  project_id: ${env.BQ_PROJECT_ID}
+```
 
-Oscar deploys Metabase connected to the warehouse's transformed layer. Non-technical users build their own dashboards with drag-and-drop, and the CEO gets a weekly email with key metrics.
+```yaml
+# soda/contracts/stripe_invoices.yml
+# dataset format: <data source>/<project>/<dataset>/<table>
+dataset: warehouse/my-project/raw_stripe/invoices
+columns:
+  - name: amount_paid
+    checks:
+      - missing:
+      - invalid:
+          valid_min: 0
+          name: No negative invoice amounts
+  - name: currency
+    checks:
+      - invalid:
+          valid_values: [usd, eur, gbp]
+          name: Only expected currencies
+checks:
+  - row_count:
+  - freshness:
+      column: created
+      threshold:
+        unit: hour
+        must_be_less_than: 3
+```
+
+Business-level ranges go in a second contract on the mart (for example an `aggregate` check with `function: sum` and `must_be_between` on `mrr`). Anomaly detection in Soda v4 is a Soda Cloud feature, so the open-source CLI checks use explicit thresholds.
+
+```bash
+soda contract test --contract soda/contracts/stripe_invoices.yml     # syntax only, no data read
+soda contract verify --contract soda/contracts/stripe_invoices.yml -ds soda/ds_config.yml
+```
+
+`verify` exits non-zero when a check fails, so an orchestrator (or a CI job after the dbt run) stops the pipeline before bad numbers reach a dashboard. Output ends with a summary table:
+
+```console
+# Summary:
+|----------------|---|----|
+| Checks         | 5 |    |
+| Passed         | 5 | ✅ |
+| Failed         | 0 | ✅ |
+| Warned         | 0 | ✅ |
+| Not Evaluated  | 0 | ✅ |
+| Excluded       | 0 | ✅ |
+| Runtime Errors | 0 | ✅ |
+```
+
+## Step 5: Self-Serve Dashboards with Metabase
+
+Oscar deploys Metabase connected to the warehouse's transformed layer (`mart_*` datasets only). Run the open-source image bound to localhost behind a reverse proxy with TLS, with its application database on Postgres rather than the default H2 file:
+
+```bash
+docker run -d --name metabase -p 127.0.0.1:3000:3000 \
+  -e MB_DB_TYPE=postgres -e MB_DB_HOST=db.internal -e MB_DB_PORT=5432 \
+  -e MB_DB_DBNAME=metabase -e MB_DB_USER=metabase -e MB_DB_PASS="$METABASE_DB_PASSWORD" \
+  metabase/metabase:latest
+```
+
+Pin an explicit version tag in production. Non-technical users build their own questions with the query builder; Oscar saves the MRR waterfall as a SQL question (BigQuery syntax) and pins it to the Executive Dashboard. A dashboard subscription (needs SMTP configured) sends the CEO a weekly email.
 
 ```sql
 -- Metabase question: MRR Waterfall
--- Saved as a "question" in Metabase, pinned to the Executive Dashboard
-
 WITH monthly AS (
   SELECT
-    date_trunc('month', event_date) AS month,
-    SUM(CASE WHEN event_type = 'new' THEN mrr_change ELSE 0 END) AS new_mrr,
-    SUM(CASE WHEN event_type = 'expansion' THEN mrr_change ELSE 0 END) AS expansion_mrr,
-    SUM(CASE WHEN event_type = 'contraction' THEN mrr_change ELSE 0 END) AS contraction_mrr,
-    SUM(CASE WHEN event_type = 'churn' THEN mrr_change ELSE 0 END) AS churned_mrr,
-    SUM(CASE WHEN event_type = 'reactivation' THEN mrr_change ELSE 0 END) AS reactivated_mrr
+    DATE_TRUNC(event_date, MONTH) AS month,
+    SUM(IF(event_type = 'new', mrr_change, 0)) AS new_mrr,
+    SUM(IF(event_type = 'expansion', mrr_change, 0)) AS expansion_mrr,
+    SUM(IF(event_type = 'contraction', mrr_change, 0)) AS contraction_mrr,
+    SUM(IF(event_type = 'churn', mrr_change, 0)) AS churned_mrr,
+    SUM(IF(event_type = 'reactivation', mrr_change, 0)) AS reactivated_mrr
   FROM mart_finance.mrr_events
-  GROUP BY 1
+  GROUP BY month
 )
 SELECT
-  month,
-  new_mrr,
-  expansion_mrr,
-  reactivated_mrr,
-  contraction_mrr,
-  churned_mrr,
+  month, new_mrr, expansion_mrr, reactivated_mrr, contraction_mrr, churned_mrr,
   SUM(new_mrr + expansion_mrr + reactivated_mrr + contraction_mrr + churned_mrr)
     OVER (ORDER BY month) AS cumulative_mrr
 FROM monthly
@@ -235,12 +262,18 @@ ORDER BY month
 
 ## Results After 3 Weeks
 
-Oscar delivers the entire stack in 3 weeks. The CEO opens the MRR dashboard every morning. The VP of Sales stopped asking engineering for reports. Product runs their own cohort analysis in Metabase without writing SQL. Soda caught a Stripe sync failure at 2 AM before anyone noticed — the alert fired, the pipeline self-healed on retry, and the morning dashboards were accurate.
+Oscar delivers the stack in 3 weeks. The CEO opens the MRR dashboard every morning, the VP of Sales stopped asking engineering for reports, and product runs its own cohort analysis in Metabase. When a Stripe sync stalls overnight, the freshness check fails and blocks the dashboard refresh, so people see yesterday's numbers marked stale instead of wrong ones.
 
 - **8 data sources** synced automatically (Airbyte + dlt)
-- **14 dbt models** transforming raw data into business metrics
-- **47 Soda checks** running after every sync
-- **12 Metabase dashboards** used by 28 out of 40 employees weekly
-- **Zero engineering tickets** for data requests after launch
-- **Data freshness**: 2 hours for billing, 15 minutes for product usage (CDC)
-- **Total cost**: $180/month (self-hosted Airbyte + BigQuery + Metabase OSS)
+- **dbt models** turning raw data into business metrics, tested on every run
+- **Soda contracts** verified after every sync
+- **Metabase dashboards** used by most of the company weekly
+- **Zero engineering tickets** for data requests after launch (this team's own result)
+
+## Related Skills
+
+- [airbyte](/skills/airbyte) — pre-built connectors and scheduled syncs
+- [dlt](/skills/dlt) — Python pipelines for custom sources
+- [dbt](/skills/dbt) — transformations and tests
+- [soda](/skills/soda) — data quality checks
+- [metabase](/skills/metabase) — self-serve dashboards
