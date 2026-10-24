@@ -1,18 +1,17 @@
 ---
 name: confluence
 description: >-
-  Manage knowledge bases and documentation with Confluence Cloud. Use when a
-  user asks to create or manage Confluence spaces, pages, and blogs, build
-  documentation systems, automate page creation from templates, use Confluence
-  REST API v2, manage page trees and hierarchies, set up permissions, integrate
-  Confluence with Jira or other tools, generate reports from Confluence data,
-  build macros or Forge apps, or migrate content between spaces. Covers content
-  management, API automation, templates, and Atlassian ecosystem integration.
+  Manage documentation and knowledge bases in Confluence Cloud through its
+  REST APIs. Use when a user asks to create Confluence spaces or pages, build
+  a page tree, update a page, search with CQL, add labels, upload
+  attachments, restrict who can view or edit a page, embed Jira issues, or
+  automate documentation from scripts. Covers REST API v2, the remaining v1
+  endpoints and storage-format page bodies.
 license: Apache-2.0
-compatibility: Node.js 18+ or any HTTP client (REST API v2)
+compatibility: Confluence Cloud; Node.js 18+ (built-in fetch) or any HTTP client
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: documents
   tags:
     - confluence
@@ -26,261 +25,207 @@ metadata:
 
 ## Overview
 
-Automate and extend Confluence Cloud — Atlassian's wiki and knowledge management platform. This skill covers space and page management, the REST API v2, content creation with Atlassian Document Format (ADF), page trees, templates, labels, permissions, Jira integration, and building Forge apps.
+Automate Confluence Cloud (Atlassian's wiki) over HTTP. Page and space work goes through REST API v2 (`/wiki/api/v2`, cursor-paginated). A subset of v1 (`/wiki/rest/api`) is still needed for CQL search, labels (add/remove), attachment upload, templates, page restrictions and some page moves. Atlassian has been removing v1 endpoints: v1 `POST /content` (create page) and `PUT /content/{id}` are no longer in its published API reference, so always create and update pages with v2. Checked against the v1 and v2 OpenAPI documents on 2026-10-24; nothing here was run against a live site.
 
 ## Instructions
 
 ### Step 1: Authentication
 
-```typescript
-// Basic auth with API token (same token works for Jira and Confluence).
-// Generate at: https://id.atlassian.com/manage-profile/security/api-tokens
-const CONFLUENCE_BASE = "https://your-domain.atlassian.net";
-const AUTH = Buffer.from(`your-email@company.com:${process.env.ATLASSIAN_API_TOKEN}`).toString("base64");
+Basic auth with the account email and an API token (create it at https://id.atlassian.com/manage-profile/security/api-tokens). Keep both in environment variables.
 
-// REST API v2 (preferred)
-async function confluence(method: string, path: string, body?: any) {
-  const res = await fetch(`${CONFLUENCE_BASE}/wiki/api/v2${path}`, {
+```typescript
+const BASE = process.env.CONFLUENCE_BASE_URL!;   // https://acme-eng.atlassian.net
+const AUTH = Buffer.from(
+  `${process.env.ATLASSIAN_EMAIL}:${process.env.ATLASSIAN_API_TOKEN}`,
+).toString("base64");
+
+async function api(prefix: "/wiki/api/v2" | "/wiki/rest/api", method: string, path: string, body?: unknown) {
+  const res = await fetch(`${BASE}${prefix}${path}`, {
     method,
-    headers: { Authorization: `Basic ${AUTH}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: { Authorization: `Basic ${AUTH}`, "Content-Type": "application/json", Accept: "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Confluence ${method} ${path}: ${res.status}`);
+  if (!res.ok) throw new Error(`Confluence ${method} ${path}: ${res.status} ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
-
-// V1 API (still needed for templates, macros, CQL search)
-async function confluenceV1(method: string, path: string, body?: any) {
-  const res = await fetch(`${CONFLUENCE_BASE}/wiki/rest/api${path}`, {
-    method,
-    headers: { Authorization: `Basic ${AUTH}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(`Confluence V1 ${method} ${path}: ${res.status}`);
-  return res.json();
-}
+const v2 = (m: string, p: string, b?: unknown) => api("/wiki/api/v2", m, p, b);
+const v1 = (m: string, p: string, b?: unknown) => api("/wiki/rest/api", m, p, b);
 ```
+
+OAuth 2.0 (3LO) is the alternative for apps acting for other users; v2 scopes look like `read:page:confluence` and `write:page:confluence`.
 
 ### Step 2: Spaces
 
+v2 identifies a space by numeric `id`, not by key. Look the id up with `keys=`.
+
 ```typescript
-// Create a space (key: uppercase, 2-10 chars; type: "global" or "personal")
-const space = await confluence("POST", "/spaces", {
-  key: "ENG", name: "Engineering",
-  description: { plain: { value: "Engineering team docs and runbooks", representation: "plain" } },
-  type: "global",
+// Create: name is required, plus either key (uppercase) or alias. description is optional and plain text only.
+const space = await v2("POST", "/spaces", {
+  name: "Engineering", key: "ENG",
+  description: { representation: "plain", value: "Engineering docs" },
 });
 
-// List, get, update
-const spaces = await confluence("GET", "/spaces?limit=25&sort=name");
-const engSpace = await confluence("GET", "/spaces/ENG?include-homepage=true");
-await confluence("PUT", `/spaces/${space.id}`, {
-  name: "Engineering Docs",
-  description: { plain: { value: "Updated description", representation: "plain" } },
-});
+const found = await v2("GET", "/spaces?keys=ENG&description-format=plain");
+const spaceId: string = found.results[0].id;
+const pages = await v2("GET", `/spaces/${spaceId}/pages?limit=50`);
 ```
 
-### Step 3: Pages — CRUD & Hierarchy
+v2 has no endpoint to update or delete a space; use the Confluence UI or v1 for that. Responses are cursor-paginated: follow `_links.next` until it is absent.
+
+### Step 3: Pages and hierarchy
+
+Bodies use `representation`: `storage` (Confluence XHTML), `atlas_doc_format` (ADF as a JSON string) or `wiki`.
 
 ```typescript
-// Create a page (body uses "storage" format = Confluence XHTML, or ADF)
-const page = await confluence("POST", "/pages", {
-  spaceId: space.id,
-  status: "current",  // "current" (published) or "draft"
-  title: "API Design Guidelines",
-  body: {
-    representation: "storage",
-    value: `<h2>REST API Conventions</h2><p>All APIs must follow these conventions:</p>
-      <ul><li>Use plural nouns: <code>/users</code></li><li>Version via URL prefix</li></ul>`,
-  },
+const page = await v2("POST", "/pages", {
+  spaceId, status: "current", title: "API Design Guidelines",
+  body: { representation: "storage",
+          value: "<h2>REST conventions</h2><ul><li>Use plural nouns: <code>/users</code></li></ul>" },
 });
 
-// Create a child page (nested under a parent)
-const childPage = await confluence("POST", "/pages", {
-  spaceId: space.id, parentId: page.id,
-  title: "Authentication Standards",
-  body: { representation: "storage", value: "<p>All APIs use OAuth 2.0 with JWT.</p>" },
+// Child page: set parentId
+const child = await v2("POST", "/pages", {
+  spaceId, parentId: page.id, title: "Authentication Standards",
+  body: { representation: "storage", value: "<p>All APIs use OAuth 2.0.</p>" },
 });
 
-// Update — MUST increment version number
-const currentPage = await confluence("GET", `/pages/${page.id}?body-format=storage`);
-await confluence("PUT", `/pages/${page.id}`, {
+// Update: send the full page and version.number = current + 1
+const cur = await v2("GET", `/pages/${page.id}?body-format=storage`);
+await v2("PUT", `/pages/${page.id}`, {
   id: page.id, status: "current", title: "API Design Guidelines v2",
-  body: { representation: "storage", value: "<p>Updated content...</p>" },
-  version: { number: currentPage.version.number + 1, message: "Added error handling section" },
+  body: { representation: "storage", value: "<p>Updated content</p>" },
+  version: { number: cur.version.number + 1, message: "Added error handling section" },
 });
 
-// Children, reparent, delete (moves to trash, recoverable for 30 days)
-const descendants = await confluence("GET", `/pages/${page.id}/children?limit=50&sort=title`);
-await confluence("DELETE", `/pages/${page.id}`);
+// Direct children (GET /pages/{id}/children is deprecated), all descendants, ancestors
+const kids = await v2("GET", `/pages/${page.id}/direct-children`);
+const tree = await v2("GET", `/pages/${page.id}/descendants`);
+
+// Delete moves to trash; purge=true on a page already in the trash removes it permanently
+await v2("DELETE", `/pages/${child.id}`);
 ```
 
-### Step 4: CQL — Confluence Query Language
+To move a page under a different parent in the same space, send `parentId` in the v2 `PUT /pages/{id}` body. For other moves use v1: `PUT /wiki/rest/api/content/{pageId}/move/append/{targetId}`.
+
+### Step 4: CQL search (v1)
 
 ```typescript
-// CQL uses V1 API (not available in V2 yet). Similar to JQL but for content.
-const results = await confluenceV1("GET",
-  `/content/search?cql=${encodeURIComponent('type = page AND space = "ENG" AND text ~ "authentication" ORDER BY lastModified DESC')}&limit=20`
-);
-
-// Recent pages, labeled pages, pages by user
-const recent = await confluenceV1("GET",
-  `/content/search?cql=${encodeURIComponent('type = page AND space = "ENG" AND lastModified >= now("-7d") ORDER BY lastModified DESC')}&limit=50`
-);
-const labeled = await confluenceV1("GET",
-  `/content/search?cql=${encodeURIComponent('type = page AND label = "runbook" AND space = "ENG"')}&limit=50`
-);
+const cql = 'type = page AND space = "ENG" AND text ~ "authentication" ORDER BY lastModified DESC';
+const hits = await v1("GET", `/content/search?cql=${encodeURIComponent(cql)}&limit=20`);
+// Other useful clauses: lastModified >= now("-7d"), label = "runbook", ancestor = 12345
 ```
 
-### Step 5: Labels & Organization
+`GET /wiki/rest/api/search?cql=` returns results with excerpts across content, spaces and users.
+
+### Step 5: Labels
 
 ```typescript
-// Add, get, remove labels
-await confluenceV1("POST", `/content/${page.id}/label`, [
+await v1("POST", `/content/${page.id}/label`, [
   { prefix: "global", name: "runbook" },
   { prefix: "global", name: "production" },
 ]);
-const labels = await confluenceV1("GET", `/content/${page.id}/label`);
-await confluenceV1("DELETE", `/content/${page.id}/label/runbook`);
+const labels = await v2("GET", `/pages/${page.id}/labels`);   // v2 can read labels
+await v1("DELETE", `/content/${page.id}/label/runbook`);
 ```
 
 ### Step 6: Templates
 
-```typescript
-// Create a reusable page template with variable placeholders
-const template = await confluenceV1("POST", "/template", {
-  name: "Incident Postmortem",
-  templateType: "page",
-  description: "Standard incident postmortem template",
-  space: { key: "ENG" },
-  body: {
-    storage: {
-      value: `<h2>Incident Summary</h2>
-        <p><strong>Severity:</strong> <at:var at:name="severity">P1/P2/P3</at:var></p>
-        <p><strong>Duration:</strong> <at:var at:name="duration">X hours</at:var></p>
-        <h2>Timeline</h2><p>Chronological events...</p>
-        <h2>Root Cause</h2><p>What caused this...</p>
-        <h2>Action Items</h2>
-        <ac:structured-macro ac:name="tasklist"><ac:rich-text-body>
-          <ac:task><ac:task-body>Action item 1</ac:task-body></ac:task>
-        </ac:rich-text-body></ac:structured-macro>`,
-      representation: "storage",
-    },
-  },
-});
+v1 can create and read templates (`POST /wiki/rest/api/template` with `name`, `templateType: "page"`, `space: { key }` and `body.storage`) and list them (`GET /template/page`). The published API has no call that creates a page from a template, so for automation keep your template as a string in code, fill in the values and create the page with `POST /pages`:
 
-// Create a page from a template (replace variables with real values)
-const fromTemplate = await confluenceV1("POST", "/content", {
-  type: "page", title: "Postmortem: Auth Service Outage 2026-02-18",
-  space: { key: "ENG" }, ancestors: [{ id: postmortemsParentPageId }],
-  body: {
-    storage: {
-      value: template.body.storage.value.replace("P1/P2/P3", "P1").replace("X hours", "2h 15m"),
-      representation: "storage",
-    },
-  },
+```typescript
+const postmortem = (sev: string, duration: string) => `
+  <h2>Incident summary</h2>
+  <p><strong>Severity:</strong> ${sev}</p><p><strong>Duration:</strong> ${duration}</p>
+  <h2>Timeline</h2><p></p><h2>Root cause</h2><p></p><h2>Action items</h2>
+  <ac:task-list><ac:task><ac:task-id>1</ac:task-id><ac:task-status>incomplete</ac:task-status>
+  <ac:task-body>Add alert on token refresh failures</ac:task-body></ac:task></ac:task-list>`;
+
+await v2("POST", "/pages", {
+  spaceId, parentId: postmortemsParentId, title: "Postmortem: Auth service outage 2026-10-14",
+  body: { representation: "storage", value: postmortem("P1", "2h 15m") },
 });
 ```
 
-### Step 7: Attachments
+### Step 7: Attachments (v1)
 
 ```typescript
-// Upload attachment (PUT creates or updates; POST always creates new)
-const form = new FormData();
-form.append("file", fs.createReadStream("architecture-diagram.png"));
-const attachment = await fetch(`${CONFLUENCE_BASE}/wiki/rest/api/content/${page.id}/child/attachment`, {
-  method: "PUT",
-  headers: { Authorization: `Basic ${AUTH}`, "X-Atlassian-Token": "nocheck", ...form.getHeaders() },
-  body: form,
-}).then(r => r.json());
+import { readFile } from "node:fs/promises";
 
-// List attachments
-const attachments = await confluenceV1("GET", `/content/${page.id}/child/attachment?limit=50`);
+const form = new FormData();
+form.append("file", new Blob([await readFile("architecture-diagram.png")]), "architecture-diagram.png");
+form.append("minorEdit", "true");
+const res = await fetch(`${BASE}/wiki/rest/api/content/${page.id}/child/attachment`, {
+  method: "PUT",                       // PUT creates or updates by filename; POST always adds
+  headers: { Authorization: `Basic ${AUTH}`, "X-Atlassian-Token": "no-check" },
+  body: form,                          // let fetch set the multipart boundary
+});
+const attachment = await res.json();
+const list = await v2("GET", `/pages/${page.id}/attachments`);
 ```
 
 ### Step 8: Permissions
 
 ```typescript
-// Get and set page restrictions
-const restrictions = await confluenceV1("GET", `/content/${page.id}/restriction`);
-await confluenceV1("PUT", `/content/${page.id}/restriction`, [{
-  operation: "update",
-  restrictions: {
-    user: [{ type: "known", accountId: "5f1234abc..." }],
-    group: [{ type: "group", name: "engineering-leads" }],
-  },
-}]);
+// Simple v2 switch: OPEN | EDIT_RESTRICTED | VIEW_RESTRICTED (direct state of this page)
+await v2("PUT", `/pages/${page.id}/restriction-state`, { state: "EDIT_RESTRICTED" });
+const perms = await v2("GET", `/pages/${page.id}/permissions`);
+const spacePerms = await v2("GET", `/spaces/${spaceId}/permissions`);
 
-// Space-level permissions
-await confluence("POST", `/spaces/${space.id}/permissions`, {
-  subject: { type: "group", identifier: "engineering" },
-  operation: { key: "read", target: "space" },
+// Space roles are assigned with role-assignments (POST takes an array)
+await v2("POST", `/spaces/${spaceId}/role-assignments`, [
+  { principal: { principalType: "GROUP", principalId: engineeringGroupId }, roleId: viewerRoleId },
+]);
+```
+
+Group and role ids come from the Atlassian admin APIs or from `GET /spaces/{id}/role-assignments`. Fine-grained user/group restrictions on one page are in v1 `PUT /wiki/rest/api/content/{id}/restriction` (`operation` is `read` or `update`; users by `accountId`, groups by group `id`).
+
+### Step 9: Embed Jira issues
+
+The Jira macro is plain storage-format content in a v2 page body:
+
+```typescript
+await v2("POST", "/pages", {
+  spaceId, title: "Sprint 24 Status",
+  body: { representation: "storage", value: `<h2>Current sprint</h2>
+    <ac:structured-macro ac:name="jira" ac:schema-version="1">
+      <ac:parameter ac:name="jqlQuery">project = ENG AND sprint in openSprints() ORDER BY priority DESC</ac:parameter>
+      <ac:parameter ac:name="columns">key,summary,status,assignee,priority</ac:parameter>
+      <ac:parameter ac:name="maximumIssues">50</ac:parameter>
+    </ac:structured-macro>` },
 });
 ```
 
-### Step 9: Webhooks
-
-```typescript
-// Register a webhook for content events
-const webhook = await fetch(`${CONFLUENCE_BASE}/wiki/rest/api/webhooks`, {
-  method: "POST",
-  headers: { Authorization: `Basic ${AUTH}`, "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: "Page update notifier",
-    url: "https://your-app.com/webhook/confluence",
-    events: ["page_created", "page_updated", "page_removed", "comment_created"],
-    active: true,
-  }),
-}).then(r => r.json());
-// Webhook payload: { eventType: "page_created", page: { id, title, space, version } }
-```
-
-### Step 10: Jira Integration
-
-```typescript
-// Embed a live Jira issue table in a Confluence page using the Jira macro
-const pageWithJira = await confluenceV1("POST", "/content", {
-  type: "page", title: "Sprint 24 Status", space: { key: "ENG" },
-  body: {
-    storage: {
-      value: `<h2>Current Sprint Issues</h2>
-        <ac:structured-macro ac:name="jira">
-          <ac:parameter ac:name="jqlQuery">project = ENG AND sprint = "Sprint 24" ORDER BY priority DESC</ac:parameter>
-          <ac:parameter ac:name="columns">key,summary,status,assignee,priority</ac:parameter>
-          <ac:parameter ac:name="maximumIssues">50</ac:parameter>
-        </ac:structured-macro>`,
-      representation: "storage",
-    },
-  },
-});
-```
+The Jira site must be connected to this Confluence site, or the macro shows an error instead of issues.
 
 ## Examples
 
-### Example 1: Build an engineering documentation hub with page hierarchy
-**User prompt:** "Create a Confluence space called 'Engineering' with key ENG. Set up a page tree with top-level pages for Architecture, Runbooks, and RFCs. Under Runbooks, create child pages for 'Database Failover' and 'Incident Response'. Add labels to the runbook pages."
+### Example 1: Engineering hub with a page tree
+
+**User prompt:** "Create a Confluence space called Engineering with key ENG, with top-level pages Architecture, Runbooks and RFCs, and under Runbooks the pages Database Failover and Incident Response, labelled runbook."
 
 The agent will:
-1. Create the space via `POST /spaces` with key `ENG` and type `global`.
-2. Create three top-level pages (Architecture, Runbooks, RFCs) using `POST /pages` with the space ID and storage-format body content.
-3. Create two child pages under Runbooks by setting `parentId` to the Runbooks page ID.
-4. Add labels `runbook` and `production` to both child pages using the V1 labels API.
-5. Return the URLs of all created pages.
+1. `POST /wiki/api/v2/spaces` with `name: "Engineering"` and `key: "ENG"`, and keep the returned `id`.
+2. `POST /pages` three times with that `spaceId` (Architecture, Runbooks, RFCs), keeping the Runbooks page id.
+3. `POST /pages` twice with `parentId` set to the Runbooks id.
+4. `POST /wiki/rest/api/content/{id}/label` on both children with `runbook`.
+5. Print each page's `_links.webui` (prefix with the site base URL).
 
-### Example 2: Generate a weekly status page from Jira sprint data
-**User prompt:** "Create a Confluence page in the ENG space titled 'Sprint 24 Status' that shows a live Jira issue table for the current sprint filtered by priority, plus a summary section I can edit."
+### Example 2: Weekly status page with live Jira data
+
+**User prompt:** "Make a Confluence page in ENG called Sprint 24 Status with a live Jira table of the open sprint and an editable summary section."
 
 The agent will:
-1. Create a new page using the V1 content API with storage-format body.
-2. Include an `ac:structured-macro` Jira macro with a JQL query filtering for the current sprint, displaying key, summary, status, assignee, and priority columns.
-3. Add an editable summary section with placeholder text below the Jira table.
-4. Add labels `sprint-report` and `status` to the page for easy discovery via CQL search.
+1. Look up the ENG space id with `GET /spaces?keys=ENG`.
+2. `POST /pages` with a storage body: a Summary heading and empty paragraph first, then the `jira` macro with the JQL, columns and `maximumIssues`.
+3. Add the labels `sprint-report` and `status` with the v1 label endpoint, so `label = "sprint-report"` in CQL finds it later.
 
 ## Guidelines
 
-- Use the V2 REST API for page and space CRUD operations; fall back to V1 only for CQL search, templates, labels, and attachment uploads.
-- Always increment the version number by exactly 1 when updating pages; the API rejects updates with incorrect version numbers to prevent conflicting edits.
-- Use storage format (Confluence XHTML) for page bodies when creating pages programmatically; it is simpler than ADF and supports all macros including Jira embeds.
-- Add labels to pages for organizational taxonomy; they power CQL queries like `label = "runbook"` which are the primary way to find pages across spaces.
-- Set the `X-Atlassian-Token: nocheck` header when uploading attachments; the API rejects multipart file uploads without this CSRF bypass header.
-- Delete operations move pages to trash (recoverable for 30 days), not permanent deletion; use the purge endpoint if permanent removal is needed.
+- Create and update pages with v2 only. Updates need `version.number` set to the current number plus one; a stale number is rejected, so re-read the page just before writing.
+- Fetch before you overwrite: a PUT replaces the whole body, so read the page with `body-format=storage`, change it, and send it back.
+- Prefer `storage` format for generated content; use `atlas_doc_format` only if you already build ADF.
+- List endpoints return a page of results with a cursor in `_links.next`; loop until it is gone, and respect HTTP 429 `Retry-After`.
+- Attachment uploads need `X-Atlassian-Token: no-check`, and the multipart `Content-Type` must be set by `fetch`, not by hand.
+- Cloud webhooks are not a REST resource in Confluence; use Forge event triggers or Automation rules for change notifications.
+- Store the email and API token in environment variables; an API token has the full rights of its account, so use a dedicated service account for automation.
+- This skill is for Confluence Cloud. Data Center and Server use different paths and auth.
