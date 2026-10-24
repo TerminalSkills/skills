@@ -139,7 +139,7 @@ export async function POST(req: Request) {
   const topic = req.headers.get('x-wc-webhook-topic')
   const order = JSON.parse(raw)
   if (topic === 'order.created') {
-    console.log(`New order #${order.id}: ${order.total} ${order.currency} from ${order.billing.email}`)
+    console.log(`New order #${order.id}: ${order.total} ${order.currency}`)  // no customer PII in logs
   }
   return new Response('ok')
 }

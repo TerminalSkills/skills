@@ -120,10 +120,10 @@ curl -X POST https://next-api.useplunk.com/contacts \
 
 ### Step 5: Self-host (optional)
 
-Download `docker-compose.yml` from the `next` branch of the repository, set `.env` and run `docker compose up -d`:
+Download `docker-compose.yml` from a release tag (v0.17.0, 2026-10-21; `next` is a moving branch), set `.env` and run `docker compose up -d`:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/useplunk/plunk/next/docker-compose.yml
+curl -fsSLO https://raw.githubusercontent.com/useplunk/plunk/v0.17.0/docker-compose.yml
 docker compose up -d
 ```
 

@@ -128,7 +128,7 @@ The SDK also reads `OPENVIKING_URL`, `OPENVIKING_API_KEY` and `~/.openviking/ovc
 
 ### 6. Connect a coding agent
 
-The project ships memory plugins for Claude Code, Codex, Cursor, TRAE, OpenCode, OpenClaw, Hermes and an MCP route (docs.openviking.ai, section Agent integrations). The README's installer is `curl -fsSL https://openviking.ai/install | bash`; it is a script, so download it, read the header and run it only if you accept what it does. Use a user key, not the root key.
+The project ships memory plugins for Claude Code, Codex, Cursor, TRAE, OpenCode, OpenClaw, Hermes and an MCP route (docs.openviking.ai, section Agent integrations). The README also offers a shell installer at `https://openviking.ai/install`. Download it to a file, read it, and run it only if you accept what it does; never pipe it into a shell. Use a user key, not the root key.
 
 ## Examples
 

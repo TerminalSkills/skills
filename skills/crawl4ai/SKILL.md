@@ -151,7 +151,7 @@ Verified offline: `JsonCssExtractionStrategy(schema).extract(url, html)` returns
 ### Many pages, sessions and deep crawls
 
 ```python
-import asyncio, os
+import asyncio, json, os
 from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, BFSDeepCrawlStrategy
 
 async def main():
@@ -175,8 +175,8 @@ async def main():
         login = CrawlerRunConfig(
             session_id="portal",
             js_code=f"""
-                document.querySelector('#email').value = '{os.environ["PORTAL_USER"]}';
-                document.querySelector('#password').value = '{os.environ["PORTAL_PASSWORD"]}';
+                document.querySelector('#email').value = {json.dumps(os.environ["PORTAL_USER"])};
+                document.querySelector('#password').value = {json.dumps(os.environ["PORTAL_PASSWORD"])};
                 document.querySelector('form').submit();
             """,
             wait_for="css:#dashboard",
