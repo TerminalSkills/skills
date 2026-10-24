@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:1fb31a19e231bfa67436e40c5d405db740a48fb1ba86697fcf478fc5f1e980fc",
+  "scoredAt": "2026-10-24T23:25:11.555Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack coverage of error handling and edge cases such as missing keys or network failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.1,
+    "baselineAvg": 20,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "single-vertical-short-english-voice",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but omits the required --bgm-type flag, whereas Response B lacks the command and key details entirely."
+      },
+      {
+        "name": "batch-script-review",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not address any of the required elements."
+      },
+      {
+        "name": "rest-api-create-and-check",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items while Response B fails to meet key endpoint and payload requirements."
+      }
+    ]
+  }
+}

@@ -8,7 +8,7 @@ category: content
 persona: >-
   Content creator building a faceless video channel generating $2k/month in
   ad revenue and affiliate income within 6 months.
-skills: [ai-video-generator, elevenlabs, anthropic-sdk, ffmpeg, vidvibe]
+skills: [ai-video-generator, elevenlabs, anthropic-sdk, ffmpeg, vidvibe, moneyprinterturbo]
 tags: [video, tiktok, youtube-shorts, faceless-channel, automation, passive-income]
 ---
 
@@ -201,3 +201,4 @@ A creator launches a faceless "AI Tools Nobody Talks About" YouTube Shorts chann
 - `anthropic-sdk` — Claude API for script generation
 - `vidvibe` — hosted alternative: generate, render and publish the same shorts through
   an MCP server instead of maintaining your own pipeline
+- [moneyprinterturbo](/skills/moneyprinterturbo) — self-hosted shortcut: one `mpt cli --batch-file` run goes from topic to script, Edge TTS voiceover, stock footage, subtitles and a rendered 9:16 MP4, instead of wiring those stages yourself
