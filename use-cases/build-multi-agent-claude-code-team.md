@@ -6,6 +6,7 @@ skills:
   - oh-my-claudecode
   - worktrunk
   - paperclip
+  - orca
 category: development
 tags:
   - multi-agent
@@ -215,3 +216,4 @@ The verify stage runs all tests against the merged codebase:
 ## Related Skills
 
 - [paperclip](/skills/paperclip) — Choose paperclip when parallel Claude Code agents need persistent ticket ownership (atomic checkout), spend caps and a shared dashboard instead of terminals you juggle by hand.
+- [orca](/skills/orca) — Choose orca when you want a desktop app that keeps each agent (Claude Code, Codex and others) in its own git worktree with one place to read their terminals, race agents on the same task and pick the winning diff.

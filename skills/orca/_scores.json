@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:154999f4bf3fb2f494207ebc3671c9e88116905b85dc555f0e85dd3fdc5c174c",
+  "scoredAt": "2026-10-24T23:17:46.630Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for conciseness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6,
+    "baselineAvg": 0,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "race-two-agents",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not include any of the required orca commands."
+      },
+      {
+        "name": "handoff-side-task",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A omits the required orca command entirely, while Response B includes the correct orca worktree create syntax but adds an unnecessary monitoring step, slightly deviating from the rubric."
+      },
+      {
+        "name": "steer-agent-terminal",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required launch command and handle capture, so neither meets the rubric."
+      }
+    ]
+  }
+}
