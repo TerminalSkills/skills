@@ -1,46 +1,71 @@
 ---
 name: prisma
 description: >-
-  You are an expert in Prisma, the TypeScript ORM with a declarative schema,
-  auto-generated type-safe client, migrations, and studio GUI. You help
-  developers model databases with Prisma Schema Language, generate a fully
-  typed client that catches query errors at compile time, run zero-downtime
-  migrations, and integrate with Postgres, MySQL, SQLite, MongoDB,
-  CockroachDB, and PlanetScale.
+  Prisma ORM is a TypeScript database toolkit with a declarative schema, a generated type-safe client, and a migration system for PostgreSQL, MySQL/MariaDB, SQLite, SQL Server, CockroachDB and MongoDB. Use when someone asks to "set up Prisma", "write a Prisma schema", "run a Prisma migration", "query with Prisma Client", "fix Prisma 7 adapter errors", or "upgrade from prisma-client-js".
 license: Apache-2.0
-compatibility: ''
+compatibility: "Node.js 20.19+, 22.12+ or 24+ (Prisma 7); a database or a SQLite file"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
+  version: 1.1.0
+  category: development
+  repository: https://github.com/prisma/prisma
   tags:
     - orm
     - database
     - typescript
-    - postgres
-    - mysql
-    - sqlite
-    - schema
     - migrations
+    - schema
 ---
 
-# Prisma — Next-Generation TypeScript ORM
+# Prisma — TypeScript ORM
 
-You are an expert in Prisma, the TypeScript ORM with a declarative schema, auto-generated type-safe client, migrations, and studio GUI. You help developers model databases with Prisma Schema Language, generate a fully typed client that catches query errors at compile time, run zero-downtime migrations, and integrate with Postgres, MySQL, SQLite, MongoDB, CockroachDB, and PlanetScale.
+## Overview
 
-## Core Capabilities
+Prisma ORM turns a `schema.prisma` file into a typed query client and SQL migrations. This skill targets the Prisma 7 line (7.10.1 was the last stable 7.x when checked on 2026-10-24). On that date the npm `latest` tag already pointed to the 8.0.0 release candidate, so a plain `npm install prisma` installs a release candidate: pin `prisma@7` / `@prisma/client@7` (the docs use `prisma@prev` for the CLI) unless you want Prisma 8.
 
-### Schema
+What changed in Prisma 7, and what trips up code written for 6 or earlier:
+
+- The connection URL no longer lives in `schema.prisma`. The `datasource` block has only `provider`; the URL goes in `prisma.config.ts`.
+- `PrismaClient` needs a driver adapter (`@prisma/adapter-pg`, `adapter-mariadb`, `adapter-better-sqlite3`, and so on). `new PrismaClient()` with no adapter throws.
+- The default generator is `prisma-client` and `output` is required. The client is plain TypeScript in your source tree, not in `node_modules`. `prisma-client-js` is the old generator.
+- `.env` is no longer loaded for you; import `dotenv/config` or set variables yourself. The project must be ESM (`"type": "module"`).
+- `prisma migrate dev` does not run `generate` any more; run `npx prisma generate` yourself.
+
+## Instructions
+
+### 1. Install (PostgreSQL shown)
+
+```bash
+npm install --save-dev prisma@7 tsx typescript
+npm install @prisma/client@7 @prisma/adapter-pg pg dotenv
+npx prisma init --datasource-provider postgresql
+```
+
+Other adapters: MySQL/MariaDB `@prisma/adapter-mariadb` + `mariadb`; SQLite `@prisma/adapter-better-sqlite3` + `better-sqlite3`. `init` creates `prisma/schema.prisma`, a config file and `.env`. In 7.10.1 the config file is named `prisma7.config.ts`; delete it and create `prisma.config.ts` as in step 2, or keep it and use the same content.
+
+### 2. Config and schema
+
+```ts
+// prisma.config.ts
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: { path: "prisma/migrations", seed: "tsx prisma/seed.ts" },
+  datasource: { url: env("DATABASE_URL") },
+});
+```
 
 ```prisma
 // prisma/schema.prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -49,133 +74,136 @@ model User {
   name      String
   role      Role     @default(USER)
   posts     Post[]
-  profile   Profile?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([email])
   @@map("users")
 }
 
 model Post {
-  id          String     @id @default(cuid())
-  title       String
-  content     String?
-  published   Boolean    @default(false)
-  author      User       @relation(fields: [authorId], references: [id])
-  authorId    String
-  categories  Category[]
-  createdAt   DateTime   @default(now())
-  
+  id        String   @id @default(cuid())
+  title     String
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+
   @@index([authorId])
   @@index([published, createdAt])
-}
-
-model Profile {
-  id     String @id @default(cuid())
-  bio    String?
-  avatar String?
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
-}
-
-model Category {
-  id    String @id @default(cuid())
-  name  String @unique
-  posts Post[]
 }
 
 enum Role {
   USER
   ADMIN
-  MODERATOR
 }
 ```
 
-### Queries
+Add `src/generated/` to `.gitignore` if you generate in CI, or commit it; both work.
 
-```typescript
-import { PrismaClient } from "@prisma/client";
+### 3. Migrate and generate
 
-const prisma = new PrismaClient();
+```bash
+npx prisma migrate dev --name add-posts   # create + apply a migration in development
+npx prisma generate                       # rebuild the client after every schema change
+npx prisma migrate deploy                 # apply committed migrations in CI/production
+npx prisma migrate status                 # which migrations are applied
+npx prisma db push                        # prototype without migration files
+npx prisma db seed                        # runs migrations.seed from prisma.config.ts
+npx prisma studio                         # data browser
+```
 
-// Create with relations
-const user = await prisma.user.create({
+### 4. Client setup (one instance per process)
+
+```ts
+// src/db.ts
+import { PrismaClient } from "./generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+export const prisma = new PrismaClient({ adapter });
+```
+
+Model and enum types come from `./generated/prisma/models` and `./generated/prisma/enums`; browser-safe enums from `./generated/prisma/browser`.
+
+### 5. Queries
+
+```ts
+import { prisma } from "./db";
+
+const author = await prisma.user.create({
   data: {
-    name: "Alice",
-    email: "alice@example.com",
-    profile: { create: { bio: "Developer" } },
-    posts: {
-      create: [
-        { title: "First Post", content: "Hello world", published: true },
-        { title: "Draft", content: "Work in progress" },
-      ],
-    },
+    name: "Maria Lopez",
+    email: "maria@shipyard.dev",
+    posts: { create: [{ title: "Release notes 2.4", published: true }] },
   },
-  include: { posts: true, profile: true },
+  include: { posts: true },
 });
 
-// Complex queries — fully typed
-const publishedPosts = await prisma.post.findMany({
-  where: {
-    published: true,
-    author: { role: "ADMIN" },
-    createdAt: { gte: new Date("2026-01-01") },
-  },
-  include: {
-    author: { select: { name: true, email: true } },
-    categories: true,
-  },
+const page = await prisma.post.findMany({
+  where: { published: true, author: { role: "ADMIN" } },
+  select: { id: true, title: true, author: { select: { name: true } } },
   orderBy: { createdAt: "desc" },
   take: 20,
   skip: 0,
 });
 
-// Aggregate
-const stats = await prisma.post.aggregate({
-  _count: true,
-  _avg: { createdAt: true },
-  where: { published: true },
-});
+const counts = await prisma.post.aggregate({ _count: true, where: { published: true } });
 
-// Transaction
-const [updatedPost, newNotification] = await prisma.$transaction([
-  prisma.post.update({ where: { id: "..." }, data: { published: true } }),
-  prisma.notification.create({ data: { userId: "...", message: "Post published!" } }),
+// Independent writes in one transaction
+const [published, total] = await prisma.$transaction([
+  prisma.post.update({ where: { id: page[0].id }, data: { published: false } }),
+  prisma.post.count(),
 ]);
 
-// Raw SQL when needed
-const result = await prisma.$queryRaw`
-  SELECT u.name, COUNT(p.id) as post_count
-  FROM users u LEFT JOIN posts p ON p."authorId" = u.id
-  GROUP BY u.name ORDER BY post_count DESC LIMIT 10
-`;
+// Interactive transaction
+await prisma.$transaction(async (tx) => {
+  const user = await tx.user.findUniqueOrThrow({ where: { email: "maria@shipyard.dev" } });
+  await tx.post.create({ data: { title: "Follow-up", authorId: user.id } });
+});
+
+// Raw SQL, parameterised by the tagged template (never string-concatenate input)
+const top = await prisma.$queryRaw`
+  SELECT u.name, COUNT(p.id) AS post_count
+  FROM users u LEFT JOIN "Post" p ON p."authorId" = u.id
+  GROUP BY u.name ORDER BY post_count DESC LIMIT 10`;
 ```
 
-### Migrations
+Note: model `User` is mapped to table `users` by `@@map`; `Post` keeps its name, hence the quoted `"Post"` above.
+
+## Examples
+
+### Example 1: "Start a new SQLite project with Prisma"
 
 ```bash
-npx prisma migrate dev --name add-categories    # Create + apply migration
-npx prisma migrate deploy                       # Apply in production
-npx prisma db push                              # Push schema without migration (prototyping)
-npx prisma studio                               # GUI for browsing data
-npx prisma generate                             # Regenerate client after schema change
+npm init -y && npm pkg set type=module
+npm install --save-dev prisma@7 tsx typescript @types/node
+npm install @prisma/client@7 @prisma/adapter-better-sqlite3 better-sqlite3 dotenv
+npx prisma init --datasource-provider sqlite
 ```
 
-## Installation
+Set `provider = "prisma-client"` with `output = "../src/generated/prisma"` in the generator, make sure `.env` has `DATABASE_URL="file:./dev.db"`, then:
 
-```bash
-npm install prisma @prisma/client
-npx prisma init                            # Creates schema.prisma + .env
+```console
+$ npx prisma migrate dev --name init
+Applying migration `20261024143503_init`
+Your database is now in sync with your schema.
+$ npx prisma generate
+✔ Generated Prisma Client (7.10.1) to ./src/generated/prisma
 ```
 
-## Best Practices
+Create the client with `new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }) })`. Running a create-with-nested-posts query printed the user with its `posts` array, and `$queryRaw` returned `[ { n: 1n } ]` (counts are `bigint`).
 
-1. **Type-safe queries** — Every query is fully typed; wrong field names or types caught at compile time
-2. **Relations** — Define in schema with `@relation`; query with `include` or `select` for eager loading
-3. **Migrations** — Use `prisma migrate dev` in development; `migrate deploy` in CI/production
-4. **Indexes** — Add `@@index` for fields you filter/sort by; Prisma warns about missing indexes
-5. **Select vs Include** — Use `select` to pick specific fields (smaller payloads); `include` for full relations
-6. **Transactions** — Use `$transaction` for atomic multi-table operations; auto-rollback on failure
-7. **Connection pooling** — Use `prisma-accelerate` or pgbouncer for serverless; Lambda needs pooling
-8. **Prisma Studio** — `npx prisma studio` for visual data browser; great for debugging and manual edits
+### Example 2: "My app says PrismaClient needs an adapter after I upgraded"
+
+Install the adapter for your database, move `url = env("DATABASE_URL")` out of the `datasource` block into `prisma.config.ts`, switch the generator to `prisma-client` with an `output`, run `npx prisma generate`, and change the import from `@prisma/client` to your generated `./generated/prisma/client`. Pass the adapter to the constructor as in step 4. Keep `import "dotenv/config"` at the top of `prisma.config.ts`.
+
+## Guidelines
+
+- Create one `PrismaClient` per process; more instances open more connection pools and end in "too many clients" errors. In serverless, keep the pool small or use an external pooler such as PgBouncer.
+- Commit `prisma/migrations/`. Use `migrate dev` locally and `migrate deploy` in CI/production; never run `migrate dev` or `migrate reset` against a production database, `reset` drops data.
+- `db push` skips migration history; use it for prototypes only.
+- Add `@@index` on foreign keys and on fields you filter or sort by; Prisma does not add indexes for relation scalar fields on its own.
+- Prefer `select` over `include` for smaller payloads; `$queryRaw` with the tagged template is safe, `$queryRawUnsafe` is not for user input.
+- Run `npx prisma generate` in your build step (and after pulling schema changes), or types will be stale.
+- MongoDB: Prisma Migrate is not used; sync the schema with `db push`.
+- Use `prisma@7`/`@prisma/client@7` for the setup above; check Prisma's upgrade guide before moving to 8.
