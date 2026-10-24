@@ -5,20 +5,21 @@ description: >-
   via Microsoft Graph API. Use when someone asks to "build a Teams bot",
   "automate Teams messages", "create Teams channels", "integrate with Teams",
   "Teams webhook", "send Teams notifications", "manage Teams meetings", or
-  "Teams app development". Covers Graph API for messaging, channels, meetings,
-  bots with Bot Framework, incoming webhooks, and Power Automate integration.
+  "Teams app development". Covers Workflows webhooks (the replacement for
+  discontinued Office 365 connectors), Graph API for channels and meetings, and
+  bots with the Teams SDK.
 license: Apache-2.0
 compatibility: >-
-  Microsoft Graph API v1.0, Bot Framework SDK v4, Teams Toolkit. Requires
-  Microsoft 365 tenant.
+  Microsoft Graph API v1.0, Teams SDK for TypeScript
+  (@microsoft/teams.apps 2.x, Node.js 22.12+). Requires a Microsoft 365 tenant.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - microsoft-teams
     - graph-api
-    - bot-framework
+    - teams-sdk
     - microsoft-365
     - collaboration
 ---
@@ -27,7 +28,7 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents build integrations with Microsoft Teams — from simple webhook notifications to full-featured bots and workflow automation. It covers the Microsoft Graph API for team/channel/message management, Bot Framework for conversational bots, incoming webhooks for quick notifications, Adaptive Cards for rich UI, and meeting automation.
+This skill helps AI agents build integrations with Microsoft Teams: notifications through a Workflows webhook, team, channel and meeting management through the Microsoft Graph API, and conversational bots with the Teams SDK. Three things changed since older tutorials were written: Office 365 connector webhooks were switched off in May 2026 in favour of Power Automate Workflows, Graph cannot post channel messages with app-only permissions, and the Bot Framework SDK is no longer maintained.
 
 ## Instructions
 
@@ -35,31 +36,28 @@ This skill helps AI agents build integrations with Microsoft Teams — from simp
 
 | Need | Solution | Complexity |
 |------|----------|------------|
-| Send notifications to a channel | Incoming Webhook | Low |
-| Read/write messages, manage teams | Graph API | Medium |
-| Interactive bot (commands, dialogs) | Bot Framework | High |
-| No-code automation | Power Automate | Low |
+| Send notifications to a channel or chat | Workflows webhook (Power Automate) | Low |
+| Create channels, meetings, read teams | Graph API | Medium |
+| Post messages as a signed-in user | Graph API, delegated permission | Medium |
+| Interactive bot (commands, cards, proactive messages) | Teams SDK (`@microsoft/teams.apps`) | High |
 
-### Incoming Webhooks (Simplest)
+### Webhook Notifications (Workflows)
+
+Microsoft 365 connectors, including the old `webhook.office.com` incoming webhook, were switched off in a rollout that Microsoft ran from 18 to 22 May 2026, so old connector URLs no longer deliver and none can be created. Create the webhook with the Workflows app instead: in the channel, open **More options (...)**, **Workflows**, pick the template **Send webhook alerts to a channel**, save, and copy the generated URL. Treat the URL as a secret; anyone holding it can post to the channel. The workflow belongs to the person who created it, so add a co-owner or it stops when that person leaves.
 
 ```typescript
-const WEBHOOK_URL = process.env.TEAMS_WEBHOOK_URL;
+const WEBHOOK_URL = process.env.TEAMS_WEBHOOK_URL!;
 
-// Simple text
-await fetch(WEBHOOK_URL, {
-  method: 'POST', headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text: '**Production Alert**: CPU at 95% on api-server-01' }),
-});
-
-// Adaptive Card (rich formatting)
-await fetch(WEBHOOK_URL, {
-  method: 'POST', headers: { 'Content-Type': 'application/json' },
+const res = await fetch(WEBHOOK_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     type: 'message',
     attachments: [{
       contentType: 'application/vnd.microsoft.card.adaptive',
       content: {
-        type: 'AdaptiveCard', version: '1.5',
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard', version: '1.4',
         body: [
           { type: 'TextBlock', text: 'Deployment Complete', weight: 'Bolder', size: 'Large' },
           { type: 'FactSet', facts: [
@@ -68,12 +66,15 @@ await fetch(WEBHOOK_URL, {
             { title: 'Environment', value: 'Production' },
           ]},
         ],
-        actions: [{ type: 'Action.OpenUrl', title: 'View Dashboard', url: 'https://grafana.example.com' }],
+        actions: [{ type: 'Action.OpenUrl', title: 'View Dashboard', url: 'https://grafana.acme-corp.io/d/api-gateway' }],
       },
     }],
   }),
 });
+if (!res.ok) console.error('Teams webhook failed', res.status, await res.text());
 ```
+
+Limits from the Teams docs: 28 KB per message, and more than four requests per second are throttled (retry with exponential backoff). Do not use HTML in card text; Markdown only.
 
 ### Graph API
 
@@ -82,124 +83,89 @@ import { ClientSecretCredential } from '@azure/identity';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 
-// Permissions: Team.ReadBasic.All, ChannelMessage.Send, Chat.ReadWrite.All, OnlineMeetings.ReadWrite.All
 const credential = new ClientSecretCredential(
-  process.env.AZURE_TENANT_ID, process.env.AZURE_CLIENT_ID, process.env.AZURE_CLIENT_SECRET
+  process.env.AZURE_TENANT_ID!, process.env.AZURE_CLIENT_ID!, process.env.AZURE_CLIENT_SECRET!
 );
 const authProvider = new TokenCredentialAuthenticationProvider(credential, {
   scopes: ['https://graph.microsoft.com/.default'],
 });
 const graphClient = Client.initWithMiddleware({ authProvider });
 
-// Create channel
+// Create a channel (application permission Channel.Create)
 await graphClient.api(`/teams/${teamId}/channels`).post({
   displayName: 'Project Alpha', membershipType: 'standard',
 });
 
-// Send message with Adaptive Card
-await graphClient.api(`/teams/${teamId}/channels/${channelId}/messages`).post({
-  body: { contentType: 'html', content: '' },
-  attachments: [{
-    id: '1', contentType: 'application/vnd.microsoft.card.adaptive',
-    content: JSON.stringify({
-      type: 'AdaptiveCard', version: '1.5',
-      body: [
-        { type: 'TextBlock', text: 'PR #142: Add payment retry logic', weight: 'Bolder' },
-        { type: 'FactSet', facts: [{ title: 'Author', value: 'Sarah Chen' }, { title: 'Tests', value: 'All passing' }] },
-      ],
-      actions: [{ type: 'Action.OpenUrl', title: 'Review PR', url: 'https://github.com/org/repo/pull/142' }],
-    }),
-  }],
-});
-
-// Create online meeting
+// Create an online meeting (application permission OnlineMeetings.ReadWrite.All)
 const meeting = await graphClient.api(`/users/${organizerId}/onlineMeetings`).post({
   subject: 'Sprint Planning',
-  startDateTime: '2026-03-01T14:00:00Z', endDateTime: '2026-03-01T15:00:00Z',
-  participants: { attendees: [{ upn: 'sarah@example.com', role: 'attendee' }] },
+  startDateTime: '2026-11-02T14:00:00Z', endDateTime: '2026-11-02T15:00:00Z',
+  participants: { attendees: [{ upn: 'sarah.chen@acme-corp.io' }] },
 });
 console.log('Join URL:', meeting.joinUrl);
 ```
 
-### Bot Framework
+Posting a channel message (`POST /teams/{id}/channels/{id}/messages`) works only with a delegated token (`ChannelMessage.Send`); application permissions are supported there for data migration only. A daemon that must announce something in a channel should use the Workflows webhook or a bot. Meetings created with an app-only token also need a tenant admin to grant an application access policy to the app (`New-CsApplicationAccessPolicy` in Teams PowerShell); without it Graph returns 403.
+
+### Bot (Teams SDK)
+
+The Bot Framework SDK (`botbuilder`, last release 4.23.3) is archived and out of support since 31 December 2025. Microsoft's replacements are the Teams SDK (`@microsoft/teams.apps`, used below) and the Microsoft 365 Agents SDK. Install with `npm install @microsoft/teams.apps @microsoft/teams.api @microsoft/teams.cards`.
 
 ```typescript
-import { ActivityHandler, TurnContext, CardFactory } from 'botbuilder';
-import { BotFrameworkAdapter } from 'botbuilder';
-import express from 'express';
+import { App } from '@microsoft/teams.apps';
+import { MessageActivity } from '@microsoft/teams.api';
+import { AdaptiveCard, TextBlock, FactSet, Fact } from '@microsoft/teams.cards';
 
-class TeamBot extends ActivityHandler {
-  constructor() {
-    super();
-    this.onMessage(async (context: TurnContext, next) => {
-      const text = context.activity.text?.trim().toLowerCase();
-      if (text === 'status') {
-        const card = CardFactory.adaptiveCard({
-          type: 'AdaptiveCard', version: '1.5',
-          body: [
-            { type: 'TextBlock', text: 'System Status', weight: 'Bolder', size: 'Large' },
-            { type: 'FactSet', facts: [
-              { title: 'API', value: 'Healthy (42ms)' },
-              { title: 'Database', value: 'Healthy (8ms)' },
-              { title: 'Queue', value: 'High (1,247 pending)' },
-            ]},
-          ],
-        });
-        await context.sendActivity({ attachments: [card] });
-      } else {
-        await context.sendActivity('Commands: `status` — system health, `deploy <service>` — deploy');
-      }
-      await next();
-    });
-    this.onMembersAdded(async (context, next) => {
-      for (const member of context.activity.membersAdded) {
-        if (member.id !== context.activity.recipient.id)
-          await context.sendActivity(`Welcome, ${member.name}! Type \`help\` to see what I can do.`);
-      }
-      await next();
-    });
+const app = new App(); // reads CLIENT_ID, CLIENT_SECRET and TENANT_ID from the environment
+
+app.on('message', async ({ activity, reply }) => {
+  if (activity.text?.trim().toLowerCase() === 'status') {
+    const card = new AdaptiveCard(
+      new TextBlock('System Status', { weight: 'Bolder', size: 'Large' }),
+      new FactSet(
+        new Fact('API', 'Healthy (42ms)'),
+        new Fact('Database', 'Healthy (8ms)'),
+        new Fact('Queue', 'High (1,247 pending)'),
+      ),
+    );
+    await reply(new MessageActivity('').addCard('adaptive', card));
+    return;
   }
-}
-
-const adapter = new BotFrameworkAdapter({
-  appId: process.env.MICROSOFT_APP_ID, appPassword: process.env.MICROSOFT_APP_PASSWORD,
+  await reply('Commands: `status` for system health');
 });
-const bot = new TeamBot();
-const app = express();
-app.post('/api/messages', (req, res) => adapter.process(req, res, (ctx) => bot.run(ctx)));
-app.listen(3978);
+
+app.start(Number(process.env.PORT ?? 3978)).catch(console.error);
 ```
+
+Messages arrive at `/api/messages`. The bot needs an Azure bot registration and a Teams app manifest installed in Teams; the Microsoft 365 Agents Toolkit (formerly Teams Toolkit) scaffolds both. For local runs without Teams token validation, set `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true`, never in production.
 
 ## Examples
 
-### Example 1: Set up deployment notifications via webhook
+### Example 1: Deployment notifications to a DevOps channel
 **User prompt:** "Send a rich notification to our Teams DevOps channel whenever a deployment completes, showing the service name, version, environment, and a link to Grafana."
 
 The agent will:
-1. Get the Incoming Webhook URL from the Teams channel connector settings
-2. Construct an Adaptive Card with a `TextBlock` header, a `FactSet` showing service/version/environment/time, and an `Action.OpenUrl` button linking to the Grafana dashboard
-3. POST the card payload to the webhook URL from the CI/CD pipeline's post-deployment step
-4. Add error handling to log failures without blocking the deployment
+1. Ask the user to create a Workflows webhook (template "Send webhook alerts to a channel") in the channel and store its URL as `TEAMS_WEBHOOK_URL` in the CI secrets
+2. Post the Adaptive Card payload from the Webhook section as a post-deploy CI step
+3. Check `res.ok` and log failures without failing the deployment
 
-### Example 2: Build a slash-command bot for system health checks
-**User prompt:** "Create a Teams bot that responds to 'status' with a system health card showing API, database, and queue metrics pulled from our monitoring endpoints."
+Result: the channel shows a card titled "Deployment Complete" with the service, version and environment facts and a "View Dashboard" button.
+
+### Example 2: A status bot
+**User prompt:** "Create a Teams bot that responds to 'status' with a system health card showing API, database, and queue metrics."
 
 The agent will:
-1. Set up a Bot Framework project with `BotFrameworkAdapter` and an Express server on port 3978
-2. Implement `onMessage` handler that checks for the `status` command
-3. Fetch current metrics from the monitoring API endpoints
-4. Format the results as an Adaptive Card with a `FactSet` and status indicators
-5. Register the bot in Azure Bot Service and install it in the Teams workspace
+1. Scaffold the project with `@microsoft/teams.apps` using the code above
+2. Replace the hard-coded facts with calls to the monitoring endpoints
+3. Register the bot in Azure, put `CLIENT_ID`, `CLIENT_SECRET` and `TENANT_ID` in the environment, and sideload the app manifest into Teams
+
+Result: typing `status` to the bot returns an Adaptive Card with the three health rows.
 
 ## Guidelines
 
-- Incoming webhooks for simple notifications — don't over-engineer with Graph API when a webhook does the job
-- Use Adaptive Cards for any structured data — much better UX than plain text
-- Graph API with application permissions for daemon services, delegated permissions for user-context apps
-- Bot Framework for interactive scenarios — commands, dialogs, approval workflows
-- Rate limits: Graph API allows 10,000 requests per 10 minutes per app per tenant
-- Always handle `onMembersAdded` in bots — send welcome message with capabilities
-- Store tokens securely — Azure Key Vault or environment variables, never in code
-- Test Adaptive Cards at adaptivecards.io/designer before deploying
-- Use Teams Toolkit (VS Code extension) for rapid development with templates
-- For high-volume messaging, use batch requests (`$batch` endpoint) to reduce API calls
+- A Workflows webhook is enough for one-way alerts; do not build a bot for that.
+- Application permissions suit daemons; delegated permissions suit anything that acts as a user, including posting channel messages.
+- Graph throttles per app and tenant and answers 429 with a `Retry-After` header; honour it. Combine up to 20 calls with `POST /$batch`.
+- Keep secrets (client secret, webhook URL) in environment variables or Azure Key Vault, never in code or card payloads.
+- Preview cards in the Adaptive Cards designer (adaptivecards.microsoft.com/designer) before shipping; Teams supports a subset of card features.
+- Do not start new projects on `botbuilder` or on Office 365 connector webhooks.
