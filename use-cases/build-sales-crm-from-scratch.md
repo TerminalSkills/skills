@@ -1,7 +1,7 @@
 ---
 title: Build a Lightweight Sales CRM from Scratch
 slug: build-sales-crm-from-scratch
-description: Replace $150/user/month Salesforce with a custom CRM — contacts, deal pipeline, activity log, Gmail sync, and pipeline reports — built in a weekend.
+description: Replace an expensive per-seat CRM with your own — contacts, deal pipeline, activity log, Gmail sync, and a weekly pipeline report — built on Prisma and Resend.
 skills:
   - prisma
   - resend
@@ -17,15 +17,41 @@ tags:
 
 # Build a Lightweight Sales CRM from Scratch
 
-Marcus runs a 5-person sales team. They're paying $750/month for Salesforce — $150/user — and using maybe 10% of its features. The rest is bureaucracy: mandatory fields, nested menus, reports nobody reads. His team logs calls in Slack, tracks deals in a spreadsheet, and copies emails manually into Salesforce. He wants a CRM that doesn't get in the way — contacts, deals, activities, email threads, and a pipeline view. Nothing more.
+Marcus runs a 5-person sales team. They pay $750/month for their CRM and use maybe 10% of its features. The rest is bureaucracy: mandatory fields, nested menus, reports nobody reads. His team logs calls in Slack, tracks deals in a spreadsheet, and copies emails manually into the CRM. He wants one that doesn't get in the way — contacts, deals, activities, email threads, and a pipeline view. Nothing more.
+
+The stack: Next.js route handlers, PostgreSQL through Prisma 7, Apollo for enrichment, the Gmail API for email history, and Resend for the weekly report. The code was type-checked against `prisma@7.10`, `resend@6.34` and `googleapis@188`. Auth is not shown; every route needs your own session check.
 
 ## Step 1 — Schema: Contacts, Deals, Activities
 
-Everything in a CRM traces back to a contact. Deals belong to contacts. Activities (calls, emails, meetings) belong to contacts and optionally to deals.
+Everything traces back to a contact: deals belong to a contact and an owner, activities to a contact and optionally a deal. Install `prisma@7` (dev), `@prisma/client@7`, `@prisma/adapter-pg@7`, `pg`, `dotenv`, `resend` and `googleapis`, then run `npx prisma init --datasource-provider postgresql`. Prisma 7 keeps the connection URL out of the schema. Put it in `prisma.config.ts`, and generate the client into your source tree:
 
 ```typescript
-// prisma/schema.prisma — CRM data model.
-// Contacts are the center of gravity. Deals and activities orbit them.
+// prisma.config.ts
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: env("DATABASE_URL") },
+});
+```
+
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  name              String
+  gmailRefreshToken String?    // store encrypted; long-lived credential
+  deals             Deal[]
+  activities        Activity[]
+}
 
 model Contact {
   id          String     @id @default(cuid())
@@ -33,18 +59,13 @@ model Contact {
   name        String
   company     String?
   title       String?
-  phone       String?
   linkedinUrl String?
-
-  // Enrichment from Clearbit/Apollo
-  enrichedAt  DateTime?
   avatarUrl   String?
-  companySize String?
+  companySize Int?
   industry    String?
-
+  enrichedAt  DateTime?
   deals       Deal[]
   activities  Activity[]
-
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -52,36 +73,31 @@ model Contact {
 model Deal {
   id          String     @id @default(cuid())
   title       String
-  value       Float      @default(0)
-  currency    String     @default("USD")
+  value       Decimal    @default(0) @db.Decimal(12, 2)
   stage       DealStage  @default(LEAD)
-  probability Int        @default(10)   // 0-100%
-  closeDate   DateTime?
-  notes       String?
-
+  probability Int        @default(10) // 0-100
   contactId   String
   contact     Contact    @relation(fields: [contactId], references: [id])
   ownerId     String
+  owner       User       @relation(fields: [ownerId], references: [id])
   activities  Activity[]
-
-  createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
 
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
-  subject     String
-  body        String?
-  occurredAt  DateTime     @default(now())
-
-  contactId   String
-  contact     Contact      @relation(fields: [contactId], references: [id])
-  dealId      String?
-  deal        Deal?        @relation(fields: [dealId], references: [id])
-  userId      String       // who logged it
-
-  createdAt   DateTime     @default(now())
+  id            String       @id @default(cuid())
+  type          ActivityType
+  subject       String
+  body          String?
+  occurredAt    DateTime     @default(now())
+  gmailThreadId String?
+  contactId     String
+  contact       Contact      @relation(fields: [contactId], references: [id])
+  dealId        String?
+  deal          Deal?        @relation(fields: [dealId], references: [id])
+  userId        String       // who logged it
+  user          User         @relation(fields: [userId], references: [id])
+  @@unique([userId, gmailThreadId])
 }
 
 enum DealStage {
@@ -101,267 +117,180 @@ enum ActivityType {
 }
 ```
 
-## Step 2 — Contact Enrichment with Apollo
-
-When a contact is created via email address, hit Apollo to fill in company, title, LinkedIn, and avatar. No more manual data entry.
+Money is a `Decimal`, not a `Float`, so sums stay exact. Run `npx prisma migrate dev --name init`, and create the client with a driver adapter (Prisma 7 no longer accepts a bare `new PrismaClient()`):
 
 ```typescript
-// src/lib/enrich.ts — Enrich a contact using Apollo.io API.
-// Called after contact creation. Updates the record in the background.
+// src/lib/prisma.ts
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+export const prisma = new PrismaClient({ adapter });
+```
 
-import { prisma } from "@/lib/prisma";
+## Step 2 — Contact Enrichment with Apollo
 
-interface ApolloPersonResult {
-  name: string;
-  title: string;
-  organization?: { name: string; employee_count: string; industry: string };
-  photo_url: string;
-  linkedin_url: string;
-}
+When a contact is created from an email address, ask Apollo's People Enrichment endpoint for company, title, LinkedIn and avatar. Apollo documents `POST /api/v1/people/match` with the inputs (here `email`) as query parameters and the key in an `X-Api-Key` header; each match that returns data can use credits from your Apollo plan, so enrich only contacts you keep. Employee count comes back as `organization.estimated_num_employees`.
 
+```typescript
+// src/lib/enrich.ts
+import { prisma } from "./prisma";
 export async function enrichContact(contactId: string, email: string) {
-  try {
-    const res = await fetch("https://api.apollo.io/api/v1/people/match", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": process.env.APOLLO_API_KEY!,
-      },
-      body: JSON.stringify({ email, reveal_personal_emails: false }),
-    });
+  // Apollo documents the match inputs as query parameters; personal emails and phones stay off by default
+  const url = `https://api.apollo.io/api/v1/people/match?${new URLSearchParams({ email })}`;
+  const res = await fetch(url, { method: "POST", headers: { "X-Api-Key": process.env.APOLLO_API_KEY! } });
+  if (!res.ok) return console.error("Apollo enrichment failed", email, res.status);
 
-    if (!res.ok) return;
-
-    const data = await res.json();
-    const person: ApolloPersonResult = data.person;
-    if (!person) return;
-
-    await prisma.contact.update({
-      where: { id: contactId },
-      data: {
-        name: person.name || undefined,
-        title: person.title || undefined,
-        company: person.organization?.name || undefined,
-        companySize: person.organization?.employee_count || undefined,
-        industry: person.organization?.industry || undefined,
-        avatarUrl: person.photo_url || undefined,
-        linkedinUrl: person.linkedin_url || undefined,
-        enrichedAt: new Date(),
-      },
-    });
-  } catch (err) {
-    console.error("Enrichment failed for", email, err);
-  }
+  const { person } = await res.json();
+  if (!person) return;
+  await prisma.contact.update({
+    where: { id: contactId },
+    data: {
+      title: person.title,
+      company: person.organization?.name,
+      companySize: person.organization?.estimated_num_employees,
+      industry: person.organization?.industry,
+      avatarUrl: person.photo_url,
+      linkedinUrl: person.linkedin_url,
+      enrichedAt: new Date(),
+    },
+  });
 }
 ```
 
+Call it from the contact-creation route without awaiting it, so the response is not blocked on a third-party API (on serverless hosts use your platform's background-task hook, such as `after()` in Next.js 15+):
+
 ```typescript
-// src/app/api/contacts/route.ts — Create contact and trigger enrichment.
-
-import { prisma } from "@/lib/prisma";
-import { enrichContact } from "@/lib/enrich";
-
-export async function POST(request: Request) {
-  const { email, name } = await request.json();
-
-  const contact = await prisma.contact.create({
-    data: { email, name },
-  });
-
-  // Enrich in background — don't await, don't block the response
-  enrichContact(contact.id, email).catch(console.error);
-
-  return Response.json(contact, { status: 201 });
-}
+const contact = await prisma.contact.create({ data: { email, name } });
+enrichContact(contact.id, email).catch(console.error);
+return Response.json(contact, { status: 201 });
 ```
 
 ## Step 3 — Kanban Pipeline View
 
-The pipeline is a board: columns are stages, cards are deals. Drag a card right to advance the stage. The total pipeline value updates in real time.
+Columns are stages, cards are deals. Dragging a card calls `PATCH`, which also resets the win probability for the new stage. The database does the per-stage sums with `groupBy`; the browser only renders them.
 
 ```typescript
-// src/app/api/pipeline/route.ts — Return deals grouped by stage.
-// Used by the kanban board. Each column is a stage with its deals and total value.
-
+// src/app/api/pipeline/route.ts
 import { prisma } from "@/lib/prisma";
-
-const STAGES = ["LEAD", "QUALIFIED", "PROPOSAL", "CLOSED_WON", "CLOSED_LOST"] as const;
-
+import { DealStage } from "@/generated/prisma/client";
+const BOARD = [DealStage.LEAD, DealStage.QUALIFIED, DealStage.PROPOSAL, DealStage.CLOSED_WON];
+const PROBABILITY = { LEAD: 10, QUALIFIED: 30, PROPOSAL: 60, CLOSED_WON: 100, CLOSED_LOST: 0 };
 export async function GET() {
-  const deals = await prisma.deal.findMany({
-    where: { stage: { notIn: ["CLOSED_LOST"] } },
-    include: { contact: { select: { name: true, company: true, avatarUrl: true } } },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  const pipeline = STAGES.map((stage) => {
-    const stageDeals = deals.filter((d) => d.stage === stage);
-    return {
-      stage,
-      deals: stageDeals,
-      totalValue: stageDeals.reduce((sum, d) => sum + d.value, 0),
-      count: stageDeals.length,
-    };
-  });
-
-  const totalPipelineValue = deals
-    .filter((d) => d.stage !== "CLOSED_WON")
-    .reduce((sum, d) => sum + d.value, 0);
-
-  return Response.json({ pipeline, totalPipelineValue });
+  const [deals, sums] = await Promise.all([
+    prisma.deal.findMany({
+      where: { stage: { in: BOARD } }, orderBy: { updatedAt: "desc" },
+      include: { contact: { select: { name: true, company: true, avatarUrl: true } } },
+    }),
+    prisma.deal.groupBy({ by: ["stage"], _sum: { value: true } }),
+  ]);
+  const columns = BOARD.map((stage) => ({
+    stage,
+    totalValue: Number(sums.find((s) => s.stage === stage)?._sum.value ?? 0),
+    deals: deals.filter((d) => d.stage === stage),
+  }));
+  const openValue = columns
+    .filter((c) => c.stage !== DealStage.CLOSED_WON)
+    .reduce((sum, c) => sum + c.totalValue, 0);
+  return Response.json({ columns, openValue });
 }
 
-// PATCH /api/pipeline — Move a deal to a new stage (drag-and-drop)
 export async function PATCH(request: Request) {
   const { dealId, stage } = await request.json();
-
-  const probabilities: Record<string, number> = {
-    LEAD: 10, QUALIFIED: 30, PROPOSAL: 60, CLOSED_WON: 100, CLOSED_LOST: 0,
-  };
-
-  const deal = await prisma.deal.update({
-    where: { id: dealId },
-    data: { stage, probability: probabilities[stage] ?? 10 },
-  });
-
-  return Response.json(deal);
+  if (!Object.values(DealStage).includes(stage)) return Response.json({ error: "Unknown stage" }, { status: 400 });
+  const data = { stage, probability: PROBABILITY[stage as DealStage] };
+  return Response.json(await prisma.deal.update({ where: { id: dealId }, data }));
 }
 ```
 
 ## Step 4 — Gmail Thread Sync per Contact
 
-Pull email threads from Gmail for a contact's email address. Shows the full conversation history without copy-pasting into the CRM.
+Pull the email threads for a contact's address so the conversation history shows up without copy-pasting. Each user connects their own Gmail through Google OAuth and you keep the refresh token (encrypt it at rest). The read-only scope `https://www.googleapis.com/auth/gmail.readonly` is enough; Gmail read scopes need Google's OAuth app verification unless the app is internal to your own Workspace organization (see Google's Gmail API scopes page).
 
 ```typescript
-// src/lib/gmail.ts — Fetch Gmail threads for a contact's email address.
-// Uses OAuth2 token stored per user. Returns threads as activity records.
-
+// src/lib/gmail.ts
 import { google } from "googleapis";
-import { prisma } from "@/lib/prisma";
-
+import { prisma } from "./prisma";
 export async function syncGmailForContact(contactId: string, userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { gmailAccessToken: true, gmailRefreshToken: true },
-  });
-  if (!user?.gmailAccessToken) return;
-
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   const contact = await prisma.contact.findUnique({ where: { id: contactId } });
-  if (!contact) return;
+  if (!user?.gmailRefreshToken || !contact) return;
+  const auth = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+  auth.setCredentials({ refresh_token: user.gmailRefreshToken }); // access tokens are fetched as needed
+  const gmail = google.gmail({ version: "v1", auth });
 
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
-  );
-  oauth2Client.setCredentials({
-    access_token: user.gmailAccessToken,
-    refresh_token: user.gmailRefreshToken,
-  });
-
-  const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-
-  // Search for threads involving this contact
   const { data } = await gmail.users.threads.list({
-    userId: "me",
-    q: `from:${contact.email} OR to:${contact.email}`,
-    maxResults: 20,
+    userId: "me", maxResults: 20, q: `from:${contact.email} OR to:${contact.email}`,
   });
-
-  const threads = data.threads || [];
-
-  for (const thread of threads) {
-    const { data: threadData } = await gmail.users.threads.get({
-      userId: "me",
-      id: thread.id!,
-      format: "metadata",
-      metadataHeaders: ["Subject", "Date", "From"],
+  for (const thread of data.threads ?? []) {
+    const { data: full } = await gmail.users.threads.get({
+      userId: "me", id: thread.id!, format: "metadata", metadataHeaders: ["Subject", "Date"],
     });
-
-    const firstMsg = threadData.messages?.[0];
-    const headers = firstMsg?.payload?.headers || [];
+    const headers = full.messages?.[0]?.payload?.headers ?? [];
     const subject = headers.find((h) => h.name === "Subject")?.value || "(no subject)";
     const date = headers.find((h) => h.name === "Date")?.value;
-
-    // Upsert activity so re-syncing doesn't create duplicates
+    const body = `${full.messages?.length ?? 1} messages`;
     await prisma.activity.upsert({
-      where: { gmailThreadId: thread.id! },
-      create: {
-        type: "EMAIL",
-        subject,
-        occurredAt: date ? new Date(date) : new Date(),
-        contactId,
-        userId,
-        gmailThreadId: thread.id!,
-        body: `${threadData.messages?.length ?? 1} messages`,
-      },
-      update: { body: `${threadData.messages?.length ?? 1} messages` },
+      where: { userId_gmailThreadId: { userId, gmailThreadId: thread.id! } },
+      create: { type: "EMAIL", subject, body, contactId, userId, gmailThreadId: thread.id!,
+                occurredAt: date ? new Date(date) : new Date() },
+      update: { body },
     });
   }
 }
 ```
+The unique key `(userId, gmailThreadId)` makes re-syncing idempotent.
 
 ## Step 5 — Pipeline Report Email with Resend
 
-Every Monday at 9 AM, email the sales manager a pipeline summary: total value, deals by stage, conversion rate, and avg deal size.
+Every Monday at 9 AM, email the sales manager the open pipeline, the last 30 days of wins, and the win rate. Verify a sending domain in Resend first (SPF and DKIM); `onboarding@resend.dev` is for testing only. The SDK returns `{ data, error }` instead of throwing, so check `error`.
 
 ```typescript
-// src/lib/reports.ts — Generate and email the weekly pipeline report.
-
+// src/lib/reports.ts
 import { Resend } from "resend";
-import { prisma } from "@/lib/prisma";
-
+import { prisma } from "./prisma";
 const resend = new Resend(process.env.RESEND_API_KEY);
-
+const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 export async function sendWeeklyPipelineReport(managerEmail: string) {
-  const deals = await prisma.deal.findMany({
-    include: { contact: { select: { name: true } } },
-  });
+  const since = new Date(Date.now() - 30 * 86_400_000);
+  const [active, won, lost] = await Promise.all([
+    prisma.deal.findMany({
+      where: { stage: { in: ["LEAD", "QUALIFIED", "PROPOSAL"] } },
+      include: { contact: { select: { name: true } } },
+      orderBy: { value: "desc" },
+    }),
+    prisma.deal.aggregate({
+      where: { stage: "CLOSED_WON", updatedAt: { gte: since } },
+      _sum: { value: true }, _count: true,
+    }),
+    prisma.deal.count({ where: { stage: "CLOSED_LOST", updatedAt: { gte: since } } }),
+  ]);
+  const open = active.reduce((s, d) => s + Number(d.value), 0);
+  const wonValue = Number(won._sum.value ?? 0);
+  const winRate = won._count + lost ? Math.round((won._count / (won._count + lost)) * 100) : 0;
 
-  const won = deals.filter((d) => d.stage === "CLOSED_WON");
-  const lost = deals.filter((d) => d.stage === "CLOSED_LOST");
-  const active = deals.filter(
-    (d) => !["CLOSED_WON", "CLOSED_LOST"].includes(d.stage)
-  );
-
-  const totalPipeline = active.reduce((s, d) => s + d.value, 0);
-  const totalWon = won.reduce((s, d) => s + d.value, 0);
-  const conversionRate =
-    won.length + lost.length > 0
-      ? ((won.length / (won.length + lost.length)) * 100).toFixed(1)
-      : "0";
-  const avgDealSize =
-    won.length > 0 ? (totalWon / won.length).toFixed(0) : "0";
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
-
-  await resend.emails.send({
-    from: "CRM <reports@yourdomain.com>",
+  const { error } = await resend.emails.send({
+    from: "CRM <reports@mail.yourdomain.com>", // a domain verified in Resend
     to: managerEmail,
-    subject: `Weekly Pipeline Report — ${fmt(totalPipeline)} in pipeline`,
-    html: `
-      <h2>Pipeline Summary</h2>
-      <p><strong>Active Pipeline:</strong> ${fmt(totalPipeline)} across ${active.length} deals</p>
-      <p><strong>Won This Quarter:</strong> ${fmt(totalWon)} (${won.length} deals)</p>
-      <p><strong>Conversion Rate:</strong> ${conversionRate}%</p>
-      <p><strong>Avg Deal Size:</strong> ${fmt(Number(avgDealSize))}</p>
-      <hr/>
-      <h3>Active Deals</h3>
-      <ul>
-        ${active.map((d) => `<li>${d.contact.name} — ${d.title} — ${fmt(d.value)} (${d.stage})</li>`).join("")}
-      </ul>
-    `,
+    subject: `Weekly pipeline: ${money(open)} open`,
+    html: `<p><strong>Open pipeline:</strong> ${money(open)} across ${active.length} deals</p>
+      <p><strong>Won, last 30 days:</strong> ${money(wonValue)} (${won._count} deals), win rate ${winRate}%</p>
+      <ul>${active.map((d) => `<li>${esc(d.contact.name)} — ${esc(d.title)} — ${money(Number(d.value))}</li>`).join("")}</ul>`,
   });
+  if (error) throw new Error(`Resend: ${error.message}`);
 }
 ```
 
+Run it from a scheduler you already have, for example a crontab entry `0 9 * * 1` that calls a script wrapping `sendWeeklyPipelineReport`, or your host's cron feature.
+
 ## Results
 
-Marcus shipped the CRM in a weekend. Three months later:
+Marcus's team switched after a weekend of building. Three months later, in their own words:
 
-- **Cost: $0/month** — Postgres on Neon free tier, Resend free tier, Next.js on Vercel. The Salesforce bill is gone.
-- **Adoption: 5/5 reps use it daily** — the previous CRM had 3/5. The pipeline view matches how the team actually thinks about deals.
-- **Activity logging up 3×** — because it's two clicks instead of five screens. Gmail sync means email is automatically in the CRM.
-- **Pipeline visibility:** manager gets a Monday morning email instead of pulling Salesforce reports manually.
-- **Enrichment saves 10 min/contact** — Apollo fills in title, company, and LinkedIn automatically on creation.
-- **Total build time: ~20 hours** — schema, API, kanban UI, Gmail OAuth, report emails. Would've taken weeks with Salesforce customization.
+- The monthly CRM bill is gone; they now pay for a small managed Postgres instance and hosting. The Resend free plan (100 emails per day) covers one weekly report.
+- All five reps use the pipeline view daily; logging an activity takes two clicks, and the manager gets a Monday email instead of building reports by hand.
+
+## Related Skills
+
+- [prisma](/skills/prisma) — Schema, migrations and the typed client used for the data model
+- [resend](/skills/resend) — Sends the weekly pipeline report
