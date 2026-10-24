@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: Microsoft Graph API v1.0. Requires Microsoft 365 tenant with Exchange Online.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - outlook
@@ -19,6 +19,7 @@ metadata:
     - microsoft-graph
     - microsoft-365
     - automation
+  repository: https://github.com/microsoftgraph/msgraph-sdk-javascript
 ---
 
 # Outlook Email
@@ -32,20 +33,25 @@ This skill helps AI agents send, read, search, and automate emails through Micro
 ### Authentication
 
 ```typescript
-// Same Azure AD app registration as other Microsoft 365 services
-// Permissions needed:
-//   Mail.ReadWrite — read/write user's mail
-//   Mail.Send — send mail as user
-//   MailboxSettings.ReadWrite — manage rules, auto-replies
+// Microsoft Entra app registration (formerly Azure AD). Application permissions
+// (admin consent required) for a daemon using /users/{id}:
+//   Mail.ReadWrite             - read/write mail (Mail.Read is enough for reading only)
+//   Mail.Send                  - send mail as any user the app can reach
+//   MailboxSettings.ReadWrite  - auto-replies and mailbox settings
+// For a signed-in person use delegated permissions and /me instead of /users/{id}.
+// Application mail permissions cover every mailbox in the tenant unless an Exchange
+// admin restricts the app to specific mailboxes.
+// npm install @microsoft/microsoft-graph-client @azure/identity
 
 import { ClientSecretCredential } from '@azure/identity';
+import fs from 'node:fs';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 
 const credential = new ClientSecretCredential(
-  process.env.AZURE_TENANT_ID,
-  process.env.AZURE_CLIENT_ID,
-  process.env.AZURE_CLIENT_SECRET
+  process.env.AZURE_TENANT_ID!,
+  process.env.AZURE_CLIENT_ID!,
+  process.env.AZURE_CLIENT_SECRET!
 );
 
 const authProvider = new TokenCredentialAuthenticationProvider(credential, {
@@ -53,11 +59,13 @@ const authProvider = new TokenCredentialAuthenticationProvider(credential, {
 });
 
 const graphClient = Client.initWithMiddleware({ authProvider });
+const userId = 'sarah.chen@northwind.com'; // user id or userPrincipalName
 ```
 
 ### Send Emails
 
 ```typescript
+// sendMail answers 202 Accepted with no body: delivery happens afterwards.
 // Simple text email
 await graphClient.api(`/users/${userId}/sendMail`)
   .post({
@@ -106,8 +114,8 @@ await graphClient.api(`/users/${userId}/sendMail`)
     },
   });
 
-// Email with file attachment
-const fileBuffer = fs.readFileSync('/path/to/report.pdf');
+// Email with file attachment (inline base64 only for files under 3 MB)
+const fileBuffer = fs.readFileSync('./reports/monthly-report-feb-2026.pdf');
 await graphClient.api(`/users/${userId}/sendMail`)
   .post({
     message: {
@@ -143,14 +151,15 @@ const messages = await graphClient.api(`/users/${userId}/mailFolders/inbox/messa
   .get();
 
 messages.value.forEach(msg => {
-  const read = msg.isRead ? '  ' : '🔵';
-  const att = msg.hasAttachments ? '📎' : '  ';
+  const read = msg.isRead ? ' ' : '*';
+  const att = msg.hasAttachments ? '+' : ' ';
   console.log(`${read}${att} ${msg.from.emailAddress.address}: ${msg.subject}`);
 });
 
 // Get unread messages only
 const unread = await graphClient.api(`/users/${userId}/mailFolders/inbox/messages`)
-  .filter('isRead eq false')
+  // $orderby properties must also be in $filter, and come first, or Graph returns InefficientFilter
+  .filter('receivedDateTime ge 2026-10-01T00:00:00Z and isRead eq false')
   .select('id,subject,from,receivedDateTime,bodyPreview')
   .orderby('receivedDateTime DESC')
   .get();
@@ -184,7 +193,7 @@ const results = await graphClient.api(`/users/${userId}/messages`)
 
 // Filter by sender
 const fromSender = await graphClient.api(`/users/${userId}/messages`)
-  .filter("from/emailAddress/address eq 'ceo@company.com'")
+  .filter("receivedDateTime ge 2026-10-01T00:00:00Z and from/emailAddress/address eq 'ceo@company.com'")
   .select('subject,receivedDateTime,bodyPreview')
   .orderby('receivedDateTime DESC')
   .get();
@@ -247,40 +256,42 @@ For auto-replies (Out of Office), use `PATCH /users/{userId}/mailboxSettings` wi
 ### Webhooks (New Email Notifications)
 
 ```typescript
-// Subscribe to new messages (expires in 3 days, must renew)
+// Subscribe to new messages. Needs Mail.Read. Outlook message subscriptions last
+// under 7 days (10,080 minutes), so renew with PATCH /subscriptions/{id}.
 const subscription = await graphClient.api('/subscriptions')
   .post({
     changeType: 'created',
-    notificationUrl: 'https://your-app.com/api/email-webhook',
+    notificationUrl: 'https://hooks.northwind.com/api/email-webhook',
     resource: `/users/${userId}/mailFolders/inbox/messages`,
-    expirationDateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    clientState: 'your-secret-token',
+    expirationDateTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+    clientState: process.env.GRAPH_WEBHOOK_SECRET,
   });
 ```
 
-In the webhook handler, return the `validationToken` on subscription creation, then fetch the new message by ID from `notification.resourceData.id` and process it (forward to Slack, trigger workflows, etc.).
+When the subscription is created Graph POSTs to the URL with a `validationToken` query parameter; answer `200` with that token echoed as `text/plain`. For real notifications, reply `2xx` within 3 seconds, check `clientState`, then fetch the new message by ID from `notification.resourceData.id` and process it (forward to Slack, trigger workflows, etc.).
 
 ## Examples
 
 ### Example 1: Send a weekly project status report with attachment
-**User prompt:** "Send an HTML email to the engineering team at eng-team@northwind.com with the subject 'Sprint 22 Status Report' summarizing our completed features. Attach the burndown chart from /reports/sprint-22-burndown.png."
+**User prompt:** "Send an HTML email to the engineering team at eng-team@northwind.com with the subject 'Sprint 22 Status Report' summarizing our completed features. Attach the burndown chart from ./reports/sprint-22-burndown.png."
 
 The agent will compose an HTML email body with a styled table showing completed features, their owners, and status. It will read the burndown chart file, base64-encode it, and attach it as a `fileAttachment` with the correct content type. The email will be sent via `POST /users/{userId}/sendMail` with `importance: 'normal'`, the HTML body, the attachment array, and `saveToSentItems: true`.
 
 ### Example 2: Create an inbox rule to auto-organize client emails
-**User prompt:** "Set up an Outlook rule that moves all emails from anyone at @acmecorp.com into a folder called 'Acme Project', and create the folder if it doesn't exist. Also mark those emails as read automatically."
+**User prompt:** "Set up an Outlook rule that moves all emails from anyone at @fabrikam.com into a folder called 'Fabrikam Project', and create the folder if it doesn't exist. Also mark those emails as read automatically."
 
-The agent will first create a mail folder named `Acme Project` using `POST /users/{userId}/mailFolders` and capture the returned folder ID. It will then create an inbox message rule via `POST /users/{userId}/mailFolders/inbox/messageRules` with conditions set to `senderContains: ['acmecorp.com']` and actions set to `moveToFolder` (using the new folder ID) and `markAsRead: true`.
+The agent will first create a mail folder named `Fabrikam Project` using `POST /users/{userId}/mailFolders` and capture the returned folder ID. It will then create an inbox message rule via `POST /users/{userId}/mailFolders/inbox/messageRules` with conditions set to `senderContains: ['fabrikam.com']` and actions set to `moveToFolder` (using the new folder ID) and `markAsRead: true`.
 
 ## Guidelines
 
 - Use `$select` on every query — mailbox data is heavy, fetch only needed fields
-- Batch operations for bulk updates (mark read, move, delete) — max 20 per batch
-- Webhook subscriptions expire in 3 days — set up auto-renewal
+- Batch operations for bulk updates (mark read, move, delete) with `POST /$batch`, max 20 requests per batch
+- Mail subscriptions expire in under 7 days — schedule renewal well before `expirationDateTime`
 - HTML emails: use inline CSS only — email clients strip `<style>` blocks
-- Large attachments (>3MB): use upload session instead of inline base64
+- Attachments of 3 MB to 150 MB: create a draft, then `POST .../attachments/createUploadSession`; inline base64 is for files under 3 MB. The default message size limit is 35 MB, set by the tenant admin
+- With `$filter` plus `$orderby` on messages, list the `$orderby` properties first in `$filter` (for example `receivedDateTime ge ... and isRead eq false`), otherwise Graph answers `InefficientFilter`
 - Use `$search` for full-text search, `$filter` for structured queries — different syntax
-- Rate limits: 10,000 requests per 10 min per app per tenant
-- Always set `saveToSentItems: true` when sending — unless intentionally ephemeral
+- Outlook limits apply per app and mailbox: 10,000 requests per 10 minutes, 4 concurrent requests, 150 MB of uploads per 5 minutes. On `429` wait for the `Retry-After` seconds
+- `saveToSentItems` defaults to true; set it to `false` only when you do not want a copy in Sent Items
 - For automated emails, use a dedicated service account — not a person's mailbox
 - Delta queries for efficient polling: `/users/{id}/mailFolders/inbox/messages/delta`
