@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: [sales, pricing, value-based, conversion, negotiation]
   use-cases:
@@ -90,7 +90,7 @@ Every sale has friction. The 5 standard barriers to purchase and how to eliminat
 
 3. **It won't work well enough** (quality barrier)
    - Solution: Guarantee. "If you don't see X result in 30 days, full refund."
-   - Money-back guarantees typically INCREASE sales by 20-30% while refund rates stay under 5%.
+   - A clear guarantee lowers perceived risk; track your own refund rate before and after adding one instead of assuming a benchmark.
 
 4. **I can wait** (urgency barrier)
    - Solution: Show cost of delay. Limited-time pricing. Founder pricing for early adopters.
@@ -117,7 +117,7 @@ Your prospect always has alternatives. Map them:
 
 ```
 For a project management SaaS:
-  1. Direct competitors: Asana, Monday, Linear ($8-20/user/month)
+  1. Direct competitors: Asana, monday.com, Linear (list prices of roughly $9-25/user/month in October 2026; check current pages)
   2. Indirect alternatives: spreadsheets (free), email threads (free), sticky notes
   3. Do nothing: keep current chaotic process
 
@@ -188,7 +188,7 @@ function calculatePricing(inputs: PricingInputs): PricingRecommendation {
     },
     recommended: {
       monthly: recommendedMonthly,
-      annual: recommendedMonthly * 10, // annual discount (2 months free)
+      annual: recommendedMonthly * 10, // annual plan priced as 10 months (2 months free)
       reasoning: "Balanced between value created and competitive positioning, with annual discount",
     },
     riskReversals: [
@@ -217,12 +217,13 @@ Value-Based Pricing Analysis:
 
   Pricing Options:
     Value-based (15% of value):   $675/month ($8,100/year)
-    Competitor-based:             $299/month (ReportGarden: $199, AgencyAnalytics: $399)
-    Cost-plus (80% margin):       $75/month (your floor)
+    Competitor-based:             $299/month (AgencyAnalytics lists about $20 per client per month, so ~$300 for a 15-client agency in October 2026)
+    Cost-plus (80% margin):       $75/month (your floor, assuming $15/month cost to serve)
 
   Recommended: $399/month ($3,990/year on annual plan)
-  Why: Positions you mid-market, 10x below value created (easy ROI argument),
+  Why: Positions you mid-market, over 10x below value created (easy ROI argument),
        competitive with established players.
+       (Check competitor prices on their pricing pages before quoting them; they change often.)
 
   Risk Reversal Strategy:
     - 14-day free trial (no credit card)
@@ -241,7 +242,8 @@ Value-Based Pricing Analysis:
 ```
 Barrier Analysis for 4% Trial-to-Paid Conversion:
 
-  Industry benchmark: 15-25% for SaaS free trials
+  Benchmarks vary widely by model (card-required vs not, self-serve vs sales-led);
+  compare against your own past cohorts rather than one industry number
 
   Likely barriers (investigate in order):
 
@@ -282,4 +284,5 @@ Barrier Analysis for 4% Trial-to-Paid Conversion:
 - When analyzing barriers, focus on the BIGGEST barrier first. Fixing all five at once is overwhelming.
 - Risk reversal should feel confident, not desperate. Frame guarantees as "we're betting on ourselves."
 - The Next Best Alternative is often "do nothing." Always address inertia as a competitor.
+- Competitor prices and benchmark conversion rates in this skill are illustrative; verify against the competitor's pricing page or your own data before using them in a pitch.
 - Education-based selling takes longer to close but produces higher LTV customers who churn less.
