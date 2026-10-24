@@ -34,6 +34,13 @@
       ]
     },
     {
+      "name": "a2ui",
+      "slug": "a2ui",
+      "description": "Lets an AI agent describe a user interface as declarative JSON that a client renders with its own trusted components. Use when a user asks to generate forms, cards or dashboards from an agent, wants an agent to return UI instead of text, asks about the A2UI protocol, createSurface or updateComponents messages, catalogs, data binding, or the Lit, Angular, React and Flutter renderers. Covers the v0.9 message format, validating payloads and the official packages.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
       "description": "Plans a controlled experiment (A/B test) so its result can be trusted: writes the hypothesis, picks one primary metric and the guardrails, computes sample size and run time, specifies how visitors are assigned and when exposure is logged, and reads out the result with a confidence interval. Use when someone says \"set up an A/B test\", \"split test this page\", \"how many visitors do I need\", \"how long should the experiment run\", \"is this result significant\", \"can I stop the test early\", or wants to test a headline, price, layout or onboarding change against the current version.",
@@ -312,6 +319,13 @@
       "name": "airflow",
       "slug": "airflow",
       "description": "Apache Airflow is a platform for programmatically authoring, scheduling, and monitoring workflows. Learn to write DAGs, use operators, set up connections, configure scheduling, and deploy with Docker Compose.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "airllm",
+      "slug": "airllm",
+      "description": "AirLLM runs very large open language models on a small GPU (or a CPU) by loading the model one layer at a time from disk instead of holding it all in memory, at the price of slow generation. Use when the user wants to run a 70B or larger Hugging Face model locally with 4-12 GB of VRAM, asks how to fit a model that does not fit in GPU memory, or says \"airllm\", \"layer-by-layer inference\", \"run Llama 70B on a small GPU\", \"offline batch answers from a big model\".",
       "category": "data-ai",
       "tags": []
     },
@@ -2460,6 +2474,13 @@
       ]
     },
     {
+      "name": "deer-flow",
+      "slug": "deer-flow",
+      "description": "Installs and runs DeerFlow 2.0, ByteDance's open-source \"super agent harness\" that gives a lead agent sub-agents, long-term memory, a sandbox for running code, and a library of skills for deep research, reports and slide decks. Use when a user wants to set up DeerFlow with Docker or locally, configure models in config.yaml, choose a sandbox mode, call it from Python with DeerFlowClient, or debug a broken setup with make doctor. Triggers include \"set up DeerFlow\", \"run a deep research agent\", \"super agent harness\", \"deer-flow config.yaml\".",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "deno",
       "slug": "deno",
       "description": "Assists with building secure JavaScript and TypeScript applications using the Deno runtime. Use when creating servers, CLI tools, or scripts with Deno's built-in tooling, permission model, npm compatibility, and web standards APIs. Trigger words: deno, deno deploy, deno serve, deno kv, deno permissions, secure runtime, jsr.",
@@ -2579,6 +2600,13 @@
       "name": "direnv",
       "slug": "direnv",
       "description": "direnv loads and unloads environment variables automatically when you enter and leave a directory, using a per-project .envrc file. Use when a user asks to manage env vars per project, auto-switch configs, avoid manually sourcing .env files, set up .envrc, use dotenv with direnv, or pick a Python or Node version per directory.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "discord",
+      "slug": "discord",
+      "description": "Discord is a chat platform whose bot API lets programs read events, answer slash commands and post messages in servers. Use this skill to create a Discord application and bot, choose gateway intents, register slash commands, reply to interactions, send embeds and buttons, check permissions, handle rate limits, and post through webhooks or the plain REST API with discord.js 14. Triggers: \"make a Discord bot\", \"register slash commands\", \"ephemeral reply\", \"Discord webhook\", \"MessageContent intent\".",
       "category": "development",
       "tags": []
     },
@@ -2753,6 +2781,20 @@
       "slug": "e2b",
       "description": "E2B is a cloud platform that gives AI agents secure, isolated sandboxes — ephemeral Linux VMs with a filesystem, package managers, and internet access — to run AI-generated code safely. Use when a user wants an agent to execute Python or JavaScript, install packages, read/write files, or run a long process without risking the host machine, or wants to wire code execution into a LangChain, CrewAI, or custom agent loop.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "earendil-pi",
+      "slug": "earendil-pi",
+      "description": "Pi is a minimal, open-source terminal coding agent from Earendil Works that works with many model providers and is customised through extensions, skills and prompt templates. Use when the user asks to install Pi, run `pi` in a repository, log in to a provider, script Pi with `--print` or `--mode json`, point it at a local Ollama model, add MCP servers, or sandbox an agent that has no built-in permission prompts.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "ecc",
+      "slug": "ecc",
+      "description": "ECC (Everything Claude Code) is an open-source toolkit that adds agents, skills, slash commands, rules, hooks and a shared memory vault to coding agents such as Claude Code and Codex. Use it when a user asks to \"install ECC\", \"set up ecc-universal\", \"add a planning, TDD and code-review workflow to Claude Code\", \"share memory between Claude and Codex\", \"scan my agent config with AgentShield\", or to \"uninstall or repair ECC\".",
+      "category": "development",
       "tags": []
     },
     {
@@ -3844,6 +3886,13 @@
       "tags": []
     },
     {
+      "name": "graphify",
+      "slug": "graphify",
+      "description": "Turns a folder of code, docs, PDFs and images into a knowledge graph that coding agents can query from the command line instead of re-reading files. Use when a user asks to map a codebase, build a graph of a repo plus its docs, find what depends on a function, trace the path between two concepts, cut the tokens an agent spends exploring a project, or keep a graph updated on every commit. Covers the graphify CLI, graph.json queries, git hooks and agent integration.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "graphql",
       "slug": "graphql",
       "description": "Build and consume GraphQL APIs. Use when a user asks to create a GraphQL server, write GraphQL schemas, implement resolvers, set up subscriptions, build a GraphQL API, add authentication to GraphQL, optimize queries with DataLoader, implement pagination, handle file uploads, generate types from schema, consume a GraphQL endpoint, or migrate from REST to GraphQL. Covers Apollo Server, Apollo Client, schema design, resolvers, subscriptions, federation, and production patterns.",
@@ -3959,6 +4008,13 @@
       "tags": []
     },
     {
+      "name": "harper",
+      "slug": "harper",
+      "description": "Checks English spelling and grammar locally, in milliseconds, without sending text to any server, using the Harper command-line linter (harper-cli) and language server (harper-ls). Use when a user wants to proofread Markdown, docs, code comments or commit messages offline, add grammar checking to CI or a pre-commit hook, wire harper-ls into Neovim, Helix, Emacs, VS Code or Zed, tune rules and dialects, or replace Grammarly or LanguageTool for privacy reasons. Triggers include \"offline grammar checker\", \"lint my docs for typos\", \"harper-ls config\", \"private spellcheck\".",
+      "category": "content",
+      "tags": []
+    },
+    {
       "name": "hashcat",
       "slug": "hashcat",
       "description": "GPU-accelerated password hash recovery with hashcat. Use when a user asks to crack NTLM/bcrypt/MD5/SHA/WPA hashes, run mask or rule-based attacks, convert a PCAP to a crackable hash, or benchmark hash cracking throughput on their own hardware.",
@@ -4002,6 +4058,13 @@
       "name": "haystack",
       "slug": "haystack",
       "description": "Haystack is an open-source Python framework by deepset for building RAG pipelines, search systems and LLM agents from composable components (document stores, retrievers, prompt builders, chat generators, agents). Use when the user wants to build or debug a Haystack pipeline, write a custom component, index documents for retrieval, build an agent with tools, or migrate code from Haystack 2.x to 3.x.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "headroom",
+      "slug": "headroom",
+      "description": "Headroom is a local compression layer that shrinks tool outputs, logs, JSON, files and RAG chunks before they reach an LLM, so long agent sessions cost fewer tokens. It runs as a Python or TypeScript library, an HTTP proxy, a wrapper for coding agents, or an MCP server. Use it when a user asks to \"cut token usage\", \"compress tool output\", \"reduce my Claude Code bill\", \"run headroom proxy\", \"wrap claude with headroom\", or \"call compress() on messages\".",
       "category": "data-ai",
       "tags": []
     },
@@ -5790,6 +5853,13 @@
       "tags": []
     },
     {
+      "name": "moneyprinterturbo",
+      "slug": "moneyprinterturbo",
+      "description": "MoneyPrinterTurbo turns a topic or keyword into a finished short video: it writes the script, picks stock footage, adds a voiceover, subtitles and background music, and renders an HD clip. Use when asked to \"generate a short video from a topic\", \"make faceless YouTube Shorts or TikToks\", \"batch-produce videos from a list of subjects\", \"run MoneyPrinterTurbo\", or \"call its API to create a video\". Covers pip and Docker install, config.toml, the mpt CLI with batch manifests, and the REST API.",
+      "category": "content",
+      "tags": []
+    },
+    {
       "name": "mongodb",
       "slug": "mongodb",
       "description": "Assists with designing document schemas, building aggregation pipelines, managing indexes, and operating MongoDB clusters. Use when working with flexible schemas, nested documents, horizontal scaling, Atlas Search, or vector search for AI applications. Trigger words: mongodb, mongo, document database, aggregation, atlas, nosql.",
@@ -6280,6 +6350,13 @@
       ]
     },
     {
+      "name": "obra-superpowers",
+      "slug": "obra-superpowers",
+      "description": "Adds a complete software development method to a coding agent as a plugin of composable skills: brainstorming, written plans, test-first implementation, subagent execution and code review. Use when a user asks to install Superpowers, make Claude Code plan before coding, enforce TDD and review gates, run work through subagents, or debug why a Superpowers skill did or did not trigger. Covers plugin install for Claude Code and other agents, the workflow stages and opt-outs.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "observability-setup",
       "slug": "observability-setup",
       "description": "Set up end-to-end observability for microservices. Use when someone asks to \"add tracing\", \"set up monitoring\", \"configure OpenTelemetry\", \"build Grafana dashboards\", \"distributed tracing\", \"structured logging\", \"metrics collection\", or \"debug production issues\". Covers OpenTelemetry instrumentation, collector configuration, Grafana LGTM stack deployment, dashboard provisioning, and alert rules.",
@@ -6647,6 +6724,13 @@
       "slug": "orama",
       "description": "Orama is an in-process search engine for JavaScript and TypeScript: full-text, vector and hybrid search that runs in the browser, on a server or at the edge with no external service. Use when someone asks to \"add search to my docs site\", \"client-side search\", \"typo-tolerant search\", \"faceted search in JavaScript\", \"vector search without a database\", or mentions Orama or @orama/orama. Covers schemas, filters, facets, sorting, embeddings, React, and saving an index to a file.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "orca",
+      "slug": "orca",
+      "description": "Orca is an open-source desktop app that runs several coding agents (Claude Code, Codex, OpenCode and any other terminal agent) side by side, each in its own git worktree, with one CLI to script it. Use when the user wants to race agents on the same task, hand work to another agent in a new worktree, read or steer agent terminals, or says \"orca worktree\", \"run claude and codex in parallel\", \"orca-ide\", \"spawn an agent in a worktree\" or \"compare agent outputs\".",
+      "category": "development",
       "tags": []
     },
     {
@@ -7306,6 +7390,13 @@
       "tags": []
     },
     {
+      "name": "ppt-master",
+      "slug": "ppt-master",
+      "description": "PPT Master turns a PDF, Word file, web page or pasted text into a natively editable PowerPoint (.pptx) deck, with real shapes, slide masters, optional animations and speaker-note narration, by running a workflow inside a coding agent. Use when someone says \"make a PPT from this report\", \"build a pitch deck from this PDF\", \"fill this branded deck with new content\", \"turn this document into slides\", or wants slides that stay editable instead of flat images.",
+      "category": "documents",
+      "tags": []
+    },
+    {
       "name": "prd-to-issues",
       "slug": "prd-to-issues",
       "description": "Converts a product requirements document into a reviewed set of GitHub issues: end-to-end increments sized for one pull request, each with checkable acceptance criteria, traced back to the PRD's requirements and linked as sub-issues with blocked-by relationships. Use when the user says \"break this PRD into issues\", \"create tickets from the PRD\", \"turn the spec into a backlog\", \"split this feature into work items\", or asks which parts of a PRD can be built in parallel.",
@@ -7751,6 +7842,20 @@
         "design-system",
         "components"
       ]
+    },
+    {
+      "name": "react-bits",
+      "slug": "react-bits",
+      "description": "Adds animated, interactive React components from the React Bits library (split-text effects, shader and aurora backgrounds, cursor effects, animated cards and micro-interactions) to a project by copying their source in through the shadcn CLI or jsrepo. Use when a user wants to \"add an animated background\", \"make the hero text animate\", \"use React Bits\", \"add a cursor effect to my React site\", or pick a component flavor (JS or TS, CSS or Tailwind) and install its dependencies.",
+      "category": "design",
+      "tags": []
+    },
+    {
+      "name": "react-doctor",
+      "slug": "react-doctor",
+      "description": "React Doctor scans a React codebase with deterministic rules and reports bugs, effect and state mistakes, performance problems, accessibility errors, security issues and maintainability hotspots. Use when the user asks to audit a React, Next.js, Vite, Expo or React Native project, check what an AI agent wrote for React mistakes, gate pull requests on React issues, or says \"run react-doctor\", \"scan my React app\", \"why did this rule fire\", \"fix useEffect problems\".",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "react-email",
@@ -9786,6 +9891,13 @@
       "tags": []
     },
     {
+      "name": "ty",
+      "slug": "ty",
+      "description": "Checks Python code for type errors with ty, Astral's fast type checker and language server written in Rust. Use when a user asks to type check a Python project, add ty to pyproject.toml or CI, silence or baseline existing type errors, set up a type-checking language server in VS Code, Neovim, Zed or PyCharm, or move from mypy or pyright. Covers ty check, configuration, rule levels, ignore comments and output formats.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "typeorm",
       "slug": "typeorm",
       "description": "TypeORM is an ORM for TypeScript and JavaScript that maps decorated classes to tables in PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, Oracle and other databases. Use when a user asks to define entities and relations, query with repositories or QueryBuilder, set up a DataSource, generate and run migrations, or upgrade a project from TypeORM 0.3 to 1.x — for example \"add a column with a migration\", \"migration:generate cannot open my data-source.ts\", or \"findOneBy throws on an undefined value after the upgrade\".",
@@ -10114,6 +10226,20 @@
         "conversion",
         "negotiation"
       ]
+    },
+    {
+      "name": "vaultwarden",
+      "slug": "vaultwarden",
+      "description": "Deploys and hardens Vaultwarden, a lightweight self-hosted server that is compatible with the official Bitwarden apps and browser extensions, so a person, family or small team can run their own password manager. Use when a user asks to \"self-host Bitwarden\", \"set up Vaultwarden with Docker\", \"hash the ADMIN_TOKEN\", \"disable signups\", \"put Vaultwarden behind Caddy or nginx\", or \"back up the vault\". Covers the container, environment variables, HTTPS reverse proxy, SMTP, backups and updates.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "vcrpy",
+      "slug": "vcrpy",
+      "description": "VCR.py records the HTTP calls a Python test makes into a cassette file and replays them on later runs, so tests that depend on third-party APIs become fast, offline and deterministic. Use when the user asks to stop tests hitting a real API, record or replay HTTP in pytest, fix flaky network tests, keep API keys out of recorded fixtures, re-record stale cassettes, or says \"vcr\", \"vcrpy\", \"cassette\", \"pytest-recording\".",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "vector",
@@ -10815,5 +10941,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T14:50:54.039Z"
+  "updatedAt": "2026-10-24T23:32:24.104Z"
 }
