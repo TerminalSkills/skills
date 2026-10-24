@@ -7,10 +7,11 @@ description: >-
   validation, implement server-side data fetching with TanStack Router, or
   deploy to Cloudflare/Netlify/Vercel/Node.
 license: Apache-2.0
-compatibility: 'React 18+, Vite, Node.js, Cloudflare Workers, Netlify, Vercel'
+compatibility: 'React 18+, Vite or Rsbuild, Node.js 20+, Cloudflare Workers, Netlify, Vercel'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/TanStack/router
+  version: 1.1.0
   category: development
   tags:
     - tanstack
@@ -18,358 +19,278 @@ metadata:
     - full-stack
     - ssr
     - server-functions
-    - vite
-    - typescript
 ---
 
 # TanStack Start
 
 ## Overview
 
-TanStack Start is a full-stack React framework built on TanStack Router and Vite. It provides type-safe server functions (`createServerFn`), file-based routing with loaders, composable middleware, Zod validation across the network boundary, and flexible rendering modes (SSR, SSG, SPA, ISR). Unlike Next.js, it uses Vite (not Webpack), supports any deployment target, and gives you explicit control over server/client code boundaries.
+TanStack Start is a full-stack React framework built on TanStack Router and Vite (Rsbuild is also supported). It provides type-safe server functions (`createServerFn`), file-based routes with loaders, middleware, server routes for raw HTTP endpoints, and per-route control of SSR, prerendering and SPA behavior. In v1 Start is a Vite plugin (`tanstackStart()`), not a Vinxi app: there is no `app.config.ts`, and routes live in `src/routes`. Checked against `@tanstack/react-start` 1.169 (October 2026).
 
 ## Instructions
 
-### Step 1: Project Setup
+### Step 1: Project setup
+
+Scaffold with the official CLI (it asks for package manager and add-ons), or start from an example:
 
 ```bash
-npx create-start@latest my-app
-cd my-app
-npm install
-npm run dev
+npx @tanstack/cli@latest create
+npx gitpick TanStack/router/tree/main/examples/react/start-basic start-basic
+```
+
+By hand: `npm i @tanstack/react-start @tanstack/react-router react react-dom`, then `npm i -D vite @vitejs/plugin-react typescript @types/react @types/react-dom @types/node`, set `"type": "module"` and scripts `"dev": "vite dev"`, `"build": "vite build"`.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import viteReact from '@vitejs/plugin-react'
+
+export default defineConfig({
+  server: { port: 3000 },
+  resolve: { tsconfigPaths: true },
+  plugins: [
+    tanstackStart(),
+    viteReact(), // must come after tanstackStart()
+  ],
+})
 ```
 
 ```text
 my-app/
-├── app/
+├── src/
 │   ├── routes/
-│   │   ├── __root.tsx          # Root layout
-│   │   ├── index.tsx           # / route
-│   │   ├── about.tsx           # /about route
-│   │   ├── posts/
-│   │   │   ├── index.tsx       # /posts route
-│   │   │   └── $postId.tsx     # /posts/:postId dynamic route
-│   │   └── api/
-│   │       └── health.ts       # /api/health server route
-│   ├── utils/
-│   │   ├── posts.functions.ts  # Server function wrappers
-│   │   ├── posts.server.ts     # Server-only DB queries
-│   │   └── schemas.ts          # Shared Zod schemas
-│   ├── router.tsx
-│   └── client.tsx
-├── app.config.ts               # TanStack Start config
-└── package.json
+│   │   ├── __root.tsx          # root layout (html shell)
+│   │   ├── index.tsx           # /
+│   │   └── health.ts           # server route: /health
+│   ├── utils/                  # server functions, middleware
+│   ├── router.tsx              # exports getRouter()
+│   └── routeTree.gen.ts        # generated on first dev/build, do not edit
+├── vite.config.ts
+└── tsconfig.json
 ```
 
-### Step 2: Server Functions
+Keep `verbatimModuleSyntax` off; it can leak server code into the client bundle.
+```tsx
+// src/router.tsx
+import { createRouter } from '@tanstack/react-router'
+import { routeTree } from './routeTree.gen'
 
-Server functions are the core primitive — define server-only logic callable from anywhere (loaders, components, event handlers). They cross the network boundary with full type safety.
-
-```typescript
-// app/utils/posts.server.ts — Server-only database queries
-import { db } from '~/db'
-
-export async function findPosts(limit: number) {
-  return db.query.posts.findMany({
-    limit,
-    orderBy: (posts, { desc }) => [desc(posts.createdAt)],
-    with: { author: true },
-  })
-}
-
-export async function findPostById(id: string) {
-  return db.query.posts.findFirst({
-    where: (posts, { eq }) => eq(posts.id, id),
-    with: { author: true, comments: { with: { author: true } } },
-  })
-}
-
-export async function createPost(data: { title: string; content: string; authorId: string }) {
-  return db.insert(posts).values(data).returning()
+export function getRouter() {
+  return createRouter({ routeTree, scrollRestoration: true })
 }
 ```
 
-```typescript
-// app/utils/posts.functions.ts — Server functions with validation
+```tsx
+// src/routes/__root.tsx
+import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Northwind Journal' }],
+  }),
+  component: () => (
+    <html>
+      <head><HeadContent /></head>
+      <body><Outlet /><Scripts /></body>
+    </html>
+  ),
+})
+```
+
+### Step 2: Server functions
+
+`createServerFn` defines logic that runs only on the server and is callable from loaders, components and event handlers. The input schema goes in `.validator()` (not `.inputValidator()`, which does not exist in v1). A Zod 4 schema can be passed directly; a plain function `(d: T) => d` also works.
+
+```ts
+// src/utils/posts.functions.ts
 import { createServerFn } from '@tanstack/react-start'
+import { notFound } from '@tanstack/react-router'
 import { z } from 'zod'
-import { findPosts, findPostById, createPost } from './posts.server'
+import { authMiddleware } from './auth'
+import { db } from './db.server' // your own DB module
 
-// GET — fetch posts (callable from loaders and components)
 export const getPosts = createServerFn({ method: 'GET' })
-  .inputValidator(z.object({ limit: z.number().min(1).max(100).default(20) }))
-  .handler(async ({ data }) => {
-    return findPosts(data.limit)
-  })
-
-// GET — fetch single post
+  .validator(z.object({ limit: z.number().min(1).max(100).default(20) }))
+  .handler(async ({ data }) => db.posts.latest(data.limit))
 export const getPost = createServerFn({ method: 'GET' })
-  .inputValidator(z.object({ id: z.string().uuid() }))
+  .validator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
-    const post = await findPostById(data.id)
+    const post = await db.posts.find(data.id)
     if (!post) throw notFound()
     return post
   })
 
-// POST — create post (requires auth via middleware)
-export const createNewPost = createServerFn({ method: 'POST' })
+export const createPost = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
-  .inputValidator(z.object({
-    title: z.string().min(1).max(200),
-    content: z.string().min(1).max(50000),
-  }))
-  .handler(async ({ data, context }) => {
-    // context.user comes from authMiddleware
-    return createPost({ ...data, authorId: context.user.id })
-  })
+  .validator(z.object({ title: z.string().min(1).max(200), body: z.string().min(1) }))
+  .handler(async ({ data, context }) => db.posts.insert({ ...data, authorId: context.user.id }))
 ```
 
-### Step 3: Routes with Loaders
+Call one as `getPosts({ data: { limit: 10 } })`; input always comes from the network, so keep the validator. In components wrap it with `useServerFn(createPost)` so redirects and `notFound()` thrown on the server are handled by the router. Put database access in modules the client never imports (for example `*.server.ts`) and import them only from inside handlers.
+
+### Step 3: Routes with loaders
 
 ```tsx
-// app/routes/posts/index.tsx — Posts list page with loader
-import { createFileRoute } from '@tanstack/react-router'
+// src/routes/index.tsx
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { getPosts } from '~/utils/posts.functions'
 
-export const Route = createFileRoute('/posts/')({
-  // Loader runs on the server during SSR, fetches data before render
-  loader: () => getPosts({ data: { limit: 20 } }),
-
-  component: PostsPage,
+export const Route = createFileRoute('/')({
+  loader: () => getPosts({ data: { limit: 10 } }),
+  component: Home,
 })
 
-function PostsPage() {
+function Home() {
   const posts = Route.useLoaderData()
-
   return (
-    <div>
-      <h1>Posts</h1>
-      <ul>
-        {posts.map(post => (
-          <li key={post.id}>
-            <Link to="/posts/$postId" params={{ postId: post.id }}>
-              {post.title}
-            </Link>
-            <span> by {post.author.name}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}><Link to="/posts/$postId" params={{ postId: p.id }}>{p.title}</Link></li>
+      ))}
+    </ul>
   )
 }
 ```
 
 ```tsx
-// app/routes/posts/$postId.tsx — Dynamic post page
-import { createFileRoute, notFound } from '@tanstack/react-router'
+// src/routes/posts/$postId.tsx
+import { createFileRoute } from '@tanstack/react-router'
 import { getPost } from '~/utils/posts.functions'
 
 export const Route = createFileRoute('/posts/$postId')({
   loader: ({ params }) => getPost({ data: { id: params.postId } }),
-
-  // Error boundary for not-found
   notFoundComponent: () => <div>Post not found</div>,
-
-  component: PostPage,
+  component: () => <h1>{Route.useLoaderData().title}</h1>,
 })
-
-function PostPage() {
-  const post = Route.useLoaderData()
-
-  return (
-    <article>
-      <h1>{post.title}</h1>
-      <p>By {post.author.name} · {new Date(post.createdAt).toLocaleDateString()}</p>
-      <div dangerouslySetInnerHTML={{ __html: post.content }} />
-
-      <h2>Comments ({post.comments.length})</h2>
-      {post.comments.map(comment => (
-        <div key={comment.id}>
-          <strong>{comment.author.name}</strong>
-          <p>{comment.body}</p>
-        </div>
-      ))}
-    </article>
-  )
-}
 ```
+
+The loader runs on the server for the first request and on the client during navigation. The `~/` alias needs `"paths": { "~/*": ["./src/*"] }` in `tsconfig.json`.
 
 ### Step 4: Middleware
 
-Composable middleware for auth, logging, rate limiting — chains execute in order with `next()`.
+Request middleware (the default, `createMiddleware()`) wraps every server request it is attached to. Function middleware (`createMiddleware({ type: 'function' })`) wraps server functions, can also have a `.client()` step, and can pass `context` down the chain through `next({ context })`.
 
-```typescript
-// app/middleware/auth.ts — Authentication middleware
+```ts
+// src/utils/auth.ts
 import { createMiddleware } from '@tanstack/react-start'
-import { redirect } from '@tanstack/react-router'
 import { getRequestHeader } from '@tanstack/react-start/server'
-import { verifyToken } from '~/utils/auth.server'
+import { verifyToken } from './auth.server'
 
-// Request middleware — runs on all server requests that use it
-export const authMiddleware = createMiddleware()
-  .server(async ({ next }) => {
-    const token = getRequestHeader('Authorization')?.replace('Bearer ', '')
-
-    if (!token) {
-      throw redirect({ to: '/login' })
-    }
-
-    const user = await verifyToken(token)
-    if (!user) {
-      throw redirect({ to: '/login' })
-    }
-
-    // Pass user to the next middleware / server function via context
-    return next({ context: { user } })
-  })
-
-// Logging middleware — logs request timing
-export const loggingMiddleware = createMiddleware()
-  .server(async ({ next }) => {
-    const start = Date.now()
-    const result = await next()
-    console.log(`Request took ${Date.now() - start}ms`)
-    return result
-  })
-
-// Compose middleware — auth depends on logging
-export const protectedMiddleware = createMiddleware()
-  .middleware([loggingMiddleware, authMiddleware])
-  .server(async ({ next, context }) => {
-    // context.user is available from authMiddleware
-    console.log(`Authenticated request from ${context.user.email}`)
-    return next()
-  })
-```
-
-### Step 5: Server Functions in Components
-
-```tsx
-// app/routes/posts/new.tsx — Form with server function mutation
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useServerFn } from '@tanstack/react-start'
-import { createNewPost } from '~/utils/posts.functions'
-
-export const Route = createFileRoute('/posts/new')({
-  component: NewPostForm,
-})
-
-function NewPostForm() {
-  const navigate = useNavigate()
-  const createPost = useServerFn(createNewPost)
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    const post = await createPost({
-      data: {
-        title: formData.get('title') as string,
-        content: formData.get('content') as string,
-      },
-    })
-
-    // Navigate to the new post
-    navigate({ to: '/posts/$postId', params: { postId: post.id } })
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input name="title" placeholder="Post title" required />
-      <textarea name="content" placeholder="Write your post..." required rows={10} />
-      <button type="submit">Publish</button>
-    </form>
-  )
-}
-```
-
-### Step 6: Server Routes (API Endpoints)
-
-```typescript
-// app/routes/api/health.ts — API-only route (no React component)
-import { createAPIFileRoute } from '@tanstack/react-start/api'
-
-export const APIRoute = createAPIFileRoute('/api/health')({
-  GET: async ({ request }) => {
-    return Response.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      version: process.env.APP_VERSION,
-    })
-  },
+export const authMiddleware = createMiddleware({ type: 'function' }).server(async ({ next }) => {
+  const token = getRequestHeader('authorization')?.replace('Bearer ', '')
+  const user = token ? await verifyToken(token) : null
+  if (!user) throw new Error('Unauthorized')
+  return next({ context: { user } })
 })
 ```
 
-```typescript
-// app/routes/api/webhooks/stripe.ts — Webhook handler
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+Middleware can depend on other middleware with `.middleware([...])`. To run one on everything, create `src/start.ts`:
 
-export const APIRoute = createAPIFileRoute('/api/webhooks/stripe')({
-  POST: async ({ request }) => {
-    const signature = request.headers.get('stripe-signature')
-    const body = await request.text()
+```ts
+import { createStart } from '@tanstack/react-start'
+import { loggingMiddleware } from './utils/logging'
 
-    const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET)
-
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutComplete(event.data.object)
-        break
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdate(event.data.object)
-        break
-    }
-
-    return Response.json({ received: true })
-  },
-})
+export const startInstance = createStart(() => ({
+  functionMiddleware: [loggingMiddleware], // every server function
+  // requestMiddleware: [...]              // every request
+}))
 ```
 
-### Step 7: Rendering Modes
+### Step 5: Server routes (HTTP endpoints)
 
-```typescript
-// app.config.ts — Configure rendering mode
-import { defineConfig } from '@tanstack/react-start/config'
-import vite from 'vite'
+Server routes serve requests from outside your app (webhooks, health checks, public APIs). Add a `server.handlers` property to `createFileRoute` in any file under `src/routes`; `createAPIFileRoute` from older betas no longer exists. Use server functions instead when only your own UI calls the code.
 
-export default defineConfig({
-  vite: {
-    // Vite config
-  },
-  // Deploy targets
+```ts
+// src/routes/health.ts  ->  GET /health
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/health')({
   server: {
-    preset: 'node-server',        // or 'cloudflare-pages', 'netlify', 'vercel'
+    handlers: {
+      GET: async () => Response.json({ status: 'ok', at: new Date().toISOString() }),
+    },
   },
 })
 ```
 
-```tsx
-// Static prerendering — generate at build time
-// app/routes/about.tsx
-export const Route = createFileRoute('/about')({
-  // This page will be statically generated at build time
-  staticData: { prerender: true },
-  loader: () => getAboutContent(),
-  component: AboutPage,
-})
+```ts
+// src/routes/api/webhooks/stripe.ts  ->  POST /api/webhooks/stripe
+import { createFileRoute } from '@tanstack/react-router'
+import Stripe from 'stripe'
 
-// Selective SSR — skip SSR for client-heavy pages
-// app/routes/dashboard.tsx
+export const Route = createFileRoute('/api/webhooks/stripe')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const signature = request.headers.get('stripe-signature') ?? ''
+        const payload = await request.text() // raw body, needed for the signature check
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!) // inside the handler: a top-level `new Stripe()` throws at import when the key is unset and breaks every route
+        try {
+          stripe.webhooks.constructEvent(payload, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+        } catch {
+          return new Response('Invalid signature', { status: 400 })
+        }
+        return Response.json({ received: true })
+      },
+    },
+  },
+})
+```
+
+File names follow router conventions: `users.$id.ts` and `users/$id.ts` both map to `/users/$id`. A path can have only one handler file. A route may hold both `server.handlers` and a `component`.
+
+### Step 6: Rendering modes
+
+Each route chooses its SSR behavior with `ssr`: `true` (default), `false` (render only in the browser), or `'data-only'` (loaders run on the server, component renders only on the client). A child can only be more restrictive than its parent. Change the default with `defaultSsr` in `createStart`.
+
+```tsx
+// src/routes/dashboard.tsx
 export const Route = createFileRoute('/dashboard')({
-  // This page will be a client-side SPA (no SSR)
   ssr: false,
   component: DashboardPage,
 })
 ```
 
+Static prerendering is a plugin option and is off by default:
+
+```ts
+plugins: [
+  tanstackStart({
+    prerender: { enabled: true, crawlLinks: true, failOnError: true },
+    pages: [{ path: '/about' }], // extra pages to render besides discovered static routes
+  }),
+  viteReact(),
+]
+```
+
+`vite build` then prints `[prerender] Prerendered N pages` and writes `<path>/index.html` files into the output.
+
+### Step 7: Deploy
+
+Start builds with Vite, so the target is chosen by a Vite plugin:
+
+- **Node, Docker, Vercel, Bun and other hosts: Nitro.** `npm i nitro`, add `nitro()` from `nitro/vite` to `plugins` (between `tanstackStart()` and `viteReact()`), run `vite build`, start with `node .output/server/index.mjs`. Nitro is still a beta release, so pin its version. Vercel follows the same Nitro setup.
+- **Cloudflare Workers:** `npm i -D @cloudflare/vite-plugin wrangler`, add the `cloudflare()` plugin (see the hosting guide for the `wrangler.jsonc` entry), then `wrangler deploy`.
+- **Netlify:** `npm i -D @netlify/vite-plugin-tanstack-start` and add its plugin.
+
+The built Node server reads `PORT` and `HOST` from the environment.
+
+## Examples
+
+### Example 1: Blog with a protected create action
+**User:** "Add a posts list, a post page and an authenticated create-post action to my TanStack Start app."
+
+Create `src/utils/posts.functions.ts` with `getPosts`, `getPost` and `createPost` as in Step 2, `src/utils/auth.ts` with `authMiddleware`, then routes `index.tsx` and `posts/$postId.tsx` as in Step 3. Verify with `npm run build` and `node .output/server/index.mjs`: `GET /` returns server-rendered HTML with the post links, and `/posts/missing` answers 404 with the "Post not found" component.
+
+### Example 2: Health check and a client-only dashboard
+**User:** "Add a /health JSON endpoint for the load balancer, and make /dashboard skip server rendering because it uses window APIs."
+
+Add `src/routes/health.ts` with a `server.handlers.GET` handler and set `ssr: false` on `src/routes/dashboard.tsx`. After building and starting the server, `curl http://127.0.0.1:3000/health` prints `{"status":"ok","at":"2026-10-24T09:00:00.000Z"}`, and the HTML for `/dashboard` contains only the shell; the component renders in the browser.
+
 ## Guidelines
 
-- **Server functions are the network boundary** — `createServerFn` replaces API routes for most use cases. Server code stays on the server, client gets type-safe RPC stubs.
-- **File organization**: `.functions.ts` for server function wrappers, `.server.ts` for server-only helpers, `.ts` for shared schemas. Static imports of `.functions.ts` are safe anywhere.
-- **Loaders run before render** — data is available immediately in components via `Route.useLoaderData()`. No loading spinners for initial page data.
-- **Use `useServerFn()` hook** in components to call server functions with proper error handling and loading states.
-- **Middleware composes** — build auth, logging, rate limiting as independent middleware and chain them. Context flows through the chain via `next({ context })`.
-- **Zod validation in `inputValidator`** — validates on both client and server, single schema definition, full TypeScript inference.
-- **Deploy anywhere** — Vite-based build outputs for Node.js, Cloudflare Workers/Pages, Netlify, Vercel, Deno. Change the `server.preset` in config.
-- **TanStack Router underneath** — all router features work (type-safe links, search params, nested layouts, error boundaries, pending states).
-- **Use React Query for mutations** — combine `useServerFn` with `useMutation` for optimistic updates, error handling, and cache invalidation.
+- Server functions are the default way to talk to the server from your own UI; use server routes only for endpoints that outside clients call.
+- Handlers and middleware `.server()` bodies run only on the server, but top-level imports in a route file reach the client bundle. Keep secrets and database clients in server-only modules imported from handlers.
+- `routeTree.gen.ts` is generated; commit it or regenerate it with `vite dev`/`vite build`, never edit it.
+- Do not use `app.config.ts`, `@tanstack/react-start/config`, `createAPIFileRoute` or `app/` paths from pre-1.0 tutorials; they belong to the removed Vinxi-based betas.
