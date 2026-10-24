@@ -6,10 +6,11 @@ description: >-
   from Node.js. Trigger words: bun, bun serve, bun install, bun test, bun build, javascript
   runtime, bun runtime.
 license: Apache-2.0
-compatibility: "Requires Bun installed (macOS, Linux, WSL)"
+compatibility: "Bun 1.4 on macOS, Linux or Windows (x64, arm64)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  repository: https://github.com/oven-sh/bun
+  version: "1.1.0"
   category: development
   tags: ["bun", "javascript-runtime", "package-manager", "bundler", "typescript"]
 ---
@@ -18,50 +19,143 @@ metadata:
 
 ## Overview
 
-Bun is an all-in-one JavaScript/TypeScript runtime that replaces Node.js, npm, webpack, and Jest with a single binary. It provides native TypeScript support, a high-performance HTTP server (`Bun.serve()`), a fast package manager, a bundler, and a Jest-compatible test runner with dramatically faster performance.
+Bun is a single binary that is a JavaScript/TypeScript runtime, a package manager, a bundler and a Jest-compatible test runner. It runs `.ts` and `.tsx` files directly, reads `.env` files, and ships built-ins such as `Bun.serve()`, `bun:sqlite` and `Bun.password`. It targets Node.js compatibility, so most npm packages work, but not every Node API behaves identically. Checked against Bun 1.4.4.
 
 ## Instructions
 
-- When creating HTTP servers, use `Bun.serve()` which handles 100K+ req/s with built-in WebSocket support, TLS, and streaming responses.
-- When managing packages, use `bun install` (10-30x faster than npm), `bun add`, `bun remove`, and prefer `bun.lock` (text format) for readable git diffs.
-- When bundling, use `Bun.build()` with appropriate target (`"browser"`, `"bun"`, `"node"`), enable code splitting with `splitting: true`, and configure tree shaking.
-- When writing tests, use `bun test` with Jest-compatible API (`describe`, `it`, `expect`), snapshot testing, mocking with `mock.module()`, and `--coverage` for code coverage.
-- When doing file I/O, prefer `Bun.file()` and `Bun.write()` over Node.js `fs` for significantly faster file operations, and use `Bun.Glob` for pattern matching.
-- When handling authentication, use `Bun.password.hash()` and `Bun.password.verify()` for bcrypt/argon2 instead of npm packages.
-- When migrating from Node.js, replace `node` with `bun` in scripts, keep `package.json` unchanged, and note that most npm packages work without modifications. Use `bun:sqlite` for embedded databases instead of SQLite npm packages.
+### Install and start a project
+
+```bash
+npm install -g bun            # or: brew install oven-sh/bun/bun   (macOS, Linux)
+bun --version                 # 1.4.x
+bun init -y                   # package.json, tsconfig.json, index.ts, bun.lock
+bun run index.ts              # run TypeScript directly; add --hot to reload on change
+```
+
+The official `curl -fsSL https://bun.com/install | bash` script also exists; prefer a package manager so the binary is not fetched through a pipe into a shell. On Windows use `scoop install bun` or `npm install -g bun`.
+
+### Packages
+
+```bash
+bun install                   # reads package.json, writes bun.lock (text lockfile, readable diffs)
+bun add zod                   # add a dependency; bun add -d typescript for dev
+bun remove zod
+bun install --frozen-lockfile # CI: fail if package.json and bun.lock disagree
+bun audit                     # vulnerability check; bun outdated lists newer versions
+bunx prisma generate          # run a package binary without installing it globally
+```
+
+Bun does not run `postinstall` and similar lifecycle scripts of dependencies, except for a built-in allow list of popular packages. If a package needs one (native builds), list it in `"trustedDependencies"` in `package.json` and reinstall. To hold back brand-new releases, set `install.minimumReleaseAge` (seconds) in `bunfig.toml`. A project still on the old binary `bun.lockb` migrates with `bun install --save-text-lockfile --frozen-lockfile --lockfile-only`, then delete `bun.lockb`.
+
+### HTTP server
+
+`Bun.serve()` takes a `routes` map with `:param` segments and per-method handlers; `fetch` handles everything else.
+
+```ts
+// server.ts
+import { Database } from "bun:sqlite";
+
+const db = new Database("app.db");
+db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, hash TEXT)");
+
+const server = Bun.serve({
+  port: 3000,
+  hostname: "127.0.0.1", // bind to loopback unless the service must be reachable from outside
+  routes: {
+    "/health": new Response("ok"),
+    "/api/users/:id": (req) => {
+      const user = db.query("SELECT id, email FROM users WHERE id = ?1").get(req.params.id);
+      return user ? Response.json(user) : new Response("Not found", { status: 404 });
+    },
+    "/api/users": {
+      POST: async (req) => {
+        const { email, password } = await req.json();
+        const hash = await Bun.password.hash(password); // argon2id by default
+        db.query("INSERT INTO users (email, hash) VALUES (?1, ?2)").run(email, hash);
+        return Response.json({ email }, { status: 201 });
+      },
+    },
+  },
+  fetch() {
+    return new Response("Not found", { status: 404 });
+  },
+});
+console.log(`listening on ${server.url}`);
+```
+
+WebSockets: call `server.upgrade(req)` inside `fetch` and add a `websocket: { message(ws, msg) { ws.send(...) } }` handler to the same `Bun.serve()` options. `Bun.password.verify(password, hash)` checks a hash.
+
+### Tests
+
+`bun test` finds `*.test.ts` files and supports `describe`, `it`, `expect`, snapshots and `--coverage`.
+
+```ts
+// mailer.ts
+export async function sendWelcome(email: string) { /* send the mail */ }
+
+// signup.ts
+import { sendWelcome } from "./mailer";
+export async function signup(email: string) {
+  await sendWelcome(email);
+  return { email, welcomed: true };
+}
+```
+
+```ts
+// signup.test.ts
+import { describe, expect, it, mock } from "bun:test";
+
+mock.module("./mailer", () => ({ sendWelcome: mock(async () => {}) })); // before importing the code under test
+
+describe("signup", () => {
+  it("welcomes the new user", async () => {
+    const { signup } = await import("./signup");
+    expect(await signup("mara@acme-corp.net")).toEqual({ email: "mara@acme-corp.net", welcomed: true });
+  });
+});
+```
+
+### Bundle and compile
+
+```ts
+// build.ts — run with: bun run build.ts
+const result = await Bun.build({
+  entrypoints: ["./src/index.tsx"],
+  outdir: "./dist",
+  target: "browser", // "bun" or "node" for server code
+  splitting: true,
+  minify: true,
+});
+if (!result.success) console.error(result.logs);
+```
+
+CLI equivalent: `bun build ./src/index.tsx --outdir dist --minify`. `bun build ./server.ts --compile --outfile dist/api` produces a single self-contained executable.
+
+### Files and environment
+
+`Bun.file("data.json").json()` reads and `await Bun.write("out.txt", text)` writes. `new Bun.Glob("src/**/*.ts").scan(".")` lists files. `.env`, `.env.local` and `.env.<NODE_ENV>` load automatically into `Bun.env` and `process.env`, so `dotenv` is not needed.
 
 ## Examples
 
-### Example 1: Build a high-performance API server
+### Example 1: Build an API server with only built-ins
 
-**User request:** "Create a REST API using Bun's built-in HTTP server"
+**User prompt:** "Create a small REST API with Bun: POST /api/users stores an email and a hashed password, GET /api/users/:id returns a user."
 
-**Actions:**
-1. Create server with `Bun.serve()` and route handler
-2. Parse JSON bodies with `request.json()` and return `Response` objects
-3. Add WebSocket upgrade for real-time features
-4. Use `Bun.password` for auth and `bun:sqlite` for data storage
+The agent runs `bun init -y`, writes `server.ts` with `Bun.serve()` routes, `bun:sqlite` for storage and `Bun.password.hash()` for passwords, and starts it with `bun run server.ts`. It checks the result with `curl -X POST -H 'content-type: application/json' -d '{"email":"mara@acme-corp.net","password":"correct-horse-9271"}' http://127.0.0.1:3000/api/users`, which returns `{"email":"mara@acme-corp.net"}` with status 201, and shows that an unknown path returns 404.
 
-**Output:** A fast API server using only Bun built-ins with no external dependencies.
+### Example 2: Move an Express project from Node.js to Bun
 
-### Example 2: Migrate a Node.js project to Bun
+**User prompt:** "Switch my Express project from Node.js to Bun and make CI faster."
 
-**User request:** "Switch my Express project from Node.js to Bun"
-
-**Actions:**
-1. Replace `npm install` with `bun install` in CI and local setup
-2. Update `package.json` scripts to use `bun run` instead of `node`
-3. Replace `dotenv` with Bun's built-in `.env` loading
-4. Switch test runner from Jest to `bun test` with same test files
-
-**Output:** A Bun-powered project with faster installs, startup, and test execution.
+The agent deletes `package-lock.json`, runs `bun install` to create `bun.lock`, changes the scripts to `bun run src/index.ts` and `bun test`, and removes `dotenv` and `ts-node`. It runs the existing Jest tests under `bun test`, fixes the few that rely on Jest-only APIs, then sets the CI install step to `bun install --frozen-lockfile`. If a dependency fails on a missing Node API, it keeps that service on Node and reports the package name.
 
 ## Guidelines
 
-- Use `Bun.serve()` for new HTTP servers; it is significantly faster than Express on Bun.
-- Prefer `Bun.file()` and `Bun.write()` over Node.js `fs` for file operations.
-- Use `bun:sqlite` for local data instead of adding SQLite npm packages.
-- Use `Bun.password` for auth instead of `bcrypt`/`argon2` npm packages for zero native dependencies.
-- Keep `bun.lock` (text format) in git for readable diffs.
-- Test with `bun test` instead of Jest for the same API with dramatically faster execution.
-- When targeting browsers, use `Bun.build()` with `target: "browser"`.
+- Commit `bun.lock`; use `bun install --frozen-lockfile` in CI
+- Dependency lifecycle scripts are blocked by default; add only packages you trust to `trustedDependencies`
+- `Bun.serve()` listens on all interfaces unless `hostname` is set; bind to `127.0.0.1` behind a reverse proxy
+- Prefer `Bun.password` over adding bcrypt packages, and do not store plain passwords
+- `bun:sqlite` is for embedded, single-process storage; use a server database for multi-instance deployments
+- Node compatibility is high but incomplete: test native addons and unusual `node:` APIs before switching production
+- Do not benchmark-claim from marketing numbers; measure your own workload
+- Use `bunx` instead of `npx`, and `bun run <script>` instead of `npm run <script>`
