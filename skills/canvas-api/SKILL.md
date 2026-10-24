@@ -6,26 +6,30 @@ description: >-
   involve generating images server-side (with node-canvas), creating charts,
   image compositing, watermarking, or browser-based drawing applications.
 license: Apache-2.0
-compatibility: "Browser or Node.js 14+ with node-canvas"
+compatibility: "Any modern browser, or Node.js 18.12+ / 20.9+ with the canvas npm package 3.x"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
+  repository: https://github.com/Automattic/node-canvas
   tags: ["canvas", "2d-graphics", "image-manipulation", "drawing", "node-canvas"]
 ---
 
 # Canvas API
 
-The Canvas 2D API draws shapes, text, and images to a bitmap. In Node.js, the `canvas` package provides the same API for server-side image generation.
+## Overview
 
-## Setup (Node.js)
+The Canvas 2D API draws shapes, text, and images to a bitmap. In browsers it is built in. In Node.js the `canvas` package (node-canvas 3.2.x, needs Node `^18.12 || >=20.9`) offers the same `getContext("2d")` API for server-side image generation, and adds PNG, JPEG, and PDF/SVG output through `toBuffer`.
 
-```bash
-# Install node-canvas for server-side rendering. Requires system deps (Cairo).
-npm install canvas
-```
+## Instructions
 
-## Creating a Canvas and Drawing Shapes
+Install with `npm install canvas`. Prebuilt binaries are downloaded for common platforms (Linux glibc or musl, macOS, Windows); only on other platforms does it compile against Cairo and Pango. If you want no native build at all, `@napi-rs/canvas` is a separate package with a very similar API (fonts are registered there with `GlobalFonts`, not `registerFont`).
+
+Create a canvas with `createCanvas(width, height)`, draw through the context, then export with `toBuffer`. Load images with `await loadImage(pathOrBufferOrUrl)`.
+
+## Examples
+
+### Creating a canvas and drawing shapes
 
 ```typescript
 // src/canvas/shapes.ts — Create a canvas, draw rectangles, circles, and lines.
@@ -63,7 +67,7 @@ ctx.lineTo(750, 300);
 ctx.stroke();
 ```
 
-## Drawing Text
+### Drawing text
 
 ```typescript
 // src/canvas/text.ts — Render styled text on canvas with measurements.
@@ -87,7 +91,7 @@ const metrics = ctx.measureText("Hello Canvas");
 console.log(`Width: ${metrics.width}px`);
 ```
 
-## Image Compositing
+### Image compositing
 
 ```typescript
 // src/canvas/composite.ts — Load images and composite them with blend modes.
@@ -118,7 +122,7 @@ export async function addWatermark(imagePath: string, watermarkPath: string, out
 }
 ```
 
-## Pixel Manipulation
+### Pixel manipulation
 
 ```typescript
 // src/canvas/pixels.ts — Read and modify individual pixels for image processing.
@@ -144,7 +148,7 @@ export async function grayscale(imagePath: string): Promise<Buffer> {
 }
 ```
 
-## Exporting
+### Exporting
 
 ```typescript
 // src/canvas/export.ts — Save canvas output as PNG, JPEG, or PDF.
@@ -169,3 +173,15 @@ pdfCtx.fillStyle = "#0f3460";
 pdfCtx.fillRect(0, 0, 400, 400);
 fs.writeFileSync("output.pdf", pdfCanvas.toBuffer("application/pdf"));
 ```
+
+Result: each snippet writes a file next to the script (`output.png`, `output.jpg`, `output.pdf`); `toBuffer("image/png")` returns a Node `Buffer` you can also send as an HTTP response body.
+
+## Guidelines
+
+- Fonts: generic names like `sans-serif` resolve to whatever the server has installed, so output differs between machines. Bundle a font file and call `registerFont("fonts/Inter-Bold.ttf", { family: "Inter" })` (from `canvas`) before creating the canvas, then use `ctx.font = "bold 48px Inter"`.
+- `globalAlpha`, `fillStyle`, and transforms persist on the context; wrap temporary changes in `ctx.save()` / `ctx.restore()`.
+- `getImageData` returns RGBA bytes (4 per pixel) in row order; call `putImageData` to write changes back.
+- `toBuffer("image/jpeg", { quality: 0.9 })` takes quality from 0 to 1. The PDF canvas is created with `createCanvas(w, h, "pdf")` and exported with `toBuffer("application/pdf")`; it is vector output, not a bitmap.
+- Never pass user-supplied URLs or paths to `loadImage` without validating them; it fetches remote URLs and reads local files.
+- Large canvases use width x height x 4 bytes of memory; cap sizes taken from user input.
+- For charts with ready-made axes and legends use a charting library on top of Canvas rather than drawing by hand.
