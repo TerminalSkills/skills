@@ -124,6 +124,7 @@ Download `docker-compose.yml` from a release tag (v0.17.0, 2026-10-21; `next` is
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/useplunk/plunk/v0.17.0/docker-compose.yml
+echo "8d2a7d31d854e72037fb3c395a96c2cd351b1322d157669c0978f974c83de0ac  docker-compose.yml" | sha256sum -c -   # hash of the v0.17.0 file
 docker compose up -d
 ```
 
