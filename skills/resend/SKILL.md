@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: 'Node.js 18+ (or any language with a Resend SDK); Resend account and API key'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: development
   tags:
     - email
@@ -74,7 +74,7 @@ const { data, error } = await resend.batch.send(
 // data.data[i].id matches payload[i]
 ```
 
-A batch holds up to 100 emails. Attachments and `scheduledAt` are not supported in batch requests.
+A batch holds up to 100 emails. Each email can set its own `scheduledAt` (up to 30 days ahead); attachments are not supported in batch requests.
 
 ### React Email templates
 
@@ -179,6 +179,8 @@ Add the webhook route from the Webhooks section, subscribe it to `email.bounced`
 
 ## Guidelines
 
+- Resend's Acceptable Use Policy forbids cold outreach, unsolicited messages of any kind, purchased lists and scraped contacts. Every recipient must have explicitly opted in, so do not use Resend for prospecting or lead-gen mailings and do not build such sequences with it. Bulk mail also needs a valid postal address and company name, a statement of why the recipient is being contacted, and an unsubscribe that is honoured within 7 days.
+- Keep the complaint rate under 0.08% and the bounce rate under 4%; above that Resend may shut the account down without warning. Remove hard bounces and complaints (see the webhook handler above) instead of retrying them.
 - Default rate limit is 10 requests per second per team; a 429 means back off using the `retry-after` header. Use batch sending for volume.
 - A single email accepts at most 50 recipients and 40 MB of attachments after Base64 encoding.
 - The `Idempotency-Key` header (unique per request, kept for 24 hours) prevents duplicate sends on retries.
