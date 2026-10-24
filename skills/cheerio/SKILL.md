@@ -8,10 +8,11 @@ description: >-
   jQuery-style selectors, DOM traversal, text extraction, attribute parsing,
   and integration with HTTP clients for web scraping pipelines.
 license: Apache-2.0
-compatibility: 'Node.js 14+ (any platform)'
+compatibility: 'Node.js 20.18.1+ (cheerio 1.2), any platform'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/cheeriojs/cheerio
   category: development
   tags:
     - cheerio
@@ -19,14 +20,13 @@ metadata:
     - parsing
     - scraping
     - dom
-    - extract
 ---
 
 # Cheerio
 
 ## Overview
 
-Cheerio is a fast, lightweight HTML/XML parser for Node.js that implements a jQuery-like API. Unlike Puppeteer, it does not run a browser — it parses raw HTML strings, making it 100x faster and ideal for scraping server-rendered pages, parsing HTML files, and transforming HTML content. Pair it with `fetch` or `axios` for web scraping, or use it standalone for HTML processing.
+Cheerio is a fast, lightweight HTML/XML parser for Node.js that implements a jQuery-like API. Unlike Puppeteer, it does not run a browser — it parses raw HTML strings, so it is far lighter than a headless browser and ideal for scraping server-rendered pages, parsing HTML files, and transforming HTML content. Pair it with `fetch` or `axios` for web scraping, or use it standalone for HTML processing.
 
 ## Instructions
 
@@ -35,6 +35,8 @@ Cheerio is a fast, lightweight HTML/XML parser for Node.js that implements a jQu
 ```bash
 npm install cheerio
 ```
+
+Cheerio 1.x is ESM-first and needs Node 20.18.1 or later. Use `import * as cheerio from 'cheerio'` (there is no default export); CommonJS can still `require('cheerio')`.
 
 ### Step 2: Parse HTML and Extract Data
 
@@ -61,19 +63,23 @@ const html = `
 
 const $ = cheerio.load(html)
 
-// Extract all products
-const products = []
-$('.product').each((i, el) => {
-  products.push({
-    id: $(el).attr('data-id'),
-    title: $(el).find('h2').text().trim(),
-    price: $(el).find('.price').text().trim(),
-    link: $(el).find('a').attr('href'),
-  })
-})
+// Extract all products: .map() returns a Cheerio object, .get() turns it into an array
+const products = $('.product').map((i, el) => ({
+  id: $(el).attr('data-id'),
+  title: $(el).find('h2').text().trim(),
+  price: parseFloat($(el).find('.price').text().replace('$', '')),
+  link: $(el).find('a').attr('href'),
+})).get()
 
 console.log(products)
-// [{ id: '1', title: 'Widget Pro', price: '$29.99', link: '/products/widget-pro' }, ...]
+// [{ id: '1', title: 'Widget Pro', price: 29.99, link: '/products/widget-pro' }, ...]
+
+// Declarative alternative: .extract() maps selectors to fields in one call
+const page = $.extract({
+  titles: [{ selector: '.product h2' }],
+  links: [{ selector: '.product a', value: 'href' }],
+})
+// { titles: ['Widget Pro', 'Gadget Max'], links: ['/products/widget-pro', '/products/gadget-max'] }
 ```
 
 ### Step 3: Web Scraping with Fetch
@@ -83,7 +89,10 @@ console.log(products)
 import * as cheerio from 'cheerio'
 
 async function scrape(url) {
-  const response = await fetch(url)
+  const response = await fetch(url, {
+    headers: { 'user-agent': 'price-watch-bot (+https://shop-tools.dev/bot)' },
+  })
+  if (!response.ok) throw new Error(`${url} answered ${response.status}`)
   const html = await response.text()
   const $ = cheerio.load(html)
 
@@ -107,6 +116,8 @@ async function scrape(url) {
 }
 ```
 
+For a plain GET, `await cheerio.fromURL(url)` fetches and parses in one call. It needs `requestOptions.method` set if you pass `requestOptions` at all, so use `fetch` as above when you need custom headers. `cheerio.load(html, { xml: true })` parses RSS and other XML (selectors like `item title` work).
+
 ### Step 4: Advanced Selectors and Traversal
 
 ```javascript
@@ -127,6 +138,7 @@ $('.product').children('h2')     // direct h2 children
 $('.product').find('.price')     // descendants matching .price
 $('.product').next()             // next sibling
 $('.product').prev()             // previous sibling
+$('a').map((i, el) => $(el).attr('href')).get()  // array of values
 
 // Filtering
 $('.product').filter((i, el) => {
@@ -224,5 +236,8 @@ The agent will:
 - Cheerio does not execute JavaScript, fetch external resources, or render CSS — it only parses the HTML string you give it.
 - Always call `.trim()` on extracted text — HTML often contains whitespace, newlines, and indentation that clutters results.
 - Use `.attr('href')` and `.attr('src')` to get link/image URLs. Remember these may be relative — resolve them against the base URL.
-- For large-scale scraping, cheerio is 100x faster than Puppeteer and uses negligible memory. It can process thousands of pages per second.
-- Combine cheerio with `fetch` or `axios` for scraping, and add delays between requests to avoid overwhelming target servers.
+- `.each()` callbacks run synchronously; do not `await` inside them. Collect with `.map(...).get()` and await outside.
+- A selector that matches nothing gives an empty selection, not an error: `.text()` gives `''` and `.attr('x')` gives `undefined`, so check results before using them.
+- Pass untrusted HTML only as data to `cheerio.load`; it never runs scripts. Do not insert scraped HTML into your own pages without sanitising it.
+- Check the site's robots.txt and terms before scraping, send an honest User-Agent, and handle non-200 responses.
+- Combine cheerio with `fetch` (built in to Node 18+) or another HTTP client for scraping, and add delays between requests to avoid overwhelming target servers.
