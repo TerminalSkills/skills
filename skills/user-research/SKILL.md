@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: business
   tags:
   - user-research
@@ -74,7 +74,7 @@ Follow-up probes:
 2. **Past behavior > future intent**: ❌ "Would you use..." ✅ "When was the last time you..."
 3. **Silence is data**: Don't fill pauses — let them think
 4. **Record with permission**: Take notes AND record (you'll miss things in real-time)
-5. **5 interviews = 80% of insights**: Diminishing returns after 5-8 per segment
+5. **Stop when patterns repeat**: new interviews in one segment often stop adding new themes after about 5-8 (a rule of thumb); then move to the next segment
 ```
 
 ### Personas
@@ -114,7 +114,7 @@ Not: your imagined ideal user. Based on: interview patterns.
 - Primary workflow: check status → identify blockers → reassign work
 
 ### Rules for Good Personas
-- Based on interviews (minimum 5), not assumptions
+- Based on interviews (rule of thumb: at least 5 per segment), not assumptions
 - Include behavioral patterns, not just demographics
 - Update quarterly as you learn more
 - Maximum 3-4 personas — more means you haven't segmented enough
@@ -134,7 +134,7 @@ Sequence: Interviews first → Survey to quantify → Interviews to deepen
 
 ### Survey Design Rules
 
-1. **Under 5 minutes**: Response rates drop 50% after 5 minutes
+1. **Short**: long surveys lose respondents; aim for about 5 minutes (rule of thumb)
 2. **One topic per survey**: Don't combine satisfaction + feature requests + NPS
 3. **Specific questions**: ❌ "How satisfied are you?" ✅ "How easy was it to complete [specific task]?"
 4. **Avoid double-barreled**: ❌ "How fast and reliable is the product?" (those are two questions)
@@ -150,9 +150,8 @@ Sequence: Interviews first → Survey to quantify → Interviews to deepen
 **Open-ended**: "What's the one thing you'd change?" (limit to 1-2 open questions)
 
 ### Sample Sizes
-- Directional insight: 30-50 responses
-- Statistically significant: 200+ responses
-- Segment comparison: 100+ per segment
+- Directional insight: roughly 30-50 responses (rule of thumb)
+- Segment comparison: compute the margin of error for each segment before claiming a difference
 ```
 
 ### Usability Testing
@@ -161,7 +160,7 @@ Sequence: Interviews first → Survey to quantify → Interviews to deepen
 ## Run Usability Tests
 
 ### Setup
-- **Participants**: 5 per round (catches ~85% of issues)
+- **Participants**: 5 per round. NN/g reports that a first study with five participants finds about 85% of the usability problems (Nielsen and Landauer model, one user group, one design), so run several small rounds rather than one large test
 - **Tasks**: 3-5 realistic scenarios
 - **Method**: Think-aloud protocol ("narrate your thoughts as you go")
 - **Recording**: Screen + face (tools: Lookback, UserTesting, Maze)
@@ -222,11 +221,11 @@ The agent analyzes the existing work against user research best practices, ident
 
 ## Guidelines
 
-1. **Research before building** — Talk to users before writing a single line of code; every week spent on research saves a month of building the wrong thing
-2. **5 interviews = 80% of insights** — You don't need 50 interviews; 5 per segment reveals the major patterns
+1. **Research before building** — Talk to users before writing a single line of code; research is cheap next to building the wrong thing
+2. **Small samples, repeated** — You rarely need 50 interviews; interviews in one segment often stop adding new themes after roughly 5-8 (a rule of thumb, not a measured law), and a first round of five usability participants finds about 85% of the problems (NN/g)
 3. **Behavior over opinions** — Ask about what people DID, not what they WOULD do; past behavior predicts future behavior
 4. **Personas from data** — Base personas on interview patterns, not marketing assumptions; update them as you learn
 5. **Survey to quantify, not discover** — Use surveys to measure how many people have a problem you discovered in interviews
-6. **Think-aloud usability tests** — 5 users talking through tasks reveals more than 500 survey responses about "satisfaction"
+6. **Think-aloud usability tests** — 5 users talking through tasks surface most usability problems, which a satisfaction survey cannot show
 7. **Synthesize within 24 hours** — Interview insights fade fast; extract key quotes, opportunities, and patterns the same day
 8. **Share findings widely** — Research is wasted if it stays in a document; present findings to engineering, design, and leadership
