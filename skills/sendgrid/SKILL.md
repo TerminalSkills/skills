@@ -1,192 +1,160 @@
 ---
 name: sendgrid
 description: >-
-  Send transactional and marketing emails with SendGrid. Use when a user asks
-  to send emails programmatically, set up transactional email delivery, send
-  bulk marketing emails, manage email templates, track email opens and clicks,
-  set up email authentication (SPF/DKIM/DMARC), handle bounces and
-  unsubscribes, or build email infrastructure. Covers single and bulk sending,
-  dynamic templates, email validation, webhooks, and deliverability setup.
+  SendGrid (by Twilio) sends transactional and marketing email through an HTTP
+  API or SMTP. Use when a user asks to send emails programmatically, set up
+  transactional email delivery, send bulk email with dynamic templates, verify
+  Event Webhook signatures, track opens, clicks and bounces, handle
+  unsubscribes, or set up SPF and DKIM domain authentication. Covers the
+  @sendgrid/mail Node.js client, personalizations for bulk sends, sandbox mode
+  and deliverability setup.
 license: Apache-2.0
-compatibility: 'Node.js 12+, Python 3.6+, any HTTP client'
+compatibility: "Node.js 18+ with @sendgrid/mail 8.x; Python sendgrid package; any HTTP client; SendGrid account and API key"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
-  tags:
-    - sendgrid
-    - email
-    - transactional
-    - marketing
-    - smtp
-    - delivery
+  tags: ["sendgrid", "email", "transactional", "webhooks", "deliverability"]
+  repository: https://github.com/sendgrid/sendgrid-nodejs
 ---
 
 # SendGrid
 
 ## Overview
 
-SendGrid (by Twilio) is the most widely-used transactional email service. It handles email delivery at scale — from single welcome emails to millions of marketing messages. This skill covers sending emails via API and SMTP, dynamic templates, bulk/batch sending, event webhooks (opens, clicks, bounces), email validation, and deliverability configuration (SPF, DKIM, domain authentication).
+SendGrid delivers email at scale through the v3 Mail Send API (`POST https://api.sendgrid.com/v3/mail/send`) or SMTP. This skill covers sending with `@sendgrid/mail` (8.1.x), dynamic templates, bulk sends with personalizations, the signed Event Webhook, and domain authentication. API reference: https://www.twilio.com/docs/sendgrid/api-reference/mail-send/mail-send.
 
 ## Instructions
 
 ### Step 1: Setup
 
+Create an API key with the "Mail Send" permission only (Settings, API Keys) and keep it in an environment variable. The `from` address must belong to an authenticated domain or a verified single sender, otherwise the API returns 403.
+
 ```bash
-# Node.js
-npm install @sendgrid/mail
-
-# Python
-pip install sendgrid
+npm install @sendgrid/mail          # Python: pip install sendgrid
+export SENDGRID_API_KEY="SG.xxxxxxxx"   # set in your secret manager, never commit it
 ```
 
 ```typescript
-// lib/email.ts — SendGrid client setup
+// lib/email.ts
 import sgMail from '@sendgrid/mail'
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+export { sgMail }
 ```
 
-### Step 2: Send Single Email
+### Step 2: Send a single email
 
 ```typescript
-// send-email.ts — Send a transactional email
-import sgMail from '@sendgrid/mail'
+import { sgMail } from './lib/email'
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
-
-// Simple text/HTML email
 await sgMail.send({
-  to: 'recipient@example.com',
-  from: { email: 'noreply@myapp.com', name: 'My App' },
-  subject: 'Welcome to My App',
+  to: 'maria.lopez@northwind-logistics.com',
+  from: { email: 'noreply@northwind-logistics.com', name: 'Northwind Logistics' },
+  subject: 'Welcome to Northwind',
   text: 'Thanks for signing up!',
   html: '<h1>Welcome!</h1><p>Thanks for signing up.</p>',
 })
 
-// With dynamic template (recommended for production)
+// Dynamic template: subject and body live in the template (IDs start with "d-")
 await sgMail.send({
-  to: 'recipient@example.com',
-  from: { email: 'noreply@myapp.com', name: 'My App' },
-  templateId: 'd-abc123def456',    // template ID from SendGrid dashboard
-  dynamicTemplateData: {
-    name: 'Alex',
-    action_url: 'https://myapp.com/verify?token=xyz',
-    company_name: 'My App',
-  },
+  to: 'maria.lopez@northwind-logistics.com',
+  from: { email: 'noreply@northwind-logistics.com', name: 'Northwind Logistics' },
+  templateId: 'd-2f9a1c0b7e4d4c5a8b3e6d1f0a9b8c7d',
+  dynamicTemplateData: { name: 'Maria', action_url: 'https://app.northwind-logistics.com/verify?token=8f3a' },
 })
 ```
 
-### Step 3: Bulk Sending
+`send` resolves with `[response, body]`; a 202 means accepted for processing, not delivered. Failures throw an error whose `response.body.errors` lists the reasons.
+
+To test without delivering, add `mailSettings: { sandboxMode: { enable: true } }`; the API validates the request and returns 200.
+
+### Step 3: Bulk sending
+
+Pick the right method:
+
+- `sgMail.sendMultiple({ to: [a, b, c], ... })` sends one separate email per recipient (recipients do not see each other), same content, one API request.
+- `sgMail.send({ to: [a, b, c], ... })` puts all addresses in one visible "to" list. Do not use it for bulk mail.
+- `sgMail.send([msg1, msg2, ...])` sends the messages in parallel as separate API requests, one request per message. Avoid it for thousands of recipients: it can hit rate limits.
+- For different data per recipient in one request, use `personalizations` (the API accepts up to 1000 per request):
 
 ```typescript
-// bulk-send.ts — Send to multiple recipients efficiently
-// sendMultiple sends individual emails (each recipient only sees their own address)
+const customers = [
+  { email: 'maria.lopez@northwind-logistics.com', name: 'Maria', plan: 'Pro', usage: 8120 },
+  { email: 'james.okafor@brightwave.io', name: 'James', plan: 'Team', usage: 2310 },
+]
 
-await sgMail.sendMultiple({
-  to: ['user1@example.com', 'user2@example.com', 'user3@example.com'],
-  from: { email: 'noreply@myapp.com', name: 'My App' },
-  templateId: 'd-abc123def456',
-  dynamicTemplateData: { announcement: 'New feature launched!' },
-})
-
-// Personalized bulk send (different data per recipient)
-const messages = users.map(user => ({
-  to: user.email,
-  from: { email: 'noreply@myapp.com', name: 'My App' },
-  templateId: 'd-abc123def456',
-  dynamicTemplateData: {
-    name: user.name,
-    plan: user.plan,
-    usage: user.monthlyUsage,
-  },
-}))
-
-// Send in batches of 1000 (SendGrid limit per API call)
-for (let i = 0; i < messages.length; i += 1000) {
-  await sgMail.send(messages.slice(i, i + 1000))
+for (let i = 0; i < customers.length; i += 1000) {
+  await sgMail.send({
+    from: { email: 'billing@northwind-logistics.com', name: 'Northwind Billing' },
+    templateId: 'd-2f9a1c0b7e4d4c5a8b3e6d1f0a9b8c7d',
+    personalizations: customers.slice(i, i + 1000).map((c) => ({
+      to: [{ email: c.email }],
+      dynamicTemplateData: { name: c.name, plan: c.plan, usage: c.usage },
+    })),
+  })
 }
 ```
 
-### Step 4: Event Webhooks
+Each personalization is delivered as its own email. For scheduled sends use `sendAt` (unix seconds, up to 72 hours ahead).
+
+### Step 4: Event Webhook with signature verification
+
+Enable the Event Webhook in Settings, Mail Settings, Event Webhook, choose events (processed, delivered, deferred, bounce, dropped, open, click, spamreport, unsubscribe, group_unsubscribe, group_resubscribe) and turn on Signed Event Webhook Requests to get a public key. SendGrid posts a JSON array of events, signed with ECDSA in the headers `X-Twilio-Email-Event-Webhook-Signature` and `X-Twilio-Email-Event-Webhook-Timestamp`. Verify against the raw request bytes; parsing and re-serializing the JSON breaks the signature.
+
+```bash
+npm install @sendgrid/eventwebhook
+```
 
 ```typescript
-// app/api/webhooks/sendgrid/route.ts — Process email events
-// SendGrid posts events when emails are delivered, opened, clicked, bounced, etc.
-
+// app/api/webhooks/sendgrid/route.ts (Next.js App Router)
 import { NextRequest, NextResponse } from 'next/server'
-
-type SendGridEvent = {
-  email: string
-  event: 'delivered' | 'open' | 'click' | 'bounce' | 'dropped' | 'spamreport' | 'unsubscribe'
-  timestamp: number
-  sg_message_id: string
-  url?: string           // for click events
-  reason?: string        // for bounce/drop events
-}
+import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
 
 export async function POST(req: NextRequest) {
-  const events: SendGridEvent[] = await req.json()
+  const raw = await req.text()
+  const signature = req.headers.get(EventWebhookHeader.SIGNATURE())!
+  const timestamp = req.headers.get(EventWebhookHeader.TIMESTAMP())!
 
-  for (const event of events) {
-    switch (event.event) {
-      case 'bounce':
-        // Mark email as invalid in your database
-        await db.users.update({ email: event.email }, { emailBounced: true })
-        break
-      case 'spamreport':
-      case 'unsubscribe':
-        // Respect opt-out immediately
-        await db.users.update({ email: event.email }, { emailOptOut: true })
-        break
-      case 'open':
-        await db.emailEvents.create({ type: 'open', email: event.email, messageId: event.sg_message_id })
-        break
-      case 'click':
-        await db.emailEvents.create({ type: 'click', email: event.email, url: event.url })
-        break
-    }
+  const verifier = new EventWebhook()
+  const key = verifier.convertPublicKeyToECDSA(process.env.SENDGRID_WEBHOOK_PUBLIC_KEY!)
+  if (!verifier.verifySignature(key, raw, signature, timestamp)) {
+    return NextResponse.json({ error: 'bad signature' }, { status: 403 })
   }
 
+  for (const e of JSON.parse(raw) as Array<{ email: string; event: string; sg_message_id: string }>) {
+    if (e.event === 'bounce' || e.event === 'dropped') await markUndeliverable(e.email)
+    if (e.event === 'spamreport' || e.event === 'unsubscribe') await optOut(e.email)
+  }
   return NextResponse.json({ received: true })
 }
 ```
 
-### Step 5: Domain Authentication
+`markUndeliverable` and `optOut` are your own database functions. Respond with 2xx quickly; SendGrid retries failed deliveries for up to 24 hours. Open events are unreliable (mail clients prefetch images), so do not base decisions on them.
 
-```bash
-# Set up domain authentication for deliverability
-# In SendGrid dashboard: Settings → Sender Authentication → Domain Authentication
-# This adds DNS records for your domain:
+### Step 5: Domain authentication
 
-# SPF — tells receiving servers that SendGrid can send on your behalf
-# Type: CNAME, Host: em1234.yourdomain.com → u1234.wl.sendgrid.net
-
-# DKIM — cryptographic signature proving email integrity
-# Type: CNAME, Host: s1._domainkey.yourdomain.com → s1.domainkey.u1234.wl.sendgrid.net
-# Type: CNAME, Host: s2._domainkey.yourdomain.com → s2.domainkey.u1234.wl.sendgrid.net
-
-# After adding DNS records, verify in SendGrid dashboard
-# Deliverability improves significantly with proper authentication
-```
+In Settings, Sender Authentication, Authenticate Your Domain, SendGrid generates DNS records for your DNS provider. With automated security these are three CNAMEs: a link-branding/return-path host such as `em1234.northwind-logistics.com` pointing to `u1234.wl.sendgrid.net`, and two DKIM hosts `s1._domainkey` and `s2._domainkey` pointing to `s1.domainkey.u1234.wl.sendgrid.net` and `s2.domainkey.u1234.wl.sendgrid.net`. Copy the exact values the dashboard shows (the numbers differ per account), then click Verify. Add a DMARC TXT record yourself, for example `_dmarc` with `v=DMARC1; p=none; rua=mailto:dmarc@northwind-logistics.com`, and tighten the policy once reports look clean.
 
 ## Examples
 
-### Example 1: Set up transactional email for a SaaS app
-**User prompt:** "I need to send welcome emails, password resets, and invoice receipts. Set up SendGrid with templates and track delivery."
+### Example 1: "Send welcome and password-reset emails from my SaaS"
 
-The agent will:
-1. Configure SendGrid with domain authentication.
-2. Create dynamic templates for each email type in the dashboard.
-3. Build a reusable email service module with template-based sending.
-4. Set up event webhooks to track delivery, bounces, and opt-outs.
-5. Add bounce handling to prevent sending to invalid addresses.
+Authenticate the domain, create two dynamic templates (welcome, reset) in the dashboard and note their `d-` IDs. Add `lib/email.ts` from step 1 and a helper `sendTemplate(to, templateId, data)` that calls `sgMail.send` with `dynamicTemplateData`. Result: the API call returns status 202 and the message appears in Email Activity within a minute.
+
+### Example 2: "Announce a price change to 4,200 customers"
+
+Load customers from the database, use the personalizations loop from step 3 (five requests of up to 1000), include an unsubscribe link or SendGrid's subscription tracking, validate the payload first with sandbox mode (it delivers nothing), then send a real test to your own address before the full run.
+
+### Example 3: "Stop sending to bounced addresses"
+
+Deploy the webhook from step 4, store `bounce`, `dropped` and `spamreport` addresses, and filter them out before every send. SendGrid also keeps its own suppression lists (Suppressions in the dashboard, `GET /v3/suppression/bounces`).
 
 ## Guidelines
 
-- Always use dynamic templates instead of inline HTML — they're version-controlled in SendGrid, support A/B testing, and non-engineers can edit them.
-- Set up domain authentication (SPF + DKIM) before sending production emails. Without it, your emails will land in spam.
-- Handle bounces and unsubscribes immediately via webhooks — continuing to send to bounced addresses damages your sender reputation.
-- Use `sendMultiple` (not `send` with multiple `to` addresses) for bulk emails — it sends individual messages so recipients don't see each other's addresses.
-- SendGrid's free tier includes 100 emails/day. For production, the Essentials plan starts at $20/month for 50K emails.
-- Always include an unsubscribe link in marketing emails — it's required by CAN-SPAM law and improves deliverability.
+- Authenticate the sending domain before production sends; unauthenticated mail often lands in spam.
+- Use a restricted API key per service, rotate it if leaked, and never put it in client-side code.
+- Verify webhook signatures and ignore unsigned posts.
+- Marketing mail needs an unsubscribe mechanism (CAN-SPAM, GDPR); keep bounce and spam-report suppression immediate.
+- Free tiers and quotas change; Twilio currently offers a free trial. Check the pricing page https://www.twilio.com/en-us/sendgrid/pricing before promising a limit.
+- Rate limits return 429 with `X-RateLimit-*` headers; back off and retry.
