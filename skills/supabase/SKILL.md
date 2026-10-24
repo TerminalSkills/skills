@@ -1,19 +1,19 @@
 ---
 name: supabase
 description: >-
-  Build applications with Supabase as the backend — Postgres database,
-  authentication, real-time subscriptions, storage, and edge functions. Use when
-  someone asks to "set up Supabase", "add authentication", "create a real-time
-  app", "set up row-level security", "configure Supabase storage", "write edge
-  functions", or "migrate from Firebase to Supabase". Covers project setup,
-  schema design with RLS, auth flows, real-time subscriptions, file storage, and
-  edge functions.
+  Supabase is an open-source backend platform built on Postgres, with auth,
+  realtime, storage and edge functions. Use when someone asks to "set up
+  Supabase", "add authentication", "create a real-time app", "set up row-level
+  security", "configure Supabase storage", "write edge functions", or "migrate
+  from Firebase to Supabase". Covers the CLI, migrations, RLS schema design,
+  auth flows, realtime subscriptions, storage policies and edge functions.
 license: Apache-2.0
-compatibility: 'Supabase JS v2+, any framework (Next.js, React, Vue, SvelteKit, Flutter)'
+compatibility: "supabase-js v2, Supabase CLI 2.x (Docker for local development); any framework (Next.js, React, Vue, SvelteKit, Flutter)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
+  repository: https://github.com/supabase/supabase
   tags:
     - supabase
     - postgres
@@ -26,37 +26,55 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents build full-stack applications using Supabase as the backend platform. It covers Postgres database design with Row-Level Security, authentication flows (email, OAuth, magic links), real-time subscriptions, file storage with access policies, and edge functions for server-side logic.
+This skill helps AI agents build full-stack applications on Supabase: Postgres schema design with Row Level Security (RLS), authentication flows (email, OAuth, magic links), realtime subscriptions, file storage with access policies, and edge functions. Checked against the Supabase docs, CLI 2.122.0 and `@supabase/supabase-js` 2.118.
 
 ## Instructions
 
-### Step 1: Project Setup
+### Step 1: CLI and project setup
+
+Install the CLI per project (`npm install -g supabase` is not a supported install method) or with Homebrew:
 
 ```bash
-npm install -g supabase
-supabase init          # Init local project
-supabase start         # Start local development
-supabase link --project-ref your-project-ref
+npm install -D supabase                  # then run it as: npx supabase <command>
+brew install supabase/tap/supabase       # macOS and Linux alternative
+
+npx supabase init                        # creates supabase/config.toml
+npx supabase start                       # local stack in Docker; prints local URL and keys
+npx supabase login                       # opens the browser
+npx supabase link --project-ref abcdefghijklmnopqrst   # 20-letter ref from the dashboard URL
 ```
+
+API keys: use the **publishable** key (`sb_publishable_...`) in anything you ship and the **secret** key (`sb_secret_...`) only on servers and edge functions. The old `anon` and `service_role` JWT keys still work but are being deprecated by the end of 2026.
 
 ```typescript
 // lib/supabase.ts
 import { createClient } from '@supabase/supabase-js';
 
-// Browser client (anon key, RLS enforced)
+// Browser client: publishable key, RLS enforced
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 );
 
-// Server client (service role key, bypasses RLS — NEVER expose in client code)
+// Server-only client: secret key bypasses RLS. Never import this in client code.
 export const supabaseAdmin = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SECRET_KEY!,
+  { auth: { persistSession: false } }
 );
 ```
 
-### Step 2: Database Schema with Row-Level Security
+For server-rendered frameworks (Next.js, SvelteKit, Remix) add `@supabase/ssr`, which stores the session in cookies. On the server verify the caller with `supabase.auth.getClaims()` or `getUser()`, never with `getSession()` alone.
+
+### Step 2: Schema, migrations and RLS
+
+Put every schema change in a migration file, test it locally, then push it:
+
+```bash
+npx supabase migration new create_profiles_and_projects   # supabase/migrations/<timestamp>_...sql
+npx supabase db reset                                     # rebuild the local database from migrations
+npx supabase db push                                      # apply to the linked remote project
+```
 
 ```sql
 create table public.profiles (
@@ -73,34 +91,44 @@ create table public.projects (
   description text,
   owner_id uuid references public.profiles(id) on delete cascade not null,
   is_public boolean default false,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  created_at timestamptz default now()
 );
+create index projects_owner_id_idx on public.projects (owner_id);
 
--- Enable RLS
 alter table public.profiles enable row level security;
 alter table public.projects enable row level security;
 
--- Profiles: anyone can read, only owner can update
-create policy "Public profiles" on public.profiles for select using (true);
-create policy "Users update own profile" on public.profiles for update using (auth.uid() = id);
+-- Wrap auth.uid() in a select so Postgres evaluates it once per query, not per row
+create policy "Profiles are public" on public.profiles for select using (true);
+create policy "Users update own profile" on public.profiles for update to authenticated
+  using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
 
--- Projects: public visible to all, private only to owner/members
-create policy "Public projects visible" on public.projects for select using (is_public = true);
-create policy "Owners see own projects" on public.projects for select using (owner_id = auth.uid());
-create policy "Owners create projects" on public.projects for insert with check (auth.uid() = owner_id);
-create policy "Owners update projects" on public.projects for update using (owner_id = auth.uid());
-create policy "Owners delete projects" on public.projects for delete using (owner_id = auth.uid());
+create policy "Public projects are visible" on public.projects for select using (is_public);
+create policy "Owners read own projects" on public.projects for select to authenticated
+  using (owner_id = (select auth.uid()));
+create policy "Owners create projects" on public.projects for insert to authenticated
+  with check (owner_id = (select auth.uid()));
+create policy "Owners update projects" on public.projects for update to authenticated
+  using (owner_id = (select auth.uid())) with check (owner_id = (select auth.uid()));
+create policy "Owners delete projects" on public.projects for delete to authenticated
+  using (owner_id = (select auth.uid()));
 
--- Auto-create profile on signup
-create or replace function public.handle_new_user()
-returns trigger as $$
+-- Auto-create a profile on signup. SECURITY DEFINER functions must pin search_path.
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
 begin
   insert into public.profiles (id, username, full_name)
-  values (new.id, new.raw_user_meta_data->>'username', new.raw_user_meta_data->>'full_name');
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'username', 'user_' || left(new.id::text, 8)),  -- OAuth sign-ups send no username
+    new.raw_user_meta_data->>'full_name'
+  );
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -110,159 +138,155 @@ create trigger on_auth_user_created
 ### Step 3: Authentication
 
 ```typescript
-// Sign up
+// Sign up (with email confirmation on, the user must confirm before a session exists)
 const { data, error } = await supabase.auth.signUp({
-  email: 'user@example.com', password: 'secure-password',
-  options: { data: { username: 'johndoe', full_name: 'John Doe' } }
+  email: 'maria.lopez@northwind.example',
+  password: process.env.TEST_USER_PASSWORD!,
+  options: { data: { username: 'marialopez', full_name: 'Maria Lopez' } },
 });
 
-// Sign in
-await supabase.auth.signInWithPassword({ email: 'user@example.com', password: 'secure-password' });
+await supabase.auth.signInWithPassword({ email: 'maria.lopez@northwind.example', password });
 
-// OAuth (GitHub, Google, etc.)
+// OAuth (GitHub, Google, ...): add the provider and redirect URL in the dashboard first
 await supabase.auth.signInWithOAuth({
   provider: 'github',
-  options: { redirectTo: 'http://localhost:3000/auth/callback' }
+  options: { redirectTo: 'http://localhost:3000/auth/callback' },
 });
 
 // Magic link
 await supabase.auth.signInWithOtp({
-  email: 'user@example.com',
-  options: { emailRedirectTo: 'http://localhost:3000/auth/callback' }
+  email: 'maria.lopez@northwind.example',
+  options: { emailRedirectTo: 'http://localhost:3000/auth/callback' },
 });
 
-// Auth state listener
-supabase.auth.onAuthStateChange((event, session) => {
+const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_IN') console.log('Signed in:', session?.user.id);
 });
+// subscription.unsubscribe() on cleanup
 ```
 
-### Step 4: CRUD Operations
+### Step 4: Data access
 
 ```typescript
-// Insert
-const { data } = await supabase.from('projects')
-  .insert({ name: 'My Project', owner_id: user.id }).select().single();
+const { data: project, error } = await supabase.from('projects')
+  .insert({ name: 'Website redesign', owner_id: user.id }).select().single();
 
-// Select with joins
-const { data } = await supabase.from('projects')
-  .select(`*, owner:profiles!owner_id(username, avatar_url)`)
+const { data: projects } = await supabase.from('projects')
+  .select('*, owner:profiles!owner_id(username, avatar_url)')
   .eq('is_public', true).order('created_at', { ascending: false }).range(0, 9);
 
-// Update
-await supabase.from('projects').update({ name: 'Updated' }).eq('id', projectId).select().single();
-
-// Delete
-await supabase.from('projects').delete().eq('id', projectId);
-
-// Upsert
-await supabase.from('profiles').upsert({ id: user.id, username: 'newname' }).select().single();
-
-// RPC (database functions)
-await supabase.rpc('get_project_stats', { project_id: projectId });
+await supabase.from('projects').update({ name: 'Website redesign v2' }).eq('id', project.id).select().single();
+await supabase.from('projects').delete().eq('id', project.id);
+await supabase.from('profiles').upsert({ id: user.id, username: 'marialopez' }).select().single();
+await supabase.rpc('get_project_stats', { project_id: project.id });   // Postgres function
 ```
 
-### Step 5: Real-Time Subscriptions
+Every call returns `{ data, error }` and does not throw: check `error`. Generate types with `npx supabase gen types typescript --linked > lib/database.types.ts` and pass `createClient<Database>(...)`.
+
+### Step 5: Realtime
+
+Tables must be in the `supabase_realtime` publication, and RLS is applied to the events each client receives:
+
+```sql
+alter publication supabase_realtime add table public.projects;
+```
 
 ```typescript
-// Subscribe to table changes
 const channel = supabase.channel('project-changes')
-  .on('postgres_changes', {
-    event: '*', schema: 'public', table: 'projects', filter: 'owner_id=eq.' + user.id
-  }, (payload) => console.log('Change:', payload.eventType, payload.new))
+  .on('postgres_changes',
+    { event: '*', schema: 'public', table: 'projects', filter: `owner_id=eq.${user.id}` },
+    (payload) => console.log(payload.eventType, payload.new))
   .subscribe();
 
-// Presence (who's online)
-const presence = supabase.channel('room-1');
-presence.on('presence', { event: 'sync' }, () => {
-  console.log('Online:', Object.keys(presence.presenceState()).length);
+const room = supabase.channel('room-1');          // presence: who is online
+room.on('presence', { event: 'sync' }, () => {
+  console.log('Online:', Object.keys(room.presenceState()).length);
 }).subscribe(async (status) => {
-  if (status === 'SUBSCRIBED') await presence.track({ user_id: user.id });
+  if (status === 'SUBSCRIBED') await room.track({ user_id: user.id });
 });
 
-// Cleanup
-supabase.removeChannel(channel);
+supabase.removeChannel(channel);                  // on unmount
 ```
 
-### Step 6: File Storage
+Delete events cannot be filtered and RLS is not applied to them.
+
+### Step 6: Storage
 
 ```sql
 insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);
 
-create policy "Users upload own avatar" on storage.objects for insert
-  with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+create policy "Users upload to own folder" on storage.objects for insert to authenticated
+  with check (bucket_id = 'avatars' and (select auth.uid())::text = (storage.foldername(name))[1]);
 create policy "Anyone views avatars" on storage.objects for select using (bucket_id = 'avatars');
 ```
 
 ```typescript
-// Upload
 await supabase.storage.from('avatars').upload(`${user.id}/avatar.png`, file, { upsert: true });
-
-// Get public URL
 const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(`${user.id}/avatar.png`);
-
-// Download / List / Delete
-await supabase.storage.from('avatars').download(`${user.id}/avatar.png`);
 await supabase.storage.from('avatars').list(user.id, { limit: 100 });
 await supabase.storage.from('avatars').remove([`${user.id}/avatar.png`]);
 ```
 
-### Step 7: Edge Functions
+`upsert: true` also needs an `update` policy on `storage.objects`. For private buckets use `createSignedUrl(path, 3600)`.
 
-```typescript
-// supabase/functions/send-welcome-email/index.ts
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-serve(async (req) => {
-  const { record } = await req.json();
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', record.id).single();
-
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'welcome@example.com', to: record.email, subject: 'Welcome!', html: `<h1>Welcome, ${profile?.full_name}!</h1>` }),
-  });
-  return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
-});
-```
+### Step 7: Edge functions
 
 ```bash
-supabase functions deploy send-welcome-email
-supabase secrets set RESEND_API_KEY=re_xxxxx
+npx supabase functions new send-welcome-email    # supabase/functions/send-welcome-email/index.ts
+npx supabase functions serve                   # serves all functions; needs Docker
+npx supabase secrets set RESEND_API_KEY=...      # value from your shell, not typed into the repo
+npx supabase functions deploy send-welcome-email
 ```
+
+Functions run on Deno. The generated template wraps the handler in `withSupabase` from `@supabase/server`, which checks the caller (`auth: 'user' | 'secret' | 'publishable' | 'none'`) and gives you a client on `ctx`:
+
+```typescript
+import "@supabase/functions-js/edge-runtime.d.ts";
+import { withSupabase } from "@supabase/server";
+
+export default {
+  fetch: withSupabase({ auth: "user" }, async (_req, ctx) => {
+    // ctx.supabase is scoped to the caller's RLS; ctx.supabaseAdmin bypasses it
+    const { data: profile } = await ctx.supabase.from("profiles")
+      .select("full_name").eq("id", ctx.userClaims?.id).single();
+
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Northwind <welcome@mail.northwind.example>",
+        to: ctx.userClaims?.email,
+        subject: "Welcome to Northwind",
+        html: `<h1>Welcome, ${profile?.full_name ?? "there"}!</h1>`,
+      }),
+    });
+    return Response.json({ sent: res.ok }, { status: res.ok ? 200 : 502 });
+  }),
+};
+```
+
+`SUPABASE_URL` and the keys are available inside functions automatically. For webhooks and cron calls use `auth: 'secret'` or `'none'` with a signature check, and set `verify_jwt = false` for that function in `config.toml`.
 
 ## Examples
 
-### Example 1: Build a project management app with real-time updates
+### Example 1: Project management app with realtime updates
+
 **User prompt:** "Set up a Supabase backend for a project management app where users can create projects, invite members, and see changes in real time."
 
-The agent will:
-1. Create `profiles`, `projects`, and `project_members` tables with proper foreign keys
-2. Enable RLS on all tables with policies: owners manage projects, members get read access, public projects visible to everyone
-3. Add a database trigger to auto-create a profile when a user signs up via `auth.users`
-4. Set up real-time subscriptions on the `projects` table filtered by `owner_id` so the dashboard updates instantly
-5. Configure authentication with email/password and GitHub OAuth sign-in
+The agent runs `supabase init` and `supabase migration new`, creates `profiles`, `projects` and `project_members` with foreign keys, enables RLS with owner/member policies, adds the signup trigger, adds `projects` to the `supabase_realtime` publication, subscribes the dashboard to changes filtered by `owner_id`, and applies it locally with `supabase db reset` before `supabase db push`.
 
-### Example 2: Add avatar uploads with storage policies
+### Example 2: Avatar uploads
+
 **User prompt:** "Add profile picture uploads to my Supabase app. Users should only be able to upload their own avatar but anyone can view them."
 
-The agent will:
-1. Create a public `avatars` storage bucket
-2. Add storage policies: insert/update restricted to `auth.uid()::text = (storage.foldername(name))[1]`, select open to all
-3. Implement the upload using `supabase.storage.from('avatars').upload()` with the user ID as the folder path
-4. Get the public URL with `getPublicUrl()` and update the user's `profiles.avatar_url` field
+The agent creates a public `avatars` bucket, adds the insert policy on `(storage.foldername(name))[1] = auth.uid()::text` and an open select policy, uploads to `${user.id}/avatar.png`, then saves `getPublicUrl()` into `profiles.avatar_url`.
 
 ## Guidelines
 
-- Always enable RLS on every table — a table without RLS is publicly accessible via the anon key
-- Use `auth.uid()` in RLS policies, never trust client-provided user IDs
-- Use `security definer` functions for operations that need elevated access
-- Create database triggers for auto-populating profiles, updated_at, etc.
-- Use migrations for all schema changes — never modify production schema manually
-- Keep the service role key server-side only — never expose in client bundles
-- Use `select()` after insert/update to get the resulting row
-- Add proper indexes for columns used in RLS policies and frequent queries
-- Use Supabase CLI for local development — test RLS policies before deploying
-- Unsubscribe from real-time channels on component unmount to prevent memory leaks
+- Enable RLS on every table in an exposed schema: without policies a table is open to anyone holding the publishable key.
+- Never trust user IDs sent by the client; use `auth.uid()` in policies. Never base authorization on `user_metadata`, which users can edit.
+- Keep the secret key (and legacy `service_role`) on the server; if it leaks, rotate it in the dashboard.
+- `security definer` functions must set `search_path = ''` and use schema-qualified names.
+- Index columns used in RLS policies and filters; wrap `auth.uid()` in `(select ...)`.
+- All schema changes go through migrations; use `supabase db push`, not manual edits to production.
+- Unsubscribe realtime channels and auth listeners when a component unmounts.
