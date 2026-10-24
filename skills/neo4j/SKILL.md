@@ -26,13 +26,14 @@ Neo4j stores data as nodes (with labels and properties) and typed, directed rela
 
 ### Step 1: Run Neo4j locally
 ```bash
+export NEO4J_PASSWORD="$(openssl rand -base64 18)"   # keep it in your secret store
 docker run -d --name neo4j \
   -p 127.0.0.1:7474:7474 -p 127.0.0.1:7687:7687 \
   -v neo4j_data:/data \
-  -e NEO4J_AUTH=neo4j/Quartz-Harbor-2026 \
-  neo4j:latest
+  -e NEO4J_AUTH="neo4j/${NEO4J_PASSWORD}" \
+  neo4j:2026.10.1
 ```
-Browser UI at http://localhost:7474, Bolt at `neo4j://localhost:7687`. The password must be at least 8 characters and is applied only on the first start of an empty `/data` volume. Publishing ports on `127.0.0.1` keeps the database off the network. Run queries from a shell with `docker exec -it neo4j cypher-shell -u neo4j -p <password>`.
+Browser UI at http://localhost:7474, Bolt at `neo4j://localhost:7687`. The password must be at least 8 characters and is applied only on the first start of an empty `/data` volume. Publishing ports on `127.0.0.1` keeps the database off the network. Run queries from a shell with `docker exec -it neo4j cypher-shell -u neo4j -p "$NEO4J_PASSWORD"`.
 
 Drivers:
 ```bash
