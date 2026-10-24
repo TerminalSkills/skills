@@ -1,7 +1,7 @@
 ---
 title: Build an Interactive 3D Website with React Three Fiber
 slug: build-interactive-3d-website-with-react-three-fiber
-description: Create an immersive 3D product landing page using React Three Fiber for declarative Three.js scenes, Drei for pre-built helpers, and Spline for designer-friendly 3D editing — building a sneaker configurator where users rotate, zoom, and customize colors in real-time with 60fps performance on mobile.
+description: Create an immersive 3D product landing page using React Three Fiber for declarative Three.js scenes, Drei for pre-built helpers, and Spline for designer-friendly 3D editing — building a sneaker configurator where users rotate, zoom and recolor a model in real time, with adaptive quality for phones.
 skills: [react-three-fiber, drei, spline]
 category: design
 tags: [3d, webgl, react, threejs, product-configurator, interactive, creative-coding]
@@ -9,168 +9,131 @@ tags: [3d, webgl, react, threejs, product-configurator, interactive, creative-co
 
 # Build an Interactive 3D Website with React Three Fiber
 
-Priya is a frontend developer at a sneaker brand. The marketing team wants a landing page where customers can rotate a 3D shoe, change colors, and see it from every angle — like Nike's product pages but custom-built. The page needs to load fast (under 3 seconds), run at 60fps on iPhone 13, and be maintainable by a React team that's never touched WebGL.
+Priya is a frontend developer at a sneaker brand. The marketing team wants a landing page where customers can rotate a 3D shoe, change colors, and see it from every angle. The page needs to load fast, stay smooth on mid-range phones, and be maintainable by a React team that has never touched WebGL.
 
-Priya uses React Three Fiber (R3F) to write Three.js as React components, Drei for pre-built 3D helpers (orbit controls, environment maps, text), and Spline for the initial 3D scene design that the marketing team can edit without code.
+Priya uses React Three Fiber (R3F) to write Three.js as React components, Drei for ready-made helpers (controls, environment maps, text, loaders), and Spline for a hero scene the marketing team can edit without code.
 
-## Step 1: 3D Scene with React Three Fiber
+## Setup
 
-React Three Fiber lets the team write Three.js using JSX — every mesh, light, and material is a React component with props, state, and hooks.
+R3F 9 requires React 19 and Drei 10 pairs with it. On React 18, install `@react-three/fiber@8` and `@react-three/drei@9` instead. The examples below were type-checked against R3F 9.8, Drei 10.7 and three 0.186.
+
+```bash
+npm install three @react-three/fiber @react-three/drei @react-three/postprocessing
+npm install -D @types/three
+```
+
+## Step 1: 3D scene with React Three Fiber
+
+Every mesh, light and material is a React component with props, state and hooks. `shadows` on the `Canvas` is what makes `castShadow` do anything, and Drei's `Loader` is a DOM overlay, so it lives outside the `Canvas`.
 
 ```tsx
-// src/components/ProductScene.tsx — Main 3D scene
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Environment, ContactShadows, Float } from "@react-three/drei";
-import { Suspense, useRef, useState } from "react";
-import { SneakerModel } from "./SneakerModel";
-import { LoadingSpinner } from "./LoadingSpinner";
+// src/ProductScene.tsx
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, ContactShadows, Float, PerformanceMonitor, Loader } from "@react-three/drei";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+import { Suspense, useState } from "react";
+import { SneakerModel, type MaterialName } from "./SneakerModel";
 
 interface ProductSceneProps {
-  selectedColor: string;                  // Hex color from UI
-  selectedMaterial: "leather" | "mesh" | "suede";
+  selectedColor: string; // hex color from the UI
+  selectedMaterial: MaterialName;
 }
 
 export function ProductScene({ selectedColor, selectedMaterial }: ProductSceneProps) {
+  const [dpr, setDpr] = useState(1.5);
+
   return (
-    <Canvas
-      camera={{ position: [0, 2, 5], fov: 45 }}
-      dpr={[1, 2]}                        // Adaptive resolution (1x–2x)
-      gl={{ antialias: true, alpha: true }}
-      style={{ height: "100vh" }}
-    >
-      {/* HDR environment for realistic reflections */}
-      <Environment preset="studio" />
+    <>
+      <Canvas shadows camera={{ position: [0, 2, 5], fov: 45 }} dpr={dpr} style={{ height: "100vh" }}>
+        {/* Lowers pixel ratio when the frame rate drops, raises it when there is headroom */}
+        <PerformanceMonitor onChange={({ factor }) => setDpr(Math.round((0.5 + 1.5 * factor) * 10) / 10)} />
+        <Environment preset="studio" />
+        <ambientLight intensity={0.3} />
+        <directionalLight position={[5, 5, 5]} intensity={1.2} castShadow shadow-mapSize={[1024, 1024]} />
 
-      {/* Soft ambient + directional light */}
-      <ambientLight intensity={0.3} />
-      <directionalLight
-        position={[5, 5, 5]}
-        intensity={1.2}
-        castShadow
-        shadow-mapSize={[1024, 1024]}     // Shadow quality
-      />
+        <Suspense fallback={null}>
+          <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
+            <SneakerModel color={selectedColor} material={selectedMaterial} />
+          </Float>
+          <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={10} blur={2.5} />
+        </Suspense>
 
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* Floating animation for visual interest */}
-        <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
-          <SneakerModel
-            color={selectedColor}
-            material={selectedMaterial}
-          />
-        </Float>
-
-        {/* Soft shadow on ground plane */}
-        <ContactShadows
-          position={[0, -1.5, 0]}
-          opacity={0.4}
-          scale={10}
-          blur={2.5}
+        <OrbitControls
+          enablePan={false}
+          minDistance={3}
+          maxDistance={8}
+          minPolarAngle={Math.PI / 6}
+          maxPolarAngle={Math.PI / 2}
+          autoRotate
+          autoRotateSpeed={0.5}
         />
-      </Suspense>
 
-      {/* User-controlled camera rotation */}
-      <OrbitControls
-        enablePan={false}                 // Lock pan (product focus)
-        enableZoom={true}
-        minDistance={3}                    // Don't zoom too close
-        maxDistance={8}                    // Don't zoom too far
-        minPolarAngle={Math.PI / 6}       // Don't go below ground
-        maxPolarAngle={Math.PI / 2}       // Don't go above top
-        autoRotate                        // Slow auto-rotate when idle
-        autoRotateSpeed={0.5}
-      />
-    </Canvas>
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.025} intensity={0.5} />
+          <Vignette offset={0.3} darkness={0.5} />
+        </EffectComposer>
+      </Canvas>
+      <Loader />
+    </>
   );
 }
 ```
 
+The model component eases the material toward the chosen color inside `useFrame`, so the transition is independent of frame rate. `"Body"` is the material name the 3D artist gave the upper in this particular file; open the GLB in a viewer (or log `materials`) and use your own names.
+
 ```tsx
-// src/components/SneakerModel.tsx — 3D model with dynamic materials
+// src/SneakerModel.tsx
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
+import { useMemo } from "react";
 import * as THREE from "three";
 
-interface SneakerModelProps {
-  color: string;
-  material: "leather" | "mesh" | "suede";
-}
+export type MaterialName = "leather" | "mesh" | "suede";
 
-// Material presets with PBR properties
-const materialPresets = {
+const presets = {
   leather: { roughness: 0.4, metalness: 0.1, clearcoat: 0.8 },
   mesh: { roughness: 0.8, metalness: 0.0, clearcoat: 0.0 },
   suede: { roughness: 0.9, metalness: 0.0, clearcoat: 0.0 },
 };
 
-export function SneakerModel({ color, material }: SneakerModelProps) {
-  const { scene, nodes, materials } = useGLTF("/models/sneaker.glb");
-  const meshRef = useRef<THREE.Mesh>(null);
+export function SneakerModel({ color, material }: { color: string; material: MaterialName }) {
+  const { scene, materials } = useGLTF("/models/sneaker.glb");
+  const body = materials["Body"] as THREE.MeshPhysicalMaterial;
+  const target = useMemo(() => new THREE.Color(color), [color]);
+  const preset = presets[material];
 
-  // Animate color transitions smoothly
-  useEffect(() => {
-    const targetColor = new THREE.Color(color);
-    const bodyMaterial = materials["Body"] as THREE.MeshPhysicalMaterial;
+  useFrame((_, delta) => {
+    body.color.lerp(target, 1 - Math.exp(-8 * delta));
+    body.roughness = preset.roughness;
+    body.metalness = preset.metalness;
+    body.clearcoat = preset.clearcoat;
+  });
 
-    // Lerp to new color over 300ms
-    const startColor = bodyMaterial.color.clone();
-    let t = 0;
-    const animate = () => {
-      t += 0.05;
-      if (t <= 1) {
-        bodyMaterial.color.lerpColors(startColor, targetColor, t);
-        requestAnimationFrame(animate);
-      }
-    };
-    animate();
-
-    // Apply material preset
-    const preset = materialPresets[material];
-    bodyMaterial.roughness = preset.roughness;
-    bodyMaterial.metalness = preset.metalness;
-    bodyMaterial.clearcoat = preset.clearcoat;
-  }, [color, material, materials]);
-
-  return <primitive ref={meshRef} object={scene} scale={1.5} />;
+  return <primitive object={scene} scale={1.5} />;
 }
 
-// Preload model during page load
 useGLTF.preload("/models/sneaker.glb");
 ```
 
-## Step 2: Pre-Built Helpers with Drei
+## Step 2: Annotations with Drei
 
-Drei provides 100+ ready-made components that would take days to build from scratch: text, HTML overlays in 3D space, performance monitors, loaders, and post-processing effects.
+`Html` pins DOM elements to a point in 3D space, and `Text` renders SDF text that faces the camera inside a `Billboard`. Put the component inside the `Canvas`.
 
 ```tsx
-// src/components/ProductAnnotations.tsx — HTML labels in 3D space
+// src/ProductAnnotations.tsx
 import { Html, Text, Billboard } from "@react-three/drei";
 
 export function ProductAnnotations() {
   return (
     <>
-      {/* HTML overlay positioned in 3D space */}
-      <Html
-        position={[1.2, 0.5, 0]}
-        distanceFactor={5}                // Scale with distance
-        occlude                           // Hide when behind objects
-      >
-        <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg text-sm backdrop-blur">
-          <span className="font-bold">AirFlex™ Sole</span>
-          <p className="text-xs text-gray-300 mt-1">30% lighter than standard foam</p>
+      <Html position={[1.2, 0.5, 0]} distanceFactor={5} occlude>
+        <div className="rounded-lg bg-black/80 px-3 py-1.5 text-sm text-white backdrop-blur">
+          <span className="font-bold">Foam midsole</span>
         </div>
       </Html>
-
-      {/* 3D text that always faces camera */}
       <Billboard position={[-1.5, 1.5, 0]}>
-        <Text
-          fontSize={0.15}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          font="/fonts/Inter-Bold.woff"
-        >
-          Recycled Mesh
+        <Text fontSize={0.15} color="#ffffff" anchorX="center" anchorY="middle" font="/fonts/Inter-Bold.woff">
+          Recycled mesh
         </Text>
       </Billboard>
     </>
@@ -178,84 +141,52 @@ export function ProductAnnotations() {
 }
 ```
 
-```tsx
-// src/components/PostProcessing.tsx — Visual effects
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
+Only claim things the brand can back up in labels like these; the text above is placeholder copy.
 
-export function PostProcessing() {
-  return (
-    <EffectComposer>
-      <Bloom
-        luminanceThreshold={0.9}
-        luminanceSmoothing={0.025}
-        intensity={0.5}                   // Subtle glow on bright areas
-      />
-      <Vignette offset={0.3} darkness={0.5} />
-    </EffectComposer>
-  );
-}
+## Step 3: Designer-editable hero with Spline
+
+The marketing team builds the hero in Spline's browser editor (camera, lights, animation, hover and click events). In the editor, **Export → Code → React** gives a `scene.splinecode` URL. After the team changes the scene they update the export, and the same URL serves the new version without a developer deploy, so review changes before promoting them.
+
+```bash
+npm install @splinetool/react-spline @splinetool/runtime
 ```
 
-## Step 3: Designer-Friendly Editing with Spline
-
-The marketing team needs to tweak the scene without writing code. Spline provides a Figma-like 3D editor that exports directly to React.
-
 ```tsx
-// src/components/SplineHero.tsx — Spline scene as React component
+// src/SplineHero.tsx
 import Spline from "@splinetool/react-spline";
+import type { Application } from "@splinetool/runtime";
 
 export function SplineHero() {
+  function onLoad(spline: Application) {
+    // Object names are the ones set in the Spline editor
+    const shoe = spline.findObjectByName("Sneaker");
+    if (shoe) shoe.visible = true;
+  }
   return (
-    <Spline
-      scene="https://prod.spline.design/abc123/scene.splinecode"
-      onLoad={(spline) => {
-        // Access Spline objects programmatically
-        const shoe = spline.findObjectByName("Sneaker");
-        // Respond to user interactions defined in Spline
-      }}
-      style={{ width: "100%", height: "100vh" }}
-    />
-  );
-}
-
-// Marketing team workflow:
-// 1. Open scene in Spline editor (browser-based)
-// 2. Adjust camera angles, lighting, animations
-// 3. Add hover/click interactions visually
-// 4. Publish — changes go live without deploy
-```
-
-## Step 4: Performance Optimization
-
-```tsx
-// src/components/PerformanceWrapper.tsx — Adaptive quality
-import { useThree } from "@react-three/fiber";
-import { PerformanceMonitor, AdaptiveDpr } from "@react-three/drei";
-import { useState } from "react";
-
-export function PerformanceWrapper({ children }: { children: React.ReactNode }) {
-  const [quality, setQuality] = useState(1);
-
-  return (
-    <>
-      {/* Auto-adjust quality based on FPS */}
-      <PerformanceMonitor
-        onIncline={() => setQuality(Math.min(quality + 0.1, 2))}
-        onDecline={() => setQuality(Math.max(quality - 0.1, 0.5))}
-      />
-      <AdaptiveDpr pixelated />
-      {children}
-    </>
+    <Spline scene={process.env.NEXT_PUBLIC_SPLINE_SCENE_URL!} onLoad={onLoad} style={{ width: "100%", height: "100vh" }} />
   );
 }
 ```
 
-## Results
+Keep the scene URL in an environment variable so staging and production can point at different exports. Spline events only exist in the React and vanilla JS code exports, not in the Three.js export.
 
-The landing page launches with a 92 Lighthouse performance score. Average session duration increases from 45 seconds (old static page) to 3.2 minutes. The color configurator drives 28% more "Add to Cart" clicks compared to static product images.
+## Step 4: Keep the model small
 
-- **Load time**: 2.1 seconds (model compressed with Draco, textures in KTX2)
-- **FPS**: 60fps on iPhone 13, 30fps minimum on iPhone 11 (adaptive quality kicks in)
-- **Model size**: 1.2MB GLB → 340KB with Draco compression
-- **Bounce rate**: 67% → 41% (interactive 3D keeps users engaged)
-- **Conversion**: +28% add-to-cart rate vs static images
+Most of the load time is the GLB and its textures. glTF Transform compresses geometry (Draco or Meshopt) and textures (KTX2 or WebP) in one command:
+
+```bash
+npx @gltf-transform/cli optimize sneaker.glb public/models/sneaker.glb \
+  --compress draco --texture-compress webp
+```
+
+`useGLTF` loads the Draco decoder automatically. Measure on a real mid-range phone with the browser's performance panel rather than trusting a desktop frame rate; the `PerformanceMonitor` in Step 1 handles the rest by trading pixel ratio for smoothness.
+
+## Result
+
+Priya ships one page with two 3D layers: a Spline hero the marketing team owns, and an R3F configurator the engineers own. Color and material changes ease in smoothly, the canvas lowers its pixel ratio on slow devices, and the compressed GLB loads behind a progress indicator. Track load time, frame rate on target phones and add-to-cart rate yourself before and after launch; the right numbers are the ones from your own analytics.
+
+## Related Skills
+
+- [react-three-fiber](../skills/react-three-fiber/SKILL.md) - declarative Three.js scenes, hooks and performance rules
+- [drei](../skills/drei/SKILL.md) - controls, environments, loaders, text and HTML helpers
+- [spline](../skills/spline/SKILL.md) - embedding and controlling scenes designed in Spline
