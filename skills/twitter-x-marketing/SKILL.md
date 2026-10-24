@@ -2,16 +2,16 @@
 name: twitter-x-marketing
 description: >-
   Create, optimize, and automate content for Twitter/X including tweets,
-  threads, Spaces, and API automation. Use when someone asks to "write a tweet",
-  "create a Twitter thread", "grow on X", "Twitter API integration", "automate
-  tweeting", "Twitter analytics", "Twitter bot", or "X content strategy". Covers
-  platform-specific formatting, X API v2 integration, thread creation,
-  analytics, and growth tactics.
+  threads, polls, and API automation with the X API v2. Use when someone asks to
+  "write a tweet", "create a Twitter thread", "grow on X", "Twitter API
+  integration", "automate tweeting", "Twitter analytics", "Twitter bot", or
+  "X content strategy". Covers platform-specific formatting, X API v2 posting
+  and media upload, thread creation, metrics, and growth tactics.
 license: Apache-2.0
-compatibility: 'X API v2 (Free, Basic, Pro tiers). Node.js/Python examples.'
+compatibility: 'X API v2 (pay-per-use; Enterprise for higher volume). Node.js 18+ or Python 3.9+.'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
     - twitter
@@ -25,260 +25,220 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents create high-performing Twitter/X content and integrate with the X API. It covers tweet formatting, thread writing, API-based publishing and analytics, bot creation, and growth strategies tailored to X's real-time, conversation-driven algorithm.
+This skill helps AI agents write Twitter/X content and publish it through the X API v2. It covers tweet formatting, thread writing, API-based posting with media and polls, reading metrics, and growth tactics.
+
+The API facts below were checked against the X developer documentation (docs.x.com). Growth and timing advice is a heuristic: X does not publish current ranking weights or best posting times, so treat those lines as starting points to test on your own account.
 
 ## Instructions
 
-### Platform Rules & Algorithm
+### Platform Rules
 
-X algorithm priorities (2025-2026):
-
-- **Replies and conversations** — reply chains weight 5-10x more than likes
-- **Time spent on tweet** — longer reads (threads) get boosted
-- **Media engagement** — images get 1.5-2x more engagement than text-only
-- **Bookmarks** — strong signal (people save what's genuinely useful)
-- **Follower engagement rate** — high engagement from followers = more distribution to non-followers
-- **Recency** — X is real-time, posts decay fast (peak: first 30-60 min)
-
-What kills reach:
-- External links in tweet body (30-50% reach penalty — put in reply)
-- Excessive hashtags (2 max, 0 is often better)
-- Engagement bait ("RT if you agree")
-- Posting and disappearing (no replies to your own tweet)
-- Cross-posting from other platforms with watermarks
+- **Length:** 280 characters per post on the standard account. Use a thread for longer content.
+- **Formatting:** plain text only. Line breaks work; markdown does not render. Use capitals or emoji for emphasis.
+- **Links:** a link in the post body is a common reason for lower reach (heuristic). Put the link in a reply to your own post.
+- **Hashtags:** one or two at most, or none (heuristic).
+- **Metrics:** `public_metrics` is requested with `tweet.fields` and lists reply, repost, like, quote, bookmark and impression counts (`repost_count`, `reply_count`, `like_count`, `quote_count`, `bookmark_count`, `impression_count`).
 
 ### Content Formats
 
-#### Single Tweet (280 characters)
+#### Single Tweet
 ```
-[Hook — sharp, opinionated, or surprising]
+[Hook: sharp, opinionated, or surprising]
 
 [Optional: 1-2 supporting lines]
 
-[Optional: CTA or question]
+[Optional: question or CTA]
 ```
 
-**Formatting rules:**
-- 280 character limit (threads for longer content)
-- Line breaks work and improve readability
-- No markdown rendering — use CAPS or emoji for emphasis
-- 1-2 hashtags max (or none — they look spammy now)
-- Mentions: tag people only when relevant to them
-- Images: 1200x675px (16:9) for single, 1200x1200px for multi
+- Keep each line short. Test whether the hook stands alone in the feed.
+- Images: use 16:9 (1200x675) for a single image and add alt text (heuristic sizing, not an X requirement).
 
-#### Threads (Highest reach potential)
+#### Threads
 ```
-Tweet 1/🧵: [Strong hook — this determines if anyone reads the rest]
+1/ [Strong hook: it is the only tweet most people see]
 
-Tweet 2: [Context or problem statement]
+2/ [Context or problem statement]
 
-Tweet 3-7: [Main content — one point per tweet, clear and punchy]
+3-7/ [Main content: one point per tweet]
 
-Tweet 8: [Summary or key takeaway]
+8/ [Summary or key takeaway]
 
-Tweet 9: [CTA — follow for more, bookmark this, share your experience]
+9/ [CTA: follow, bookmark, or share]
 
-Tweet 10: [Self-reply with link if needed]
+10/ [Self-reply with the link, if needed]
 ```
 
-**Thread rules:**
-- First tweet is EVERYTHING — it appears alone in the feed
-- 7-12 tweets optimal (enough value, not exhausting)
-- Each tweet should stand alone AND flow as a sequence
-- Number tweets for scanability (1/, 2/, etc. or use 🧵)
-- End with CTA: "Follow @handle for more [topic]"
-- Reply to your own thread with links, resources, promo
+- The first tweet must work alone, because it is what appears in the feed.
+- Keep each tweet under 280 characters. Seven to ten tweets is a common length (heuristic).
+- Post each tweet as a reply to the previous one (see the thread example below).
 
 #### Polls
-- 2-4 options, 24h duration is optimal
-- Controversial or surprising options drive votes
-- Follow up with results analysis tweet
+- The API accepts 2-4 options of 1-25 characters each.
+- Duration is set in minutes, from 5 to 10080 (7 days).
+- Post a follow-up with the results.
 
 #### Spaces (Live Audio)
-- Schedule in advance for promotion
-- 30-60 minutes optimal
-- Record and clip highlights for posts
-- Pin a tweet with agenda before starting
+- Schedule in advance so followers can see it.
+- Pin a tweet with the agenda before you start.
+- Record the Space and clip highlights for posts. Check the Spaces API for the recording rules on your plan before automating this.
 
 #### Video
-- Native upload (not YouTube links)
-- Under 2:20 minutes for feed (60-90s optimal)
-- Square (1:1) or vertical (9:16) — NOT widescreen
-- Captions required (auto-generated available)
-- Hook in first 2 seconds
+- Upload native video, not a YouTube link. Use the chunked upload flow (see below).
+- Captions help, since many people watch with sound off (heuristic).
+- Check the current file size and length limits in the media upload docs before you build a pipeline.
 
 ### X API v2 Integration
 
+X API access is pay-per-use. There are no subscription tiers in the current documentation, and each request is billed. Per-request prices listed at docs.x.com/x-api/getting-started/pricing at the last check: post read $0.005, user read $0.010, post create $0.015, and $0.200 for a post that contains a URL (so keep links out of automated posts or budget for them). Pay-per-use is capped at 3 million post reads per month; higher volume requires an Enterprise plan. Check the page before you automate.
+
 #### Authentication
-```typescript
-// X API uses OAuth 2.0 with PKCE for user context
-// or OAuth 1.0a for user-context legacy
-// or Bearer token for app-only context
 
-// App-only (read-only, no user context)
-const BEARER_TOKEN = process.env.X_BEARER_TOKEN;
+Posting needs a user-context token. Use OAuth 2.0 Authorization Code with PKCE and these scopes: `tweet.read`, `tweet.write`, `users.read`, and `media.write` if you upload media, and `offline.access` if you want a refresh token. Keep `X_CLIENT_SECRET` in an environment variable and never commit it.
 
-// OAuth 2.0 User Context (for posting)
-import { Client, auth } from 'twitter-api-sdk';
-
-const authClient = new auth.OAuth2User({
-  client_id: process.env.X_CLIENT_ID,
-  client_secret: process.env.X_CLIENT_SECRET,
-  callback: process.env.X_CALLBACK_URL,
-  scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
-});
-
-// Get authorization URL
-const authUrl = authClient.generateAuthURL({
-  state: 'random-state',
-  code_challenge_method: 'S256',
-});
-
-// Exchange code for token
-const { token } = await authClient.requestAccessToken(code);
+```bash
+export X_USER_ACCESS_TOKEN="<token from the OAuth 2.0 PKCE flow>"
 ```
 
-#### Post Tweets
+An app-only bearer token can read public data but cannot post.
+
+#### Post a Tweet
+
+Posts are created with `POST https://api.x.com/2/tweets` and a JSON body. The `text` field is required unless `media` is set.
+
 ```typescript
-const client = new Client(authClient);
+const TOKEN = process.env.X_USER_ACCESS_TOKEN;
 
-// Simple tweet
-const { data } = await client.tweets.createTweet({
-  text: 'Hello from the API!',
+async function createPost(body: Record<string, unknown>) {
+  const res = await fetch('https://api.x.com/2/tweets', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`createPost ${res.status}: ${await res.text()}`);
+  return (await res.json()).data as { id: string; text: string };
+}
+
+// Simple post
+await createPost({ text: 'Shipped the new export pipeline today.' });
+
+// Reply to a post
+await createPost({
+  text: 'Here is the benchmark setup we used.',
+  reply: { in_reply_to_tweet_id: '1234567890123456789' },
 });
 
-// Tweet with image
-// Step 1: Upload media (uses v1.1 endpoint)
-const mediaUploadRes = await fetch('https://upload.twitter.com/1.1/media/upload.json', {
-  method: 'POST',
-  headers: {
-    Authorization: `OAuth ...`, // OAuth 1.0a signature required for media upload
-  },
-  body: formData, // multipart/form-data with media_data (base64)
-});
-const { media_id_string } = await mediaUploadRes.json();
-
-// Step 2: Create tweet with media
-await client.tweets.createTweet({
-  text: 'Tweet with image',
-  media: { media_ids: [media_id_string] },
-});
-
-// Tweet with poll
-await client.tweets.createTweet({
-  text: 'Which do you prefer?',
-  poll: {
-    options: ['Option A', 'Option B', 'Option C'],
-    duration_minutes: 1440, // 24 hours
-  },
-});
-
-// Reply to a tweet
-await client.tweets.createTweet({
-  text: 'This is a reply',
-  reply: { in_reply_to_tweet_id: '1234567890' },
-});
-
-// Quote tweet
-await client.tweets.createTweet({
-  text: 'Great insight here 👇',
-  quote_tweet_id: '1234567890',
+// Poll (2-4 options, duration in minutes)
+await createPost({
+  text: 'Which deploy strategy do you use?',
+  poll: { options: ['Blue/green', 'Rolling', 'Canary'], duration_minutes: 1440 },
 });
 ```
 
-#### Create Thread
+`quote_tweet_id` is a documented field of the create-post request. The X docs state no plan restriction for it, but test it on your account before you build a flow around it.
+
+#### Upload Media, Then Post
+
+Media uses the v2 chunked upload endpoints, which need the `media.write` scope: `POST /2/media/upload/initialize` (JSON body: `media_type`, `total_bytes`, `media_category` such as `tweet_image`), `POST /2/media/upload/{id}/append` (multipart: `segment_index`, `media`; chunks of 5 MB or less) and `POST /2/media/upload/{id}/finalize`. Poll `GET /2/media/upload?command=STATUS&media_id=...` while processing. Do not send `command=INIT/APPEND/FINALIZE` to `POST /2/media/upload`; that is the old protocol. Upload first, then pass the returned media ID in `media.media_ids`. A post takes up to 4 images, 1 animated GIF, or 1 video.
+
+```typescript
+// 1. Upload the image bytes with the v2 media upload endpoints.
+//    See the "Media upload" reference at docs.x.com for the initialize, append
+//    and finalize request bodies, then read the returned media id.
+const mediaId = await uploadImage('./chart.png'); // your helper around the three endpoints above
+
+// 2. Post with the media id
+await createPost({
+  text: 'Latency dropped from 420ms to 90ms after the cache change.',
+  media: { media_ids: [mediaId] },
+});
+```
+
+The older v1.1 `upload.twitter.com` endpoint is not the documented path in the current X API reference. Do not use it for new code.
+
+#### Create a Thread
+
 ```typescript
 async function postThread(tweets: string[]) {
-  let previousTweetId: string | undefined;
+  let previousId: string | undefined;
+  const ids: string[] = [];
 
   for (const text of tweets) {
-    const params: any = { text };
-    if (previousTweetId) {
-      params.reply = { in_reply_to_tweet_id: previousTweetId };
-    }
-
-    const { data } = await client.tweets.createTweet(params);
-    previousTweetId = data.id;
-
-    // Rate limit: wait between tweets
-    await new Promise(r => setTimeout(r, 1000));
+    const body: Record<string, unknown> = { text };
+    if (previousId) body.reply = { in_reply_to_tweet_id: previousId };
+    const created = await createPost(body);
+    previousId = created.id;
+    ids.push(created.id);
+    await new Promise((r) => setTimeout(r, 1000)); // space out requests
   }
-
-  return previousTweetId; // Last tweet ID
+  return ids; // ids[0] is the thread head
 }
 
 await postThread([
-  '🧵 Thread: 5 things I learned building a SaaS in 2025\n\nAfter 12 months, $40K MRR, and countless mistakes — here are the real lessons:',
-  '1/ Your first 100 users don\'t come from marketing.\n\nThey come from manually reaching out to people who have the problem you solve.\n\nDMs, forums, communities. One by one.',
-  '2/ Ship weekly, not monthly.\n\nEvery week without shipping is a week without learning.\n\nOur best feature came from a bug report on a half-baked release.',
-  // ... more tweets
-  'If this was useful, follow @handle for weekly threads on building SaaS.\n\nBookmark 🔖 this thread to reference later.',
+  '1/ We rebuilt our export pipeline in 2 weeks. Here is what broke and what we kept.',
+  '2/ The old job read every row into memory. At 2M rows it swapped and timed out.',
+  '3/ We switched to streaming batches of 5,000 rows. Peak memory fell from 6 GB to 400 MB.',
+  '4/ Reach for streaming before you reach for a bigger machine. The fix was 40 lines.',
+  '5/ If this was useful, follow for more posts on backend engineering. Bookmark it for later.',
 ]);
 ```
 
-#### Analytics
+Each tweet is a reply to the one before it. The per-user limit for creating posts is 100 requests per 15 minutes (app: 10,000 per 24 hours), so a long thread or batch needs a counter, not just a 1-second pause. A 429 response carries an `x-rate-limit-reset` header.
+
+#### Metrics and Search
+
 ```typescript
-// Get tweet metrics (requires tweet.read scope)
-const { data } = await client.tweets.findTweetById('1234567890', {
-  'tweet.fields': ['public_metrics', 'organic_metrics', 'created_at'],
-});
-
-console.log(data.public_metrics);
-// { retweet_count, reply_count, like_count, quote_count, bookmark_count, impression_count }
-
-// Get user metrics
-const { data: user } = await client.users.findMyUser({
-  'user.fields': ['public_metrics'],
-});
-// { followers_count, following_count, tweet_count, listed_count }
-
-// Search recent tweets (for monitoring)
-const { data: tweets } = await client.tweets.tweetsRecentSearch({
-  query: '"your brand" OR @yourbrand -is:retweet',
-  max_results: 100,
-  'tweet.fields': ['public_metrics', 'created_at', 'author_id'],
-});
+// One post, with public metrics
+const res = await fetch(
+  'https://api.x.com/2/tweets/1234567890123456789?tweet.fields=public_metrics,created_at',
+  { headers: { Authorization: `Bearer ${TOKEN}` } },
+);
+const { data } = await res.json();
+console.log(data.public_metrics); // repost_count, reply_count, like_count, quote_count, bookmark_count, impression_count
 ```
 
-### Growth Strategy
+Recent search (`GET /2/tweets/search/recent`) is used to monitor mentions. Pay-per-use pricing applies to each post read returned, so keep `max_results` small. Confirm the endpoint's availability on your plan at docs.x.com before you build monitoring around it.
 
-**Posting schedule:** 3-5 tweets/day + 1-2 threads/week
+### Growth Strategy (heuristic)
+
+These are working habits, not measured X rules. X has not published current weights for replies, bookmarks or links.
+
+**Posting rhythm:** a few posts a day plus one or two threads a week is a common starting point. Adjust from your own analytics.
 
 **Content mix:**
-- 30% threads (deep value — get bookmarked and shared)
-- 25% single tweets (opinions, hot takes, observations)
-- 20% replies to big accounts (free distribution to their audience)
-- 15% engagement (polls, questions, "unpopular opinion:")
-- 10% retweets with commentary (curating = authority)
+- About a third threads, for depth and bookmarks
+- About a quarter single posts: opinions and observations
+- About a fifth replies to larger accounts in your niche
+- The rest: polls, questions, and reposts with comment
 
-**Best posting times:** 8-10 AM and 5-7 PM target timezone (weekdays)
+**Timing:** check your own impression data by hour and day. Do not rely on a fixed "best time" list, since none is published by X.
 
 **Reply strategy:**
-- Reply to large accounts in your niche within first 30 min of their post
-- Add genuine insight (not "great post 🔥")
-- Your reply is seen by THEIR audience — it's free reach
-- Reply to your own tweets to extend visibility (algorithm treats as conversation)
+- Reply to larger accounts in your niche early in their post's life
+- Add a real point, not "great post"
+- Reply to replies on your own posts to keep the conversation going
 
 ## Examples
 
 ### Example 1: Write a Twitter thread about developer productivity
 **User prompt:** "Write a 7-tweet thread about lessons learned scaling a Next.js app from 1,000 to 50,000 daily active users."
 
-The agent will draft a 7-tweet thread with numbered tweets. Tweet 1/7 opens with a strong hook: "We scaled our Next.js app from 1K to 50K DAU in 8 months. Here are 7 hard lessons we learned (and what we'd do differently):" Tweets 2-6 each cover one lesson with specifics: moving from `getServerSideProps` to ISR cut server costs by 60%, switching to Postgres connection pooling with PgBouncer fixed random 502 errors, adding Redis for session storage eliminated 300ms per request, using Vercel Edge Functions for auth middleware dropped TTFB from 800ms to 120ms, and implementing proper image optimization with `next/image` cut bandwidth by 70%. Tweet 7 wraps with a CTA: "If this was useful, follow @handle for weekly threads on scaling web apps. Bookmark this thread to reference later." Each tweet stays under 280 characters.
+The agent drafts a 7-tweet thread with numbered tweets. Tweet 1/7 is the hook: "We scaled our Next.js app from 1K to 50K daily active users in 8 months. Seven lessons, and what we would change:". Tweets 2-6 each cover one lesson with a specific number, for example moving a product page from `getServerSideProps` to ISR, which cut server cost by 60%, or adding PgBouncer after random 502 errors under load. Tweet 7 closes with a CTA. Each tweet is checked against the 280-character limit before posting. The link to the write-up goes in a reply to tweet 7, not in the thread body.
 
-### Example 2: Build a tweet scheduling bot using the X API
+### Example 2: Schedule posts from a CSV with the X API
 **User prompt:** "Create a Python script that reads tweets from a CSV file and posts them at scheduled times using the X API v2."
 
-The agent will create a Python script using the `tweepy` library with OAuth 2.0 authentication. It reads a CSV file with columns `tweet_text`, `scheduled_time`, and optional `image_path`. The script loads `X_CLIENT_ID` and `X_CLIENT_SECRET` from environment variables, authenticates with user context, then enters a loop checking if any tweet's `scheduled_time` matches the current time (within a 60-second window). When a match is found, it calls `client.create_tweet(text=tweet_text)` and logs the posted tweet ID. For tweets with images, it uploads media via the v1.1 media endpoint first, then attaches the `media_id`. The script includes rate limit handling with exponential backoff and writes a `posted.log` file tracking which CSV rows have been published.
+The agent writes a Python script with `requests`. It reads a CSV with `text`, `scheduled_time` (ISO 8601), and optional `image_path`. It loads `X_USER_ACCESS_TOKEN` from the environment. At each check it posts any row whose time has passed by calling `POST https://api.x.com/2/tweets` with the JSON body. For rows with an image, it uploads through the v2 media endpoints first and adds the media ID to `media.media_ids`. On HTTP 429 it waits for the reset time in the response headers and retries. It records each posted row's tweet ID in `posted.log`, so a restart does not post twice.
 
 ## Guidelines
 
-- Links in reply to self, not in main tweet (reach penalty is real)
-- 0-2 hashtags maximum — they're mostly dead on X
-- Post first tweet of a thread at peak time, rest follows immediately
-- Engage with replies on your tweets for 30 min after posting — signals to algorithm
-- Bookmark > Like in algorithm weight — create content worth saving
-- Vertical video outperforms horizontal on mobile (70%+ mobile users)
-- Use alt text on images — accessibility + SEO + extra indexable text
-- Thread first tweet must stand alone — most people only see it in feed
-- Repost your best threads after 3-4 months with "In case you missed it:"
+- Keep the API contract current: check endpoint paths, the rate-limit page and pricing at docs.x.com before each release of an automation.
+- Never post from a script without an approval step for anything that goes to a real audience.
+- Avoid automating engagement (likes, follows, mass replies). Check the X developer policy and automation rules before building any of it.
+- Put links in a reply, not in the post body (heuristic; reach effects are not documented by X).
+- Store tokens in environment variables or a secret manager. Never paste them into prompts or commits.
+- Use alt text on images. It helps screen-reader users and makes the image's content indexable.
+- Post threads as replies to the previous tweet, so the whole thread stays in one conversation.
+- When a post's engagement is low, check the actual impression numbers before changing the strategy.
