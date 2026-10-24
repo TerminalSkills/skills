@@ -11,7 +11,8 @@ license: Apache-2.0
 compatibility: 'Linux kernel 5.6+ (built-in), or wireguard-tools on older kernels'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://git.zx2c4.com/wireguard-tools
+  version: 1.1.0
   category: devops
   tags:
     - wireguard
@@ -32,8 +33,9 @@ Deploy WireGuard — the modern, high-performance VPN protocol built into the Li
 ### Step 1: Installation & Key Generation
 
 ```bash
-# Ubuntu/Debian (kernel 5.6+ has WireGuard built-in)
-apt update && apt install -y wireguard wireguard-tools qrencode
+# Ubuntu/Debian: the kernel (5.6+) has the module, the `wireguard` package brings wg and wg-quick
+sudo apt update && sudo apt install -y wireguard qrencode
+sudo -i   # the key files below live in /etc/wireguard, which only root can write
 
 # Generate server keys
 umask 077
@@ -65,13 +67,16 @@ AllowedIPs = 10.10.0.2/32
 
 **Replace `eth0` with your actual interface and start:**
 ```bash
-IFACE=$(ip route get 1.1.1.1 | awk '{print $5; exit}')
-sed -i "s/eth0/$IFACE/g" /etc/wireguard/wg0.conf
+IFACE=$(ip -o route get 1.1.1.1 | awk '{for (i=1;i<NF;i++) if ($i=="dev") print $(i+1)}')
+sed -i "s/-o eth0/-o $IFACE/g" /etc/wireguard/wg0.conf
+chmod 600 /etc/wireguard/wg0.conf
 
-echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf && sysctl -p
+echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/99-wireguard.conf && sysctl --system
 systemctl enable --now wg-quick@wg0
-ufw allow 51820/udp
+ufw allow 51820/udp   # only if ufw is your firewall; it may also need `ufw route allow in on wg0`
 ```
+
+`wg-quick` runs `PostUp`/`PostDown` through bash, so the iptables lines work as written. On hosts that use nftables only, install `iptables-nft` or write the equivalent `nft` rules.
 
 ### Step 3: Client/Peer Configuration
 
@@ -85,7 +90,7 @@ DNS = 1.1.1.1, 1.0.0.1
 [Peer]
 PublicKey = SERVER_PUBLIC_KEY
 PresharedKey = PRESHARED_KEY
-Endpoint = server.example.com:51820
+Endpoint = 203.0.113.10:51820
 AllowedIPs = 0.0.0.0/0, ::/0
 PersistentKeepalive = 25
 ```
@@ -100,7 +105,7 @@ PersistentKeepalive = 25
 #!/bin/bash
 # add-peer.sh — generate keys, add to server, create client config + QR
 set -e
-PEER_NAME=$1; SERVER_IP="your.server.ip"; SERVER_PORT=51820
+PEER_NAME=$1; SERVER_IP="203.0.113.10"; SERVER_PORT=51820
 SERVER_PUBKEY=$(cat /etc/wireguard/server_public.key)
 WG_SUBNET="10.10.0"
 
@@ -140,7 +145,7 @@ qrencode -t ansiutf8 < ~/wg-clients/${PEER_NAME}.conf
 echo "Peer added: ${PEER_NAME} (${WG_SUBNET}.${NEXT_IP})"
 ```
 
-**Remove a peer:** `wg set wg0 peer "$PEER_PUB" remove` and edit `wg0.conf` to remove the block.
+**Remove a peer:** `wg set wg0 peer "$PEER_PUB" remove` and delete its block from `wg0.conf`. After hand-editing the file, apply it without dropping sessions: `wg syncconf wg0 <(wg-quick strip wg0)` (plain `wg-quick down/up` also works but resets every tunnel).
 
 ### Step 5: Site-to-Site VPN
 
@@ -155,7 +160,7 @@ PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j A
 
 [Peer]
 PublicKey = OFFICE_B_PUBLIC
-Endpoint = office-b.example.com:51820
+Endpoint = 203.0.113.20:51820
 AllowedIPs = 10.10.0.2/32, 192.168.2.0/24
 PersistentKeepalive = 25
 ```
@@ -164,12 +169,7 @@ Office B mirrors this with its own private key, Office A's public key, and `Allo
 
 ### Step 6: DNS Integration & Monitoring
 
-**Pi-hole on WireGuard server:**
-```bash
-curl -sSL https://install.pi-hole.net | bash
-pihole -a -i wg0
-# Set client DNS to 10.10.0.1
-```
+**Pi-hole on the WireGuard server:** install Pi-hole from its repository (`git clone --depth 1 https://github.com/pi-hole/pi-hole.git`, then run `basic-install.sh` from `automated install/`), and bring `wg0` up first. Set `DNS = 10.10.0.1` in the client config. Pi-hole v6 answers on `wg0` in its default "Allow only local requests" mode, because `10.10.0.0/24` is a subnet attached to the server. Check it with `sudo pihole-FTL --config dns.listeningMode`. Do not switch to `ALL` ("permit all origins") on a public server: that makes an open resolver. The old `pihole -a -i` command no longer exists in v6.
 
 **Monitoring:**
 ```bash
@@ -177,12 +177,7 @@ wg show          # Active peers, endpoints, transfer stats, last handshake
 wg show wg0 dump # Machine-readable output for scripting
 ```
 
-**Performance tuning:**
-```bash
-sysctl -w net.core.rmem_max=2500000
-sysctl -w net.core.wmem_max=2500000
-# In [Interface]: MTU = 1380 (for networks with extra encapsulation)
-```
+**MTU:** `wg-quick` sets the tunnel MTU to the endpoint route's MTU minus 80 (1420 on a 1500-byte link) unless `MTU` is set. If large transfers stall behind PPPoE or another tunnel, set a lower `MTU = 1380` in the client `[Interface]`.
 
 ## Examples
 
@@ -203,4 +198,5 @@ The agent will generate key pairs on both servers, create `wg0.conf` on Office A
 - WireGuard has no built-in user authentication; access is controlled entirely by key pairs, so treat private keys like passwords and revoke peers by removing their public key from the server
 - Set `PersistentKeepalive = 25` for peers behind NAT to keep the UDP session alive; omit it for server-to-server links where both sides have public IPs
 - The `AllowedIPs` field serves as both a routing table and an ACL; it controls which IPs a peer can send traffic from and which destination IPs get routed to that peer
-- Back up `/etc/wireguard/wg0.conf` before adding peers since `wg-quick` will refuse to start if the config has syntax errors
+- Keep `/etc/wireguard/wg0.conf` at mode 600 (it holds the private key and preshared keys) and back it up before adding peers, since `wg-quick` refuses to start on a syntax error
+- `SaveConfig = true` makes `wg-quick down` overwrite the file with the live state and discard hand edits; keep it `false` when you manage the file yourself
