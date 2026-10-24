@@ -9,10 +9,10 @@ description: >-
   operations. Covers repository management, CI/CD pipelines, code review,
   deployments, and Atlassian ecosystem integration.
 license: Apache-2.0
-compatibility: Node.js 18+ or any HTTP client (REST API 2.0)
+compatibility: Node.js 18+ or any HTTP client (REST API 2.0); Bitbucket Cloud only
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - bitbucket
@@ -33,12 +33,20 @@ Automate and extend Bitbucket Cloud — Atlassian's Git platform with built-in C
 ### Step 1: Authentication
 
 ```typescript
-// Bitbucket Cloud uses App Passwords (basic auth) or OAuth 2.0.
-// Create an App Password at: https://bitbucket.org/account/settings/app-passwords/
+// App passwords are deprecated: use an API token (Personal settings > Security >
+// API tokens). It needs an expiry date (max 1 year) and scopes chosen at creation;
+// scopes do not imply each other, so list every one you need, e.g.
+// read:repository:bitbucket, write:repository:bitbucket (files, branches),
+// admin:repository:bitbucket (create repos, branch restrictions),
+// read:pullrequest:bitbucket, write:pullrequest:bitbucket,
+// read:pipeline:bitbucket, write:pipeline:bitbucket (run pipelines),
+// admin:pipeline:bitbucket (pipeline variables), write:webhook:bitbucket.
+// Auth is Basic: your Atlassian account email + the token. (OAuth 2.0 access
+// tokens go to api.bitbucket.org in an `Authorization: Bearer` header instead.)
 
 const BB_BASE = "https://api.bitbucket.org/2.0";
 const AUTH = Buffer.from(
-  `${process.env.BB_USERNAME}:${process.env.BB_APP_PASSWORD}`
+  `${process.env.BB_EMAIL}:${process.env.BB_API_TOKEN}`
 ).toString("base64");
 
 async function bb(method: string, path: string, body?: any) {
@@ -107,7 +115,7 @@ await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/comme
   inline: { path: "src/auth/jwt.ts", to: 42 },
 });
 
-// Merge: "merge_commit" | "squash" | "fast_forward"
+// Merge: "merge_commit" | "squash" | "fast_forward" | "squash_fast_forward" | "rebase_fast_forward" | "rebase_merge"
 await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/merge`, {
   merge_strategy: "squash",
   message: "feat: add user authentication module (#142)",
@@ -118,7 +126,8 @@ await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/merge
 ### Step 4: Branch Permissions & Merge Checks
 
 ```typescript
-// Branch permissions require Premium plan. Pattern supports globs: release/*
+// Pattern supports globs: release/*. The approval/build/task rules are merge checks:
+// without the Premium plan they only warn, they do not block the merge.
 // Require 2 approvals to merge to main
 await bb("POST", `/repositories/my-workspace/my-repo/branch-restrictions`, {
   kind: "require_approvals_to_merge", pattern: "main", value: 2,
@@ -169,7 +178,7 @@ pipelines:
           deployment: production
           trigger: manual
           script:
-            - pipe: atlassian/aws-ecs-deploy:1.0.0
+            - pipe: atlassian/aws-ecs-deploy:1.15.0
               variables:
                 AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
                 AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
@@ -213,12 +222,12 @@ const environment = await bb("POST", `/repositories/my-workspace/my-repo/environ
 
 // Pipeline variables (secured=true encrypts, never shown in logs)
 await bb("POST", `/repositories/my-workspace/my-repo/pipelines_config/variables/`, {
-  key: "AWS_ACCESS_KEY_ID", value: "AKIA...", secured: true,
+  key: "AWS_ACCESS_KEY_ID", value: process.env.AWS_ACCESS_KEY_ID, secured: true,
 });
 
 // Per-environment variables
 await bb("POST", `/repositories/my-workspace/my-repo/deployments_config/environments/${environment.uuid}/variables`, {
-  key: "API_URL", value: "https://api.production.example.com", secured: false,
+  key: "API_URL", value: "https://api.payments-prod.internal", secured: false,
 });
 ```
 
@@ -228,7 +237,7 @@ await bb("POST", `/repositories/my-workspace/my-repo/deployments_config/environm
 // Register a webhook
 const webhook = await bb("POST", `/repositories/my-workspace/my-repo/hooks`, {
   description: "CI/CD event handler",
-  url: "https://your-app.com/webhook/bitbucket",
+  url: "https://ci.payments-team.dev/webhook/bitbucket",
   active: true,
   events: ["repo:push", "pullrequest:created", "pullrequest:fulfilled"],
 });
@@ -282,8 +291,8 @@ The agent will:
 
 ## Guidelines
 
-- Use App Passwords for scripts and personal integrations; use OAuth 2.0 for shared applications that act on behalf of multiple users.
+- App passwords are deprecated; use scoped API tokens (email + token via Basic auth) for scripts and personal integrations, repository/workspace access tokens for CI, and OAuth 2.0 for apps that act for several users. A token missing a scope gets 403 on that endpoint (scopes do not imply each other).
 - Always set `close_source_branch: true` on pull requests to automatically clean up feature branches after merging.
-- Branch permissions (requiring approvals, blocking direct pushes) require the Bitbucket Premium plan; check your workspace plan before configuring restrictions.
-- Use `--download-archive` style tracking with pipeline variables marked `secured: true` for any secrets; secured variables are encrypted and never exposed in build logs.
+- Merge checks (required approvals, passing builds, completed tasks) only block a merge on the Bitbucket Premium plan; on other plans users get a warning but can still merge. Check your workspace plan before relying on them.
+- Mark pipeline variables that hold secrets `secured: true`; secured values are encrypted, masked in build logs and returned empty by the API. Keep tokens in environment variables, never in `bitbucket-pipelines.yml`.
 - Reference Jira issue keys (e.g., ENG-142) in commit messages, branch names, and PR descriptions to get automatic bidirectional linking between Bitbucket and Jira.
