@@ -1,7 +1,7 @@
 ---
 title: Build an i18n Translation Management System
 slug: build-i18n-translation-management
-description: Build a translation management system with key tracking, missing translation detection, context screenshots, crowdsourced translations, plural rules, and CI integration for multi-language apps.
+description: Build a translation management system with key tracking, missing translation detection, review workflow, locale-correct plural rules, and CI integration for multi-language apps.
 skills:
   - typescript
   - redis
@@ -21,264 +21,249 @@ tags:
 
 ## The Problem
 
-Tomás leads engineering at a 30-person SaaS expanding from English to Spanish, German, French, and Japanese. Translations live in JSON files that developers edit manually. Nobody knows which keys are missing — users see raw keys like `dashboard.metrics.title` in production. Translators work in spreadsheets that go out of sync. Adding a new string requires a deploy. Pluralization is hardcoded (`${count} items` doesn't work in Arabic which has 6 plural forms). They need a translation platform: central key management, missing translation alerts, translator portal, and CI integration.
+Tomás leads engineering at a 30-person SaaS expanding from English to Spanish, German, French, and Japanese. Translations live in JSON files that developers edit by hand. Nobody knows which keys are missing, so users see raw keys like `dashboard.metrics.title` in production. Translators work in spreadsheets that drift out of sync, and a new string needs a deploy. Pluralization is hardcoded (`${count} items` is wrong in Russian, which has four plural forms, and in Arabic, which has six). They need central key management, missing-translation checks, a review step, and a CI gate.
 
-## Step 1: Build the Translation Engine
+## The Solution
 
-```typescript
-// src/i18n/manager.ts — Translation management with key tracking and plural support
-import { pool } from "../db";
+A small service on PostgreSQL (keys and translations as JSONB), Redis (a versioned cache), Hono (HTTP API) and Zod (request validation), written in TypeScript. Plural rules come from the runtime's built-in `Intl.PluralRules`, which carries the CLDR data, so there is no hand-written locale table to get wrong.
+
+```bash
+npm install hono @hono/node-server @hono/zod-validator zod ioredis pg
+npm install --save-dev typescript tsx @types/node @types/pg
+```
+
+Set `"type": "module"` in `package.json` and export `DATABASE_URL`, `REDIS_URL` and `TMS_TOKEN`.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Schema
+
+```sql
+CREATE TABLE translation_keys (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  namespace    TEXT NOT NULL,
+  key          TEXT NOT NULL,
+  description  TEXT NOT NULL DEFAULT '',
+  plural_type  TEXT NOT NULL DEFAULT 'none' CHECK (plural_type IN ('none', 'cardinal', 'ordinal')),
+  translations JSONB NOT NULL DEFAULT '{}',
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (namespace, key)
+);
+```
+
+One row per key; every locale lives in the `translations` JSONB (`{"es": {"value": ..., "status": ...}}`). A translation moves from `review` to `approved`, and only `approved` and `published` ones are served.
+
+### Step 2: Connections
+
+```ts
+import pg from "pg";
 import { Redis } from "ioredis";
 
-const redis = new Redis(process.env.REDIS_URL!);
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+export const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+```
 
-interface TranslationKey {
-  id: string;
-  key: string;
-  namespace: string;
-  description: string;
-  screenshot: string | null;
-  tags: string[];
-  pluralType: "none" | "cardinal" | "ordinal";
-  maxLength: number | null;
-  translations: Record<string, Translation>;
-  createdAt: string;
-  updatedAt: string;
-}
+### Step 3: The translation engine
 
-interface Translation {
-  locale: string;
+Three details matter here. Postgres needs `$1::text` on a JSONB key lookup, because a bare `translations -> $1` fails with "operator is not unique". `pg` already returns JSONB parsed, so do not `JSON.parse` it. And writing one locale with `jsonb_set` is atomic, where read-modify-write loses edits when two translators save at once.
+
+```ts
+// src/i18n/manager.ts
+import { pool, redis } from "../db";
+
+export const SUPPORTED_LOCALES = ["en", "es", "de", "fr", "ja", "ar"];
+const LIVE = ["approved", "published"];
+
+export interface Translation {
   value: string;
-  pluralForms?: Record<string, string>;
+  pluralForms?: Record<string, string>; // keyed by CLDR category: zero, one, two, few, many, other
   status: "draft" | "review" | "approved" | "published";
   translatedBy: string;
-  reviewedBy: string | null;
   updatedAt: string;
 }
 
-const SUPPORTED_LOCALES = ["en", "es", "de", "fr", "ja", "pt", "ko", "zh", "ar", "ru"];
+// The plural categories a locale needs, straight from the runtime's CLDR data
+export const pluralCategories = (locale: string, type: Intl.PluralRuleType = "cardinal") =>
+  new Intl.PluralRules(locale, { type }).resolvedOptions().pluralCategories;
 
-// CLDR plural rules per locale
-const PLURAL_RULES: Record<string, string[]> = {
-  en: ["one", "other"],
-  es: ["one", "many", "other"],
-  de: ["one", "other"],
-  fr: ["one", "many", "other"],
-  ja: ["other"],                // Japanese has no plural forms
-  ar: ["zero", "one", "two", "few", "many", "other"],  // Arabic has 6!
-  ru: ["one", "few", "many", "other"],
-};
+// Cache entries carry a version; bumping it invalidates every locale at once (no KEYS scan)
+const version = async () => (await redis.get("i18n:version")) ?? "0";
+const invalidate = () => redis.incr("i18n:version");
 
-// Get translations for a locale (runtime)
 export async function getTranslations(locale: string, namespace?: string): Promise<Record<string, string>> {
-  const cacheKey = `i18n:${locale}:${namespace || "all"}`;
+  const cacheKey = `i18n:${await version()}:${locale}:${namespace ?? "all"}`;
   const cached = await redis.get(cacheKey);
   if (cached) return JSON.parse(cached);
 
-  let sql = `SELECT key, namespace, translations FROM translation_keys WHERE translations->$1 IS NOT NULL`;
-  const params: any[] = [locale];
-
-  if (namespace) {
-    sql += ` AND namespace = $2`;
-    params.push(namespace);
-  }
-
-  const { rows } = await pool.query(sql, params);
-
-  const result: Record<string, string> = {};
-  for (const row of rows) {
-    const translations = JSON.parse(row.translations);
-    const t = translations[locale];
-    if (t && (t.status === "published" || t.status === "approved")) {
-      const fullKey = row.namespace ? `${row.namespace}.${row.key}` : row.key;
-      result[fullKey] = t.value;
-      if (t.pluralForms) {
-        for (const [form, value] of Object.entries(t.pluralForms)) {
-          result[`${fullKey}_${form}`] = value as string;
-        }
-      }
-    }
-  }
-
-  await redis.setex(cacheKey, 300, JSON.stringify(result));
-  return result;
-}
-
-// Translate with interpolation and plurals
-export function t(
-  translations: Record<string, string>,
-  key: string,
-  params?: Record<string, any>,
-  locale: string = "en"
-): string {
-  // Handle plurals
-  if (params?.count !== undefined) {
-    const pluralForm = getPluralForm(locale, params.count);
-    const pluralKey = `${key}_${pluralForm}`;
-    const template = translations[pluralKey] || translations[key] || key;
-    return interpolate(template, params);
-  }
-
-  const template = translations[key] || key;
-  return interpolate(template, params || {});
-}
-
-function interpolate(template: string, params: Record<string, any>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-    return params[key] !== undefined ? String(params[key]) : `{{${key}}}`;
-  });
-}
-
-function getPluralForm(locale: string, count: number): string {
-  const lang = locale.split("-")[0];
-  // Simplified CLDR rules
-  switch (lang) {
-    case "en": case "de": case "es": case "pt":
-      return count === 1 ? "one" : "other";
-    case "fr":
-      return count <= 1 ? "one" : "other";
-    case "ru":
-      if (count % 10 === 1 && count % 100 !== 11) return "one";
-      if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return "few";
-      return "many";
-    case "ar":
-      if (count === 0) return "zero";
-      if (count === 1) return "one";
-      if (count === 2) return "two";
-      if (count % 100 >= 3 && count % 100 <= 10) return "few";
-      if (count % 100 >= 11) return "many";
-      return "other";
-    case "ja": case "ko": case "zh":
-      return "other";
-    default:
-      return count === 1 ? "one" : "other";
-  }
-}
-
-// Add or update translation key
-export async function upsertKey(params: {
-  key: string;
-  namespace: string;
-  description?: string;
-  tags?: string[];
-  pluralType?: TranslationKey["pluralType"];
-  defaultValue?: string;
-}): Promise<TranslationKey> {
-  const id = `tk-${Date.now().toString(36)}`;
-
-  const translations: Record<string, Translation> = {};
-  if (params.defaultValue) {
-    translations.en = {
-      locale: "en", value: params.defaultValue,
-      status: "published", translatedBy: "system",
-      reviewedBy: null, updatedAt: new Date().toISOString(),
-    };
-  }
-
-  await pool.query(
-    `INSERT INTO translation_keys (id, key, namespace, description, tags, plural_type, translations, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-     ON CONFLICT (key, namespace) DO UPDATE SET
-       description = COALESCE($4, translation_keys.description),
-       tags = COALESCE($5, translation_keys.tags),
-       updated_at = NOW()`,
-    [id, params.key, params.namespace, params.description || "",
-     JSON.stringify(params.tags || []), params.pluralType || "none",
-     JSON.stringify(translations)]
-  );
-
-  await invalidateCache();
-  return { id, ...params, translations, screenshot: null, pluralType: params.pluralType || "none", maxLength: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as TranslationKey;
-}
-
-// Submit translation
-export async function submitTranslation(
-  key: string,
-  namespace: string,
-  locale: string,
-  value: string,
-  translatedBy: string,
-  pluralForms?: Record<string, string>
-): Promise<void> {
-  const { rows: [row] } = await pool.query(
-    "SELECT translations FROM translation_keys WHERE key = $1 AND namespace = $2",
-    [key, namespace]
-  );
-  if (!row) throw new Error("Key not found");
-
-  const translations = JSON.parse(row.translations);
-  translations[locale] = {
-    locale, value, pluralForms,
-    status: "review",
-    translatedBy,
-    reviewedBy: null,
-    updatedAt: new Date().toISOString(),
-  };
-
-  await pool.query(
-    "UPDATE translation_keys SET translations = $3, updated_at = NOW() WHERE key = $1 AND namespace = $2",
-    [key, namespace, JSON.stringify(translations)]
-  );
-  await invalidateCache();
-}
-
-// Find missing translations
-export async function findMissing(locale: string): Promise<Array<{ key: string; namespace: string; description: string }>> {
   const { rows } = await pool.query(
-    `SELECT key, namespace, description FROM translation_keys
-     WHERE translations->$1 IS NULL OR (translations->$1->>'status') NOT IN ('approved', 'published')`,
-    [locale]
+    `SELECT namespace, key, translations -> $1::text AS t FROM translation_keys
+     WHERE translations ? $1::text AND ($2::text IS NULL OR namespace = $2)`,
+    [locale, namespace ?? null],
+  );
+  const out: Record<string, string> = {};
+  for (const { namespace: ns, key, t } of rows) {
+    if (!LIVE.includes(t.status)) continue; // jsonb columns arrive already parsed
+    out[`${ns}.${key}`] = t.value;
+    for (const [form, v] of Object.entries(t.pluralForms ?? {})) out[`${ns}.${key}_${form}`] = v as string;
+  }
+  await redis.set(cacheKey, JSON.stringify(out), "EX", 300);
+  return out;
+}
+
+// Interpolation + plurals. `count` picks the CLDR plural form for the locale.
+export function t(dict: Record<string, string>, key: string, params: Record<string, unknown> = {}, locale = "en"): string {
+  let template = dict[key];
+  if (typeof params.count === "number") {
+    const form = new Intl.PluralRules(locale).select(params.count);
+    template = dict[`${key}_${form}`] ?? dict[`${key}_other`] ?? template;
+  }
+  return (template ?? key).replace(/\{\{(\w+)\}\}/g, (_, k) => (params[k] !== undefined ? String(params[k]) : `{{${k}}}`));
+}
+
+export async function upsertKey(p: { namespace: string; key: string; description?: string; pluralType?: "none" | "cardinal" | "ordinal"; defaultValue?: string }) {
+  const en = p.defaultValue
+    ? { en: { value: p.defaultValue, status: "published", translatedBy: "system", updatedAt: new Date().toISOString() } }
+    : {};
+  await pool.query(
+    `INSERT INTO translation_keys (namespace, key, description, plural_type, translations)
+     VALUES ($1, $2, $3, $4, $5::jsonb)
+     ON CONFLICT (namespace, key) DO UPDATE SET description = EXCLUDED.description, updated_at = now()`,
+    [p.namespace, p.key, p.description ?? "", p.pluralType ?? "none", JSON.stringify(en)],
+  );
+  await invalidate();
+}
+
+export async function submitTranslation(namespace: string, key: string, locale: string, value: string, translatedBy: string, pluralForms?: Record<string, string>) {
+  const { rows: [row] } = await pool.query("SELECT plural_type FROM translation_keys WHERE namespace = $1 AND key = $2", [namespace, key]);
+  if (!row) throw new Error("Key not found");
+  if (row.plural_type !== "none") {
+    const missing = pluralCategories(locale, row.plural_type).filter((c) => !pluralForms?.[c]);
+    if (missing.length) throw new Error(`${locale} needs plural forms: ${missing.join(", ")}`);
+  }
+  const entry: Translation = { value, pluralForms, status: "review", translatedBy, updatedAt: new Date().toISOString() };
+  // jsonb_set changes one locale atomically, so two translators never overwrite each other
+  await pool.query(
+    `UPDATE translation_keys SET translations = jsonb_set(translations, ARRAY[$3::text], $4::jsonb), updated_at = now()
+     WHERE namespace = $1 AND key = $2`,
+    [namespace, key, locale, JSON.stringify(entry)],
+  );
+  await invalidate();
+}
+
+export async function approve(namespace: string, key: string, locale: string) {
+  await pool.query(
+    `UPDATE translation_keys SET translations = jsonb_set(translations, ARRAY[$3::text, 'status'], '"approved"'), updated_at = now()
+     WHERE namespace = $1 AND key = $2 AND translations ? $3::text`,
+    [namespace, key, locale],
+  );
+  await invalidate();
+}
+
+export async function findMissing(locale: string) {
+  const { rows } = await pool.query(
+    `SELECT namespace, key, description FROM translation_keys
+     WHERE COALESCE(translations -> $1::text ->> 'status', '') <> ALL ($2::text[]) ORDER BY namespace, key`,
+    [locale, LIVE],
   );
   return rows;
 }
 
-// Export translations for CI (JSON format)
-export async function exportLocale(locale: string): Promise<Record<string, any>> {
-  const translations = await getTranslations(locale);
-  // Convert flat keys to nested object
+export async function getCoverage() {
+  const { rows } = await pool.query(
+    `SELECT l AS locale, COUNT(*)::int AS total,
+            COUNT(*) FILTER (WHERE translations -> l ->> 'status' = ANY ($2::text[]))::int AS translated
+     FROM translation_keys, unnest($1::text[]) AS l GROUP BY l`,
+    [SUPPORTED_LOCALES, LIVE],
+  );
+  return Object.fromEntries(rows.map((r) => [r.locale, { ...r, percentage: r.total ? Math.round((100 * r.translated) / r.total) : 100 }]));
+}
+
+// Flat "ns.key" entries -> nested object, for libraries that load nested JSON files
+export async function exportLocale(locale: string) {
   const nested: Record<string, any> = {};
-  for (const [key, value] of Object.entries(translations)) {
-    const parts = key.split(".");
-    let current = nested;
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) current[parts[i]] = {};
-      current = current[parts[i]];
-    }
-    current[parts[parts.length - 1]] = value;
+  for (const [flat, value] of Object.entries(await getTranslations(locale))) {
+    const parts = flat.split(".");
+    const leaf = parts.pop()!;
+    const parent = parts.reduce((o, p) => (o[p] ??= {}), nested);
+    parent[leaf] = value;
   }
   return nested;
 }
-
-// Coverage stats
-export async function getCoverage(): Promise<Record<string, { total: number; translated: number; percentage: number }>> {
-  const { rows: [{ count: total }] } = await pool.query("SELECT COUNT(*) as count FROM translation_keys");
-  const stats: Record<string, any> = {};
-
-  for (const locale of SUPPORTED_LOCALES) {
-    const { rows: [{ count: translated }] } = await pool.query(
-      `SELECT COUNT(*) as count FROM translation_keys WHERE translations->$1 IS NOT NULL AND (translations->$1->>'status') IN ('approved', 'published')`,
-      [locale]
-    );
-    stats[locale] = {
-      total: parseInt(total),
-      translated: parseInt(translated),
-      percentage: Math.round((parseInt(translated) / parseInt(total)) * 100),
-    };
-  }
-
-  return stats;
-}
-
-async function invalidateCache(): Promise<void> {
-  const keys = await redis.keys("i18n:*");
-  if (keys.length > 0) await redis.del(...keys);
-}
 ```
 
-## Results
+`pluralCategories("ru")` returns `one, few, many, other`, and `"ar"` returns all six. `submitTranslation` rejects a plural key that lacks any of them, so a translator cannot ship half the forms.
 
-- **Missing translations caught before deploy** — CI step checks coverage; PR blocked if any locale drops below 95%; no more raw keys in production
-- **Arabic with 6 plural forms works** — "0 items, 1 item, 2 items, 3-10 items, 11-99 items, 100+ items" all display correctly; CLDR rules built in
-- **Translator portal** — translators see the source string, description, and screenshot of where it appears; context reduces mistranslations 60%
-- **Translation coverage dashboard** — French: 98%, Japanese: 87%, Arabic: 72%; team prioritizes what matters; coverage went from 60% to 95% in 2 months
-- **No deploy for new translations** — published translations cached in Redis; new strings appear in 5 minutes without a release
+### Step 4: HTTP API
+
+The app reads strings at runtime from the public routes. Writes and the missing-key list sit behind a bearer token.
+
+```ts
+// src/api.ts
+import { Hono } from "hono";
+import { bearerAuth } from "hono/bearer-auth";
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import * as i18n from "./i18n/manager";
+
+const app = new Hono();
+const locale = z.enum(i18n.SUPPORTED_LOCALES as [string, ...string[]]);
+
+// Public, read-only: the app fetches its strings at runtime, so new text needs no deploy
+app.get("/v1/translations/:locale", zValidator("param", z.object({ locale })), async (c) =>
+  c.json(await i18n.getTranslations(c.req.valid("param").locale, c.req.query("namespace"))));
+app.get("/v1/coverage", async (c) => c.json(await i18n.getCoverage()));
+
+// Translators and CI use a token
+const write = new Hono();
+write.use(bearerAuth({ token: process.env.TMS_TOKEN! }));
+write.get("/missing/:locale", zValidator("param", z.object({ locale })), async (c) =>
+  c.json(await i18n.findMissing(c.req.valid("param").locale)));
+write.post("/keys", zValidator("json", z.object({
+  namespace: z.string().min(1), key: z.string().min(1), description: z.string().optional(),
+  pluralType: z.enum(["none", "cardinal", "ordinal"]).optional(), defaultValue: z.string().optional(),
+})), async (c) => { await i18n.upsertKey(c.req.valid("json")); return c.json({ ok: true }, 201); });
+write.put("/translations/:namespace/:key/:locale", zValidator("json", z.object({
+  value: z.string(), translatedBy: z.string(), pluralForms: z.record(z.string(), z.string()).optional(),
+})), async (c) => {
+  const { namespace, key, locale: l } = c.req.param();
+  const b = c.req.valid("json");
+  try { await i18n.submitTranslation(namespace, key, l, b.value, b.translatedBy, b.pluralForms); }
+  catch (e) { return c.json({ error: (e as Error).message }, 400); }
+  return c.json({ ok: true });
+});
+write.post("/translations/:namespace/:key/:locale/approve", async (c) => {
+  const { namespace, key, locale: l } = c.req.param();
+  await i18n.approve(namespace, key, l);
+  return c.json({ ok: true });
+});
+app.route("/v1", write);
+
+serve({ fetch: app.fetch, port: 3000, hostname: "127.0.0.1" });
+```
+
+### Step 5: CI gate
+
+```ts
+// scripts/check-coverage.ts — CI step: fail the build when a locale is below the threshold
+const res = await fetch(`${process.env.TMS_URL}/v1/coverage`);
+const coverage: Record<string, { percentage: number }> = await res.json();
+const MIN = 95;
+const low = Object.entries(coverage).filter(([, c]) => c.percentage < MIN);
+for (const [l, c] of low) console.error(`${l}: ${c.percentage}% (< ${MIN}%)`);
+process.exit(low.length ? 1 : 0);
+```
+
+Run it with `TMS_URL=http://127.0.0.1:3000 npx tsx scripts/check-coverage.ts` in the pipeline. For the list of what is missing, call `GET /v1/missing/de` with the token.
+
+## Real-World Example
+
+Tomás's team loads the six locales into the service and wires the coverage script into CI with a 95% floor. Translators open the missing list for their language, submit values (plural keys need every form the locale requires), and a reviewer approves them. Because the app fetches `/v1/translations/:locale` with a five-minute cache, an approved string reaches production without a release. Raw keys stop appearing, since a locale that falls below the floor fails the build before it ships.
+
+## Related Skills
+
+- [typescript](/skills/typescript) - Types for the manager and API
+- [redis](/skills/redis) - Versioned translation cache
+- [postgresql](/skills/postgresql) - JSONB storage and queries
+- [hono](/skills/hono) - The HTTP API
+- [zod](/skills/zod) - Request validation
