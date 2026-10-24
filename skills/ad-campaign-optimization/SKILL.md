@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags:
     - advertising
@@ -59,7 +59,7 @@ Account
 
 **Key principles:**
 - Separate cold, warm, and hot audiences into different campaigns (different budgets, different optimization)
-- Use Campaign Budget Optimization (CBO) within each campaign
+- Use campaign-level budget optimization within each campaign (Meta's CBO, now labelled Advantage campaign budget in Ads Manager)
 - Exclude audiences across campaigns (retarget pool excluded from prospecting)
 - Keep 3-5 ads per ad set minimum for creative rotation
 
@@ -83,7 +83,7 @@ Each tier excludes all tiers above it.
 Tier 1 gets highest bid/budget (closest to conversion).
 ```
 
-**Lookalike seed quality** (in order): Top 25% LTV customers > Repeat purchasers > All purchasers > Add-to-cart users > High-engagement visitors. Minimum seed: 1,000 users.
+**Lookalike seed quality** (in order): Top 25% LTV customers > Repeat purchasers > All purchasers > Add-to-cart users > High-engagement visitors. Seed quality matters more than size; check the platform's current minimum and recommended seed size.
 
 ### Creative strategy
 
@@ -116,20 +116,20 @@ CTA (final 3-5 seconds)
 **Creative testing:**
 - Phase 1: Test 3-5 hooks/angles, $20-50/day each, 3-5 days → winner by CTR and CPA
 - Phase 2: Test 3-5 variations of winner, $30-75/day, 5-7 days → winner by CPA and ROAS
-- Phase 3: Scale winners 20-30%/day, refresh at frequency >3.0
+- Phase 3: Scale winners gradually and refresh creative when frequency rises (3.0 is a rule of thumb, not a platform threshold)
 
 ### Bid strategy and budget
 
 ```
 Awareness:    CPM bidding, optimize for reach
 Consideration: CPC bidding or landing page view optimization
-Conversion:   CPA/ROAS bidding (need 50+ conversions/week)
+Conversion:   CPA/ROAS bidding (needs steady conversion volume; too few conversions makes the bid model unstable)
 Retention:    Value-based bidding (optimize for LTV)
 ```
 
-Start with 70/20/10 split: 70% prospecting, 20% retargeting, 10% testing. Scale winners by increasing budget 20-30% every 3 days.
+Start with a 70/20/10 split (a heuristic): 70% prospecting, 20% retargeting, 10% testing. Scale winners by increasing budget 20-30% every 3 days (a rule of thumb, not a platform rule).
 
-Meta and Google need 50 conversion events per ad set per week to exit the learning phase. If not hitting this: consolidate ad sets, move optimization event up the funnel, or increase budget.
+Meta's learning phase ends only after an ad set gets enough optimization events. When volume is thin, consolidate ad sets, move the optimization event up the funnel, or increase budget. Check the Meta Business Help Center article "About the Learning Phase" for the current threshold.
 
 ### Attribution
 
@@ -140,13 +140,15 @@ Time-decay:       More credit to recent touchpoints
 Data-driven:      ML-based, available at scale (Google, Meta)
 ```
 
-Cross-platform solutions: UTM parameters (tag every link), incrementality testing (10% holdout), Marketing Mix Modeling (statistical model), post-purchase surveys.
+Google Ads and GA4 now offer only last-click and data-driven models for new reporting; the rule-based models above are concepts for comparison, not selectable options there.
+
+Cross-platform solutions: UTM parameters (tag every link), incrementality testing (a holdout group, e.g. 10%), Marketing Mix Modeling (statistical model), post-purchase surveys.
 
 ### Performance metrics
 
 ```
-EFFICIENCY: CPA (<1/3 of LTV), ROAS (>3:1), CTR (1-2% Meta, 3-5% Google Search), CPC
-QUALITY: Conversion rate, bounce rate, frequency (<3.0), Quality Score (Google 1-10)
+EFFICIENCY: CPA (well under LTV), ROAS (against your break-even ROAS), CTR and CPC (against your own account baseline)
+QUALITY: Conversion rate, bounce rate, frequency, Quality Score (Google 1-10)
 SCALE: Daily spend, CAC trend, impression share, audience saturation
 ```
 
@@ -175,7 +177,7 @@ We run ads on Meta, Google, TikTok, and LinkedIn with $50K/month total spend. Ea
 - Always separate cold, warm, and hot audiences into different campaigns with independent budgets
 - Never double budgets overnight — algorithmic learning resets with dramatic changes
 - Ensure every ad link has UTM parameters before launch
-- Monitor creative frequency and replace fatigued ads before performance tanks (frequency >3.0)
+- Monitor creative frequency and replace fatigued ads before performance tanks (watch frequency against your baseline)
 - Run incrementality tests quarterly to validate platform-reported attribution
 - Start with proven formats (UGC video, testimonial) before testing experimental creative
 - Keep at least 3 ads per ad set for rotation and learning
