@@ -1,12 +1,13 @@
 ---
 name: excalidraw
-description: Expert guidance for Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
+description: Excalidraw is an open-source virtual whiteboard, shipped as a React component, for hand-drawn style diagrams. Use it to embed a whiteboard in a React or Next.js app, generate diagrams from code or Mermaid text, export PNG/SVG/.excalidraw files, or wire up collaboration. Triggers - "add Excalidraw to my app", "generate an architecture diagram", "export a diagram as SVG".
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "React 17, 18 or 19; @excalidraw/excalidraw 0.18.x; a browser (no server-side rendering)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/excalidraw/excalidraw
   tags:
   - whiteboard
   - diagrams
@@ -17,336 +18,233 @@ metadata:
 
 # Excalidraw — Hand-Drawn Whiteboard SDK
 
-
 ## Overview
 
+Excalidraw is an open-source whiteboard that ships on npm as `@excalidraw/excalidraw`, a React component (latest stable 0.18.1; React 17, 18 and 19 are supported peers). It stores a scene as a plain JSON array of elements, so diagrams can be drawn by hand, generated from code, converted from Mermaid, exported as PNG/SVG, and kept in git as `.excalidraw` files.
 
-Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
-
+Three things changed in 0.18 and break older snippets: the stylesheet must be imported explicitly, the `ref` prop was replaced by an `excalidrawAPI` callback prop, and types moved to `@excalidraw/excalidraw/types` and `@excalidraw/excalidraw/element/types`. The editor needs a browser, so it cannot render on the server.
 
 ## Instructions
 
-### Basic Embedding
+### Install and embed
 
-Add an Excalidraw whiteboard to any React application:
+```bash
+npm install react react-dom @excalidraw/excalidraw
+```
 
 ```tsx
-// src/components/Whiteboard.tsx — Embed Excalidraw in a React app
+// src/components/Whiteboard.tsx
+import { useState } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { AppState } from "@excalidraw/excalidraw/types/types";
-import { useState, useCallback } from "react";
+import "@excalidraw/excalidraw/index.css";
+import type { ExcalidrawImperativeAPI, AppState } from "@excalidraw/excalidraw/types";
+import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 
 export function Whiteboard() {
-  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
+  const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
 
-  const handleChange = useCallback(
-    (elements: readonly ExcalidrawElement[], state: AppState) => {
-      // Called on every change — debounce before persisting
-      console.log(`${elements.length} elements on canvas`);
-    },
-    []
-  );
+  const onChange = (elements: readonly OrderedExcalidrawElement[], state: AppState) => {
+    // fires on every pointer move while drawing: debounce before saving
+    console.log(`${elements.length} elements, tool: ${state.activeTool.type}`);
+  };
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <Excalidraw
-        ref={(api) => setExcalidrawAPI(api)}
-        onChange={handleChange}
-        initialData={{
-          appState: {
-            viewBackgroundColor: "#fafafa",
-            currentItemFontFamily: 1,    // 1 = Virgil (hand-drawn), 2 = Helvetica, 3 = Cascadia
-          },
-        }}
-        UIOptions={{
-          canvasActions: {
-            loadScene: true,
-            export: { saveFileToDisk: true },
-            toggleTheme: true,
-          },
-        }}
+        excalidrawAPI={(instance) => setApi(instance)}
+        onChange={onChange}
+        initialData={{ appState: { viewBackgroundColor: "#fafafa" }, scrollToContent: true }}
+        UIOptions={{ canvasActions: { loadScene: true, export: { saveFileToDisk: true } } }}
       />
     </div>
   );
 }
 ```
 
-### Programmatic Scene Creation
+The component fills 100% of its parent, so the parent needs a non-zero height. Fonts are fetched from a CDN by default; to self-host, copy the contents of `node_modules/@excalidraw/excalidraw/dist/prod/fonts` into your public folder and set `window.EXCALIDRAW_ASSET_PATH = "/"` before the editor loads.
 
-Generate diagrams from code or data:
+### Next.js (App Router)
 
-```typescript
-// src/diagrams/architecture.ts — Generate architecture diagrams programmatically
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+Excalidraw touches `window`, so load it client-side only:
 
-interface ServiceNode {
-  name: string;
-  type: "api" | "database" | "queue" | "cache" | "frontend";
-  x: number;
-  y: number;
-}
+```tsx
+// app/board/page.tsx
+"use client";
+import dynamic from "next/dynamic";
+import "@excalidraw/excalidraw/index.css";
 
-function createServiceBox(service: ServiceNode): ExcalidrawElement {
-  const colors: Record<string, string> = {
-    api: "#a5d8ff",        // Blue for APIs
-    database: "#b2f2bb",   // Green for databases
-    queue: "#ffec99",      // Yellow for queues
-    cache: "#ffc9c9",      // Red for caches
-    frontend: "#d0bfff",   // Purple for frontends
-  };
+const Excalidraw = dynamic(
+  async () => (await import("@excalidraw/excalidraw")).Excalidraw,
+  { ssr: false },
+);
 
-  return {
-    type: "rectangle",
-    id: `service-${service.name}`,
-    x: service.x,
-    y: service.y,
-    width: 200,
-    height: 80,
-    strokeColor: "#1e1e1e",
-    backgroundColor: colors[service.type] || "#e9ecef",
-    fillStyle: "solid",
-    strokeWidth: 2,
-    roughness: 1,            // 0 = smooth, 1 = hand-drawn, 2 = very rough
-    roundness: { type: 3, value: 8 },
-    isDeleted: false,
-    boundElements: null,
-    locked: false,
-    opacity: 100,
-    angle: 0,
-    seed: Math.floor(Math.random() * 100000),  // Random seed for hand-drawn variation
-    version: 1,
-    versionNonce: Math.floor(Math.random() * 100000),
-    groupIds: [],
-    frameId: null,
-    link: null,
-    updated: Date.now(),
-  } as any;
-}
-
-function createArrow(
-  fromId: string, toId: string,
-  startX: number, startY: number,
-  endX: number, endY: number,
-  label?: string
-): ExcalidrawElement {
-  return {
-    type: "arrow",
-    id: `arrow-${fromId}-${toId}`,
-    x: startX,
-    y: startY,
-    width: endX - startX,
-    height: endY - startY,
-    strokeColor: "#1e1e1e",
-    strokeWidth: 2,
-    roughness: 1,
-    points: [[0, 0], [endX - startX, endY - startY]],
-    startBinding: { elementId: fromId, focus: 0, gap: 4 },
-    endBinding: { elementId: toId, focus: 0, gap: 4 },
-    startArrowhead: null,
-    endArrowhead: "arrow",
-    isDeleted: false,
-    opacity: 100,
-    angle: 0,
-    seed: Math.floor(Math.random() * 100000),
-    version: 1,
-    versionNonce: Math.floor(Math.random() * 100000),
-    groupIds: [],
-    boundElements: null,
-    locked: false,
-    frameId: null,
-    link: null,
-    updated: Date.now(),
-  } as any;
-}
-
-// Generate a full architecture diagram
-export function generateArchitectureDiagram(services: ServiceNode[], connections: [string, string][]) {
-  const elements: ExcalidrawElement[] = [];
-
-  // Create service boxes
-  for (const service of services) {
-    elements.push(createServiceBox(service));
-
-    // Add label text
-    elements.push({
-      type: "text",
-      id: `label-${service.name}`,
-      x: service.x + 20,
-      y: service.y + 25,
-      width: 160,
-      height: 30,
-      text: `${service.name}\n(${service.type})`,
-      fontSize: 16,
-      fontFamily: 1,           // Virgil hand-drawn font
-      textAlign: "center",
-      verticalAlign: "middle",
-      strokeColor: "#1e1e1e",
-      isDeleted: false,
-      opacity: 100,
-      angle: 0,
-      seed: Math.floor(Math.random() * 100000),
-      version: 1,
-      versionNonce: Math.floor(Math.random() * 100000),
-      groupIds: [],
-      boundElements: null,
-      locked: false,
-      frameId: null,
-      link: null,
-      updated: Date.now(),
-      containerId: `service-${service.name}`,
-    } as any);
-  }
-
-  // Create arrows for connections
-  for (const [from, to] of connections) {
-    const fromService = services.find(s => s.name === from)!;
-    const toService = services.find(s => s.name === to)!;
-    elements.push(createArrow(
-      `service-${from}`, `service-${to}`,
-      fromService.x + 200, fromService.y + 40,
-      toService.x, toService.y + 40,
-    ));
-  }
-
-  return elements;
+export default function BoardPage() {
+  return <div style={{ height: "100vh" }}><Excalidraw /></div>;
 }
 ```
 
-### Export and Import
+For anything besides the `Excalidraw` component (helpers like `convertToExcalidrawElements`), put them in a wrapper component and import that wrapper dynamically.
 
-Save diagrams as files, images, or shareable links:
+### Generate elements with the skeleton API
 
-```typescript
-// src/utils/export.ts — Export Excalidraw scenes in various formats
-import { exportToBlob, exportToSvg, serializeAsJSON } from "@excalidraw/excalidraw";
+Do not hand-write full element objects (they need `seed`, `version`, `versionNonce`, `index`, and more). Write skeletons and let `convertToExcalidrawElements` fill in the rest, including bound text and arrow bindings:
 
-async function exportAsPNG(excalidrawAPI: any) {
-  const elements = excalidrawAPI.getSceneElements();
-  const appState = excalidrawAPI.getAppState();
+```tsx
+// src/diagrams/architecture.ts
+import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 
+const fills: Record<string, string> = {
+  api: "#a5d8ff", database: "#b2f2bb", queue: "#ffec99", cache: "#ffc9c9", frontend: "#d0bfff",
+};
+
+type Service = { id: string; label: string; kind: keyof typeof fills; x: number; y: number };
+
+export function architectureElements(services: Service[], links: [string, string][]) {
+  return convertToExcalidrawElements([
+    ...services.map((s) => ({
+      type: "rectangle" as const,
+      id: s.id,
+      x: s.x,
+      y: s.y,
+      width: 200,
+      height: 80,
+      backgroundColor: fills[s.kind],
+      fillStyle: "solid" as const,
+      roughness: 1,
+      roundness: { type: 3 as const },
+      label: { text: `${s.label}\n(${s.kind})`, fontSize: 16 },
+    })),
+    ...links.map(([from, to]) => ({
+      type: "arrow" as const,
+      x: 0,
+      y: 0,
+      start: { id: from },
+      end: { id: to },
+      endArrowhead: "arrow" as const,
+    })),
+  ]);
+}
+
+// api.updateScene({ elements: architectureElements(services, links) });
+// api.scrollToContent(undefined, { fitToContent: true });
+```
+
+Arrows with `start`/`end` ids are positioned and bound to the shapes automatically. Other skeleton types include `ellipse`, `diamond`, `text`, `line`, `image`, `frame` and, in the unreleased master branch, `stickynote`.
+
+### Mermaid to Excalidraw
+
+`@excalidraw/mermaid-to-excalidraw` (the package behind the editor's Mermaid dialog) turns Mermaid text into skeleton elements; flowcharts are converted to editable shapes:
+
+```tsx
+import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
+import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
+
+const { elements, files } = await parseMermaidToExcalidraw(
+  "flowchart LR\n  Browser --> API --> Postgres",
+);
+api.updateScene({ elements: convertToExcalidrawElements(elements) });
+if (files) api.addFiles(Object.values(files));
+```
+
+Check the package README for which diagram types are supported; unsupported ones are not converted to shapes.
+
+### Export and import
+
+In 0.18 the export helpers read options from `appState` (the unreleased master branch replaces them with a single `exportScene`; check the version you installed):
+
+```ts
+// src/utils/export.ts
+import { exportToBlob, exportToSvg, serializeAsJSON, loadFromBlob } from "@excalidraw/excalidraw";
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+
+export async function downloadPng(api: ExcalidrawImperativeAPI) {
   const blob = await exportToBlob({
-    elements,
-    appState: { ...appState, exportWithDarkMode: false },
-    files: excalidrawAPI.getFiles(),
-    getDimensions: () => ({ width: 1920, height: 1080, scale: 2 }),  // 2x for retina
+    elements: api.getSceneElements(),
+    appState: { ...api.getAppState(), exportWithDarkMode: false, exportBackground: true },
+    files: api.getFiles(),
+    mimeType: "image/png",
+    getDimensions: (w: number, h: number) => ({ width: w * 2, height: h * 2, scale: 2 }),
   });
-
-  // Download the image
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "diagram.png";
-  link.click();
+  Object.assign(document.createElement("a"), { href: url, download: "architecture.png" }).click();
   URL.revokeObjectURL(url);
 }
 
-async function exportAsSVG(excalidrawAPI: any) {
-  const elements = excalidrawAPI.getSceneElements();
+export async function sceneToSvgString(api: ExcalidrawImperativeAPI) {
   const svg = await exportToSvg({
-    elements,
-    appState: { exportWithDarkMode: false },
-    files: excalidrawAPI.getFiles(),
+    elements: api.getSceneElements(),
+    appState: { exportWithDarkMode: false, exportEmbedScene: true },
+    files: api.getFiles(),
   });
-  return svg.outerHTML;   // Returns SVG as string
+  return svg.outerHTML;
 }
 
-function saveAsExcalidrawFile(excalidrawAPI: any) {
-  const elements = excalidrawAPI.getSceneElements();
-  const appState = excalidrawAPI.getAppState();
-  const json = serializeAsJSON(elements, appState, excalidrawAPI.getFiles(), "local");
-
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "diagram.excalidraw";
-  link.click();
+export function sceneToJson(api: ExcalidrawImperativeAPI) {
+  return serializeAsJSON(api.getSceneElements(), api.getAppState(), api.getFiles(), "local");
 }
 
-// Load from .excalidraw file
-async function loadFromFile(excalidrawAPI: any, file: File) {
-  const text = await file.text();
-  const data = JSON.parse(text);
-  excalidrawAPI.updateScene({
-    elements: data.elements,
-    appState: data.appState,
-  });
+export async function openExcalidrawFile(api: ExcalidrawImperativeAPI, file: File) {
+  const scene = await loadFromBlob(file, null, null);   // runs restore() on old files
+  api.updateScene({ elements: scene.elements, appState: scene.appState });
+  api.addFiles(Object.values(scene.files));
 }
 ```
 
-### Collaboration with Excalidraw+
+With `exportEmbedScene: true` the scene JSON is stored inside the SVG or PNG, so the exported image can be dropped back into Excalidraw and edited.
 
-Set up real-time collaboration:
+### Collaboration
+
+The npm package has no built-in backend. `isCollaborating` and `LiveCollaborationTrigger` only change the UI; you provide the transport (the public app uses Socket.IO with the `excalidraw-room` server and end-to-end encrypted payloads). The pieces you wire up:
+
+- `onChange` to send local changes and `onPointerUpdate` to send cursors;
+- `reconcileElements(local, remote, appState)` to merge incoming elements by version;
+- `api.updateScene({ elements, collaborators })` to apply them, where `collaborators` is a `Map` of socket id to `{ pointer, username }`.
 
 ```tsx
-// src/components/CollaborativeBoard.tsx — Real-time whiteboard with collaboration
 import { Excalidraw, LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 
-export function CollaborativeBoard({ roomId }: { roomId: string }) {
-  return (
-    <div style={{ height: "100vh" }}>
-      <Excalidraw
-        isCollaborating={true}
-        // Custom collaboration backend using WebSocket
-        onCollabButtonClick={() => {
-          // Open share dialog or copy room link
-          const link = `${window.location.origin}/board/${roomId}`;
-          navigator.clipboard.writeText(link);
-        }}
-        renderTopRightUI={() => (
-          <LiveCollaborationTrigger
-            isCollaborating={true}
-            onSelect={() => {}}
-          />
-        )}
-      />
-    </div>
-  );
-}
+<Excalidraw
+  excalidrawAPI={setApi}
+  isCollaborating={connected}
+  renderTopRightUI={() => (
+    <LiveCollaborationTrigger isCollaborating={connected} onSelect={() => setShareOpen(true)} />
+  )}
+/>
 ```
 
-## Installation
-
-```bash
-npm install @excalidraw/excalidraw
-
-# Peer dependencies
-npm install react react-dom
-```
-
+Excalidraw+ is the hosted commercial product from the same team; it is not something you enable from this package.
 
 ## Examples
 
+### Example 1: Add a whiteboard page to a Next.js app
 
-### Example 1: Setting up Excalidraw with a custom configuration
+**User request:** "Add an Excalidraw board at /board to my Next.js 15 app and save the scene to localStorage."
 
-**User request:**
+Install the package, create `app/board/page.tsx` as in the Next.js section (`"use client"`, `dynamic` with `ssr: false`, the CSS import), and persist with a debounced `onChange`:
 
-```
-I just installed Excalidraw. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Excalidraw with custom functionality
-
-**User request:**
-
-```
-I want to add a custom programmatic scene creation to Excalidraw. How do I build one?
+```tsx
+const save = useMemo(() => debounce((els: readonly OrderedExcalidrawElement[]) => {
+  localStorage.setItem("board-v1", JSON.stringify(els));
+}, 500), []);
+// <Excalidraw initialData={{ elements: JSON.parse(localStorage.getItem("board-v1") ?? "[]") }} onChange={save} />
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Excalidraw's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+Result: `/board` shows a full-height editor with the standard toolbar; reloading restores the drawing. If the canvas is blank, the parent has no height; if the toolbar is unstyled, the CSS import is missing.
 
+### Example 2: Draw a service map from a list
+
+**User request:** "Generate an Excalidraw diagram of web, api, redis and postgres with arrows between them, and export it as SVG."
+
+Call `architectureElements` with four services at x = 0, 300, 600 (y = 0 and 160) and links `web→api`, `api→redis`, `api→postgres`, pass the result to `api.updateScene`, then `sceneToSvgString(api)`. The result is four coloured boxes with centred labels and three bound arrows; moving a box in the editor drags its arrows with it.
 
 ## Guidelines
 
-1. **Container must have dimensions** — Excalidraw expands to fill its container; ensure explicit height/width
-2. **Debounce onChange** — Canvas fires updates on every mouse move during drawing; debounce to 500ms for persistence
-3. **Use roughness for style** — `roughness: 0` for clean diagrams, `1` for hand-drawn feel, `2` for sketch style
-4. **Seed for consistency** — Same seed = same hand-drawn variation; use deterministic seeds for reproducible diagrams
-5. **Export SVG for docs** — SVG exports are resolution-independent and embed well in documentation
-6. **Lazy load the component** — Excalidraw bundle is ~1MB; use `React.lazy()` to avoid blocking initial page load
-7. **Use frames for grouping** — Frames in Excalidraw act as containers; export individual frames as separate images
-8. **Store .excalidraw files in git** — The JSON format is text-based and diffs well in version control
+1. **Import `@excalidraw/excalidraw/index.css`** — without it the toolbar and dialogs render unstyled.
+2. **Use `excalidrawAPI={...}`, not `ref`** — 0.18 removed the ref; the callback gives you `updateScene`, `getSceneElements`, `getFiles`, `scrollToContent`.
+3. **Prefer skeletons** — `convertToExcalidrawElements` generates ids, seeds, bindings and text containers; hand-built elements missing required fields break on load.
+4. **Debounce `onChange`** — it fires continuously during drags; persist at most every 500 ms.
+5. **Fonts** — default is Excalifont (`FONT_FAMILY.Excalifont`, 5); Virgil is 1, Helvetica 2, Cascadia 3. Use the exported `FONT_FAMILY` constant instead of numbers.
+6. **`roughness`** — 0 is clean, 1 hand-drawn, 2 very rough; a fixed `seed` makes the wobble reproducible.
+7. **Render client-side only** — use `dynamic(..., { ssr: false })` in Next.js; lazy-load because the bundle is large.
+8. **Commit `.excalidraw` files** — they are JSON and diff well; export SVG/PNG with `exportEmbedScene` so they stay editable.
+9. **Pin the version** — master already contains breaking export changes (`exportScene`) that are not in 0.18.1.
