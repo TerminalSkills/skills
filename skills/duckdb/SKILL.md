@@ -9,7 +9,8 @@ license: Apache-2.0
 compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/duckdb/duckdb
   category: data-ai
   tags:
     - database
@@ -21,9 +22,15 @@ metadata:
 
 # DuckDB
 
+## Overview
+
 DuckDB is an embeddable SQL OLAP database. Think of it as SQLite for analytics — it runs in your process, needs no server, and is optimized for scanning and aggregating large datasets. It reads Parquet, CSV, and JSON files natively, which means you can query your data lake files with SQL without any import step.
 
 This skill covers the CLI for ad-hoc exploration, the Python API for data science workflows, the Node.js API for application integration, and Parquet as the preferred storage format.
+
+## Instructions
+
+Pick the client that fits the job: the CLI for exploration, Python or Node for pipelines. All of them run the same SQL.
 
 ## CLI
 
@@ -35,12 +42,15 @@ brew install duckdb
 ```
 
 ```bash
-# install — DuckDB CLI via direct download (Linux x64)
-wget https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-amd64.zip
-unzip duckdb_cli-linux-amd64.zip
-chmod +x duckdb
-sudo mv duckdb /usr/local/bin/
+# install — DuckDB CLI via direct download (Linux x64, v2.0.0 ships .tar.gz)
+curl -fsSL -o duckdb-cli.tar.gz https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-linux-amd64.tar.gz
+# compare with the sha256 shown for this asset on the v2.0.0 release page before extracting
+sha256sum duckdb-cli.tar.gz
+tar xzf duckdb-cli.tar.gz
+./duckdb --version
 ```
+
+The old `releases/latest/download/duckdb_cli-linux-amd64.zip` URL returns 404 for 2.0 (the archive is now `duckdb-cli-<os>-<arch>.tar.gz`), so pin the version. `pip install duckdb` and `npm install @duckdb/node-api` need no CLI at all.
 
 Launch the shell and start querying files directly:
 
@@ -158,61 +168,29 @@ con.close()
 
 ## Node.js API
 
-The `duckdb` npm package provides async bindings for embedding DuckDB in Node.js applications.
+Use `@duckdb/node-api` (the "Neo" client, promise-based, current line 2.0). The older `duckdb` npm package is deprecated and stops at 1.4.x, and `duckdb-async` is only a wrapper around it.
 
 ```javascript
-// duckdb-query.js — Node.js DuckDB client for analytical queries
-// npm install duckdb
+// duckdb-query.mjs — Node.js DuckDB client for analytical queries
+// npm install @duckdb/node-api
 
-import duckdb from 'duckdb';
+import { DuckDBInstance } from '@duckdb/node-api';
 
-const db = new duckdb.Database(':memory:');
-const conn = db.connect();
+const instance = await DuckDBInstance.create(':memory:');
+const conn = await instance.connect();
 
-// Load a Parquet file into a table
-conn.run(`CREATE TABLE events AS SELECT * FROM 'events.parquet'`);
+await conn.run(`CREATE TABLE events AS SELECT * FROM 'events.parquet'`);
 
-// Query with aggregation
-conn.all(`
-  SELECT
-    event_name,
-    count(*) AS total,
-    count(DISTINCT user_id) AS unique_users
+const reader = await conn.runAndReadAll(`
+  SELECT event_name, count(*) AS total, count(DISTINCT user_id) AS unique_users
   FROM events
   GROUP BY event_name
   ORDER BY total DESC
-`, (err, rows) => {
-  if (err) throw err;
-  console.table(rows);
-  db.close();
-});
-```
+`);
 
-For a promise-based workflow with the newer `duckdb-async` wrapper:
-
-```javascript
-// duckdb-async-example.js — promise-based DuckDB queries in Node.js
-// npm install duckdb-async
-
-import { Database } from 'duckdb-async';
-
-async function analyze() {
-  const db = await Database.create(':memory:');
-
-  // Query CSV directly
-  const topPages = await db.all(`
-    SELECT page, count(*) AS views
-    FROM 'pageviews.csv'
-    GROUP BY page
-    ORDER BY views DESC
-    LIMIT 10
-  `);
-
-  console.table(topPages);
-  await db.close();
-}
-
-analyze();
+// BIGINT columns come back as JS bigint; getRowObjectsJson() turns them into strings
+console.table(reader.getRowObjectsJson());
+conn.closeSync();
 ```
 
 ## Parquet Integration
@@ -237,19 +215,49 @@ For large datasets, partition your Parquet output by a key column to enable part
 ```sql
 -- export — write partitioned Parquet files by month
 COPY (
-    SELECT *, date_trunc('month', created_at) AS month
+    SELECT *, strftime(created_at, '%Y-%m') AS month
     FROM events
 ) TO 'data/events' (FORMAT PARQUET, PARTITION_BY (month), COMPRESSION ZSTD);
 ```
 
-This creates a directory structure like `data/events/month=2025-01/data_0.parquet` that DuckDB can scan with automatic partition filtering.
+Create the parent folder first (`mkdir -p data`); the copy fails with "Failed to create directory" if it is missing. It then writes `data/events/month=2025-01/data_0.parquet` and so on. Partition on a string or integer column: a timestamp such as `date_trunc('month', ...)` produces directory names like `month=2025-01-01%2000%3A00%3A00`. Read it back with `read_parquet('data/events/*/*.parquet', hive_partitioning = true)` to get `month` as a column and let `WHERE month = '2025-01'` skip folders.
 
 ### Inspecting Parquet Metadata
 
 ```sql
 -- metadata — inspect Parquet file schema and row counts
-SELECT * FROM parquet_metadata('events.parquet');
+SELECT * FROM parquet_file_metadata('events.parquet');  -- rows, row groups, creator
+SELECT * FROM parquet_metadata('events.parquet');       -- per column chunk statistics
 SELECT * FROM parquet_schema('events.parquet');
 ```
 
 DuckDB's Parquet support makes it an excellent tool for building lightweight data pipelines: ingest raw data from any format, transform it with SQL, and write optimized Parquet files for downstream consumers.
+
+## Examples
+
+**"How many orders per month does each country have in these CSV exports?"**
+
+```bash
+duckdb -c "SELECT country, strftime(created_at, '%Y-%m') AS month, count(*) AS orders
+           FROM read_csv('exports/orders-*.csv')
+           GROUP BY ALL ORDER BY month, orders DESC"
+```
+
+The result is a table with columns `country`, `month`, `orders`, one row per pair.
+
+**"Turn this 2 GB CSV into something fast to query."**
+
+```bash
+duckdb -c "COPY (SELECT * FROM 'orders.csv') TO 'orders.parquet' (FORMAT PARQUET, COMPRESSION ZSTD)"
+duckdb -c "SELECT count(*), sum(amount) FROM 'orders.parquet'"
+```
+
+The Parquet file is usually much smaller than the CSV and scans only the columns the query names.
+
+## Guidelines
+
+- Check the storage-format compatibility notes in the DuckDB docs before opening one database file from clients of different major versions; keep the CLI, Python and Node clients on the same release.
+- When stdout is not a terminal and `AI_AGENT` is set, the 2.0 CLI prints Markdown-style tables and a banner line; pass `-no-agent` for normal output, or use `-csv` / `-json` when another program parses the result.
+- A bare file name in `FROM 'orders.csv'` is resolved relative to the working directory; use `read_csv('orders.csv', header = true)` when type sniffing guesses wrong.
+- Only one process can open a database file read-write; open it with `duckdb.connect('analytics.db', read_only=True)` for concurrent readers.
+- DuckDB is for analytics on one machine. It is not a replacement for a multi-writer transactional server such as PostgreSQL.
