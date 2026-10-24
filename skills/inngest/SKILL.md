@@ -1,181 +1,211 @@
 ---
 name: inngest
 description: >-
-  You are an expert in Inngest, the event-driven durable workflow engine for
-  TypeScript. You help developers build reliable multi-step workflows,
-  scheduled jobs, and event-driven functions with automatic retries,
-  step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing —
-  running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare)
-  with zero infrastructure to manage.
+  Inngest is a durable workflow engine for TypeScript: functions are split into
+  retryable steps whose results are saved, so a failure resumes where it
+  stopped. Use it when a user asks for background jobs, scheduled (cron) jobs,
+  multi-step workflows, delayed or drip emails, fan-out/fan-in processing,
+  debouncing or rate limiting, or event-driven functions on serverless
+  platforms such as Vercel, Netlify, AWS Lambda or Cloudflare. Covers the
+  current v4 SDK (triggers inside the options object).
 license: Apache-2.0
-compatibility: ''
+compatibility: Node.js 20+ and TypeScript; inngest npm package v4 (4.26 checked on 2026-10-24)
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
+  version: 1.1.0
+  category: development
+  repository: https://github.com/inngest/inngest-js
   tags:
     - workflow
     - event-driven
     - durable
     - serverless
     - typescript
-    - step-functions
 ---
 
 # Inngest — Durable Workflow Engine for TypeScript
 
-You are an expert in Inngest, the event-driven durable workflow engine for TypeScript. You help developers build reliable multi-step workflows, scheduled jobs, and event-driven functions with automatic retries, step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing — running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare) with zero infrastructure to manage.
+## Overview
 
-## Core Capabilities
+Inngest runs your TypeScript functions as a series of steps. Each `step.run()` result is saved, so when a later step fails or the function waits for days, the run resumes without repeating finished steps. Functions are served from an HTTP endpoint in your own app (usually `/api/inngest`); Inngest Cloud or the local Dev Server calls that endpoint to run them. This skill targets SDK v4 (`inngest` 4.x). If the project is on v3, the biggest difference is that the trigger moved from the second argument of `createFunction` into `triggers` in the first.
 
-### Functions and Steps
+## Instructions
+
+### 1. Install and create the client
+
+```bash
+npm install inngest
+```
 
 ```typescript
-// inngest/functions/onboarding.ts
+// src/inngest/client.ts
+import { Inngest } from "inngest";
+
+export const inngest = new Inngest({ id: "shop-backend" });
+```
+
+In v4 the client defaults to cloud mode and needs `INNGEST_SIGNING_KEY` (from the Inngest dashboard) in production. For local development run the Dev Server and tell the SDK to use it with `INNGEST_DEV=1` (or `isDev: true` on the client). Put the event key in `INNGEST_EVENT_KEY` when sending events to Cloud. Never hard-code either key.
+
+```bash
+npx inngest-cli@latest dev          # Dev Server and UI on http://localhost:8288
+INNGEST_DEV=1 npm run dev           # your app, in another terminal
+```
+
+### 2. Serve the functions
+
+```typescript
+// src/app/api/inngest/route.ts  (Next.js App Router)
+import { serve } from "inngest/next";
+import { inngest } from "@/inngest/client";
+import { onboardUser, processBatch, dailyCleanup, syncCRM } from "@/inngest/functions";
+
+export const maxDuration = 300;       // serverless limit for this route (Vercel)
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: [onboardUser, processBatch, dailyCleanup, syncCRM],
+});
+```
+
+Other adapters are imported the same way: `inngest/express`, `inngest/lambda` and so on. Options such as `signingKey` and `baseUrl` belong on the client, not on `serve()`. Use `serveOrigin` (not `serveHost`) when the app sits behind a proxy.
+
+On serverless platforms set `checkpointing: { maxRuntime: "50s" }` on the client, a little under the platform's maximum duration, because v4 runs several steps per request by default.
+
+### 3. Write functions
+
+In v4 the trigger goes in `triggers` inside the first argument. It can be one object or an array (for example an event plus a cron schedule).
+
+```typescript
+// src/inngest/functions.ts
 import { inngest } from "./client";
 
 export const onboardUser = inngest.createFunction(
   {
     id: "onboard-user",
     retries: 3,
-    concurrency: [{ limit: 10 }],         // Max 10 concurrent executions
+    concurrency: [{ limit: 10 }],
+    triggers: { event: "user/signed-up" },
   },
-  { event: "user/signed-up" },
   async ({ event, step }) => {
-    // Step 1: Create account (cached — won't re-run on retry)
     const user = await step.run("create-account", async () => {
-      return await db.users.create({
-        email: event.data.email,
-        name: event.data.name,
-      });
+      return db.users.create({ email: event.data.email, name: event.data.name });
     });
 
-    // Step 2: Send welcome email
     await step.run("send-welcome", async () => {
       await resend.emails.send({
+        from: "Shop <hello@shop.dev>",
         to: user.email,
-        subject: "Welcome!",
+        subject: "Welcome to Shop",
         react: WelcomeEmail({ name: user.name }),
       });
     });
 
-    // Step 3: Wait 24 hours (durable — survives deployments)
     await step.sleep("wait-for-activation", "24 hours");
 
-    // Step 4: Check if user activated
     const activated = await step.run("check-activation", async () => {
-      const u = await db.users.findById(user.id);
-      return u.activatedAt !== null;
+      const current = await db.users.findById(user.id);
+      return current.activatedAt !== null;
     });
 
     if (!activated) {
-      // Step 5: Send reminder
       await step.run("send-reminder", async () => {
         await resend.emails.send({
+          from: "Shop <hello@shop.dev>",
           to: user.email,
-          subject: "Complete your setup",
+          subject: "Finish setting up your shop",
           react: ReminderEmail({ name: user.name }),
         });
       });
     }
-
     return { userId: user.id, activated };
   },
 );
+```
 
-// Fan-out: process items in parallel
+`db`, `resend` and the email components are your own app code. Step return values are JSON-serialised, so a `Date` comes back as a string on later steps.
+
+### 4. Fan-out, cron, debounce, rate limit
+
+```typescript
 export const processBatch = inngest.createFunction(
-  { id: "process-batch" },
-  { event: "batch/uploaded" },
+  { id: "process-batch", triggers: { event: "batch/uploaded" } },
   async ({ event, step }) => {
-    const items = event.data.items;
-
-    // Fan-out — run up to 10 items in parallel
     const results = await Promise.all(
-      items.map((item, i) =>
-        step.run(`process-item-${i}`, () => processItem(item))
+      event.data.items.map((item: { id: string }) =>
+        step.run(`process-item-${item.id}`, () => processItem(item)),
       ),
     );
-
-    // Fan-in — aggregate results
-    const summary = await step.run("summarize", () => ({
+    return step.run("summarize", () => ({
       total: results.length,
-      success: results.filter(r => r.status === "ok").length,
-      failed: results.filter(r => r.status === "error").length,
+      failed: results.filter((r) => r.status === "error").length,
     }));
-
-    return summary;
   },
 );
 
-// Scheduled (cron)
 export const dailyCleanup = inngest.createFunction(
-  { id: "daily-cleanup" },
-  { cron: "0 3 * * *" },                 // 3 AM daily
+  { id: "daily-cleanup", triggers: { cron: "0 3 * * *" } },   // 03:00 UTC
   async ({ step }) => {
-    const deleted = await step.run("cleanup-expired", async () => {
-      return await db.sessions.deleteWhere({ expiresAt: { lt: new Date() } });
-    });
+    const deleted = await step.run("cleanup-expired", () =>
+      db.sessions.deleteWhere({ expiresAt: { lt: new Date() } }),
+    );
     return { deletedSessions: deleted };
   },
 );
-```
 
-### Event-Driven
-
-```typescript
-// Send events from anywhere
-import { inngest } from "./client";
-
-// From API route
-app.post("/api/signup", async (req, res) => {
-  const user = await createUser(req.body);
-
-  await inngest.send({
-    name: "user/signed-up",
-    data: { email: user.email, name: user.name, userId: user.id },
-  });
-
-  res.json(user);
-});
-
-// Batch events
-await inngest.send([
-  { name: "order/created", data: { orderId: "1" } },
-  { name: "order/created", data: { orderId: "2" } },
-]);
-```
-
-### Debounce and Rate Limit
-
-```typescript
 export const syncCRM = inngest.createFunction(
   {
     id: "sync-crm",
-    debounce: { period: "5m", key: "event.data.userId" },  // Wait 5min, take latest
-    rateLimit: { limit: 100, period: "1h" },                // Max 100/hour
+    triggers: { event: "user/updated" },
+    debounce: { key: "event.data.userId", period: "5m" },     // runs on the last event
   },
-  { event: "user/updated" },
   async ({ event, step }) => {
     await step.run("sync", () => crm.upsertContact(event.data));
   },
 );
 ```
 
-## Installation
+`rateLimit: { key: "event.data.companyId", limit: 1, period: "4h" }` drops events over the limit (they are skipped, not queued); use `throttle` to delay them instead. `key` values are CEL expressions over `event`. Debounce cannot be combined with batching.
 
-```bash
-npx inngest-cli@latest init
-npx inngest-cli@latest dev                 # Local dev server with UI
+### 5. Send events
+
+```typescript
+await inngest.send({ name: "user/signed-up", data: { userId: "u_81", email: "mira@shop.dev", name: "Mira" } });
+await inngest.send([
+  { name: "order/created", data: { orderId: "ord_1001" } },
+  { name: "order/created", data: { orderId: "ord_1002" } },
+]);
 ```
 
-## Best Practices
+Use `data` for everything the function needs; the top-level `user` field and `event.user` were removed in v4. Inside a function, send events from a step (`step.sendEvent("notify", {...})`) so a retry does not send twice.
 
-1. **Steps are checkpoints** — Each `step.run()` is cached; if the function retries, completed steps are skipped
-2. **step.sleep for delays** — Durable sleep survives deployments and restarts; use for drip campaigns, reminders
-3. **Fan-out with step.run** — Use `Promise.all` with indexed step names for parallel processing
-4. **Debounce for noisy events** — Use debounce for events that fire rapidly (user edits, webhook storms)
-5. **Rate limiting** — Protect downstream APIs with built-in rate limits; no external tools needed
-6. **Event-first architecture** — Send events from your app; Inngest triggers functions automatically
-7. **Local dev UI** — Run `inngest dev` for a visual dashboard showing function runs, events, and step details
-8. **Zero infrastructure** — Works on any serverless platform; Inngest handles queuing, retries, scheduling
+### 6. Typed events (optional)
+
+v4 removed `EventSchemas`. Define events with `eventType()` and use them as triggers, in `inngest.send` and in `step.waitForEvent`:
+
+```typescript
+import { eventType, staticSchema } from "inngest";
+
+type SignedUp = { userId: string; email: string };      // a type, not an interface
+export const userSignedUp = eventType("user/signed-up", { schema: staticSchema<SignedUp>() });
+// triggers: [userSignedUp]   ...   await inngest.send(userSignedUp.create({ userId: "u_81", email: "mira@shop.dev" }));
+```
+
+A Zod schema in place of `staticSchema` adds runtime validation.
+
+## Examples
+
+### Example 1: "Email new users, then remind them a day later if they have not activated"
+
+Create `onboardUser` above, add it to `serve()`, start the Dev Server, then send the event from the UI (Functions, Invoke) with `{"data": {"email": "mira@shop.dev", "name": "Mira"}}`. The Runs tab shows `create-account` and `send-welcome` completed and the run sleeping on `wait-for-activation` for 24 hours; a redeploy in between does not lose it.
+
+### Example 2: "Sync a CRM contact after edits settle, never more than 100 times an hour"
+
+Use `syncCRM` with `debounce`. Ten `user/updated` events for the same `userId` within five minutes produce one run that receives the last event. Add a `throttle: { limit: 100, period: "1h" }` option to spread bursts across users, since `rateLimit` skips excess events.
+
+## Guidelines
+
+- Step IDs must be unique per function and stable across deploys; renaming one re-runs it for in-flight runs.
+- Put every side effect (database writes, emails, API calls) inside `step.run`. Code between steps runs again on every resume, so keep it deterministic and cheap.
+- A signing key error at startup in v4 means the client is in cloud mode: set `INNGEST_DEV=1` locally or `INNGEST_SIGNING_KEY` in production.
+- With optimized parallelism (the default), `Promise.race` over steps waits for all of them to settle; use `group.parallel()` if you need the first result immediately.
+- Pass `checkpointing: false` on the client or a function to return to one step per request.
+- Not for sub-second request/response work; Inngest is for background and long-running jobs.
