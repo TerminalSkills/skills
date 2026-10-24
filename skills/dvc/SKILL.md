@@ -1,15 +1,14 @@
 ---
 name: dvc
 description: |
-  Data Version Control for ML projects. Track large datasets and models alongside Git,
-  build reproducible ML pipelines, and run experiments with metric comparison. Works with
-  any storage backend including S3, GCS, Azure, and local filesystems.
+  DVC (Data Version Control) tracks large datasets and models next to Git, builds reproducible ML pipelines and compares experiments. Use when the user says "version my dataset", "dvc add", "dvc repro", "track ML experiments", "push data to S3 or GCS" or wants to reproduce a model from a Git commit.
 license: Apache-2.0
-compatibility: 'python 3.8+, dvc 3.0+, Linux/macOS/Windows'
+compatibility: 'Python 3.9+, dvc 3.x (checked with 3.67), Git, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/treeverse/dvc
   tags:
     - data-versioning
     - ml-pipelines
@@ -20,208 +19,158 @@ metadata:
 
 # DVC (Data Version Control)
 
-## Installation
+## Overview
+
+DVC keeps big files out of Git. `dvc add` replaces a file or directory with a small `.dvc` pointer that Git tracks, while the content goes to a cache and a remote (S3, GCS, Azure, SSH, local path). `dvc.yaml` describes pipeline stages with dependencies, parameters and outputs, so `dvc repro` re-runs only what changed. `dvc exp` runs and compares experiments without making a branch per try.
+
+## Instructions
+
+### Install and initialise
 
 ```bash
-# Install DVC with cloud storage support
-pip install dvc[s3]    # For AWS S3
-pip install dvc[gs]    # For Google Cloud Storage
-pip install dvc[azure] # For Azure Blob Storage
-pip install dvc[all]   # All remotes
-
-# Initialize DVC in a Git repo
-cd my-ml-project
-git init
-dvc init
+pip install dvc            # or: pipx install dvc, uv tool install dvc
+pip install "dvc[s3]"      # remote extras: s3, gs, azure, ssh, webdav; "dvc[all]" for all
+cd churn-model
+git init && dvc init       # creates .dvc/ and .dvcignore; commit them
 ```
 
-## Track Data Files
+### Track data
 
 ```bash
-# track_data.sh — Add large files to DVC tracking instead of Git
-# Add a large dataset
-dvc add data/training_images/
-dvc add data/dataset.csv
-
-# DVC creates .dvc files (small pointers) — commit those to Git
-git add data/training_images.dvc data/dataset.csv.dvc .gitignore
-git commit -m "Track training data with DVC"
+dvc add data/raw                  # file or directory; writes data/raw.dvc, adds data/raw to .gitignore
+git add data/raw.dvc data/.gitignore
+git commit -m "Track raw data with DVC"
 ```
 
-## Configure Remote Storage
+Never run `git add` on the data itself. Once a path is tracked by DVC, Git must not track it too.
+
+### Remote storage
 
 ```bash
-# setup_remote.sh — Configure where DVC stores actual file contents
-# S3
-dvc remote add -d myremote s3://my-bucket/dvc-storage
-
-# Google Cloud Storage
-dvc remote add -d myremote gs://my-bucket/dvc-storage
-
-# Local / network path
-dvc remote add -d myremote /mnt/shared/dvc-storage
-
-# Push data to remote
-dvc push
-
-# Pull data from remote (on another machine or after cloning)
-dvc pull
+dvc remote add -d storage s3://acme-ml-data/dvc-store   # -d makes it the default
+# other URL forms (use one name once; add -f to replace an existing remote):
+#   gs://acme-ml-data/dvc-store    GCS
+#   /mnt/shared/dvc-store          local or network path
+dvc remote modify --local storage profile ml-team        # S3 profile; credentials go in --local (not committed)
+dvc push      # upload cache to the remote
+dvc pull      # download what the current commit needs (after clone or checkout)
 ```
 
-## Build Reproducible Pipelines
+Keep secrets out of `.dvc/config`; use `--local` (written to `.dvc/config.local`, git-ignored) or the cloud provider's environment variables.
+
+### Pipelines
+
+`dvc.yaml` (stages) and `params.yaml` (parameters) are both committed:
 
 ```yaml
-# dvc.yaml — Define ML pipeline stages with dependencies and outputs
+# dvc.yaml
 stages:
   prepare:
     cmd: python src/prepare.py
-    deps:
-      - src/prepare.py
-      - data/raw/
-    outs:
-      - data/processed/
-
+    deps: [src/prepare.py, data/raw]
+    outs: [data/processed]
   train:
     cmd: python src/train.py
-    deps:
-      - src/train.py
-      - data/processed/
-    params:
-      - train.epochs
-      - train.learning_rate
-      - train.batch_size
-    outs:
-      - models/model.pkl
+    deps: [src/train.py, data/processed]
+    params: [train.n_estimators, train.max_depth]
+    outs: [models/model.pkl]
     metrics:
       - metrics/train.json:
           cache: false
-
-  evaluate:
-    cmd: python src/evaluate.py
-    deps:
-      - src/evaluate.py
-      - models/model.pkl
-      - data/processed/
-    metrics:
-      - metrics/eval.json:
-          cache: false
     plots:
-      - metrics/confusion_matrix.csv:
+      - metrics/confusion.csv:
+          cache: false
           x: predicted
           y: actual
 ```
 
 ```yaml
-# params.yaml — Pipeline parameters (tracked by DVC)
+# params.yaml
 train:
-  epochs: 50
-  learning_rate: 0.001
-  batch_size: 32
+  n_estimators: 50
+  max_depth: 5
 ```
 
 ```bash
-# Run the entire pipeline (only re-runs changed stages)
-dvc repro
-
-# Run a specific stage
-dvc repro train
+dvc repro            # runs stale stages, writes dvc.lock (commit it)
+dvc repro train      # one stage and its upstream
+dvc dag              # show stage graph
 ```
 
-## Experiment Tracking
+`dvc stage add -n train -d src/train.py -o models/model.pkl python src/train.py` creates a stage from the command line.
+
+### Experiments
 
 ```bash
-# experiments.sh — Run and compare ML experiments
-# Run an experiment with modified parameters
-dvc exp run --set-param train.learning_rate=0.01
-
-# Run multiple experiments in parallel
-dvc exp run --set-param train.learning_rate=0.001 --queue
-dvc exp run --set-param train.learning_rate=0.01 --queue
-dvc exp run --set-param train.learning_rate=0.1 --queue
-dvc queue start --jobs 3
-
-# Compare experiments
-dvc exp show
+dvc exp run -S train.n_estimators=100            # one run with an overridden parameter
+dvc exp run -S train.n_estimators=10 --queue     # queue instead of running
+dvc exp run -S train.n_estimators=200 --queue
+dvc queue start -j 2                              # run queued experiments with 2 workers
+dvc queue status
+dvc exp show                                      # table of params and metrics per experiment
 dvc exp diff
-
-# Apply a successful experiment to workspace
-dvc exp apply exp-abc123
-
-# Push experiment to Git branch
-dvc exp push origin exp-abc123
+dvc exp apply eight-gaze                          # put an experiment's result into the workspace
+dvc exp push origin eight-gaze                    # share it as a Git ref (needs a Git remote)
 ```
 
-## Metrics and Plots
+Experiments get generated names (like `eight-gaze`); use the name `dvc exp show` prints. `dvc exp run` also leaves the result in your workspace, so commit it if you want to keep it.
 
-```python
-# train.py — Training script that outputs DVC-tracked metrics
-import json
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
-import yaml
-import pickle
-
-# Load params
-with open("params.yaml") as f:
-    params = yaml.safe_load(f)["train"]
-
-X, y = load_iris(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-model = RandomForestClassifier(n_estimators=params["epochs"])
-model.fit(X_train, y_train)
-
-preds = model.predict(X_test)
-metrics = {
-    "accuracy": accuracy_score(y_test, preds),
-    "f1_score": f1_score(y_test, preds, average="weighted"),
-}
-
-with open("metrics/train.json", "w") as f:
-    json.dump(metrics, f, indent=2)
-
-with open("models/model.pkl", "wb") as f:
-    pickle.dump(model, f)
-```
+### Metrics and plots
 
 ```bash
-# View metrics across experiments
 dvc metrics show
-dvc metrics diff
-
-# Generate plots
-dvc plots show metrics/confusion_matrix.csv
-dvc plots diff  # Compare plots between experiments
+dvc metrics diff main                # compare workspace with a revision
+dvc plots show metrics/confusion.csv # writes dvc_plots/index.html
+dvc plots diff main
 ```
 
-## Data Access Without Cloning
+### Use data from another repository
 
 ```bash
-# Access tracked files from any DVC repo without full clone
-dvc get https://github.com/org/ml-repo data/processed/dataset.csv
-dvc import https://github.com/org/ml-repo models/model.pkl
+dvc get https://github.com/acme-ml/churn-data data/processed   # download once, no link
+dvc import https://github.com/acme-ml/churn-data data/processed # download and record the source in a .dvc file; update with dvc update
 ```
 
 ```python
-# dvc_api.py — Access DVC-tracked files programmatically
 import dvc.api
+import pandas as pd
 
-# Read a file from a DVC repo
-with dvc.api.open("data/dataset.csv", repo="https://github.com/org/ml-repo") as f:
-    import pandas as pd
+with dvc.api.open("data/processed/customers.csv", repo="https://github.com/acme-ml/churn-data") as f:
     df = pd.read_csv(f)
-
-# Get the URL of a tracked file
-url = dvc.api.get_url("models/model.pkl", repo="https://github.com/org/ml-repo")
+url = dvc.api.get_url("models/model.pkl", repo="https://github.com/acme-ml/churn-data")
 ```
 
-## Key Concepts
+## Examples
 
-- **`.dvc` files**: Small pointer files committed to Git that reference large data in remote storage
-- **`dvc repro`**: Reproduce pipelines — only re-runs stages with changed dependencies
-- **Experiments**: Branch-free experiment tracking — run, compare, and apply results
-- **Params**: YAML parameter files tracked by DVC for reproducible configurations
-- **Metrics**: JSON/YAML metrics files with built-in comparison tools
-- **Remote storage**: S3, GCS, Azure, SSH, HDFS — data stays where you want it
+### Example 1: "Version my 5 GB image folder and share it with the team"
+
+```bash
+dvc add data/images
+git add data/images.dvc data/.gitignore && git commit -m "Track images"
+dvc remote add -d storage s3://acme-ml-data/dvc-store
+git add .dvc/config && git commit -m "Configure DVC remote"
+dvc push
+```
+
+A teammate then runs `git clone ... && dvc pull`. `dvc pull` then restores `data/images` from the S3 store.
+
+### Example 2: "Try three learning depths and keep the best"
+
+```bash
+for d in 3 5 8; do dvc exp run -S train.max_depth=$d --queue; done
+dvc queue start -j 3
+dvc exp show --only-changed
+dvc exp apply calm-tail   # the name from the table
+git add dvc.lock params.yaml metrics && git commit -m "Use max_depth 8"
+```
+
+`dvc exp show` prints one row per experiment with accuracy and the changed parameters, so the best one can be chosen by value and applied.
+
+## Guidelines
+
+- Commit `dvc.yaml`, `dvc.lock`, `params.yaml`, `.dvc` files and `.gitignore` changes; do not commit data, models or `.dvc/cache`.
+- A stage `params:` entry must match a key in `params.yaml`, and the script must read that key; a mismatch silently makes the stage ignore the change.
+- Mark small metrics files `cache: false` so Git can show their diffs.
+- Run `dvc push` before pushing the Git commit, or teammates get pointers to data that is not in the remote.
+- Only pickle-load model files you produced yourself; `model.pkl` from an untrusted repository can run code.
+- DVC is not a database or a feature store; for small text files plain Git is simpler.
