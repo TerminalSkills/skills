@@ -5,7 +5,6 @@ description: Build a production-grade database connection pool with health check
 skills:
   - typescript
   - postgresql
-  - redis
   - hono
 category: development
 tags:
@@ -20,256 +19,186 @@ tags:
 
 ## The Problem
 
-Marcus runs backend at a 35-person SaaS handling 5,000 requests/second. Every request opens a new PostgreSQL connection, runs a query, and closes it. During traffic spikes, Postgres hits `max_connections` (100), new requests fail with "too many connections," and the app returns 500s. Leaked connections from uncaught errors compound the problem — the pool slowly drains until restart. They need connection pooling with limits, health checks, automatic cleanup of stale connections, and metrics to see what's happening.
+Marcus runs backend at a 35-person SaaS handling 5,000 requests/second. Every request opens a new PostgreSQL connection, runs a query, and closes it. During traffic spikes, Postgres hits `max_connections` (default 100), new requests fail with "too many clients already," and the app returns 500s. Leaked connections from uncaught errors compound the problem — the pool slowly drains until restart. They need connection pooling with limits, timeouts, automatic recycling of old connections, and metrics to see what is happening.
 
-## Step 1: Build the Connection Pool Manager
+## The Solution
 
-```typescript
-// src/db/pool-manager.ts — Production connection pool with lifecycle management
-import { Pool, PoolClient, PoolConfig } from "pg";
-import { EventEmitter } from "node:events";
+Use node-postgres (`pg`) and its built-in `Pool`. It already queues surplus requests, recycles connections (`maxLifetimeSeconds`), closes idle ones, and takes server-side timeouts as connection options. The code below adds only what `pg` does not give you: a leak-proof checkout helper, counters, and health/metrics endpoints served with Hono. Tested with `pg` 8.23, `hono` 4.13 and `@hono/node-server` 2.1 against PostgreSQL 16.
 
-interface PoolMetrics {
-  totalConnections: number;
-  idleConnections: number;
-  activeConnections: number;
-  waitingRequests: number;
-  totalQueries: number;
-  failedQueries: number;
-  avgQueryTimeMs: number;
-  connectionErrors: number;
-  healthCheckFailures: number;
-}
-
-interface ManagedPoolConfig extends PoolConfig {
-  healthCheckIntervalMs?: number;   // how often to ping idle connections
-  maxQueryTimeMs?: number;          // kill queries exceeding this
-  connectionMaxAgeMs?: number;      // recycle connections after this age
-  metricsEnabled?: boolean;
-}
-
-export class ManagedPool extends EventEmitter {
-  private pool: Pool;
-  private config: ManagedPoolConfig;
-  private healthCheckTimer: NodeJS.Timeout | null = null;
-  private connectionBirthdays = new Map<PoolClient, number>();
-  private queryCount = 0;
-  private failedQueryCount = 0;
-  private totalQueryTimeMs = 0;
-  private connectionErrorCount = 0;
-  private healthCheckFailures = 0;
-
-  constructor(config: ManagedPoolConfig) {
-    super();
-    this.config = {
-      max: 20,                         // max connections in pool
-      min: 5,                          // keep at least 5 idle
-      idleTimeoutMillis: 30000,        // close idle connections after 30s
-      connectionTimeoutMillis: 5000,   // fail if can't connect in 5s
-      healthCheckIntervalMs: 15000,    // health check every 15s
-      maxQueryTimeMs: 30000,           // kill queries after 30s
-      connectionMaxAgeMs: 3600000,     // recycle after 1 hour
-      ...config,
-    };
-
-    this.pool = new Pool(this.config);
-
-    // Track connection lifecycle
-    this.pool.on("connect", (client: PoolClient) => {
-      this.connectionBirthdays.set(client, Date.now());
-    });
-
-    this.pool.on("remove", (client: PoolClient) => {
-      this.connectionBirthdays.delete(client);
-    });
-
-    this.pool.on("error", (err) => {
-      this.connectionErrorCount++;
-      this.emit("pool_error", err);
-    });
-
-    // Start health checks
-    this.startHealthChecks();
-  }
-
-  // Get a connection with query timeout wrapper
-  async getConnection(): Promise<{ client: PoolClient; release: () => void }> {
-    const client = await this.pool.connect();
-
-    // Check if connection is too old
-    const birthday = this.connectionBirthdays.get(client);
-    if (birthday && Date.now() - birthday > (this.config.connectionMaxAgeMs || 3600000)) {
-      // Recycle: release this one and get a fresh one
-      client.release(true); // true = destroy, don't return to pool
-      return this.getConnection();
-    }
-
-    // Set statement timeout on this connection
-    await client.query(`SET statement_timeout = '${this.config.maxQueryTimeMs}ms'`);
-
-    let released = false;
-    const release = () => {
-      if (!released) {
-        released = true;
-        client.release();
-      }
-    };
-
-    // Safety net: auto-release after 2x max query time
-    const safetyTimeout = setTimeout(() => {
-      if (!released) {
-        this.emit("leaked_connection", { message: "Connection auto-released after timeout" });
-        release();
-      }
-    }, (this.config.maxQueryTimeMs || 30000) * 2);
-
-    const originalRelease = release;
-    return {
-      client,
-      release: () => {
-        clearTimeout(safetyTimeout);
-        originalRelease();
-      },
-    };
-  }
-
-  // Execute a query with metrics tracking
-  async query(sql: string, params?: any[]): Promise<any> {
-    const startTime = Date.now();
-    try {
-      const result = await this.pool.query(sql, params);
-      const duration = Date.now() - startTime;
-      this.queryCount++;
-      this.totalQueryTimeMs += duration;
-
-      if (duration > 1000) {
-        this.emit("slow_query", { sql: sql.slice(0, 200), duration, params: params?.length });
-      }
-
-      return result;
-    } catch (err: any) {
-      this.failedQueryCount++;
-      this.emit("query_error", { sql: sql.slice(0, 200), error: err.message });
-      throw err;
-    }
-  }
-
-  // Health check: ping idle connections, remove dead ones
-  private startHealthChecks(): void {
-    this.healthCheckTimer = setInterval(async () => {
-      try {
-        const result = await this.pool.query("SELECT 1 as health");
-        if (result.rows[0]?.health !== 1) {
-          this.healthCheckFailures++;
-          this.emit("health_check_failed", { reason: "unexpected result" });
-        }
-      } catch (err: any) {
-        this.healthCheckFailures++;
-        this.emit("health_check_failed", { reason: err.message });
-      }
-    }, this.config.healthCheckIntervalMs);
-  }
-
-  // Get current metrics
-  getMetrics(): PoolMetrics {
-    return {
-      totalConnections: this.pool.totalCount,
-      idleConnections: this.pool.idleCount,
-      activeConnections: this.pool.totalCount - this.pool.idleCount,
-      waitingRequests: this.pool.waitingCount,
-      totalQueries: this.queryCount,
-      failedQueries: this.failedQueryCount,
-      avgQueryTimeMs: this.queryCount > 0 ? Math.round(this.totalQueryTimeMs / this.queryCount) : 0,
-      connectionErrors: this.connectionErrorCount,
-      healthCheckFailures: this.healthCheckFailures,
-    };
-  }
-
-  // Graceful shutdown
-  async shutdown(): Promise<void> {
-    if (this.healthCheckTimer) clearInterval(this.healthCheckTimer);
-    await this.pool.end();
-  }
-}
-
-// Singleton pool instance
-export const db = new ManagedPool({
-  host: process.env.DB_HOST || "localhost",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  database: process.env.DB_NAME || "app",
-  user: process.env.DB_USER || "app",
-  password: process.env.DB_PASSWORD,
-  max: parseInt(process.env.DB_POOL_MAX || "20"),
-  min: parseInt(process.env.DB_POOL_MIN || "5"),
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
-});
-
-// Log events
-db.on("slow_query", (info) => console.warn("[DB] Slow query:", info));
-db.on("query_error", (info) => console.error("[DB] Query error:", info));
-db.on("leaked_connection", (info) => console.error("[DB] Leaked connection:", info));
-db.on("health_check_failed", (info) => console.error("[DB] Health check failed:", info));
+```console
+$ npm install pg hono @hono/node-server
+$ npm install -D typescript @types/pg @types/node
 ```
 
-## Step 2: Add Observability Endpoint
+Set `DATABASE_URL` in the environment (for example `postgres://app:$DB_PASSWORD@db.internal:5432/app`). For TLS, add `?sslmode=verify-full` and supply the CA; do not turn certificate verification off.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Configure the pool and a leak-proof checkout
 
 ```typescript
-// src/routes/health.ts — Database pool health endpoint
+// src/db/pool.ts — one shared pg Pool plus the counters we want to graph
+import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
+
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: Number(process.env.DB_POOL_MAX ?? 20),   // hard ceiling per app instance
+  min: Number(process.env.DB_POOL_MIN ?? 2),    // idle connections below this are never closed
+  idleTimeoutMillis: 30_000,                    // close idle connections after 30 s
+  connectionTimeoutMillis: 5_000,               // fail pool.connect() instead of queueing forever
+  maxLifetimeSeconds: 3600,                     // recycle every connection after 1 h
+  statement_timeout: 30_000,                    // server-side: cancel queries after 30 s
+  query_timeout: 35_000,                        // client-side backstop
+  idle_in_transaction_session_timeout: 60_000,  // server kills forgotten transactions
+  keepAlive: true,                              // TCP keepalive survives NAT/firewall idle timers
+});
+
+export const stats = { queries: 0, failed: 0, totalMs: 0, poolErrors: 0, slow: 0 };
+
+// An error on an idle client (Postgres restart, network drop) must never crash the process.
+pool.on("error", (err) => {
+  stats.poolErrors++;
+  console.error("[db] idle client error:", err.message);
+});
+
+export async function query<R extends QueryResultRow = any>(
+  text: string,
+  params?: unknown[],
+): Promise<QueryResult<R>> {
+  const t0 = performance.now();
+  try {
+    return await pool.query<R>(text, params);
+  } catch (err) {
+    stats.failed++;
+    throw err;
+  } finally {
+    const ms = performance.now() - t0;
+    stats.queries++;
+    stats.totalMs += ms;
+    if (ms > 1000) {
+      stats.slow++;
+      console.warn(`[db] slow query (${Math.round(ms)} ms): ${text.slice(0, 120)}`);
+    }
+  }
+}
+
+// Leak-proof checkout: release always runs, even when fn throws.
+export async function withClient<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    return await fn(client);
+  } finally {
+    client.release();
+  }
+}
+
+export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  return withClient(async (client) => {
+    await client.query("BEGIN");
+    try {
+      const result = await fn(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    }
+  });
+}
+
+export function snapshot() {
+  return {
+    total: pool.totalCount,
+    idle: pool.idleCount,
+    active: pool.totalCount - pool.idleCount,
+    waiting: pool.waitingCount,
+    max: pool.options.max ?? 10,
+    ...stats,
+    avgMs: stats.queries ? Math.round(stats.totalMs / stats.queries) : 0,
+  };
+}
+
+export const shutdown = () => pool.end();
+```
+
+Why these options:
+
+- `max` is per application instance. Instances × `max` must stay below Postgres `max_connections` minus a reserve for admin and migration sessions. With 4 instances, `max: 20` uses 80 of the default 100. Beyond that, put PgBouncer in front of Postgres.
+- `min` does not pre-open connections. It only stops the pool from closing idle ones below that count.
+- `statement_timeout` and `idle_in_transaction_session_timeout` are sent to the server on connect, so a runaway query or a forgotten `BEGIN` is killed by Postgres itself, not by the app.
+- `maxLifetimeSeconds` closes each connection after the given age (checked while it is idle), so long-lived sessions do not outlive firewall or failover changes.
+- Always use `query()` for single statements (the pool checks out and releases for you) and `withClient()` / `withTransaction()` when you need several statements on one connection. Never call `pool.connect()` without a `finally { client.release() }`; that is what leaks connections.
+
+### Step 2: Add health and metrics endpoints
+
+```typescript
+// src/server.ts — health and metrics endpoints (Hono on Node)
 import { Hono } from "hono";
-import { db } from "../db/pool-manager";
+import { serve } from "@hono/node-server";
+import { query, snapshot, shutdown } from "./db/pool.js";
 
 const app = new Hono();
 
+// Readiness: a real round trip through the pool, not just counters.
 app.get("/health/db", async (c) => {
-  const metrics = db.getMetrics();
-
-  const isHealthy = metrics.activeConnections < metrics.totalConnections * 0.9 // not saturated
-    && metrics.waitingRequests < 10
-    && metrics.healthCheckFailures === 0;
-
-  return c.json({
-    status: isHealthy ? "healthy" : "degraded",
-    pool: {
-      total: metrics.totalConnections,
-      active: metrics.activeConnections,
-      idle: metrics.idleConnections,
-      waiting: metrics.waitingRequests,
-    },
-    performance: {
-      totalQueries: metrics.totalQueries,
-      failedQueries: metrics.failedQueries,
-      avgQueryTimeMs: metrics.avgQueryTimeMs,
-    },
-    errors: {
-      connectionErrors: metrics.connectionErrors,
-      healthCheckFailures: metrics.healthCheckFailures,
-    },
-  }, isHealthy ? 200 : 503);
+  const s = snapshot();
+  try {
+    await query("SELECT 1");
+  } catch (err) {
+    return c.json({ status: "down", error: (err as Error).message }, 503);
+  }
+  const saturated = s.waiting > 0 && s.active >= s.max;
+  return c.json({ status: saturated ? "degraded" : "healthy", pool: s }, saturated ? 503 : 200);
 });
 
-// Prometheus metrics
+// Prometheus text exposition format
 app.get("/metrics/db", (c) => {
-  const m = db.getMetrics();
-  const lines = [
-    `db_pool_total_connections ${m.totalConnections}`,
-    `db_pool_active_connections ${m.activeConnections}`,
-    `db_pool_idle_connections ${m.idleConnections}`,
-    `db_pool_waiting_requests ${m.waitingRequests}`,
-    `db_query_total ${m.totalQueries}`,
-    `db_query_failed_total ${m.failedQueries}`,
-    `db_query_avg_duration_ms ${m.avgQueryTimeMs}`,
-    `db_connection_errors_total ${m.connectionErrors}`,
-  ];
-  return c.text(lines.join("\n"));
+  const s = snapshot();
+  const g = (name: string, type: string, v: number) => `# TYPE ${name} ${type}\n${name} ${v}`;
+  return c.text(
+    [
+      g("db_pool_connections", "gauge", s.total),
+      g("db_pool_idle_connections", "gauge", s.idle),
+      g("db_pool_waiting_requests", "gauge", s.waiting),
+      g("db_queries_total", "counter", s.queries),
+      g("db_queries_failed_total", "counter", s.failed),
+      g("db_slow_queries_total", "counter", s.slow),
+      g("db_pool_errors_total", "counter", s.poolErrors),
+    ].join("\n") + "\n",
+    200,
+    { "Content-Type": "text/plain; version=0.0.4" },
+  );
 });
 
-export default app;
+const server = serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000), hostname: "127.0.0.1" });
+
+for (const sig of ["SIGTERM", "SIGINT"] as const) {
+  process.on(sig, () => server.close(async () => { await shutdown(); process.exit(0); }));
+}
 ```
 
-## Results
+Build and run it with `npx tsc && node dist/server.js` (set `"module": "NodeNext"` in `tsconfig.json`). The server binds to `127.0.0.1`; expose it through your reverse proxy or change the hostname deliberately. Use `/health/db` as the readiness probe, so a pod that cannot reach Postgres is taken out of rotation, and scrape `/metrics/db` with Prometheus.
 
-- **Zero "too many connections" errors** — pool limits connections to 20; surplus requests queue briefly instead of crashing Postgres
-- **Leaked connections auto-recovered** — safety timeout releases forgotten connections after 60s; pool never drains to zero
-- **Stale connections recycled** — hourly max-age rotation prevents "connection timed out" errors from long-idle connections hitting firewall timeouts
-- **Slow queries surfaced** — any query over 1s is logged with the SQL and duration; the team found 6 missing indexes in the first week
-- **Pool saturation visible** — Grafana dashboard shows active/idle/waiting connections in real-time; alerts fire at 80% saturation before users notice
+### Step 3: Verify the behaviour
+
+```console
+$ curl -s http://127.0.0.1:3000/health/db
+{"status":"healthy","pool":{"total":1,"idle":1,"active":0,"waiting":0,"max":20,...}}
+$ curl -s http://127.0.0.1:3000/metrics/db | head -4
+# TYPE db_pool_connections gauge
+db_pool_connections 1
+# TYPE db_pool_idle_connections gauge
+db_pool_idle_connections 1
+```
+
+To prove the timeout works, run `SELECT pg_sleep(60)` through `query()`: Postgres answers `canceling statement due to statement timeout` after 30 seconds and the connection returns to the pool. To prove saturation shows up, fire more than `max` concurrent slow queries and watch `db_pool_waiting_requests` rise while `/health/db` reports `degraded`.
+
+## Real-World Example
+
+Marcus's team deploys four API instances with `max: 20` each. After the change, spikes queue inside the app for a few milliseconds instead of exhausting Postgres, and `connectionTimeoutMillis` turns a stuck queue into a fast, visible error rather than a hang. The slow-query log lines point at the endpoints worth indexing, and an alert on `db_pool_waiting_requests > 0` for two minutes tells the team to raise `max` or add PgBouncer before users notice.
+
+## Related Skills
+
+- [typescript](../skills/typescript/SKILL.md) — typing the pool helpers
+- [postgresql](../skills/postgresql/SKILL.md) — `max_connections`, timeouts and server-side settings
+- [hono](../skills/hono/SKILL.md) — the health and metrics endpoints
