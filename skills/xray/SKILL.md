@@ -9,10 +9,10 @@ description: >-
   restrictions. Covers all major Xray protocols, transports, and deployment
   patterns.
 license: Apache-2.0
-compatibility: 'Linux (any distro), Xray-core 1.8+'
+compatibility: 'Linux with systemd, Xray-core 26.x (releases use year.month.day numbering since 2025)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - xray
@@ -20,6 +20,7 @@ metadata:
     - vmess
     - trojan
     - proxy
+  repository: https://github.com/XTLS/Xray-core
 ---
 
 # Xray
@@ -32,15 +33,27 @@ Deploy and configure Xray-core — the advanced proxy platform supporting VLESS,
 
 ### Step 1: Installation
 
-```bash
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-xray version
-# Binary: /usr/local/bin/xray
-# Config: /usr/local/etc/xray/config.json
+Download the release archive and verify it against the published digest before installing (replace the version with the latest from the Xray-core releases page; the digest file sits next to each archive):
 
-# Generate UUID and X25519 keys
-xray uuid
-xray x25519   # Private + Public key pair for Reality
+```bash
+V=v26.10.21
+cd /tmp && curl -fLO https://github.com/XTLS/Xray-core/releases/download/$V/Xray-linux-64.zip
+curl -fL https://github.com/XTLS/Xray-core/releases/download/$V/Xray-linux-64.zip.dgst | grep SHA2-256
+sha256sum Xray-linux-64.zip        # must match the SHA2-256 line above
+unzip Xray-linux-64.zip xray geoip.dat geosite.dat
+sudo install -m 755 xray /usr/local/bin/xray
+sudo install -d /usr/local/share/xray /usr/local/etc/xray
+sudo install -m 644 geoip.dat geosite.dat /usr/local/share/xray/
+xray version
+```
+
+`geoip:` and `geosite:` rules in the examples below need those two `.dat` files next to the binary or in `/usr/local/share/xray/`; without them the config fails to load. The project's `Xray-install` script (systemd unit, dedicated `xray` user, `update-geodata`) is an alternative: download `install-release.sh` from the XTLS/Xray-install repository, read it, then run it. Since October 2026 it runs the service as the `xray` user, so config files must be readable by that user (`root:xray`, mode 0640).
+
+Generate identifiers:
+
+```bash
+xray uuid      # client id
+xray x25519    # PrivateKey goes into the server config, "Password (PublicKey)" into client links as pbk
 ```
 
 ### Step 2: VLESS + Reality (Recommended)
@@ -52,6 +65,7 @@ The most secure setup. Reality mimics a real HTTPS website's TLS handshake, elim
 {
   "log": { "loglevel": "warning" },
   "inbounds": [{
+    "tag": "vless-in",
     "listen": "0.0.0.0",
     "port": 443,
     "protocol": "vless",
@@ -65,10 +79,10 @@ The most secure setup. Reality mimics a real HTTPS website's TLS handshake, elim
       "network": "tcp",
       "security": "reality",
       "realitySettings": {
-        "dest": "www.microsoft.com:443",
+        "target": "www.microsoft.com:443",
         "serverNames": ["www.microsoft.com", "microsoft.com"],
         "privateKey": "YOUR-PRIVATE-KEY",
-        "shortIds": ["", "0123456789abcdef"]
+        "shortIds": ["0123456789abcdef"]
       }
     },
     "sniffing": { "enabled": true, "destOverride": ["http", "tls", "quic"] }
@@ -78,10 +92,12 @@ The most secure setup. Reality mimics a real HTTPS website's TLS handshake, elim
     { "protocol": "blackhole", "tag": "block" }
   ],
   "routing": {
-    "rules": [{ "type": "field", "ip": ["geoip:private"], "outboundTag": "block" }]
+    "rules": [{ "ip": ["geoip:private"], "outboundTag": "block" }]
   }
 }
 ```
+
+Check the config before starting: `xray run -test -c /usr/local/etc/xray/config.json` prints `Configuration OK`. Check the camouflage target with `xray tls ping www.microsoft.com` (it must answer TLS 1.3; a target that supports X25519MLKEM768 also gives post-quantum key exchange). Reality forwards unauthenticated traffic to the target, so never choose a site behind a CDN you do not control as a shared forwarder; limit abuse with `limitFallbackUpload`/`limitFallbackDownload` or a filtering proxy in front.
 
 **Client share link:**
 ```
@@ -89,16 +105,18 @@ vless://UUID@SERVER_IP:443?encryption=none&flow=xtls-rprx-vision&security=realit
 ```
 
 ```bash
-systemctl enable --now xray
+sudo systemctl enable --now xray
 ```
+
+On the client side the Reality block uses `serverName`, `fingerprint`, `password` (the public key from `xray x25519`) and `shortId`; apps that import `vless://` links fill these from the `sni`, `fp`, `pbk` and `sid` parameters. The `mldsa65` commands add optional post-quantum signature verification for Reality.
 
 ### Step 3: VLESS + WebSocket + TLS (CDN-Compatible)
 
-For routing through Cloudflare CDN to hide the server IP. Requires a domain with Cloudflare proxying and a TLS certificate.
+For routing through Cloudflare CDN to hide the server IP. Requires a domain with Cloudflare proxying and a TLS certificate. The Xray docs now recommend XHTTP over WebSocket because WebSocket's `http/1.1` ALPN is an easy fingerprint; the WebSocket setup below still loads and works.
 
 ```bash
-apt install -y certbot
-certbot certonly --standalone -d proxy.yourdomain.com
+sudo apt install -y certbot
+sudo certbot certonly --standalone -d proxy.yourdomain.com
 ```
 
 ```json
@@ -149,27 +167,17 @@ Set up nginx on port 8080 as fallback, and in Cloudflare: SSL/TLS Full (Strict),
     },
     "streamSettings": {
       "network": "tcp", "security": "tls",
-      "tlsSettings": { "certificates": [{ "certificateFile": "...", "keyFile": "..." }] }
+      "tlsSettings": { "certificates": [{ "certificateFile": "/etc/letsencrypt/live/proxy.yourdomain.com/fullchain.pem", "keyFile": "/etc/letsencrypt/live/proxy.yourdomain.com/privkey.pem" }] }
     }
   }]
 }
 ```
 
-**Shadowsocks 2022** (modern AEAD ciphers):
-```json
-{
-  "inbounds": [{
-    "port": 8388, "protocol": "shadowsocks",
-    "settings": { "method": "2022-blake3-aes-128-gcm", "password": "BASE64_KEY", "network": "tcp,udp" }
-  }]
-}
-```
-
-Generate key: `openssl rand -base64 16` (or `-base64 32` for aes-256)
+**Shadowsocks**: Xray 26.x prints a deprecation warning for the shadowsocks protocol ("might be removed", migrate to VLESS Encryption). Do not use it for new deployments; use VLESS + Reality or Trojan.
 
 ### Step 5: Multi-User Management
 
-```json
+```jsonc
 "clients": [
   { "id": "uuid-1", "email": "alice@proxy", "flow": "xtls-rprx-vision" },
   { "id": "uuid-2", "email": "bob@proxy", "flow": "xtls-rprx-vision" },
@@ -190,16 +198,26 @@ Generate key: `openssl rand -base64 16` (or `-base64 32` for aes-256)
     { "listen": "127.0.0.1", "port": 10085, "protocol": "dokodemo-door",
       "settings": { "address": "127.0.0.1" }, "tag": "api" }
   ],
-  "routing": { "rules": [{ "type": "field", "inboundTag": ["api"], "outboundTag": "api" }] }
+  "routing": { "rules": [{ "inboundTag": ["api"], "outboundTag": "api" }] }
 }
 ```
 
 **Query and manage users at runtime:**
 ```bash
 xray api stats --server=127.0.0.1:10085 -name "user>>>alice@proxy>>>traffic>>>uplink"
-xray api adi --server=127.0.0.1:10085 --inbound-tag proxy --id "new-uuid" --email "newuser@proxy"
-xray api rmi --server=127.0.0.1:10085 --inbound-tag proxy --email "olduser@proxy"
+xray api adu --server=127.0.0.1:10085 new-user.json
+xray api rmu --server=127.0.0.1:10085 -tag=vless-in olduser@proxy
+xray api inboundusercount --server=127.0.0.1:10085 -tag vless-in
 ```
+
+`new-user.json` names the inbound by tag and carries the client (verified against the 26.10.21 binary; `adi` adds whole inbounds, not users):
+
+```json
+{ "inbounds": [{ "tag": "vless-in", "port": 443, "protocol": "vless",
+  "settings": { "clients": [{ "id": "b1b2c3d4-0000-4000-8000-000000000001", "email": "dave@proxy", "flow": "xtls-rprx-vision" }], "decryption": "none" } }] }
+```
+
+A user counter such as `user>>>alice@proxy>>>traffic>>>uplink` exists only after that user has moved traffic; before that `stats` answers `not found`. Users added at runtime are lost on restart, so also add them to `config.json`.
 
 ### Step 6: Routing Rules & Monitoring
 
@@ -209,9 +227,9 @@ xray api rmi --server=127.0.0.1:10085 --inbound-tag proxy --email "olduser@proxy
   "routing": {
     "domainStrategy": "IPIfNonMatch",
     "rules": [
-      { "type": "field", "domain": ["geosite:category-ads-all"], "outboundTag": "block" },
-      { "type": "field", "ip": ["geoip:private"], "outboundTag": "block" },
-      { "type": "field", "network": "tcp,udp", "outboundTag": "proxy" }
+      { "domain": ["geosite:category-ads-all"], "outboundTag": "block" },
+      { "ip": ["geoip:private"], "outboundTag": "block" },
+      { "network": "tcp,udp", "outboundTag": "direct" }
     ]
   }
 }
@@ -219,14 +237,15 @@ xray api rmi --server=127.0.0.1:10085 --inbound-tag proxy --email "olduser@proxy
 
 **Monitoring:**
 ```bash
-systemctl status xray
-journalctl -u xray -f
-grep "accepted" /var/log/xray/access.log | awk '{print $3}' | sort | uniq -c | sort -rn
+sudo systemctl status xray
+sudo journalctl -u xray -f
+# access log only exists if "log": {"access": "/var/log/xray/access.log"} is set
+sudo grep "accepted" /var/log/xray/access.log | awk '{print $3}' | sort | uniq -c | sort -rn
 ```
 
 **Firewall:**
 ```bash
-ufw allow 443/tcp && ufw allow 443/udp && ufw enable
+sudo ufw allow 22/tcp && sudo ufw allow 443/tcp && sudo ufw enable
 ```
 
 ## Examples
@@ -234,7 +253,7 @@ ufw allow 443/tcp && ufw allow 443/udp && ufw enable
 ### Example 1: Deploy a VLESS + Reality proxy server for a small team
 **User prompt:** "Set up Xray on our Debian 12 VPS at 198.51.100.30 using VLESS with Reality transport. Create accounts for alice, bob, and carol. Use microsoft.com as the Reality target and give me the share links for v2rayNG."
 
-The agent will install Xray via the official script, generate a UUID for each user and an X25519 key pair, build a `config.json` with a VLESS inbound on port 443 using Reality settings targeting `www.microsoft.com`, add three client entries with `xtls-rprx-vision` flow, add routing rules to block private IPs, enable and start the xray service, open port 443 in the firewall, and output three `vless://` share links with the server IP, public key, short ID, and SNI.
+The agent will install Xray from the digest-verified release archive, generate a UUID for each user and an X25519 key pair, build a `config.json` with a VLESS inbound on port 443 using Reality settings targeting `www.microsoft.com`, add three client entries with `xtls-rprx-vision` flow, add routing rules to block private IPs, enable and start the xray service, open port 443 in the firewall, and output three `vless://` share links with the server IP, public key, short ID, and SNI.
 
 ### Example 2: Set up a CDN-fronted VLESS proxy with Cloudflare and a fallback website
 **User prompt:** "I have proxy.mysite.com pointing to our server through Cloudflare. Configure Xray with VLESS over WebSocket on /secret-ws so traffic goes through Cloudflare's CDN. Non-proxy visitors should see a normal nginx website."
@@ -243,9 +262,10 @@ The agent will obtain a Let's Encrypt certificate with certbot, configure Xray w
 
 ## Guidelines
 
-- Always use VLESS + Reality for new deployments; it requires no domain or certificate and is the hardest protocol to detect and block
-- Set `"alterId": 0` for all VMess users to enable mandatory AEAD encryption; non-zero alterId uses the deprecated, less secure legacy format
+- Prefer VLESS + Reality (flow `xtls-rprx-vision`) for new deployments; it needs no domain or certificate. Always run `xray run -test -c config.json` after editing
+- Prefer VLESS or Trojan over VMess and Shadowsocks; Xray warns that Shadowsocks may be removed. Keep the API inbound on 127.0.0.1 only, since it can add and remove users
+- Never put a script from the network straight into a shell on a proxy server; verify the release digest first
 - Block access to private IP ranges (geoip:private) in routing rules to prevent the proxy from being used for SSRF attacks against internal services
-- Use the `xray api` commands to add and remove users at runtime without restarting the service, which avoids disconnecting active users
-- Choose the Reality `dest` and `serverNames` from a popular website (microsoft.com, apple.com) hosted on a different IP than your server, and ensure that site supports TLS 1.3 and HTTP/2
+- Use `xray api adu` / `rmu` to add and remove users at runtime without restarting the service, which avoids disconnecting active users
+- Choose the Reality `target` and `serverNames` from a popular website (microsoft.com, apple.com) hosted on a different IP than your server, and ensure that site supports TLS 1.3 and HTTP/2
 - Enable the stats API with per-user tracking (`statsUserUplink`/`statsUserDownlink`) to monitor bandwidth usage and detect abuse
