@@ -1,164 +1,117 @@
 ---
 name: segment
 description: >-
-  Collect and route customer data with Segment — customer data platform (CDP)
-  that sends events to any destination. Use when someone asks to "track user
-  events across tools", "Segment", "customer data platform", "send events to
-  multiple analytics tools", "CDP", or "unify analytics across Mixpanel/
-  Amplitude/BigQuery". Covers identify, track, page, group, and destination
-  routing.
+  Segment is a customer data platform (CDP) that collects events from your website, apps and
+  servers once and routes them to analytics, marketing and warehouse destinations. Use when
+  someone asks to "track user events across tools", "set up Segment", "send events to Mixpanel,
+  Amplitude or BigQuery", "unify analytics", or needs identify, track, page, group and alias
+  calls in JavaScript, Node.js or React.
 license: Apache-2.0
-compatibility: "JavaScript, Node.js, Python, iOS, Android. 400+ integrations."
+compatibility: "Browser: @segment/analytics-next 1.x; Node.js 20+: @segment/analytics-node 3.x; a Segment workspace and source write key"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["analytics", "segment", "cdp", "events", "tracking"]
+  repository: https://github.com/segmentio/analytics-next
 ---
 
 # Segment
 
 ## Overview
 
-Segment is a customer data platform — collect events once, route them to every tool in your stack. Instead of adding SDKs for Mixpanel, Amplitude, Google Analytics, Intercom, and BigQuery separately (each with their own tracking code), send events to Segment and it forwards them to all destinations. One API, one event schema, 400+ integrations. Toggle destinations on/off without code changes.
-
-## When to Use
-
-- Sending analytics events to multiple tools (Mixpanel + BigQuery + Intercom)
-- Don't want to add/remove tracking SDKs when switching tools
-- Need a single source of truth for customer events
-- Unifying web + mobile + server-side event tracking
-- Building a data warehouse pipeline (events → BigQuery/Snowflake)
+Segment is a customer data platform: your code sends events to Segment through one API, and Segment forwards them to every destination you enable (Mixpanel, Amplitude, BigQuery, Intercom and so on). Destinations are switched on and off in the Segment app without code changes. Each source (website, server, mobile app) has its own write key. Libraries checked here (npm, October 2026): `@segment/analytics-next` 1.84.3 for browsers and `@segment/analytics-node` 3.1.0 for servers (Node.js 20+). Segment's docs site blocks automated fetching, so UI paths and plan limits are not covered here; read them in the app.
 
 ## Instructions
 
-### Setup
+### Install
 
 ```bash
-# Browser (Analytics.js)
-# Add to your site:
+npm install @segment/analytics-next     # browser / React
+npm install @segment/analytics-node     # server
 ```
 
-```html
-<script>
-  !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","screen","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware","register"];analytics.factory=function(e){return function(){if(window.analytics.initialized)return window.analytics[e].apply(window.analytics,arguments);var i=Array.prototype.slice.call(arguments);if(["track","screen","alias","group","page","identify"].indexOf(e)>-1){var c=document.querySelector("link[rel='canonical']");i.push({__t:"bpc",c:c&&c.getAttribute("href")||void 0,p:location.pathname,u:location.href,s:location.search,t:document.title,r:document.referrer})}i.unshift(e);analytics.push(i);return analytics}};for(var i=0;i<analytics.methods.length;i++){var key=analytics.methods[i];analytics[key]=analytics.factory(key)}analytics.load=function(key,i){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.setAttribute("data-global-segment-analytics-key","analytics");t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=i};analytics._writeKey="YOUR_WRITE_KEY";analytics.SNIPPET_VERSION="5.2.1";analytics.load("YOUR_WRITE_KEY");analytics.page();}}();
-</script>
-```
+Segment can also generate a script snippet for a JavaScript source. Prefer that generated snippet over copying one from memory, since it carries the current version and your write key. With the npm package no snippet is needed.
 
-```bash
-# Node.js
-npm install @segment/analytics-node
-```
-
-### Core API Calls
+### Browser
 
 ```typescript
-// tracking.ts — The 5 Segment API calls
+// lib/analytics.ts
+import { AnalyticsBrowser } from "@segment/analytics-next";
+
+export const analytics = AnalyticsBrowser.load({
+  writeKey: process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY!,
+});
+```
+
+`AnalyticsBrowser.load` is called once. If you need consent first, create `new AnalyticsBrowser()` and call `.load({ writeKey })` after the user agrees; calls made earlier are buffered. Browser calls take positional arguments: `analytics.identify("usr_8f2c1", { plan: "pro" })`, `analytics.track("Plan Selected", { plan: "pro" })`, `analytics.page("Pricing")`.
+
+### Server (Node.js)
+
+```typescript
 import { Analytics } from "@segment/analytics-node";
 
 const analytics = new Analytics({ writeKey: process.env.SEGMENT_WRITE_KEY! });
 
-// 1. IDENTIFY — Who is the user?
 analytics.identify({
-  userId: "user_123",
-  traits: {
-    email: "kai@example.com",
-    name: "Kai",
-    plan: "pro",
-    company: "Acme",
-    createdAt: "2026-01-15T00:00:00Z",
-  },
+  userId: "usr_8f2c1",
+  traits: { email: "maria.kovacs@northwind-demo.dev", name: "Maria Kovacs", plan: "pro" },
 });
 
-// 2. TRACK — What did they do?
 analytics.track({
-  userId: "user_123",
+  userId: "usr_8f2c1",
   event: "Order Completed",
   properties: {
     orderId: "ord_456",
     total: 99.99,
     currency: "USD",
-    products: [
-      { id: "prod_1", name: "Widget", price: 49.99, quantity: 2 },
-    ],
+    products: [{ id: "prod_1", name: "Standing desk mat", price: 49.99, quantity: 2 }],
   },
 });
 
-// 3. PAGE — What page are they on? (browser-side)
-analytics.page({
-  userId: "user_123",
-  name: "Pricing",
-  properties: { url: "https://myapp.com/pricing", referrer: "https://google.com" },
-});
+analytics.group({ userId: "usr_8f2c1", groupId: "org_789", traits: { name: "Northwind", plan: "enterprise" } });
+analytics.page({ userId: "usr_8f2c1", name: "Pricing" });
+analytics.alias({ userId: "usr_8f2c1", previousId: "anon_abc" });
 
-// 4. GROUP — What company/team are they part of?
-analytics.group({
-  userId: "user_123",
-  groupId: "company_789",
-  traits: { name: "Acme Corp", industry: "Technology", employees: 50, plan: "enterprise" },
-});
-
-// 5. ALIAS — Link anonymous to known user (on signup)
-analytics.alias({ userId: "user_123", previousId: "anon_abc" });
+await analytics.closeAndFlush();   // before a script, Lambda or shutdown handler exits
 ```
 
-### React Integration
+Server calls take one object and need `userId` or `anonymousId` (at least one). Events are batched: the client sends after 15 events or 10 seconds by default (`flushAt`, `flushInterval`), so a short-lived process that exits without `closeAndFlush()` loses events. Other settings: `host`, `path`, `maxRetries`, `httpRequestTimeout`, `disable: true` (all calls become no-ops; useful in tests).
+
+### React
 
 ```tsx
-// hooks/useTracking.ts — React hook for Segment tracking
-export function useTracking() {
-  const track = (event: string, properties?: Record<string, any>) => {
-    window.analytics?.track(event, properties);
-  };
+import { useEffect } from "react";
+import { analytics } from "@/lib/analytics";
 
-  const identify = (userId: string, traits?: Record<string, any>) => {
-    window.analytics?.identify(userId, traits);
-  };
-
-  const page = (name?: string, properties?: Record<string, any>) => {
-    window.analytics?.page(name, properties);
-  };
-
-  return { track, identify, page };
-}
-
-// Usage
-function PricingPage() {
-  const { track, page } = useTracking();
-
-  useEffect(() => { page("Pricing"); }, []);
-
-  return (
-    <button onClick={() => track("Plan Selected", { plan: "pro", price: 49 })}>
-      Choose Pro
-    </button>
-  );
+export function PricingPage() {
+  useEffect(() => { analytics.page("Pricing"); }, []);
+  return <button onClick={() => analytics.track("Plan Selected", { plan: "pro", price: 49 })}>Choose Pro</button>;
 }
 ```
+
+In single-page apps you must call `page()` on route changes yourself.
 
 ## Examples
 
-### Example 1: Set up tracking for a SaaS product
+### Example 1: Track signups and purchases for a SaaS product
 
-**User prompt:** "Track user signups, feature usage, and purchases — send to Mixpanel, BigQuery, and Intercom."
+**User request:** "Track signups, feature usage and purchases and send them to Mixpanel, BigQuery and Intercom."
 
-The agent will set up Segment with identify on signup, track events for key actions, and configure destinations in the Segment dashboard.
+Install the browser and server packages, create one JavaScript source and one Node.js source in Segment, and put their write keys in `NEXT_PUBLIC_SEGMENT_WRITE_KEY` and `SEGMENT_WRITE_KEY`. Call `identify` on signup and login, `track("Signed Up")` from the server after the account is created, and `track("Order Completed", {...})` from the payment webhook handler. Then connect the three destinations in the Segment app; no further code is needed. Confirm in the Segment app that events arrive at the source.
 
-### Example 2: Migrate from multiple tracking SDKs
+### Example 2: Replace several analytics SDKs with Segment
 
-**User prompt:** "We have separate Mixpanel, Amplitude, and GA4 SDKs. Consolidate into one."
+**User request:** "We load Mixpanel, Amplitude and GA4 separately. Consolidate into one."
 
-The agent will replace individual SDKs with Segment's single tracking code, map existing events to Segment's schema, and enable destinations.
+List the events the three SDKs send today, map them to one set of "Object Action" names, replace the SDK calls with `analytics.track`, and enable each tool as a Segment destination. Run old and new in parallel for a week and compare counts before removing the old SDKs.
 
 ## Guidelines
 
-- **Identify first, then track** — always identify users before tracking events
-- **Event naming convention** — "Object Action" format: "Order Completed", "Page Viewed"
-- **Traits for user properties** — email, plan, company go in identify traits
-- **Properties for event data** — order total, product ID go in track properties
-- **Server-side for sensitive events** — payments, subscriptions tracked from backend
-- **Client-side for UI events** — clicks, page views, form interactions
-- **Destinations via dashboard** — toggle integrations without code changes
-- **Tracking plan** — document events before implementing; prevents data sprawl
-- **Anonymous → identified** — use alias() when anonymous user signs up
-- **Free tier: 1,000 visitors/month** — or self-host with Segment's open-source alternatives
+- Call `identify` as soon as you know the user; later `track` calls with that `userId` attach to the profile.
+- Name events "Object Action" in past tense ("Order Completed") and keep names stable; write a tracking plan before instrumenting.
+- User attributes (email, plan) go in `traits`; event data (order total, product ids) goes in `properties`.
+- Send revenue and subscription events from the server; send UI events from the browser.
+- Do not send passwords, payment card numbers or health data as traits or properties. Gate loading on user consent where the law requires it.
+- The write key identifies a source and is public in browser code; keep server keys in environment variables and use separate sources per environment so test data does not reach production destinations.
+- Calls are asynchronous and failures are silent unless you handle the `error` event emitted by the client or pass a callback.
