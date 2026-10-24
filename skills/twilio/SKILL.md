@@ -8,18 +8,17 @@ description: >-
   features into an app. Covers SMS, MMS, WhatsApp, Verify API (2FA), voice
   calls, and webhooks.
 license: Apache-2.0
-compatibility: 'Node.js 14+, Python 3.6+, any HTTP client'
+compatibility: 'Node.js 20+ (twilio 6.x), Python 3.7+, any HTTP client'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/twilio/twilio-node
   tags:
     - twilio
     - sms
     - voice
     - whatsapp
-    - 2fa
-    - phone
     - messaging
 ---
 
@@ -27,7 +26,7 @@ metadata:
 
 ## Overview
 
-Twilio is the leading cloud communications platform. This skill covers sending SMS/MMS messages, WhatsApp messaging, two-factor authentication (Verify API), voice calls, and handling incoming messages via webhooks. Twilio provides phone numbers in 100+ countries and handles carrier-level complexity so you work with a simple API.
+Twilio is a cloud communications platform with REST APIs for messaging, voice and verification. This skill covers sending SMS/MMS messages, WhatsApp messaging, two-factor authentication (Verify API), voice calls, and handling incoming messages via webhooks. Twilio provides phone numbers in 100+ countries and handles carrier-level complexity so you work with a simple API.
 
 ## Instructions
 
@@ -61,19 +60,19 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
 
 // Send SMS
 const message = await client.messages.create({
-  body: 'Your order #1234 has shipped! Track it at: https://track.example.com/1234',
+  body: 'Your order #1234 has shipped! Track it at: https://track.northwindparcels.com/1234',
   from: process.env.TWILIO_PHONE_NUMBER,    // your Twilio number
   to: '+15551234567',                        // recipient (E.164 format)
 })
 
 console.log(message.sid)    // SM1234567890abcdef
 
-// Send MMS (with image)
+// Send MMS (with image) — MMS works on US and Canadian numbers only
 await client.messages.create({
   body: 'Check out this photo!',
   from: process.env.TWILIO_PHONE_NUMBER,
   to: '+15551234567',
-  mediaUrl: ['https://example.com/photo.jpg'],
+  mediaUrl: ['https://cdn.northwindparcels.com/photos/box-1234.jpg'],
 })
 ```
 
@@ -128,8 +127,9 @@ await client.messages.create({
 })
 
 // WhatsApp with template (required for initiating conversations)
+// Use your own approved WhatsApp sender here, not the shared sandbox number
 await client.messages.create({
-  from: 'whatsapp:+14155238886',
+  from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,    // e.g. +14155550123
   to: 'whatsapp:+15551234567',
   contentSid: 'HXb5b62575e6e4ff6129ad7c8efe1f983e',    // approved template SID
   contentVariables: JSON.stringify({ '1': 'John', '2': 'March 15' }),
@@ -147,9 +147,21 @@ const { MessagingResponse } = twilio.twiml
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
-  const from = formData.get('From') as string
-  const body = formData.get('Body') as string
-  const messageSid = formData.get('MessageSid') as string
+  const params = Object.fromEntries(
+    [...formData.entries()].map(([k, v]) => [k, String(v)])
+  )
+
+  // Reject forged requests: the URL must be exactly what is configured in the Twilio console
+  const signature = req.headers.get('x-twilio-signature') ?? ''
+  const valid = twilio.validateRequest(
+    process.env.TWILIO_AUTH_TOKEN!,
+    signature,
+    'https://app.northwindparcels.com/api/webhooks/twilio',
+    params
+  )
+  if (!valid) return new NextResponse('Invalid signature', { status: 403 })
+
+  const { From: from, Body: body, MessageSid: messageSid } = params
 
   console.log(`Incoming from ${from}: ${body}`)
 
@@ -177,7 +189,7 @@ export async function POST(req: NextRequest) {
 // TwiML controls what happens during the call
 
 await client.calls.create({
-  url: 'https://myapp.com/api/voice/greeting',    // TwiML endpoint
+  url: 'https://app.northwindparcels.com/api/voice/greeting',    // TwiML endpoint
   from: process.env.TWILIO_PHONE_NUMBER!,
   to: '+15551234567',
 })
@@ -189,7 +201,7 @@ const { VoiceResponse } = twilio.twiml
 
 export async function POST() {
   const response = new VoiceResponse()
-  response.say({ voice: 'alice' }, 'Hello! Your appointment is confirmed for tomorrow at 2 PM.')
+  response.say({ voice: 'Polly.Joanna-Neural', language: 'en-US' }, 'Hello! Your appointment is confirmed for tomorrow at 2 PM.')
   response.say('Press 1 to confirm, or 2 to reschedule.')
 
   const gather = response.gather({ numDigits: 1, action: '/api/voice/handle-input' })
@@ -226,6 +238,9 @@ The agent will:
 - Use E.164 format for all phone numbers (`+15551234567`, not `555-123-4567`). Twilio rejects incorrectly formatted numbers.
 - Use the Verify API for 2FA instead of sending raw SMS codes — it handles code generation, expiry, rate limiting, and fraud detection.
 - WhatsApp requires pre-approved message templates for business-initiated conversations. User-initiated conversations (replies within 24h) allow freeform messages.
-- Always validate webhook requests using Twilio's signature validation to prevent forged webhooks.
-- SMS costs vary by country — US SMS costs ~$0.0079/message, international can be 10-50x more. Use WhatsApp for international messaging when possible (often cheaper).
+- Always validate webhook requests with `twilio.validateRequest(authToken, signatureHeader, fullUrl, params)` (shown in Step 5). It returns `false` on a bad signature and fails if the URL differs from the one configured in Twilio, including a proxy changing the scheme or host.
+- US long-code (10DLC) traffic must be registered through A2P 10DLC (or use a toll-free number with toll-free verification, or a short code); unregistered traffic is filtered by carriers and carries extra fees.
+- Verify codes expire after 10 minutes; a wrong code leaves the status `pending`, and too many attempts give `max_attempts_reached`.
+- Keep `TWILIO_AUTH_TOKEN` server-side only. For production prefer an API key (`twilio(apiKeySid, apiKeySecret, { accountSid })`) so a leaked credential can be revoked without rotating the main token.
+- SMS costs vary by country — US SMS costs $0.0083/message plus carrier fees (twilio.com/en-us/sms/pricing/us), international can be 10-50x more. Use WhatsApp for international messaging when possible (often cheaper).
 - Set up a status callback URL to track message delivery. Not all SMS messages are delivered — carriers can silently drop them.
