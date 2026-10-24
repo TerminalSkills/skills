@@ -32,7 +32,9 @@ Load Alpine with `defer`, put `x-data` on the element that owns the state, and u
 
 ```html
 <!-- index.html — add Alpine via CDN -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.5/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.5/dist/cdn.min.js"
+        integrity="sha384-FYLKjwG3aohNhNZoVG8sY/5ntunm+MqylL90Q+rT3OM7AwV9/BKFjk/RjoIpIgsI"
+        crossorigin="anonymous"></script>
 <!-- Or install the npm package named alpinejs. Plugins (@alpinejs/persist, mask, intersect, focus, collapse, anchor)
      are separate scripts that must load BEFORE the core script. -->
 ```
