@@ -32,7 +32,7 @@ bun init -y                   # package.json, tsconfig.json, index.ts, bun.lock
 bun run index.ts              # run TypeScript directly; add --hot to reload on change
 ```
 
-The official `curl -fsSL https://bun.com/install | bash` script also exists; prefer a package manager so the binary is not fetched through a pipe into a shell. On Windows use `scoop install bun` or `npm install -g bun`.
+Bun also publishes an install script at `https://bun.com/install`; if you use it, download it, read it, then run it, rather than piping it into a shell. A package manager is simpler. On Windows use `scoop install bun` or `npm install -g bun`.
 
 ### Packages
 
