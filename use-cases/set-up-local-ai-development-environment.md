@@ -11,179 +11,191 @@ tags: [llm, local-ai, ollama, langchain, development-environment, privacy]
 
 ## The Problem
 
-Dani works at a healthcare startup where patient data can never leave the company network. He needs to prototype an AI assistant that summarizes medical notes, but every cloud LLM API is off-limits due to HIPAA compliance. He has a workstation with a 24GB GPU and needs a local development environment where he can experiment with different models, build LangChain pipelines, and iterate quickly — all without any data leaving the machine.
+Dani works at a healthcare startup where patient data can never leave the company network. He needs to prototype an AI assistant that summarizes medical notes, but every cloud LLM API is off-limits because of the compliance team. He has a workstation with a 24GB GPU and needs a local environment where he can try different models, build a LangChain pipeline, and iterate quickly, all without any data leaving the machine.
 
-The cloud API route is a dead end. Even with a BAA, the compliance team won't sign off on sending patient notes to a third-party endpoint. The prototype needs to run entirely on-premises.
+Even with a BAA, the compliance team won't sign off on sending patient notes to a third-party endpoint. The prototype has to run entirely on-premises.
 
 ## The Solution
 
-Use **ollama** to run and manage local LLM models, **lm-studio-subagents** to test and compare multiple models side by side through a GUI, and **langchain** to build the actual application pipeline with retrieval-augmented generation. All three run entirely on the local machine.
+Use **ollama** to run and manage local models, **lm-studio-subagents** to run a second local server (LM Studio) so you can compare the same prompt across both, and **langchain** to build the retrieval-augmented pipeline. Everything binds to `127.0.0.1`. Until the pipeline is proven, develop with synthetic notes only; real notes belong on an encrypted disk with access controls, because the vector store is a copy of them.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Install Ollama and Pull the Right Models
+### Step 1: Install Ollama and Pull Models
 
 ```text
-I'm on Ubuntu 22.04 with an NVIDIA RTX 4090 (24GB VRAM). I need to run
-local LLMs for a medical note summarization project. Help me set up Ollama,
-pick appropriate models that fit in 24GB VRAM, and verify GPU acceleration
-is working.
+I'm on Ubuntu with an NVIDIA GPU (24GB VRAM). I need local LLMs for a medical
+note summarization project. Help me install Ollama, pick models that fit in
+24GB, and verify GPU acceleration is working.
 ```
 
-Installation is straightforward:
+The official install is a script piped into a shell. Instead, download the release archive and verify it against the checksum file published with the release:
 
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-systemctl status ollama  # verify running
-ollama run llama3.2 "hello"  # quick GPU test
-journalctl -u ollama | grep -i gpu  # should show "using CUDA" and "VRAM: 24576 MiB"
+curl -fsSLO https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst
+curl -fsSL https://github.com/ollama/ollama/releases/latest/download/sha256sum.txt | grep ' ./ollama-linux-amd64.tar.zst$' | sha256sum -c -
+sudo tar x -C /usr -f ollama-linux-amd64.tar.zst   # needs zstd installed
+ollama serve &                                      # listens on 127.0.0.1:11434 by default
+ollama -v
 ```
 
-Model selection matters here — 24GB of VRAM is generous but not unlimited. The sweet spot for summarization:
+For a service that starts at boot, follow the systemd section of the [Linux install guide](https://docs.ollama.com/linux). Then pull models and check the GPU:
 
-| Model | Size | Purpose |
-|-------|------|---------|
-| `llama3.1:8b-instruct-q8_0` | 8.5GB | Primary summarization, best quality at 8B |
-| `mistral:7b-instruct-v0.3-q8_0` | 8.2GB | Strong instruction following, good for comparison |
-| `gemma2:9b-instruct-q6_K` | 7.3GB | Strong reasoning, worth testing |
-| `phi3:14b-instruct-q5_K_M` | 10GB | Good for structured output |
+```bash
+ollama pull llama3.1:8b
+ollama pull qwen3:14b
+ollama pull gemma3:12b
+ollama pull nomic-embed-text          # embeddings for Step 3
+ollama run llama3.1:8b "Summarize: pt c/o chest pain x2 days, no fever."
+ollama ps                             # the PROCESSOR column should say 100% GPU
+```
 
-Two 8B models can be loaded simultaneously for A/B testing at around 17GB total. The 70B variants won't fit — skip those.
+The default tag of each model is a 4-bit quantization, which is why a 12B to 14B model fits in 24GB with room for context. `ollama list` shows the real sizes; a model that shows a CPU/GPU split in `ollama ps` is too large or has too much context for the card. A 70B model will not fit.
 
-Ollama exposes an API at `http://localhost:11434` with three key endpoints: `/api/generate` for single completions, `/api/chat` for multi-turn conversations, and `/api/tags` to list installed models.
+Ollama's native API lives at `http://127.0.0.1:11434` (`/api/generate`, `/api/chat`, `/api/tags`) and it also serves an OpenAI-compatible API under `/v1`.
 
-### Step 2: Set Up LM Studio for Model Comparison
+### Step 2: Run LM Studio as a Second Local Server
 
 ```text
-I also want LM Studio so I can quickly test prompts with different models
-through a visual interface before committing to one. Help me configure it
-alongside Ollama without port conflicts, and set up a workflow for
-comparing model outputs on the same medical note prompts.
+I also want LM Studio so I can test the same prompts against a second runtime
+and a different GGUF build, without port conflicts with Ollama.
 ```
 
-LM Studio provides what Ollama doesn't: a visual side-by-side comparison interface. The key is avoiding port conflicts — Ollama runs on 11434, so LM Studio goes on 1234. This gives two OpenAI-compatible endpoints:
+Ollama uses 11434, LM Studio uses 1234. After installing LM Studio from lmstudio.ai, the `lms` CLI can do everything headless:
 
-- **Ollama:** `http://localhost:11434/v1`
-- **LM Studio:** `http://localhost:1234/v1`
+```bash
+lms get qwen2.5-7b-instruct               # download; `lms get` alone lists recommended models
+lms load qwen2.5-7b-instruct --identifier local-worker --context-length 16384
+lms server start --port 1234              # binds to 127.0.0.1 unless you pass --bind
+curl http://127.0.0.1:1234/v1/models      # the id values are what you pass as "model"
+```
 
-The comparison workflow that saves the most time:
+Now the same prompt can go to two backends. This script sends one synthetic note to both and prints the answer and the wall time:
 
-1. Download the same model variants in GGUF format inside LM Studio
-2. Create a "Medical Summary" preset with the system prompt: *"You are a medical note summarizer. Given raw clinical notes, produce a structured summary with: Chief Complaint, History, Assessment, and Plan."*
-3. Load two models in split-view (LM Studio supports dual pane)
-4. Paste the same clinical note into both, compare outputs side by side
-5. Adjust temperature, top_p, and context length per model
+```python
+# compare.py
+"""Send the same prompt to Ollama and LM Studio (both OpenAI-compatible) and time each."""
+import time
+from openai import OpenAI
 
-This visual comparison step saves hours of guessing. Dani can see immediately that one model hallucinates medication dosages while another reliably extracts them.
+SYSTEM = "You are a medical note summarizer. Produce: Chief Complaint, History, Assessment, Plan."
+NOTE = open("eval/sample_note.txt").read()
+BACKENDS = {
+    "ollama": ("http://127.0.0.1:11434/v1", "llama3.1:8b"),
+    "lmstudio": ("http://127.0.0.1:1234/v1", "local-worker"),  # the --identifier given to `lms load`
+}
+for name, (url, model) in BACKENDS.items():
+    client = OpenAI(base_url=url, api_key="local")  # the key must be non-empty but is not checked
+    t0 = time.time()
+    out = client.chat.completions.create(
+        model=model, temperature=0,
+        messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": NOTE}],
+    ).choices[0].message.content
+    print(f"=== {name} ({time.time() - t0:.1f}s)\n{out}\n")
+```
 
-### Step 3: Build a LangChain RAG Pipeline for Medical Notes
+Read the two outputs next to each other. In a clinical setting the thing to look for is not style but invented facts: a dosage or a diagnosis that is not in the note.
+
+### Step 3: Build a LangChain RAG Pipeline
 
 ```text
-Now build the actual application. I have ~2,000 past medical notes as
-text files in a directory. I need a RAG pipeline: embed the notes,
-store in a local vector database, and let me query with natural language.
-Everything must stay local — no external API calls.
+I have a directory of past notes as text files. Embed them, store them in a
+local vector database, and let me query in natural language. Everything must
+stay local, no external API calls.
 ```
 
-The ingestion pipeline reads all 2,000 notes, splits them into searchable chunks, and embeds them locally:
+LangChain 1.x moved the integrations into their own packages (`langchain-ollama`, `langchain-chroma`) and the old `RetrievalQA`, `ConversationalRetrievalChain` and `ConversationBufferWindowMemory` classes now live in the legacy `langchain-classic` package. The pipeline below uses the current packages:
+
+```bash
+python3 -m venv .venv && . .venv/bin/activate
+pip install langchain-core langchain-ollama langchain-chroma langchain-text-splitters openai
+```
 
 ```python
 # medical_rag/ingest.py
-from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
+from pathlib import Path
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_ollama import OllamaEmbeddings
+from langchain_chroma import Chroma
 
-loader = DirectoryLoader("./notes/", glob="*.txt", loader_cls=TextLoader)
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000, chunk_overlap=200,
-    separators=["\n\n", "\n", ". ", " "]
-)
-embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url="http://localhost:11434")
-# Pull the embedding model first: ollama pull nomic-embed-text (274MB, runs fine on CPU)
+docs = [Document(page_content=f.read_text(), metadata={"source": f.name}) for f in sorted(Path("notes").glob("*.txt"))]
+chunks = RecursiveCharacterTextSplitter(
+    chunk_size=1000, chunk_overlap=200, separators=["\n\n", "\n", ". ", " "]
+).split_documents(docs)
 
-docs = loader.load()
-chunks = splitter.split_documents(docs)
-vectorstore = Chroma.from_documents(chunks, embeddings, persist_directory="./chroma_db")
+# ollama pull nomic-embed-text   (small enough to run on CPU)
+embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url="http://127.0.0.1:11434")
+Chroma.from_documents(chunks, embeddings, persist_directory="./chroma_db")
+print(f"{len(docs)} notes -> {len(chunks)} chunks")
 ```
 
-Ingestion stats for 2,000 notes: roughly 8,500 chunks after splitting, about 12 minutes to embed on CPU (nomic-embed-text is fast), and 180MB on disk for the ChromaDB.
-
-The query interface wires the vector store to a local LLM:
-
-```python
-# medical_rag/query.py
-from langchain.chains import RetrievalQA
-from langchain_community.llms import Ollama
-
-llm = Ollama(model="llama3.1:8b-instruct-q8_0", temperature=0.1)
-retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
-chain = RetrievalQA.from_chain_type(
-    llm=llm, retriever=retriever, chain_type="stuff",
-    return_source_documents=True
-)
-
-# Example: "Summarize all visits for patient ID 4821"
-# Returns: structured summary + source document references
-```
-
-Every query stays on the machine. The LLM never sees data it shouldn't, and nothing hits the network.
+Chroma stores the vectors on disk in `./chroma_db`; the chunk count and embedding time depend on your notes and hardware, so read them from the script's output rather than from a benchmark.
 
 ### Step 4: Add a Conversational Interface with Memory
 
 ```text
-Make it conversational so I can ask follow-up questions. It should
-remember context within a session but not leak information between
-sessions. Add a simple terminal UI.
+Make it conversational so I can ask follow-up questions. It should remember
+context within a session but not between sessions.
 ```
 
-The conversational chain adds session memory that tracks the last 10 exchanges — enough for natural follow-ups like "what about their blood pressure?" without restating the patient ID:
+The chat loop keeps the last 10 exchanges in a plain list. The list lives in process memory, so ending the session discards it:
 
 ```python
 # medical_rag/chat.py
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.chains import ConversationalRetrievalChain
+from langchain_chroma import Chroma
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 
-memory = ConversationBufferWindowMemory(
-    k=10, memory_key="chat_history",
-    return_messages=True, output_key="answer"
-)
+MODEL = "llama3.1:8b"
+store = Chroma(persist_directory="./chroma_db",
+               embedding_function=OllamaEmbeddings(model="nomic-embed-text", base_url="http://127.0.0.1:11434"))
+retriever = store.as_retriever(search_kwargs={"k": 5})
 
-chain = ConversationalRetrievalChain.from_llm(
-    llm=Ollama(model="llama3.1:8b-instruct-q8_0", temperature=0.1),
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
-    memory=memory, return_source_documents=True
-)
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You summarize clinical notes. Answer only from the context. "
+               "If the context does not contain the answer, say so.\n\nContext:\n{context}"),
+    MessagesPlaceholder("history"),
+    ("human", "{question}"),
+])
+
+def ask(question: str, history: list, model: str = MODEL) -> str:
+    docs = retriever.invoke(question)
+    context = "\n\n".join(f"[{d.metadata.get('source')}]\n{d.page_content}" for d in docs)
+    llm = ChatOllama(model=model, temperature=0, base_url="http://127.0.0.1:11434")
+    answer = (prompt | llm | StrOutputParser()).invoke(
+        {"context": context, "history": history[-20:], "question": question})  # last 10 exchanges
+    history += [HumanMessage(question), AIMessage(answer)]
+    return answer
+
+if __name__ == "__main__":
+    history: list = []  # lives in memory only, so nothing carries over between sessions
+    while (q := input("> ").strip()) not in ("/quit", ""):
+        if q == "/clear":
+            history.clear()
+        else:
+            print(ask(q, history))
 ```
 
-The terminal UI (built with the `rich` library) color-codes user input in green, AI responses in white, and source references in dim. Three commands keep things simple: `/clear` resets memory, `/model mistral:7b-instruct-v0.3-q8_0` swaps the LLM without re-embedding documents, and `/quit` ends the session. Memory dies on quit — no data persists between sessions.
+`/clear` resets the history and `/quit` ends the session. To swap models without re-embedding, pass another model name to `ask`; the vectors do not depend on the chat model.
 
-### Step 5: Create a Testing and Evaluation Harness
+### Step 5: Evaluate Before Choosing a Model
 
 ```text
-I need to evaluate which model gives the best summaries before deploying
-internally. Create a simple eval script that runs 50 test notes through
-each model and scores the outputs for completeness, accuracy against
-a reference summary, and response time.
+I need to decide which model gives the best summaries. Build a small eval that
+runs test notes through each model and scores them.
 ```
 
-The eval harness runs 50 test notes (each with a human-written reference summary) through three models and scores them:
-
-| Metric | llama3.1:8b-q8 | mistral:7b-v0.3-q8 | gemma2:9b-q6 |
-|--------|----------------|--------------------:|-------------:|
-| Completeness (0-4) | 3.8 | 3.6 | 3.9 |
-| ROUGE-L | 0.62 | 0.58 | 0.65 |
-| Avg response time | 4.2s | 3.8s | 5.1s |
-
-Completeness checks for the four required sections (Chief Complaint, History, Assessment, Plan). ROUGE-L measures overlap with the reference summary. Results are reproducible — temperature is set to 0 with fixed seeds where supported.
-
-```bash
-python eval.py --notes-dir ./eval/test_notes --models all
-# Output: eval/results.json and eval/results_summary.md
-```
-
-Gemma 2 wins on accuracy but takes longer. Llama 3.1 is the best balance of quality and speed. Mistral is fastest but scores lowest. The numbers make the decision easy — no more guessing.
+Write 30 to 50 synthetic notes, each with a human-written reference summary, and run every candidate over them with `temperature=0`. Three checks are cheap and need no cloud service: whether the four required headings appear (Chief Complaint, History, Assessment, Plan), whether every number in the output (dose, vital sign, date) also appears in the source note, and the wall time per note. For overlap with the reference summary add ROUGE-L with the `rouge-score` package. Have a clinician read the lowest-scoring ten, because a metric will not catch a plausible but wrong plan.
 
 ## Real-World Example
 
-Noa, a data scientist at a legal firm, used this same local setup to prototype a contract clause extractor. She couldn't send client contracts to any external API. With Ollama running Llama 3.1 locally and LangChain for the RAG pipeline, she embedded 5,000 contracts, built a query interface, and had lawyers testing it within a week. The eval harness helped her pick the right model — Gemma 2 turned out to extract clause boundaries more reliably. Total cloud API cost: zero. Total data leaked: zero.
+Noa, a data scientist at a legal firm, could not send client contracts to any external API. She ran a local model through Ollama and used LangChain for retrieval: she embedded a few thousand contracts, built a query interface, and had lawyers testing it within a week. Her eval was the number-and-heading check from Step 5 plus a lawyer reading the worst outputs, and it showed her that a smaller model extracted clause boundaries as reliably as a larger one for her documents, so she kept the smaller one. No contract left the machine.
+
+## Related Skills
+
+- [ollama](../skills/ollama/) -- install, pull and serve local models
+- [lm-studio-subagents](../skills/lm-studio-subagents/) -- LM Studio as a second local OpenAI-compatible server
+- [langchain](../skills/langchain/) -- retrieval pipelines and chains
