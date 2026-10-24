@@ -1,14 +1,16 @@
 ---
 name: rsync
 description: >-
-  Sync files and directories with rsync. Use when a user asks to copy files
-  between servers, sync directories, create incremental backups, deploy files
-  to a remote server, or mirror directories efficiently.
+  rsync copies and synchronizes files locally or over SSH, sending only the
+  parts that changed. Use when someone asks to "copy files to a server", "sync
+  two directories", "mirror a folder", "make incremental backups with
+  hard links", "deploy a build to a remote host", "resume a big transfer" or
+  "exclude node_modules when copying".
 license: Apache-2.0
-compatibility: 'Linux, macOS'
+compatibility: "Linux, macOS, BSD; rsync 3.2+ on both ends for the options shown, SSH access for remote paths"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
   tags:
     - rsync
@@ -16,81 +18,101 @@ metadata:
     - backup
     - deploy
     - file-transfer
+  repository: https://github.com/RsyncProject/rsync
 ---
 
 # rsync
 
 ## Overview
 
-rsync is the standard tool for efficient file synchronization. It only transfers changed parts of files (delta transfer), supports SSH, handles permissions, and works for backups, deployments, and directory mirroring.
+rsync compares source and destination and transfers only what differs (a changed file is sent as a delta). It preserves permissions, times and symlinks with `-a`, talks to remote hosts through SSH by default, and is the usual tool for deployments, mirrors and snapshot backups. The current release is 3.5.1 (September 2026, protocol 33); 3.5.0 fixed 33 security issues in path and symlink handling, so keep both ends updated (`brew install rsync` on macOS, since the bundled binary can be an older or different implementation; check `rsync --version`).
 
 ## Instructions
 
-### Step 1: Basic Usage
+### 1. Copy and sync
 
 ```bash
-# Sync local directories
-rsync -avz source/ destination/
-# -a = archive (preserves permissions, timestamps, symlinks)
-# -v = verbose
-# -z = compress during transfer
-
-# Sync to remote server
-rsync -avz ./dist/ deploy@server:/var/www/myapp/
-
-# Sync from remote
-rsync -avz deploy@server:/var/log/myapp/ ./logs/
-
-# Dry run (show what would change without doing it)
-rsync -avzn source/ destination/
+rsync -a --info=progress2 ./dist/ deploy@web01.example.net:/var/www/shop/   # local to remote
+rsync -a deploy@web01.example.net:/var/log/shop/ ./logs/                     # remote to local
+rsync -a --mkpath ./site/ /backups/daily/site/                               # create missing destination dirs (3.2.3+)
 ```
 
-### Step 2: Common Patterns
+`-a` is archive mode (recursive, keeps permissions, times, symlinks, owner and group when allowed). Add `-z` only for slow links with compressible data; it wastes CPU on LAN transfers and on already compressed files (images, archives). `-h` prints human-readable sizes.
 
-```bash
-# Deploy website (delete files on destination that don't exist in source)
-rsync -avz --delete ./build/ deploy@server:/var/www/site/
+Trailing slash on the source decides what is copied: `src/` copies the contents into the destination, `src` copies the directory itself as `dest/src`. A trailing slash on the destination does not matter.
 
-# Backup with exclude
-rsync -avz --exclude='node_modules' --exclude='.git' --exclude='.env' \
-  /opt/myapp/ /backups/myapp/
+### 2. Preview before changing anything
 
-# Incremental backup with hard links (space-efficient)
-rsync -avz --link-dest=/backups/latest \
-  /opt/myapp/ /backups/$(date +%Y%m%d)/
-ln -snf /backups/$(date +%Y%m%d) /backups/latest
-
-# Bandwidth limited (useful for large transfers)
-rsync -avz --bwlimit=5000 source/ destination/    # 5000 KB/s
+```console
+$ rsync -an --itemize-changes --exclude=node_modules app/ mirror/
+cd+++++++++ ./
+cd+++++++++ src/
+>f+++++++++ src/a.txt
 ```
 
-### Step 3: Deployment Script
+`-n` (dry run) with `-i` lists exactly what would happen. `+++++++++` means new, `*deleting` means a file removed from the destination.
+
+### 3. Mirror, exclude, filter
 
 ```bash
-#!/bin/bash
-# scripts/deploy.sh — Deploy app with rsync
-SERVER="deploy@prod.example.com"
-REMOTE_DIR="/var/www/myapp"
+rsync -a --delete --exclude='node_modules' --exclude='.git' --exclude='.env' ./build/ deploy@web01.example.net:/var/www/shop/
+rsync -a --exclude-from=.rsync-ignore ./app/ /backups/app/
+rsync -a --files-from=changed.txt ./app/ deploy@web01.example.net:/srv/app/   # paths relative to ./app/
+```
 
-echo "Building..."
+`--delete` removes destination files that no longer exist in the source, so run it with `-n` first. Exclude patterns are matched relative to the transfer root; anchor with a leading slash (`--exclude='/.env'`).
+
+### 4. Remote options
+
+```bash
+rsync -a -e "ssh -p 2222 -i ~/.ssh/deploy_ed25519" ./dist/ deploy@web01.example.net:/var/www/shop/
+rsync -a --rsync-path="sudo rsync" ./conf/ ops@db01.example.net:/etc/shop/    # needs passwordless sudo for rsync there
+rsync -a --partial --append-verify --info=progress2 big.iso backup@nas01.example.net:/vol/iso/   # resume a big file
+rsync -a --bwlimit=5m ./media/ backup@nas01.example.net:/vol/media/            # 5 MiB/s; plain number = KiB/s
+```
+
+`--partial` keeps an interrupted file so the next run continues it. rsync over SSH is encrypted; the `rsync://` daemon protocol is not. Use a restricted key and `command=` with `rrsync` in `authorized_keys` for unattended jobs.
+
+### 5. Snapshot backups with hard links
+
+Each run produces a complete-looking directory, but unchanged files are hard links to the previous snapshot, so they cost no space:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+SRC=/srv/shop/
+DEST=/backups/shop
+TODAY=$(date +%F)
+mkdir -p "$DEST"
+rsync -a --delete --exclude='/cache/' --link-dest="$DEST/latest" "$SRC" "$DEST/$TODAY/"
+ln -sfn "$DEST/$TODAY" "$DEST/latest"
+```
+
+Give `--link-dest` an absolute path. On the very first run `latest` does not exist and rsync prints a `--link-dest arg does not exist` warning but still makes a full copy.
+
+## Examples
+
+### Example 1: "Deploy the build to the server without touching the uploads folder"
+
+```bash
 npm run build
-
-echo "Syncing files..."
-rsync -avz --delete \
-  --exclude='node_modules' \
-  --exclude='.env' \
-  --exclude='.git' \
-  ./dist/ ${SERVER}:${REMOTE_DIR}/
-
-echo "Restarting service..."
-ssh ${SERVER} "sudo systemctl restart myapp"
-
-echo "Deploy complete!"
+rsync -a --delete --exclude='/uploads/' --exclude='/.env' -n -i ./dist/ deploy@web01.example.net:/var/www/shop/
+rsync -a --delete --exclude='/uploads/' --exclude='/.env' ./dist/ deploy@web01.example.net:/var/www/shop/
+ssh deploy@web01.example.net "sudo systemctl reload nginx"
 ```
+
+The first command is the dry run: review the `*deleting` lines. Excluded paths are also protected from `--delete`, so `uploads/` and `.env` on the server survive.
+
+### Example 2: "Nightly backup that keeps 14 days"
+
+Use the script from step 5 from cron (`15 2 * * * /usr/local/bin/shop-backup.sh`), then prune: `find /backups/shop -maxdepth 1 -type d -name '20*' -mtime +14 -exec rm -rf {} +`. Check the saving with `du -sh /backups/shop/*`: the second snapshot only counts files that changed (verified: unchanged `src/a.txt` shared one inode across both snapshots, the modified file got a new one).
 
 ## Guidelines
 
-- Always use `-n` (dry run) first when using `--delete` to avoid accidental data loss.
-- Trailing slash matters: `source/` syncs contents, `source` syncs the directory itself.
-- For large transfers, add `--progress` to see per-file progress.
-- rsync over SSH is encrypted by default — safe for internet transfers.
+- Always dry-run (`-n -i`) before `--delete`, and never point `--delete` at a path built from an unchecked variable (an empty `$DEST` can mean `/`).
+- Quote paths with spaces; a remote path with spaces needs quoting for both shells.
+- `-a` keeps owner and group only when run as root on the receiver; add `-A -X` for ACLs and extended attributes and `-H` for hard links inside the tree.
+- `--checksum` compares file contents instead of size and time: accurate but reads every file on both sides.
+- Do not sync live database files; dump first, then sync the dump.
+- Do not store the SSH key passphrase or passwords in scripts; use `ssh-agent` or a dedicated deploy key.
+- For one-way deployment prefer a new release directory plus a symlink switch if you need atomic cutover; rsync on its own updates files one by one.
