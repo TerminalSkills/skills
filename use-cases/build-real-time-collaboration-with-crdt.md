@@ -3,8 +3,8 @@ title: Build Real-Time Collaboration with CRDTs
 slug: build-real-time-collaboration-with-crdt
 description: >
   Add Google Docs-style real-time editing to a project management app
-  using CRDTs — handling offline edits, conflict resolution, and
-  50 concurrent editors without operational transforms.
+  using Yjs CRDTs: offline edits, automatic conflict resolution, and
+  per-task permissions, without operational transforms.
 skills:
   - typescript
   - yjs
@@ -26,251 +26,192 @@ tags:
 
 ## The Problem
 
-A project management SaaS app has 12K teams using shared task boards and documents. Users constantly overwrite each other's changes — last-write-wins means whoever saves last destroys everyone else's work. The team tried OT (Operational Transforms) but the server-side implementation was buggy: cursor jumps, lost characters, ghost edits. Worse, the app doesn't work offline at all — field teams in areas with spotty connectivity can't use it, costing $180K/year in churned accounts.
+A project management SaaS has thousands of teams using shared task boards and documents. Users constantly overwrite each other's changes: with last-write-wins, whoever saves last destroys everyone else's work. The team tried operational transforms (OT), but their server-side implementation was buggy: cursor jumps, lost characters, ghost edits. Worse, the app does not work offline at all, so field teams in areas with spotty connectivity cannot use it and some of them leave.
 
-## Step 1: CRDT Document Model
+## The Solution
 
-```typescript
-// src/crdt/document.ts
-import * as Y from 'yjs';
-import { z } from 'zod';
+Model each task as a Yjs document, a CRDT whose copies merge to the same result in any order, so there is nothing to transform on the server. **yjs** supplies the document types, **typescript** types the model, and **zod** validates everything that arrives from other clients. A Hocuspocus WebSocket server speaks the Yjs sync protocol, **postgresql** stores each document's state as the system of record, **redis** fans updates out between several collab servers, and **hono** serves the REST API that hands the browser a short-lived collab token.
 
-// Each document is a Yjs doc with typed sections
-export function createTaskDocument(): Y.Doc {
-  const doc = new Y.Doc();
+## Step-by-Step Walkthrough
 
-  // Shared types for different parts of the task
-  const title = doc.getText('title');
-  const description = doc.getText('description');
-  const checklist = doc.getArray<Y.Map<any>>('checklist');
-  const comments = doc.getArray<Y.Map<any>>('comments');
-  const metadata = doc.getMap('metadata');
+### Step 1: Model the task as a CRDT document
 
-  return doc;
-}
-
-export function addChecklistItem(doc: Y.Doc, text: string, assignee?: string): void {
-  const checklist = doc.getArray<Y.Map<any>>('checklist');
-  const item = new Y.Map<any>();
-  item.set('id', crypto.randomUUID());
-  item.set('text', text);
-  item.set('completed', false);
-  item.set('assignee', assignee ?? null);
-  item.set('createdAt', new Date().toISOString());
-  checklist.push([item]);
-}
-
-export function toggleChecklistItem(doc: Y.Doc, index: number): void {
-  const checklist = doc.getArray<Y.Map<any>>('checklist');
-  const item = checklist.get(index);
-  if (item) {
-    item.set('completed', !item.get('completed'));
-  }
-}
-
-// Awareness: who's editing what right now
-export const AwarenessState = z.object({
-  userId: z.string(),
-  userName: z.string(),
-  color: z.string(),
-  cursor: z.object({
-    field: z.string(),          // which field they're in
-    index: z.number().int(),    // cursor position
-    length: z.number().int(),   // selection length
-  }).optional(),
-});
-```
-
-## Step 2: WebSocket Sync Server
+Pick the shared type by how the field is edited. Free text is `Y.Text`, which merges at character level. A checklist is the interesting case: an array indexed by position makes two users reordering or inserting at once fight over indexes, so key the items by id in a `Y.Map` and keep their position in an `order` number.
 
 ```typescript
-// src/server/ws-sync.ts
-import { Hono } from 'hono';
-import { createNodeWebSocket } from '@hono/node-ws';
-import * as Y from 'yjs';
-import { Redis } from 'ioredis';
+import * as Y from 'yjs'
+import { z } from 'zod'
 
-const redis = new Redis(process.env.REDIS_URL!);
+// A task is one Y.Doc. Text fields are Y.Text (character-level merge); the checklist
+// is a Y.Map keyed by item id, so no two clients ever fight over an array index.
+export const title = (doc: Y.Doc) => doc.getText('title')
+export const description = (doc: Y.Doc) => doc.getText('description')
+export const checklist = (doc: Y.Doc) => doc.getMap<Y.Map<unknown>>('checklist')
 
-// In-memory document cache
-const docs = new Map<string, Y.Doc>();
-const connections = new Map<string, Set<WebSocket>>();
-
-export function createSyncServer() {
-  const app = new Hono();
-  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
-
-  app.get('/ws/doc/:docId', upgradeWebSocket((c) => {
-    const docId = c.req.param('docId');
-
-    return {
-      async onOpen(_event, ws) {
-        // Load or create document
-        let doc = docs.get(docId);
-        if (!doc) {
-          doc = new Y.Doc();
-          const saved = await redis.getBuffer(`doc:${docId}`);
-          if (saved) {
-            Y.applyUpdate(doc, saved);
-          }
-          docs.set(docId, doc);
-        }
-
-        // Track connection
-        if (!connections.has(docId)) connections.set(docId, new Set());
-        connections.get(docId)!.add(ws.raw as any);
-
-        // Send current state
-        const state = Y.encodeStateAsUpdate(doc);
-        (ws.raw as any).send(state);
-      },
-
-      onMessage(event, ws) {
-        const doc = docs.get(docId)!;
-        const update = new Uint8Array(event.data as ArrayBuffer);
-
-        // Apply update to server doc
-        Y.applyUpdate(doc, update);
-
-        // Broadcast to other clients
-        const peers = connections.get(docId);
-        if (peers) {
-          for (const peer of peers) {
-            if (peer !== ws.raw && peer.readyState === 1) {
-              peer.send(update);
-            }
-          }
-        }
-
-        // Persist to Redis (debounced in production)
-        const encoded = Y.encodeStateAsUpdate(doc);
-        redis.setBuffer(`doc:${docId}`, Buffer.from(encoded));
-      },
-
-      onClose(_event, ws) {
-        connections.get(docId)?.delete(ws.raw as any);
-      },
-    };
-  }));
-
-  return { app, injectWebSocket };
-}
-```
-
-## Step 3: Offline-First Client
-
-```typescript
-// src/client/offline-sync.ts
-import * as Y from 'yjs';
-import { IndexeddbPersistence } from 'y-indexeddb';
-import { WebsocketProvider } from 'y-websocket';
-
-export class OfflineFirstDoc {
-  doc: Y.Doc;
-  private indexeddb: IndexeddbPersistence;
-  private wsProvider: WebsocketProvider | null = null;
-  private syncUrl: string;
-
-  constructor(docId: string, syncUrl: string) {
-    this.doc = new Y.Doc();
-    this.syncUrl = syncUrl;
-
-    // Local persistence — works offline
-    this.indexeddb = new IndexeddbPersistence(docId, this.doc);
-
-    // When IndexedDB loads, connect to server
-    this.indexeddb.on('synced', () => {
-      this.connectWebSocket(docId);
-    });
-
-    // Auto-reconnect on network change
-    window.addEventListener('online', () => this.connectWebSocket(docId));
-    window.addEventListener('offline', () => this.disconnect());
-  }
-
-  private connectWebSocket(docId: string): void {
-    if (this.wsProvider) return;
-    this.wsProvider = new WebsocketProvider(this.syncUrl, docId, this.doc, {
-      connect: true,
-      maxBackoffTime: 10000,
-    });
-
-    this.wsProvider.on('status', (event: { status: string }) => {
-      console.log(`Sync status: ${event.status}`);
-    });
-  }
-
-  private disconnect(): void {
-    this.wsProvider?.destroy();
-    this.wsProvider = null;
-  }
-
-  // Get text field as observable
-  getText(field: string): Y.Text {
-    return this.doc.getText(field);
-  }
-
-  // Observe changes (for React/Vue binding)
-  onChange(callback: () => void): () => void {
-    const handler = () => callback();
-    this.doc.on('update', handler);
-    return () => this.doc.off('update', handler);
-  }
-
-  // Undo/redo support
-  createUndoManager(fields: string[]): Y.UndoManager {
-    const trackedTypes = fields.map(f => this.doc.getText(f));
-    return new Y.UndoManager(trackedTypes);
-  }
-}
-```
-
-## Step 4: Conflict-Free Checklist Operations
-
-```typescript
-// src/client/checklist.ts
-import * as Y from 'yjs';
-
-// Reorder items (CRDT-safe: uses fractional indexing)
-export function reorderChecklist(
-  doc: Y.Doc,
-  fromIndex: number,
-  toIndex: number
-): void {
+export function addItem(doc: Y.Doc, text: string, assignee: string | null = null) {
+  const items = checklist(doc)
+  const last = Math.max(0, ...[...items.values()].map((i) => i.get('order') as number))
+  const item = new Y.Map<unknown>()
+  const id = crypto.randomUUID()
   doc.transact(() => {
-    const checklist = doc.getArray<Y.Map<any>>('checklist');
-    const item = checklist.get(fromIndex);
-    if (!item) return;
-
-    // Clone the item data
-    const data: Record<string, any> = {};
-    for (const [key, value] of item.entries()) {
-      data[key] = value;
-    }
-
-    // Remove from old position, insert at new
-    checklist.delete(fromIndex);
-    const newItem = new Y.Map<any>();
-    for (const [key, value] of Object.entries(data)) {
-      newItem.set(key, value);
-    }
-    checklist.insert(Math.min(toIndex, checklist.length), [newItem]);
-  });
+    items.set(id, item)
+    item.set('text', text)
+    item.set('done', false)
+    item.set('assignee', assignee)
+    item.set('order', last + 1)
+  })
+  return id
 }
 
-// Concurrent edits demo: two users toggle the same checkbox
-// User A: toggles item 3 to "completed"
-// User B: toggles item 3 to "completed" (independently, offline)
-// Result: item 3 ends up "completed" (last-writer-wins on the boolean field)
-// No conflict, no data loss, no manual resolution needed
+// Set, don't toggle: two offline clients that both tick the box agree on `true`.
+export const setDone = (doc: Y.Doc, id: string, done: boolean) =>
+  checklist(doc).get(id)?.set('done', done)
+
+// Reorder by giving the item an order between its new neighbours. Concurrent moves of
+// the same item resolve to one of the two positions; nothing is duplicated or lost.
+export function moveBetween(doc: Y.Doc, id: string, before?: string, after?: string) {
+  const items = checklist(doc)
+  const o = (k?: string) => (k ? (items.get(k)?.get('order') as number) : undefined)
+  const lo = o(before) ?? (o(after) !== undefined ? o(after)! - 2 : 0)
+  const hi = o(after) ?? lo + 2
+  items.get(id)?.set('order', (lo + hi) / 2)
+}
+
+export const sorted = (doc: Y.Doc) =>
+  [...checklist(doc).entries()]
+    .map(([id, m]) => ({ id, ...(m.toJSON() as { text: string; done: boolean; order: number }) }))
+    .sort((a, b) => a.order - b.order)
+
+// Awareness is untrusted input from other clients: validate before rendering it.
+export const Presence = z.object({
+  user: z.object({ id: z.string(), name: z.string(), color: z.string() }),
+  field: z.enum(['title', 'description']).optional(),
+})
 ```
 
-## Results
+Three choices here matter. `setDone` sets the value instead of toggling it, so two offline users who both tick a box agree on `true`, where two toggles would cancel out. `moveBetween` changes one number instead of deleting and re-inserting the item, so a concurrent move cannot duplicate or lose it. And the presence schema is checked with zod because awareness data comes from other browsers and must not be trusted when you render it.
 
-- **Concurrent editing**: 50 users edit the same document simultaneously without conflicts
-- **Offline support**: field teams work without connectivity, sync when back online
-- **Conflict resolution**: zero manual merge conflicts (CRDTs resolve automatically)
-- **Churn reduction**: recovered $180K/year in previously churned offline-heavy accounts
-- **Cursor presence**: users see each other's cursors and selections in real-time
-- **Undo/redo**: per-user undo stack that doesn't undo other people's changes
-- **Document size**: Yjs encodes efficiently — 10K edits compressed to ~50KB state
+A test with two documents made offline edits on both sides: both ticked the same item, both moved the same item, and both typed at the start of the title. After exchanging updates, the checklist was identical on both, the item appeared once, and the title was `v2 Release ` on both. Run the same test (with `Y.encodeStateAsUpdate` and `Y.applyUpdate`) in your own suite.
+
+### Step 2: Run the collab server
+
+Use a server that speaks the Yjs sync protocol, such as Hocuspocus, instead of relaying raw bytes yourself: the protocol has a handshake, awareness messages and read-only handling that a hand-written relay gets wrong. The server below checks the token and the user's membership of the task, makes viewers read-only, loads and saves state in PostgreSQL, and uses Redis to share updates with other collab server processes.
+
+```typescript
+import { Server } from '@hocuspocus/server'
+import { Database } from '@hocuspocus/extension-database'
+import { Redis as HocuspocusRedis } from '@hocuspocus/extension-redis'
+import { jwtVerify } from 'jose'
+import pg from 'pg'
+
+const db = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+const secret = new TextEncoder().encode(process.env.AUTH_JWT_SECRET)
+
+new Server({
+  address: '127.0.0.1',
+  port: 1234,
+  async onAuthenticate({ token, documentName, connectionConfig }) {
+    const { payload } = await jwtVerify(token, secret)
+    const { rows } = await db.query(
+      'SELECT role FROM task_members WHERE task_id = $1 AND user_id = $2',
+      [documentName, payload.sub],
+    )
+    if (!rows[0]) throw new Error('not a member of this task')
+    connectionConfig.readOnly = rows[0].role === 'viewer'
+    return { user: { id: payload.sub, name: payload.name } }
+  },
+  extensions: [
+    // Fan-out between several collab servers; Redis is not the system of record.
+    new HocuspocusRedis({ host: '127.0.0.1', port: 6379 }),
+    // Postgres is.
+    new Database({
+      fetch: async ({ documentName }) =>
+        (await db.query('SELECT state FROM task_docs WHERE task_id = $1', [documentName]))
+          .rows[0]?.state ?? null,
+      store: async ({ documentName, state }) => {
+        await db.query(
+          `INSERT INTO task_docs (task_id, state, updated_at) VALUES ($1, $2, now())
+           ON CONFLICT (task_id) DO UPDATE SET state = $2, updated_at = now()`,
+          [documentName, state],
+        )
+      },
+    }),
+  ],
+}).listen()
+```
+
+The tables are `task_members(task_id, user_id, role)` and `task_docs(task_id PRIMARY KEY, state BYTEA, updated_at)`. Redis is only the message bus here. Do not make it the only copy of a document: a default Redis install can lose recent writes on restart. Start Redis bound to `127.0.0.1` (or on a private network with a password), and one collab server needs no Redis at all.
+
+### Step 3: Issue collab tokens from the API
+
+The REST API stays in Hono. The browser calls it with its normal session, receives a token that lives five minutes, and uses it to open the WebSocket. The collab server re-checks membership on connect, so the token only proves who the user is.
+
+```typescript
+import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { zValidator } from '@hono/zod-validator'
+import { SignJWT } from 'jose'
+import { z } from 'zod'
+
+const secret = new TextEncoder().encode(process.env.AUTH_JWT_SECRET)
+const app = new Hono<{ Variables: { userId: string; userName: string } }>()
+
+// Your session middleware sets userId / userName here.
+
+// The browser asks for a short-lived collab token, then opens the WebSocket itself.
+app.post('/tasks/:id/collab-token',
+  zValidator('param', z.object({ id: z.uuid() })),
+  async (c) => {
+    const token = await new SignJWT({ name: c.get('userName') })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(c.get('userId'))
+      .setExpirationTime('5m')
+      .sign(secret)
+    return c.json({ token })
+  })
+
+serve({ fetch: app.fetch, hostname: '127.0.0.1', port: 3000 })
+```
+
+### Step 4: Offline-first client
+
+Combine a local IndexedDB copy with the network provider. Edits are applied to the local document immediately and stored on disk; when the connection comes back, the provider exchanges updates with the server and both sides converge. There is no separate "offline mode" to code.
+
+```typescript
+import * as Y from 'yjs'
+import { HocuspocusProvider } from '@hocuspocus/provider'
+import { IndexeddbPersistence } from 'y-indexeddb'
+
+export async function openTask(taskId: string) {
+  const { token } = await (await fetch(`/tasks/${taskId}/collab-token`, { method: 'POST' })).json()
+  const ydoc = new Y.Doc()
+  const local = new IndexeddbPersistence(taskId, ydoc)
+  const provider = new HocuspocusProvider({
+    url: 'wss://collab.example.com', name: taskId, document: ydoc, token,
+  })
+  provider.awareness?.setLocalStateField('user', { id: 'u1', name: 'Dana', color: '#e11d48' })
+  const undo = new Y.UndoManager([ydoc.getText('description'), ydoc.getMap('checklist')])
+  return { ydoc, provider, local, undo }
+}
+```
+
+`Y.UndoManager` tracks only changes made by this client by default, so Undo never reverts a teammate's edit. Bind the text types to your editor with the matching Yjs binding (for example `y-codemirror.next`), and subscribe to `ydoc.getMap('checklist').observeDeep` to re-render the board. A token expires after five minutes, so request a fresh one before reconnecting after a long offline period.
+
+## Real-World Example
+
+A field-services company runs its inspection checklists on the board. Dana, on a rooftop with no signal, ticks four checklist items and adds two comments in the description. At the same moment the office coordinator reorders the list and fixes a typo in the title. When Dana's phone reconnects, both sets of changes merge: her four ticks are kept, the new order is kept, the typo fix is kept, and nobody sees a conflict dialog. The company's support tickets about "my changes disappeared" stop being about overwrites and go back to being about the occasional real bug.
+
+## Limits to plan for
+
+- A CRDT converges, but it does not know your business rules. Two people can both assign the same item to different owners; the last write wins on that field. If that matters, show who assigned it and let people change it.
+- Deleted content is kept as tombstones until Yjs garbage collection compacts it, so test document size with your real edit volume before promising a limit.
+- Concurrent editing of one string is merged at character level, which can interleave two people's words if they type at the same spot at the same time. Cursors and presence make this rare in practice.
+
+## Related Skills
+
+- [yjs](/skills/yjs) - shared types, awareness and the offline provider
+- [typescript](/skills/typescript) - typed document helpers
+- [zod](/skills/zod) - validation of awareness and request data
+- [hono](/skills/hono) - REST API and collab token endpoint
+- [postgresql](/skills/postgresql) - durable document state and membership
+- [redis](/skills/redis) - fan-out between collab servers
