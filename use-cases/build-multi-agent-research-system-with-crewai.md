@@ -9,264 +9,218 @@ tags: [ai-agents, multi-agent, research, rag, automation, market-analysis]
 
 # Build a Multi-Agent Research System with CrewAI
 
-Elena is head of strategy at a Series B startup. Every quarter she needs competitive intelligence reports covering 15 competitors, market sizing, trend analysis, and strategic recommendations. Currently, a junior analyst spends 2 weeks compiling each report — searching the web, reading earnings calls, analyzing product changelogs, and writing up findings.
+Elena is head of strategy at a Series B startup. Every quarter she needs competitive intelligence reports covering a dozen competitors, market sizing, trend analysis, and strategic recommendations. Today a junior analyst spends two weeks compiling each one: searching the web, reading changelogs and earnings calls, and writing up findings.
 
-Elena builds a multi-agent system where specialized AI agents handle different aspects of research, validate each other's findings, and produce a structured report — reducing 2 weeks to 10 minutes per run.
+Elena builds a multi-agent system where specialized agents handle different parts of the research, pass their work on as context, and produce a structured, sourced draft that a human then reviews. The agents are fast, not infallible, so every fact must carry a source URL and the report is checked before it goes to the board.
+
+## Setup
+
+Python 3.11-3.13 (CrewAI supports up to 3.13; PydanticAI and Haystack 3 need 3.11+). The `>=2` on PydanticAI matters: without it pip can settle on a 1.x release that fails to import next to the current OpenTelemetry. In Haystack 3 the sentence-transformers embedders live in a separate integration package.
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install "crewai[anthropic,tools]" "pydantic-ai-slim[anthropic]>=2" \
+  haystack-ai sentence-transformers-haystack pypdf markdown-it-py mdit-plain
+export ANTHROPIC_API_KEY=...     # from your secret manager
+export SERPER_API_KEY=...        # serper.dev key for SerperDevTool
+```
 
 ## Step 1: RAG Knowledge Base with Haystack
 
-Before the agents can research, they need access to the company's existing intelligence: past reports, competitor profiles, industry analyses, and internal strategy documents.
+Before the agents research the web, they need the company's existing intelligence: past reports, competitor profiles, internal strategy documents. Haystack indexes them into an in-memory store (swap in a vector database for production) and answers similarity queries. Splitting is by words, which needs no extra NLP downloads.
 
 ```python
-# knowledge_base.py — Build searchable knowledge base
-from haystack import Pipeline, Document
-from haystack.components.embedders import SentenceTransformersDocumentEmbedder, SentenceTransformersTextEmbedder
-from haystack.components.writers import DocumentWriter
-from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
-from haystack.document_stores.in_memory import InMemoryDocumentStore
-from haystack.components.converters import PyPDFToDocument, MarkdownToDocument
-from haystack.components.preprocessors import DocumentSplitter
+# kb.py
 from pathlib import Path
+from haystack import Pipeline
+from haystack.components.converters import MarkdownToDocument, PyPDFToDocument
+from haystack_integrations.components.embedders.sentence_transformers import (
+    SentenceTransformersDocumentEmbedder,
+    SentenceTransformersTextEmbedder,
+)
+from haystack.components.preprocessors import DocumentSplitter
+from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
+from haystack.components.writers import DocumentWriter
+from haystack.document_stores.in_memory import InMemoryDocumentStore
 
+MODEL = "BAAI/bge-small-en-v1.5"
 document_store = InMemoryDocumentStore()
 
-def index_documents(docs_dir: str):
-    """Index all documents from a directory into the knowledge base.
 
-    Args:
-        docs_dir: Path to directory containing PDFs and markdown files
-    """
-    documents = []
-    
-    for path in Path(docs_dir).rglob("*.md"):
-        converter = MarkdownToDocument()
-        result = converter.run(sources=[path])
-        for doc in result["documents"]:
-            doc.meta["source"] = str(path)
-            doc.meta["type"] = "internal"
-            documents.append(doc)
+def index_documents(docs_dir: str) -> None:
+    docs = []
+    for pattern, converter in (("*.md", MarkdownToDocument()), ("*.pdf", PyPDFToDocument())):
+        paths = list(Path(docs_dir).rglob(pattern))
+        if paths:
+            docs += converter.run(sources=paths)["documents"]
 
-    for path in Path(docs_dir).rglob("*.pdf"):
-        converter = PyPDFToDocument()
-        result = converter.run(sources=[path])
-        for doc in result["documents"]:
-            doc.meta["source"] = str(path)
-            doc.meta["type"] = "report"
-            documents.append(doc)
-
-    # Split into chunks
-    splitter = DocumentSplitter(split_by="sentence", split_length=5, split_overlap=1)
-    chunks = splitter.run(documents=documents)["documents"]
-
-    # Embed and store
     indexing = Pipeline()
-    indexing.add_component("embedder", SentenceTransformersDocumentEmbedder(
-        model="BAAI/bge-small-en-v1.5",
-    ))
+    indexing.add_component("splitter", DocumentSplitter(split_by="word", split_length=200, split_overlap=30))
+    indexing.add_component("embedder", SentenceTransformersDocumentEmbedder(model=MODEL))
     indexing.add_component("writer", DocumentWriter(document_store=document_store))
-    indexing.connect("embedder", "writer")
-    indexing.run({"embedder": {"documents": chunks}})
+    indexing.connect("splitter.documents", "embedder.documents")
+    indexing.connect("embedder.documents", "writer.documents")
+    indexing.run({"splitter": {"documents": docs}})
 
-    print(f"Indexed {len(chunks)} chunks from {len(documents)} documents")
 
-# Build retrieval pipeline
-def build_retriever():
-    retriever = Pipeline()
-    retriever.add_component("embedder", SentenceTransformersTextEmbedder(
-        model="BAAI/bge-small-en-v1.5",
-    ))
-    retriever.add_component("retriever", InMemoryEmbeddingRetriever(
-        document_store=document_store, top_k=10,
-    ))
-    retriever.connect("embedder.embedding", "retriever.query_embedding")
-    return retriever
+def search_knowledge_base(query: str, top_k: int = 5) -> list[str]:
+    search = Pipeline()
+    search.add_component("embedder", SentenceTransformersTextEmbedder(model=MODEL))
+    search.add_component("retriever", InMemoryEmbeddingRetriever(document_store=document_store, top_k=top_k))
+    search.connect("embedder.embedding", "retriever.query_embedding")
+    hits = search.run({"embedder": {"text": query}})["retriever"]["documents"]
+    return [f"[{d.meta.get('file_path', 'unknown')}] {d.content}" for d in hits]
+
+
+if __name__ == "__main__":
+    index_documents("docs")
+    print(search_knowledge_base("enterprise private deployment"))
 ```
 
-## Step 2: Type-Safe Data Extraction with PydanticAI
+## Step 2: Type-Safe Extraction with PydanticAI
 
-Each piece of competitive intelligence is extracted into validated Pydantic models — ensuring consistent data quality across all agents.
+The research agents write prose. To compare competitors, Elena needs the same fields for each one, so a PydanticAI agent turns each dossier section into a validated `CompetitorProfile`. If the model returns a profile that breaks the schema (for example one strength where two are required), PydanticAI asks it to retry.
 
 ```python
-# models.py — Structured output models
+# models.py
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 
+
 class CompetitorProfile(BaseModel):
-    """Validated competitor data extracted by AI agents."""
     name: str
     website: str
-    founded: int
-    funding_total: str = Field(description="Total funding raised, e.g. '$45M'")
-    employee_count: str = Field(description="Estimated range, e.g. '50-100'")
     positioning: str = Field(description="One-sentence market positioning")
     key_products: list[str]
     target_market: str
     pricing_model: str
     strengths: list[str] = Field(min_length=2, max_length=5)
     weaknesses: list[str] = Field(min_length=2, max_length=5)
-    recent_moves: list[str] = Field(description="Notable actions in last 6 months")
+    recent_moves: list[str] = Field(description="Notable actions in the last 6 months")
+    sources: list[str] = Field(min_length=1, description="URLs the facts came from")
 
-class MarketTrend(BaseModel):
-    """Validated market trend observation."""
-    trend_name: str
-    description: str
-    evidence: list[str] = Field(min_length=2, description="Data points supporting this trend")
-    impact: str = Field(description="Low/Medium/High impact on our business")
-    timeline: str = Field(description="When this trend will peak")
-    opportunity: str = Field(description="How we can capitalize on this trend")
 
-class StrategicRecommendation(BaseModel):
-    """Validated strategic recommendation."""
-    title: str
-    priority: str = Field(description="P0 (critical) / P1 (high) / P2 (medium)")
-    description: str
-    rationale: str
-    effort: str = Field(description="Small (1-2 weeks) / Medium (1-2 months) / Large (quarter+)")
-    expected_impact: str
-    risks: list[str]
-
-# PydanticAI agent for type-safe extraction
-competitor_extractor = Agent(
-    "anthropic:claude-sonnet-4-20250514",
-    result_type=CompetitorProfile,
-    system_prompt="Extract structured competitor data from the provided research. Be precise with numbers and dates.",
+extractor = Agent(
+    "anthropic:claude-sonnet-5-5",
+    output_type=CompetitorProfile,
+    instructions=(
+        "Extract a competitor profile from the research notes. Use only facts present "
+        "in the notes; if a field is not stated, say 'not found' instead of guessing."
+    ),
 )
+
+
+def extract_profile(notes: str) -> CompetitorProfile:
+    return extractor.run_sync(notes).output
 ```
 
-## Step 3: Multi-Agent Crew with CrewAI
+## Step 3: The Crew with CrewAI
+
+Four agents run in sequence: a web researcher with search and scraping tools, an analyst with the Haystack knowledge base as a tool, a strategist, and a report writer. The strategist and writer receive earlier task outputs through `context`. The model string is `provider/model`; CrewAI uses its native Anthropic integration.
 
 ```python
-# crew.py — Research crew with specialized agents
-from crewai import Agent, Task, Crew, Process
-from crewai_tools import SerperDevTool, ScrapeWebsiteTool
+# crew.py
+from crewai import Agent, Crew, Process, Task
+from crewai.tools import tool
+from crewai_tools import ScrapeWebsiteTool, SerperDevTool
 
-search = SerperDevTool()
-scrape = ScrapeWebsiteTool()
+from kb import index_documents, search_knowledge_base
+from models import extract_profile
 
-# Agent 1: Web Researcher — finds raw data
+LLM = "anthropic/claude-sonnet-5-5"
+
+
+@tool("Internal knowledge base search")
+def kb_search(query: str) -> str:
+    """Search past reports and strategy documents. Returns the best matching passages with their source file."""
+    return "\n\n".join(search_knowledge_base(query)) or "No matching internal documents."
+
+
 web_researcher = Agent(
     role="Competitive Intelligence Researcher",
-    goal="Find comprehensive, current data about competitors in the {market} space",
-    backstory="""You are a senior CI analyst at Gartner with 12 years of experience.
-    You know exactly where to find funding data, product launches, hiring signals,
-    and strategic moves. You verify facts from multiple sources.""",
-    tools=[search, scrape],
-    llm="anthropic:claude-sonnet-4-20250514",
+    goal="Find current, sourced facts about competitors in the {market} space",
+    backstory="A careful analyst who checks every number against at least two sources and "
+    "writes 'not found' when a fact cannot be sourced.",
+    tools=[SerperDevTool(), ScrapeWebsiteTool()],
+    llm=LLM,
     max_iter=8,
-    verbose=True,
 )
-
-# Agent 2: Knowledge Base Analyst — searches internal docs
 kb_analyst = Agent(
     role="Internal Knowledge Analyst",
-    goal="Find relevant insights from past reports and strategy documents about {market}",
-    backstory="""You manage the company's competitive intelligence database.
-    You know every past report, strategy deck, and market analysis.
-    You find patterns across historical data that others miss.""",
-    tools=[KnowledgeBaseTool(retriever=build_retriever())],
-    llm="anthropic:claude-sonnet-4-20250514",
-    verbose=True,
+    goal="Surface what our past reports and strategy documents say about {market}",
+    backstory="Owns the company's competitive-intelligence archive and quotes it exactly.",
+    tools=[kb_search],
+    llm=LLM,
 )
-
-# Agent 3: Strategy Analyst — synthesizes findings
 strategist = Agent(
     role="Chief Strategy Analyst",
-    goal="Synthesize research into actionable strategic recommendations for {market} positioning",
-    backstory="""You are a former BCG partner who now advises tech startups.
-    You think in terms of competitive moats, market positioning, and
-    asymmetric advantages. You always prioritize recommendations by impact.""",
-    llm="anthropic:claude-sonnet-4-20250514",
-    verbose=True,
+    goal="Turn research into prioritized recommendations for our position in {market}",
+    backstory="Thinks in moats, positioning and asymmetric advantages; ranks everything by impact.",
+    llm=LLM,
 )
-
-# Agent 4: Report Writer — produces final deliverable
 report_writer = Agent(
     role="Executive Report Writer",
-    goal="Transform strategy analysis into a board-ready competitive intelligence report",
-    backstory="""You write reports for C-suite executives and board members.
-    Every sentence must be backed by data. You use clear headers,
-    bullet points, and highlight key metrics.""",
-    llm="anthropic:claude-sonnet-4-20250514",
-    verbose=True,
+    goal="Write a board-ready competitive intelligence report",
+    backstory="Writes for executives: short sentences, every claim tied to a source.",
+    llm=LLM,
 )
 
-# Tasks
 research_task = Task(
-    description="""Research these competitors in the {market} space: {competitors}
-    
-    For each competitor, find:
-    - Company overview (founding, funding, team size)
-    - Core products and recent launches (last 6 months)
-    - Pricing model and target customer
-    - Strengths and weaknesses
-    - Recent strategic moves (partnerships, acquisitions, pivots)
-    
-    Use multiple sources for each data point. Flag anything uncertain.""",
-    expected_output="Detailed research dossier with sourced data for each competitor",
+    description="Research these competitors in {market}: {competitors}. For each: funding and team "
+    "size, products and launches in the last 6 months, pricing and target customer, strengths, "
+    "weaknesses, strategic moves. Cite a URL for every fact; write 'not found' otherwise.",
+    expected_output="A research dossier, one section per competitor, with source URLs",
     agent=web_researcher,
 )
-
 kb_task = Task(
-    description="""Search our internal knowledge base for:
-    - Past assessments of competitors: {competitors}
-    - Historical market sizing for {market}
-    - Previous strategic recommendations that are still relevant
-    - Customer feedback mentioning competitors""",
-    expected_output="Summary of relevant internal intelligence with references",
+    description="Search the internal knowledge base for past assessments of {competitors}, "
+    "market sizing for {market}, and recommendations that still apply.",
+    expected_output="Relevant internal findings with the source file for each",
     agent=kb_analyst,
 )
-
 analysis_task = Task(
-    description="""Synthesize the web research and internal knowledge into:
-    1. Updated competitor profiles (structured data for each)
-    2. Market trend analysis (3-5 key trends with evidence)
-    3. SWOT for our position in {market}
-    4. Strategic recommendations (prioritized P0/P1/P2)
-    5. 90-day action plan""",
-    expected_output="Comprehensive strategic analysis document",
+    description="Combine the web research and internal findings into: market trends (3-5, with "
+    "evidence), a SWOT for our position in {market}, prioritized recommendations (P0/P1/P2) and a "
+    "90-day plan.",
+    expected_output="A structured strategy analysis",
     agent=strategist,
     context=[research_task, kb_task],
 )
-
 report_task = Task(
-    description="""Write a board-ready competitive intelligence report:
-    - Executive summary (250 words max)
-    - Market landscape with competitor positioning map
-    - Key trends and their impact
-    - Strategic recommendations with effort/impact matrix
-    - 90-day roadmap
-    - Risk assessment
-    
-    Format: Professional markdown. Every claim must cite the source.""",
-    expected_output="Publication-ready CI report in markdown (~3000 words)",
+    description="Write the report: executive summary (250 words max), landscape, trends, "
+    "recommendations, 90-day roadmap, risks. Cite sources for every claim.",
+    expected_output="A markdown report of about 3000 words",
     agent=report_writer,
     context=[research_task, kb_task, analysis_task],
     output_file="output/competitive_intelligence_report.md",
 )
 
-# Assemble and run
 crew = Crew(
     agents=[web_researcher, kb_analyst, strategist, report_writer],
     tasks=[research_task, kb_task, analysis_task, report_task],
     process=Process.sequential,
     verbose=True,
-    memory=True,
 )
 
-result = crew.kickoff(inputs={
-    "market": "AI developer tools",
-    "competitors": "Cursor, Codeium, Tabnine, Replit, Bolt.new",
-})
+if __name__ == "__main__":
+    index_documents("knowledge")  # past reports, strategy docs (.md / .pdf)
+    competitors = ["Cursor", "Tabnine", "Replit"]
+    result = crew.kickoff(inputs={"market": "AI developer tools", "competitors": ", ".join(competitors)})
+
+    # Validate the dossier into typed profiles (PydanticAI), one per competitor
+    dossier = result.tasks_output[0].raw
+    profiles = [extract_profile(f"Competitor: {c}\n\n{dossier}") for c in competitors]
+    print(f"{len(profiles)} validated profiles; report in output/competitive_intelligence_report.md")
 ```
+
+Run it with `python crew.py`. Every factual claim in the report should trace to a URL from the research task; Elena spot-checks the figures that matter most (funding, pricing, headcount) before the report leaves her desk.
 
 ## Results
 
-Elena runs the system every Monday morning. The crew produces a 3,000-word report with structured competitor profiles, trend analysis, and prioritized recommendations in 10 minutes.
+Elena runs the crew every Monday. A run produces a structured draft in minutes instead of days of analyst time, and the analyst now spends that time verifying numbers and adding judgement rather than collecting them. Run cost depends on the model and on how much the scraping tools pull in, so measure it on your own competitor list with the usage metrics CrewAI reports after `kickoff` before promising a budget.
 
-- **Research time**: 2 weeks → 10 minutes per run
-- **Coverage**: 15 competitors analyzed with 45+ data points each (vs. 5-8 data points manually)
-- **Consistency**: Pydantic validation ensures every competitor profile has all required fields
-- **Historical context**: RAG retrieves relevant insights from 2 years of past reports
-- **Cost**: ~$2.50 per report run (4 agents × ~15K tokens each) vs. $4,000 analyst time
-- **Frequency**: Weekly CI reports (was quarterly due to analyst bandwidth)
-- **Accuracy**: Strategy team rates AI reports 8.2/10 vs. 7.8/10 for analyst reports (after 3 months of tuning)
+## Related Skills
+
+- [crewai](../skills/crewai/SKILL.md) — agents, tasks, tools and crews
+- [pydantic-ai](../skills/pydantic-ai/SKILL.md) — validated, typed model output
+- [haystack](../skills/haystack/SKILL.md) — document indexing and retrieval pipelines
