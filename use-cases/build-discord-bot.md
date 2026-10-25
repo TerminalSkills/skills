@@ -4,6 +4,7 @@ slug: build-discord-bot
 description: Build a Discord bot with slash commands, buttons, modals, select menus, role management, and embed messages, then deploy it to Railway for a 10k-member community server.
 skills:
   - typescript
+  - discord
   - postgresql
 category: development
 tags:
@@ -249,3 +250,4 @@ Mia's team adds the bot on a Friday and pins `/verify` in the rules channel. New
 
 - `typescript` - strict types for the interaction handlers and build setup
 - `postgresql` - tickets and warning history
+- `discord` - official-docs reference for intents, slash-command registration (guild vs global), ephemeral replies, rate limits, webhooks and plain REST calls; use it to check this bot against current Discord behavior.
