@@ -2,10 +2,12 @@
 title: Build an AI-Powered Codebase Knowledge Graph
 slug: build-codebase-knowledge-graph
 description: >-
-  Create a living knowledge graph of your codebase that maps files, functions, and relationships for instant architecture understanding.
+  Create a knowledge graph of your codebase with the open-source Understand-Anything plugin, then query, visualize and share it so new developers can learn the architecture without interrupting seniors.
 skills:
   - understand-chat
   - understand-dashboard
+  - understand-onboard
+  - understand-diff
   - graphify
 category: development
 tags: [knowledge-graph, codebase, architecture, documentation, onboarding]
@@ -19,75 +21,70 @@ Your codebase has 200,000+ lines of code. New developers take weeks to onboard. 
 
 ## The Solution
 
-Use the understand-anything skill suite to generate a machine-readable knowledge graph of your entire codebase. The graph maps every file, function, class, and their relationships into a queryable JSON structure. Once built, developers can chat with the codebase, visualize dependencies, and get architecture answers grounded in real code paths.
+Use the open-source [Understand-Anything](https://github.com/Egonex-AI/Understand-Anything) plugin (MIT licence) through the understand-* skills. Its `/understand` command parses the project with tree-sitter, has your coding agent describe every file, and saves one JSON file, the knowledge graph, with files, functions, classes, relationships, architectural layers and a guided tour. The other commands read that file: chat with the codebase, open a visual dashboard, check what a change affects, generate an onboarding guide. Commit the graph and teammates can use it without running the analysis again.
 
 ## Step-by-Step Walkthrough
 
-### 1. Analyze your project
+### 1. Install the plugin and analyze the project
 
-Run the knowledge graph builder on your codebase:
+In Claude Code:
 
-```
+```text
+/plugin marketplace add Egonex-AI/Understand-Anything
+/plugin install understand-anything
 /understand
 ```
 
-This scans all source files, extracts entities (files, functions, classes), maps relationships (imports, calls, dependencies), assigns complexity scores, identifies architectural layers, and builds a guided tour. The result is saved to `.understand-anything/knowledge-graph.json`.
+For Codex, Gemini CLI and other hosts, clone the repository, read `install.sh`, and run it with the host id (for example `./install.sh codex`); the `understand-chat` skill lists the accepted ids. Building a graph needs Node.js 22+, pnpm 10+ and Python 3.
+
+The graph is saved to `.ua/knowledge-graph.json` (a project that already has a `.understand-anything/` directory keeps using that one). The first run reads the whole codebase with your agent's model and can use a lot of tokens on a large project; later runs only re-analyze changed files. For a big monorepo, scope the run, for example `/understand src/frontend`.
 
 ### 2. Chat with your codebase
 
-Use `/understand-chat` to ask architecture questions:
-
-```
+```text
 /understand-chat how does authentication work?
 /understand-chat what calls the payment service?
 /understand-chat which files are most critical to the API layer?
 ```
 
-The skill searches the graph for relevant nodes, follows edges to find connected components, and answers with specific file paths, function names, and architectural context.
+The skill searches the graph for matching nodes, follows edges to connected code, and should confirm in the source before it names a behavior. The graph is an index: summaries and most call edges were written by a model, so ask for file paths and line numbers and check the ones that matter.
 
-### 3. Launch the visual dashboard
+### 3. Open the visual dashboard
 
-See the knowledge graph as an interactive visualization:
-
-```
+```text
 /understand-dashboard
 ```
 
-This starts a local Vite server at `http://localhost:5173` with a force-directed node graph, layer views, dependency explorer, complexity heatmap, and search filtering.
+This serves a local dashboard on `127.0.0.1` (port 5173 by default) and prints a URL with an access token. It shows architectural layers, search, a node info panel with source preview, a guided tour, a path finder between two nodes and a filter by complexity. The token changes on every start; keep the full URL. To view the graph without an agent, the `understand-dashboard` skill shows how to run the standalone viewer from the GitHub release after verifying its checksum.
 
-### 4. Integrate into CI/CD
+### 4. Share the graph and keep it fresh
 
-Keep the knowledge graph fresh by regenerating on every merge to main:
+The project README recommends committing the data directory so teammates skip the analysis, except for local scratch files:
 
-```yaml
-# .github/workflows/knowledge-graph.yml
-name: Update Knowledge Graph
-on:
-  push:
-    branches: [main]
-jobs:
-  update-graph:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate knowledge graph
-        run: npx understand-anything analyze --output .understand-anything/
-      - name: Commit updated graph
-        run: |
-          git config user.name "github-actions[bot]"
-          git add .understand-anything/knowledge-graph.json
-          git commit -m "chore: update knowledge graph" || true
-          git push
+```gitignore
+.ua/intermediate/
+.ua/diff-overlay.json
 ```
+
+Keep it current with `/understand --auto-update`. This writes `autoUpdate: true` to `.ua/config.json` and uses a post-commit hook to patch the graph incrementally. In Claude Code it reacts to commits the agent makes; commits made elsewhere leave the graph behind until the next `/understand`. For graphs over 10 MB, track `.ua/*.json` with git-lfs.
+
+### 5. Use the graph in onboarding and review
+
+```text
+/understand-onboard
+/understand-diff
+```
+
+`/understand-onboard` generates an onboarding guide from the graph; `/understand-diff` shows which parts of the system your uncommitted changes or a pull request touch, and writes the overlay the dashboard displays with the `D` key.
 
 ## Real-World Example
 
-A team with a 200k-line TypeScript monorepo (Next.js, tRPC, Prisma) runs `/understand` and generates a knowledge graph with 312 nodes across 6 architectural layers. A new developer asks `/understand-chat how does billing work?` and gets a response mapping the full flow: `src/api/checkout.ts` calls `src/services/payment.ts`, which calls `src/integrations/stripe.ts`, with the subscription state machine in `src/billing/subscription.ts` (complexity: 18) managing 12 possible transitions. The developer understands the billing architecture in 5 minutes instead of spending 2 days reading code.
+A team maintains a TypeScript monorepo (Next.js, tRPC, Prisma) of about 200k lines. A tech lead runs `/understand`, reviews the layers it found, and commits `.ua/`. A new developer clones the repo and runs `/understand-chat how does billing work?`. The answer traces the flow from the checkout route through the payment service to the Stripe integration, citing `path:lines` for each step. The developer checks those files, walks the guided tour in the dashboard, and arrives at the first planning meeting already knowing which module owns subscription state.
 
 ## Related Skills
 
-- [understand-chat](../skills/understand-chat/SKILL.md) -- Ask questions about the codebase
+- [understand-chat](../skills/understand-chat/SKILL.md) -- Ask questions about the codebase, and install the plugin
 - [understand-dashboard](../skills/understand-dashboard/SKILL.md) -- Visual graph explorer
 - [understand-onboard](../skills/understand-onboard/SKILL.md) -- Generate onboarding guides
 - [understand-diff](../skills/understand-diff/SKILL.md) -- Analyze PRs with graph context
-- [graphify](/skills/graphify) — choose it when the corpus mixes code with docs, PDFs and screenshots, or when agents should query a persistent `graph.json` from the command line instead of chatting through a dashboard
+- [graphify](../skills/graphify/SKILL.md) -- choose it when the corpus mixes code with docs, PDFs and screenshots, or when agents should query a persistent `graph.json` from the command line instead of chatting through a dashboard
