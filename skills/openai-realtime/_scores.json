@@ -1,24 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:288d81dbbdbc8bb23c6631af0420fd06dd05b68fb0c49199d16ae38a48549f90",
-  "scoredAt": "2026-10-24T23:05:54.446Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b-64k",
+  "version": "1.0.0",
+  "skillHash": "sha256:d5e19bd921440d325e1ff5c3923220d6c5145b876bb3b928a4e1ca00cf77d482",
+  "scoredAt": "2026-05-13T09:44:56.020Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
-    "score": 83,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to OpenAI Realtime API, limiting cross-platform applicability."
+        "detail": "The skill is vendor-locked to OpenAI Realtime API, limiting compatibility with other AI agents."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions omit error handling for connection failures, authentication errors, and other edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The examples provide only high-level outlines without concrete code or realistic demonstrations."
       }
     ]
   },
@@ -27,27 +37,21 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.08,
-    "baselineAvg": 25,
-    "treatmentAvg": 77,
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
     "scenarios": [
       {
-        "name": "node-websocket-realtime-stream",
-        "baseline": 15,
-        "treatment": 35,
-        "rationale": "Response B uses the correct WebSocket URL and outlines the needed environment variables, making it closer to the rubric, whereas Response A uses an incorrect model URL and lacks key implementation details."
-      },
-      {
-        "name": "migrate-beta-to-ga-realtime",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B only partially addresses them."
-      },
-      {
-        "name": "setup-sip-trunk-realtime",
-        "baseline": 10,
+        "name": "Node.js Realtime voice agent with server VAD and nova voice",
+        "baseline": 25,
         "treatment": 95,
-        "rationale": "Response A covers all rubric items with detailed code and steps, while Response B is missing the required explanation."
+        "rationale": "Baseline guesses URLs or stitches together STT/TTS pipelines, missing the realtime WebSocket protocol, while treatment uses the documented wss URL, OpenAI-Beta header, session.update with voice nova, server_vad, and pcm16."
+      },
+      {
+        "name": "Add function-calling appointment-booking tool to voice agent",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline confuses the format with Chat Completions tool_calls, while treatment registers tools via session.update, handles response.function_call_arguments.done, and returns results through conversation.item.create with function_call_output plus response.create."
       }
     ]
   }
