@@ -8,6 +8,7 @@ skills:
   - understand-dashboard
   - understand-onboard
   - understand-diff
+  - graphify
 category: development
 tags: [knowledge-graph, codebase, architecture, documentation, onboarding]
 ---
@@ -86,3 +87,4 @@ A team maintains a TypeScript monorepo (Next.js, tRPC, Prisma) of about 200k lin
 - [understand-dashboard](../skills/understand-dashboard/SKILL.md) -- Visual graph explorer
 - [understand-onboard](../skills/understand-onboard/SKILL.md) -- Generate onboarding guides
 - [understand-diff](../skills/understand-diff/SKILL.md) -- Analyze PRs with graph context
+- [graphify](../skills/graphify/SKILL.md) -- choose it when the corpus mixes code with docs, PDFs and screenshots, or when agents should query a persistent `graph.json` from the command line instead of chatting through a dashboard
