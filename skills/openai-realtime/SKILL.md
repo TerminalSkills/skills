@@ -1,43 +1,36 @@
 ---
 name: openai-realtime
 description: >-
-  Build voice agents with the OpenAI Realtime API, the speech-to-speech
-  interface for low-latency spoken conversations. Use when a user asks to
-  implement real-time voice chat, stream microphone audio over WebSocket or
-  WebRTC, build a phone or browser voice assistant, handle interruptions and
-  push-to-talk, add function calling to a voice agent, or migrate from the beta
-  Realtime API and gpt-4o-realtime-preview.
+  Build voice agents with the OpenAI Realtime API, a speech-to-speech interface that takes audio in and streams spoken answers back over WebRTC, WebSocket or SIP. Use when a user asks to build a voice assistant, stream microphone audio to gpt-realtime-2.1, handle interruptions and function calls in a phone-style conversation, answer SIP calls, mint ephemeral browser keys, or migrate off the removed beta (gpt-4o-realtime-preview, OpenAI-Beta header).
 license: Apache-2.0
-compatibility: "Node.js 22+ or Python 3.10+, OPENAI_API_KEY"
+compatibility: "OPENAI_API_KEY with Realtime access; Node.js 20+ with ws, or Python 3.10+ with openai[realtime]"
 metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  repository: https://github.com/openai/openai-node
   tags: ["openai", "realtime", "voice", "websocket", "webrtc"]
 ---
-# OpenAI Realtime API
+# OpenAI Realtime API — Voice-Native AI Conversations
 
 ## Overview
 
-The Realtime API lets a model take audio in and speak audio back over one stateful connection, with server-side turn detection, interruption handling and tool calling. The current generation model is `gpt-realtime-2.1` (`gpt-realtime-2.1-mini` for lower cost). The beta interface is gone from the docs: do not send the `OpenAI-Beta: realtime=v1` header, and do not use `gpt-4o-realtime-preview`, `gpt-realtime` or `gpt-realtime-mini` snapshots (shutdown 2027-01-20 per https://developers.openai.com/api/docs/deprecations).
+The Realtime API is OpenAI's speech-to-speech interface: the model hears audio directly, keeps conversation state, calls tools and answers in audio, with barge-in and low first-audio latency. Current models are `gpt-realtime-2.1` (reasoning, tool use) and the cheaper `gpt-realtime-2.1-mini`. Transports: WebRTC (browsers, mobile), WebSocket (servers) and SIP (phone calls).
 
-Pick the transport first:
+The beta interface is gone. OpenAI removed the Realtime beta on 2026-05-12 and shut down the `gpt-4o-realtime-preview` models on 2026-05-07. The `OpenAI-Beta: realtime=v1` header, `modalities`, flat `voice` / `input_audio_format` fields and `response.audio.*` events belong to that beta and no longer work. The older `gpt-realtime` and `gpt-realtime-mini` families are scheduled for removal on 2027-01-20, so start new work on `gpt-realtime-2.1`.
 
-- Browser or mobile client: **WebRTC**. The server mints an ephemeral key (`POST /v1/realtime/client_secrets`) or proxies the SDP offer (`POST /v1/realtime/calls`); the API key never reaches the client.
-- Server to server (phone gateway, batch, tests): **WebSocket** at `wss://api.openai.com/v1/realtime?model=gpt-realtime-2.1`. You send and play Base64 PCM audio yourself.
-- Fastest start in a browser: the Agents SDK, `RealtimeAgent` and `RealtimeSession` from `@openai/agents/realtime`.
-
-OpenAI also has a newer product, GPT-Live (`wss://api.openai.com/v1/live/sessions`, model `gpt-live-1`), with a different `session.start` protocol. This skill covers the Realtime API only.
+OpenAI also offers GPT-Live (`wss://api.openai.com/v1/live/sessions`) for full-duplex conversations with a delegated backend. It is a separate API with its own events (`session.start`, `session.input_audio.append`); this skill covers the Realtime API only.
 
 ## Instructions
 
-### Step 1: Connect from a server with WebSocket
+### Choose the transport
 
-```bash
-npm install ws          # Node.js 22+
-export OPENAI_API_KEY="sk-proj-..."
-```
+- Browser or mobile: WebRTC. Your server holds the API key and either proxies the SDP offer to `POST /v1/realtime/calls` (unified interface) or mints an ephemeral key with `POST /v1/realtime/client_secrets`. WebRTC handles media, playback buffering and truncation for you.
+- Server to server: WebSocket at `wss://api.openai.com/v1/realtime?model=gpt-realtime-2.1` with `Authorization: Bearer $OPENAI_API_KEY`. You send base64 PCM yourself and manage playback.
+- Phone: SIP trunk to `sip:$PROJECT_ID@sip.api.openai.com;transport=tls` (EU: `sip-eu.api.openai.com`).
+
+If your app knows the end user, send a stable hashed ID in the `OpenAI-Safety-Identifier` header on the server-side request that creates the session or client secret.
+
+### Server WebSocket session (Node.js)
 
 ```typescript
 import WebSocket from "ws";
@@ -45,34 +38,32 @@ import WebSocket from "ws";
 const ws = new WebSocket("wss://api.openai.com/v1/realtime?model=gpt-realtime-2.1", {
   headers: {
     Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    "OpenAI-Safety-Identifier": "usr_8f3a9c",   // stable hashed end-user ID, recommended
+    "OpenAI-Safety-Identifier": "clinic-caller-7f3a91",
   },
 });
+const send = (event: object) => ws.send(JSON.stringify(event));
 
 ws.on("open", () => {
-  ws.send(JSON.stringify({
+  send({
     type: "session.update",
     session: {
-      type: "realtime",                         // required in the GA interface
-      output_modalities: ["audio"],
-      instructions:
-        "You are Ava, the receptionist at Lakeside Dental. Be warm, use short sentences, " +
-        "and transfer medical-advice questions to the dentist.",
+      type: "realtime",                       // required in the GA shape
+      model: "gpt-realtime-2.1",
+      output_modalities: ["audio"],           // or ["text"]
+      instructions: "You are Ava, the receptionist at Maple Street Dental. Keep answers to one or two short sentences. Offer to transfer to the dentist for medical questions.",
+      reasoning: { effort: "low" },           // minimal | low | medium | high | xhigh
       audio: {
         input: {
-          format: { type: "audio/pcm", rate: 24000 },        // 16-bit mono PCM, 24 kHz
-          transcription: { model: "gpt-transcribe" },        // optional, for logs
-          turn_detection: { type: "semantic_vad" },          // or server_vad
+          format: { type: "audio/pcm", rate: 24000 },      // mono 16-bit PCM
+          transcription: { model: "gpt-transcribe" },       // optional, for logs
+          turn_detection: { type: "semantic_vad", eagerness: "auto" },
         },
-        output: {
-          format: { type: "audio/pcm", rate: 24000 },
-          voice: "marin",
-        },
+        output: { format: { type: "audio/pcm", rate: 24000 }, voice: "marin" },
       },
       tools: [{
         type: "function",
         name: "check_availability",
-        description: "List open appointment slots for a procedure on a date",
+        description: "List open appointment slots for a procedure on a date.",
         parameters: {
           type: "object",
           properties: {
@@ -84,156 +75,116 @@ ws.on("open", () => {
       }],
       tool_choice: "auto",
     },
-  }));
+  });
 });
-```
 
-The voice cannot change after the model has produced audio once in a session. Built-in voices: `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, `verse`, `marin`, `cedar`; the docs recommend `marin` or `cedar`. A session lasts at most 60 minutes.
-
-### Step 2: Handle server events
-
-GA event names use `output_audio`, not `audio`.
-
-```typescript
-ws.on("message", (data) => {
-  const event = JSON.parse(data.toString());
-
+ws.on("message", async (raw) => {
+  const event = JSON.parse(raw.toString());
   switch (event.type) {
-    case "response.output_audio.delta":              // Base64 PCM chunk to play
-      playPcm(Buffer.from(event.delta, "base64"));
+    case "response.output_audio.delta":                    // base64 PCM chunk
+      playToSpeaker(Buffer.from(event.delta, "base64"));
       break;
-    case "response.output_audio_transcript.delta":   // what the model is saying
+    case "response.output_audio_transcript.delta":
       process.stdout.write(event.delta);
       break;
     case "conversation.item.input_audio_transcription.completed":
       console.log(`\nCaller: ${event.transcript}`);
       break;
-    case "input_audio_buffer.speech_started":       // caller barged in
-      stopPlayback();                                 // see truncation below
+    case "input_audio_buffer.speech_started":              // barge-in
+      stopPlayback();
       break;
-    case "response.done":                            // tool calls arrive in response.output
+    case "response.done": {
+      // Function calls arrive as output items of the finished response.
       for (const item of event.response.output) {
-        if (item.type === "function_call") void runTool(item);
+        if (item.type !== "function_call") continue;
+        const slots = await checkClinicSlots(JSON.parse(item.arguments));
+        send({ type: "conversation.item.create",
+               item: { type: "function_call_output", call_id: item.call_id, output: JSON.stringify(slots) } });
+        send({ type: "response.create" });                 // let the model speak the result
       }
       break;
+    }
     case "error":
       console.error(event.error);
       break;
   }
 });
 
-function sendMicChunk(pcm: Buffer) {                 // continuous when VAD is on
-  ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: pcm.toString("base64") }));
-}
-
-async function runTool(item: { name: string; arguments: string; call_id: string }) {
-  const args = JSON.parse(item.arguments);
-  const result = item.name === "check_availability"
-    ? await findSlots(args.date, args.procedure)     // your code
-    : { error: `unknown tool ${item.name}` };
-  ws.send(JSON.stringify({
-    type: "conversation.item.create",
-    item: { type: "function_call_output", call_id: item.call_id, output: JSON.stringify(result) },
-  }));
-  ws.send(JSON.stringify({ type: "response.create" }));   // make the model speak the result
+// Microphone: 24 kHz mono PCM16 chunks
+export function sendAudio(pcm: Buffer) {
+  send({ type: "input_audio_buffer.append", audio: pcm.toString("base64") });
 }
 ```
 
-### Step 3: Python SDK
+`playToSpeaker`, `stopPlayback` and `checkClinicSlots` are your own functions. Over WebSocket you also own truncation: on `speech_started`, stop playback, then send `conversation.item.truncate` with the `item_id`, `content_index` and `audio_end_ms` that was actually played, so the model forgets what the caller never heard. WebRTC and SIP do this server-side.
 
-```bash
-pip install "openai[realtime]"
-```
+### Python SDK
 
 ```python
-import asyncio
+import asyncio, base64
 from openai import AsyncOpenAI
 
-async def main() -> None:
-    client = AsyncOpenAI()
-    async with client.realtime.connect(model="gpt-realtime-2.1") as connection:
-        await connection.session.update(session={
-            "type": "realtime",
-            "output_modalities": ["audio"],
-            "instructions": "You are a concise support agent for Lakeside Dental.",
-            "audio": {"output": {"voice": "marin"}},
-        })
-        await connection.conversation.item.create(item={
-            "type": "message", "role": "user",
-            "content": [{"type": "input_text", "text": "What are your opening hours?"}],
-        })
-        await connection.response.create()
+client = AsyncOpenAI()  # reads OPENAI_API_KEY
 
-        async for event in connection:
-            if event.type == "response.output_audio_transcript.delta":
-                print(event.delta, end="", flush=True)
+async def main():
+    async with client.realtime.connect(model="gpt-realtime-2.1") as conn:
+        await conn.session.update(session={
+            "type": "realtime",
+            "instructions": "You are a concise voice assistant.",
+            "output_modalities": ["audio"],
+            "audio": {"output": {"voice": "marin"},
+                      "input": {"turn_detection": {"type": "semantic_vad"}}},
+        })
+        await conn.input_audio_buffer.append(audio=base64.b64encode(pcm_chunk).decode())
+        async for event in conn:
+            if event.type == "response.output_audio.delta":
+                play_audio(base64.b64decode(event.delta))
             elif event.type == "response.done":
                 break
 
 asyncio.run(main())
 ```
 
-Use `connection.input_audio_buffer.append(audio=base64_pcm)` to stream microphone audio.
+`pcm_chunk`, `play_audio` are placeholders for your audio I/O. The SDK needs the extra: `pip install "openai[realtime]"`. Use `client.realtime`, not `client.beta.realtime`.
 
-### Step 4: Browser with WebRTC
+### Browser: ephemeral key, then WebRTC
 
-Your server mints a short-lived key; the browser uses it (the Agents SDK does the peer-connection work for you).
+Never ship the API key to the browser. Your server mints a short-lived secret:
 
 ```typescript
-// server: GET /token
 const r = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
   method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    session: { type: "realtime", model: "gpt-realtime-2.1", audio: { output: { voice: "marin" } } },
-  }),
+  headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ session: { type: "realtime", model: "gpt-realtime-2.1", audio: { output: { voice: "marin" } } } }),
 });
-res.json(await r.json());   // contains the ephemeral key (starts with ek_)
+const { value } = await r.json();   // starts with "ek_"; hand it to the browser
 ```
 
-```typescript
-// browser: npm install @openai/agents
-import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
+The browser creates an `RTCPeerConnection`, adds the microphone track, opens a data channel for events (`session.update`, `response.create`), and posts its SDP offer to `https://api.openai.com/v1/realtime/calls` with `Authorization: Bearer ek_...` (the minted value). Alternatively use the Agents SDK: `new RealtimeSession(new RealtimeAgent({ name, instructions }), { model: "gpt-realtime-2.1" })` then `session.connect({ apiKey: value })` from `@openai/agents/realtime`.
 
-const agent = new RealtimeAgent({ name: "Ava", instructions: "Answer calls for Lakeside Dental." });
-const session = new RealtimeSession(agent, { model: "gpt-realtime-2.1" });
-const { value } = await (await fetch("/token")).json();   // ephemeral key from the response
-await session.connect({ apiKey: value });
-```
+### Turn detection
 
-The alternative "unified" flow posts the browser's SDP offer to your server, which forwards it with `sdp` and `session` form fields to `POST /v1/realtime/calls`.
+`session.audio.input.turn_detection` accepts `server_vad` (the default: `threshold`, `prefix_padding_ms`, `silence_duration_ms`) or `semantic_vad` (`eagerness`: `low`, `medium`, `high`, `auto`). Both take `create_response` and `interrupt_response`. Set it to `null` to take over: append audio, send `input_audio_buffer.commit`, then `response.create`.
 
-### Step 5: Turn detection, interruptions, push-to-talk
+### Phone calls (SIP)
 
-- `turn_detection` lives at `session.audio.input.turn_detection`. `server_vad` takes `threshold`, `prefix_padding_ms`, `silence_duration_ms`; `semantic_vad` takes `eagerness` (`low`, `medium`, `high`, `auto`). Both accept `create_response` and `interrupt_response`.
-- Push-to-talk: set `turn_detection: null`, then per turn send `input_audio_buffer.append`, `input_audio_buffer.commit`, `response.create`; send `input_audio_buffer.clear` before a new input and `response.cancel` to stop a running response.
-- Over WebSocket you play the audio, so on `input_audio_buffer.speech_started` stop playback and send `conversation.item.truncate` with the `item_id` of the model's last item and `audio_end_ms` actually played. WebRTC and SIP truncate on the server.
+Create a project webhook, point the trunk at the SIP URI above, and OpenAI posts `realtime.call.incoming` with a `call_id`. Verify the webhook signature, then `POST /v1/realtime/calls/{call_id}/accept` with the same body as a client secret (`type`, `model`, `instructions`, `tools`), or `/reject` with `{"status_code": 486}`. Afterwards open `wss://api.openai.com/v1/realtime?call_id={call_id}` (no `model`; the accept body already set it) to watch events or send commands; `/refer` transfers and `/hangup` ends the call.
 
 ## Examples
 
-### Example 1: Phone receptionist for a dental clinic
+**Example 1: "Give me a Node script that talks to gpt-realtime over a WebSocket and prints the transcript."**
+The agent uses the server session above with `output_modalities: ["audio"]`, logs `response.output_audio_transcript.delta`, and feeds 24 kHz mono PCM16 from a file or microphone through `input_audio_buffer.append`. Expected output: a `session.created` event, then streamed transcript text such as "Hi, Maple Street Dental, this is Ava. How can I help?" and audio deltas.
 
-**User prompt:** "Build a voice agent that answers our clinic line, checks open slots and books appointments."
-
-The agent opens a server-side WebSocket (a SIP or telephony gateway supplies the audio), sends the Step 1 `session.update` with `check_availability` and `book_appointment` tools, converts the gateway's audio to 24 kHz PCM16 (or sets `audio/pcmu` for G.711 lines), and runs the Step 2 tool loop. Result: the caller says "Can I get a cleaning next Tuesday?", the console logs one `check_availability` call, and Ava reads out the open times.
-
-### Example 2: Voice assistant in a web app
-
-**User prompt:** "Add a talk-to-the-assistant button to our dashboard, no server audio handling."
-
-The agent adds a `/token` route that calls `client_secrets`, a button that creates a `RealtimeSession` and connects with the ephemeral key, and tool functions attached to the `RealtimeAgent`. The browser captures the microphone and plays the reply; the long-lived API key stays on the server.
+**Example 2: "My app still sends `OpenAI-Beta: realtime=v1` and uses gpt-4o-realtime-preview. Fix it."**
+The agent removes the header, switches the URL model to `gpt-realtime-2.1`, rewrites `session.update` into the GA shape (`type: "realtime"`, `output_modalities`, `audio.input` / `audio.output` with `format`, `voice`, `turn_detection`, `transcription`) and renames events: `response.audio.delta` to `response.output_audio.delta`, `response.audio_transcript.delta` to `response.output_audio_transcript.delta`, `response.text.delta` to `response.output_text.delta`. It replaces `whisper-1` transcription with `gpt-transcribe` (WebSocket sessions) and moves browser clients to `/v1/realtime/client_secrets`.
 
 ## Guidelines
 
-- Never expose `OPENAI_API_KEY` in a browser or mobile app. Use ephemeral keys from `client_secrets`; they are short-lived.
-- Always set `session.type: "realtime"` in `session.update`. Beta-era fields (`modalities`, `input_audio_format`, `input_audio_transcription` at top level, `turn_detection` at top level) and events (`response.audio.delta`, `response.audio_transcript.delta`) belong to the old interface.
-- Audio is 16-bit mono PCM at 24 kHz unless you set `audio/pcmu` or `audio/pcma`. A wrong sample rate sounds like chipmunk or slow-motion speech.
-- Input transcription is guidance, not what the model heard; do not use it as the legal record of a call.
-- Keep instructions short; they are processed on every turn. Put long policies in tools or retrieval.
-- Do not put secrets or customer data into instructions that a tool result or caller could talk the model into repeating.
-- `whisper-1` and the `gpt-4o-*-transcribe` models are deprecated (2027-02-26); use `gpt-transcribe`, or `gpt-live-transcribe` for live transcription-only sessions.
-- Send a safety identifier (`OpenAI-Safety-Identifier` header) when you serve individual end users.
-- For recorded audio use file transcription, not a Realtime session; for text chat use the Responses API (the `openai-sdk` skill).
+1. Always set `session.type: "realtime"` in `session.update`; a beta-shaped payload is rejected.
+2. Use `marin` or `cedar` for best quality. Other voices: `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, `verse`. A voice cannot change after the model has produced audio in a session.
+3. Start `reasoning.effort` at `low`; raise it only for multi-step tool work, since it adds latency and output tokens. `gpt-realtime-2.1-mini` is the cheaper, faster choice for simple flows.
+4. Keep instructions short and put confirmation rules before write actions (booking, payment). Tools run in your code; send the result as `function_call_output` and then `response.create`. Remote MCP tools (`type: "mcp"` with `server_url`) are executed by the API itself.
+5. Resample to the configured rate. PCM chunks must hold whole 16-bit samples. For telephony use `audio/pcmu` or `audio/pcma` at 8 kHz.
+6. Billing is per token, not per minute: audio input is $32 and audio output $64 per 1M tokens for `gpt-realtime-2.1` (cached input $0.40), with text at $4 / $24. Check the pricing page before quoting costs, and keep sessions short.
+7. `whisper-1`, `gpt-4o-transcribe` and `gpt-4o-mini-transcribe` are deprecated (removal 2027-02-26); use `gpt-transcribe` for input transcription of committed turns in a WebSocket conversation session (OpenAI documents it for WebSocket only, not WebRTC), or `gpt-live-transcribe` for transcription-only sessions: connect to `wss://api.openai.com/v1/realtime?intent=transcription` with no `model`, send `session.update` with `session.type: "transcription"`, and omit turn detection or set it `null`.
+8. Do not use the Realtime API for batch or non-interactive audio; use file transcription or text-to-speech endpoints instead.

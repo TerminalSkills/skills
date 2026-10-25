@@ -1,24 +1,24 @@
 {
   "version": "1.1.0",
-  "skillHash": "sha256:ba73d603c014d719b13284851b29a27db536104dbb47ee530ef91ede7699c2b3",
-  "scoredAt": "2026-10-24T15:46:25.005Z",
+  "skillHash": "sha256:288d81dbbdbc8bb23c6631af0420fd06dd05b68fb0c49199d16ae38a48549f90",
+  "scoredAt": "2026-10-24T23:05:54.446Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases, such as network failures, authentication errors, or reconnection logic."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to OpenAI Realtime API, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
-    "baselineAvg": 23,
-    "treatmentAvg": 92,
+    "multiplier": 3.08,
+    "baselineAvg": 25,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "phone-receptionist-websocket",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Response A meets most rubric requirements, while Response B lacks key elements."
+        "name": "node-websocket-realtime-stream",
+        "baseline": 15,
+        "treatment": 35,
+        "rationale": "Response B uses the correct WebSocket URL and outlines the needed environment variables, making it closer to the rubric, whereas Response A uses an incorrect model URL and lacks key implementation details."
       },
       {
-        "name": "web-app-webrtc-button",
-        "baseline": 0,
+        "name": "migrate-beta-to-ga-realtime",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the server endpoint, correct imports, and key client logic."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B only partially addresses them."
       },
       {
-        "name": "push-to-talk-interruption",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Response B fully implements the required push‑to‑talk logic, while Response A is incomplete and mis‑orders actions."
+        "name": "setup-sip-trunk-realtime",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response A covers all rubric items with detailed code and steps, while Response B is missing the required explanation."
       }
     ]
   }
