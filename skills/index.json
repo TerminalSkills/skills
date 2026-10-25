@@ -236,7 +236,7 @@
     {
       "name": "ai-guardrails",
       "slug": "ai-guardrails",
-      "description": "Adds safety guardrails to LLM applications in Python: prompt injection checks, a canary token for system-prompt leaks, OpenAI moderation, PII redaction, Pydantic output validation, rate and token limits, and grounding checks for RAG answers. Use when adding safety layers to a chatbot, detecting prompt injection, filtering harmful content, validating LLM output against a schema, or building a moderation pipeline.",
+      "description": "Implement safety guardrails for AI systems — content filtering, prompt injection detection, output validation, bias mitigation, and responsible AI practices. Use when tasks involve adding safety layers to LLM applications, detecting prompt injection attacks, filtering harmful content, implementing rate limiting for AI APIs, validating LLM outputs against schemas, building moderation pipelines, or ensuring AI systems comply with safety policies.",
       "category": "data-ai",
       "tags": []
     },
@@ -250,7 +250,7 @@
     {
       "name": "ai-scientist",
       "slug": "ai-scientist",
-      "description": "The AI Scientist-v2 is Sakana AI's open-source research agent that turns a topic description into research ideas, runs machine-learning experiments with an agentic tree search, and writes a LaTeX paper with citations. Use when someone wants to automate ML research, generate and test hypotheses, run \"AI Scientist\" or \"AI-Scientist-v2\", or study automated scientific discovery.",
+      "description": "Build AI agents that automate scientific research — hypothesis generation, experiment design, data analysis, and paper writing using agentic tree search. Use when: automating research workflows, generating and testing hypotheses, building AI-powered research assistants.",
       "category": "research",
       "tags": []
     },
@@ -297,8 +297,8 @@
     {
       "name": "airbyte",
       "slug": "airbyte",
-      "description": "Airbyte is an open-source data integration platform that copies data from SaaS tools, databases and APIs into warehouses and lakes using ready-made connectors. Use it when a user asks to install Airbyte locally with abctl, create sources, destinations and connections through the Airbyte API, configure incremental or deduplicated syncs, handle schema changes, trigger or monitor sync jobs, or build a custom source connector with the Python CDK.",
-      "category": "data-ai",
+      "description": "You are an expert in Airbyte, the open-source data integration platform with 300+ pre-built connectors. You help developers sync data from SaaS tools, databases, and APIs into data warehouses and lakes — handling incremental syncs, CDC (Change Data Capture), schema evolution, and error recovery for production data pipelines.",
+      "category": "Data Engineering",
       "tags": []
     },
     {
@@ -485,8 +485,8 @@
     {
       "name": "apollo-client",
       "slug": "apollo-client",
-      "description": "Apollo Client is the GraphQL client for React with a normalized in-memory cache. Use when someone asks to \"set up Apollo Client\", \"fetch GraphQL data in React\", \"add pagination with fetchMore\", \"do optimistic updates with useMutation\", \"send an auth header with Apollo\", \"handle GraphQL errors\", or \"migrate Apollo Client 3 to 4\".",
-      "category": "development",
+      "description": "You are an expert in Apollo Client, the comprehensive GraphQL client for React applications. You help developers fetch data with GraphQL queries and mutations, manage local and remote state with Apollo's normalized cache, implement optimistic UI updates, handle pagination, and configure authentication — providing a complete data management solution for GraphQL-powered apps.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -678,7 +678,7 @@
     {
       "name": "audit-logging",
       "slug": "audit-logging",
-      "description": "Builds tamper-evident audit logs for compliance (SOC 2, HIPAA, PCI DSS): an append-only PostgreSQL table with a hash chain computed inside the database, a verification query, and an AWS CloudTrail plus S3 Object Lock archive. Use when building compliance audit trails, tracking who did what and when, or implementing immutable event logs that satisfy regulatory retention requirements.",
+      "description": "Implement tamper-evident audit logs for compliance (SOC 2, HIPAA, PCI DSS). Use when building compliance audit trails, tracking who did what and when, or implementing immutable event logs that satisfy regulatory retention requirements.",
       "category": "development",
       "tags": [
         "audit-logging",
@@ -711,7 +711,7 @@
     {
       "name": "automatic1111",
       "slug": "automatic1111",
-      "description": "AUTOMATIC1111 Stable Diffusion WebUI is a self-hosted browser interface and REST API for generating images with Stable Diffusion models on your own GPU. Use this skill to install and launch it, call /sdapi/v1/txt2img and img2img from scripts, inpaint, apply LoRAs, add extensions such as ControlNet, or batch-generate images.",
+      "description": "Feature-rich Stable Diffusion Web UI for image generation. Supports txt2img, img2img, inpainting, outpainting, LoRA, extensions, upscaling, and batch processing. Widely used desktop interface with an extensive extension ecosystem and API access.",
       "category": "data-ai",
       "tags": []
     },
@@ -745,7 +745,7 @@
     {
       "name": "aws-cognito",
       "slug": "aws-cognito",
-      "description": "Amazon Cognito is AWS's managed user directory and sign-in service. Use it to create user pools for sign-up and sign-in, configure identity pools for AWS access, handle JWT tokens, set up social federation with Google and Facebook, and secure APIs with Cognito authorizers.",
+      "description": "Implement authentication with Amazon Cognito. Create user pools for sign-up and sign-in, configure identity pools for AWS access, handle JWT tokens, set up social federation with Google and Facebook, and secure APIs with Cognito authorizers.",
       "category": "devops",
       "tags": []
     },
@@ -948,8 +948,8 @@
     {
       "name": "biome",
       "slug": "biome",
-      "description": "Biome is a single Rust-based tool that formats code and lints JavaScript, TypeScript, JSX, JSON and CSS, and sorts imports, as a faster replacement for ESLint plus Prettier. Use when a user wants to set up biome.json, replace ESLint or Prettier, migrate their configs, run lint and format in CI or pre-commit, or configure the VS Code extension.",
-      "category": "development",
+      "description": "You are an expert in Biome, the Rust-based toolchain that replaces ESLint and Prettier with a single, fast tool. You help developers configure linting, formatting, and import sorting for JavaScript, TypeScript, JSX, JSON, and CSS — achieving 100x faster execution than ESLint+Prettier with zero configuration, unified diagnostics, and IDE integration.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -1277,7 +1277,7 @@
     {
       "name": "canny",
       "slug": "canny",
-      "description": "Canny is a hosted product-feedback tool with feature-request boards, voting, a public roadmap and a changelog. Use when a user asks to set up a feature request board, identify logged-in users in Canny, embed the feedback widget, create or list posts through the Canny API, change a post's status, or verify Canny webhooks.",
+      "description": "Collect and manage product feedback with Canny. Use when a user asks to set up a feature request board, prioritize product feedback, build a public roadmap, or let users vote on features.",
       "category": "business",
       "tags": []
     },
@@ -1429,7 +1429,7 @@
     {
       "name": "chandra-ocr",
       "slug": "chandra-ocr",
-      "description": "Chandra OCR 2 is an open-weights model from Datalab that converts page images and PDFs into Markdown, HTML or JSON layout chunks, keeping tables, math, forms with checkboxes and handwriting. Use when a user asks to OCR a scanned PDF, pull tables out of an image, read handwritten forms, or run a local or vLLM-served document OCR model with the chandra CLI or Python package.",
+      "description": "Extract text from complex documents using Chandra OCR — handles tables, forms, handwriting, and full page layouts with high accuracy. Use when: extracting data from scanned documents, reading complex tables from PDFs/images, processing handwritten forms.",
       "category": "documents",
       "tags": []
     },
@@ -1608,8 +1608,8 @@
     {
       "name": "clay",
       "slug": "clay",
-      "description": "Clay is a go-to-market data platform that finds companies and people, enriches them through many data providers (waterfalls), scores leads with AI and syncs them to a CRM or sequencer. Use when someone asks to \"enrich leads with Clay\", \"build a prospect list\", \"set up a Clay table\", \"send data to a Clay webhook\", \"call the Clay API\", \"use the Clay CLI or plugin in Claude Code\", \"score leads against our ICP\", or \"automate outbound research\".",
-      "category": "business",
+      "description": "You are an expert in Clay, the data enrichment and outbound sales platform that pulls from 75+ data providers to build rich prospect profiles. You help teams automate lead discovery, enrich contacts with firmographic and technographic data, score leads against ICP criteria, and trigger personalized outreach sequences — replacing manual research with automated, data-driven prospecting.",
+      "category": "Marketing & Growth",
       "tags": []
     },
     {
@@ -1688,8 +1688,8 @@
     {
       "name": "cloudflare-ai",
       "slug": "cloudflare-ai",
-      "description": "Cloudflare Workers AI runs open-source AI models (LLMs, embeddings, image generation, speech-to-text, translation) on Cloudflare's GPU network and calls them from a Worker binding, a REST API or an OpenAI-compatible endpoint. Use when a user asks to add serverless AI inference to a Worker, call env.AI.run, build RAG with Vectorize, stream LLM output, transcribe audio or generate images without managing GPUs, or estimate Neuron costs.",
-      "category": "data-ai",
+      "description": "You are an expert in Cloudflare Workers AI, the serverless AI inference platform running on Cloudflare's global network. You help developers run LLMs, embedding models, image generation, speech-to-text, and translation models at the edge with zero cold starts, pay-per-use pricing, and integration with Workers, Pages, and Vectorize — enabling AI features without managing GPU infrastructure.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -1916,7 +1916,7 @@
     {
       "name": "confluence",
       "slug": "confluence",
-      "description": "Manage documentation and knowledge bases in Confluence Cloud through its REST APIs. Use when a user asks to create Confluence spaces or pages, build a page tree, update a page, search with CQL, add labels, upload attachments, restrict who can view or edit a page, embed Jira issues, or automate documentation from scripts. Covers REST API v2, the remaining v1 endpoints and storage-format page bodies.",
+      "description": "Manage knowledge bases and documentation with Confluence Cloud. Use when a user asks to create or manage Confluence spaces, pages, and blogs, build documentation systems, automate page creation from templates, use Confluence REST API v2, manage page trees and hierarchies, set up permissions, integrate Confluence with Jira or other tools, generate reports from Confluence data, build macros or Forge apps, or migrate content between spaces. Covers content management, API automation, templates, and Atlassian ecosystem integration.",
       "category": "documents",
       "tags": []
     },
@@ -2771,7 +2771,7 @@
     {
       "name": "effect-ts",
       "slug": "effect-ts",
-      "description": "Effect is a TypeScript library for typed errors, dependency injection, structured concurrency, retries, streams and schema validation. Use when someone asks to \"handle errors without try-catch\", \"type-safe error handling in TypeScript\", \"dependency injection without classes\", \"retry with backoff\", \"concurrent TypeScript\", \"Effect library\" or \"replace Promise chains with typed effects\". Targets Effect 4.x and notes the changes from 3.x.",
+      "description": "Build robust TypeScript applications with Effect — type-safe error handling, concurrency, dependency injection, and streaming. Use when someone asks to \"handle errors without try-catch\", \"type-safe error handling in TypeScript\", \"dependency injection without classes\", \"concurrent TypeScript\", \"Effect library\", \"replace try-catch with typed errors\", or \"functional programming in TypeScript\". Covers Effect, Layer, Schedule, Stream, and Schema.",
       "category": "development",
       "tags": [
         "typescript",
@@ -2961,7 +2961,7 @@
     {
       "name": "eslint",
       "slug": "eslint",
-      "description": "ESLint is the standard linting tool for JavaScript and TypeScript projects. It statically analyzes your code to find problems, enforce coding conventions, and catch bugs before they reach production. Flat config (`eslint.config.js`) is the only config format in ESLint 10; the legacy `.eslintrc` system is gone. Use for setting up linting, migrating from `.eslintrc`, TypeScript and React rules, custom rules, auto-fix, and CI lint checks.",
+      "description": "ESLint is the standard linting tool for JavaScript and TypeScript projects. It statically analyzes your code to find problems, enforce coding conventions, and catch bugs before they reach production. ESLint 9 introduced the flat config format, replacing the legacy `.eslintrc` system with a simpler, more composable `eslint.config.js` file. With a rich plugin ecosystem covering React, TypeScript, accessibility, and import ordering, ESLint is the backbone of code quality in modern web development.",
       "category": "development",
       "tags": []
     },
@@ -2982,7 +2982,7 @@
     {
       "name": "evidence",
       "slug": "evidence",
-      "description": "Evidence is a BI framework that builds interactive data reports and dashboards from SQL and Markdown, developed as code in Git. Use when creating or editing Evidence reports, writing SQL blocks and charts in Markdown, connecting a warehouse, running the Evidence CLI, self-hosting a project, or migrating an older Evidence project (npm, Svelte-style components) to the current version.",
+      "description": "Expert guidance for Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.",
       "category": "data-ai",
       "tags": []
     },
@@ -3136,7 +3136,7 @@
     {
       "name": "fastify",
       "slug": "fastify",
-      "description": "Fastify is a fast Node.js web framework for building JSON APIs, with JSON Schema validation and serialization, an encapsulated plugin system and lifecycle hooks. Use when the user wants to build or test a Fastify 5 REST API, add schema validation, JWT auth, a database plugin, CORS, hooks or error handling, or asks about Fastify project structure and plugin encapsulation.",
+      "description": "Fastify is a high-performance Node.js web framework focused on developer experience and low overhead. It features JSON Schema validation, a powerful plugin system, lifecycle hooks, and automatic serialization for blazing-fast APIs.",
       "category": "development",
       "tags": []
     },
@@ -4080,15 +4080,9 @@
     {
       "name": "hono",
       "slug": "hono",
-      "description": "Hono is a small web framework built on Web Standards (Request/Response) that runs unchanged on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda and Vercel. Use it when the user asks to build a Hono API, add Zod validation, JWT auth, CORS or middleware, use the type-safe RPC client (hc), render JSX, stream responses, or deploy one codebase to several runtimes.",
-      "category": "development",
-      "tags": [
-        "hono",
-        "web-framework",
-        "cloudflare-workers",
-        "typescript",
-        "rpc"
-      ]
+      "description": "You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "hono-rpc",
@@ -4114,14 +4108,15 @@
     {
       "name": "hotjar",
       "slug": "hotjar",
-      "description": "Hotjar adds heatmaps, session recordings, surveys and feedback widgets to a website so you can see how visitors actually use it. Covers installing the tracking snippet or the @hotjar/browser package, identifying users, sending events, SPA page changes, a CSP nonce, element suppression for privacy and linking sessions to Google Analytics. Use when asked to \"add Hotjar\", \"record user sessions\", \"set up heatmaps\", \"trigger a Hotjar survey\" or \"hide sensitive fields from recordings\".",
+      "description": "User behavior analytics with Hotjar — heatmaps, session recordings, feedback widgets, and surveys. Covers script installation, JavaScript API for custom events and user attributes, survey API, integration with analytics platforms like Google Analytics and Mixpanel, and privacy controls. Use when tasks involve understanding how users interact with a page visually, debugging UX issues with session recordings, or collecting user feedback with surveys.",
       "category": "data-ai",
       "tags": [
         "hotjar",
         "heatmaps",
         "session-recording",
         "user-feedback",
-        "surveys"
+        "surveys",
+        "ux"
       ]
     },
     {
@@ -4424,8 +4419,8 @@
     {
       "name": "inngest",
       "slug": "inngest",
-      "description": "Inngest is a durable workflow engine for TypeScript: functions are split into retryable steps whose results are saved, so a failure resumes where it stopped. Use it when a user asks for background jobs, scheduled (cron) jobs, multi-step workflows, delayed or drip emails, fan-out/fan-in processing, debouncing or rate limiting, or event-driven functions on serverless platforms such as Vercel, Netlify, AWS Lambda or Cloudflare. Covers the current v4 SDK (triggers inside the options object).",
-      "category": "development",
+      "description": "You are an expert in Inngest, the event-driven durable workflow engine for TypeScript. You help developers build reliable multi-step workflows, scheduled jobs, and event-driven functions with automatic retries, step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing — running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare) with zero infrastructure to manage.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -4444,15 +4439,15 @@
     {
       "name": "instagram-marketing",
       "slug": "instagram-marketing",
-      "description": "Create, optimize, and automate Instagram content including Reels, Stories, carousels, and feed posts. Use when someone asks to \"grow on Instagram\", \"create Instagram Reels\", \"Instagram content strategy\", \"Instagram API integration\", \"automate Instagram posting\", \"Instagram analytics\", or \"Instagram marketing\". Covers Reels-first strategy, content format limits, the Instagram Graph API (publishing and insights), and growth tactics.",
+      "description": "Create, optimize, and automate Instagram content including Reels, Stories, carousels, and feed posts. Use when someone asks to \"grow on Instagram\", \"create Instagram Reels\", \"Instagram content strategy\", \"Instagram API integration\", \"automate Instagram posting\", \"Instagram analytics\", or \"Instagram marketing\". Covers Reels-first strategy, visual content guidelines, Instagram Graph API, and growth tactics.",
       "category": "business",
       "tags": []
     },
     {
       "name": "instructor",
       "slug": "instructor",
-      "description": "Instructor is a Python and TypeScript library that returns validated, typed objects from LLM calls using Pydantic models or Zod schemas, with automatic retries when validation fails, streaming of partial objects, and support for OpenAI, Anthropic, Gemini and local models. Use when someone asks to extract structured data from text, get JSON from an LLM that matches a schema, validate model output, or stream partial structured results.",
-      "category": "data-ai",
+      "description": "You are an expert in Instructor, the library for getting structured, validated output from LLMs. You help developers extract typed data from unstructured text using Pydantic models (Python) or Zod schemas (TypeScript), with automatic retries on validation failures, streaming partial objects, and support for OpenAI, Anthropic, Google, and local models — turning LLMs into reliable data extraction engines.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -4550,7 +4545,7 @@
     {
       "name": "jest",
       "slug": "jest",
-      "description": "Jest is a JavaScript and TypeScript testing framework from the OpenJS Foundation that bundles a test runner, assertions, mocking, snapshots and code coverage in one package. Use it when you need to write unit tests, mock modules or timers, test async code, enforce coverage thresholds, run tests in watch mode, or wire Jest into CI for Node.js, React or TypeScript projects.",
+      "description": "Jest is a comprehensive JavaScript testing framework built by Meta, designed for zero-configuration testing of JavaScript and TypeScript applications. It provides a complete ecosystem for unit testing, integration testing, and snapshot testing with built-in code coverage, mocking capabilities, and parallel test execution. Jest works seamlessly with React, Node.js, Angular, Vue, and virtually any JavaScript project, making it the most widely adopted testing framework in the ecosystem.",
       "category": "development",
       "tags": []
     },
@@ -4874,8 +4869,8 @@
     {
       "name": "langfuse",
       "slug": "langfuse",
-      "description": "Langfuse is an open-source LLM engineering platform that records traces of LLM calls, versions prompts, scores outputs and runs experiments on datasets. Use when asked to add observability to an LLM or RAG app, trace OpenAI or Vercel AI SDK calls, track token cost and latency, manage prompts outside the code, score outputs, build an evaluation dataset, or self-host Langfuse.",
-      "category": "data-ai",
+      "description": "You are an expert in Langfuse, the open-source LLM engineering platform. You help developers trace LLM calls, evaluate output quality, manage prompts, track costs and latency, run experiments, and build evaluation datasets — providing full observability into AI applications from development through production.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -4941,7 +4936,7 @@
     {
       "name": "launchdarkly",
       "slug": "launchdarkly",
-      "description": "LaunchDarkly is a hosted feature flag service: it evaluates flags in your app so you can roll features out gradually, target segments and switch features off without a deploy. Use when a user asks to implement feature flags, roll out features gradually, run an A/B test, control access by user segment, or add a kill switch, with the Node.js or React SDK.",
+      "description": "Manage feature flags with LaunchDarkly. Use when a user asks to implement feature flags, roll out features gradually, do A/B testing, control feature access by user segment, or implement kill switches for features.",
       "category": "development",
       "tags": []
     },
@@ -5340,8 +5335,8 @@
     {
       "name": "make-com",
       "slug": "make-com",
-      "description": "Make.com (formerly Integromat) is a visual automation platform that connects apps into scenarios of modules, routers, iterators and aggregators, without code. Use when the user wants to build or debug a Make scenario, map data between modules, call an API with the HTTP module, trigger a scenario from a webhook, or handle errors with Skip, Retry, Resume, Commit and Rollback error handlers.",
-      "category": "automation",
+      "description": "You are an expert in Make.com (formerly Integromat), the visual automation platform for connecting apps and building workflows without code. You help teams build scenarios using drag-and-drop modules, routers for conditional logic, iterators for array processing, and aggregators for data collection — enabling non-technical users to automate business processes across 1,500+ apps.",
+      "category": "Automation & Integration",
       "tags": []
     },
     {
@@ -5790,15 +5785,9 @@
     {
       "name": "mojo",
       "slug": "mojo",
-      "description": "Mojo is a compiled programming language from Modular with Python-like syntax, static types, SIMD vectors and direct Python interop. Use it when the user asks to write or run Mojo code, install Mojo, speed up a hot Python loop, use SIMD or vectorize, call NumPy from Mojo, or migrate old Mojo code that uses let, fn or DTypePointer.",
+      "description": "Expert guidance for Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.",
       "category": "development",
-      "tags": [
-        "mojo",
-        "modular",
-        "python",
-        "simd",
-        "performance"
-      ]
+      "tags": []
     },
     {
       "name": "mongodb",
@@ -5835,7 +5824,7 @@
     {
       "name": "moonrepo",
       "slug": "moonrepo",
-      "description": "Runs and caches tasks across a monorepo with moonrepo (moon): a Rust-based build system that reads the project dependency graph, orders tasks, skips unchanged work, pins toolchains such as Node.js and pnpm, and runs only affected tasks in CI. Use when someone asks to \"manage a monorepo\", \"moonrepo\", \"task runner for monorepo\", \"faster than Turborepo\", \"build system with dependency graph\", or \"migrate from Turborepo\". Covers moon v2 configuration, tasks, caching and CI.",
+      "description": "Manage monorepos and task orchestration with moonrepo — a Rust-based build system for JavaScript/TypeScript projects. Use when someone asks to \"manage a monorepo\", \"moonrepo\", \"task runner for monorepo\", \"faster than Turborepo\", \"build system with dependency graph\", or \"monorepo tooling\". Covers project configuration, task orchestration, dependency graph, caching, CI optimization, and toolchain management.",
       "category": "devops",
       "tags": [
         "monorepo",
@@ -5943,7 +5932,7 @@
     {
       "name": "nagios",
       "slug": "nagios",
-      "description": "Nagios Core is a self-hosted monitoring system that runs check plugins against hosts and services and sends alerts when their state changes. Use it when the user asks to install Nagios Core, define hosts and services, write check commands or custom plugins, monitor remote servers with NRPE, or set up notification contacts.",
+      "description": "Configure Nagios for infrastructure monitoring, service checks, host monitoring, and alert notifications. Use when a user needs to set up Nagios Core, write check commands, configure host and service definitions, manage notification contacts, or create custom monitoring plugins.",
       "category": "devops",
       "tags": [
         "nagios",
@@ -6246,15 +6235,9 @@
     {
       "name": "novu",
       "slug": "novu",
-      "description": "Novu is open-source notification infrastructure: one workflow sends email, SMS, push, in-app and chat messages, with digests, delays, subscriber preferences and a drop-in React Inbox. Use when someone asks to \"add notifications\", \"send email and SMS from one workflow\", \"in-app notification bell\", \"digest or batch notifications\", \"Novu workflow\", \"Novu Inbox\", or \"replace my notification code with Novu\".",
-      "category": "development",
-      "tags": [
-        "notifications",
-        "novu",
-        "email",
-        "in-app",
-        "workflows"
-      ]
+      "description": "You are an expert in Novu, the open-source notification infrastructure platform. You help developers build multi-channel notification systems supporting email, SMS, push, in-app, and chat (Slack/Discord) — with workflow orchestration, digest/batching, user preferences, template management, and a pre-built notification center component for React.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "nuclei-scanner",
@@ -6463,8 +6446,8 @@
     {
       "name": "openai-codex-cli",
       "slug": "openai-codex-cli",
-      "description": "OpenAI Codex CLI is an open-source terminal coding agent that reads your repository, edits files and runs commands inside an OS-enforced sandbox. Use when someone asks to \"install Codex CLI\", \"run codex in CI\", \"use codex exec\", \"set Codex approval and sandbox modes\", \"write AGENTS.md for Codex\", \"review my diff with Codex\", or \"configure ~/.codex/config.toml\".",
-      "category": "development",
+      "description": "You are an expert in OpenAI's Codex CLI, the open-source terminal-based coding agent that reads your codebase, generates and edits code, runs shell commands, and applies changes — all within your terminal. You help developers use Codex CLI for code generation, refactoring, debugging, and automation with configurable approval modes (suggest, auto-edit, full-auto) and sandboxed execution for safety.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -7298,7 +7281,7 @@
     {
       "name": "postmark",
       "slug": "postmark",
-      "description": "Postmark is an email delivery API for transactional mail such as password resets, receipts and notifications. Use when a user asks to send reliable transactional emails, improve email deliverability, use email templates with variables, send batches, receive inbound email by webhook, or set up email sending for a SaaS app.",
+      "description": "Send transactional emails with Postmark. Use when a user asks to send reliable transactional emails, improve email deliverability, use email templates with variables, or set up email sending for a SaaS app.",
       "category": "business",
       "tags": []
     },
@@ -7318,8 +7301,8 @@
     {
       "name": "powertools-lambda",
       "slug": "powertools-lambda",
-      "description": "Powertools for AWS Lambda is an open-source toolkit that adds structured JSON logging, X-Ray tracing, CloudWatch metrics (EMF), idempotency, batch processing, parameter fetching and API event handlers to Lambda functions in Python, TypeScript, Java and .NET. Use when a user wants better Lambda observability, retry-safe handlers, SQS partial batch failures, or asks about \"aws-lambda-powertools\", \"Powertools logger\", \"Lambda idempotency\" or \"EMF metrics\".",
-      "category": "devops",
+      "description": "You are an expert in AWS Lambda Powertools, the developer toolkit for implementing serverless best practices. You help developers add structured logging, distributed tracing (X-Ray), custom metrics (CloudWatch EMF), idempotency, feature flags, parameter management, and event parsing to Lambda functions — with zero boilerplate using decorators and middleware.",
+      "category": "Cloud & Serverless",
       "tags": []
     },
     {
@@ -7372,15 +7355,9 @@
     {
       "name": "prefect",
       "slug": "prefect",
-      "description": "Prefect is a Python workflow orchestration framework that turns functions into observable, retryable, schedulable data pipelines. Use when asked to \"orchestrate a Python pipeline\", \"schedule a flow with cron\", \"add retries and caching to tasks\", \"deploy a Prefect flow\", \"run a worker\" or \"alert when a flow fails\". Covers Prefect 3.x flows and tasks, cache policies, flow.serve, work pools with workers, the prefect deploy CLI, blocks, variables and failure hooks.",
+      "description": "Prefect is a modern workflow orchestration framework for Python data pipelines. Learn to define flows and tasks with decorators, handle retries and scheduling, create deployments, and monitor via the Prefect UI.",
       "category": "data-ai",
-      "tags": [
-        "prefect",
-        "workflow-orchestration",
-        "python",
-        "data-pipeline",
-        "scheduling"
-      ]
+      "tags": []
     },
     {
       "name": "prettier",
@@ -7594,8 +7571,8 @@
     {
       "name": "pusher",
       "slug": "pusher",
-      "description": "Pusher Channels is a hosted real-time messaging service: your server triggers events over HTTP and browsers receive them over WebSockets, with no socket infrastructure to run. Use this skill when a user wants to add live notifications, dashboards, chat, typing indicators or online-presence lists with pusher / pusher-js, authorize private and presence channels, send batch triggers, or verify Pusher webhooks.",
-      "category": "development",
+      "description": "You are an expert in Pusher Channels, the hosted real-time messaging platform. You help developers add live features to applications using pub/sub channels, presence channels for online status, private channels with auth, client events for peer-to-peer, webhooks, and batch triggers — enabling real-time notifications, live dashboards, chat, and collaborative features without managing WebSocket infrastructure.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -7785,7 +7762,7 @@
     {
       "name": "react-hook-form",
       "slug": "react-hook-form",
-      "description": "React Hook Form is a React library for building forms with uncontrolled inputs, so typing does not re-render the whole form. Use when the user wants form validation in React or Next.js, a signup or checkout form with Zod, dynamic field lists with useFieldArray, server-side errors mapped onto fields, or fewer re-renders from watch.",
+      "description": "Build performant forms in React with React Hook Form. Use when a user asks to handle form validation, build complex multi-step forms, integrate forms with Zod schemas, or reduce form re-renders in React.",
       "category": "development",
       "tags": []
     },
@@ -8111,8 +8088,8 @@
     {
       "name": "rocket",
       "slug": "rocket",
-      "description": "Rocket is a Rust web framework for building type-safe HTTP APIs and web apps with attribute-macro routing, request guards, JSON and form handling, managed state and fairings. Use this skill when a user wants to write a Rust REST API with Rocket 0.5, add authentication through request guards, share a database pool, configure Rocket.toml, or unit-test routes with the local client.",
-      "category": "development",
+      "description": "You are an expert in Rocket, the ergonomic Rust web framework that makes building web applications feel effortless. You help developers build type-safe HTTP APIs with Rocket's macro-based routing, request guards for authentication, form handling, JSON support, database integration, and fairings (middleware) — providing Rails-like productivity with Rust's compile-time safety guarantees.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -8378,15 +8355,9 @@
     {
       "name": "sendgrid",
       "slug": "sendgrid",
-      "description": "SendGrid (by Twilio) sends transactional and marketing email through an HTTP API or SMTP. Use when a user asks to send emails programmatically, set up transactional email delivery, send bulk email with dynamic templates, verify Event Webhook signatures, track opens, clicks and bounces, handle unsubscribes, or set up SPF and DKIM domain authentication. Covers the @sendgrid/mail Node.js client, personalizations for bulk sends, sandbox mode and deliverability setup.",
+      "description": "Send transactional and marketing emails with SendGrid. Use when a user asks to send emails programmatically, set up transactional email delivery, send bulk marketing emails, manage email templates, track email opens and clicks, set up email authentication (SPF/DKIM/DMARC), handle bounces and unsubscribes, or build email infrastructure. Covers single and bulk sending, dynamic templates, email validation, webhooks, and deliverability setup.",
       "category": "development",
-      "tags": [
-        "sendgrid",
-        "email",
-        "transactional",
-        "webhooks",
-        "deliverability"
-      ]
+      "tags": []
     },
     {
       "name": "senior-computer-vision",
@@ -8587,7 +8558,7 @@
     {
       "name": "snyk",
       "slug": "snyk",
-      "description": "Snyk is a developer security scanner that finds known vulnerabilities in open-source dependencies, container images, infrastructure-as-code files and source code. Use when a user asks to scan for vulnerabilities, audit npm or pip packages, check a Docker image for CVEs, scan Terraform or Kubernetes files, or add a security gate to CI/CD.",
+      "description": "Find and fix vulnerabilities in code and dependencies with Snyk. Use when a user asks to scan for security vulnerabilities, audit npm packages, check Docker images for CVEs, or integrate security into CI/CD.",
       "category": "devops",
       "tags": []
     },
@@ -8647,8 +8618,8 @@
     {
       "name": "soda",
       "slug": "soda",
-      "description": "Soda Core is an open-source data quality engine that verifies data contracts, YAML files of checks (row count, freshness, missing, duplicate, invalid, schema, failed rows), against a warehouse table. Use when a user asks to test data quality, write Soda checks or contracts, validate a table before dashboards or ML use, run \"soda contract verify\" in CI, check freshness or duplicates, or migrate from SodaCL (soda scan) to Soda v4.",
-      "category": "data-ai",
+      "description": "You are an expert in Soda, the data quality platform for testing, monitoring, and profiling data. You help developers write data quality checks in YAML that validate freshness, completeness, uniqueness, validity, and business rules — catching data issues before they reach dashboards and ML models.",
+      "category": "Data Engineering",
       "tags": []
     },
     {
@@ -8834,8 +8805,8 @@
     {
       "name": "ssrf-detection",
       "slug": "ssrf-detection",
-      "description": "Finds server-side request forgery (SSRF) risk in code that fetches a user-supplied URL, and fixes it with a tested URL-validation guard (scheme allowlist, DNS resolution against private/link-local ranges, connect-to-resolved-IP to close the DNS-rebinding gap). Use when reviewing a webhook, link-preview, image-import, PDF-generator or any feature that fetches an external URL server-side, or when hardening cloud metadata access (IMDSv2).",
-      "category": "development",
+      "description": "Detect, exploit, and prevent Server-Side Request Forgery (SSRF) vulnerabilities. Use when tasks involve testing for SSRF in web applications, accessing internal services through SSRF, bypassing SSRF filters, implementing SSRF prevention, or auditing applications that fetch external URLs. Covers blind and non-blind SSRF, cloud metadata exploitation, and defense strategies.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -8934,14 +8905,14 @@
     {
       "name": "strapi",
       "slug": "strapi",
-      "description": "Strapi is an open-source headless CMS built on Node.js that turns content types you model in an admin panel into REST and GraphQL APIs, with roles, a media library and plugins. Use when setting up a Strapi 5 project, modeling content types, querying the REST API from a Next.js or other frontend, customizing controllers and routes, or migrating from Strapi 4.",
-      "category": "content",
+      "description": "You are an expert in Strapi, the leading open-source headless CMS built with Node.js. You help teams build content APIs using Strapi's admin panel for content modeling, role-based access control, media library, and plugin system — with auto-generated REST and GraphQL APIs that power websites, mobile apps, and any frontend through a clean content management interface that non-technical editors can use.",
+      "category": "Content Management",
       "tags": []
     },
     {
       "name": "streamlit",
       "slug": "streamlit",
-      "description": "Streamlit is a Python framework that turns a script into an interactive web app. Use it to build data dashboards, ML model demos, chat interfaces and internal tools in pure Python, with no frontend code. Triggers: \"build a Streamlit app\", \"dashboard in Python\", \"st.cache_data\", \"streamlit run\", \"deploy a Streamlit app\".",
+      "description": "Expert guidance for Streamlit, the Python framework for building interactive data applications and dashboards. Helps developers create web apps for data exploration, ML model demos, and internal tools using pure Python — no frontend skills required.",
       "category": "data-ai",
       "tags": []
     },
@@ -8994,7 +8965,7 @@
     {
       "name": "structured-output",
       "slug": "structured-output",
-      "description": "Force LLMs to return typed, validated JSON — not free-text. Use when someone asks to \"get structured data from LLM\", \"parse LLM response as JSON\", \"make AI return typed output\", \"validate LLM output\", \"extract structured data with AI\", \"use instructor with OpenAI\", or \"get reliable JSON from Claude/GPT\". Covers OpenAI structured outputs, Anthropic output_config.format (JSON outputs), Instructor library, Zod schemas, Pydantic models, and retry strategies for malformed responses.",
+      "description": "Force LLMs to return typed, validated JSON — not free-text. Use when someone asks to \"get structured data from LLM\", \"parse LLM response as JSON\", \"make AI return typed output\", \"validate LLM output\", \"extract structured data with AI\", \"use instructor with OpenAI\", or \"get reliable JSON from Claude/GPT\". Covers OpenAI structured outputs, Anthropic tool_use for structured data, Instructor library, Zod schemas, Pydantic models, and retry strategies for malformed responses.",
       "category": "data-ai",
       "tags": [
         "llm",
@@ -9406,15 +9377,9 @@
     {
       "name": "temporal",
       "slug": "temporal",
-      "description": "Temporal is a durable execution platform: you write workflows as ordinary code and the server replays them after crashes, so long-running processes survive restarts. Use it when the user asks to orchestrate microservices, build sagas with compensation, run long-lived or scheduled workflows, add reliable retries to background jobs, or wait on signals and timers.",
+      "description": "Build reliable distributed workflows with Temporal. Use when a user asks to orchestrate microservices, handle long-running workflows, implement saga patterns, build reliable background jobs, or create fault-tolerant distributed systems.",
       "category": "development",
-      "tags": [
-        "temporal",
-        "workflow",
-        "orchestration",
-        "saga",
-        "microservices"
-      ]
+      "tags": []
     },
     {
       "name": "tensorflow",
@@ -9457,8 +9422,8 @@
     {
       "name": "terragrunt",
       "slug": "terragrunt",
-      "description": "Terragrunt is a thin wrapper around OpenTofu and Terraform that keeps configuration DRY, generates remote-state backends and providers, and runs many modules in dependency order. Use it when a user asks how to share backend and provider settings across environments or AWS accounts, wire outputs between modules with dependency blocks, run plan or apply across a whole directory tree (run --all), add hooks, or migrate from run-all and the old terragrunt- flags to the 1.x CLI.",
-      "category": "devops",
+      "description": "You are an expert in Terragrunt, the thin wrapper for Terraform and OpenTofu that provides extra tools for keeping configurations DRY, managing remote state, and orchestrating multi-module deployments. You help platform teams manage large-scale infrastructure across multiple environments and AWS accounts using Terragrunt's hierarchical configuration, dependency management, and before/after hooks.",
+      "category": "Infrastructure & DevOps",
       "tags": []
     },
     {
@@ -9504,7 +9469,7 @@
     {
       "name": "thanos",
       "slug": "thanos",
-      "description": "Thanos extends Prometheus with long-term metric storage in object storage, a global query view across many Prometheus servers, downsampling and deduplication of HA pairs. Use when asked to keep Prometheus metrics for months or years, query several clusters from one place, run Prometheus in high availability, or set up Thanos sidecar, query, store gateway, compactor or ruler.",
+      "description": "Deploy and configure Thanos for long-term Prometheus metric storage, global querying across multiple Prometheus instances, and data compaction. Use when a user needs durable metric storage in object storage, a unified query view across clusters, downsampling for historical data, or high-availability Prometheus with deduplication.",
       "category": "devops",
       "tags": [
         "thanos",
@@ -9628,7 +9593,7 @@
     {
       "name": "together-ai",
       "slug": "together-ai",
-      "description": "Together AI is a cloud platform that runs open-source AI models behind an API: chat and reasoning LLMs, image generation, and fine-tuning on your own data. Use when a user wants to call open models such as GLM, DeepSeek, Qwen or gpt-oss through an OpenAI-compatible API, stream chat output, get JSON that matches a schema, generate images, or fine-tune a model with the Together Python SDK or CLI.",
+      "description": "Cloud platform for running open-source AI models. Provides inference APIs for LLMs, image models, and embedding models. Supports fine-tuning on custom data, OpenAI-compatible API format, and competitive pricing for open-source model hosting.",
       "category": "data-ai",
       "tags": []
     },
@@ -10439,15 +10404,9 @@
     {
       "name": "webflow",
       "slug": "webflow",
-      "description": "Webflow is a visual website builder with a built-in CMS and hosting, plus a Data API v2 for managing content from code. Use when someone asks to \"update Webflow CMS from a script\", \"sync content to Webflow\", \"publish a Webflow item\", \"Webflow webhook\", \"Webflow API\", \"connect Claude to Webflow\", or \"build a site in Webflow\". Covers site tokens, CMS items, publishing, live content delivery, webhooks with signature checks, the MCP server and code components.",
-      "category": "development",
-      "tags": [
-        "webflow",
-        "cms",
-        "no-code",
-        "website-builder",
-        "api"
-      ]
+      "description": "You are an expert in Webflow, the visual web development platform that combines a design tool with a CMS and hosting. You help teams build responsive websites, landing pages, and content-driven sites using Webflow's visual builder, CMS collections, Ecommerce, form handling, and Webflow APIs — enabling designers to build production websites without writing code while giving developers API access for custom integrations and dynamic content.",
+      "category": "Web Development",
+      "tags": []
     },
     {
       "name": "webgl",
@@ -10687,7 +10646,7 @@
     {
       "name": "xss-detection",
       "slug": "xss-detection",
-      "description": "Detect and prevent Cross-Site Scripting (XSS) vulnerabilities in web applications. Use when tasks involve testing for reflected, stored, or DOM-based XSS on systems you are authorized to test, scanning with dalfox, reviewing code for dangerous DOM sinks, implementing Content Security Policy, encoding output, sanitizing user input, or auditing web applications for injection vulnerabilities. Covers detection and remediation.",
+      "description": "Detect, exploit, and prevent Cross-Site Scripting (XSS) vulnerabilities in web applications. Use when tasks involve testing for reflected, stored, or DOM-based XSS, building XSS payloads, bypassing WAF filters, implementing Content Security Policy, sanitizing user input, or auditing web applications for injection vulnerabilities. Covers detection, exploitation, and remediation.",
       "category": "devops",
       "tags": []
     },
@@ -10761,7 +10720,7 @@
     {
       "name": "zapier",
       "slug": "zapier",
-      "description": "Zapier is a cloud automation platform that connects thousands of apps with no-code workflows called Zaps (trigger-then-action chains), plus optional JavaScript code steps, webhooks, and a developer platform for building custom integrations. Use when a user asks to connect apps without code, automate repetitive tasks, sync data between SaaS tools, trigger a workflow from a webhook, or publish a custom Zapier integration.",
+      "description": "Automate workflows between apps with Zapier. Use when a user asks to connect apps without code, automate repetitive tasks, sync data between services, or build no-code integrations between SaaS tools.",
       "category": "automation",
       "tags": []
     },
@@ -10830,14 +10789,17 @@
   "categories": [
     "3D & Creative",
     "AI & Machine Learning",
+    "Automation & Integration",
     "Backend Development",
     "Blockchain & Web3",
     "Cloud & Serverless",
     "Content Management",
+    "Data Engineering",
     "Developer Tools",
     "Frontend Development",
     "Game Development",
     "Infrastructure & DevOps",
+    "Marketing & Growth",
     "Web Development",
     "Web Frameworks",
     "automation",
@@ -10853,5 +10815,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-24T17:48:21.979Z"
+  "updatedAt": "2026-10-24T14:50:54.039Z"
 }
