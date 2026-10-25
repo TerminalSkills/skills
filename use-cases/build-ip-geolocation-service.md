@@ -68,7 +68,7 @@ interface GeoResult {
 
 // OFAC sanctioned countries
 const SANCTIONED_COUNTRIES = new Set([
-  "CU", "IR", "KP", "SY", "RU",  // simplified list
+  "CU", "IR", "KP", "RU",  // simplified list
 ]);
 
 // Known hosting/VPN ASNs (partial list, update regularly)
