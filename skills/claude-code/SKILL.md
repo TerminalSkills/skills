@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ai-coding", "cli", "terminal", "pair-programming", "agentic"]
+  tags: "ai-coding, cli, terminal, pair-programming, agentic"
 ---
 # Claude Code — Terminal AI Coding Agent
 

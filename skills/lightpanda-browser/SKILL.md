@@ -8,13 +8,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: [headless-browser, scraping, automation, ai-agents, lightpanda]
+  tags: "headless-browser, scraping, automation, ai-agents, lightpanda"
   repository: https://github.com/lightpanda-io/browser
-  use-cases:
-    - "Build a web scraper that uses far less memory than headless Chrome"
-    - "Give an AI agent a lightweight browser through MCP"
-    - "Dump web pages as Markdown for an LLM pipeline"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Build a web scraper that uses far less memory than headless Chrome, Give an AI agent a lightweight browser through MCP, Dump web pages as Markdown for an LLM pipeline"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Lightpanda Browser

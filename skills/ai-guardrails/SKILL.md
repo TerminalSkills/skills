@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - ai-safety
-    - guardrails
-    - content-moderation
-    - prompt-injection
-    - responsible-ai
+  tags: "ai-safety, guardrails, content-moderation, prompt-injection, responsible-ai"
 ---
 
 # AI Guardrails

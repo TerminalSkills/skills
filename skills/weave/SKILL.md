@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/wandb/weave
   category: data-ai
-  tags:
-    - observability
-    - evaluation
-    - tracing
-    - llm
-    - weights-biases
+  tags: "observability, evaluation, tracing, llm, weights-biases"
 ---
 
 # Weave — AI Application Tracking by Weights & Biases

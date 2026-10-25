@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["alertmanager", "prometheus", "alerts", "routing", "on-call"]
+  tags: "alertmanager, prometheus, alerts, routing, on-call"
 ---
 
 # Prometheus Alertmanager

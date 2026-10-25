@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["oauth2", "oidc", "authentication", "authorization", "jwt"]
+  tags: "oauth2, oidc, authentication, authorization, jwt"
   repository: https://www.rfc-editor.org/rfc/rfc9700
 ---
 

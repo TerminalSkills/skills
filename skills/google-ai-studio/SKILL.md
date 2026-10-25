@@ -12,13 +12,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["google", "gemini", "multimodal", "long-context", "ai"]
+  tags: "google, gemini, multimodal, long-context, ai"
   repository: https://github.com/googleapis/python-genai
-  use-cases:
-    - "Analyze images, PDFs, and video files with Gemini's multimodal capabilities"
-    - "Process very long documents with Gemini's long context window"
-    - "Build structured data extractors with Gemini JSON response schemas"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Analyze images, PDFs, and video files with Gemini's multimodal capabilities, Process very long documents with Gemini's long context window, Build structured data extractors with Gemini JSON response schemas"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Google AI Studio — Gemini API

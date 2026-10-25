@@ -10,7 +10,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/jaredhanson/passport
   category: development
-  tags: [passport, authentication, oauth, express, social-login]
+  tags: "passport, authentication, oauth, express, social-login"
 ---
 
 # Passport.js

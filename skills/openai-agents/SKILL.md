@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["openai", "agents", "tools", "guardrails", "multi-agent"]
+  tags: "openai, agents, tools, guardrails, multi-agent"
   repository: "https://github.com/openai/openai-agents-python"
 ---
 

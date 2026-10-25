@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/livekit/livekit
-  tags: ["webrtc", "realtime", "voice", "video", "streaming"]
+  tags: "webrtc, realtime, voice, video, streaming"
 ---
 # LiveKit — Real-Time Voice & Video Infrastructure
 

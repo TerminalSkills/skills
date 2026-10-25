@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["unreal-engine", "game-engine", "cpp", "blueprints", "3d"]
+  tags: "unreal-engine, game-engine, cpp, blueprints, 3d"
 ---
 
 # Unreal Engine — AAA Game Engine

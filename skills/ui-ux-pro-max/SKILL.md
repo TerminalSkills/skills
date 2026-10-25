@@ -16,12 +16,9 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-  tags: ["ui", "ux", "design-system", "user-experience", "interaction-design"]
-  use-cases:
-    - "Review and improve existing UI/UX with actionable recommendations"
-    - "Design intuitive user flows for complex workflows"
-    - "Create comprehensive design systems with reusable component patterns"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "ui, ux, design-system, user-experience, interaction-design"
+  use-cases: "Review and improve existing UI/UX with actionable recommendations, Design intuitive user flows for complex workflows, Create comprehensive design systems with reusable component patterns"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # UI/UX Pro Max

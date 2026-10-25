@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["notifications", "messaging", "email"]
+  tags: "notifications, messaging, email"
 ---
 
 # Notification System

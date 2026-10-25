@@ -13,13 +13,9 @@ metadata:
   version: "1.1.0"
   category: research
   repository: https://github.com/achillean/shodan-python
-  tags: [shodan, recon, attack-surface, iot, security]
-  use-cases:
-    - "Find all hosts in an organization exposed on port 22 or 3389"
-    - "Look up IP reputation and open services for a suspicious address"
-    - "Discover devices affected by a specific CVE across the internet"
-    - "Map attack surface of a target organization by ASN and IP range"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "shodan, recon, attack-surface, iot, security"
+  use-cases: "Find all hosts in an organization exposed on port 22 or 3389, Look up IP reputation and open services for a suspicious address, Discover devices affected by a specific CVE across the internet, Map attack surface of a target organization by ASN and IP range"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Shodan

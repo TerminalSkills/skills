@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["sync", "local-first", "offline", "postgres", "real-time"]
+  tags: "sync, local-first, offline, postgres, real-time"
   repository: https://github.com/electric-sql/electric
 ---
 

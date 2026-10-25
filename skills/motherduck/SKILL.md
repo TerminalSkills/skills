@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-  - duckdb
-  - cloud
-  - analytics
-  - sql
-  - serverless
+  tags: "duckdb, cloud, analytics, sql, serverless"
 ---
 
 # MotherDuck — Serverless DuckDB in the Cloud

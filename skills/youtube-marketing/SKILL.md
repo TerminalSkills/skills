@@ -16,12 +16,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - youtube
-    - video
-    - social-media
-    - seo
-    - shorts
+  tags: "youtube, video, social-media, seo, shorts"
 ---
 
 # YouTube Marketing

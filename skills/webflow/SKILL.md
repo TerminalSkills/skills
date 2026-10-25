@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["webflow", "cms", "no-code", "website-builder", "api"]
+  tags: "webflow, cms, no-code, website-builder, api"
 ---
 
 # Webflow

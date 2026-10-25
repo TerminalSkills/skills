@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.2.0
   category: devops
-  tags:
-    - gcp
-    - bigquery
-    - analytics
-    - data-warehouse
-    - sql
+  tags: "gcp, bigquery, analytics, data-warehouse, sql"
 ---
 
 # GCP BigQuery

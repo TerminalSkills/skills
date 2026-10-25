@@ -11,8 +11,8 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["blog-design", "typography", "article-layout", "content-design", "tailwind"]
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "blog-design, typography, article-layout, content-design, tailwind"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Blog & Article Design

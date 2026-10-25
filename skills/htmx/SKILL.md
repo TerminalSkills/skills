@@ -11,11 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/bigskysoftware/htmx
   category: development
-  tags:
-    - html
-    - hypermedia
-    - ajax
-    - sse
+  tags: "html, hypermedia, ajax, sse"
 ---
 
 # htmx

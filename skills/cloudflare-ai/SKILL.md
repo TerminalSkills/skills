@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - cloudflare
-    - workers-ai
-    - inference
-    - embeddings
-    - vectorize
+  tags: "cloudflare, workers-ai, inference, embeddings, vectorize"
 ---
 
 # Cloudflare Workers AI

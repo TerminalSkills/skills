@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["typescript", "error-handling", "fp", "concurrency", "dependency-injection"]
+  tags: "typescript, error-handling, fp, concurrency, dependency-injection"
   repository: https://github.com/Effect-TS/effect
 ---
 

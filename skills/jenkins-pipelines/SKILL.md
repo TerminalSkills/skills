@@ -17,7 +17,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/jenkinsci/jenkins
-  tags: ["jenkins", "ci-cd", "pipelines", "automation"]
+  tags: "jenkins, ci-cd, pipelines, automation"
 ---
 
 # Jenkins Pipelines

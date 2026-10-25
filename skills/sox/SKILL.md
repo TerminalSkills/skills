@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: content
   repository: https://sourceforge.net/projects/sox/
-  tags:
-    - sox
-    - audio
-    - effects
-    - mixing
-    - audio-processing
+  tags: "sox, audio, effects, mixing, audio-processing"
 ---
 
 # SoX (Sound eXchange)

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - rsync
-    - sync
-    - backup
-    - deploy
-    - file-transfer
+  tags: "rsync, sync, backup, deploy, file-transfer"
   repository: https://github.com/RsyncProject/rsync
 ---
 

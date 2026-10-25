@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [monetization, content-creation, passive-income, affiliate, ai-content]
-  use-cases:
-    - "Build an AI content pipeline that generates and publishes blog posts daily"
-    - "Turn one blog post into LinkedIn, X and newsletter drafts with AI"
-    - "Create affiliate marketing content at scale with AI"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "monetization, content-creation, passive-income, affiliate, ai-content"
+  use-cases: "Build an AI content pipeline that generates and publishes blog posts daily, Turn one blog post into LinkedIn, X and newsletter drafts with AI, Create affiliate marketing content at scale with AI"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # AI Content Monetization — Passive Income with AI

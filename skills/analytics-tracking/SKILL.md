@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["google-analytics", "ga4", "google-tag-manager", "event-tracking", "utm"]
+  tags: "google-analytics, ga4, google-tag-manager, event-tracking, utm"
 ---
 
 # Analytics Tracking

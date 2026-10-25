@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [systems-thinking, operations, optimization, constraints, feedback-loops]
-  use-cases:
-    - "Find the single biggest constraint limiting a business's growth"
-    - "Map feedback loops in a SaaS business to understand churn dynamics"
-    - "Predict second-order effects before making a major business change"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "systems-thinking, operations, optimization, constraints, feedback-loops"
+  use-cases: "Find the single biggest constraint limiting a business's growth, Map feedback loops in a SaaS business to understand churn dynamics, Predict second-order effects before making a major business change"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Systems Thinking

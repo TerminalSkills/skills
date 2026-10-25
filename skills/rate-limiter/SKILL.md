@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["rate-limiting", "api-security", "middleware"]
+  tags: "rate-limiting, api-security, middleware"
 ---
 
 # Rate Limiter

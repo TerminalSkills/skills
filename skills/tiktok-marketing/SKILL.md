@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - tiktok
-    - social-media
-    - short-form-video
-    - marketing
-    - viral
+  tags: "tiktok, social-media, short-form-video, marketing, viral"
 ---
 
 # TikTok Marketing

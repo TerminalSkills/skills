@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["sales", "leads", "qualification", "scoring", "pipeline"]
-  use-cases:
-    - "Score and rank a list of inbound leads to prioritize sales outreach"
-    - "Evaluate leads against ideal customer profile criteria"
-    - "Analyze pipeline quality and identify the most promising opportunities"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "sales, leads, qualification, scoring, pipeline"
+  use-cases: "Score and rank a list of inbound leads to prioritize sales outreach, Evaluate leads against ideal customer profile criteria, Analyze pipeline quality and identify the most promising opportunities"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Lead Qualification

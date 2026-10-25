@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["macos", "swiftpm", "codesign", "notarization", "app-bundle"]
+  tags: "macos, swiftpm, codesign, notarization, app-bundle"
 ---
 
 # macOS SwiftPM App Packaging

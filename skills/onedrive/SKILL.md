@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - onedrive
-    - microsoft-365
-    - file-storage
-    - cloud-storage
-    - graph-api
+  tags: "onedrive, microsoft-365, file-storage, cloud-storage, graph-api"
 ---
 
 # OneDrive

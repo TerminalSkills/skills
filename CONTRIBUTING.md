@@ -161,7 +161,7 @@ metadata:
   author: your-github-username
   version: "1.0.0"
   category: one-of [documents, development, data-ai, devops, business, design, automation, research, productivity, content]
-  tags: ["tag1", "tag2", "tag3"]
+  tags: "tag1, tag2, tag3"   # one comma-separated string: every metadata value is a string (Agent Skills spec)
 ---
 
 # Skill Name

@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/langchain-ai/langchain
-  tags:
-    - langchain
-    - llm
-    - rag
-    - agents
-    - ai-chains
+  tags: "langchain, llm, rag, agents, ai-chains"
 ---
 
 # LangChain

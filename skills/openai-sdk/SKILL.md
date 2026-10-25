@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/openai/openai-node
-  tags:
-    - openai
-    - gpt
-    - llm
-    - embeddings
-    - function-calling
+  tags: "openai, gpt, llm, embeddings, function-calling"
 ---
 
 # OpenAI SDK

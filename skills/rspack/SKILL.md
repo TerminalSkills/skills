@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/web-infra-dev/rspack
-  tags: ["bundling", "rspack", "webpack", "rust", "build-tools"]
+  tags: "bundling, rspack, webpack, rust, build-tools"
 ---
 
 # Rspack

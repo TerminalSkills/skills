@@ -8,12 +8,7 @@ metadata:
   repository: https://github.com/raycast/extensions
   version: 1.1.0
   category: development
-  tags:
-  - launcher
-  - productivity
-  - macos
-  - extensions
-  - react
+  tags: "launcher, productivity, macos, extensions, react"
 ---
 
 # Raycast — Launcher Extension Development

@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/fail2ban/fail2ban
   category: devops
-  tags:
-    - fail2ban
-    - brute-force
-    - ssh
-    - security
-    - firewall
+  tags: "fail2ban, brute-force, ssh, security, firewall"
 ---
 
 # Fail2Ban

@@ -11,7 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/jquense/yup
   category: development
-  tags: [yup, validation, schema, forms, typescript]
+  tags: "yup, validation, schema, forms, typescript"
 ---
 
 # Yup

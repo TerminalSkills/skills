@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["incremental-delivery", "vertical-slices", "feature-flags", "refactoring", "workflow"]
+  tags: "incremental-delivery, vertical-slices, feature-flags, refactoring, workflow"
 ---
 
 # Incremental Implementation

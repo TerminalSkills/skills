@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-  - mobile
-  - cross-platform
-  - hybrid
-  - capacitor
-  - angular
+  tags: "mobile, cross-platform, hybrid, capacitor, angular"
   repository: https://github.com/ionic-team/ionic-framework
 ---
 

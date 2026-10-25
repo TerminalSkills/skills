@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["documentation", "python", "static-site", "material-theme", "markdown"]
+  tags: "documentation, python, static-site, material-theme, markdown"
   repository: https://github.com/mkdocs/mkdocs
 ---
 # MkDocs — Python Documentation Generator

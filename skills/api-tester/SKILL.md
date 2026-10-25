@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["api", "testing", "rest", "graphql", "http"]
+  tags: "api, testing, rest, graphql, http"
 ---
 
 # API Tester

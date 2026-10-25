@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/woocommerce/woocommerce
   category: business
-  tags:
-    - woocommerce
-    - wordpress
-    - ecommerce
-    - shop
-    - payments
+  tags: "woocommerce, wordpress, ecommerce, shop, payments"
 ---
 
 # WooCommerce

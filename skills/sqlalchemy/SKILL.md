@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - sqlalchemy
-    - python
-    - orm
-    - database
-    - async
+  tags: "sqlalchemy, python, orm, database, async"
   repository: https://github.com/sqlalchemy/sqlalchemy
 ---
 

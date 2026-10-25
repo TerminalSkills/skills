@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - go
-    - web-framework
-    - http
-    - rest
-    - middleware
+  tags: "go, web-framework, http, rest, middleware"
   repository: https://github.com/gin-gonic/gin
 ---
 

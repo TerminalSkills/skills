@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["eval", "ci-cd", "llm", "quality", "regression"]
+  tags: "eval, ci-cd, llm, quality, regression"
 ---
 
 # AI Eval in CI

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - puppeteer
-    - browser
-    - scraping
-    - automation
-    - chrome
+  tags: "puppeteer, browser, scraping, automation, chrome"
   repository: https://github.com/puppeteer/puppeteer
 ---
 

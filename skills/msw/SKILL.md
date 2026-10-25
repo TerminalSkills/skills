@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags: ["msw", "testing", "api-mocking", "rest", "graphql"]
+  tags: "msw, testing, api-mocking, rest, graphql"
   repository: https://github.com/mswjs/msw
 ---
 

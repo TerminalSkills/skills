@@ -21,7 +21,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["ppc", "google-ads", "meta-ads", "advertising", "performance-marketing"]
+  tags: "ppc, google-ads, meta-ads, advertising, performance-marketing"
 ---
 
 # Paid Ads: Planning and Running Google, Meta and LinkedIn Campaigns

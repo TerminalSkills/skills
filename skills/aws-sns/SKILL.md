@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - aws
-    - sns
-    - pub-sub
-    - notifications
-    - messaging
+  tags: "aws, sns, pub-sub, notifications, messaging"
 ---
 
 # AWS SNS

@@ -12,14 +12,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["solidjs", "reactive", "signals", "performance", "frontend"]
+  tags: "solidjs, reactive, signals, performance, frontend"
   repository: https://github.com/solidjs/solid
-  use-cases:
-    - "Build a high-performance UI without virtual DOM overhead"
-    - "Migrate a React component to SolidJS for better reactivity"
-    - "Use SolidStart for a full-stack app with SSR and server functions"
-    - "Manage complex application state with SolidJS stores"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Build a high-performance UI without virtual DOM overhead, Migrate a React component to SolidJS for better reactivity, Use SolidStart for a full-stack app with SSR and server functions, Manage complex application state with SolidJS stores"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # SolidJS

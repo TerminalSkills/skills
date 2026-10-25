@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/NousResearch/hermes-agent
-  tags: [agents, self-improving, hermes, adaptive, learning]
+  tags: "agents, self-improving, hermes, adaptive, learning"
 ---
 
 # Hermes Agent — Self-Improving AI Agents

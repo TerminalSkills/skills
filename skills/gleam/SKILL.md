@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/gleam-lang/gleam
   category: development
-  tags:
-  - gleam
-  - erlang
-  - beam
-  - functional
-  - type-safe
+  tags: "gleam, erlang, beam, functional, type-safe"
 ---
 
 # Gleam — Type-Safe Language for the BEAM

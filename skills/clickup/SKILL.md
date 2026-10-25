@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: productivity
-  tags:
-    - clickup
-    - project-management
-    - task-management
-    - automation
-    - api
+  tags: "clickup, project-management, task-management, automation, api"
 ---
 
 # ClickUp

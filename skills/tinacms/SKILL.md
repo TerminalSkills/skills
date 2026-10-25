@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: content
   repository: https://github.com/tinacms/tinacms
-  tags: ["cms", "headless-cms", "git-backed", "markdown", "visual-editing"]
+  tags: "cms, headless-cms, git-backed, markdown, visual-editing"
 ---
 
 # TinaCMS

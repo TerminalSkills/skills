@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/celery/celery
-  tags:
-    - celery
-    - python
-    - tasks
-    - queue
-    - background
+  tags: "celery, python, tasks, queue, background"
 ---
 
 # Celery

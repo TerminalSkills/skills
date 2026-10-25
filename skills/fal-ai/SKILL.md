@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/fal-ai/fal-js
-  tags: ["fal-ai", "image-generation", "flux", "ml", "inference"]
-  use-cases:
-    - "Generate product images with Flux Pro for an e-commerce catalog"
-    - "Animate a product photo into a short video with Kling"
-    - "Transcribe audio files at scale with Whisper"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "fal-ai, image-generation, flux, ml, inference"
+  use-cases: "Generate product images with Flux Pro for an e-commerce catalog, Animate a product photo into a short video with Kling, Transcribe audio files at scale with Whisper"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # fal.ai

@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags: ["coding-agent", "automation", "sub-agent", "background-process", "orchestration"]
-  use-cases:
-    - "Delegate a well-defined subtask to a background coding agent"
-    - "Run multiple agents in parallel on independent tasks"
-    - "Automate repetitive coding tasks with agent orchestration"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "coding-agent, automation, sub-agent, background-process, orchestration"
+  use-cases: "Delegate a well-defined subtask to a background coding agent, Run multiple agents in parallel on independent tasks, Automate repetitive coding tasks with agent orchestration"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Coding Agent

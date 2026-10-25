@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/opentypejs/opentype.js
-  tags: ["fonts", "typography", "opentype", "glyphs", "text-rendering"]
+  tags: "fonts, typography, opentype, glyphs, text-rendering"
 ---
 
 # opentype.js

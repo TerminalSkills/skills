@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["javascript", "ember", "framework", "spa", "typescript"]
+  tags: "javascript, ember, framework, spa, typescript"
   repository: https://github.com/emberjs/ember.js
 ---
 

@@ -15,12 +15,7 @@ metadata:
   repository: https://github.com/minio/minio
   version: 1.1.0
   category: devops
-  tags:
-    - minio
-    - s3
-    - storage
-    - object-storage
-    - self-hosted
+  tags: "minio, s3, storage, object-storage, self-hosted"
 ---
 
 # MinIO

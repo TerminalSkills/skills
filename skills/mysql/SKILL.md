@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/mysql/mysql-server
   category: data-ai
-  tags:
-    - mysql
-    - sql
-    - relational-database
-    - replication
-    - nodejs
+  tags: "mysql, sql, relational-database, replication, nodejs"
 ---
 
 # MySQL

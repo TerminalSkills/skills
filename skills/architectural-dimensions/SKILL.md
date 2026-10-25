@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [architecture, dimensions, floor-plan, 3d, building]
+  tags: "architecture, dimensions, floor-plan, 3d, building"
 ---
 
 # Architectural Dimensions Reference

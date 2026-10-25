@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["caching", "redis", "performance", "api-optimization"]
+  tags: "caching, redis, performance, api-optimization"
 ---
 
 # Cache Strategy

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["3d", "design-tool", "no-code", "interactive", "web"]
+  tags: "3d, design-tool, no-code, interactive, web"
 ---
 
 # Spline — 3D Design Tool for the Web

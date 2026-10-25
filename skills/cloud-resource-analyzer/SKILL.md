@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["cloud", "cost-optimization", "aws", "infrastructure-audit"]
+  tags: "cloud, cost-optimization, aws, infrastructure-audit"
 ---
 
 # Cloud Resource Analyzer

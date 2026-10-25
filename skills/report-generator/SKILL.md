@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: data-ai
-  tags: ["reports", "visualization", "status-updates", "charts", "productivity"]
+  tags: "reports, visualization, status-updates, charts, productivity"
 ---
 
 # Report Generator

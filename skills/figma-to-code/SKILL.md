@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["figma", "frontend", "design-to-code", "react", "css"]
+  tags: "figma, frontend, design-to-code, react, css"
 ---
 
 # Figma to Code

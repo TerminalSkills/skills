@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/sveltejs/kit
-  tags: ["sveltekit", "svelte", "full-stack", "ssr", "web-framework"]
+  tags: "sveltekit, svelte, full-stack, ssr, web-framework"
 ---
 
 # SvelteKit

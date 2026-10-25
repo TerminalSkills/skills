@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: business
-  tags: ["billing", "invoicing", "payments", "automation", "finance"]
+  tags: "billing, invoicing, payments, automation, finance"
 ---
 
 # Billing Automation

@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [3d-modeling, architecture, three-js, ifc, building-generation]
+  tags: "3d-modeling, architecture, three-js, ifc, building-generation"
 ---
 
 # Spec to 3D -- Building Model Generator

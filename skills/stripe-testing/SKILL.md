@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["stripe", "payments", "webhooks", "testing", "debugging"]
+  tags: "stripe, payments, webhooks, testing, debugging"
   repository: "https://github.com/stripe/stripe-cli"
 ---
 

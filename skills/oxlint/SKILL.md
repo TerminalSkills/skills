@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/oxc-project/oxc
   category: devops
-  tags: ["linting", "oxlint", "rust", "eslint", "code-quality"]
+  tags: "linting, oxlint, rust, eslint, code-quality"
 ---
 
 # oxlint

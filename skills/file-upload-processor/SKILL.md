@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["file-upload", "cloud-storage", "s3", "validation"]
+  tags: "file-upload, cloud-storage, s3, validation"
 ---
 
 # File Upload Processor

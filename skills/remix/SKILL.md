@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["remix", "react", "full-stack", "web-standards", "progressive-enhancement"]
+  tags: "remix, react, full-stack, web-standards, progressive-enhancement"
   repository: https://github.com/remix-run/remix
 ---
 

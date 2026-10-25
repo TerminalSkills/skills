@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["documentation", "next-js", "mdx", "static-site", "docs-as-code"]
+  tags: "documentation, next-js, mdx, static-site, docs-as-code"
   repository: https://github.com/shuding/nextra
 ---
 # Nextra — Next.js Documentation Framework

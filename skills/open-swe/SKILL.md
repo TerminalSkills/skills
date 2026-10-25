@@ -13,13 +13,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: [swe-agent, coding-agent, langchain, async, automation]
+  tags: "swe-agent, coding-agent, langchain, async, automation"
   repository: https://github.com/langchain-ai/open-swe
-  use-cases:
-    - "Build a bot that picks up GitHub issues and submits PRs automatically"
-    - "Create an async coding agent that works on tasks while you sleep"
-    - "Automate bug fixes and code improvements with SWE agent patterns"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Build a bot that picks up GitHub issues and submits PRs automatically, Create an async coding agent that works on tasks while you sleep, Automate bug fixes and code improvements with SWE agent patterns"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Open SWE

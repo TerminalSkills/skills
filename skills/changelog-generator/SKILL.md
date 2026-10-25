@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["changelog", "release-notes", "git", "documentation", "versioning"]
-  use-cases:
-    - "Generate a CHANGELOG.md entry for a new release from git commits"
-    - "Create user-facing release notes from technical commit history"
-    - "Summarize changes between two tags or branches"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "changelog, release-notes, git, documentation, versioning"
+  use-cases: "Generate a CHANGELOG.md entry for a new release from git commits, Create user-facing release notes from technical commit history, Summarize changes between two tags or branches"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Changelog Generator

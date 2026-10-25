@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - aws
-    - dynamodb
-    - nosql
-    - database
-    - serverless
+  tags: "aws, dynamodb, nosql, database, serverless"
 ---
 
 # AWS DynamoDB

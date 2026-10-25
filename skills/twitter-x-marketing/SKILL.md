@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - twitter
-    - x
-    - social-media
-    - threads
-    - api
+  tags: "twitter, x, social-media, threads, api"
 ---
 
 # Twitter/X Marketing

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - rag
-    - pipeline
-    - search
-    - retrieval
-    - python
+  tags: "rag, pipeline, search, retrieval, python"
   repository: https://github.com/deepset-ai/haystack
 ---
 

@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - crowdsec
-    - firewall
-    - ids
-    - brute-force
-    - community
+  tags: "crowdsec, firewall, ids, brute-force, community"
   repository: https://github.com/crowdsecurity/crowdsec
 ---
 

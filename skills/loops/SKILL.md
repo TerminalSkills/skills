@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: business
   repository: https://github.com/Loops-so/loops-js
-  tags:
-    - loops
-    - email
-    - marketing
-    - saas
-    - campaigns
+  tags: "loops, email, marketing, saas, campaigns"
 ---
 
 # Loops

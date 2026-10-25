@@ -12,7 +12,7 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/pytorch/pytorch
   category: data-ai
-  tags: ["pytorch", "deep-learning", "neural-network", "gpu", "machine-learning"]
+  tags: "pytorch, deep-learning, neural-network, gpu, machine-learning"
 ---
 
 # PyTorch

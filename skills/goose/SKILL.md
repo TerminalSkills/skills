@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ai-agent", "extensible", "coding-agent", "mcp"]
+  tags: "ai-agent, extensible, coding-agent, mcp"
   repository: https://github.com/aaif-goose/goose
 ---
 

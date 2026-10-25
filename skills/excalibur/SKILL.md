@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/excaliburjs/Excalibur
-  tags:
-    - game-engine
-    - typescript
-    - 2d
-    - browser-game
-    - webgl
+  tags: "game-engine, typescript, 2d, browser-game, webgl"
 ---
 
 # Excalibur.js — TypeScript-First 2D Game Engine

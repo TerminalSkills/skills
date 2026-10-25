@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ssr", "ssg", "nextjs", "performance", "seo"]
+  tags: "ssr, ssg, nextjs, performance, seo"
 ---
 
 # SSR Migration

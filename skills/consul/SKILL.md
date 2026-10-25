@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/hashicorp/consul
-  tags:
-    - consul
-    - service-discovery
-    - service-mesh
-    - hashicorp
-    - infrastructure
+  tags: "consul, service-discovery, service-mesh, hashicorp, infrastructure"
 ---
 
 # Consul

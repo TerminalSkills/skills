@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/OAI/OpenAPI-Specification
-  tags:
-    - openapi
-    - swagger
-    - api-design
-    - documentation
-    - rest
+  tags: "openapi, swagger, api-design, documentation, rest"
 ---
 
 # OpenAPI Specification

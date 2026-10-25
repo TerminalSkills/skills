@@ -17,12 +17,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/microsoftgraph/msgraph-sdk-javascript
-  tags:
-    - sharepoint
-    - microsoft-365
-    - document-management
-    - graph-api
-    - intranet
+  tags: "sharepoint, microsoft-365, document-management, graph-api, intranet"
 ---
 
 # SharePoint

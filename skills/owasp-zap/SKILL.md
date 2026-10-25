@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/zaproxy/zaproxy
-  tags: ["owasp-zap", "security", "vulnerability-scanning", "penetration-testing", "ci-cd"]
+  tags: "owasp-zap, security, vulnerability-scanning, penetration-testing, ci-cd"
 ---
 
 # OWASP ZAP

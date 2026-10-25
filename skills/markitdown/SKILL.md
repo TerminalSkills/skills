@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: documents
-  tags: ["markdown-conversion", "pdf-to-markdown", "office-documents", "rag-ingestion", "llm-preprocessing"]
+  tags: "markdown-conversion, pdf-to-markdown, office-documents, rag-ingestion, llm-preprocessing"
   repository: https://github.com/microsoft/markitdown
 ---
 # MarkItDown — Convert documents to Markdown for LLMs

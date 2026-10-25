@@ -6,11 +6,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags:
-    - visual-testing
-    - screenshots
-    - regression
-    - ci-integration
+  tags: "visual-testing, screenshots, regression, ci-integration"
 ---
 
 # Percy

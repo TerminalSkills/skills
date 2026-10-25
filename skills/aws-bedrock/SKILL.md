@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["aws-bedrock", "aws", "claude", "llama", "enterprise-ai"]
-  use-cases:
-    - "Run Claude on AWS infrastructure with SOC2/HIPAA compliance"
-    - "Build a RAG system using Bedrock Knowledge Bases and S3"
-    - "Apply content safety guardrails to LLM outputs in regulated industries"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "aws-bedrock, aws, claude, llama, enterprise-ai"
+  use-cases: "Run Claude on AWS infrastructure with SOC2/HIPAA compliance, Build a RAG system using Bedrock Knowledge Bases and S3, Apply content safety guardrails to LLM outputs in regulated industries"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # AWS Bedrock

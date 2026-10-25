@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - neo4j
-    - graph-database
-    - cypher
-    - nodejs
-    - relationships
+  tags: "neo4j, graph-database, cypher, nodejs, relationships"
   repository: https://github.com/neo4j/neo4j
 ---
 

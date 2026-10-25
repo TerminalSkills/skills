@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["presentations", "slides", "pitch-deck", "keynote", "storytelling"]
-  use-cases:
-    - "Create pitch decks for investors with narrative structure and data"
-    - "Build internal presentations for team updates and project proposals"
-    - "Generate conference talk slides with speaker notes"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "presentations, slides, pitch-deck, keynote, storytelling"
+  use-cases: "Create pitch decks for investors with narrative structure and data, Build internal presentations for team updates and project proposals, Generate conference talk slides with speaker notes"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # AI Slides

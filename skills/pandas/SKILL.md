@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["pandas", "data-analysis", "dataframe", "python", "tabular-data"]
+  tags: "pandas, data-analysis, dataframe, python, tabular-data"
   repository: https://github.com/pandas-dev/pandas
 ---
 

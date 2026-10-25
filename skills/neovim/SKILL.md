@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["neovim", "lua", "lsp", "treesitter", "text-editor"]
+  tags: "neovim, lua, lsp, treesitter, text-editor"
   repository: https://github.com/neovim/neovim
 ---
 

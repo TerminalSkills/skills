@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/traefik/traefik
-  tags:
-    - traefik
-    - reverse-proxy
-    - tls
-    - docker
-    - letsencrypt
+  tags: "traefik, reverse-proxy, tls, docker, letsencrypt"
 ---
 
 # Traefik

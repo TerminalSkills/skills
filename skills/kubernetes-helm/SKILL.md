@@ -16,7 +16,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/helm/helm"
   category: devops
-  tags: ["kubernetes", "helm", "containers", "orchestration"]
+  tags: "kubernetes, helm, containers, orchestration"
 ---
 
 # Kubernetes & Helm

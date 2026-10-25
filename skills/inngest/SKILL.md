@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/inngest/inngest-js
-  tags:
-    - workflow
-    - event-driven
-    - durable
-    - serverless
-    - typescript
+  tags: "workflow, event-driven, durable, serverless, typescript"
 ---
 
 # Inngest — Durable Workflow Engine for TypeScript

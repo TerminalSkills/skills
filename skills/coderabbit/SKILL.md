@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["code-review", "ai", "pull-request", "automation", "github"]
+  tags: "code-review, ai, pull-request, automation, github"
 ---
 # CodeRabbit — AI-Powered Code Review
 

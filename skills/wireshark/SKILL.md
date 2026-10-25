@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - wireshark
-    - tshark
-    - packet-analysis
-    - network-forensics
-    - pcap
+  tags: "wireshark, tshark, packet-analysis, network-forensics, pcap"
   repository: https://gitlab.com/wireshark/wireshark
 ---
 

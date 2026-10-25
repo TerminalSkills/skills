@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags: [conform, forms, remix, progressive-enhancement, server-validation]
+  tags: "conform, forms, remix, progressive-enhancement, server-validation"
   repository: https://github.com/edmundhung/conform
 ---
 

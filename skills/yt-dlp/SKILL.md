@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/yt-dlp/yt-dlp
   category: content
-  tags:
-    - yt-dlp
-    - youtube
-    - download
-    - audio
-    - video
+  tags: "yt-dlp, youtube, download, audio, video"
 ---
 
 # yt-dlp

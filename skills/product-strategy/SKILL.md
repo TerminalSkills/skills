@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-  - strategy
-  - vision
-  - roadmap
-  - positioning
-  - competitive-analysis
+  tags: "strategy, vision, roadmap, positioning, competitive-analysis"
 ---
 
 # Product Strategy — Vision, Positioning, and Roadmap

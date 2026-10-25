@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["logs", "debugging", "incident-response", "observability"]
+  tags: "logs, debugging, incident-response, observability"
 ---
 
 # Log Analyzer

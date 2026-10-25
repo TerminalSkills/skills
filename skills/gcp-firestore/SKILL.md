@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/googleapis/python-firestore
-  tags:
-    - gcp
-    - firestore
-    - nosql
-    - real-time
-    - firebase
+  tags: "gcp, firestore, nosql, real-time, firebase"
 ---
 
 # GCP Firestore

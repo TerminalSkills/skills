@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["structured-data", "json-ld", "schema-org", "seo", "rich-results"]
+  tags: "structured-data, json-ld, schema-org, seo, rich-results"
 ---
 
 # Schema Markup

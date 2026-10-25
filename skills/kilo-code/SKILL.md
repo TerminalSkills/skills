@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["coding-agent", "cli", "ai-coding", "ollama", "ci-cd"]
+  tags: "coding-agent, cli, ai-coding, ollama, ci-cd"
   repository: https://github.com/Kilo-Org/kilocode
 ---
 

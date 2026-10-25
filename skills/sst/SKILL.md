@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["sst", "serverless", "aws", "lambda", "full-stack"]
+  tags: "sst, serverless, aws, lambda, full-stack"
   repository: https://github.com/sst/sst
 ---
 

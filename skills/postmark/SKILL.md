@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: business
   repository: https://github.com/ActiveCampaign/postmark.js
-  tags:
-    - postmark
-    - email
-    - transactional
-    - deliverability
-    - templates
+  tags: "postmark, email, transactional, deliverability, templates"
 ---
 
 # Postmark

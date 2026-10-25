@@ -13,13 +13,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: documents
-  tags: ["parsing", "docling", "tables", "figures", "layout"]
+  tags: "parsing, docling, tables, figures, layout"
   repository: https://github.com/docling-project/docling
-  use-cases:
-    - "Extract tables and figures from academic papers with complex layouts"
-    - "Parse financial reports with multi-column formats and embedded charts"
-    - "Convert complex documents to clean Markdown or JSON preserving structure"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Extract tables and figures from academic papers with complex layouts, Parse financial reports with multi-column formats and embedded charts, Convert complex documents to clean Markdown or JSON preserving structure"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Document Parser

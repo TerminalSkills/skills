@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["documentation", "static-site", "vite", "vue", "markdown"]
+  tags: "documentation, static-site, vite, vue, markdown"
   repository: https://github.com/vuejs/vitepress
 ---
 # VitePress — Vite-Powered Documentation Site

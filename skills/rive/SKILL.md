@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["rive", "animation", "state-machine", "interactive", "motion"]
+  tags: "rive, animation, state-machine, interactive, motion"
 ---
 
 # Rive

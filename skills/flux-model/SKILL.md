@@ -13,12 +13,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["flux", "image-generation", "black-forest-labs", "fal-ai", "replicate"]
-  use-cases:
-    - "Generate photorealistic product images from text descriptions"
-    - "Fine-tune Flux Dev with a LoRA for a brand's visual style"
-    - "Build a high-throughput image generation pipeline using Flux Schnell"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "flux, image-generation, black-forest-labs, fal-ai, replicate"
+  use-cases: "Generate photorealistic product images from text descriptions, Fine-tune Flux Dev with a LoRA for a brand's visual style, Build a high-throughput image generation pipeline using Flux Schnell"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # FLUX Image Generation Models

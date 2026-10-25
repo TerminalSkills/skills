@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: automation
   repository: https://github.com/zapier/zapier-platform
-  tags:
-    - zapier
-    - automation
-    - integration
-    - no-code
-    - workflow
+  tags: "zapier, automation, integration, no-code, workflow"
 ---
 
 # Zapier

@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/lancedb/lancedb
-  tags: ["vector", "embedded-db", "lancedb", "rag", "search"]
+  tags: "vector, embedded-db, lancedb, rag, search"
 ---
 
 # LanceDB

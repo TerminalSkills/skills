@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - no-code-backend
-    - api-builder
-    - database
-    - auth
-    - xanoscript
+  tags: "no-code-backend, api-builder, database, auth, xanoscript"
 ---
 
 # Xano — No-Code Backend Builder

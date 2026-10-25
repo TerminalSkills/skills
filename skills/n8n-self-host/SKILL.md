@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/n8n-io/n8n
-  tags: ["n8n", "self-hosting", "docker", "postgresql", "infrastructure"]
+  tags: "n8n, self-hosting, docker, postgresql, infrastructure"
 ---
 
 # n8n Self-Host

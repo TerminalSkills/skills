@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/stripe/stripe-node
-  tags:
-    - webhooks
-    - security
-    - signatures
-    - hmac
-    - api
+  tags: "webhooks, security, signatures, hmac, api"
 ---
 
 # Webhook Security

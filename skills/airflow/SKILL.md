@@ -12,12 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/apache/airflow
   category: data-ai
-  tags:
-    - airflow
-    - workflow-orchestration
-    - dag
-    - etl
-    - scheduling
+  tags: "airflow, workflow-orchestration, dag, etl, scheduling"
 ---
 
 # Airflow

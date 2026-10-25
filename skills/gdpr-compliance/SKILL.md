@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["gdpr", "privacy", "compliance", "data-protection"]
+  tags: "gdpr, privacy, compliance, data-protection"
 ---
 
 # GDPR Compliance

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["database", "backup", "disaster-recovery", "postgresql", "mysql"]
+  tags: "database, backup, disaster-recovery, postgresql, mysql"
 ---
 
 # Database Backup

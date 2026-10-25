@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["game-engine", "html5", "browser-game", "2d", "arcade-physics"]
+  tags: "game-engine, html5, browser-game, 2d, arcade-physics"
   repository: https://github.com/phaserjs/phaser
 ---
 

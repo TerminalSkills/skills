@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pusher/pusher-js
-  tags:
-    - realtime
-    - websocket
-    - channels
-    - pub-sub
-    - presence
+  tags: "realtime, websocket, channels, pub-sub, presence"
 ---
 
 # Pusher

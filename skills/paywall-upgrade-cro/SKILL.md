@@ -18,7 +18,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["paywall", "monetization", "freemium", "conversion", "subscriptions"]
+  tags: "paywall, monetization, freemium, conversion, subscriptions"
 ---
 
 # Paywall and Upgrade CRO

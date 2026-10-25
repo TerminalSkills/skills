@@ -13,12 +13,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["cloudflare", "vectorize", "vector-database", "edge", "semantic-search"]
-  use-cases:
-    - "Build semantic search for a documentation site using Cloudflare Workers + Vectorize"
-    - "Implement RAG at the edge combining Vectorize with Workers AI embeddings"
-    - "Store and query product embeddings for recommendation systems on Cloudflare"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "cloudflare, vectorize, vector-database, edge, semantic-search"
+  use-cases: "Build semantic search for a documentation site using Cloudflare Workers + Vectorize, Implement RAG at the edge combining Vectorize with Workers AI embeddings, Store and query product embeddings for recommendation systems on Cloudflare"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Cloudflare Vectorize

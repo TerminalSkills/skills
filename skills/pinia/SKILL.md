@@ -12,12 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/vuejs/pinia
   category: development
-  tags:
-    - vue
-    - state-management
-    - typescript
-    - composition-api
-    - store
+  tags: "vue, state-management, typescript, composition-api, store"
 ---
 
 # Pinia — Official Vue.js State Management

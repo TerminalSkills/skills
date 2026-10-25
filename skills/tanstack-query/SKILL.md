@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/TanStack/query
   category: development
-  tags:
-    - react
-    - data-fetching
-    - cache
-    - state-management
-    - async
+  tags: "react, data-fetching, cache, state-management, async"
 ---
 
 # TanStack Query

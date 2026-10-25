@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["mobile", "cicd", "fastlane", "ios", "android"]
+  tags: "mobile, cicd, fastlane, ios, android"
   repository: https://github.com/fastlane/fastlane
 ---
 

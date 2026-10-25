@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: automation
   repository: https://github.com/grammyjs/grammY
-  tags: ["telegram", "bot", "messaging", "chatbot"]
+  tags: "telegram, bot, messaging, chatbot"
 ---
 
 # Telegram Bot Builder

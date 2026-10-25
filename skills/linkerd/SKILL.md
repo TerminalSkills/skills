@@ -12,12 +12,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/linkerd/linkerd2"
   category: devops
-  tags:
-    - linkerd
-    - service-mesh
-    - kubernetes
-    - mtls
-    - observability
+  tags: "linkerd, service-mesh, kubernetes, mtls, observability"
 ---
 
 # Linkerd

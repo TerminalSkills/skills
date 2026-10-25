@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["shopify", "ecommerce", "liquid", "storefront", "hydrogen"]
+  tags: "shopify, ecommerce, liquid, storefront, hydrogen"
   repository: "https://github.com/Shopify/cli"
 ---
 

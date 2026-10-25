@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["file-search", "ai-agents", "neovim", "rust", "mcp"]
+  tags: "file-search, ai-agents, neovim, rust, mcp"
   repository: https://github.com/dmtrKovalenko/fff
 ---
 

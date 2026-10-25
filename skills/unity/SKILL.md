@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - unity
-    - game-engine
-    - c-sharp
-    - mobile
-    - cross-platform
+  tags: "unity, game-engine, c-sharp, mobile, cross-platform"
 ---
 
 # Unity

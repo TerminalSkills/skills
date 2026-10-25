@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - growth
-    - marketing
-    - acquisition
-    - retention
-    - experimentation
+  tags: "growth, marketing, acquisition, retention, experimentation"
 ---
 
 # Growth Hacking

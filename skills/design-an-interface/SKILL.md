@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["api-design", "interface-design", "module-design", "software-architecture", "type-checking"]
+  tags: "api-design, interface-design, module-design, software-architecture, type-checking"
 ---
 
 # Design an Interface

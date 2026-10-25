@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["jwt", "tokens", "authentication", "security"]
+  tags: "jwt, tokens, authentication, security"
 ---
 
 # JWT Handler

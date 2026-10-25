@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - aws
-    - cognito
-    - authentication
-    - jwt
-    - oauth
+  tags: "aws, cognito, authentication, jwt, oauth"
 ---
 
 # AWS Cognito

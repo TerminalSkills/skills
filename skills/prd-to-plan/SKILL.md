@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["prd", "implementation-plan", "planning", "phased-delivery", "requirements"]
+  tags: "prd, implementation-plan, planning, phased-delivery, requirements"
 ---
 
 # PRD to Plan

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["spec-driven-development", "ai-coding-agents", "requirements", "planning", "cli"]
+  tags: "spec-driven-development, ai-coding-agents, requirements, planning, cli"
   repository: https://github.com/Fission-AI/OpenSpec
 ---
 # OpenSpec — Agree on the spec before the agent writes code

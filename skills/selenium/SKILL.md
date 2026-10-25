@@ -6,11 +6,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags:
-    - browser-automation
-    - e2e-testing
-    - cross-browser
-    - webdriver
+  tags: "browser-automation, e2e-testing, cross-browser, webdriver"
 ---
 
 # Selenium

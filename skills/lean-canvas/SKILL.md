@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - lean-canvas
-  - business-model
-  - startup
-  - validation
-  - lean-startup
+  tags: "lean-canvas, business-model, startup, validation, lean-startup"
 ---
 
 # Lean Canvas — One-Page Business Model

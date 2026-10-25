@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["vercel", "deployment", "serverless", "preview-deployments", "ci-cd"]
+  tags: "vercel, deployment, serverless, preview-deployments, ci-cd"
   repository: https://github.com/vercel/vercel
 ---
 # Vercel CLI — Deploy, preview and ship from the terminal

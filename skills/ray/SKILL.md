@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/ray-project/ray
   category: data-ai
-  tags:
-    - distributed-computing
-    - model-serving
-    - hyperparameter-tuning
-    - scaling
-    - parallel-processing
+  tags: "distributed-computing, model-serving, hyperparameter-tuning, scaling, parallel-processing"
 ---
 
 # Ray

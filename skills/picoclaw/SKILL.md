@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["picoclaw", "ai-assistant", "chatbot", "telegram-bot", "iot"]
+  tags: "picoclaw, ai-assistant, chatbot, telegram-bot, iot"
   repository: "https://github.com/sipeed/picoclaw"
 ---
 

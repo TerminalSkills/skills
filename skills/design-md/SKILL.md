@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: design
-  tags: ["design-system", "ui", "ai-design"]
+  tags: "design-system, ui, ai-design"
 ---
 
 # DESIGN.md

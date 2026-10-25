@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/facebook/react-native
-  tags: ["react-native", "mobile", "ios", "android", "cross-platform"]
+  tags: "react-native, mobile, ios, android, cross-platform"
 ---
 
 # React Native

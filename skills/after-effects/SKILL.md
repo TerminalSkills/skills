@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: content
-  tags:
-    - after-effects
-    - motion-graphics
-    - vfx
-    - scripting
-    - extendscript
+  tags: "after-effects, motion-graphics, vfx, scripting, extendscript"
 ---
 
 # After Effects

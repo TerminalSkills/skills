@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["rust", "cargo", "rustup", "clippy", "systems-programming"]
+  tags: "rust, cargo, rustup, clippy, systems-programming"
   repository: https://github.com/rust-lang/rust
 ---
 # Rust — Memory-Safe Systems Language and Cargo Toolchain

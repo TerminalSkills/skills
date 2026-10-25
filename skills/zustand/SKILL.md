@@ -16,12 +16,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pmndrs/zustand
-  tags:
-    - react
-    - state-management
-    - hooks
-    - typescript
-    - store
+  tags: "react, state-management, hooks, typescript, store"
 ---
 
 # Zustand — Minimal React State Management

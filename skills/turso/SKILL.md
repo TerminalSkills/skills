@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/tursodatabase/libsql
-  tags:
-    - database
-    - sqlite
-    - libsql
-    - vector-search
-    - embedded-replicas
+  tags: "database, sqlite, libsql, vector-search, embedded-replicas"
 ---
 
 # Turso

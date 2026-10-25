@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/elapouya/python-docx-template
   category: automation
-  tags: ["template", "mail-merge", "documents", "automation", "generation"]
-  use-cases:
-    - "Generate hundreds of personalized letters from a CSV and template"
-    - "Auto-fill contract templates with client data"
-    - "Create invoices from a spreadsheet of line items"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "template, mail-merge, documents, automation, generation"
+  use-cases: "Generate hundreds of personalized letters from a CSV and template, Auto-fill contract templates with client data, Create invoices from a spreadsheet of line items"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Template Engine

@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/apache/arrow
-  tags:
-  - data-format
-  - columnar
-  - interop
-  - python
-  - javascript
+  tags: "data-format, columnar, interop, python, javascript"
 ---
 
 # Apache Arrow — Columnar Data Format

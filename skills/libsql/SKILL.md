@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["libsql", "sqlite", "turso", "edge-database", "embedded"]
+  tags: "libsql, sqlite, turso, edge-database, embedded"
   repository: https://github.com/tursodatabase/libsql-client-ts
 ---
 

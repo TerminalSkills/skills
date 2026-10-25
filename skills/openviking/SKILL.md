@@ -9,12 +9,9 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/volcengine/OpenViking
-  tags: [context-database, agent-memory, openviking, context-management, file-system]
-  use-cases:
-    - "Give AI agents organized, persistent context that survives across sessions"
-    - "Import project docs and repositories so agents can search them by meaning"
-    - "Share one memory server between Claude Code, Codex and Cursor"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "context-database, agent-memory, openviking, context-management, file-system"
+  use-cases: "Give AI agents organized, persistent context that survives across sessions, Import project docs and repositories so agents can search them by meaning, Share one memory server between Claude Code, Codex and Cursor"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # OpenViking

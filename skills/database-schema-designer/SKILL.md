@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["database", "schema-design", "postgresql", "data-modeling"]
+  tags: "database, schema-design, postgresql, data-modeling"
 ---
 
 # Database Schema Designer

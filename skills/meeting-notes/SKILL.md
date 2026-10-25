@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["meetings", "notes", "summaries", "action-items", "transcripts"]
-  use-cases:
-    - "Convert raw meeting transcripts into structured summaries with action items"
-    - "Extract decisions, owners, and deadlines from unstructured meeting notes"
-    - "Generate follow-up emails from meeting discussions"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "meetings, notes, summaries, action-items, transcripts"
+  use-cases: "Convert raw meeting transcripts into structured summaries with action items, Extract decisions, owners, and deadlines from unstructured meeting notes, Generate follow-up emails from meeting discussions"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Meeting Notes

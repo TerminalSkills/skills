@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["reverse-engineering", "decompiler", "malware-analysis", "headless-analysis", "pyghidra"]
+  tags: "reverse-engineering, decompiler, malware-analysis, headless-analysis, pyghidra"
   repository: https://github.com/NationalSecurityAgency/ghidra
 ---
 # Ghidra — Scriptable reverse engineering from the command line

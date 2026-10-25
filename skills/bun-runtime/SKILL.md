@@ -13,14 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/oven-sh/bun
   category: development
-  tags: ["bun", "javascript", "runtime", "bundler", "node-alternative"]
-  use-cases:
-    - "Speed up a Node.js project by switching to Bun as the runtime"
-    - "Bundle a TypeScript app with Bun's built-in bundler"
-    - "Run Jest-compatible tests faster with bun test"
-    - "Build a fast HTTP server with Bun.serve"
-    - "Use Bun as a drop-in npm/pnpm replacement"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "bun, javascript, runtime, bundler, node-alternative"
+  use-cases: "Speed up a Node.js project by switching to Bun as the runtime, Bundle a TypeScript app with Bun's built-in bundler, Run Jest-compatible tests faster with bun test, Build a fast HTTP server with Bun.serve, Use Bun as a drop-in npm/pnpm replacement"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Bun Runtime

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - postgres
-    - wasm
-    - browser
-    - embedded
-    - local-first
+  tags: "postgres, wasm, browser, embedded, local-first"
   repository: https://github.com/electric-sql/pglite
 ---
 

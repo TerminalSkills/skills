@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - devcontainers
-    - docker
-    - vscode
-    - codespaces
-    - reproducible
+  tags: "devcontainers, docker, vscode, codespaces, reproducible"
   repository: https://github.com/devcontainers/spec
 ---
 

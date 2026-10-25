@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/socketio/socket.io
-  tags:
-    - socketio
-    - websocket
-    - realtime
-    - chat
-    - events
+  tags: "socketio, websocket, realtime, chat, events"
 ---
 
 # Socket.IO

@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - llm-hosting
-    - open-source-models
-    - fine-tuning
-    - image-generation
-    - inference-api
+  tags: "llm-hosting, open-source-models, fine-tuning, image-generation, inference-api"
 ---
 
 # Together AI

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["property-based-testing", "python", "testing", "pytest", "fuzzing"]
+  tags: "property-based-testing, python, testing, pytest, fuzzing"
   repository: https://github.com/HypothesisWorks/hypothesis
 ---
 # Hypothesis — Property-based testing for Python

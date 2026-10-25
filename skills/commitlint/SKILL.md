@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/conventional-changelog/commitlint
-  tags:
-    - commitlint
-    - git
-    - conventional-commits
-    - ci
-    - changelog
+  tags: "commitlint, git, conventional-commits, ci, changelog"
 ---
 
 # commitlint

@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - aws
-    - step-functions
-    - workflow
-    - state-machine
-    - serverless
+  tags: "aws, step-functions, workflow, state-machine, serverless"
 ---
 
 # AWS Step Functions

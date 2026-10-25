@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["refactoring", "technical-design", "github-issues", "incremental-delivery", "code-quality"]
+  tags: "refactoring, technical-design, github-issues, incremental-delivery, code-quality"
 ---
 
 # Request Refactor Plan

@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["tauri", "desktop", "rust", "cross-platform", "webview"]
+  tags: "tauri, desktop, rust, cross-platform, webview"
   repository: https://github.com/tauri-apps/tauri
 ---
 

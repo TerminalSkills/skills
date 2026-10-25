@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/gradio-app/gradio
-  tags:
-    - ml-demos
-    - web-ui
-    - huggingface-spaces
-    - interactive
-    - prototyping
+  tags: "ml-demos, web-ui, huggingface-spaces, interactive, prototyping"
 ---
 
 # Gradio

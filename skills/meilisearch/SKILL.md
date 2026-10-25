@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/meilisearch/meilisearch
   category: development
-  tags:
-    - meilisearch
-    - search
-    - full-text
-    - autocomplete
-    - indexing
+  tags: "meilisearch, search, full-text, autocomplete, indexing"
 ---
 
 # Meilisearch

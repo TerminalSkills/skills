@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/resend/react-email
-  tags:
-    - email
-    - react
-    - components
-    - templates
-    - html
+  tags: "email, react, components, templates, html"
 ---
 
 # React Email

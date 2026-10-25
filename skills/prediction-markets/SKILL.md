@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - prediction-markets
-    - polymarket
-    - kalshi
-    - forecasting
-    - probability
+  tags: "prediction-markets, polymarket, kalshi, forecasting, probability"
 ---
 
 # Prediction Markets

@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   category: documents
   repository: https://github.com/py-pdf/pypdf
-  tags: ["pdf", "merge", "split", "combine", "pages"]
-  use-cases:
-    - "Merge multiple report PDFs into a single document for distribution"
-    - "Split a large PDF into individual chapters or page ranges"
-    - "Extract specific pages from a PDF to create a new document"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "pdf, merge, split, combine, pages"
+  use-cases: "Merge multiple report PDFs into a single document for distribution, Split a large PDF into individual chapters or page ranges, Extract specific pages from a PDF to create a new document"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # PDF Merge & Split

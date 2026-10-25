@@ -13,21 +13,9 @@ metadata:
   version: 1.1.0
   repository: https://github.com/Kaggle/kaggle-api
   category: data-ai
-  tags:
-    - fine-tuning
-    - kaggle
-    - llm
-    - peft
-    - lora
-  use-cases:
-    - Fine-tune a customer service chatbot using Kaggle conversation datasets
-    - Build domain-specific AI assistants from public datasets
-    - Prepare Kaggle data for LLM training with proper chat formatting
-  agents:
-    - claude-code
-    - openai-codex
-    - gemini-cli
-    - cursor
+  tags: "fine-tuning, kaggle, llm, peft, lora"
+  use-cases: "Fine-tune a customer service chatbot using Kaggle conversation datasets, Build domain-specific AI assistants from public datasets, Prepare Kaggle data for LLM training with proper chat formatting"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Kaggle Fine-Tuning Workflow

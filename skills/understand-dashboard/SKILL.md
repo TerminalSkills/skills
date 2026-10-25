@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["knowledge-graph", "visualization", "dashboard", "architecture", "understand-anything"]
+  tags: "knowledge-graph, visualization, dashboard, architecture, understand-anything"
   repository: https://github.com/Egonex-AI/Understand-Anything
 ---
 

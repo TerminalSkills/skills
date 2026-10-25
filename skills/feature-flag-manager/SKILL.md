@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["feature-flags", "rollout", "experimentation", "deployment"]
+  tags: "feature-flags, rollout, experimentation, deployment"
 ---
 
 # Feature Flag Manager

@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/plotly/plotly.py
-  tags: ["charts", "interactive", "python", "javascript", "dashboard"]
+  tags: "charts, interactive, python, javascript, dashboard"
 ---
 # Plotly — Interactive Scientific Visualization
 

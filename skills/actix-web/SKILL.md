@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/actix/actix-web
-  tags:
-    - rust
-    - web
-    - api
-    - async
-    - performance
+  tags: "rust, web, api, async, performance"
 ---
 
 # Actix Web

@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [sales, pricing, value-based, conversion, negotiation]
-  use-cases:
-    - "Price a B2B SaaS product based on value delivered, not cost"
-    - "Identify and remove the top 5 barriers preventing customers from buying"
-    - "Create a sales process that educates prospects instead of pressuring them"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "sales, pricing, value-based, conversion, negotiation"
+  use-cases: "Price a B2B SaaS product based on value delivered, not cost, Identify and remove the top 5 barriers preventing customers from buying, Create a sales process that educates prospects instead of pressuring them"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Value-Based Selling

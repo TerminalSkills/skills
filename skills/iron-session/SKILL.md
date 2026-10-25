@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: [iron-session, sessions, nextjs, cookies, auth]
+  tags: "iron-session, sessions, nextjs, cookies, auth"
   repository: https://github.com/vvo/iron-session
 ---
 

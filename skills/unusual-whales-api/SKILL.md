@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - finance
-    - options
-    - trading
-    - dark-pool
-    - market-data
+  tags: "finance, options, trading, dark-pool, market-data"
 ---
 
 # Unusual Whales API

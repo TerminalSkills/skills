@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: content
-  tags: ["sanity", "cms", "groq", "headless-cms", "nextjs"]
+  tags: "sanity, cms, groq, headless-cms, nextjs"
   repository: https://github.com/sanity-io/sanity
 ---
 

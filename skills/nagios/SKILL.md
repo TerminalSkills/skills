@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/NagiosEnterprises/nagioscore
-  tags: ["nagios", "infrastructure-monitoring", "checks", "notifications", "plugins"]
+  tags: "nagios, infrastructure-monitoring, checks, notifications, plugins"
 ---
 
 # Nagios

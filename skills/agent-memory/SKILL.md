@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["memory", "embeddings", "vector-search", "context", "rag"]
+  tags: "memory, embeddings, vector-search, context, rag"
 ---
 
 # Agent Memory

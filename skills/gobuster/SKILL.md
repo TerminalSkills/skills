@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/OJ/gobuster
-  tags: ["gobuster", "directory-bruteforce", "subdomain-enumeration", "penetration-testing", "content-discovery"]
+  tags: "gobuster, directory-bruteforce, subdomain-enumeration, penetration-testing, content-discovery"
 ---
 
 # Gobuster

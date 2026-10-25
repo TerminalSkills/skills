@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: content
   repository: https://github.com/keystonejs/keystone
-  tags:
-  - cms
-  - headless-cms
-  - graphql
-  - admin-ui
-  - database
+  tags: "cms, headless-cms, graphql, admin-ui, database"
 ---
 
 # KeystoneJS — Headless CMS & Application Framework

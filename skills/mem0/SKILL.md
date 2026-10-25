@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - memory
-    - ai-agents
-    - personalization
-    - rag
-    - long-term-memory
+  tags: "memory, ai-agents, personalization, rag, long-term-memory"
   repository: https://github.com/mem0ai/mem0
 ---
 

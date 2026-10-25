@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - github-actions
-    - cicd
-    - automation
-    - testing
-    - deployment
+  tags: "github-actions, cicd, automation, testing, deployment"
   repository: https://github.com/actions
 ---
 

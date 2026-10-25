@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["deployment", "docker", "vps", "kamal", "zero-downtime"]
+  tags: "deployment, docker, vps, kamal, zero-downtime"
   repository: https://github.com/basecamp/kamal
 ---
 

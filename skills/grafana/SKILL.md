@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/grafana/grafana
-  tags:
-    - visualization
-    - dashboarding
-    - monitoring
-    - alerting
-    - observability
+  tags: "visualization, dashboarding, monitoring, alerting, observability"
 ---
 
 # Grafana

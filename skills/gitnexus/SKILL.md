@@ -16,12 +16,9 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/abhigyanpatwari/GitNexus
-  tags: [knowledge-graph, code-analysis, graph-rag, mcp, ai-agents]
-  use-cases:
-    - "Index a repository and give an AI agent MCP tools for impact analysis"
-    - "Find every caller and execution flow affected before changing a function"
-    - "Query a codebase's call graph with Cypher from the terminal"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "knowledge-graph, code-analysis, graph-rag, mcp, ai-agents"
+  use-cases: "Index a repository and give an AI agent MCP tools for impact analysis, Find every caller and execution flow affected before changing a function, Query a codebase's call graph with Cypher from the terminal"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # GitNexus

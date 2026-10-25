@@ -10,11 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - azure
-    - functions
-    - serverless
-    - durable-functions
+  tags: "azure, functions, serverless, durable-functions"
 ---
 
 # Azure Functions

@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/zed-industries/zed
-  tags:
-  - editor
-  - ide
-  - collaboration
-  - rust
-  - performance
+  tags: "editor, ide, collaboration, rust, performance"
 ---
 
 # Zed — High-Performance Code Editor

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["blender", "motion-capture", "tracking", "mocap", "animation"]
+  tags: "blender, motion-capture, tracking, mocap, animation"
   repository: https://projects.blender.org/blender/blender
 ---
 

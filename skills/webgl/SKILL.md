@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["webgl", "3d", "shaders", "glsl", "gpu"]
+  tags: "webgl, 3d, shaders, glsl, gpu"
   repository: https://github.com/KhronosGroup/WebGL
 ---
 

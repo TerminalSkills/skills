@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - webassembly
-    - performance
-    - browser
-    - rust
-    - wasi
+  tags: "webassembly, performance, browser, rust, wasi"
 ---
 
 # WebAssembly (WASM)

@@ -11,12 +11,7 @@ metadata:
   repository: https://github.com/apache/superset
   version: 1.1.0
   category: data-ai
-  tags:
-    - superset
-    - apache-superset
-    - business-intelligence
-    - dashboards
-    - docker
+  tags: "superset, apache-superset, business-intelligence, dashboards, docker"
 ---
 
 # Superset

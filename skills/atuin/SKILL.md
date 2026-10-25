@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["shell", "history", "sync", "search", "terminal"]
+  tags: "shell, history, sync, search, terminal"
   repository: https://github.com/atuinsh/atuin
 ---
 

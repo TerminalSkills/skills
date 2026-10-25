@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["agent-skills", "audit", "workflow-analysis", "claude-code", "developer-experience"]
+  tags: "agent-skills, audit, workflow-analysis, claude-code, developer-experience"
 ---
 
 # Project Skill Audit

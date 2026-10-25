@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/vanhauser-thc/thc-hydra
-  tags:
-    - hydra
-    - brute-force
-    - credential-testing
-    - penetration-testing
-    - password-spraying
+  tags: "hydra, brute-force, credential-testing, penetration-testing, password-spraying"
 ---
 
 # THC Hydra

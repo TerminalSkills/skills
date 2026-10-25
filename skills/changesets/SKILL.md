@@ -11,7 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/changesets/changesets
   category: development
-  tags: ["changesets", "versioning", "changelog", "monorepo", "npm"]
+  tags: "changesets, versioning, changelog, monorepo, npm"
 ---
 
 # Changesets

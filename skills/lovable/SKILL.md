@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ai-coding
-    - full-stack
-    - prototyping
-    - vibe-coding
-    - no-code
+  tags: "ai-coding, full-stack, prototyping, vibe-coding, no-code"
 ---
 
 # Lovable — AI Full-Stack App Generator

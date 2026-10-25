@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["tilda", "website-builder", "no-code", "landing-page", "ecommerce"]
+  tags: "tilda, website-builder, no-code, landing-page, ecommerce"
 ---
 
 # Tilda Publishing

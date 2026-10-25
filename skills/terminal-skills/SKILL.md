@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["meta", "discovery", "cli", "skills", "registry"]
+  tags: "meta, discovery, cli, skills, registry"
   repository: https://github.com/TerminalSkills/skills
 ---
 

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - facebook
-    - social-media
-    - ads
-    - groups
-    - marketing
+  tags: "facebook, social-media, ads, groups, marketing"
 ---
 
 # Facebook Marketing

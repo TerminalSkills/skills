@@ -12,13 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [passive-recon, whois, dns, google-dorks, wayback]
-  use-cases:
-    - "Profile a target domain without sending traffic to its servers"
-    - "Find subdomains through certificate transparency logs"
-    - "Recover old URLs and endpoints from the Wayback Machine"
-    - "Build a WHOIS and infrastructure profile before a pentest"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "passive-recon, whois, dns, google-dorks, wayback"
+  use-cases: "Profile a target domain without sending traffic to its servers, Find subdomains through certificate transparency logs, Recover old URLs and endpoints from the Wayback Machine, Build a WHOIS and infrastructure profile before a pentest"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Passive Reconnaissance

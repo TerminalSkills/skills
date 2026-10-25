@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/go-chi/chi
-  tags: ["go", "router", "http", "middleware", "rest-api"]
+  tags: "go, router, http, middleware, rest-api"
 ---
 
 # Chi - Lightweight Go HTTP Router

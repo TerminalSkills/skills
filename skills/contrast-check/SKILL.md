@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: design
-  tags: ["accessibility", "wcag", "color-contrast", "design-tokens", "a11y"]
+  tags: "accessibility, wcag, color-contrast, design-tokens, a11y"
 ---
 
 # Contrast Check

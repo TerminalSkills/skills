@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["scraping", "firecrawl", "llm", "rag", "markdown"]
+  tags: "scraping, firecrawl, llm, rag, markdown"
   repository: "https://github.com/firecrawl/firecrawl"
 ---
 

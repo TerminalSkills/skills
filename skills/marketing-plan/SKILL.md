@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["marketing", "go-to-market", "channel-strategy", "budgeting", "small-business"]
+  tags: "marketing, go-to-market, channel-strategy, budgeting, small-business"
 ---
 
 # Marketing Plan

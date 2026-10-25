@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["nda", "legal", "confidentiality", "agreement", "business"]
-  use-cases:
-    - "Generate a mutual NDA before sharing proprietary information with a partner"
-    - "Create an employee confidentiality agreement for new hires"
-    - "Draft a unilateral NDA for a consultant engagement"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "nda, legal, confidentiality, agreement, business"
+  use-cases: "Generate a mutual NDA before sharing proprietary information with a partner, Create an employee confidentiality agreement for new hires, Draft a unilateral NDA for a consultant engagement"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # NDA Generator

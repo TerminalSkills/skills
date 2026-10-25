@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pallets/flask
-  tags:
-    - python
-    - web
-    - micro
-    - api
-    - jinja2
+  tags: "python, web, micro, api, jinja2"
 ---
 
 # Flask

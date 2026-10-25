@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/sqlalchemy/alembic
-  tags:
-    - alembic
-    - migrations
-    - sqlalchemy
-    - database
-    - schema
+  tags: "alembic, migrations, sqlalchemy, database, schema"
 ---
 
 # Alembic

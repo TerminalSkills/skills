@@ -14,11 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - appwrite
-    - backend
-    - auth
-    - database
+  tags: "appwrite, backend, auth, database"
 ---
 
 # Appwrite

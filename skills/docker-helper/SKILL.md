@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["docker", "containers", "dockerfile", "compose", "devops"]
+  tags: "docker, containers, dockerfile, compose, devops"
   repository: https://github.com/docker/cli
 ---
 

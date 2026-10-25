@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-  - canvas
-  - whiteboard
-  - drawing
-  - collaboration
-  - react
+  tags: "canvas, whiteboard, drawing, collaboration, react"
   repository: https://github.com/tldraw/tldraw
 ---
 

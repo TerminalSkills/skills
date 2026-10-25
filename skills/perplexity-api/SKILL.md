@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: data-ai
-  tags: ["perplexity", "web-search", "llm", "real-time", "citations"]
-  use-cases:
-    - "Build a research assistant that cites current web sources"
-    - "Fact-check content against up-to-date web information"
-    - "Answer questions about recent news, events, or product updates"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "perplexity, web-search, llm, real-time, citations"
+  use-cases: "Build a research assistant that cites current web sources, Fact-check content against up-to-date web information, Answer questions about recent news, events, or product updates"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Perplexity API

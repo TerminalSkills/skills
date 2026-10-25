@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["renovate", "dependencies", "automation", "security", "devops"]
+  tags: "renovate, dependencies, automation, security, devops"
   repository: https://github.com/renovatebot/renovate
 ---
 

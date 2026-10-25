@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: content
   repository: https://github.com/strapi/strapi
-  tags:
-    - headless-cms
-    - api
-    - content
-    - self-hosted
-    - rest
+  tags: "headless-cms, api, content, self-hosted, rest"
 ---
 
 # Strapi — Open-Source Headless CMS

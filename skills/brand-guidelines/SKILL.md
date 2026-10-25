@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["branding", "style-guide", "visual-identity", "design-system", "typography"]
-  use-cases:
-    - "Create comprehensive brand guidelines from scratch for a new product or company"
-    - "Document existing brand identity into a shareable style guide"
-    - "Define color palettes, typography scales, and visual standards"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "branding, style-guide, visual-identity, design-system, typography"
+  use-cases: "Create comprehensive brand guidelines from scratch for a new product or company, Document existing brand identity into a shareable style guide, Define color palettes, typography scales, and visual standards"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Brand Guidelines

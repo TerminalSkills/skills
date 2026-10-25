@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-  - graphql
-  - postgres
-  - api
-  - real-time
-  - permissions
+  tags: "graphql, postgres, api, real-time, permissions"
   repository: https://github.com/hasura/graphql-engine
 ---
 

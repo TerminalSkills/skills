@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: [agents, multi-agent, orchestration, collaboration, squad]
+  tags: "agents, multi-agent, orchestration, collaboration, squad"
   repository: https://github.com/bradygaster/squad
 ---
 

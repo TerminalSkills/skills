@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/modal-labs/modal-client"
   category: data-ai
-  tags:
-    - serverless
-    - gpu-compute
-    - model-serving
-    - cloud
-    - inference
+  tags: "serverless, gpu-compute, model-serving, cloud, inference"
 ---
 
 # Modal

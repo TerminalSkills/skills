@@ -8,12 +8,7 @@ metadata:
   repository: https://github.com/open-policy-agent/opa
   version: 1.1.0
   category: devops
-  tags:
-  - policy
-  - authorization
-  - kubernetes
-  - admission-control
-  - rego
+  tags: "policy, authorization, kubernetes, admission-control, rego"
 ---
 
 # OPA — Open Policy Agent

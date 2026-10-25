@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags:
-    - browser
-    - automation
-    - agent
-    - scraping
-    - python
+  tags: "browser, automation, agent, scraping, python"
   repository: https://github.com/browser-use/browser-use
 ---
 

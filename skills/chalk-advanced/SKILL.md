@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/chalk/chalk
-  tags: ["chalk", "cli", "terminal", "colors", "formatting"]
+  tags: "chalk, cli, terminal, colors, formatting"
 ---
 
 # Chalk

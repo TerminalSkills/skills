@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - cron
-    - scheduling
-    - automation
-    - linux
-    - tasks
+  tags: "cron, scheduling, automation, linux, tasks"
 ---
 
 # cron

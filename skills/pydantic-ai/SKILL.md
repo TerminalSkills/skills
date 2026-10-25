@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["agent", "pydantic", "python", "structured-output", "tools"]
+  tags: "agent, pydantic, python, structured-output, tools"
   repository: https://github.com/pydantic/pydantic-ai
 ---
 

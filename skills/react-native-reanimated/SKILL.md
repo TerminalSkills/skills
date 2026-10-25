@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["react-native", "animation", "reanimated", "gestures", "ui"]
+  tags: "react-native, animation, reanimated, gestures, ui"
   repository: https://github.com/software-mansion/react-native-reanimated
 ---
 

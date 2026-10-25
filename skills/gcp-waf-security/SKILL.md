@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - security
-    - zero-trust
-    - well-architected
-    - compliance
+  tags: "gcp, security, zero-trust, well-architected, compliance"
 ---
 
 # GCP Well-Architected Framework — Security

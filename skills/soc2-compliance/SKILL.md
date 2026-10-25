@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["soc2", "compliance", "saas", "audit", "trust-services"]
-  use-cases:
-    - "Implement SOC 2 controls for a B2B SaaS product"
-    - "Prepare evidence for a SOC 2 Type II audit"
-    - "Set up automated compliance monitoring with Vanta or Drata"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "soc2, compliance, saas, audit, trust-services"
+  use-cases: "Implement SOC 2 controls for a B2B SaaS product, Prepare evidence for a SOC 2 Type II audit, Set up automated compliance monitoring with Vanta or Drata"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # SOC 2 Compliance

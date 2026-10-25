@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - 3d
-    - webgl
-    - react
-    - threejs
-    - r3f
+  tags: "3d, webgl, react, threejs, r3f"
   repository: https://github.com/pmndrs/react-three-fiber
 ---
 

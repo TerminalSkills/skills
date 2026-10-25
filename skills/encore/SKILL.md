@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/encoredev/encore
-  tags: ["backend", "encore", "framework", "infrastructure", "type-safe"]
+  tags: "backend, encore, framework, infrastructure, type-safe"
 ---
 
 # Encore

@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/starship/starship
-  tags:
-    - terminal
-    - prompt
-    - shell
-    - customization
-    - cross-shell
+  tags: "terminal, prompt, shell, customization, cross-shell"
 ---
 
 # Starship — Cross-Shell Prompt

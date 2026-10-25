@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["dns", "domain", "email-authentication", "infrastructure"]
+  tags: "dns, domain, email-authentication, infrastructure"
 ---
 
 # DNS Record Analyzer

@@ -12,7 +12,7 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/vitejs/vite
   category: development
-  tags: ["vite", "build-tool", "bundler", "frontend", "hmr"]
+  tags: "vite, build-tool, bundler, frontend, hmr"
 ---
 
 # Vite

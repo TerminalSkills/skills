@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/google-research/timesfm"
   category: data-ai
-  tags: ["forecasting", "time-series", "google-research"]
+  tags: "forecasting, time-series, google-research"
 ---
 
 # TimesFM

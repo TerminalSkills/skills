@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/dagger/dagger
   category: devops
-  tags: ["ci-cd", "containers", "pipelines", "dagger", "docker"]
+  tags: "ci-cd, containers, pipelines, dagger, docker"
 ---
 
 # Dagger

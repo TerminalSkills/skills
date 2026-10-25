@@ -9,12 +9,7 @@ metadata:
   repository: https://github.com/github/copilot-cli
   version: 1.1.0
   category: development
-  tags:
-    - ai
-    - copilot
-    - code-completion
-    - vscode
-    - cli
+  tags: "ai, copilot, code-completion, vscode, cli"
 ---
 
 # GitHub Copilot — AI Pair Programming

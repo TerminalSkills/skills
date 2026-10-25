@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - animation
-    - react
-    - motion
-    - transitions
-    - gestures
+  tags: "animation, react, motion, transitions, gestures"
   repository: https://github.com/motiondivision/motion
 ---
 

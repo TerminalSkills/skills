@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/godotengine/godot
-  tags:
-    - game-engine
-    - gdscript
-    - 2d
-    - 3d
-    - cross-platform
+  tags: "game-engine, gdscript, 2d, 3d, cross-platform"
 ---
 
 # Godot Engine — Open-Source Game Engine

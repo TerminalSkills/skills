@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: ["playwright", "mcp", "browser-automation", "accessibility-snapshot", "web-testing"]
+  tags: "playwright, mcp, browser-automation, accessibility-snapshot, web-testing"
   repository: https://github.com/microsoft/playwright-mcp
 ---
 # Playwright MCP — Browser control for AI agents through accessibility snapshots

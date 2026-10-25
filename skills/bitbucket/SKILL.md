@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - bitbucket
-    - atlassian
-    - git
-    - ci-cd
-    - pipelines
+  tags: "bitbucket, atlassian, git, ci-cd, pipelines"
 ---
 
 # Bitbucket

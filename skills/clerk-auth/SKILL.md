@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags: ["clerk", "authentication", "nextjs", "react", "rbac"]
+  tags: "clerk, authentication, nextjs, react, rbac"
   repository: https://github.com/clerk/javascript
 ---
 

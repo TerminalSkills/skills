@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["blender", "grease-pencil", "2d-animation", "drawing", "strokes"]
+  tags: "blender, grease-pencil, 2d-animation, drawing, strokes"
   repository: https://projects.blender.org/blender/blender
 ---
 

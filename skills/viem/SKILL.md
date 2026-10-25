@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ethereum
-    - typescript
-    - web3
-    - smart-contracts
-    - wagmi
+  tags: "ethereum, typescript, web3, smart-contracts, wagmi"
   repository: https://github.com/wevm/viem
 ---
 

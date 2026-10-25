@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/mistralai/client-python
-  tags: ["mistral", "llm", "european-ai", "gdpr", "code-generation"]
-  use-cases:
-    - "Generate code completions and fill-in-the-middle with Codestral"
-    - "Run GDPR-compliant AI workloads with EU data residency"
-    - "Build multilingual NLP pipelines with strong French/European language support"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "mistral, llm, european-ai, gdpr, code-generation"
+  use-cases: "Generate code completions and fill-in-the-middle with Codestral, Run GDPR-compliant AI workloads with EU data residency, Build multilingual NLP pipelines with strong French/European language support"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Mistral AI API

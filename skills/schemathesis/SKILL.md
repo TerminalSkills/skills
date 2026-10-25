@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - api-testing
-    - fuzzing
-    - openapi
-    - graphql
-    - security
+  tags: "api-testing, fuzzing, openapi, graphql, security"
   repository: https://github.com/schemathesis/schemathesis
 ---
 

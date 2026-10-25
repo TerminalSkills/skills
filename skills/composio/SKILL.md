@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: automation
   repository: https://github.com/ComposioHQ/composio
-  tags: ["agent", "tools", "integrations", "oauth", "composio"]
+  tags: "agent, tools, integrations, oauth, composio"
 ---
 
 # Composio — Tool Platform for AI Agents

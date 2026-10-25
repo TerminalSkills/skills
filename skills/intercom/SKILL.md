@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["intercom", "chat", "support", "onboarding", "messaging"]
+  tags: "intercom, chat, support, onboarding, messaging"
 ---
 
 # Intercom

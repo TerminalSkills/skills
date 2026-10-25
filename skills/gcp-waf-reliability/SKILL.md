@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - reliability
-    - sre
-    - well-architected
-    - slo
+  tags: "gcp, reliability, sre, well-architected, slo"
 ---
 
 # GCP Well-Architected Framework — Reliability

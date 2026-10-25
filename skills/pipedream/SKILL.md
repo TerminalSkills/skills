@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/PipedreamHQ/pipedream
   category: automation
-  tags:
-    - pipedream
-    - workflow
-    - automation
-    - webhooks
-    - integration
+  tags: "pipedream, workflow, automation, webhooks, integration"
 ---
 
 # Pipedream — Developer-First Workflow Automation

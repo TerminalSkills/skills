@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/ziglang/zig
-  tags:
-  - zig
-  - systems
-  - performance
-  - c-interop
-  - comptime
+  tags: "zig, systems, performance, c-interop, comptime"
 ---
 
 # Zig — Modern Systems Programming Language

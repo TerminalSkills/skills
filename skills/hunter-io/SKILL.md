@@ -8,13 +8,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [hunter, email, recon, lead-generation, email-verification]
-  use-cases:
-    - "Find all publicly known email addresses for a target company domain"
-    - "Discover the email naming convention used by a company"
-    - "Verify that an email address is deliverable before sending outreach"
-    - "Enrich a prospect list with work emails for a sales campaign"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "hunter, email, recon, lead-generation, email-verification"
+  use-cases: "Find all publicly known email addresses for a target company domain, Discover the email naming convention used by a company, Verify that an email address is deliverable before sending outreach, Enrich a prospect list with work emails for a sales campaign"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Hunter.io

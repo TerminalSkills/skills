@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: content
-  tags: ["markdown", "documentation", "writing", "readme", "technical-writing"]
+  tags: "markdown, documentation, writing, readme, technical-writing"
 ---
 
 # Markdown Writer

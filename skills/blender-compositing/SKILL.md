@@ -16,7 +16,7 @@ metadata:
   version: "1.1.0"
   category: automation
   repository: https://projects.blender.org/blender/blender
-  tags: ["blender", "compositing", "vfx", "post-processing", "nodes"]
+  tags: "blender, compositing, vfx, post-processing, nodes"
 ---
 
 # Blender Compositing

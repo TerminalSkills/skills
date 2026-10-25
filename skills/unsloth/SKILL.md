@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["fine-tuning", "qlora", "llm-training", "gguf", "unsloth"]
+  tags: "fine-tuning, qlora, llm-training, gguf, unsloth"
   repository: https://github.com/unslothai/unsloth
 ---
 

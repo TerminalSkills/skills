@@ -8,12 +8,9 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: data-ai
-  tags: ["dalle", "openai", "gpt-image", "image-generation", "image-editing"]
-  use-cases:
-    - "Generate product visuals from text descriptions for e-commerce listings"
-    - "Edit an existing image by replacing a region using a mask"
-    - "Migrate dall-e-3 code to the gpt-image models"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "dalle, openai, gpt-image, image-generation, image-editing"
+  use-cases: "Generate product visuals from text descriptions for e-commerce listings, Edit an existing image by replacing a region using a mask, Migrate dall-e-3 code to the gpt-image models"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # DALL-E API (gpt-image models)

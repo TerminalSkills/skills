@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["swiftui", "liquid-glass", "ios", "design-system", "glasseffect"]
+  tags: "swiftui, liquid-glass, ios, design-system, glasseffect"
 ---
 
 # SwiftUI Liquid Glass

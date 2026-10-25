@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: "https://github.com/figma/rest-api-spec"
-  tags: ["figma", "api", "design-tokens", "export", "components"]
+  tags: "figma, api, design-tokens, export, components"
 ---
 
 # Figma API

@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["prd", "github-issues", "backlog", "work-breakdown", "gh-cli"]
+  tags: "prd, github-issues, backlog, work-breakdown, gh-cli"
 ---
 
 # PRD to Issues

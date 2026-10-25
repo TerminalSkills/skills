@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/remotion-dev/remotion
   category: automation
-  tags: ["remotion", "video", "react", "animation", "rendering"]
-  use-cases:
-    - "Generate personalized marketing videos at scale"
-    - "Create animated data visualizations as video"
-    - "Add TikTok-style animated captions to videos"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "remotion, video, react, animation, rendering"
+  use-cases: "Generate personalized marketing videos at scale, Create animated data visualizations as video, Add TikTok-style animated captions to videos"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Remotion Video Toolkit

@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/louislam/uptime-kuma
-  tags: ["uptime-kuma", "monitoring", "alerts", "status-page", "uptime"]
+  tags: "uptime-kuma, monitoring, alerts, status-page, uptime"
 ---
 
 # Uptime Kuma

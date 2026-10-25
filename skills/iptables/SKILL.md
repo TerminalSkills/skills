@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://git.netfilter.org/nftables
-  tags:
-    - iptables
-    - firewall
-    - nftables
-    - security
-    - networking
+  tags: "iptables, firewall, nftables, security, networking"
 ---
 
 # iptables / nftables

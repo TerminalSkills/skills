@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: devops
-  tags: ["claude-code", "git", "hooks", "safety", "guardrails"]
+  tags: "claude-code, git, hooks, safety, guardrails"
 ---
 
 # Git Guardrails for Claude Code

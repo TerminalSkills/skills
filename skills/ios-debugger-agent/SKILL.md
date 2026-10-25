@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["ios", "simulator", "debugging", "xcode", "lldb"]
+  tags: "ios, simulator, debugging, xcode, lldb"
 ---
 
 # iOS Debugger Agent

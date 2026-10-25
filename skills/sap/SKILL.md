@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - sap
-    - erp
-    - s4hana
-    - odata
-    - btp
+  tags: "sap, erp, s4hana, odata, btp"
 ---
 
 # SAP

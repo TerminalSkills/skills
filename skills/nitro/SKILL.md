@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/nitrojs/nitro
-  tags: ["server", "api", "edge", "universal", "nitro"]
+  tags: "server, api, edge, universal, nitro"
 ---
 
 # Nitro

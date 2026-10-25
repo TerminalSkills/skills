@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - uptime
-    - monitoring
-    - status-page
-    - alerts
-    - availability
+  tags: "uptime, monitoring, status-page, alerts, availability"
 ---
 
 # UptimeRobot

@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/nuxt/nuxt
-  tags:
-    - vue
-    - nuxt
-    - ssr
-    - fullstack
-    - nitro
+  tags: "vue, nuxt, ssr, fullstack, nitro"
 ---
 
 # Nuxt

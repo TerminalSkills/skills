@@ -14,7 +14,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/TryGhost/Ghost
   category: content
-  tags: ["cms", "blog", "newsletter", "membership", "self-hosted"]
+  tags: "cms, blog, newsletter, membership, self-hosted"
 ---
 
 # Ghost — Professional Publishing Platform

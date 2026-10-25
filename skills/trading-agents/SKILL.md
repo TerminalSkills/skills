@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/TauricResearch/TradingAgents
-  tags: [trading, finance, multi-agent, llm, analysis]
+  tags: "trading, finance, multi-agent, llm, analysis"
 ---
 
 # TradingAgents — Multi-Agent LLM Financial Trading Framework

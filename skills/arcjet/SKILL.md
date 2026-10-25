@@ -8,12 +8,7 @@ metadata:
   repository: https://github.com/arcjet/arcjet-js
   version: 1.1.0
   category: development
-  tags:
-  - rate-limiting
-  - bot-protection
-  - security
-  - waf
-  - email-validation
+  tags: "rate-limiting, bot-protection, security, waf, email-validation"
 ---
 
 # Arcjet — Application Security Layer

@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - nikto
-    - web-server
-    - vulnerability-scanner
-    - penetration-testing
-    - misconfiguration
+  tags: "nikto, web-server, vulnerability-scanner, penetration-testing, misconfiguration"
   repository: https://github.com/sullo/nikto
 ---
 

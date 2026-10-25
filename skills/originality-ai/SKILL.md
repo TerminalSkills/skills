@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["ai-detection", "plagiarism", "originality", "content-moderation", "seo"]
+  tags: "ai-detection, plagiarism, originality, content-moderation, seo"
 ---
 
 # Originality.ai API Integration

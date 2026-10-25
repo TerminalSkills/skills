@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/falcosecurity/falco
-  tags:
-  - runtime-security
-  - kubernetes
-  - containers
-  - threat-detection
-  - ebpf
+  tags: "runtime-security, kubernetes, containers, threat-detection, ebpf"
 ---
 
 # Falco — Runtime Threat Detection

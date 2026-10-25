@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["frontend", "ui-design", "landing-pages", "dashboards", "design-system"]
-  use-cases:
-    - "Design and implement modern landing pages with hero sections and CTAs"
-    - "Create dashboard layouts with data visualization and navigation"
-    - "Build responsive, accessible UI components with clean styling"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "frontend, ui-design, landing-pages, dashboards, design-system"
+  use-cases: "Design and implement modern landing pages with hero sections and CTAs, Create dashboard layouts with data visualization and navigation, Build responsive, accessible UI components with clean styling"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Frontend Design

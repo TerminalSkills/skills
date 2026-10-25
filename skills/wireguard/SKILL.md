@@ -14,12 +14,7 @@ metadata:
   repository: https://git.zx2c4.com/wireguard-tools
   version: 1.1.0
   category: devops
-  tags:
-    - wireguard
-    - vpn
-    - networking
-    - tunneling
-    - security
+  tags: "wireguard, vpn, networking, tunneling, security"
 ---
 
 # WireGuard

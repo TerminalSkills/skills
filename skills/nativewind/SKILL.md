@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/nativewind/nativewind
   category: development
-  tags: ["tailwind", "react-native", "styling", "nativewind", "mobile"]
+  tags: "tailwind, react-native, styling, nativewind, mobile"
 ---
 
 # NativeWind

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: [git, worktree, parallel-agents, cli, workflow]
+  tags: "git, worktree, parallel-agents, cli, workflow"
   repository: https://github.com/max-sixty/worktrunk
 ---
 

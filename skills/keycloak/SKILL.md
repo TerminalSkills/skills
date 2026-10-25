@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - identity
-    - authentication
-    - sso
-    - oidc
-    - self-hosted
+  tags: "identity, authentication, sso, oidc, self-hosted"
   repository: https://github.com/keycloak/keycloak
 ---
 

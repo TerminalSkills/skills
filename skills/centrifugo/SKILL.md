@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/centrifugal/centrifugo
   category: development
-  tags:
-    - websocket
-    - realtime
-    - pubsub
-    - messaging
-    - centrifugo
+  tags: "websocket, realtime, pubsub, messaging, centrifugo"
 ---
 
 # Centrifugo — Scalable Real-Time Messaging Server

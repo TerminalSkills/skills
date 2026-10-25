@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - aws
-    - cloudfront
-    - cdn
-    - caching
-    - lambda-edge
+  tags: "aws, cloudfront, cdn, caching, lambda-edge"
 ---
 
 # AWS CloudFront

@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: [ai-agents, messaging, slack, telegram, bridge]
+  tags: "ai-agents, messaging, slack, telegram, bridge"
 ---
 
 # CC-Connect

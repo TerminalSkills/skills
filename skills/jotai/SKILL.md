@@ -14,10 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pmndrs/jotai
-  tags:
-    - react
-    - state-management
-    - typescript
+  tags: "react, state-management, typescript"
 ---
 
 # Jotai — Atomic State Management for React

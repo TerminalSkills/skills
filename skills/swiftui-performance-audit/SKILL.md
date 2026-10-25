@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["swiftui", "performance", "instruments", "profiling", "ios"]
+  tags: "swiftui, performance, instruments, profiling, ios"
 ---
 
 # SwiftUI Performance Audit

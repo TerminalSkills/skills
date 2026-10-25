@@ -15,11 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/cucumber/cucumber-js
-  tags:
-    - bdd
-    - gherkin
-    - acceptance-testing
-    - step-definitions
+  tags: "bdd, gherkin, acceptance-testing, step-definitions"
 ---
 
 # Cucumber

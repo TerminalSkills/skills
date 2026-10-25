@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["google", "indexing", "seo", "search-console", "sitemap"]
+  tags: "google, indexing, seo, search-console, sitemap"
 ---
 
 # Google Indexing

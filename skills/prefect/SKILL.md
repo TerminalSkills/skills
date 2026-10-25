@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["prefect", "workflow-orchestration", "python", "data-pipeline", "scheduling"]
+  tags: "prefect, workflow-orchestration, python, data-pipeline, scheduling"
   repository: https://github.com/PrefectHQ/prefect
 ---
 

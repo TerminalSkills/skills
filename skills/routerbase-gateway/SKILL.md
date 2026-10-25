@@ -12,7 +12,7 @@ metadata:
   author: zenlee123
   version: "1.1.0"
   category: data-ai
-  tags: ["routerbase", "openai-compatible", "model-routing", "llm", "media-generation"]
+  tags: "routerbase, openai-compatible, model-routing, llm, media-generation"
 ---
 
 # RouterBase Gateway

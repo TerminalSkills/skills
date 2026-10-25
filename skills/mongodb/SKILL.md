@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/mongodb/mongo
   category: data-ai
-  tags: ["mongodb", "nosql", "document-database", "aggregation", "atlas"]
+  tags: "mongodb, nosql, document-database, aggregation, atlas"
 ---
 
 # MongoDB

@@ -11,13 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["github", "pull-requests", "issues", "ci-cd", "git"]
+  tags: "github, pull-requests, issues, ci-cd, git"
   repository: https://github.com/cli/cli
-  use-cases:
-    - "Create and manage GitHub issues and pull requests from the terminal"
-    - "Monitor CI/CD pipeline status and troubleshoot failures"
-    - "Search and query across repositories, issues, and PRs"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Create and manage GitHub issues and pull requests from the terminal, Monitor CI/CD pipeline status and troubleshoot failures, Search and query across repositories, issues, and PRs"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # GitHub

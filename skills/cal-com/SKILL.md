@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/calcom/cal.com
-  tags:
-  - scheduling
-  - calendar
-  - booking
-  - webhooks
-  - api
+  tags: "scheduling, calendar, booking, webhooks, api"
 ---
 
 # Cal.com — Scheduling Infrastructure

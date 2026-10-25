@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["bug-triage", "github-issues", "root-cause-analysis", "debugging", "git-bisect"]
+  tags: "bug-triage, github-issues, root-cause-analysis, debugging, git-bisect"
 ---
 
 # Triage Issue

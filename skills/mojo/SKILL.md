@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/modular/modular
-  tags: ["mojo", "modular", "python", "simd", "performance"]
+  tags: "mojo, modular, python, simd, performance"
 ---
 
 # Mojo

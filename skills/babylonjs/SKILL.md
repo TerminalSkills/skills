@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: design
   repository: https://github.com/BabylonJS/Babylon.js
-  tags:
-    - 3d
-    - game-engine
-    - webgl
-    - webgpu
-    - physics
+  tags: "3d, game-engine, webgl, webgpu, physics"
 ---
 
 # Babylon.js — Professional 3D Engine for the Web

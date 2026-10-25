@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/ultralytics/ultralytics
   category: data-ai
-  tags: ["computer-vision", "yolo", "segmentation", "detection", "tensorrt"]
-  use-cases:
-    - "Detect and count objects in images or video streams"
-    - "Segment images with SAM or Mask R-CNN"
-    - "Deploy optimized vision models with TensorRT for production"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "computer-vision, yolo, segmentation, detection, tensorrt"
+  use-cases: "Detect and count objects in images or video streams, Segment images with SAM or Mask R-CNN, Deploy optimized vision models with TensorRT for production"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Senior Computer Vision

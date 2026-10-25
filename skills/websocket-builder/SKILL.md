@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["websocket", "real-time", "backend", "chat"]
+  tags: "websocket, real-time, backend, chat"
 ---
 
 # WebSocket Builder

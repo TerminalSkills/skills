@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ssrf
-    - web-security
-    - secure-coding
-    - owasp
-    - cloud-security
+  tags: "ssrf, web-security, secure-coding, owasp, cloud-security"
 ---
 
 # SSRF Detection

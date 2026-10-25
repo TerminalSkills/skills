@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["workflows", "background-jobs", "hatchet", "queue", "orchestration"]
+  tags: "workflows, background-jobs, hatchet, queue, orchestration"
   repository: https://github.com/hatchet-dev/hatchet
 ---
 

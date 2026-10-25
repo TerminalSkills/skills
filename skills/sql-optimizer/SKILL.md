@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["sql", "optimization", "database", "performance", "queries"]
+  tags: "sql, optimization, database, performance, queries"
 ---
 
 # SQL Optimizer

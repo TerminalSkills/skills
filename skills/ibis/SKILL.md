@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/ibis-project/ibis
-  tags: ["python", "sql", "dataframe", "analytics", "duckdb"]
+  tags: "python, sql, dataframe, analytics, duckdb"
 ---
 
 # Ibis — Portable Python Analytics

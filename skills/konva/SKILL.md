@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["canvas", "2d", "graphics", "interactive", "react"]
+  tags: "canvas, 2d, graphics, interactive, react"
   repository: https://github.com/konvajs/konva
 ---
 # Konva — 2D Canvas Graphics Framework

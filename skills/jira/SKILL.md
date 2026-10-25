@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: productivity
   repository: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
-  tags:
-    - jira
-    - atlassian
-    - project-management
-    - issue-tracker
-    - agile
+  tags: "jira, atlassian, project-management, issue-tracker, agile"
 ---
 
 # Jira

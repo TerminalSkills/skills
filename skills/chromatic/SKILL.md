@@ -7,11 +7,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags:
-    - visual-testing
-    - storybook
-    - regression
-    - ui-review
+  tags: "visual-testing, storybook, regression, ui-review"
   repository: https://github.com/chromaui/chromatic-cli
 ---
 

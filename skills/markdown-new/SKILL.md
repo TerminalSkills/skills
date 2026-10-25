@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["markdown", "web-scraping", "content-extraction", "url-to-markdown", "rag"]
+  tags: "markdown, web-scraping, content-extraction, url-to-markdown, rag"
 ---
 
 # markdown-new

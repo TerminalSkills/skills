@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/Kludex/uvicorn
   category: development
-  tags:
-    - uvicorn
-    - asgi
-    - fastapi
-    - production
-    - server
+  tags: "uvicorn, asgi, fastapi, production, server"
 ---
 
 # Uvicorn

@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/influxdata/influxdb
-  tags: ["influxdb", "time-series", "flux", "metrics", "monitoring"]
+  tags: "influxdb, time-series, flux, metrics, monitoring"
 ---
 
 # InfluxDB

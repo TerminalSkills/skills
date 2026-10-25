@@ -12,12 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/labstack/echo
-  tags:
-    - go
-    - web-framework
-    - api
-    - middleware
-    - rest
+  tags: "go, web-framework, api, middleware, rest"
 ---
 
 # Echo — High-Performance Go Web Framework

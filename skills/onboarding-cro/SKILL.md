@@ -20,7 +20,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["onboarding", "activation", "retention", "product-analytics", "ux"]
+  tags: "onboarding, activation, retention, product-analytics, ux"
 ---
 
 # Onboarding CRO: Activation and the First-Run Experience

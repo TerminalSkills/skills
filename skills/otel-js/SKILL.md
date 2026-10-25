@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/open-telemetry/opentelemetry-js
   category: devops
-  tags:
-    - opentelemetry
-    - tracing
-    - metrics
-    - nodejs
-    - observability
+  tags: "opentelemetry, tracing, metrics, nodejs, observability"
 ---
 
 # OpenTelemetry for Node.js

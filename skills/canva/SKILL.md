@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: design
-  tags: [canva, design-automation, brand-templates, oauth, mcp]
+  tags: "canva, design-automation, brand-templates, oauth, mcp"
 ---
 
 # Canva — Design Automation via MCP and the Connect API

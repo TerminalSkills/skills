@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["rabbitmq", "messaging", "queues", "amqp", "microservices"]
+  tags: "rabbitmq, messaging, queues, amqp, microservices"
   repository: https://github.com/rabbitmq/rabbitmq-server
 ---
 

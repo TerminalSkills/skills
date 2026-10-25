@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.0.1"
   category: business
-  tags: [leadership, team-management, communication, goals, culture]
-  use-cases:
-    - "Write a commander's intent document that aligns a remote team on priorities"
-    - "Reduce meeting time by 50% by applying communication overhead principles"
-    - "Create forcing functions that guarantee project milestones are hit"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "leadership, team-management, communication, goals, culture"
+  use-cases: "Write a commander's intent document that aligns a remote team on priorities, Reduce meeting time by 50% by applying communication overhead principles, Create forcing functions that guarantee project milestones are hit"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Team Leadership

@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/fastapi/fastapi
-  tags:
-    - python
-    - api
-    - async
-    - openapi
-    - pydantic
+  tags: "python, api, async, openapi, pydantic"
 ---
 
 # FastAPI

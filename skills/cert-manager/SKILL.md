@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - cert-manager
-    - tls
-    - kubernetes
-    - letsencrypt
-    - certificates
+  tags: "cert-manager, tls, kubernetes, letsencrypt, certificates"
   repository: https://github.com/cert-manager/cert-manager
 ---
 

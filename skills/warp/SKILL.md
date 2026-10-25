@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/warpdotdev/warp
   category: development
-  tags:
-  - terminal
-  - cli
-  - workflows
-  - automation
-  - ai
+  tags: "terminal, cli, workflows, automation, ai"
 ---
 
 # Warp — Modern Terminal & Workflow Automation

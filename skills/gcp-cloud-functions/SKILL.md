@@ -10,11 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - cloud-functions
-    - serverless
-    - event-driven
+  tags: "gcp, cloud-functions, serverless, event-driven"
 ---
 
 # GCP Cloud Functions

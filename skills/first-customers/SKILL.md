@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["sales", "customer-acquisition", "outreach", "startup", "pricing"]
+  tags: "sales, customer-acquisition, outreach, startup, pricing"
 ---
 
 # First Customers

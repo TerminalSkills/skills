@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - outlook
-    - email
-    - microsoft-graph
-    - microsoft-365
-    - automation
+  tags: "outlook, email, microsoft-graph, microsoft-365, automation"
   repository: https://github.com/microsoftgraph/msgraph-sdk-javascript
 ---
 

@@ -17,12 +17,9 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/dokku/dokku
-  tags: [dokku, self-hosted, paas, heroku-alternative, deployment]
-  use-cases:
-    - "Deploy a Node.js/Python/Ruby app to a DigitalOcean droplet with git push"
-    - "Set up Postgres and Redis for a self-hosted SaaS app"
-    - "Add custom domain with automatic SSL via Let's Encrypt"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "dokku, self-hosted, paas, heroku-alternative, deployment"
+  use-cases: "Deploy a Node.js/Python/Ruby app to a DigitalOcean droplet with git push, Set up Postgres and Redis for a self-hosted SaaS app, Add custom domain with automatic SSL via Let's Encrypt"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Dokku

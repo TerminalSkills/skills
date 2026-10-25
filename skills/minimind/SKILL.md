@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/jingyaogong/minimind
-  tags:
-    - llm-training
-    - gpt
-    - from-scratch
-    - education
-    - machine-learning
+  tags: "llm-training, gpt, from-scratch, education, machine-learning"
 ---
 
 # MiniMind

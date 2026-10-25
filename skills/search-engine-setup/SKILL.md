@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["search", "elasticsearch", "algolia", "full-text-search"]
+  tags: "search, elasticsearch, algolia, full-text-search"
 ---
 
 # Search Engine Setup

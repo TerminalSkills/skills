@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/Comfy-Org/ComfyUI
-  tags:
-    - comfyui
-    - stable-diffusion
-    - image-generation
-    - workflows
-    - custom-nodes
+  tags: "comfyui, stable-diffusion, image-generation, workflows, custom-nodes"
 ---
 
 # ComfyUI

@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["azure", "cli", "cloud", "microsoft", "devops"]
+  tags: "azure, cli, cloud, microsoft, devops"
   repository: https://github.com/Azure/azure-cli
 ---
 

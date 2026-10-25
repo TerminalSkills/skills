@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/openai/whisper
   category: content
-  tags: [youtube, transcription, whisper, subtitles, speech-to-text]
+  tags: "youtube, transcription, whisper, subtitles, speech-to-text"
 ---
 
 # YouTube Video Transcription

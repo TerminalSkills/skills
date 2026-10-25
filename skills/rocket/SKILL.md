@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/rwf2/Rocket
-  tags:
-    - rust
-    - web-framework
-    - type-safe
-    - async
-    - api
+  tags: "rust, web-framework, type-safe, async, api"
 ---
 
 # Rocket — Type-Safe Rust Web Framework

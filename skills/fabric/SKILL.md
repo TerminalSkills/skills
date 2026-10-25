@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: productivity
-  tags: ["prompt-patterns", "llm-cli", "summarization", "youtube-transcripts", "ollama"]
+  tags: "prompt-patterns, llm-cli, summarization, youtube-transcripts, ollama"
   repository: https://github.com/danielmiessler/Fabric
 ---
 # Fabric — Reusable AI Prompt Patterns in the Terminal

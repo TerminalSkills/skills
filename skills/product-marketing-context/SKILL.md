@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["positioning", "messaging", "product-marketing", "context", "documentation"]
+  tags: "positioning, messaging, product-marketing, context, documentation"
 ---
 
 # Product Marketing Context

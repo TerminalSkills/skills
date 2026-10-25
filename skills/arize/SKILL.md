@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/Arize-ai/phoenix
-  tags:
-    - observability
-    - llm
-    - phoenix
-    - tracing
-    - evaluation
+  tags: "observability, llm, phoenix, tracing, evaluation"
 ---
 
 # Arize (Phoenix) — AI Observability Platform

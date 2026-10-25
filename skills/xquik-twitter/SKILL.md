@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/Xquik-dev/hermes-tweet
   category: automation
-  tags: [xquik, twitter, x, automation, social-media]
+  tags: "xquik, twitter, x, automation, social-media"
 ---
 
 # Xquik Twitter

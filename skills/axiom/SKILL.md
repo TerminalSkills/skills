@@ -8,12 +8,7 @@ metadata:
   repository: https://github.com/axiomhq/axiom-js
   version: 1.1.0
   category: devops
-  tags:
-  - logging
-  - analytics
-  - serverless
-  - observability
-  - s3
+  tags: "logging, analytics, serverless, observability, s3"
 ---
 
 # Axiom — Serverless Log Analytics

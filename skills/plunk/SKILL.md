@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: business
   repository: https://github.com/useplunk/plunk
-  tags:
-    - plunk
-    - email
-    - transactional
-    - marketing
-    - automation
+  tags: "plunk, email, transactional, marketing, automation"
 ---
 
 # Plunk

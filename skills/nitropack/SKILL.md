@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - nitro
-    - server
-    - h3
-    - edge
-    - nuxt
+  tags: "nitro, server, h3, edge, nuxt"
   repository: https://github.com/nitrojs/nitro
 ---
 

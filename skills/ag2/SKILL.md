@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/ag2ai/ag2
-  tags:
-    - multi-agent
-    - autogen
-    - orchestration
-    - python
-    - agents
+  tags: "multi-agent, autogen, orchestration, python, agents"
 ---
 
 # AG2 (AutoGen) — Multi-Agent Conversation Framework

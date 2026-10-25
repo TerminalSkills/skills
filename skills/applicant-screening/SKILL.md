@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["hiring", "screening", "recruitment", "hr", "candidates"]
-  use-cases:
-    - "Screen a batch of resumes against job requirements and rank candidates"
-    - "Create an objective scoring rubric for a specific role"
-    - "Generate shortlist recommendations with justification"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "hiring, screening, recruitment, hr, candidates"
+  use-cases: "Screen a batch of resumes against job requirements and rank candidates, Create an objective scoring rubric for a specific role, Generate shortlist recommendations with justification"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Applicant Screening

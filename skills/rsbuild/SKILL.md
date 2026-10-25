@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["bundler", "rspack", "build-tool", "webpack-migration", "react"]
+  tags: "bundler, rspack, build-tool, webpack-migration, react"
   repository: https://github.com/web-infra-dev/rsbuild
 ---
 

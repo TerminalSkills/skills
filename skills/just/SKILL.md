@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - just
-    - command-runner
-    - makefile
-    - tasks
-    - automation
+  tags: "just, command-runner, makefile, tasks, automation"
   repository: https://github.com/casey/just
 ---
 

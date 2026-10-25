@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: content
   repository: https://github.com/lovell/sharp
-  tags:
-    - sharp
-    - image
-    - resize
-    - thumbnail
-    - webp
+  tags: "sharp, image, resize, thumbnail, webp"
 ---
 
 # Sharp

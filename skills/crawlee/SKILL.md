@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/apify/crawlee
   category: data-ai
-  tags: ["scraping", "crawling", "crawlee", "apify", "playwright"]
+  tags: "scraping, crawling, crawlee, apify, playwright"
 ---
 
 # Crawlee

@@ -12,13 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["bookkeeping", "bank-statements", "reconciliation", "categorization", "accounting"]
-  use-cases:
-    - "Parse a bank CSV export and auto-categorize all transactions"
-    - "Detect duplicate transactions across multiple bank feeds"
-    - "Reconcile bank statement balance against accounting system records"
-    - "Generate a monthly expense breakdown by category"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "bookkeeping, bank-statements, reconciliation, categorization, accounting"
+  use-cases: "Parse a bank CSV export and auto-categorize all transactions, Detect duplicate transactions across multiple bank feeds, Reconcile bank statement balance against accounting system records, Generate a monthly expense breakdown by category"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Bookkeeping Automation

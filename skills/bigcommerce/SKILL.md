@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/bigcommerce/catalyst
   category: business
-  tags:
-    - bigcommerce
-    - ecommerce
-    - headless
-    - api
-    - enterprise
+  tags: "bigcommerce, ecommerce, headless, api, enterprise"
 ---
 
 # BigCommerce

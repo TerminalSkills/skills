@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/vercel/ai
-  tags:
-    - vercel
-    - llm
-    - streaming
-    - typescript
-    - agents
+  tags: "vercel, llm, streaming, typescript, agents"
 ---
 
 # Vercel AI SDK — Build AI-Powered Apps in TypeScript

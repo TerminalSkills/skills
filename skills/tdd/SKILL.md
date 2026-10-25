@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["tdd", "testing", "red-green-refactor", "unit-tests", "regression-tests"]
+  tags: "tdd, testing, red-green-refactor, unit-tests, regression-tests"
 ---
 
 # Test-Driven Development

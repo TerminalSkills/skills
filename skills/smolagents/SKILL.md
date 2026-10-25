@@ -15,12 +15,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/huggingface/smolagents
-  tags:
-    - huggingface
-    - agents
-    - tools
-    - multi-agent
-    - python
+  tags: "huggingface, agents, tools, multi-agent, python"
 ---
 
 # smolagents — Hugging Face Lightweight Agent Framework

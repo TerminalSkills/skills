@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["logstash", "logging", "grok", "elk", "log-processing"]
+  tags: "logstash, logging, grok, elk, log-processing"
 ---
 
 # Logstash

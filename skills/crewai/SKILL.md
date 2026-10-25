@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/crewAIInc/crewAI
-  tags:
-    - crewai
-    - multi-agent
-    - orchestration
-    - agents
-    - python
+  tags: "crewai, multi-agent, orchestration, agents, python"
 ---
 
 # CrewAI — Multi-Agent Orchestration

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - drizzle
-    - database
-    - gui
-    - admin
-    - studio
+  tags: "drizzle, database, gui, admin, studio"
   repository: https://github.com/drizzle-team/drizzle-orm
 ---
 

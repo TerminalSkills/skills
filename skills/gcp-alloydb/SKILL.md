@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/GoogleCloudPlatform/alloydb-auth-proxy
-  tags:
-    - gcp
-    - alloydb
-    - postgres
-    - database
-    - vector-search
+  tags: "gcp, alloydb, postgres, database, vector-search"
 ---
 
 # GCP AlloyDB

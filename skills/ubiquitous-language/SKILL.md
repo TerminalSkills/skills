@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["domain-driven-design", "ubiquitous-language", "glossary", "domain-modeling", "naming"]
+  tags: "domain-driven-design, ubiquitous-language, glossary, domain-modeling, naming"
 ---
 
 # Ubiquitous Language

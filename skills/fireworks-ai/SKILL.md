@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-  - llm
-  - inference
-  - api
-  - fine-tuning
-  - serverless
+  tags: "llm, inference, api, fine-tuning, serverless"
 ---
 
 # Fireworks AI — Fast Open-Source Model Inference

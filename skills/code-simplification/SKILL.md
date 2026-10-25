@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["refactoring", "code-quality", "complexity", "readability", "testing"]
+  tags: "refactoring, code-quality, complexity, readability, testing"
 ---
 
 # Code Simplification

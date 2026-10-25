@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["speech-to-text", "transcription", "realtime", "voice", "audio"]
+  tags: "speech-to-text, transcription, realtime, voice, audio"
 ---
 # Deepgram — Speech-to-Text and Voice API
 

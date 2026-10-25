@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: content
   repository: https://github.com/contentful/contentful.js
-  tags: ["headless-cms", "contentful", "content-api", "cdn", "typescript"]
+  tags: "headless-cms, contentful, content-api, cdn, typescript"
 ---
 
 # Contentful

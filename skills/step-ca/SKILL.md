@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - step-ca
-    - pki
-    - certificates
-    - mtls
-    - internal-tls
+  tags: "step-ca, pki, certificates, mtls, internal-tls"
   repository: https://github.com/smallstep/certificates
 ---
 

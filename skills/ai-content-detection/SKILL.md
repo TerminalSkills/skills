@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["ai-detection", "content-moderation", "llm", "text-analysis", "academic-integrity"]
+  tags: "ai-detection, content-moderation, llm, text-analysis, academic-integrity"
 ---
 
 # AI Content Detection

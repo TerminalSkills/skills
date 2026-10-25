@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-  - paas
-  - deployment
-  - docker
-  - cli
-  - graphql
+  tags: "paas, deployment, docker, cli, graphql"
   repository: https://github.com/zeabur/cli
 ---
 

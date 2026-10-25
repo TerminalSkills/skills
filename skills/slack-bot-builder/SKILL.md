@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/slackapi/bolt-js"
   category: automation
-  tags: ["slack", "bot", "messaging", "integration"]
+  tags: "slack, bot, messaging, integration"
 ---
 
 # Slack Bot Builder

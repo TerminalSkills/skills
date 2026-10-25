@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/refinedev/refine
   category: development
-  tags: ["admin-panel", "crud", "react", "headless", "data-provider"]
+  tags: "admin-panel, crud, react, headless, data-provider"
 ---
 # Refine — React Framework for Admin Panels
 

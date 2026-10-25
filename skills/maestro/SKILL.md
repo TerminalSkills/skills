@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - mobile-testing
-    - ui-testing
-    - yaml
-    - ios
-    - android
+  tags: "mobile-testing, ui-testing, yaml, ios, android"
   repository: https://github.com/mobile-dev-inc/maestro
 ---
 

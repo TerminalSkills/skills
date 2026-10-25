@@ -17,12 +17,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/withfig/autocomplete
-  tags:
-  - terminal
-  - autocomplete
-  - cli
-  - dotfiles
-  - scripts
+  tags: "terminal, autocomplete, cli, dotfiles, scripts"
 ---
 
 # Amazon Q (formerly Fig) — Terminal Autocomplete & CLI Tools

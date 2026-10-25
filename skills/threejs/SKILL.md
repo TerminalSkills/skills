@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/mrdoob/three.js
-  tags: ["threejs", "3d", "webgl", "react-three-fiber", "visualization"]
+  tags: "threejs, 3d, webgl, react-three-fiber, visualization"
 ---
 
 # Three.js

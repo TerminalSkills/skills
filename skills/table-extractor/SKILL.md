@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/camelot-dev/camelot
   category: data-ai
-  tags: ["table-extraction", "pdf", "camelot", "csv", "spreadsheet"]
-  use-cases:
-    - "Extract complex tables from PDF reports into CSV or Excel"
-    - "Batch extract all tables from a multi-page PDF document"
-    - "Convert financial statements or data tables from PDF to structured data"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "table-extraction, pdf, camelot, csv, spreadsheet"
+  use-cases: "Extract complex tables from PDF reports into CSV or Excel, Batch extract all tables from a multi-page PDF document, Convert financial statements or data tables from PDF to structured data"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Table Extractor

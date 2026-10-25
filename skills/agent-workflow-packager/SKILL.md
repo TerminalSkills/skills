@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["agent-skills", "skill-authoring", "workflow", "claude-code", "codex"]
+  tags: "agent-skills, skill-authoring, workflow, claude-code, codex"
 ---
 
 # Agent Workflow Packager

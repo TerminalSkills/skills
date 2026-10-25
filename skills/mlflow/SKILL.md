@@ -9,11 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/mlflow/mlflow
-  tags:
-    - experiment-tracking
-    - model-registry
-    - ml-lifecycle
-    - deployment
+  tags: "experiment-tracking, model-registry, ml-lifecycle, deployment"
 ---
 
 # MLflow

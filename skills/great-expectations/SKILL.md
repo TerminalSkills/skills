@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - great-expectations
-    - data-quality
-    - testing
-    - validation
-    - python
+  tags: "great-expectations, data-quality, testing, validation, python"
   repository: https://github.com/great-expectations/great_expectations
 ---
 

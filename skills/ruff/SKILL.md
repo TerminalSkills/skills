@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/astral-sh/ruff
   category: development
-  tags:
-    - ruff
-    - linting
-    - formatting
-    - python
-    - code-quality
+  tags: "ruff, linting, formatting, python, code-quality"
 ---
 
 # Ruff

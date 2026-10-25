@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/next-safe-action/next-safe-action
-  tags:
-    - next-safe-action
-    - server-actions
-    - nextjs
-    - type-safety
-    - zod
+  tags: "next-safe-action, server-actions, nextjs, type-safety, zod"
 ---
 
 # next-safe-action

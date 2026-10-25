@@ -9,7 +9,7 @@ metadata:
   version: "2.0.0"
   category: development
   repository: https://github.com/tuist/tuist
-  tags: ["macos", "menubar", "tuist", "swiftui", "menubarextra"]
+  tags: "macos, menubar, tuist, swiftui, menubarextra"
 ---
 
 # macOS Menu Bar App with Tuist

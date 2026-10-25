@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/apache/kafka
-  tags:
-    - kafka
-    - streaming
-    - events
-    - messaging
-    - microservices
+  tags: "kafka, streaming, events, messaging, microservices"
 ---
 
 # Apache Kafka

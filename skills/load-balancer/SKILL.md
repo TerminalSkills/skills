@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - load-balancer
-    - nginx
-    - haproxy
-    - reverse-proxy
-    - ssl
+  tags: "load-balancer, nginx, haproxy, reverse-proxy, ssl"
 ---
 
 # Load Balancer

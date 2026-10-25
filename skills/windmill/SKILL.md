@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: automation
   repository: https://github.com/windmill-labs/windmill
-  tags:
-    - windmill
-    - internal-tools
-    - workflow
-    - scripts
-    - automation
+  tags: "windmill, internal-tools, workflow, scripts, automation"
 ---
 
 # Windmill

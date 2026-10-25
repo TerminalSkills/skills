@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: documents
   repository: https://github.com/datalab-to/chandra
-  tags:
-    - ocr
-    - document-processing
-    - tables
-    - handwriting
-    - data-extraction
+  tags: "ocr, document-processing, tables, handwriting, data-extraction"
 ---
 
 # Chandra OCR

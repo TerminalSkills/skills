@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/aws/aws-sdk-js-v3
-  tags:
-    - aws
-    - events
-    - serverless
-    - event-driven
-    - integration
+  tags: "aws, events, serverless, event-driven, integration"
 ---
 
 # Amazon EventBridge — Serverless Event Bus

@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/dubzzz/fast-check"
   category: development
-  tags: ["testing", "property-based", "fast-check", "fuzzing", "edge-cases"]
+  tags: "testing, property-based, fast-check, fuzzing, edge-cases"
 ---
 
 # fast-check

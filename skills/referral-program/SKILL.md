@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["referral-program", "affiliate-marketing", "growth", "customer-acquisition", "unit-economics"]
+  tags: "referral-program, affiliate-marketing, growth, customer-acquisition, unit-economics"
 ---
 
 # Referral Program

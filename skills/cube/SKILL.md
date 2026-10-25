@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/cube-js/cube
   category: data-ai
-  tags:
-  - semantic-layer
-  - analytics
-  - api
-  - sql
-  - metrics
+  tags: "semantic-layer, analytics, api, sql, metrics"
 ---
 
 # Cube — Semantic Layer for Analytics

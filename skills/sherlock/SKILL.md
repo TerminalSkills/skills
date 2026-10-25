@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: research
-  tags: ["osint", "social-media", "username-search"]
+  tags: "osint, social-media, username-search"
 ---
 
 # Sherlock

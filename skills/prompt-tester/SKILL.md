@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["prompt-engineering", "llm", "evaluation", "ai-agents"]
+  tags: "prompt-engineering, llm, evaluation, ai-agents"
 ---
 
 # Prompt Tester

@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pydantic/pydantic
-  tags:
-    - pydantic
-    - validation
-    - python
-    - data
-    - serialization
+  tags: "pydantic, validation, python, data, serialization"
 ---
 
 # Pydantic

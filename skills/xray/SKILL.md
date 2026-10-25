@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - xray
-    - vless
-    - vmess
-    - trojan
-    - proxy
+  tags: "xray, vless, vmess, trojan, proxy"
   repository: https://github.com/XTLS/Xray-core
 ---
 

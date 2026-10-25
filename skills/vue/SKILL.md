@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/vuejs/core
-  tags:
-    - javascript
-    - typescript
-    - frontend
-    - reactive
-    - components
+  tags: "javascript, typescript, frontend, reactive, components"
 ---
 
 # Vue

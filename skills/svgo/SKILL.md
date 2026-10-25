@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/svg/svgo
-  tags: ["svg", "optimization", "icons", "minification", "build-tools"]
+  tags: "svg, optimization, icons, minification, build-tools"
 ---
 
 # SVGO

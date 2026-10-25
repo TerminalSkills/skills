@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["open-webui", "self-hosted", "chat-interface", "ollama", "rag"]
+  tags: "open-webui, self-hosted, chat-interface, ollama, rag"
   repository: https://github.com/open-webui/open-webui
 ---
 # Open WebUI — Self-hosted chat interface for local and cloud models

@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/hashicorp/packer
-  tags:
-    - packer
-    - machine-images
-    - ami
-    - docker
-    - infrastructure
+  tags: "packer, machine-images, ami, docker, infrastructure"
 ---
 
 # Packer

@@ -9,12 +9,7 @@ metadata:
   repository: https://github.com/pola-rs/polars
   version: 1.1.0
   category: data-ai
-  tags:
-    - polars
-    - dataframe
-    - rust
-    - python
-    - performance
+  tags: "polars, dataframe, rust, python, performance"
 ---
 
 # Polars

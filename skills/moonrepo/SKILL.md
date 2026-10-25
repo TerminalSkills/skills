@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["monorepo", "build-system", "moonrepo", "task-runner", "ci"]
+  tags: "monorepo, build-system, moonrepo, task-runner, ci"
   repository: https://github.com/moonrepo/moon
 ---
 

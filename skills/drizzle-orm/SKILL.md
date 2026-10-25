@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["orm", "typescript", "sql", "postgres", "migrations"]
+  tags: "orm, typescript, sql, postgres, migrations"
   repository: https://github.com/drizzle-team/drizzle-orm
 ---
 

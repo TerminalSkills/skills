@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["s3", "object-storage", "minio", "cloud-storage"]
+  tags: "s3, object-storage, minio, cloud-storage"
 ---
 
 # S3 Storage

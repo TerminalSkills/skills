@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/i18next/i18next"
   category: development
-  tags: [i18next, i18n, localization, translations, react-i18next]
+  tags: "i18next, i18n, localization, translations, react-i18next"
 ---
 
 # i18next

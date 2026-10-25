@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - docusaurus
-    - documentation
-    - docs
-    - static-site
-    - mdx
+  tags: "docusaurus, documentation, docs, static-site, mdx"
   repository: https://github.com/facebook/docusaurus
 ---
 

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["analytics", "tinybird", "real-time", "clickhouse", "events"]
+  tags: "analytics, tinybird, real-time, clickhouse, events"
 ---
 
 # Tinybird

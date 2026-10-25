@@ -9259,8 +9259,7 @@
         "analytics",
         "privacy",
         "web-analytics",
-        "gdpr",
-        "self-hosted"
+        "gdpr"
       ]
     },
     {
@@ -13889,5 +13888,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-25T11:20:53.670Z"
+  "updatedAt": "2026-10-25T11:36:58.083Z"
 }

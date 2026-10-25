@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - poetry
-    - python
-    - dependencies
-    - packaging
-    - virtual-environment
+  tags: "poetry, python, dependencies, packaging, virtual-environment"
   repository: https://github.com/python-poetry/poetry
 ---
 

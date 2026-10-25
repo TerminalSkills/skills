@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/mermaid-js/mermaid
-  tags: ["diagrams", "markdown", "flowchart", "sequence-diagram", "docs-as-code"]
+  tags: "diagrams, markdown, flowchart, sequence-diagram, docs-as-code"
 ---
 # Mermaid — Diagrams as Code in Markdown
 

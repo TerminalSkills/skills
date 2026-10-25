@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["llm", "proxy", "litellm", "gateway", "multi-model"]
+  tags: "llm, proxy, litellm, gateway, multi-model"
   repository: https://github.com/BerriAI/litellm
 ---
 

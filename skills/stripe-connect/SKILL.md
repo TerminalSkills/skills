@@ -11,14 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.3.0"
   category: business
-  tags: ["stripe", "stripe-connect", "marketplace", "payments", "platform"]
-  use-cases:
-    - "Onboard freelancers to accept payments on a service marketplace"
-    - "Charge buyers and split payment between platform and seller"
-    - "Create Express connected accounts with Stripe's hosted onboarding"
-    - "Handle automatic payouts to sellers after service completion"
-    - "Listen for Connect webhooks to track account and payment status"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "stripe, stripe-connect, marketplace, payments, platform"
+  use-cases: "Onboard freelancers to accept payments on a service marketplace, Charge buyers and split payment between platform and seller, Create Express connected accounts with Stripe's hosted onboarding, Handle automatic payouts to sellers after service completion, Listen for Connect webhooks to track account and payment status"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Stripe Connect

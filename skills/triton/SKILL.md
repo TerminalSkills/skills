@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - inference-server
-    - model-serving
-    - nvidia
-    - dynamic-batching
-    - model-ensembles
+  tags: "inference-server, model-serving, nvidia, dynamic-batching, model-ensembles"
   repository: https://github.com/triton-inference-server/server
 ---
 

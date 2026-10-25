@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["company-values", "culture", "founders", "hiring", "leadership"]
+  tags: "company-values, culture, founders, hiring, leadership"
 ---
 
 # Company Values

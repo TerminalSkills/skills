@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["ai-coding-agent", "autonomous-agent", "self-hosted", "headless", "agent-sdk"]
+  tags: "ai-coding-agent, autonomous-agent, self-hosted, headless, agent-sdk"
   repository: https://github.com/OpenHands/OpenHands
 ---
 # OpenHands — Open-Source Autonomous Coding Agent

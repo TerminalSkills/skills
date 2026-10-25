@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["posthog", "analytics", "product-analytics", "session-replay", "feature-flags"]
+  tags: "posthog, analytics, product-analytics, session-replay, feature-flags"
   repository: https://github.com/PostHog/posthog
 ---
 

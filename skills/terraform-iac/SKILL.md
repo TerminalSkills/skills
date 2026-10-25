@@ -16,7 +16,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/hashicorp/terraform"
   category: devops
-  tags: ["terraform", "infrastructure-as-code", "cloud", "devops"]
+  tags: "terraform, infrastructure-as-code, cloud, devops"
 ---
 
 # Terraform IaC

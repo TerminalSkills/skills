@@ -11,14 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [breach, hibp, credential-leak, exposure, security-audit]
+  tags: "breach, hibp, credential-leak, exposure, security-audit"
   repository: https://github.com/HaveIBeenPwned
-  use-cases:
-    - "Check if a corporate domain's emails appear in known data breaches"
-    - "Assess credential exposure risk for a target organization before a pentest"
-    - "Verify that your own address is in a breach for a security awareness report"
-    - "Generate a breach exposure report for all known employee emails"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Check if a corporate domain's emails appear in known data breaches, Assess credential exposure risk for a target organization before a pentest, Verify that your own address is in a breach for a security awareness report, Generate a breach exposure report for all known employee emails"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Breach Data

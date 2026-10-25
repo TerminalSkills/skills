@@ -8,14 +8,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [maltego, transforms, threat-intel, graph, visualization]
+  tags: "maltego, transforms, threat-intel, graph, visualization"
   repository: https://github.com/MaltegoTech/maltego-transforms
-  use-cases:
-    - "Build a custom transform to map domain to associated email addresses"
-    - "List subdomains from certificate transparency logs on the graph"
-    - "Visualize relationships between threat actor infrastructure nodes"
-    - "Migrate an old maltego-trx transform server to the current SDK"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Build a custom transform to map domain to associated email addresses, List subdomains from certificate transparency logs on the graph, Visualize relationships between threat actor infrastructure nodes, Migrate an old maltego-trx transform server to the current SDK"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Maltego Transforms

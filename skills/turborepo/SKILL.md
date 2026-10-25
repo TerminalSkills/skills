@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/vercel/turborepo"
   category: development
-  tags: ["turborepo", "monorepo", "build-system", "caching", "ci-cd"]
+  tags: "turborepo, monorepo, build-system, caching, ci-cd"
 ---
 
 # Turborepo

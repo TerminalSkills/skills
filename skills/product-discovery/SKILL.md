@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - discovery
-  - assumptions
-  - experiments
-  - user-research
-  - teresa-torres
+  tags: "discovery, assumptions, experiments, user-research, teresa-torres"
 ---
 
 # Product Discovery — From Assumptions to Evidence

@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/nats-io/nats.js
   category: development
-  tags: ["messaging", "pub-sub", "nats", "queue", "distributed"]
+  tags: "messaging, pub-sub, nats, queue, distributed"
 ---
 
 # NATS Messaging

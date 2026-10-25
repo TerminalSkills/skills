@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - cors
-    - security
-    - headers
-    - api
-    - browser
+  tags: "cors, security, headers, api, browser"
 ---
 
 # CORS (Cross-Origin Resource Sharing)

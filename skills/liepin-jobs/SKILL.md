@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: productivity
-  tags: ["liepin", "jobs", "resume", "mcp", "recruitment"]
+  tags: "liepin, jobs, resume, mcp, recruitment"
 ---
 
 # Liepin Jobs (猎聘求职): search, resume and applications through the official MCP server

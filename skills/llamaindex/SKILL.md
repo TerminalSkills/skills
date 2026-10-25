@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["llamaindex", "rag", "llm", "retrieval", "knowledge-base"]
+  tags: "llamaindex, rag, llm, retrieval, knowledge-base"
   repository: https://github.com/run-llama/llama_index
 ---
 

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["hotjar", "heatmaps", "session-recording", "user-feedback", "surveys"]
+  tags: "hotjar, heatmaps, session-recording, user-feedback, surveys"
   repository: https://github.com/Hotjar/hotjar-js
 ---
 

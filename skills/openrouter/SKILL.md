@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - llm
-    - api
-    - gateway
-    - routing
-    - openai-compatible
+  tags: "llm, api, gateway, routing, openai-compatible"
   repository: https://github.com/OpenRouterTeam/ai-sdk-provider
 ---
 

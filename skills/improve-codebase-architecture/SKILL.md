@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["architecture", "refactoring", "dependency-analysis", "technical-debt", "modularity"]
+  tags: "architecture, refactoring, dependency-analysis, technical-debt, modularity"
 ---
 
 # Improve Codebase Architecture

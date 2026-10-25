@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["email", "deliverability", "spam", "authentication", "dns"]
+  tags: "email, deliverability, spam, authentication, dns"
 ---
 
 # Email Deliverability Debugger

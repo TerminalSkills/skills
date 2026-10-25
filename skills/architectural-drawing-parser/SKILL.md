@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [architecture, vision-ai, floor-plan, building-codes, pdf-parsing]
+  tags: "architecture, vision-ai, floor-plan, building-codes, pdf-parsing"
 ---
 
 # Architectural Drawing Parser

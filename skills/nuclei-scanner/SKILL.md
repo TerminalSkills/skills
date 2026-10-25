@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["security", "vulnerability", "scanning", "nuclei", "pentest"]
+  tags: "security, vulnerability, scanning, nuclei, pentest"
   repository: https://github.com/projectdiscovery/nuclei
 ---
 

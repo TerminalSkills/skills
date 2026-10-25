@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["mastra", "ai-agents", "typescript", "workflows", "rag"]
+  tags: "mastra, ai-agents, typescript, workflows, rag"
   repository: "https://github.com/mastra-ai/mastra"
 ---
 

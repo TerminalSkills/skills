@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "2.1.0"
   category: productivity
-  tags: ["claude-code", "memory", "persistence", "context", "session"]
+  tags: "claude-code, memory, persistence, context, session"
   repository: https://github.com/thedotmack/claude-mem
 ---
 

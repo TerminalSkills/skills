@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["cost", "optimization", "llm", "caching", "routing"]
+  tags: "cost, optimization, llm, caching, routing"
 ---
 
 # LLM Cost Optimizer

@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["tailscale", "vpn", "networking", "wireguard", "zero-trust"]
+  tags: "tailscale, vpn, networking, wireguard, zero-trust"
 ---
 
 # Tailscale

@@ -11,7 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/cloudinary/cloudinary_npm
   category: content
-  tags: [cloudinary, images, video, cdn, optimization]
+  tags: "cloudinary, images, video, cdn, optimization"
 ---
 
 # Cloudinary

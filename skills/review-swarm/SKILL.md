@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["code-review", "multi-agent", "subagents", "git-diff", "pre-merge"]
+  tags: "code-review, multi-agent, subagents, git-diff, pre-merge"
 ---
 
 # Review Swarm

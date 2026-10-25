@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - go
-    - cli
-    - command-line
-    - flags
-    - subcommands
+  tags: "go, cli, command-line, flags, subcommands"
   repository: https://github.com/spf13/cobra
 ---
 

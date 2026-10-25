@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/vercel/ai
   category: data-ai
-  tags: ["vertex-ai", "gemini-image", "veo", "image-generation", "video-generation"]
+  tags: "vertex-ai, gemini-image, veo, image-generation, video-generation"
 ---
 
 # Vertex Media Generation

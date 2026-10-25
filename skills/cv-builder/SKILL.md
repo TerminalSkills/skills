@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/rendercv/rendercv
   category: business
-  tags: ["cv", "resume", "pdf", "career", "rendercv"]
-  use-cases:
-    - "Generate a polished PDF resume from structured career data"
-    - "Switch between multiple professional CV templates"
-    - "Maintain a version-controlled resume in YAML format"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "cv, resume, pdf, career, rendercv"
+  use-cases: "Generate a polished PDF resume from structured career data, Switch between multiple professional CV templates, Maintain a version-controlled resume in YAML format"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # CV Builder

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["regression-testing", "refactoring", "testing", "code-quality"]
+  tags: "regression-testing, refactoring, testing, code-quality"
 ---
 
 # Regression Tester

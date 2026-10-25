@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/shadcn-ui/ui
-  tags:
-    - ui
-    - components
-    - react
-    - tailwind
-    - radix
+  tags: "ui, components, react, tailwind, radix"
 ---
 
 # shadcn/ui

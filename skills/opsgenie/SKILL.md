@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["opsgenie", "alert-management", "on-call", "routing", "incident-response"]
+  tags: "opsgenie, alert-management, on-call, routing, incident-response"
 ---
 
 # Opsgenie

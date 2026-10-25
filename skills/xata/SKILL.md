@@ -9,12 +9,7 @@ metadata:
   version: 2.0.0
   category: development
   repository: https://github.com/xataio/xata
-  tags:
-  - database
-  - postgres
-  - branching
-  - migrations
-  - serverless
+  tags: "database, postgres, branching, migrations, serverless"
 ---
 
 # Xata — Branching PostgreSQL Platform

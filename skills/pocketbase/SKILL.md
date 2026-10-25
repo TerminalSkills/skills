@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: devops
-  tags: ["pocketbase", "backend", "sqlite", "real-time", "baas"]
+  tags: "pocketbase, backend, sqlite, real-time, baas"
   repository: https://github.com/pocketbase/pocketbase
 ---
 

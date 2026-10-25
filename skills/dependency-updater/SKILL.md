@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["dependencies", "npm", "security", "upgrades", "semver"]
+  tags: "dependencies, npm, security, upgrades, semver"
 ---
 
 # Dependency Updater

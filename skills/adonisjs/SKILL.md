@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.3.0"
   category: development
-  tags: ["nodejs", "framework", "orm", "auth", "full-stack"]
+  tags: "nodejs, framework, orm, auth, full-stack"
   repository: https://github.com/adonisjs/core
 ---
 

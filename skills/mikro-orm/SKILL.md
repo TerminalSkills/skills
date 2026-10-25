@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - orm
-    - typescript
-    - database
-    - unit-of-work
-    - sql
+  tags: "orm, typescript, database, unit-of-work, sql"
   repository: https://github.com/mikro-orm/mikro-orm
 ---
 

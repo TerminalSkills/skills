@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["refactoring", "subagents", "migration", "parallel-agents", "code-quality"]
+  tags: "refactoring, subagents, migration, parallel-agents, code-quality"
 ---
 
 # Orchestrate Batch Refactor

@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: content
-  tags: ["documentation", "mintlify", "docs", "api-reference", "mdx"]
+  tags: "documentation, mintlify, docs, api-reference, mdx"
 ---
 
 # Mintlify

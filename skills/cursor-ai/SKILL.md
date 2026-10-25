@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ai-coding", "ide", "code-generation", "cursor-rules", "mcp"]
+  tags: "ai-coding, ide, code-generation, cursor-rules, mcp"
 ---
 # Cursor — AI-First Code Editor
 

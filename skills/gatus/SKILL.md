@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/TwiN/gatus
-  tags:
-  - uptime
-  - health-check
-  - status-page
-  - self-hosted
-  - lightweight
+  tags: "uptime, health-check, status-page, self-hosted, lightweight"
 ---
 
 # Gatus — Lightweight Health Check Dashboard

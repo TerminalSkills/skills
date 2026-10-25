@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/vercel/next.js
-  tags: ["nextjs", "react", "full-stack", "ssr", "server-components"]
+  tags: "nextjs, react, full-stack, ssr, server-components"
 ---
 
 # Next.js

@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/metabase/metabase
   category: data-ai
-  tags:
-    - metabase
-    - business-intelligence
-    - dashboards
-    - docker
-    - analytics
+  tags: "metabase, business-intelligence, dashboards, docker, analytics"
 ---
 
 # Metabase

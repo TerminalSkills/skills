@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - 2d-rendering
-    - webgl
-    - graphics
-    - animation
-    - game-development
+  tags: "2d-rendering, webgl, graphics, animation, game-development"
   repository: https://github.com/pixijs/pixijs
 ---
 

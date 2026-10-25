@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/sigstore/cosign
-  tags:
-    - container-signing
-    - supply-chain
-    - sigstore
-    - verification
-    - sbom
+  tags: "container-signing, supply-chain, sigstore, verification, sbom"
 ---
 
 # Cosign — Container Image Signing and Verification

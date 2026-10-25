@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["internal-tools", "low-code", "admin-panel", "dashboard", "crud"]
+  tags: "internal-tools, low-code, admin-panel, dashboard, crud"
 ---
 # Retool — Build Internal Tools Fast
 

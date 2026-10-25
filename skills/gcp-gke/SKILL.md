@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - gke
-    - kubernetes
-    - autopilot
-    - workload-identity
+  tags: "gcp, gke, kubernetes, autopilot, workload-identity"
 ---
 
 # GCP Google Kubernetes Engine (GKE)

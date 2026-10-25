@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags:
-    - finance
-    - stocks
-    - sec-filings
-    - investment
-    - research
+  tags: "finance, stocks, sec-filings, investment, research"
 ---
 
 # Dexter Finance

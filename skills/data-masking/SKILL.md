@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/microsoft/presidio
-  tags: ["data-masking", "pii", "privacy", "anonymization", "redaction"]
-  use-cases:
-    - "Mask production PII before copying to dev/staging environment"
-    - "Scrub sensitive data from application logs"
-    - "Redact PII from API responses for analytics"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "data-masking, pii, privacy, anonymization, redaction"
+  use-cases: "Mask production PII before copying to dev/staging environment, Scrub sensitive data from application logs, Redact PII from API responses for analytics"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Data Masking

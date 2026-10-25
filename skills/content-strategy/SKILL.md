@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["content-strategy", "editorial-calendar", "content-audit", "seo", "topic-clusters"]
+  tags: "content-strategy, editorial-calendar, content-audit, seo, topic-clusters"
 ---
 
 # Content Strategy

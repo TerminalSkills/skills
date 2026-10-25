@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: documents
-  tags: ["pdf", "self-hosted", "docker", "rest-api", "ocr"]
+  tags: "pdf, self-hosted, docker, rest-api, ocr"
   repository: https://github.com/Stirling-Tools/Stirling-PDF
 ---
 # Stirling PDF — Self-hosted PDF processing with an HTTP API

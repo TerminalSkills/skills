@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/msgpack/msgpack
-  tags:
-    - serialization
-    - binary
-    - json-alternative
-    - msgpack
-    - cross-language
+  tags: "serialization, binary, json-alternative, msgpack, cross-language"
 ---
 
 # MessagePack

@@ -16,12 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - authentication
-    - sessions
-    - lucia
-    - typescript
-    - security
+  tags: "authentication, sessions, lucia, typescript, security"
   repository: https://github.com/lucia-auth/lucia
 ---
 

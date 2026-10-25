@@ -8,7 +8,7 @@ metadata:
   author: Sequenzy
   version: "1.1.0"
   category: business
-  tags: ["email-marketing", "saas", "automation", "campaigns", "lifecycle-email"]
+  tags: "email-marketing, saas, automation, campaigns, lifecycle-email"
 ---
 
 # Sequenzy Email Marketing

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags:
-    - obsidian
-    - knowledge-management
-    - pkm
-    - note-taking
-    - plugins
+  tags: "obsidian, knowledge-management, pkm, note-taking, plugins"
   repository: https://github.com/obsidianmd/obsidian-sample-plugin
 ---
 

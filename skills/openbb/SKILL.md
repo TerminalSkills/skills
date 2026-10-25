@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - finance
-    - market-data
-    - quant
-    - openbb
-    - ai-agents
+  tags: "finance, market-data, quant, openbb, ai-agents"
   repository: https://github.com/OpenBB-finance/OpenBB
 ---
 

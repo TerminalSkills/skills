@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/dbt-labs/dbt-core
   category: data-ai
-  tags:
-    - dbt
-    - data-transformation
-    - sql
-    - data-warehouse
-    - analytics
+  tags: "dbt, data-transformation, sql, data-warehouse, analytics"
 ---
 
 # dbt

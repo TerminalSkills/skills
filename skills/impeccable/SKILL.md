@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: design
-  tags: ["frontend-design", "ui-audit", "design-lint", "ai-agents", "accessibility"]
+  tags: "frontend-design, ui-audit, design-lint, ai-agents, accessibility"
   repository: https://github.com/pbakaus/impeccable
 ---
 # Impeccable — design vocabulary and anti-pattern detector for AI coding agents

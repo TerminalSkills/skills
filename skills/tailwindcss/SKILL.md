@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/tailwindlabs/tailwindcss
-  tags: ["tailwindcss", "css", "utility-first", "responsive", "dark-mode"]
+  tags: "tailwindcss, css, utility-first, responsive, dark-mode"
 ---
 # Tailwind CSS — Utility-First CSS Framework
 

@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - finops
-    - cost-optimization
-    - well-architected
-    - billing
+  tags: "gcp, finops, cost-optimization, well-architected, billing"
 ---
 
 # GCP Well-Architected Framework — Cost Optimization

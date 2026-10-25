@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["go", "golang", "go-modules", "cross-compilation", "testing"]
+  tags: "go, golang, go-modules, cross-compilation, testing"
   repository: https://github.com/golang/go
 ---
 # Go — Toolchain for Modules, Tests and Static Binaries

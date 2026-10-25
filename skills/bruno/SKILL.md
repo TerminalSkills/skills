@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["api-client", "http", "testing", "git-friendly", "open-source"]
+  tags: "api-client, http, testing, git-friendly, open-source"
   repository: https://github.com/usebruno/bruno
 ---
 # Bruno — Git-Friendly API Client

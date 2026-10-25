@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["react", "ui-library", "components", "hooks", "typescript"]
+  tags: "react, ui-library, components, hooks, typescript"
   repository: https://github.com/mantinedev/mantine
 ---
 # Mantine — Full-Featured React Component Library

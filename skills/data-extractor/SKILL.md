@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["data-extraction", "document-parsing", "pdf", "structured-data", "etl"]
-  use-cases:
-    - "Extract structured fields from invoices, receipts, or forms"
-    - "Convert unstructured documents into JSON or CSV format"
-    - "Parse and extract data from PDFs, DOCX, HTML, or text files"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "data-extraction, document-parsing, pdf, structured-data, etl"
+  use-cases: "Extract structured fields from invoices, receipts, or forms, Convert unstructured documents into JSON or CSV format, Parse and extract data from PDFs, DOCX, HTML, or text files"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Data Extractor

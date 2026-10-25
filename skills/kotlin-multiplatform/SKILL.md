@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-  - kotlin
-  - kmp
-  - cross-platform
-  - mobile
-  - ios
+  tags: "kotlin, kmp, cross-platform, mobile, ios"
   repository: https://github.com/JetBrains/kotlin
 ---
 

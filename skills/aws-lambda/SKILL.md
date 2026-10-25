@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - serverless
-    - aws
-    - functions
-    - api-gateway
-    - event-driven
+  tags: "serverless, aws, functions, api-gateway, event-driven"
   repository: https://github.com/aws/aws-sam-cli
 ---
 

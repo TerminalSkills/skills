@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["database", "migrations", "schema", "rollback"]
+  tags: "database, migrations, schema, rollback"
 ---
 
 # Schema Versioning

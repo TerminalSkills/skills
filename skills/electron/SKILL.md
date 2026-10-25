@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/electron/electron
   category: development
-  tags: ["electron", "desktop", "cross-platform", "ipc", "packaging"]
+  tags: "electron, desktop, cross-platform, ipc, packaging"
 ---
 
 # Electron

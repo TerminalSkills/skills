@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: [mixpanel, analytics, product-analytics, funnels, retention]
+  tags: "mixpanel, analytics, product-analytics, funnels, retention"
 ---
 
 # Mixpanel

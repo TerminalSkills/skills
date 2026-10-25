@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - preact
-    - react-alternative
-    - signals
-    - jsx
-    - frontend
+  tags: "preact, react-alternative, signals, jsx, frontend"
   repository: https://github.com/preactjs/preact
 ---
 

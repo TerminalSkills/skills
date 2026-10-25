@@ -18,7 +18,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["marketing", "growth", "go-to-market", "saas", "planning"]
+  tags: "marketing, growth, go-to-market, saas, planning"
 ---
 
 # Marketing Ideas for SaaS and Software Products

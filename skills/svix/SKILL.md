@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["webhooks", "svix", "delivery", "retries", "signature-verification"]
+  tags: "webhooks, svix, delivery, retries, signature-verification"
   repository: "https://github.com/svix/svix-webhooks"
 ---
 

@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - agent
-    - protocol
-    - streaming
-    - frontend
-    - copilotkit
+  tags: "agent, protocol, streaming, frontend, copilotkit"
   repository: https://github.com/ag-ui-protocol/ag-ui
 ---
 

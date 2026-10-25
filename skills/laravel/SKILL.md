@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/laravel/framework
   category: development
-  tags: ["php", "laravel", "eloquent", "artisan", "api"]
+  tags: "php, laravel, eloquent, artisan, api"
 ---
 
 # Laravel — The PHP Framework for Web Artisans

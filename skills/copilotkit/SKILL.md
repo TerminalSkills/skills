@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["copilotkit", "react", "ai-agents", "ag-ui", "chat-ui"]
+  tags: "copilotkit, react, ai-agents, ag-ui, chat-ui"
   repository: https://github.com/CopilotKit/CopilotKit
 ---
 

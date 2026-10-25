@@ -12,7 +12,7 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/chroma-core/chroma
   category: data-ai
-  tags: ["chromadb", "vector-database", "embeddings", "rag", "semantic-search"]
+  tags: "chromadb, vector-database, embeddings, rag, semantic-search"
 ---
 
 # ChromaDB

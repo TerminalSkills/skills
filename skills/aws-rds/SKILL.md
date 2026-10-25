@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - aws
-    - rds
-    - database
-    - aurora
-    - postgresql
+  tags: "aws, rds, database, aurora, postgresql"
 ---
 
 # AWS RDS

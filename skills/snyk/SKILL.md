@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/snyk/cli
   category: devops
-  tags:
-    - snyk
-    - vulnerability
-    - dependencies
-    - docker
-    - ci-cd
+  tags: "snyk, vulnerability, dependencies, docker, ci-cd"
 ---
 
 # Snyk

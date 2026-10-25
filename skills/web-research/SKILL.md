@@ -13,12 +13,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: ["research", "web-search", "brave", "report", "sources"]
-  use-cases:
-    - "Compile a research report with cited sources on any topic"
-    - "Find and compare multiple perspectives on a subject"
-    - "Gather evidence and data points to support a decision or analysis"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "research, web-search, brave, report, sources"
+  use-cases: "Compile a research report with cited sources on any topic, Find and compare multiple perspectives on a subject, Gather evidence and data points to support a decision or analysis"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Web Research

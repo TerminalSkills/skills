@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ai-coding
-    - full-stack
-    - prototyping
-    - web-app
-    - vibe-coding
+  tags: "ai-coding, full-stack, prototyping, web-app, vibe-coding"
 ---
 
 # Bolt — AI App Builder

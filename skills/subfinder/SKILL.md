@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - subdomain
-    - reconnaissance
-    - security
-    - dns
-    - enumeration
+  tags: "subdomain, reconnaissance, security, dns, enumeration"
   repository: https://github.com/projectdiscovery/subfinder
 ---
 

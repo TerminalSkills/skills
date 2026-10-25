@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/openai/whisper
   category: content
-  tags:
-    - whisper
-    - transcription
-    - speech-to-text
-    - subtitles
-    - srt
+  tags: "whisper, transcription, speech-to-text, subtitles, srt"
 ---
 
 # Whisper

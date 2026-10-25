@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: "1.2.0"
   category: devops
-  tags:
-    - gcp
-    - iam
-    - authentication
-    - service-accounts
-    - workload-identity
+  tags: "gcp, iam, authentication, service-accounts, workload-identity"
 ---
 
 # GCP Authentication & Authorization

@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["cover-letter", "job-application", "career", "writing", "hiring"]
-  use-cases:
-    - "Write a tailored cover letter for a specific job posting"
-    - "Adapt an existing cover letter for a different role or company"
-    - "Generate multiple cover letter variants for A/B testing applications"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "cover-letter, job-application, career, writing, hiring"
+  use-cases: "Write a tailored cover letter for a specific job posting, Adapt an existing cover letter for a different role or company, Generate multiple cover letter variants for A/B testing applications"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Cover Letter

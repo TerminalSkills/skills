@@ -13,12 +13,7 @@ metadata:
   repository: https://github.com/TanStack/router
   version: 1.1.0
   category: development
-  tags:
-    - tanstack
-    - react
-    - full-stack
-    - ssr
-    - server-functions
+  tags: "tanstack, react, full-stack, ssr, server-functions"
 ---
 
 # TanStack Start

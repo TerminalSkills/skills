@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/mobxjs/mobx
-  tags:
-    - react
-    - state-management
-    - observable
-    - reactive
-    - proxy
+  tags: "react, state-management, observable, reactive, proxy"
 ---
 
 # MobX — Reactive State Management

@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["hiring", "job-posting", "recruitment", "hr", "writing"]
-  use-cases:
-    - "Write a complete job description for a new role"
-    - "Rewrite an existing job posting to be more inclusive and appealing"
-    - "Generate multiple job description variants for different job boards"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "hiring, job-posting, recruitment, hr, writing"
+  use-cases: "Write a complete job description for a new role, Rewrite an existing job posting to be more inclusive and appealing, Generate multiple job description variants for different job boards"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Job Description

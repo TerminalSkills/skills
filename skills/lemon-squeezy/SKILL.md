@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/lmsqueezy/lemonsqueezy.js
-  tags:
-    - payments
-    - subscriptions
-    - saas
-    - licensing
-    - webhooks
+  tags: "payments, subscriptions, saas, licensing, webhooks"
 ---
 
 # Lemon Squeezy

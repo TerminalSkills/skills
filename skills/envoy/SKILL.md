@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["envoy", "proxy", "service-mesh", "load-balancer", "api-gateway"]
+  tags: "envoy, proxy, service-mesh, load-balancer, api-gateway"
   repository: https://github.com/envoyproxy/envoy
 ---
 

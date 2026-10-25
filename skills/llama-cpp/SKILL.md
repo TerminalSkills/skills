@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["llama-cpp", "gguf", "local-llm", "inference-server", "openai-compatible"]
+  tags: "llama-cpp, gguf, local-llm, inference-server, openai-compatible"
   repository: https://github.com/ggml-org/llama.cpp
 ---
 # llama.cpp — Local LLM inference from GGUF files

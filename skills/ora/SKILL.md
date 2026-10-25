@@ -11,7 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/sindresorhus/ora
   category: development
-  tags: [ora, cli, spinner, loading, terminal]
+  tags: "ora, cli, spinner, loading, terminal"
 ---
 
 # Ora

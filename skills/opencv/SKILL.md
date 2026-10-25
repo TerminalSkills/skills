@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/opencv/opencv
   category: data-ai
-  tags:
-    - computer-vision
-    - image-processing
-    - video
-    - python
-    - detection
+  tags: "computer-vision, image-processing, video, python, detection"
 ---
 
 # OpenCV — Computer Vision Library

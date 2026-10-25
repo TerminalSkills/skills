@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["whatsapp", "bot", "messaging", "business"]
+  tags: "whatsapp, bot, messaging, business"
 ---
 
 # WhatsApp Bot Builder

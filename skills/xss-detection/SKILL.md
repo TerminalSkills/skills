@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - xss
-    - web-security
-    - injection
-    - penetration-testing
-    - owasp
+  tags: "xss, web-security, injection, penetration-testing, owasp"
 ---
 
 # XSS Detection

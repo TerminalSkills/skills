@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/ionic-team/capacitor
-  tags: ["mobile", "capacitor", "hybrid", "native", "ios"]
+  tags: "mobile, capacitor, hybrid, native, ios"
 ---
 
 # Capacitor

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: design
-  tags:
-    - 3dsmax
-    - vray
-    - corona
-    - rendering
-    - archviz
+  tags: "3dsmax, vray, corona, rendering, archviz"
 ---
 
 # 3ds Max Rendering

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["hugo", "static-site-generator", "markdown", "blog", "github-pages"]
+  tags: "hugo, static-site-generator, markdown, blog, github-pages"
   repository: https://github.com/gohugoio/hugo
 ---
 # Hugo — Static sites from Markdown and templates

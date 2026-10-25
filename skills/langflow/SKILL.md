@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["langflow", "ai-agents", "flow-api", "mcp-server", "self-hosted"]
+  tags: "langflow, ai-agents, flow-api, mcp-server, self-hosted"
   repository: https://github.com/langflow-ai/langflow
 ---
 # Langflow — Visual agent flows served as APIs and MCP tools

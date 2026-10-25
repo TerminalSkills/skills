@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/cloudflare/partykit
-  tags:
-    - partykit
-    - realtime
-    - multiplayer
-    - websocket
-    - cloudflare
+  tags: "partykit, realtime, multiplayer, websocket, cloudflare"
 ---
 
 # PartyKit and PartyServer

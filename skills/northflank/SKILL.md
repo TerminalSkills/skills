@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-  - paas
-  - deployment
-  - kubernetes
-  - docker
-  - ci-cd
+  tags: "paas, deployment, kubernetes, docker, ci-cd"
 ---
 
 # Northflank — Full-Stack Cloud Platform

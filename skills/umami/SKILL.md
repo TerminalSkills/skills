@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["analytics", "umami", "privacy", "tracking", "open-source"]
+  tags: "analytics, umami, privacy, tracking, open-source"
   repository: https://github.com/umami-software/umami
 ---
 

@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/liveblocks/liveblocks
-  tags:
-  - real-time
-  - collaboration
-  - multiplayer
-  - presence
-  - cursors
+  tags: "real-time, collaboration, multiplayer, presence, cursors"
 ---
 
 # Liveblocks — Real-Time Collaboration SDK

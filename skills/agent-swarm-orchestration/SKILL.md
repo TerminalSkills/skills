@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - agents
-    - multi-agent
-    - orchestration
-    - swarm
-    - ai-pipeline
+  tags: "agents, multi-agent, orchestration, swarm, ai-pipeline"
 ---
 
 # Agent Swarm Orchestration

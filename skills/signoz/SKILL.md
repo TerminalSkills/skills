@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/SigNoz/signoz
   category: devops
-  tags:
-    - observability
-    - opentelemetry
-    - tracing
-    - metrics
-    - logs
+  tags: "observability, opentelemetry, tracing, metrics, logs"
 ---
 
 # SigNoz — Open-Source Observability Platform

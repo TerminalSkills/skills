@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["migration", "typescript", "modernization", "refactoring", "upgrade"]
+  tags: "migration, typescript, modernization, refactoring, upgrade"
 ---
 
 # Code Migration

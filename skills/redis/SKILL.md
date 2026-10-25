@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/redis/redis
-  tags: ["redis", "caching", "database", "pub-sub", "queues"]
+  tags: "redis, caching, database, pub-sub, queues"
 ---
 
 # Redis

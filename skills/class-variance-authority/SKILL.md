@@ -13,7 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/joe-bell/cva
-  tags: [cva, tailwind, variants, design-system, components]
+  tags: "cva, tailwind, variants, design-system, components"
 ---
 
 # Class Variance Authority (CVA)

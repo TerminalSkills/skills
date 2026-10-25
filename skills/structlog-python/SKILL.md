@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/hynek/structlog
-  tags: ["structlog", "logging", "python", "structured", "observability"]
+  tags: "structlog, logging, python, structured, observability"
 ---
 
 # structlog

@@ -12,7 +12,7 @@ metadata:
   repository: https://github.com/oven-sh/bun
   version: "1.1.0"
   category: development
-  tags: ["bun", "javascript-runtime", "package-manager", "bundler", "typescript"]
+  tags: "bun, javascript-runtime, package-manager, bundler, typescript"
 ---
 
 # Bun

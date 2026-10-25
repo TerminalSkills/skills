@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/openzipkin/zipkin
   category: devops
-  tags: ["zipkin", "tracing", "distributed-tracing", "spring-boot", "observability"]
+  tags: "zipkin, tracing, distributed-tracing, spring-boot, observability"
 ---
 
 # Zipkin

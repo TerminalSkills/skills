@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/nginx/nginx
   category: devops
-  tags: ["nginx", "reverse-proxy", "load-balancer", "tls", "web-server"]
+  tags: "nginx, reverse-proxy, load-balancer, tls, web-server"
 ---
 
 # Nginx

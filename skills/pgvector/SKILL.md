@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/pgvector/pgvector
-  tags: ["vector", "embeddings", "postgres", "pgvector", "rag"]
+  tags: "vector, embeddings, postgres, pgvector, rag"
 ---
 
 # pgvector

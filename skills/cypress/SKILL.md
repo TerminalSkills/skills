@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/cypress-io/cypress
   category: development
-  tags: ["cypress", "e2e-testing", "testing", "browser-testing", "automation"]
+  tags: "cypress, e2e-testing, testing, browser-testing, automation"
 ---
 
 # Cypress

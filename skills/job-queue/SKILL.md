@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["job-queue", "background-workers", "async", "BullMQ"]
+  tags: "job-queue, background-workers, async, BullMQ"
   repository: "https://github.com/taskforcesh/bullmq"
 ---
 

@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/getsentry/sentry
   category: development
-  tags: ["sentry", "error-monitoring", "performance", "observability", "debugging"]
+  tags: "sentry, error-monitoring, performance, observability, debugging"
 ---
 
 # Sentry

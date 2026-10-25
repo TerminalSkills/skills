@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/anchore/grype
-  tags:
-  - vulnerability-scanning
-  - container-security
-  - sbom
-  - cve
-  - supply-chain
+  tags: "vulnerability-scanning, container-security, sbom, cve, supply-chain"
 ---
 
 # Grype — Container Vulnerability Scanner

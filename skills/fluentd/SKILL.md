@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/fluent/fluentd
   category: devops
-  tags: ["fluentd", "logging", "log-routing", "kubernetes", "observability"]
+  tags: "fluentd, logging, log-routing, kubernetes, observability"
 ---
 
 # Fluentd

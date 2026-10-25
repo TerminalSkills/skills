@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: content
-  tags: ["social-media", "content-marketing", "copywriting", "content-calendar", "linkedin"]
+  tags: "social-media, content-marketing, copywriting, content-calendar, linkedin"
 ---
 
 # Social Content

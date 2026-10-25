@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["startup", "idea-validation", "customer-interviews", "market-research", "experiments"]
+  tags: "startup, idea-validation, customer-interviews, market-research, experiments"
 ---
 
 # Idea Validation

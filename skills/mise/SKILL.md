@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - mise
-    - version-manager
-    - asdf
-    - nvm
-    - polyglot
+  tags: "mise, version-manager, asdf, nvm, polyglot"
   repository: https://github.com/jdx/mise
 ---
 

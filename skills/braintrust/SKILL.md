@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - evaluation
-    - llm
-    - testing
-    - observability
-    - experiments
+  tags: "evaluation, llm, testing, observability, experiments"
 ---
 
 # Braintrust — AI Evaluation and Observability

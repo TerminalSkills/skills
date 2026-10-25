@@ -12,7 +12,7 @@ metadata:
   repository: https://github.com/PagerDuty/api-schema
   version: "1.1.0"
   category: devops
-  tags: ["pagerduty", "incident-management", "on-call", "escalation", "alerting"]
+  tags: "pagerduty, incident-management, on-call, escalation, alerting"
 ---
 
 # PagerDuty

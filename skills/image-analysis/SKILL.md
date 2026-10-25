@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.1.0"
   category: design
-  tags: ["image-analysis", "color-palette", "design-tokens", "screenshots", "pillow"]
+  tags: "image-analysis, color-palette, design-tokens, screenshots, pillow"
 ---
 
 # Image Analysis

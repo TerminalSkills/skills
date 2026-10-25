@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [productivity, mental-models, decision-making, focus, time-management]
-  use-cases:
-    - "Design a daily work routine that maximizes deep work output"
-    - "Apply the 5-fold why technique to get to the root cause of a business problem"
-    - "Reduce context switching costs for a development team"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "productivity, mental-models, decision-making, focus, time-management"
+  use-cases: "Design a daily work routine that maximizes deep work output, Apply the 5-fold why technique to get to the root cause of a business problem, Reduce context switching costs for a development team"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Productivity Mental Models

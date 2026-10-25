@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/mozilla-ai/llamafile
-  tags:
-  - local-llm
-  - inference
-  - portable
-  - single-file
-  - offline
+  tags: "local-llm, inference, portable, single-file, offline"
 ---
 
 # llamafile — Single-File LLM Executables

@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/fastify/fastify
   category: development
-  tags:
-    - node
-    - javascript
-    - api
-    - rest
-    - plugins
+  tags: "node, javascript, api, rest, plugins"
 ---
 
 # Fastify

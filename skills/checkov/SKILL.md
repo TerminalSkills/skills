@@ -8,12 +8,7 @@ metadata:
   repository: https://github.com/bridgecrewio/checkov
   version: 1.1.0
   category: devops
-  tags:
-  - iac-security
-  - terraform
-  - kubernetes
-  - compliance
-  - scanning
+  tags: "iac-security, terraform, kubernetes, compliance, scanning"
 ---
 
 # Checkov — Infrastructure as Code Security Scanner

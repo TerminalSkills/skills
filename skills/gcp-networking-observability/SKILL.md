@@ -12,12 +12,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - vpc
-    - networking
-    - observability
-    - flow-logs
+  tags: "gcp, vpc, networking, observability, flow-logs"
 ---
 
 # GCP Networking Observability

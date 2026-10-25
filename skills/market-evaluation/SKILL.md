@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [market-research, evaluation, startup, product-market-fit, demand]
-  use-cases:
-    - "Score a SaaS idea on 10 dimensions before investing time building it"
-    - "Compare 3 market opportunities and pick the best one"
-    - "Identify red flags in a business idea before it's too late"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "market-research, evaluation, startup, product-market-fit, demand"
+  use-cases: "Score a SaaS idea on 10 dimensions before investing time building it, Compare 3 market opportunities and pick the best one, Identify red flags in a business idea before it's too late"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Market Evaluation

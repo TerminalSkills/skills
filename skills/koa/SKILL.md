@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/koajs/koa
-  tags:
-    - node
-    - web-framework
-    - middleware
-    - async
-    - express-alternative
+  tags: "node, web-framework, middleware, async, express-alternative"
 ---
 
 # Koa — Next-Generation Node.js Web Framework

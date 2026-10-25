@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/nmap/nmap
-  tags:
-    - nmap
-    - reconnaissance
-    - network-scanning
-    - penetration-testing
-    - port-scanning
+  tags: "nmap, reconnaissance, network-scanning, penetration-testing, port-scanning"
 ---
 
 # Nmap Reconnaissance

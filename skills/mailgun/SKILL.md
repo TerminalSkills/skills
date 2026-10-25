@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - mailgun
-    - email
-    - api
-    - bulk
-    - marketing
+  tags: "mailgun, email, api, bulk, marketing"
 ---
 
 # Mailgun

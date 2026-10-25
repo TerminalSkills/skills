@@ -11,14 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [censys, certificates, tls, attack-surface, recon]
+  tags: "censys, certificates, tls, attack-surface, recon"
   repository: https://github.com/censys/censys-sdk-python
-  use-cases:
-    - "Find all IP addresses serving a TLS certificate for a target domain"
-    - "Monitor certificate transparency logs for newly issued certs for a domain"
-    - "Discover hosts running a specific service version across the internet"
-    - "Find shadow IT infrastructure using TLS certificate common names"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Find all IP addresses serving a TLS certificate for a target domain, Monitor certificate transparency logs for newly issued certs for a domain, Discover hosts running a specific service version across the internet, Find shadow IT infrastructure using TLS certificate common names"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Censys

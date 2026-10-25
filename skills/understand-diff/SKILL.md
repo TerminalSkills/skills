@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["code-review", "impact-analysis", "git-diff", "knowledge-graph", "understand-anything"]
+  tags: "code-review, impact-analysis, git-diff, knowledge-graph, understand-anything"
   repository: https://github.com/Egonex-AI/Understand-Anything
 ---
 

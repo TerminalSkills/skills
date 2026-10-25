@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["kubernetes", "cost-optimization", "resource-management", "finops"]
+  tags: "kubernetes, cost-optimization, resource-management, finops"
 ---
 
 # Kubernetes Cost Optimizer

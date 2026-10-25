@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/malloydata/malloy
-  tags:
-    - sql
-    - analytics
-    - semantic-model
-    - data-exploration
-    - query-language
+  tags: "sql, analytics, semantic-model, data-exploration, query-language"
 ---
 
 # Malloy — Semantic Data Language

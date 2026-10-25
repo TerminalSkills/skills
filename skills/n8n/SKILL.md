@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: automation
   repository: https://github.com/n8n-io/n8n
-  tags:
-    - n8n
-    - workflow
-    - automation
-    - integration
-    - low-code
+  tags: "n8n, workflow, automation, integration, low-code"
 ---
 
 # n8n

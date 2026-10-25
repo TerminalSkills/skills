@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: design
-  tags:
-    - procedural
-    - vfx
-    - simulation
-    - 3d
-    - pipeline
+  tags: "procedural, vfx, simulation, 3d, pipeline"
 ---
 
 # SideFX Houdini — Procedural 3D & VFX

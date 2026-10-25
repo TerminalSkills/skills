@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags: ["desktop", "go", "golang", "cross-platform", "native"]
+  tags: "desktop, go, golang, cross-platform, native"
   repository: https://github.com/wailsapp/wails
 ---
 

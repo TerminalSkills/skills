@@ -11,14 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: research
-  tags: [spiderfoot, threat-intel, recon, profiling, osint]
+  tags: "spiderfoot, threat-intel, recon, profiling, osint"
   repository: https://github.com/smicallef/spiderfoot
-  use-cases:
-    - "Run automated OSINT scan on a company domain to build a full profile"
-    - "Investigate an IP address across dark web, breach data, and social sources"
-    - "Gather threat intelligence on a suspicious email or domain"
-    - "Correlate data from 200+ sources to map relationships between entities"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Run automated OSINT scan on a company domain to build a full profile, Investigate an IP address across dark web, breach data, and social sources, Gather threat intelligence on a suspicious email or domain, Correlate data from 200+ sources to map relationships between entities"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # SpiderFoot

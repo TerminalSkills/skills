@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["self-hosted", "rag", "enterprise-ai"]
+  tags: "self-hosted, rag, enterprise-ai"
 ---
 
 # Onyx AI

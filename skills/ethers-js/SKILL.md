@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/ethers-io/ethers.js
   category: development
-  tags:
-    - ethers
-    - ethereum
-    - web3
-    - blockchain
-    - smart-contracts
+  tags: "ethers, ethereum, web3, blockchain, smart-contracts"
 ---
 
 # ethers.js

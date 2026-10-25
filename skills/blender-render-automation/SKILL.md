@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://projects.blender.org/blender/blender
   category: automation
-  tags: ["blender", "rendering", "cycles", "eevee", "3d"]
+  tags: "blender, rendering, cycles, eevee, 3d"
 ---
 
 # Blender Render Automation

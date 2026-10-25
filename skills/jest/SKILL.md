@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/jestjs/jest
-  tags:
-    - javascript
-    - testing
-    - unit-testing
-    - mocking
-    - coverage
+  tags: "javascript, testing, unit-testing, mocking, coverage"
 ---
 
 # Jest — JavaScript Testing Framework

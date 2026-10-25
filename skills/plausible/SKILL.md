@@ -1,7 +1,5 @@
 ---
 name: plausible
-category: data-ai
-version: 1.1.0
 description: >-
   Plausible is a privacy-first, cookie-free web analytics service that you can
   self-host (Community Edition) or use as Plausible Cloud. Covers the tracking
@@ -9,15 +7,13 @@ description: >-
   self-hosting with Docker Compose and the Stats API v2. Use when the user wants
   website analytics without cookie banners, a Google Analytics replacement, or
   traffic data pulled through an API.
-author: terminal-skills
-tags: [plausible, analytics, privacy, web-analytics, gdpr, self-hosted]
 license: Apache-2.0
 compatibility: 'platform: linux, platform: macos, platform: windows'
 metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags: [plausible, analytics, privacy, web-analytics, gdpr]
+  tags: "plausible, analytics, privacy, web-analytics, gdpr"
   repository: https://github.com/plausible/analytics
 ---
 

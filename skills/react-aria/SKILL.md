@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags: [react-aria, accessibility, a11y, design-system, components]
+  tags: "react-aria, accessibility, a11y, design-system, components"
   repository: https://github.com/adobe/react-spectrum
 ---
 

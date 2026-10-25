@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["crm", "twenty", "sales", "customer", "open-source"]
+  tags: "crm, twenty, sales, customer, open-source"
   repository: https://github.com/twentyhq/twenty
 ---
 

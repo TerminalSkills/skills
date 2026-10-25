@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: documents
   repository: https://github.com/dolanmiu/docx
-  tags: ["docx", "word", "document", "reports", "office"]
+  tags: "docx, word, document, reports, office"
 ---
 
 # docx

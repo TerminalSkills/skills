@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["authentication", "authorization", "oauth", "rbac", "security"]
+  tags: "authentication, authorization, oauth, rbac, security"
 ---
 
 # Auth System Setup

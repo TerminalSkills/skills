@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/ollama/ollama
   category: development
-  tags: [offline, local-ai, ollama, knowledge-base, edge-ai]
-  use-cases:
-    - "Build a self-contained AI assistant that works without internet"
-    - "Create an offline knowledge base with local LLM for field work"
-    - "Deploy AI tools in air-gapped or low-connectivity environments"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "offline, local-ai, ollama, knowledge-base, edge-ai"
+  use-cases: "Build a self-contained AI assistant that works without internet, Create an offline knowledge base with local LLM for field work, Deploy AI tools in air-gapped or low-connectivity environments"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Offline AI Toolkit — Self-Contained AI Systems

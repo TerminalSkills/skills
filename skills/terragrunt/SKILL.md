@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/gruntwork-io/terragrunt
-  tags:
-    - iac
-    - terraform
-    - opentofu
-    - dry
-    - multi-environment
+  tags: "iac, terraform, opentofu, dry, multi-environment"
 ---
 
 # Terragrunt — DRY Terraform/OpenTofu Wrapper

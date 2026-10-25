@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/testing-library/react-testing-library
-  tags: ["testing", "react", "components", "accessibility", "testing-library"]
+  tags: "testing, react, components, accessibility, testing-library"
 ---
 
 # Testing Library

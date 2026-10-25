@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - uploadthing
-    - file-upload
-    - s3
-    - nextjs
-    - images
+  tags: "uploadthing, file-upload, s3, nextjs, images"
   repository: https://github.com/pingdotgg/uploadthing
 ---
 

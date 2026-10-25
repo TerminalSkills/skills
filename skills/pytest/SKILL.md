@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/pytest-dev/pytest
-  tags:
-    - pytest
-    - testing
-    - python
-    - tdd
-    - fixtures
+  tags: "pytest, testing, python, tdd, fixtures"
 ---
 
 # pytest

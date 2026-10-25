@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["saas", "multi-tenant", "architecture", "database-design"]
+  tags: "saas, multi-tenant, architecture, database-design"
 ---
 
 # SaaS Architecture Advisor

@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/vectordotdev/vector
-  tags:
-  - log-pipeline
-  - data-pipeline
-  - observability
-  - rust
-  - transform
+  tags: "log-pipeline, data-pipeline, observability, rust, transform"
 ---
 
 # Vector — High-Performance Observability Data Pipeline

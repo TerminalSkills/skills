@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/NVIDIA/NemoClaw
-  tags: ["nemoclaw", "sandbox", "agent-security", "nvidia", "openclaw"]
+  tags: "nemoclaw, sandbox, agent-security, nvidia, openclaw"
 ---
 
 # NemoClaw

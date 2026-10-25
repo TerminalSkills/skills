@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["load-testing", "performance", "api", "k6", "benchmarking"]
+  tags: "load-testing, performance, api, k6, benchmarking"
 ---
 
 # API Load Tester

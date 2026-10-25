@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["llm", "structured-generation", "json", "grammar", "regex"]
+  tags: "llm, structured-generation, json, grammar, regex"
   repository: https://github.com/dottxt-ai/outlines
 ---
 

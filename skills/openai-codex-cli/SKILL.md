@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ai-coding
-    - terminal
-    - cli
-    - openai
-    - code-generation
+  tags: "ai-coding, terminal, cli, openai, code-generation"
   repository: https://github.com/openai/codex
 ---
 

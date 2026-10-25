@@ -9,13 +9,9 @@ metadata:
   version: "1.1.0"
   category: research
   repository: https://github.com/owasp-amass/amass
-  tags: [amass, dns, subdomain, attack-surface, network-mapping]
-  use-cases:
-    - "Enumerate all subdomains for a target domain using passive sources"
-    - "Seed an enumeration with ASNs, CIDR ranges and IP addresses"
-    - "Discover shadow IT and forgotten subdomains before a pentest"
-    - "Build a visual network graph of target infrastructure"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "amass, dns, subdomain, attack-surface, network-mapping"
+  use-cases: "Enumerate all subdomains for a target domain using passive sources, Seed an enumeration with ASNs, CIDR ranges and IP addresses, Discover shadow IT and forgotten subdomains before a pentest, Build a visual network graph of target infrastructure"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # OWASP Amass

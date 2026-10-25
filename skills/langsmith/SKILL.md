@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/langchain-ai/langsmith-sdk
   category: data-ai
-  tags:
-    - langsmith
-    - llm-observability
-    - tracing
-    - evaluation
-    - monitoring
+  tags: "langsmith, llm-observability, tracing, evaluation, monitoring"
 ---
 
 # LangSmith

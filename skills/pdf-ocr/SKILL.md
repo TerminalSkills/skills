@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   category: documents
   repository: https://github.com/tesseract-ocr/tesseract
-  tags: ["ocr", "pdf", "scanned", "text-extraction", "tesseract"]
-  use-cases:
-    - "Extract text from scanned paper documents saved as PDFs"
-    - "Digitize old contracts or records that are image-only PDFs"
-    - "Read text from PDFs in multiple languages including CJK scripts"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "ocr, pdf, scanned, text-extraction, tesseract"
+  use-cases: "Extract text from scanned paper documents saved as PDFs, Digitize old contracts or records that are image-only PDFs, Read text from PDFs in multiple languages including CJK scripts"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # PDF OCR

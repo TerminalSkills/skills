@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - okrs
-  - goals
-  - planning
-  - alignment
-  - objectives
+  tags: "okrs, goals, planning, alignment, objectives"
 ---
 
 # OKR Planning — Objectives and Key Results

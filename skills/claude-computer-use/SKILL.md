@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/anthropics/anthropic-quickstarts
   category: data-ai
-  tags: ["computer-use", "claude", "anthropic", "automation", "gui"]
-  use-cases:
-    - "Automate form filling in legacy web applications without APIs"
-    - "Run end-to-end GUI tests on desktop applications"
-    - "Extract data from applications that have no API or export feature"
-  agents: [claude-code, cursor]
+  tags: "computer-use, claude, anthropic, automation, gui"
+  use-cases: "Automate form filling in legacy web applications without APIs, Run end-to-end GUI tests on desktop applications, Extract data from applications that have no API or export feature"
+  agents: "claude-code, cursor"
 ---
 
 # Claude Computer Use

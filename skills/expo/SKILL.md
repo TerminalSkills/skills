@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags: ["expo", "react-native", "mobile", "routing", "eas"]
+  tags: "expo, react-native, mobile, routing, eas"
   repository: https://github.com/expo/expo
 ---
 

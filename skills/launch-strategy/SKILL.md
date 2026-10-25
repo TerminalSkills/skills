@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["launch", "go-to-market", "product-hunt", "release-planning", "product-marketing"]
+  tags: "launch, go-to-market, product-hunt, release-planning, product-marketing"
 ---
 
 # Launch Strategy

@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/nrwl/nx
-  tags:
-    - nx
-    - monorepo
-    - build
-    - cache
-    - workspace
+  tags: "nx, monorepo, build, cache, workspace"
 ---
 
 # Nx

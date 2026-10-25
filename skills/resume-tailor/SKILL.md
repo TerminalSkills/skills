@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["resume", "ats", "job-search", "optimization", "keywords"]
-  use-cases:
-    - "Tailor an existing resume to match a specific job posting"
-    - "Improve ATS keyword match rate for a target role"
-    - "Rewrite bullet points to emphasize relevant experience"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "resume, ats, job-search, optimization, keywords"
+  use-cases: "Tailor an existing resume to match a specific job posting, Improve ATS keyword match rate for a target role, Rewrite bullet points to emphasize relevant experience"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Resume Tailor

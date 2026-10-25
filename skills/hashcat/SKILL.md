@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - hashcat
-    - password-cracking
-    - gpu
-    - ntlm
-    - penetration-testing
+  tags: "hashcat, password-cracking, gpu, ntlm, penetration-testing"
   repository: https://github.com/hashcat/hashcat
 ---
 

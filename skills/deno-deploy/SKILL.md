@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["deno", "serverless", "typescript", "deploy", "edge"]
+  tags: "deno, serverless, typescript, deploy, edge"
   repository: https://github.com/denoland/deno
 ---
 

@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   repository: https://codeberg.org/mikf/gallery-dl
   category: content
-  tags:
-    - gallery-dl
-    - images
-    - download
-    - scrape
-    - reddit
+  tags: "gallery-dl, images, download, scrape, reddit"
 ---
 
 # gallery-dl

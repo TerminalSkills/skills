@@ -16,7 +16,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/pmndrs/valtio
-  tags: ["state", "valtio", "react", "proxy", "store"]
+  tags: "state, valtio, react, proxy, store"
 ---
 
 # Valtio

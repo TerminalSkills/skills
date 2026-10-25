@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/ClickHouse/ClickHouse
   category: data-ai
-  tags: ["analytics", "real-time", "clickhouse", "event-tracking"]
+  tags: "analytics, real-time, clickhouse, event-tracking"
 ---
 
 # Real-Time Analytics

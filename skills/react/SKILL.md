@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["react", "react-19", "hooks", "server-components", "react-compiler"]
+  tags: "react, react-19, hooks, server-components, react-compiler"
   repository: https://github.com/facebook/react
 ---
 

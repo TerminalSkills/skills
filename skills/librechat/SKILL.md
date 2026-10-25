@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["librechat", "self-hosted", "llm-chat", "mcp", "docker-compose"]
+  tags: "librechat, self-hosted, llm-chat, mcp, docker-compose"
   repository: https://github.com/LibreChat-AI/LibreChat
 ---
 # LibreChat — Self-Hosted Chat UI for Many Model Providers

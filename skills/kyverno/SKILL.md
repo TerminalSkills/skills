@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/kyverno/kyverno
-  tags:
-  - kubernetes
-  - policy
-  - admission-control
-  - mutation
-  - validation
+  tags: "kubernetes, policy, admission-control, mutation, validation"
 ---
 
 # Kyverno — Kubernetes Native Policy Engine

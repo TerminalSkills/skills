@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["react-native", "e2e-testing", "mobile", "gray-box"]
+  tags: "react-native, e2e-testing, mobile, gray-box"
   repository: https://github.com/wix/Detox
 ---
 

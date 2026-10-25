@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: devops
-  tags: ["cicd", "gitlab-ci", "circleci", "pipeline", "deployment"]
+  tags: "cicd, gitlab-ci, circleci, pipeline, deployment"
 ---
 
 # CI/CD Pipeline (GitLab CI & CircleCI)

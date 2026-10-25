@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/sqlite/sqlite
-  tags:
-    - sqlite
-    - sql
-    - embedded-database
-    - nodejs
-    - python
+  tags: "sqlite, sql, embedded-database, nodejs, python"
 ---
 
 # SQLite

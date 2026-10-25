@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: [claude-code, hud, dashboard, devtools, monitoring]
-  use-cases:
-    - "Build a real-time dashboard showing what your AI agents are doing"
-    - "Monitor context window usage and tool calls during AI coding sessions"
-    - "Create a progress tracker for multi-step AI agent workflows"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "claude-code, hud, dashboard, devtools, monitoring"
+  use-cases: "Build a real-time dashboard showing what your AI agents are doing, Monitor context window usage and tool calls during AI coding sessions, Create a progress tracker for multi-step AI agent workflows"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Claude HUD — AI Agent Dashboard

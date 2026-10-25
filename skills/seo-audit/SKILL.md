@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["seo", "technical-seo", "crawling", "indexing", "core-web-vitals"]
+  tags: "seo, technical-seo, crawling, indexing, core-web-vitals"
 ---
 
 # SEO Audit

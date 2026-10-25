@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["statuspage", "incident-communication", "status-page", "uptime", "components"]
+  tags: "statuspage, incident-communication, status-page, uptime, components"
 ---
 
 # Statuspage

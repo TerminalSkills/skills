@@ -9,7 +9,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["blender", "animation", "rigging", "keyframes", "armature"]
+  tags: "blender, animation, rigging, keyframes, armature"
   repository: https://projects.blender.org/blender/blender
 ---
 

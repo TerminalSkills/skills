@@ -11,11 +11,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/googleapis/python-storage
-  tags:
-    - gcp
-    - cloud-storage
-    - object-storage
-    - buckets
+  tags: "gcp, cloud-storage, object-storage, buckets"
 ---
 
 # GCP Cloud Storage

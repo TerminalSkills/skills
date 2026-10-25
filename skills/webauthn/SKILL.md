@@ -13,14 +13,9 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/MasterKale/SimpleWebAuthn
-  tags: ["webauthn", "passkeys", "authentication", "passwordless", "fido2"]
-  use-cases:
-    - "Add passkey registration and login to an Express/Node.js app"
-    - "Replace password forms with biometric authentication"
-    - "Implement FIDO2 authentication with simplewebauthn"
-    - "Add Touch ID / Face ID login to a web app"
-    - "Build a passwordless authentication system from scratch"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "webauthn, passkeys, authentication, passwordless, fido2"
+  use-cases: "Add passkey registration and login to an Express/Node.js app, Replace password forms with biometric authentication, Implement FIDO2 authentication with simplewebauthn, Add Touch ID / Face ID login to a web app, Build a passwordless authentication system from scratch"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # WebAuthn / Passkeys

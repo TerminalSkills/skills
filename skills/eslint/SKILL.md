@@ -13,11 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/eslint/eslint
-  tags:
-    - javascript
-    - typescript
-    - linting
-    - code-quality
+  tags: "javascript, typescript, linting, code-quality"
 ---
 
 # ESLint — JavaScript and TypeScript Linting

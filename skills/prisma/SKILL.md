@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/prisma/prisma
-  tags:
-    - orm
-    - database
-    - typescript
-    - migrations
-    - schema
+  tags: "orm, database, typescript, migrations, schema"
 ---
 
 # Prisma — TypeScript ORM

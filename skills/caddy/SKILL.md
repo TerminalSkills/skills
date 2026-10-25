@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["caddy", "web-server", "reverse-proxy", "https", "tls"]
+  tags: "caddy, web-server, reverse-proxy, https, tls"
   repository: https://github.com/caddyserver/caddy
 ---
 

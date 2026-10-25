@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/typesense/typesense
-  tags: ["typesense", "search-engine", "full-text-search", "docker", "typo-tolerant"]
+  tags: "typesense, search-engine, full-text-search, docker, typo-tolerant"
 ---
 
 # Typesense

@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["deno", "typescript", "runtime", "secure", "web-standards"]
+  tags: "deno, typescript, runtime, secure, web-standards"
   repository: https://github.com/denoland/deno
 ---
 

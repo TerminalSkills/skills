@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-  - crdt
-  - real-time
-  - collaboration
-  - text-editing
-  - offline-first
+  tags: "crdt, real-time, collaboration, text-editing, offline-first"
   repository: https://github.com/yjs/yjs
 ---
 

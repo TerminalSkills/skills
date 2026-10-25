@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["webhooks", "retry-logic", "event-driven", "idempotency"]
+  tags: "webhooks, retry-logic, event-driven, idempotency"
 ---
 
 # Webhook Processor

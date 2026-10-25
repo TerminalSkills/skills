@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["tunneling", "webhooks", "networking", "localhost", "development"]
+  tags: "tunneling, webhooks, networking, localhost, development"
 ---
 
 # ngrok

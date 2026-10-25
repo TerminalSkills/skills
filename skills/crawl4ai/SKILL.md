@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/unclecode/crawl4ai
-  tags:
-    - web-scraping
-    - crawling
-    - markdown
-    - rag
-    - python
+  tags: "web-scraping, crawling, markdown, rag, python"
 ---
 
 # Crawl4AI — LLM-Friendly Web Crawler

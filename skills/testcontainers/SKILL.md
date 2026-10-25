@@ -6,11 +6,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags:
-    - integration-testing
-    - docker
-    - databases
-    - containers
+  tags: "integration-testing, docker, databases, containers"
 ---
 
 # Testcontainers

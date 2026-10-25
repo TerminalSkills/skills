@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-  - synthetic-monitoring
-  - e2e-testing
-  - api-monitoring
-  - playwright
-  - monitoring-as-code
+  tags: "synthetic-monitoring, e2e-testing, api-monitoring, playwright, monitoring-as-code"
   repository: https://github.com/checkly/checkly-cli
 ---
 

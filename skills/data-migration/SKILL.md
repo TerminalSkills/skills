@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["migration", "database", "etl", "data-pipeline", "schema"]
+  tags: "migration, database, etl, data-pipeline, schema"
 ---
 
 # Data Migration

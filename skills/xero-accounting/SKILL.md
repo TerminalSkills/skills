@@ -11,13 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["xero", "accounting", "invoices", "bookkeeping", "finance"]
-  use-cases:
-    - "Sync invoices from your app to Xero automatically"
-    - "Pull monthly P&L and balance sheet reports via API"
-    - "Import bank transactions and reconcile accounts in Xero"
-    - "Create and manage contacts, bills, and expenses programmatically"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "xero, accounting, invoices, bookkeeping, finance"
+  use-cases: "Sync invoices from your app to Xero automatically, Pull monthly P&L and balance sheet reports via API, Import bank transactions and reconcile accounts in Xero, Create and manage contacts, bills, and expenses programmatically"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Xero Accounting

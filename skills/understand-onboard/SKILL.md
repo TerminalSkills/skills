@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["onboarding", "developer-documentation", "knowledge-graph", "architecture", "understand-anything"]
+  tags: "onboarding, developer-documentation, knowledge-graph, architecture, understand-anything"
   repository: https://github.com/Egonex-AI/Understand-Anything
 ---
 

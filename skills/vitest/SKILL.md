@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/vitest-dev/vitest
-  tags:
-    - testing
-    - vite
-    - typescript
-    - mocking
-    - coverage
+  tags: "testing, vite, typescript, mocking, coverage"
 ---
 
 # Vitest — Blazing Fast Unit Testing

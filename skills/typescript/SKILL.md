@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["typescript", "tsconfig", "type-checking", "type-safety", "javascript-migration"]
+  tags: "typescript, tsconfig, type-checking, type-safety, javascript-migration"
   repository: https://github.com/microsoft/TypeScript
 ---
 

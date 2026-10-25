@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - browser-automation
-    - cloud-browser
-    - headless
-    - scraping
-    - infrastructure
+  tags: "browser-automation, cloud-browser, headless, scraping, infrastructure"
   repository: https://github.com/browserbase/sdk-node
 ---
 

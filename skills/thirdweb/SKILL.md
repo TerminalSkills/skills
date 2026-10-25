@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/thirdweb-dev/js
-  tags: ["web3", "sdk", "smart-contracts", "nft", "wallet"]
+  tags: "web3, sdk, smart-contracts, nft, wallet"
 ---
 
 # thirdweb

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/velero-io/velero
-  tags:
-    - velero
-    - kubernetes
-    - backup
-    - disaster-recovery
-    - migration
+  tags: "velero, kubernetes, backup, disaster-recovery, migration"
 ---
 
 # Velero

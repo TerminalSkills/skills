@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["expense", "report", "finance", "receipts", "tax"]
-  use-cases:
-    - "Compile a monthly expense report from receipts for reimbursement"
-    - "Categorize and summarize annual business expenses for tax preparation"
-    - "Analyze spending patterns across expense categories"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "expense, report, finance, receipts, tax"
+  use-cases: "Compile a monthly expense report from receipts for reimbursement, Categorize and summarize annual business expenses for tax preparation, Analyze spending patterns across expense categories"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Expense Report

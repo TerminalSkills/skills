@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: content
-  tags:
-    - ffmpeg
-    - video
-    - audio
-    - transcode
-    - media
+  tags: "ffmpeg, video, audio, transcode, media"
 ---
 
 # FFmpeg

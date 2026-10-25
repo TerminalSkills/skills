@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["react", "antd", "component-library", "admin-panel", "design-tokens"]
+  tags: "react, antd, component-library, admin-panel, design-tokens"
   repository: https://github.com/ant-design/ant-design
 ---
 # Ant Design — Enterprise React Components for Data-Heavy Apps

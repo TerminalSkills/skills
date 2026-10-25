@@ -9,7 +9,7 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/sveltejs/svelte
   category: development
-  tags: ["svelte", "frontend", "runes", "reactive", "sveltekit"]
+  tags: "svelte, frontend, runes, reactive, sveltekit"
 ---
 
 # Svelte — Compile-Time Reactive UI Framework

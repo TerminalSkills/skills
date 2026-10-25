@@ -14,7 +14,7 @@ metadata:
   repository: https://github.com/TanStack/router
   version: "1.1.0"
   category: development
-  tags: ["react", "routing", "typescript", "tanstack", "file-based-routes"]
+  tags: "react, routing, typescript, tanstack, file-based-routes"
 ---
 
 # TanStack Router

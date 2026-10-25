@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/vas3k/TaxHacker
   category: business
-  tags:
-    - accounting
-    - tax
-    - receipts
-    - self-hosted
-    - bookkeeping
+  tags: "accounting, tax, receipts, self-hosted, bookkeeping"
 ---
 
 # TaxHacker

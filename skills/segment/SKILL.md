@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["analytics", "segment", "cdp", "events", "tracking"]
+  tags: "analytics, segment, cdp, events, tracking"
   repository: https://github.com/segmentio/analytics-next
 ---
 

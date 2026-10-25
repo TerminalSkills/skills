@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - better-auth
-    - authentication
-    - oauth
-    - sessions
-    - typescript
+  tags: "better-auth, authentication, oauth, sessions, typescript"
   repository: https://github.com/better-auth/better-auth
 ---
 

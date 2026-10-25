@@ -13,14 +13,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["aceternity-ui", "react", "motion", "animations", "tailwind"]
-  use-cases:
-    - "Create a 3D tilt card effect for a product or pricing showcase"
-    - "Add a spotlight effect that follows the cursor on a hero section"
-    - "Build an animated background with moving beams or grid patterns"
-    - "Add a glowing moving border to highlight key elements"
-    - "Create a wavy animated background for section dividers"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "aceternity-ui, react, motion, animations, tailwind"
+  use-cases: "Create a 3D tilt card effect for a product or pricing showcase, Add a spotlight effect that follows the cursor on a hero section, Build an animated background with moving beams or grid patterns, Add a glowing moving border to highlight key elements, Create a wavy animated background for section dividers"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Aceternity UI

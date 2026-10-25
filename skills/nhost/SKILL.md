@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/nhost/nhost
-  tags: ["baas", "graphql", "hasura", "postgres", "auth"]
+  tags: "baas, graphql, hasura, postgres, auth"
 ---
 
 # Nhost

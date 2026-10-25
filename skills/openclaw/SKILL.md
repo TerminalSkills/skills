@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/openclaw/openclaw
   category: automation
-  tags: ["openclaw", "messaging", "ai-agents", "gateway", "self-hosted"]
+  tags: "openclaw, messaging, ai-agents, gateway, self-hosted"
 ---
 
 # OpenClaw

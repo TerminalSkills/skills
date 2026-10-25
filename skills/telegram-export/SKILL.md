@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: content
   repository: https://codeberg.org/Lonami/Telethon
-  tags:
-    - telegram
-    - telethon
-    - export
-    - media
-    - backup
+  tags: "telegram, telethon, export, media, backup"
 ---
 
 # telegram-export

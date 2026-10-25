@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.2.0
   category: development
-  tags:
-    - email
-    - api
-    - transactional
-    - react-email
-    - webhooks
+  tags: "email, api, transactional, react-email, webhooks"
 ---
 
 # Resend — Modern Email API for Developers

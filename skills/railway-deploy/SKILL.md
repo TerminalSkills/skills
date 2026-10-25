@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["railway", "deploy", "cloud", "hosting", "paas"]
+  tags: "railway, deploy, cloud, hosting, paas"
   repository: https://github.com/railwayapp/cli
 ---
 

@@ -17,12 +17,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/leptos-rs/leptos
-  tags:
-    - rust
-    - wasm
-    - full-stack
-    - reactive
-    - ssr
+  tags: "rust, wasm, full-stack, reactive, ssr"
 ---
 
 # Leptos — Full-Stack Rust Web Framework

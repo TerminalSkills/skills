@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - chatwoot
-    - chat
-    - support
-    - open-source
-    - self-hosted
+  tags: "chatwoot, chat, support, open-source, self-hosted"
   repository: https://github.com/chatwoot/chatwoot
 ---
 

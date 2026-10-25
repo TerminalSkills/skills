@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - foremost
-    - file-carving
-    - digital-forensics
-    - data-recovery
-    - ctf
+  tags: "foremost, file-carving, digital-forensics, data-recovery, ctf"
 ---
 
 # Foremost

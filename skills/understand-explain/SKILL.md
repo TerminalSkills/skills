@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["code-explanation", "knowledge-graph", "codebase-analysis", "legacy-code", "understand-anything"]
+  tags: "code-explanation, knowledge-graph, codebase-analysis, legacy-code, understand-anything"
   repository: https://github.com/Egonex-AI/Understand-Anything
 ---
 

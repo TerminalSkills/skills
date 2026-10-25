@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/sodadata/soda-core
-  tags:
-    - data-quality
-    - data-contracts
-    - testing
-    - validation
-    - soda
+  tags: "data-quality, data-contracts, testing, validation, soda"
 ---
 
 # Soda

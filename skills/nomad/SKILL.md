@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/hashicorp/nomad
-  tags:
-    - nomad
-    - orchestrator
-    - hashicorp
-    - containers
-    - scheduling
+  tags: "nomad, orchestrator, hashicorp, containers, scheduling"
 ---
 
 # Nomad

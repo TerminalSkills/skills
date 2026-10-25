@@ -12,12 +12,9 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/googleapis/python-genai
   category: data-ai
-  tags: ["vertex-ai", "google-cloud", "gemini", "enterprise", "mlops"]
-  use-cases:
-    - "Deploy Gemini with enterprise IAM, VPC controls, and compliance requirements"
-    - "Fine-tune Gemini on proprietary data for domain-specific use cases"
-    - "Run batch predictions on millions of records with managed infrastructure"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "vertex-ai, google-cloud, gemini, enterprise, mlops"
+  use-cases: "Deploy Gemini with enterprise IAM, VPC controls, and compliance requirements, Fine-tune Gemini on proprietary data for domain-specific use cases, Run batch predictions on millions of records with managed infrastructure"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Vertex AI — Gemini on Google Cloud

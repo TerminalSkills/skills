@@ -12,11 +12,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/Azure/azure-sdk-for-python
   category: devops
-  tags:
-    - azure
-    - blob-storage
-    - object-storage
-    - sas-tokens
+  tags: "azure, blob-storage, object-storage, sas-tokens"
 ---
 
 # Azure Blob Storage

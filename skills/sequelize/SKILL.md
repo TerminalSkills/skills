@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/sequelize/sequelize
   category: development
-  tags:
-    - sequelize
-    - orm
-    - node
-    - sql
-    - migrations
+  tags: "sequelize, orm, node, sql, migrations"
 ---
 
 # Sequelize — Node.js SQL ORM

@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/marko-js/marko
   category: development
-  tags:
-    - marko
-    - ssr
-    - streaming
-    - frontend
-    - components
+  tags: "marko, ssr, streaming, frontend, components"
 ---
 
 # Marko — HTML-First UI Framework

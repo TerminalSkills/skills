@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: documents
-  tags: ["pdf-to-markdown", "ocr", "document-parsing", "table-extraction", "rag-ingestion"]
+  tags: "pdf-to-markdown, ocr, document-parsing, table-extraction, rag-ingestion"
   repository: https://github.com/opendatalab/MinerU
 ---
 # MinerU — Layout-Aware PDF and Document Parsing

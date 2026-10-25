@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["git", "commits", "conventional-commits", "version-control"]
+  tags: "git, commits, conventional-commits, version-control"
   repository: https://github.com/git/git
 ---
 

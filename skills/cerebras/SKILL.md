@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-  - llm
-  - inference
-  - api
-  - fast-inference
-  - wafer-scale
+  tags: "llm, inference, api, fast-inference, wafer-scale"
   repository: https://github.com/Cerebras/cerebras-cloud-sdk-python
 ---
 

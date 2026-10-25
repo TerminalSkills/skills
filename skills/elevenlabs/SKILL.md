@@ -11,7 +11,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/elevenlabs/elevenlabs-python
-  tags: ["text-to-speech", "voice-synthesis", "voice-cloning", "audio", "realtime"]
+  tags: "text-to-speech, voice-synthesis, voice-cloning, audio, realtime"
 ---
 # ElevenLabs — AI Voice Synthesis & Cloning
 

@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["files", "organize", "rename", "cleanup", "automation"]
-  use-cases:
-    - "Sort hundreds of mixed files into categorized folders"
-    - "Rename files based on date, content, or metadata"
-    - "Find and handle duplicate files across directories"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "files, organize, rename, cleanup, automation"
+  use-cases: "Sort hundreds of mixed files into categorized folders, Rename files based on date, content, or metadata, Find and handle duplicate files across directories"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # File Organizer

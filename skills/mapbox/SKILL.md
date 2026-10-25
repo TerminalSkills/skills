@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/mapbox/mapbox-gl-js
   category: data-ai
-  tags: ["maps", "geospatial", "location", "geocoding", "navigation"]
+  tags: "maps, geospatial, location, geocoding, navigation"
 ---
 # Mapbox — Custom Interactive Maps
 

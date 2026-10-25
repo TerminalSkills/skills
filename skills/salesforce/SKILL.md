@@ -15,12 +15,7 @@ metadata:
   repository: https://github.com/forcedotcom/cli
   version: 1.1.0
   category: business
-  tags:
-    - salesforce
-    - crm
-    - apex
-    - soql
-    - lightning
+  tags: "salesforce, crm, apex, soql, lightning"
 ---
 
 # Salesforce

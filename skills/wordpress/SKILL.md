@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/WordPress/WordPress
-  tags: ["wordpress", "cms", "php", "rest-api", "wp-cli"]
+  tags: "wordpress, cms, php, rest-api, wp-cli"
 ---
 
 # WordPress

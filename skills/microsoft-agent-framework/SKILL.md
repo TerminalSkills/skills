@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/microsoft/agent-framework
-  tags: ["microsoft", "multi-agent", "orchestration", "agents", "workflows"]
+  tags: "microsoft, multi-agent, orchestration, agents, workflows"
 ---
 
 # Microsoft Agent Framework

@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/payloadcms/payload
   category: content
-  tags: ["payload-cms", "cms", "headless-cms", "content-management", "nextjs"]
+  tags: "payload-cms, cms, headless-cms, content-management, nextjs"
 ---
 
 # Payload CMS

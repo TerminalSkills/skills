@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/QwikDev/qwik
-  tags:
-    - typescript
-    - frontend
-    - ssr
-    - resumable
-    - performance
+  tags: "typescript, frontend, ssr, resumable, performance"
 ---
 
 # Qwik

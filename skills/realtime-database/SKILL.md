@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["database", "real-time", "messaging", "schema-design"]
+  tags: "database, real-time, messaging, schema-design"
 ---
 
 # Real-Time Database

@@ -11,13 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["mcp", "model-context-protocol", "ai-tools", "client"]
+  tags: "mcp, model-context-protocol, ai-tools, client"
   repository: "https://github.com/modelcontextprotocol/typescript-sdk"
-  use-cases:
-    - "Build an AI agent that discovers and calls tools from MCP servers"
-    - "Test an MCP server by listing and invoking its tools programmatically"
-    - "Integrate MCP resources into a RAG pipeline"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Build an AI agent that discovers and calls tools from MCP servers, Test an MCP server by listing and invoking its tools programmatically, Integrate MCP resources into a RAG pipeline"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # MCP Client

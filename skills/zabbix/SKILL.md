@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["zabbix", "enterprise-monitoring", "templates", "triggers", "discovery"]
+  tags: "zabbix, enterprise-monitoring, templates, triggers, discovery"
   repository: https://github.com/zabbix/zabbix
 ---
 

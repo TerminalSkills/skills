@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/amannn/next-intl
   category: development
-  tags: [i18n, next-intl, nextjs, localization, internationalization]
+  tags: "i18n, next-intl, nextjs, localization, internationalization"
 ---
 
 # next-intl

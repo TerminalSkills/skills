@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/OpenVPN/openvpn
-  tags:
-    - openvpn
-    - vpn
-    - networking
-    - security
-    - pki
+  tags: "openvpn, vpn, networking, security, pki"
 ---
 
 # OpenVPN

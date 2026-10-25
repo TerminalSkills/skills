@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: ["ai-agents", "agent-orchestration", "claude-code", "budgets", "self-hosted"]
+  tags: "ai-agents, agent-orchestration, claude-code, budgets, self-hosted"
   repository: https://github.com/paperclipai/paperclip
 ---
 # Paperclip — Run a Team of AI Agents Like a Company

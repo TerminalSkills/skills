@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/dequelabs/axe-core
-  tags: ["accessibility", "wcag", "a11y", "compliance", "screen-reader"]
+  tags: "accessibility, wcag, a11y, compliance, screen-reader"
 ---
 
 # Accessibility Auditor

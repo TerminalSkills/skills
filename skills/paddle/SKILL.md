@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - paddle
-    - payments
-    - subscriptions
-    - billing
-    - saas
+  tags: "paddle, payments, subscriptions, billing, saas"
 ---
 
 # Paddle

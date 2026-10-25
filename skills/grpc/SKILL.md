@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - grpc
-    - rpc
-    - protobuf
-    - microservices
-    - streaming
+  tags: "grpc, rpc, protobuf, microservices, streaming"
 ---
 
 # gRPC

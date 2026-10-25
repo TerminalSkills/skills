@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - ai-coding
-    - ide
-    - open-source
-    - code-assistant
-    - autocomplete
+  tags: "ai-coding, ide, open-source, code-assistant, autocomplete"
   repository: https://github.com/continuedev/continue
 ---
 

@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/aws/aws-cli
-  tags:
-    - aws
-    - cli
-    - cloud
-    - s3
-    - lambda
+  tags: "aws, cli, cloud, s3, lambda"
 ---
 
 # AWS CLI

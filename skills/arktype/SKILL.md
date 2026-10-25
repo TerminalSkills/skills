@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/arktypeio/arktype
   category: development
-  tags: ["validation", "typescript", "arktype", "runtime-types", "schema"]
+  tags: "validation, typescript, arktype, runtime-types, schema"
 ---
 
 # ArkType

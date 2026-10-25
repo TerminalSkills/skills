@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["notion", "api", "productivity", "databases", "automation"]
+  tags: "notion, api, productivity, databases, automation"
 ---
 
 # Notion API Integration

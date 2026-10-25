@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/rapid7/metasploit-framework
-  tags:
-    - metasploit
-    - exploitation
-    - penetration-testing
-    - payloads
-    - post-exploitation
+  tags: "metasploit, exploitation, penetration-testing, payloads, post-exploitation"
 ---
 
 # Metasploit Framework

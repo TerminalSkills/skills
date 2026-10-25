@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["airtable", "api", "productivity", "databases", "automation"]
+  tags: "airtable, api, productivity, databases, automation"
 ---
 
 # Airtable API Integration

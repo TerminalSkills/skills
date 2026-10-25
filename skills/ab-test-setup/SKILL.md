@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["ab-testing", "experimentation", "statistics", "conversion", "sample-size"]
+  tags: "ab-testing, experimentation, statistics, conversion, sample-size"
 ---
 
 # A/B Test Setup

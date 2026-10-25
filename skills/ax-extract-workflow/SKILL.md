@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: productivity
-  tags: ["ax", "session-history", "workflow-reconstruction", "git"]
+  tags: "ax, session-history, workflow-reconstruction, git"
 ---
 
 # Reconstruct a Past Workflow with ax

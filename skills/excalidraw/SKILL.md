@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/excalidraw/excalidraw
-  tags:
-  - whiteboard
-  - diagrams
-  - sketching
-  - collaboration
-  - react
+  tags: "whiteboard, diagrams, sketching, collaboration, react"
 ---
 
 # Excalidraw — Hand-Drawn Whiteboard SDK

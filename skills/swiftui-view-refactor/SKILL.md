@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["swiftui", "refactoring", "ios", "observation", "code-quality"]
+  tags: "swiftui, refactoring, ios, observation, code-quality"
 ---
 
 # SwiftUI View Refactor

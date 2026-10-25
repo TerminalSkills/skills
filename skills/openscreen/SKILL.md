@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["screen-recording", "demo", "video", "marketing", "open-source"]
+  tags: "screen-recording, demo, video, marketing, open-source"
   repository: https://github.com/getopenscreen/openscreen
 ---
 

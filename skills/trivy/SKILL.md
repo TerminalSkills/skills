@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/aquasecurity/trivy
   category: devops
-  tags:
-    - trivy
-    - vulnerability
-    - container
-    - scanning
-    - ci-cd
+  tags: "trivy, vulnerability, container, scanning, ci-cd"
 ---
 
 # Trivy

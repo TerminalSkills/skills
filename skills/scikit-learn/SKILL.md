@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/scikit-learn/scikit-learn
   category: data-ai
-  tags: ["scikit-learn", "machine-learning", "classification", "regression", "pipeline"]
+  tags: "scikit-learn, machine-learning, classification, regression, pipeline"
 ---
 
 # scikit-learn

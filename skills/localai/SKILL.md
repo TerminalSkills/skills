@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/mudler/LocalAI
   category: data-ai
-  tags:
-  - local-llm
-  - self-hosted
-  - inference
-  - openai-compatible
-  - docker
+  tags: "local-llm, self-hosted, inference, openai-compatible, docker"
 ---
 
 # LocalAI — Self-Hosted OpenAI Alternative

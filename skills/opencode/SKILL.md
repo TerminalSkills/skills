@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["ai-coding-agent", "terminal", "cli", "open-source", "llm"]
+  tags: "ai-coding-agent, terminal, cli, open-source, llm"
   repository: https://github.com/anomalyco/opencode
 ---
 # OpenCode — Open-Source Terminal Coding Agent

@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: productivity
-  tags: ["agent-skills", "claude-code", "codex", "gemini-cli", "cursor"]
+  tags: "agent-skills, claude-code, codex, gemini-cli, cursor"
 ---
 
 # Using Agent Skills

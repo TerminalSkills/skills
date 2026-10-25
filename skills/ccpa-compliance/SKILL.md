@@ -9,12 +9,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ccpa", "cpra", "privacy", "data-rights", "compliance"]
-  use-cases:
-    - "Add a 'Do Not Sell My Personal Information' opt-out flow"
-    - "Build a Data Subject Request (DSR) API for CCPA compliance"
-    - "Implement GPC signal detection to auto-honor opt-out"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "ccpa, cpra, privacy, data-rights, compliance"
+  use-cases: "Add a 'Do Not Sell My Personal Information' opt-out flow, Build a Data Subject Request (DSR) API for CCPA compliance, Implement GPC signal detection to auto-honor opt-out"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # CCPA / CPRA Compliance

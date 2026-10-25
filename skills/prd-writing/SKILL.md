@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - prd
-  - requirements
-  - specification
-  - user-stories
-  - acceptance-criteria
+  tags: "prd, requirements, specification, user-stories, acceptance-criteria"
 ---
 
 # PRD Writing — Product Requirements Documents

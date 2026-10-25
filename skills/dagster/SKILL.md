@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/dagster-io/dagster
-  tags:
-    - dagster
-    - data-pipeline
-    - orchestration
-    - assets
-    - python
+  tags: "dagster, data-pipeline, orchestration, assets, python"
 ---
 
 # Dagster

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/evidence-dev/evidence
-  tags:
-    - bi
-    - dashboards
-    - sql
-    - markdown
-    - reporting
+  tags: "bi, dashboards, sql, markdown, reporting"
 ---
 
 # Evidence — Code-Driven BI Reports

@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: [swarm-intelligence, multi-agent, prediction, ensemble, consensus]
-  use-cases:
-    - "Build a prediction system that uses 10 agents to forecast market trends"
-    - "Create ensemble AI that combines multiple model opinions for better accuracy"
-    - "Implement swarm-based decision making for complex business problems"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "swarm-intelligence, multi-agent, prediction, ensemble, consensus"
+  use-cases: "Build a prediction system that uses 10 agents to forecast market trends, Create ensemble AI that combines multiple model opinions for better accuracy, Implement swarm-based decision making for complex business problems"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Swarm Intelligence

@@ -13,12 +13,9 @@ metadata:
   version: "1.3.0"
   repository: https://github.com/praw-dev/praw
   category: research
-  tags: ["reddit", "research", "sentiment", "market-research", "validation"]
-  use-cases:
-    - "Validate a startup idea by finding real user pain points on Reddit"
-    - "Analyze sentiment around a product or brand across subreddits"
-    - "Discover underserved niches by mining complaints and feature requests"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "reddit, research, sentiment, market-research, validation"
+  use-cases: "Validate a startup idea by finding real user pain points on Reddit, Analyze sentiment around a product or brand across subreddits, Discover underserved niches by mining complaints and feature requests"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Reddit Insights

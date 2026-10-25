@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["vibe-coding", "ai-coding", "workflow", "productivity", "claude-code"]
-  use-cases:
-    - "Set up a new project structure optimized for AI coding agents"
-    - "Build a full-stack app using Claude Code from spec to deploy"
-    - "Establish a team workflow for AI-assisted development"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "vibe-coding, ai-coding, workflow, productivity, claude-code"
+  use-cases: "Set up a new project structure optimized for AI coding agents, Build a full-stack app using Claude Code from spec to deploy, Establish a team workflow for AI-assisted development"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Vibe Coding

@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/urbanadventurer/WhatWeb
   category: devops
-  tags:
-    - fingerprinting
-    - reconnaissance
-    - security
-    - web-technology
-    - cms-detection
+  tags: "fingerprinting, reconnaissance, security, web-technology, cms-detection"
 ---
 
 # WhatWeb

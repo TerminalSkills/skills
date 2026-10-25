@@ -13,12 +13,9 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/huggingface/peft
-  tags: ["fine-tuning", "lora", "qlora", "peft", "llm"]
-  use-cases:
-    - "Fine-tune 7B-70B models on consumer GPUs with LoRA/QLoRA"
-    - "Adapt foundation models to domain-specific tasks"
-    - "Train custom instruction-following models with minimal compute"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "fine-tuning, lora, qlora, peft, llm"
+  use-cases: "Fine-tune 7B-70B models on consumer GPUs with LoRA/QLoRA, Adapt foundation models to domain-specific tasks, Train custom instruction-following models with minimal compute"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # PEFT Fine-Tuning

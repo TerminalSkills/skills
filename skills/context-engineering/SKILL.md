@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["context-engineering", "claude-code", "agents-md", "ai-workflow", "prompt-engineering"]
+  tags: "context-engineering, claude-code, agents-md, ai-workflow, prompt-engineering"
 ---
 
 # Context Engineering

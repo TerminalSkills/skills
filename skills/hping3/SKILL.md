@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/antirez/hping
   category: devops
-  tags:
-    - hping3
-    - packet-crafting
-    - network-testing
-    - firewall-testing
-    - penetration-testing
+  tags: "hping3, packet-crafting, network-testing, firewall-testing, penetration-testing"
 ---
 
 # hping3

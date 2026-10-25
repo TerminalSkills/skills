@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/pandas-dev/pandas
   category: data-ai
-  tags: ["data-analysis", "pandas", "visualization", "statistics", "csv"]
-  use-cases:
-    - "Analyze a CSV or Excel file and generate summary statistics"
-    - "Create charts and visualizations from tabular data"
-    - "Answer specific questions about patterns and trends in datasets"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "data-analysis, pandas, visualization, statistics, csv"
+  use-cases: "Analyze a CSV or Excel file and generate summary statistics, Create charts and visualizations from tabular data, Answer specific questions about patterns and trends in datasets"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Data Analysis

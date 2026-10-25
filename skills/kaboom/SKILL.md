@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/kaplayjs/kaplay
-  tags:
-    - game-engine
-    - browser-game
-    - 2d
-    - kaplay
-    - javascript
+  tags: "game-engine, browser-game, 2d, kaplay, javascript"
 ---
 
 # Kaboom (Kaplay)

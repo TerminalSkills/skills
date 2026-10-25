@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: automation
   repository: https://github.com/browserbase/stagehand
-  tags:
-    - browser-automation
-    - ai-agent
-    - web-scraping
-    - natural-language
-    - playwright
+  tags: "browser-automation, ai-agent, web-scraping, natural-language, playwright"
 ---
 
 # Stagehand

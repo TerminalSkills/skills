@@ -14,13 +14,9 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/honojs/hono
-  tags: ["hono", "rpc", "type-safe", "cloudflare-workers", "typescript"]
-  use-cases:
-    - "Build a type-safe REST API with Hono RPC and share types with the frontend"
-    - "Replace tRPC with Hono RPC for a REST-compatible type-safe API"
-    - "Create a Cloudflare Workers API with full type inference on the client"
-    - "Validate API inputs with Zod middleware and propagate types to the client"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "hono, rpc, type-safe, cloudflare-workers, typescript"
+  use-cases: "Build a type-safe REST API with Hono RPC and share types with the frontend, Replace tRPC with Hono RPC for a REST-compatible type-safe API, Create a Cloudflare Workers API with full type inference on the client, Validate API inputs with Zod middleware and propagate types to the client"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Hono RPC

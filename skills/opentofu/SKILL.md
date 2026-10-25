@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/opentofu/opentofu
-  tags:
-    - opentofu
-    - iac
-    - terraform-alternative
-    - infrastructure
-    - state-encryption
+  tags: "opentofu, iac, terraform-alternative, infrastructure, state-encryption"
 ---
 
 # OpenTofu

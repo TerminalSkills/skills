@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/stripe/stripe-node
-  tags: ["stripe", "subscriptions", "billing", "metered", "usage-based"]
+  tags: "stripe, subscriptions, billing, metered, usage-based"
 ---
 
 # Stripe Billing — SaaS Subscription & Usage-Based Billing

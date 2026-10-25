@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: "https://github.com/ClickHouse/ClickHouse"
-  tags:
-    - database
-    - analytics
-    - olap
-    - columnar
-    - sql
+  tags: "database, analytics, olap, columnar, sql"
 ---
 
 # ClickHouse

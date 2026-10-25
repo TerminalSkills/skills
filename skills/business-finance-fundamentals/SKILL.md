@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: [finance, unit-economics, ltv-cac, margins, revenue]
-  use-cases:
-    - "Calculate whether a SaaS business is healthy using LTV/CAC ratio"
-    - "Find which of the 4 revenue levers will have the biggest impact"
-    - "Model the financial impact of a price increase on profit"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "finance, unit-economics, ltv-cac, margins, revenue"
+  use-cases: "Calculate whether a SaaS business is healthy using LTV/CAC ratio, Find which of the 4 revenue levers will have the biggest impact, Model the financial impact of a price increase on profit"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Business Finance Fundamentals

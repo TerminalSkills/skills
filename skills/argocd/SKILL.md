@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags:
-    - argocd
-    - gitops
-    - kubernetes
-    - continuous-delivery
-    - devops
+  tags: "argocd, gitops, kubernetes, continuous-delivery, devops"
   repository: https://github.com/argoproj/argo-cd
 ---
 

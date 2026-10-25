@@ -9,11 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/appium/appium
-  tags:
-    - mobile-testing
-    - ios
-    - android
-    - automation
+  tags: "mobile-testing, ios, android, automation"
 ---
 
 # Appium

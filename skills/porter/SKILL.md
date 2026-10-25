@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-  - paas
-  - kubernetes
-  - aws
-  - gcp
-  - azure
+  tags: "paas, kubernetes, aws, gcp, azure"
 ---
 
 # Porter — PaaS on Your Own Cloud

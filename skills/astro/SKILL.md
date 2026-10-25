@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/withastro/astro
-  tags: ["astro", "static-site", "island-architecture", "ssg", "content"]
+  tags: "astro, static-site, island-architecture, ssg, content"
 ---
 
 # Astro

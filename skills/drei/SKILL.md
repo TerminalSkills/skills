@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: design
   repository: https://github.com/pmndrs/drei
-  tags:
-    - 3d
-    - react
-    - threejs
-    - r3f
-    - helpers
+  tags: "3d, react, threejs, r3f, helpers"
 ---
 
 # Drei — Essential Helpers for React Three Fiber

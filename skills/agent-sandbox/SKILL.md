@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/anthropics/sandbox-runtime
-  tags: ["sandbox", "security", "guardrails", "agent-safety", "isolation"]
+  tags: "sandbox, security, guardrails, agent-safety, isolation"
 ---
 
 # Agent Sandbox

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/systemd/systemd
-  tags:
-    - systemd
-    - linux
-    - services
-    - daemon
-    - process-management
+  tags: "systemd, linux, services, daemon, process-management"
 ---
 
 # systemd

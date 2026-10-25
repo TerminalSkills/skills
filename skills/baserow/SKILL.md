@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["database", "spreadsheet", "airtable-alternative", "open-source", "no-code"]
+  tags: "database, spreadsheet, airtable-alternative, open-source, no-code"
 ---
 # Baserow — Open-Source No-Code Database
 

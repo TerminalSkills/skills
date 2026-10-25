@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["adr", "architecture-decisions", "documentation", "changelog", "readme"]
+  tags: "adr, architecture-decisions, documentation, changelog, readme"
 ---
 
 # Documentation and ADRs

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["hetzner", "cloud", "vps", "infrastructure", "hosting"]
+  tags: "hetzner, cloud, vps, infrastructure, hosting"
   repository: https://github.com/hetznercloud/cli
 ---
 

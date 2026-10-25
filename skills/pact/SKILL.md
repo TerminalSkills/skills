@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags:
-    - contract-testing
-    - pact
-    - microservices
-    - api-testing
-    - ci
+  tags: "contract-testing, pact, microservices, api-testing, ci"
 ---
 
 # Pact Contract Testing (Pact JS)

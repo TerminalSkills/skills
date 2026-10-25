@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/ollama/ollama
-  tags:
-    - ollama
-    - local-llm
-    - self-hosted
-    - inference
-    - embeddings
+  tags: "ollama, local-llm, self-hosted, inference, embeddings"
 ---
 
 # Ollama

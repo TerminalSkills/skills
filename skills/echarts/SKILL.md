@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["charts", "interactive", "canvas", "dashboard", "analytics"]
+  tags: "charts, interactive, canvas, dashboard, analytics"
   repository: https://github.com/apache/echarts
 ---
 # ECharts — Enterprise Data Visualization

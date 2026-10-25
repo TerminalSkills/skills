@@ -13,7 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/honojs/hono
-  tags: ["hono", "web-framework", "cloudflare-workers", "typescript", "rpc"]
+  tags: "hono, web-framework, cloudflare-workers, typescript, rpc"
 ---
 
 # Hono — Ultrafast Web Framework

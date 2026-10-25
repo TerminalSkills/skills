@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/ffuf/ffuf
-  tags: ["security", "fuzzing", "recon", "ffuf", "content-discovery"]
+  tags: "security, fuzzing, recon, ffuf, content-discovery"
 ---
 
 # ffuf (Fuzz Faster U Fool)

@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["forms", "conversion", "accessibility", "lead-generation", "wcag"]
+  tags: "forms, conversion, accessibility, lead-generation, wcag"
 ---
 
 # Form CRO

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags:
-    - activepieces
-    - automation
-    - workflow
-    - no-code
-    - open-source
+  tags: "activepieces, automation, workflow, no-code, open-source"
   repository: https://github.com/activepieces/activepieces
 ---
 

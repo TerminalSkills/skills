@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["protobuf", "grpc", "serialization", "schema", "buf"]
+  tags: "protobuf, grpc, serialization, schema, buf"
   repository: "https://github.com/protocolbuffers/protobuf"
 ---
 

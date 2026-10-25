@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/archiverjs/node-archiver
   category: documents
-  tags: ["zip", "tar", "archive", "compression", "bundling"]
+  tags: "zip, tar, archive, compression, bundling"
 ---
 
 # Archiver

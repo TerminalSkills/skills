@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/tinyplex/tinybase
-  tags:
-    - state-management
-    - local-first
-    - reactive
-    - sync
-    - crdt
+  tags: "state-management, local-first, reactive, sync, crdt"
 ---
 
 # TinyBase — Reactive Data Store for Local-First Apps

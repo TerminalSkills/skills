@@ -13,12 +13,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["assemblyai", "transcription", "speech-recognition", "audio-ai", "diarization"]
-  use-cases:
-    - "Transcribe a podcast episode with speaker labels and generate show notes"
-    - "Run sentiment analysis on customer support call recordings"
-    - "Extract key insights and action items from meeting recordings using LLM Gateway"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "assemblyai, transcription, speech-recognition, audio-ai, diarization"
+  use-cases: "Transcribe a podcast episode with speaker labels and generate show notes, Run sentiment analysis on customer support call recordings, Extract key insights and action items from meeting recordings using LLM Gateway"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # AssemblyAI

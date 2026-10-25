@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["mlx", "vision", "apple-silicon", "vlm", "local-llm"]
+  tags: "mlx, vision, apple-silicon, vlm, local-llm"
   repository: https://github.com/Blaizzy/mlx-vlm
 ---
 

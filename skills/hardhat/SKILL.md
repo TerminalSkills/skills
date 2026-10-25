@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/NomicFoundation/hardhat
   category: development
-  tags:
-    - hardhat
-    - ethereum
-    - solidity
-    - testing
-    - deployment
+  tags: "hardhat, ethereum, solidity, testing, deployment"
 ---
 
 # Hardhat

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - microsoft-access
-    - database
-    - vba
-    - forms
-    - reports
+  tags: "microsoft-access, database, vba, forms, reports"
 ---
 
 # Microsoft Access

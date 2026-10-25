@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/Zulko/moviepy
   category: content
-  tags:
-    - moviepy
-    - python
-    - video-editing
-    - compositing
-    - automation
+  tags: "moviepy, python, video-editing, compositing, automation"
 ---
 
 # MoviePy

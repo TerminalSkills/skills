@@ -12,13 +12,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["azure-openai", "azure", "openai", "enterprise", "microsoft"]
+  tags: "azure-openai, azure, openai, enterprise, microsoft"
   repository: https://github.com/openai/openai-python
-  use-cases:
-    - "Deploy GPT models on Azure with enterprise compliance and data residency"
-    - "Authenticate with Managed Identity — no API keys in code"
-    - "Apply Azure Content Filtering to moderate LLM inputs and outputs"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Deploy GPT models on Azure with enterprise compliance and data residency, Authenticate with Managed Identity — no API keys in code, Apply Azure Content Filtering to moderate LLM inputs and outputs"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Azure OpenAI Service

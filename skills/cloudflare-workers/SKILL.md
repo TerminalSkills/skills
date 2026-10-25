@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["cloudflare", "edge-computing", "serverless", "workers", "wrangler"]
+  tags: "cloudflare, edge-computing, serverless, workers, wrangler"
   repository: https://github.com/cloudflare/workers-sdk
 ---
 

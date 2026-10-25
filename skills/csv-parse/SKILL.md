@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/adaltas/node-csv
   category: documents
-  tags: ["csv", "parsing", "streaming", "data-import", "export"]
+  tags: "csv, parsing, streaming, data-import, export"
 ---
 
 # csv-parse

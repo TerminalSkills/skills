@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/nanostores/nanostores
-  tags:
-    - state-management
-    - framework-agnostic
-    - react
-    - vue
-    - svelte
+  tags: "state-management, framework-agnostic, react, vue, svelte"
 ---
 
 # Nanostores — Tiny State Manager

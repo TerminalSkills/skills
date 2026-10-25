@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: "https://github.com/angular/angular"
-  tags:
-    - typescript
-    - frontend
-    - spa
-    - rxjs
-    - components
+  tags: "typescript, frontend, spa, rxjs, components"
 ---
 
 # Angular

@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["copy-editing", "proofreading", "marketing-copy", "plain-language"]
+  tags: "copy-editing, proofreading, marketing-copy, plain-language"
 ---
 
 # Copy Editing

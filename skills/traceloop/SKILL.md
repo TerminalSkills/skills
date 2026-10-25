@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/traceloop/openllmetry
-  tags:
-    - observability
-    - opentelemetry
-    - llm
-    - tracing
-    - openllmetry
+  tags: "observability, opentelemetry, llm, tracing, openllmetry"
 ---
 
 # Traceloop (OpenLLMetry)

@@ -12,11 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.2.0
   category: devops
-  tags:
-    - gcp
-    - cloud-run
-    - serverless
-    - containers
+  tags: "gcp, cloud-run, serverless, containers"
 ---
 
 # GCP Cloud Run

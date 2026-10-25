@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/direnv/direnv
-  tags:
-    - direnv
-    - environment
-    - dotenv
-    - shell
-    - config
+  tags: "direnv, environment, dotenv, shell, config"
 ---
 
 # direnv

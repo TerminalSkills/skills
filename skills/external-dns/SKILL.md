@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/kubernetes-sigs/external-dns
-  tags:
-    - external-dns
-    - dns
-    - kubernetes
-    - route53
-    - cloudflare
+  tags: "external-dns, dns, kubernetes, route53, cloudflare"
 ---
 
 # ExternalDNS

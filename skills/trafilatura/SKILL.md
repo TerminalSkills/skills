@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["text-extraction", "web-scraping", "boilerplate-removal", "corpus-building", "html-to-markdown"]
+  tags: "text-extraction, web-scraping, boilerplate-removal, corpus-building, html-to-markdown"
   repository: https://github.com/adbar/trafilatura
 ---
 # Trafilatura — Clean text and metadata from web pages

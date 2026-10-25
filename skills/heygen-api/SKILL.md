@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["heygen", "video-generation", "avatar", "ai-video", "lip-sync"]
-  use-cases:
-    - "Generate personalized sales outreach videos with AI avatars at scale"
-    - "Translate and lip-sync marketing videos into multiple languages"
-    - "Automate talking-head video creation from scripts"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "heygen, video-generation, avatar, ai-video, lip-sync"
+  use-cases: "Generate personalized sales outreach videos with AI avatars at scale, Translate and lip-sync marketing videos into multiple languages, Automate talking-head video creation from scripts"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # HeyGen API

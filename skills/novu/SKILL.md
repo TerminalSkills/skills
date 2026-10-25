@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["notifications", "novu", "email", "in-app", "workflows"]
+  tags: "notifications, novu, email, in-app, workflows"
   repository: "https://github.com/novuhq/novu"
 ---
 

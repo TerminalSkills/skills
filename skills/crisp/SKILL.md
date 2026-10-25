@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: business
   repository: https://github.com/crisp-im/crisp-sdk-web
-  tags:
-    - crisp
-    - chat
-    - support
-    - helpdesk
-    - live-chat
+  tags: "crisp, chat, support, helpdesk, live-chat"
 ---
 
 # Crisp

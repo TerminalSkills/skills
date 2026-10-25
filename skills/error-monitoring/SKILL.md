@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["error-monitoring", "sentry", "observability", "debugging", "triage"]
+  tags: "error-monitoring, sentry, observability, debugging, triage"
 ---
 
 # Error Monitoring

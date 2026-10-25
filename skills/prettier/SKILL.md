@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/prettier/prettier
-  tags:
-    - formatting
-    - code-style
-    - prettier
-    - javascript
-    - typescript
+  tags: "formatting, code-style, prettier, javascript, typescript"
 ---
 
 # Prettier — Code Formatting

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - playwright
-    - testing
-    - e2e
-    - browser-testing
-    - automation
+  tags: "playwright, testing, e2e, browser-testing, automation"
 ---
 
 # Playwright Testing

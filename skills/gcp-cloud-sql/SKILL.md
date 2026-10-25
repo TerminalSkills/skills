@@ -11,12 +11,7 @@ metadata:
   author: google-cloud
   version: 1.1.0
   category: devops
-  tags:
-    - gcp
-    - cloud-sql
-    - postgres
-    - mysql
-    - database
+  tags: "gcp, cloud-sql, postgres, mysql, database"
 ---
 
 # GCP Cloud SQL

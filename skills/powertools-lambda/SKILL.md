@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/aws-powertools/powertools-lambda-python
   category: devops
-  tags:
-    - aws
-    - lambda
-    - observability
-    - serverless
-    - idempotency
+  tags: "aws, lambda, observability, serverless, idempotency"
 ---
 
 # Powertools for AWS Lambda

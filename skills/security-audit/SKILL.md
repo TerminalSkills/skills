@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["security", "owasp", "vulnerabilities", "audit", "secrets"]
+  tags: "security, owasp, vulnerabilities, audit, secrets"
 ---
 
 # Security Audit

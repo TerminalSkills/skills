@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["blender", "video-editing", "vse", "timeline", "pipeline"]
+  tags: "blender, video-editing, vse, timeline, pipeline"
   repository: https://projects.blender.org/blender/blender
 ---
 

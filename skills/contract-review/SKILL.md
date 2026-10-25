@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: documents
-  tags: ["contract", "legal", "review", "risk-analysis", "compliance"]
-  use-cases:
-    - "Review employment contracts before signing to identify unfavorable terms"
-    - "Audit vendor agreements for missing clauses and liability risks"
-    - "Compare contract versions to detect changes in key terms"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "contract, legal, review, risk-analysis, compliance"
+  use-cases: "Review employment contracts before signing to identify unfavorable terms, Audit vendor agreements for missing clauses and liability risks, Compare contract versions to detect changes in key terms"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Contract Review

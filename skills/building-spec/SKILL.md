@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [architecture, building-spec, floor-plan, 3d, standards]
+  tags: "architecture, building-spec, floor-plan, 3d, standards"
 ---
 
 # Building Spec

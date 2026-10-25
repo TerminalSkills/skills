@@ -16,12 +16,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/Dokploy/dokploy
-  tags:
-  - self-hosted
-  - paas
-  - deployment
-  - docker
-  - vps
+  tags: "self-hosted, paas, deployment, docker, vps"
 ---
 
 # Dokploy — Self-Hosted PaaS

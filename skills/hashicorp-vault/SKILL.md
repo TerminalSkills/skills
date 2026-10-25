@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/hashicorp/vault
-  tags: ["hashicorp-vault", "secrets", "security", "encryption", "dynamic-credentials"]
+  tags: "hashicorp-vault, secrets, security, encryption, dynamic-credentials"
 ---
 
 # HashiCorp Vault

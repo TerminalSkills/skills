@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/supabase/supabase
-  tags:
-    - supabase
-    - postgres
-    - authentication
-    - realtime
-    - baas
+  tags: "supabase, postgres, authentication, realtime, baas"
 ---
 
 # Supabase

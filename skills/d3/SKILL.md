@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/d3/d3"
   category: design
-  tags: ["d3", "data-visualization", "charts", "svg", "interactive"]
+  tags: "d3, data-visualization, charts, svg, interactive"
 ---
 
 # D3.js

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["performance", "optimization", "code-review", "profiling"]
+  tags: "performance, optimization, code-review, profiling"
 ---
 
 # Performance Reviewer

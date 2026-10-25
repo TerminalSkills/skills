@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - square
-    - payments
-    - pos
-    - ecommerce
-    - subscriptions
+  tags: "square, payments, pos, ecommerce, subscriptions"
   repository: https://github.com/square/square-nodejs-sdk
 ---
 

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["mvp", "startup", "product-scope", "prioritization", "launch"]
+  tags: "mvp, startup, product-scope, prioritization, launch"
 ---
 
 # MVP: Scope and Ship the First Version

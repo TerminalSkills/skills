@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["proposal", "business", "writing", "sales", "pitch"]
-  use-cases:
-    - "Write a project proposal for a potential client engagement"
-    - "Create a partnership proposal for a strategic business alliance"
-    - "Draft a bid response for an RFP with structured sections and pricing"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "proposal, business, writing, sales, pitch"
+  use-cases: "Write a project proposal for a potential client engagement, Create a partnership proposal for a strategic business alliance, Draft a bid response for an RFP with structured sections and pricing"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Proposal Writer

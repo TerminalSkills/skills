@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/slidevjs/slidev
   category: development
-  tags: ["slides", "presentations", "slidev", "vue", "developer-tools"]
-  use-cases:
-    - "Create a technical presentation with live code examples"
-    - "Build a slide deck for a conference talk or team demo"
-    - "Generate slides from a topic outline with code samples and diagrams"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "slides, presentations, slidev, vue, developer-tools"
+  use-cases: "Create a technical presentation with live code examples, Build a slide deck for a conference talk or team demo, Generate slides from a topic outline with code samples and diagrams"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Dev Slides

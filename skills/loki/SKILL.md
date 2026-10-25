@@ -12,12 +12,7 @@ metadata:
   repository: https://github.com/grafana/loki
   version: 1.1.0
   category: data-ai
-  tags:
-    - logging
-    - observability
-    - log-aggregation
-    - grafana
-    - logql
+  tags: "logging, observability, log-aggregation, grafana, logql"
 ---
 
 # Loki

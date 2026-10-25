@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/capricorn86/happy-dom
-  tags: ["testing", "dom", "happy-dom", "jsdom", "vitest"]
+  tags: "testing, dom, happy-dom, jsdom, vitest"
 ---
 
 # Happy DOM

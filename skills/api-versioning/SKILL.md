@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - api
-    - versioning
-    - rest
-    - deprecation
-    - backwards-compatibility
+  tags: "api, versioning, rest, deprecation, backwards-compatibility"
 ---
 
 # API Versioning

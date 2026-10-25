@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/sinaptik-ai/pandas-ai
-  tags:
-    - pandas-ai
-    - pandas
-    - llm
-    - natural-language
-    - data-analysis
+  tags: "pandas-ai, pandas, llm, natural-language, data-analysis"
 ---
 
 # PandasAI

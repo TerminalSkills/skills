@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/hotwired/turbo"
   category: development
-  tags:
-    - hotwire
-    - turbo
-    - stimulus
-    - server-rendered
-    - html-over-the-wire
+  tags: "hotwire, turbo, stimulus, server-rendered, html-over-the-wire"
 ---
 
 # Hotwire — HTML Over the Wire

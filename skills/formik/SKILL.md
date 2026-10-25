@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags: [formik, forms, react, validation, ui]
+  tags: "formik, forms, react, validation, ui"
   repository: https://github.com/jaredpalmer/formik
 ---
 

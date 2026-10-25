@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/symfony/symfony
-  tags:
-    - php
-    - framework
-    - enterprise
-    - api
-    - doctrine
+  tags: "php, framework, enterprise, api, doctrine"
 ---
 
 # Symfony — Enterprise PHP Framework

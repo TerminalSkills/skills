@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["postgresql", "database", "sql", "relational", "jsonb"]
+  tags: "postgresql, database, sql, relational, jsonb"
   repository: "https://github.com/postgres/postgres"
 ---
 

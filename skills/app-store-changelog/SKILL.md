@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["app-store", "release-notes", "changelog", "ios", "git"]
+  tags: "app-store, release-notes, changelog, ios, git"
 ---
 
 # App Store Changelog

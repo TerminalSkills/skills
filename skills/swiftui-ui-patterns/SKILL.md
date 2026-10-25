@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["swiftui", "ios", "navigation", "state-management", "ui-patterns"]
+  tags: "swiftui, ios, navigation, state-management, ui-patterns"
 ---
 
 # SwiftUI UI Patterns

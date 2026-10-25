@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: documents
-  tags: ["pdf", "document", "extraction", "tables", "parsing"]
+  tags: "pdf, document, extraction, tables, parsing"
 ---
 
 # PDF Analyzer

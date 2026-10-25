@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/vxcontrol/pentagi
   category: devops
-  tags:
-    - pentagi
-    - penetration-testing
-    - security
-    - ai-agents
-    - vulnerability
+  tags: "pentagi, penetration-testing, security, ai-agents, vulnerability"
 ---
 
 # PentAGI

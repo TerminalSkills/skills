@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["free-tools", "lead-generation", "growth", "seo", "product-marketing"]
+  tags: "free-tools, lead-generation, growth, seo, product-marketing"
 ---
 
 # Free Tool Strategy

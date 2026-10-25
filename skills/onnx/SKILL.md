@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/onnx/onnx
-  tags:
-    - model-interoperability
-    - optimization
-    - inference
-    - cross-platform
-    - edge-deployment
+  tags: "model-interoperability, optimization, inference, cross-platform, edge-deployment"
 ---
 
 # ONNX

@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/SakanaAI/AI-Scientist-v2
   category: research
-  tags:
-    - research
-    - science
-    - hypothesis
-    - experiment
-    - automation
+  tags: "research, science, hypothesis, experiment, automation"
 ---
 
 # AI Scientist

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: productivity
-  tags: ["git", "terminal-ui", "interactive-rebase", "lazygit", "developer-tools"]
+  tags: "git, terminal-ui, interactive-rebase, lazygit, developer-tools"
   repository: https://github.com/jesseduffield/lazygit
 ---
 # lazygit — Terminal UI for everyday and advanced Git

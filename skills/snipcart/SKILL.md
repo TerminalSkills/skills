@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - snipcart
-    - ecommerce
-    - cart
-    - jamstack
-    - static-site
+  tags: "snipcart, ecommerce, cart, jamstack, static-site"
 ---
 
 # Snipcart

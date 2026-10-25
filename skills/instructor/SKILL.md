@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/567-labs/instructor
-  tags:
-    - structured-output
-    - llm
-    - pydantic
-    - validation
-    - extraction
+  tags: "structured-output, llm, pydantic, validation, extraction"
 ---
 
 # Instructor — Structured LLM Output with Validation

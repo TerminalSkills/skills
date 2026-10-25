@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/Aider-AI/aider
   category: development
-  tags:
-    - ai-coding
-    - terminal
-    - code-generation
-    - pair-programming
-    - git
+  tags: "ai-coding, terminal, code-generation, pair-programming, git"
 ---
 
 # Aider — AI Pair Programming in Your Terminal

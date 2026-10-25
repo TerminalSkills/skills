@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/spinkham/skipfish"
   category: devops
-  tags:
-    - skipfish
-    - web-scanner
-    - reconnaissance
-    - penetration-testing
-    - vulnerability-scanner
+  tags: "skipfish, web-scanner, reconnaissance, penetration-testing, vulnerability-scanner"
 ---
 
 # SkipFish

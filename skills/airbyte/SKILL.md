@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/airbytehq/airbyte
-  tags:
-    - etl
-    - data-integration
-    - connectors
-    - sync
-    - data-pipeline
+  tags: "etl, data-integration, connectors, sync, data-pipeline"
 ---
 
 # Airbyte — Open-Source Data Integration Platform

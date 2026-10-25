@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["jupyter", "notebook", "data-analysis", "visualization", "research"]
+  tags: "jupyter, notebook, data-analysis, visualization, research"
   repository: https://github.com/jupyterlab/jupyterlab
 ---
 

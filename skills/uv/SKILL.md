@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["python", "package-manager", "lockfile", "virtual-environments", "dependency-management"]
+  tags: "python, package-manager, lockfile, virtual-environments, dependency-management"
   repository: https://github.com/astral-sh/uv
 ---
 # uv — Fast Python package and project manager

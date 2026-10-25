@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/clearml/clearml
-  tags:
-  - ml-ops
-  - experiment-tracking
-  - pipeline
-  - orchestration
-  - data-management
+  tags: "ml-ops, experiment-tracking, pipeline, orchestration, data-management"
 ---
 
 # ClearML — Open-Source ML Operations

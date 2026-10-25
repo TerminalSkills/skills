@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: documents
   repository: https://github.com/foliojs/pdfkit
-  tags: ["pdf", "pdfkit", "reports", "invoices", "node"]
+  tags: "pdf, pdfkit, reports, invoices, node"
 ---
 
 # PDFKit

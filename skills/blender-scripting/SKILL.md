@@ -17,7 +17,7 @@ metadata:
   repository: https://projects.blender.org/blender/blender
   version: "1.2.0"
   category: automation
-  tags: ["blender", "3d", "python", "automation", "procedural"]
+  tags: "blender, 3d, python, automation, procedural"
 ---
 
 # Blender Scripting

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/launchdarkly/js-core
-  tags:
-    - launchdarkly
-    - feature-flags
-    - feature-toggles
-    - ab-testing
-    - rollout
+  tags: "launchdarkly, feature-flags, feature-toggles, ab-testing, rollout"
 ---
 
 # LaunchDarkly

@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/streamlit/streamlit
   category: data-ai
-  tags:
-  - dashboards
-  - python
-  - data-apps
-  - visualization
-  - prototyping
+  tags: "dashboards, python, data-apps, visualization, prototyping"
 ---
 
 # Streamlit — Python Data Apps

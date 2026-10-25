@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/apache/flink
-  tags:
-    - flink
-    - streaming
-    - real-time
-    - analytics
-    - events
+  tags: "flink, streaming, real-time, analytics, events"
 ---
 
 # Apache Flink

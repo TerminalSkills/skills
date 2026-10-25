@@ -16,12 +16,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - realtime
-    - pubsub
-    - websocket
-    - messaging
-    - presence
+  tags: "realtime, pubsub, websocket, messaging, presence"
 ---
 
 # Ably — Realtime Infrastructure as a Service

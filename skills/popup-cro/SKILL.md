@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["popups", "conversion", "lead-capture", "accessibility", "seo"]
+  tags: "popups, conversion, lead-capture, accessibility, seo"
 ---
 
 # Popup CRO

@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["dify", "llm-apps", "rag", "workflow-api", "self-hosted"]
+  tags: "dify, llm-apps, rag, workflow-api, self-hosted"
   repository: https://github.com/langgenius/dify
 ---
 # Dify — Self-hosted LLM app platform with a REST API

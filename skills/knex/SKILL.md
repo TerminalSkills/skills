@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/knex/knex
-  tags:
-    - query-builder
-    - sql
-    - database
-    - migrations
-    - node
+  tags: "query-builder, sql, database, migrations, node"
 ---
 
 # Knex.js — SQL Query Builder for Node.js

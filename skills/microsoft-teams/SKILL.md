@@ -16,12 +16,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - microsoft-teams
-    - graph-api
-    - teams-sdk
-    - microsoft-365
-    - collaboration
+  tags: "microsoft-teams, graph-api, teams-sdk, microsoft-365, collaboration"
 ---
 
 # Microsoft Teams

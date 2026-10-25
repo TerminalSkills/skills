@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - mongodb
-    - odm
-    - schema
-    - typescript
-    - node
+  tags: "mongodb, odm, schema, typescript, node"
   repository: https://github.com/Automattic/mongoose
 ---
 

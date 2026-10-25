@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-  - sast
-  - code-analysis
-  - security
-  - linting
-  - patterns
+  tags: "sast, code-analysis, security, linting, patterns"
   repository: https://github.com/semgrep/semgrep
 ---
 

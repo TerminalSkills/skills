@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["openai", "realtime", "voice", "websocket", "webrtc"]
+  tags: "openai, realtime, voice, websocket, webrtc"
 ---
 # OpenAI Realtime API — Voice-Native AI Conversations
 

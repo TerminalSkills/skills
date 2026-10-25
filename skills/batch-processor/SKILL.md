@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["batch", "parallel", "bulk", "processing", "automation"]
-  use-cases:
-    - "Convert hundreds of files between formats in parallel"
-    - "Apply transformations to every file in a directory"
-    - "Run bulk data extraction with progress tracking"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "batch, parallel, bulk, processing, automation"
+  use-cases: "Convert hundreds of files between formats in parallel, Apply transformations to every file in a directory, Run bulk data extraction with progress tracking"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Batch Processor

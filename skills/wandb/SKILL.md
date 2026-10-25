@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/wandb/wandb
-  tags:
-    - experiment-tracking
-    - hyperparameter-tuning
-    - visualization
-    - artifacts
-    - ml-ops
+  tags: "experiment-tracking, hyperparameter-tuning, visualization, artifacts, ml-ops"
 ---
 
 # Weights & Biases (W&B)

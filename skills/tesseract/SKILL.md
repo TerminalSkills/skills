@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - ocr
-    - text-recognition
-    - document-processing
-    - image-to-text
-    - open-source
+  tags: "ocr, text-recognition, document-processing, image-to-text, open-source"
   repository: https://github.com/tesseract-ocr/tesseract
 ---
 

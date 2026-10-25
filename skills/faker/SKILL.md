@@ -8,11 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags:
-    - test-data
-    - faker
-    - seeding
-    - fixtures
+  tags: "test-data, faker, seeding, fixtures"
   repository: https://github.com/faker-js/faker
 ---
 

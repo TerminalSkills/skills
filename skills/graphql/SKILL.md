@@ -15,12 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/graphql/graphql-js
   category: development
-  tags:
-    - graphql
-    - api
-    - apollo
-    - schema
-    - resolvers
+  tags: "graphql, api, apollo, schema, resolvers"
 ---
 
 # GraphQL

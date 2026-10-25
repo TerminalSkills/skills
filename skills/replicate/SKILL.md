@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/replicate/replicate-python
-  tags:
-    - ml-api
-    - model-hosting
-    - image-generation
-    - fine-tuning
-    - serverless
+  tags: "ml-api, model-hosting, image-generation, fine-tuning, serverless"
 ---
 
 

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - social-engineer-toolkit
-    - red-team
-    - phishing-simulation
-    - security-awareness
-    - penetration-testing
+  tags: "social-engineer-toolkit, red-team, phishing-simulation, security-awareness, penetration-testing"
 ---
 
 # Social Engineer Toolkit (SET)

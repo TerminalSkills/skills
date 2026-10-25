@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["rabbitmq", "amqp", "messaging", "nodejs", "queues"]
+  tags: "rabbitmq, amqp, messaging, nodejs, queues"
   repository: https://github.com/amqp-node/amqplib
 ---
 

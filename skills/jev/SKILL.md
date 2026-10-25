@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["jev", "typesafe-ai", "ai-agents", "classification", "routing"]
+  tags: "jev, typesafe-ai, ai-agents, classification, routing"
 ---
 # Jev
 

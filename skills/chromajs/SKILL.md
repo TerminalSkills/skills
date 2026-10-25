@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/gka/chroma.js
   category: design
-  tags: ["color", "palette", "accessibility", "chroma", "design-tokens"]
+  tags: "color, palette, accessibility, chroma, design-tokens"
 ---
 
 # chroma.js

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["bundling", "typescript", "tsup", "esbuild", "library"]
+  tags: "bundling, typescript, tsup, esbuild, library"
   repository: https://github.com/egoist/tsup
 ---
 

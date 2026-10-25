@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-  - uptime
-  - logging
-  - incident-management
-  - status-page
-  - on-call
+  tags: "uptime, logging, incident-management, status-page, on-call"
 ---
 
 # Better Stack — Uptime, Logs, and Incident Management

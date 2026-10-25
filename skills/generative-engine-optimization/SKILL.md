@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "3.0.0"
   category: business
-  tags:
-    - geo
-    - ai-search
-    - seo
-    - robots-txt
-    - llms-txt
+  tags: "geo, ai-search, seo, robots-txt, llms-txt"
 ---
 
 # Generative Engine Optimization (GEO)

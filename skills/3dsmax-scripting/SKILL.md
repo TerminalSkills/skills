@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: design
-  tags:
-    - 3dsmax
-    - maxscript
-    - python
-    - automation
-    - scripting
+  tags: "3dsmax, maxscript, python, automation, scripting"
 ---
 
 # 3ds Max Scripting

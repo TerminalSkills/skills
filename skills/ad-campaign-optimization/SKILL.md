@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - advertising
-    - ppc
-    - meta-ads
-    - google-ads
-    - campaign
+  tags: "advertising, ppc, meta-ads, google-ads, campaign"
 ---
 
 # Ad Campaign Optimization

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/wevm/wagmi
-  tags:
-    - wagmi
-    - viem
-    - react
-    - wallet
-    - dapp
+  tags: "wagmi, viem, react, wallet, dapp"
 ---
 
 # wagmi

@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - semantic-release
-    - versioning
-    - changelog
-    - npm
-    - ci-cd
+  tags: "semantic-release, versioning, changelog, npm, ci-cd"
   repository: https://github.com/semantic-release/semantic-release
 ---
 

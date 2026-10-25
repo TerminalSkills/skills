@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/influxdata/telegraf"
   category: devops
-  tags: ["telegraf", "metrics", "influxdb", "monitoring", "observability"]
+  tags: "telegraf, metrics, influxdb, monitoring, observability"
 ---
 
 # Telegraf

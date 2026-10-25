@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - sandbox
-    - code-execution
-    - ai-agents
-    - cloud
-    - e2b
+  tags: "sandbox, code-execution, ai-agents, cloud, e2b"
   repository: https://github.com/e2b-dev/E2B
 ---
 

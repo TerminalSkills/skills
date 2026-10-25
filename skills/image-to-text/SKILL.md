@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.1.0"
   category: data-ai
-  tags: ["ocr", "text-extraction", "vision-model", "data-extraction", "verification"]
+  tags: "ocr, text-extraction, vision-model, data-extraction, verification"
 ---
 
 # Image to Text

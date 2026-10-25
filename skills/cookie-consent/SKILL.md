@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["cookie-consent", "gdpr", "privacy", "eprivacy", "consent-management"]
-  use-cases:
-    - "Add a GDPR-compliant cookie banner to a Next.js app"
-    - "Implement consent-gated Google Analytics loading"
-    - "Detect and honor Global Privacy Control (GPC) signal"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "cookie-consent, gdpr, privacy, eprivacy, consent-management"
+  use-cases: "Add a GDPR-compliant cookie banner to a Next.js app, Implement consent-gated Google Analytics loading, Detect and honor Global Privacy Control (GPC) signal"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Cookie Consent

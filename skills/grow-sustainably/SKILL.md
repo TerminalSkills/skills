@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["unit-economics", "cash-flow", "bootstrapping", "retention", "financial-planning"]
+  tags: "unit-economics, cash-flow, bootstrapping, retention, financial-planning"
 ---
 
 # Grow Sustainably

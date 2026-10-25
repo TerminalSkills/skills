@@ -11,7 +11,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/SBoudrias/Inquirer.js
-  tags: [inquirer, cli, prompts, interactive, terminal]
+  tags: "inquirer, cli, prompts, interactive, terminal"
 ---
 
 # Inquirer.js

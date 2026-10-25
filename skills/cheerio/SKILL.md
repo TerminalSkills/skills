@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/cheeriojs/cheerio
   category: development
-  tags:
-    - cheerio
-    - html
-    - parsing
-    - scraping
-    - dom
+  tags: "cheerio, html, parsing, scraping, dom"
 ---
 
 # Cheerio

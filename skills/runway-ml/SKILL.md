@@ -8,12 +8,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["runway", "video-generation", "gen-4", "text-to-video", "ai-video"]
-  use-cases:
-    - "Generate cinematic video clips from text descriptions"
-    - "Animate a product photo into a dynamic video for ads"
-    - "Automate B-roll video generation for content pipelines"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "runway, video-generation, gen-4, text-to-video, ai-video"
+  use-cases: "Generate cinematic video clips from text descriptions, Animate a product photo into a dynamic video for ads, Automate B-roll video generation for content pipelines"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Runway ML API

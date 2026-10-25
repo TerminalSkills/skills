@@ -12,12 +12,9 @@ metadata:
   version: "1.2.0"
   repository: https://github.com/scanny/python-pptx
   category: documents
-  tags: ["powerpoint", "pptx", "presentations", "slides", "python-pptx"]
-  use-cases:
-    - "Generate PowerPoint reports from database queries or JSON data"
-    - "Edit existing PPTX files — update text, swap images, modify layouts"
-    - "Extract text, images, and metadata from PowerPoint presentations"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "powerpoint, pptx, presentations, slides, python-pptx"
+  use-cases: "Generate PowerPoint reports from database queries or JSON data, Edit existing PPTX files — update text, swap images, modify layouts, Extract text, images, and metadata from PowerPoint presentations"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # PowerPoint

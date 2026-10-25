@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/DopplerHQ/cli
   category: devops
-  tags: ["doppler", "secrets", "environment-variables", "devops", "security"]
+  tags: "doppler, secrets, environment-variables, devops, security"
 ---
 
 # Doppler

@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - gtm
-  - launch
-  - growth
-  - distribution
-  - acquisition
+  tags: "gtm, launch, growth, distribution, acquisition"
 ---
 
 # Go-to-Market — Launch, Distribute, and Grow

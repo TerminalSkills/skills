@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["context7", "library-docs", "mcp", "documentation-lookup", "code-generation"]
+  tags: "context7, library-docs, mcp, documentation-lookup, code-generation"
   repository: https://github.com/upstash/context7
 ---
 # Context7 — Current library documentation for AI coding agents

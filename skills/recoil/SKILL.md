@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/facebookexperimental/Recoil
   category: development
-  tags:
-    - state-management
-    - react
-    - atoms
-    - selectors
-    - meta
+  tags: "state-management, react, atoms, selectors, meta"
 ---
 
 # Recoil

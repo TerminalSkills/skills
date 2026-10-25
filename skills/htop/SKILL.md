@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - htop
-    - monitoring
-    - processes
-    - performance
-    - linux
+  tags: "htop, monitoring, processes, performance, linux"
   repository: https://github.com/htop-dev/htop
 ---
 

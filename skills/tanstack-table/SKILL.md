@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/TanStack/table
-  tags: ["table", "data-grid", "tanstack", "react", "sorting"]
+  tags: "table, data-grid, tanstack, react, sorting"
 ---
 
 # TanStack Table

@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/sqlmapproject/sqlmap
-  tags:
-    - sqlmap
-    - sql-injection
-    - penetration-testing
-    - database
-    - web-security
+  tags: "sqlmap, sql-injection, penetration-testing, database, web-security"
 ---
 
 # sqlmap

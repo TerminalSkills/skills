@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - performance
-    - web-vitals
-    - lighthouse
-    - frontend
-    - lcp
+  tags: "performance, web-vitals, lighthouse, frontend, lcp"
 ---
 
 # Web Vitals Analyzer

@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/phoenixframework/phoenix
   category: development
-  tags:
-    - elixir
-    - web
-    - realtime
-    - liveview
-    - websocket
+  tags: "elixir, web, realtime, liveview, websocket"
 ---
 
 # Phoenix

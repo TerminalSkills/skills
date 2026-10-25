@@ -11,13 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["prompt-engineering", "llm", "ai", "claude", "gpt"]
-  use-cases:
-    - "Design zero-shot prompts for classification or extraction tasks"
-    - "Build few-shot examples to improve LLM accuracy"
-    - "Use chain-of-thought prompting for complex reasoning tasks"
-    - "Create ReAct agents that reason and act in a loop"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "prompt-engineering, llm, ai, claude, gpt"
+  use-cases: "Design zero-shot prompts for classification or extraction tasks, Build few-shot examples to improve LLM accuracy, Use chain-of-thought prompting for complex reasoning tasks, Create ReAct agents that reason and act in a loop"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Prompt Engineering

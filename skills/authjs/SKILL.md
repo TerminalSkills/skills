@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/nextauthjs/next-auth
-  tags:
-    - authentication
-    - oauth
-    - nextjs
-    - session
-    - jwt
+  tags: "authentication, oauth, nextjs, session, jwt"
 ---
 
 # Auth.js (NextAuth) — Authentication for the Web

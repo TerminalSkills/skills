@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/weaviate/weaviate
-  tags:
-    - weaviate
-    - vector-database
-    - hybrid-search
-    - rag
-    - docker
+  tags: "weaviate, vector-database, hybrid-search, rag, docker"
 ---
 
 # Weaviate

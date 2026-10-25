@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - llm
-    - gateway
-    - observability
-    - routing
-    - guardrails
+  tags: "llm, gateway, observability, routing, guardrails"
   repository: https://github.com/Portkey-AI/gateway
 ---
 

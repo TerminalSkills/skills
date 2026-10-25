@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["ai-ui", "code-generation", "react", "shadcn-ui", "prototyping"]
+  tags: "ai-ui, code-generation, react, shadcn-ui, prototyping"
 ---
 # v0 — AI-Powered UI Generation
 

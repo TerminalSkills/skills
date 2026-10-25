@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["fastmcp", "mcp", "python", "mcp-server", "agent-tools"]
+  tags: "fastmcp, mcp, python, mcp-server, agent-tools"
   repository: https://github.com/PrefectHQ/fastmcp
 ---
 # FastMCP — Build MCP servers and clients in Python

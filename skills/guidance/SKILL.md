@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/guidance-ai/guidance"
   category: data-ai
-  tags:
-    - llm
-    - constrained-generation
-    - grammar
-    - structured-output
-    - json-schema
+  tags: "llm, constrained-generation, grammar, structured-output, json-schema"
 ---
 
 # Guidance — Constrained LLM Generation

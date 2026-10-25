@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - graphql
-    - react
-    - cache
-    - state-management
-    - data-fetching
+  tags: "graphql, react, cache, state-management, data-fetching"
   repository: https://github.com/apollographql/apollo-client
 ---
 

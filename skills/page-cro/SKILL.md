@@ -20,7 +20,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["cro", "conversion", "landing-pages", "ab-testing", "web-performance"]
+  tags: "cro, conversion, landing-pages, ab-testing, web-performance"
 ---
 
 # Page CRO: Auditing Marketing Pages for Conversion

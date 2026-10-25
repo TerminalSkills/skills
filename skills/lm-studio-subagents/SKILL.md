@@ -13,12 +13,9 @@ metadata:
   version: "1.2.0"
   category: data-ai
   repository: https://github.com/lmstudio-ai/lmstudio-js
-  tags: ["lm-studio", "local-llm", "subagent", "inference", "cost-saving"]
-  use-cases:
-    - "Offload repetitive LLM tasks to free local models"
-    - "Run summarization and classification without API costs"
-    - "Create multi-agent workflows mixing cloud and local models"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "lm-studio, local-llm, subagent, inference, cost-saving"
+  use-cases: "Offload repetitive LLM tasks to free local models, Run summarization and classification without API costs, Create multi-agent workflows mixing cloud and local models"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # LM Studio Subagents

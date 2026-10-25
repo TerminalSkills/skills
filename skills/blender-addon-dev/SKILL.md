@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://projects.blender.org/blender/blender
   category: development
-  tags: ["blender", "addon", "plugin", "operators", "ui-panels"]
+  tags: "blender, addon, plugin, operators, ui-panels"
 ---
 
 # Blender Add-on Development

@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/hapijs/hapi
-  tags:
-    - node
-    - web-framework
-    - api
-    - validation
-    - authentication
+  tags: "node, web-framework, api, validation, authentication"
 ---
 
 # Hapi — Enterprise Node.js Framework

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - canny
-    - feedback
-    - roadmap
-    - feature-requests
-    - product
+  tags: "canny, feedback, roadmap, feature-requests, product"
 ---
 
 # Canny

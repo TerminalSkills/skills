@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/pulumi/pulumi
-  tags: ["pulumi", "infrastructure-as-code", "cloud", "devops", "multi-cloud"]
+  tags: "pulumi, infrastructure-as-code, cloud, devops, multi-cloud"
 ---
 
 # Pulumi

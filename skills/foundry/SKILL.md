@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/foundry-rs/foundry
-  tags:
-    - solidity
-    - ethereum
-    - smart-contracts
-    - testing
-    - forge
+  tags: "solidity, ethereum, smart-contracts, testing, forge"
 ---
 
 # Foundry — Blazing Fast Ethereum Development Toolkit

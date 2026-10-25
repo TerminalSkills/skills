@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["browser-extension", "chrome", "firefox", "wxt", "manifest-v3"]
+  tags: "browser-extension, chrome, firefox, wxt, manifest-v3"
   repository: https://github.com/wxt-dev/wxt
 ---
 

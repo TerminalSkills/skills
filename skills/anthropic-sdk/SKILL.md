@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/anthropics/anthropic-sdk-typescript
-  tags:
-    - anthropic
-    - claude
-    - llm
-    - tool-use
-    - streaming
+  tags: "anthropic, claude, llm, tool-use, streaming"
 ---
 
 # Anthropic SDK

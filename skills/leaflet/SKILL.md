@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["maps", "open-source", "geospatial", "markers", "layers"]
+  tags: "maps, open-source, geospatial, markers, layers"
   repository: https://github.com/Leaflet/Leaflet
 ---
 # Leaflet — Lightweight Open-Source Maps

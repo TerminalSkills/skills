@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["ai-agents", "typescript", "multi-agent", "llm-workflows", "mcp"]
+  tags: "ai-agents, typescript, multi-agent, llm-workflows, mcp"
   repository: https://github.com/VoltAgent/voltagent
 ---
 # VoltAgent — TypeScript Framework for AI Agents and Workflows

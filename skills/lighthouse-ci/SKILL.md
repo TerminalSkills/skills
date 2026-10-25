@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/GoogleChrome/lighthouse-ci
-  tags:
-    - lighthouse
-    - performance
-    - web-vitals
-    - accessibility
-    - ci
+  tags: "lighthouse, performance, web-vitals, accessibility, ci"
 ---
 
 # Lighthouse CI

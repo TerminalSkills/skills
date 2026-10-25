@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/treeverse/dvc
-  tags:
-    - data-versioning
-    - ml-pipelines
-    - experiment-tracking
-    - reproducibility
-    - git
+  tags: "data-versioning, ml-pipelines, experiment-tracking, reproducibility, git"
 ---
 
 # DVC (Data Version Control)

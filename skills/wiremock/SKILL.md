@@ -6,11 +6,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags:
-    - api-mocking
-    - http
-    - request-matching
-    - recording
+  tags: "api-mocking, http, request-matching, recording"
 ---
 
 # WireMock

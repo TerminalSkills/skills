@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-  - ml-ops
-  - experiment-tracking
-  - model-registry
-  - monitoring
-  - collaboration
+  tags: "ml-ops, experiment-tracking, model-registry, monitoring, collaboration"
 ---
 
 # Comet ML — ML Experiment Tracking & Model Management

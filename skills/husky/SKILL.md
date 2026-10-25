@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - husky
-    - git-hooks
-    - pre-commit
-    - lint
-    - ci
+  tags: "husky, git-hooks, pre-commit, lint, ci"
   repository: https://github.com/typicode/husky
 ---
 

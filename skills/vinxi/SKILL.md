@@ -13,7 +13,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/nksaraf/vinxi
-  tags: [vinxi, vite, meta-framework, ssr, full-stack]
+  tags: "vinxi, vite, meta-framework, ssr, full-stack"
 ---
 
 # Vinxi — Full-Stack JavaScript SDK

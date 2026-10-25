@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.3.0"
   category: data-ai
-  tags: ["memory", "ai-agents", "rag", "personalization", "supermemory"]
+  tags: "memory, ai-agents, rag, personalization, supermemory"
   repository: https://github.com/supermemoryai/supermemory
 ---
 

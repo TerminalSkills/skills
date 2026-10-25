@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: documents
-  tags:
-    - confluence
-    - atlassian
-    - documentation
-    - wiki
-    - knowledge-base
+  tags: "confluence, atlassian, documentation, wiki, knowledge-base"
 ---
 
 # Confluence

@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-    - linkedin
-    - social-media
-    - b2b
-    - content-marketing
-    - personal-branding
+  tags: "linkedin, social-media, b2b, content-marketing, personal-branding"
 ---
 
 # LinkedIn Marketing

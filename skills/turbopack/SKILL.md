@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - bundler
-    - rust
-    - nextjs
-    - hmr
-    - webpack-migration
+  tags: "bundler, rust, nextjs, hmr, webpack-migration"
   repository: https://github.com/vercel/next.js
 ---
 

@@ -15,11 +15,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/directus/directus
   category: development
-  tags:
-    - directus
-    - cms
-    - headless
-    - api
+  tags: "directus, cms, headless, api"
 ---
 
 # Directus

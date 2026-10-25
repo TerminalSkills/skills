@@ -16,7 +16,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/typeorm/typeorm
-  tags: ["orm", "typescript", "database", "sql", "migrations"]
+  tags: "orm, typescript, database, sql, migrations"
 ---
 
 # TypeORM — TypeScript ORM for SQL Databases

@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - data-pipeline
-    - python
-    - etl
-    - ingestion
-    - duckdb
+  tags: "data-pipeline, python, etl, ingestion, duckdb"
   repository: https://github.com/dlt-hub/dlt
 ---
 

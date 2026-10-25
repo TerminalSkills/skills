@@ -11,12 +11,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/hacksider/Deep-Live-Cam"
   category: data-ai
-  tags:
-    - deepfake
-    - face-swap
-    - real-time
-    - video
-    - computer-vision
+  tags: "deepfake, face-swap, real-time, video, computer-vision"
 ---
 
 # Deep-Live-Cam — Real-Time Face Swap

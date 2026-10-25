@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: ["home-automation", "smart-home", "iot", "yaml-automations", "rest-api"]
+  tags: "home-automation, smart-home, iot, yaml-automations, rest-api"
   repository: https://github.com/home-assistant/core
 ---
 # Home Assistant — Local smart home control from the terminal

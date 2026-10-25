@@ -12,12 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://gitlab.com/kalilinux
   category: devops
-  tags:
-    - kali-linux
-    - penetration-testing
-    - security
-    - ctf
-    - lab-setup
+  tags: "kali-linux, penetration-testing, security, ctf, lab-setup"
 ---
 
 # Kali Linux

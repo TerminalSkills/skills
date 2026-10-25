@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: content
-  tags: [video-generation, tiktok, youtube-shorts, content-creation, ai-video]
-  use-cases:
-    - "Generate 50 short-form videos per day for TikTok/YouTube Shorts"
-    - "Build an automated content pipeline: topic → script → voice → video"
-    - "Create educational or explainer videos with AI narration"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "video-generation, tiktok, youtube-shorts, content-creation, ai-video"
+  use-cases: "Generate 50 short-form videos per day for TikTok/YouTube Shorts, Build an automated content pipeline: topic → script → voice → video, Create educational or explainer videos with AI narration"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # AI Video Generator — Short-Form Content Pipeline

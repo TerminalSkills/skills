@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/triggerdotdev/trigger.dev
-  tags:
-    - background-jobs
-    - cron
-    - typescript
-    - queues
-    - serverless
+  tags: "background-jobs, cron, typescript, queues, serverless"
 ---
 
 # Trigger.dev

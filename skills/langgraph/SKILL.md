@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/langchain-ai/langgraph
-  tags:
-    - langgraph
-    - agents
-    - state-machines
-    - multi-agent
-    - workflows
+  tags: "langgraph, agents, state-machines, multi-agent, workflows"
 ---
 
 # LangGraph

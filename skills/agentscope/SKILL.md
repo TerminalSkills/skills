@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/agentscope-ai/agentscope
-  tags:
-    - agents
-    - observability
-    - tracing
-    - opentelemetry
-    - multi-agent
+  tags: "agents, observability, tracing, opentelemetry, multi-agent"
 ---
 
 # AgentScope

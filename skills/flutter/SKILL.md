@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/flutter/flutter
-  tags:
-  - mobile
-  - cross-platform
-  - dart
-  - ios
-  - android
+  tags: "mobile, cross-platform, dart, ios, android"
 ---
 
 # Flutter — Cross-Platform UI Framework

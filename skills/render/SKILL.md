@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["paas", "deployment", "hosting", "docker", "postgresql"]
+  tags: "paas, deployment, hosting, docker, postgresql"
 ---
 
 # Render — Cloud Application Platform

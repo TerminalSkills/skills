@@ -14,12 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/cline/cline
-  tags:
-    - ai-coding
-    - autonomous-agent
-    - cline
-    - mcp
-    - cli
+  tags: "ai-coding, autonomous-agent, cline, mcp, cli"
 ---
 
 # Cline

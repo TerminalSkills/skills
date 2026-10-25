@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["a2a", "agents", "interoperability", "protocol"]
+  tags: "a2a, agents, interoperability, protocol"
   repository: https://github.com/a2aproject/A2A
 ---
 

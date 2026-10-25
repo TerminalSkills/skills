@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/istio/istio
   category: devops
-  tags:
-    - istio
-    - service-mesh
-    - kubernetes
-    - traffic-management
-    - security
+  tags: "istio, service-mesh, kubernetes, traffic-management, security"
 ---
 
 # Istio

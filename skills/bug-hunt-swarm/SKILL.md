@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["debugging", "multi-agent", "subagents", "root-cause-analysis"]
+  tags: "debugging, multi-agent, subagents, root-cause-analysis"
 ---
 
 # Bug Hunt Swarm

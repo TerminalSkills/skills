@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - ruby
-    - rails
-    - fullstack
-    - mvc
-    - activerecord
+  tags: "ruby, rails, fullstack, mvc, activerecord"
   repository: https://github.com/rails/rails
 ---
 

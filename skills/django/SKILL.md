@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/django/django
-  tags:
-    - python
-    - web
-    - orm
-    - admin
-    - fullstack
+  tags: "python, web, orm, admin, fullstack"
 ---
 
 # Django

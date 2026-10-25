@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["chrome-extension", "browser", "react", "typescript", "manifest-v3"]
+  tags: "chrome-extension, browser, react, typescript, manifest-v3"
   repository: https://github.com/PlasmoHQ/plasmo
 ---
 

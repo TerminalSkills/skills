@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - trading
-    - algorithmic
-    - backtesting
-    - finance
-    - quantitative
+  tags: "trading, algorithmic, backtesting, finance, quantitative"
 ---
 
 # Algorithmic Trading

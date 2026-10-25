@@ -15,7 +15,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: design
-  tags: ["website-cloning", "frontend", "visual-diff", "design-tokens", "playwright"]
+  tags: "website-cloning, frontend, visual-diff, design-tokens, playwright"
 ---
 
 # Clone Website

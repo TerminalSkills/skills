@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: ["web-scraping", "crawler", "python", "browser-automation", "data-extraction"]
+  tags: "web-scraping, crawler, python, browser-automation, data-extraction"
   repository: https://github.com/D4Vinci/Scrapling
 ---
 # Scrapling — Adaptive web scraping and crawling

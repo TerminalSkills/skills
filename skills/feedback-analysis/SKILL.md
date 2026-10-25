@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - feedback
-    - product
-    - user-research
-    - sentiment
-    - nps
+  tags: "feedback, product, user-research, sentiment, nps"
 ---
 
 # Feedback Analysis

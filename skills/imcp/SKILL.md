@@ -11,7 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/mattt/iMCP
   category: productivity
-  tags: [mcp, macos, apple, messages, contacts]
+  tags: "mcp, macos, apple, messages, contacts"
 ---
 
 # iMCP

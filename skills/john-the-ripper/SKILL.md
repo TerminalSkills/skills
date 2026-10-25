@@ -12,12 +12,7 @@ metadata:
   version: 1.0.0
   category: devops
   repository: https://github.com/openwall/john
-  tags:
-    - john-the-ripper
-    - password-cracking
-    - hash-cracking
-    - ctf
-    - penetration-testing
+  tags: "john-the-ripper, password-cracking, hash-cracking, ctf, penetration-testing"
 ---
 
 # John the Ripper

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["surveys", "feedback", "formbricks", "nps", "user-research"]
+  tags: "surveys, feedback, formbricks, nps, user-research"
   repository: https://github.com/formbricks/formbricks
 ---
 

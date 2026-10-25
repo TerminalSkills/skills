@@ -12,7 +12,7 @@ metadata:
   repository: https://github.com/greensock/GSAP
   version: 1.1.0
   category: development
-  tags: [gsap, animation, scrolltrigger, timeline, svg]
+  tags: "gsap, animation, scrolltrigger, timeline, svg"
 ---
 
 # GSAP

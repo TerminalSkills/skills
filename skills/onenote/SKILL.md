@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["onenote", "microsoft-365", "notes", "graph-api", "api"]
+  tags: "onenote, microsoft-365, notes, graph-api, api"
   repository: https://github.com/microsoftgraph/microsoft-graph-docs-contrib
 ---
 

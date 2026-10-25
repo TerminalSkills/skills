@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: research
-  tags: ["research", "social-listening", "trend-analysis", "reddit", "competitive-intelligence"]
+  tags: "research, social-listening, trend-analysis, reddit, competitive-intelligence"
   repository: https://github.com/mvanhorn/last30days-skill
 ---
 

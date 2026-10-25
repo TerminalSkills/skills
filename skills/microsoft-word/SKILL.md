@@ -16,12 +16,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/python-openxml/python-docx
   category: development
-  tags:
-    - microsoft-word
-    - docx
-    - document-generation
-    - templates
-    - mail-merge
+  tags: "microsoft-word, docx, document-generation, templates, mail-merge"
 ---
 
 # Microsoft Word

@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: devops
-  tags:
-    - crossplane
-    - kubernetes
-    - infrastructure-as-code
-    - cloud
-    - platform-engineering
+  tags: "crossplane, kubernetes, infrastructure-as-code, cloud, platform-engineering"
   repository: https://github.com/crossplane/crossplane
 ---
 

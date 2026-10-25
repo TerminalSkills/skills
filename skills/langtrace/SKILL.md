@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/Scale3-Labs/langtrace
-  tags:
-    - observability
-    - tracing
-    - llm
-    - opentelemetry
-    - monitoring
+  tags: "observability, tracing, llm, opentelemetry, monitoring"
 ---
 
 # Langtrace — Open-Source LLM Observability

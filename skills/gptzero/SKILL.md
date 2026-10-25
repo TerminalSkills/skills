@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["ai-detection", "gptzero", "content-moderation", "text-analysis"]
+  tags: "ai-detection, gptzero, content-moderation, text-analysis"
 ---
 
 # GPTZero API Integration

@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/upstash/redis-js
-  tags:
-    - redis
-    - qstash
-    - serverless
-    - edge
-    - rate-limiting
+  tags: "redis, qstash, serverless, edge, rate-limiting"
 ---
 
 # Upstash: Serverless Redis, QStash and Workflow

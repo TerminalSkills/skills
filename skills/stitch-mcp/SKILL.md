@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: design
-  tags: [stitch, mcp, design-to-code, google, ui]
+  tags: "stitch, mcp, design-to-code, google, ui"
   repository: https://github.com/davideast/stitch-mcp
 ---
 

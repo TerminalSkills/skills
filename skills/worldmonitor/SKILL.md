@@ -14,13 +14,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: [intelligence, news-aggregation, geopolitical, monitoring, dashboard]
+  tags: "intelligence, news-aggregation, geopolitical, monitoring, dashboard"
   repository: https://github.com/koala73/worldmonitor
-  use-cases:
-    - "Pull a country risk score or strategic brief into a script or report"
-    - "Give an AI agent live conflict, cyber, sanctions and market data over MCP"
-    - "Self-host the World Monitor dashboard with your own data-source keys"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Pull a country risk score or strategic brief into a script or report, Give an AI agent live conflict, cyber, sanctions and market data over MCP, Self-host the World Monitor dashboard with your own data-source keys"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # World Monitor

@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags:
-    - n8n
-    - workflow
-    - automation
-    - sdk
-    - typescript
+  tags: "n8n, workflow, automation, sdk, typescript"
   repository: https://github.com/n8n-io/n8n
 ---
 

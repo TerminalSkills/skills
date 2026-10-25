@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["spec", "planning", "rfc", "architecture", "design-doc"]
+  tags: "spec, planning, rfc, architecture, design-doc"
 ---
 
 # Spec-Driven Development

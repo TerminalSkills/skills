@@ -11,12 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - blockchain
-    - rust
-    - smart-contracts
-    - anchor
-    - web3
+  tags: "blockchain, rust, smart-contracts, anchor, web3"
   repository: https://github.com/anza-xyz/agave
 ---
 

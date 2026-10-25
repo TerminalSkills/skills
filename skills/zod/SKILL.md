@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["validation", "schema", "typescript", "type-inference", "parsing"]
+  tags: "validation, schema, typescript, type-inference, parsing"
   repository: "https://github.com/colinhacks/zod"
 ---
 

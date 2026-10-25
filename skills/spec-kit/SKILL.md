@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["spec-kit", "spec-driven-development", "specify-cli", "requirements", "agent-workflow"]
+  tags: "spec-kit, spec-driven-development, specify-cli, requirements, agent-workflow"
   repository: https://github.com/github/spec-kit
 ---
 # Spec Kit — Spec-driven development commands for coding agents

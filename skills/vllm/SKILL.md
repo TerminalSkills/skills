@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/vllm-project/vllm
-  tags: ["inference", "llm", "serving", "gpu", "openai-compatible"]
+  tags: "inference, llm, serving, gpu, openai-compatible"
 ---
 
 # vLLM

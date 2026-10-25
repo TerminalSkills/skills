@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["jaeger", "tracing", "distributed-tracing", "opentelemetry", "observability"]
+  tags: "jaeger, tracing, distributed-tracing, opentelemetry, observability"
   repository: https://github.com/jaegertracing/jaeger
 ---
 

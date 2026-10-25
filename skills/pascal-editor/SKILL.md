@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [pascal-editor, 3d, react-three-fiber, architecture, bim]
+  tags: "pascal-editor, 3d, react-three-fiber, architecture, bim"
   repository: https://github.com/pascalorg/editor
 ---
 

@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["audit-logging", "compliance", "soc2", "hipaa", "immutable-log"]
-  use-cases:
-    - "Add HIPAA-compliant audit logging to a healthcare application"
-    - "Build SOC 2 CC7 evidence with tamper-evident logs"
-    - "Implement append-only audit trail with hash chaining"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "audit-logging, compliance, soc2, hipaa, immutable-log"
+  use-cases: "Add HIPAA-compliant audit logging to a healthcare application, Build SOC 2 CC7 evidence with tamper-evident logs, Implement append-only audit trail with hash chaining"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Audit Logging

@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/statelyai/xstate
-  tags:
-    - xstate
-    - state-machine
-    - statechart
-    - react
-    - logic
+  tags: "xstate, state-machine, statechart, react, logic"
 ---
 
 # XState

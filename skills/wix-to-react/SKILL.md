@@ -16,7 +16,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["wix", "react", "nextjs", "migration", "web-scraping"]
+  tags: "wix, react, nextjs, migration, web-scraping"
 ---
 
 # Wix to React

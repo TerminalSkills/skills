@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/neondatabase/neonctl
   category: data-ai
-  tags: ["neon", "postgresql", "serverless", "database", "branching"]
+  tags: "neon, postgresql, serverless, database, branching"
 ---
 
 # Neon

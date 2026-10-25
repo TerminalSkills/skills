@@ -15,7 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/get-convex/convex-backend
-  tags: ["convex", "real-time", "reactive", "backend", "database"]
+  tags: "convex, real-time, reactive, backend, database"
 ---
 
 # Convex

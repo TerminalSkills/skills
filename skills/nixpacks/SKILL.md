@@ -16,12 +16,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/railwayapp/nixpacks
-  tags:
-  - buildpacks
-  - docker
-  - deployment
-  - ci-cd
-  - nix
+  tags: "buildpacks, docker, deployment, ci-cd, nix"
 ---
 
 # Nixpacks — App Source to Docker Image

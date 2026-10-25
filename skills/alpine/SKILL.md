@@ -11,11 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/alpinejs/alpine
   category: development
-  tags:
-    - javascript
-    - html
-    - lightweight
-    - reactive
+  tags: "javascript, html, lightweight, reactive"
 ---
 
 # Alpine.js

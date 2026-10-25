@@ -12,7 +12,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/Automattic/node-canvas
-  tags: ["canvas", "2d-graphics", "image-manipulation", "drawing", "node-canvas"]
+  tags: "canvas, 2d-graphics, image-manipulation, drawing, node-canvas"
 ---
 
 # Canvas API

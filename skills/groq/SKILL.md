@@ -8,12 +8,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/groq/groq-python
   category: data-ai
-  tags:
-  - llm
-  - inference
-  - api
-  - fast-inference
-  - chat
+  tags: "llm, inference, api, fast-inference, chat"
 ---
 
 # Groq — Ultra-Fast LLM Inference

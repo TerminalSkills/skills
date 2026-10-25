@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/argotorg/solidity
   category: development
-  tags:
-    - solidity
-    - smart-contracts
-    - ethereum
-    - erc20
-    - nft
+  tags: "solidity, smart-contracts, ethereum, erc20, nft"
 ---
 
 # Solidity

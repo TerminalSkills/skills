@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/planetscale/cli
-  tags:
-  - database
-  - mysql
-  - postgres
-  - branching
-  - schema-change
+  tags: "database, mysql, postgres, branching, schema-change"
 ---
 
 # PlanetScale

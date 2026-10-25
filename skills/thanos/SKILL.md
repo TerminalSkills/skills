@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/thanos-io/thanos
-  tags: ["thanos", "prometheus", "long-term-storage", "global-query", "compaction"]
+  tags: "thanos, prometheus, long-term-storage, global-query, compaction"
 ---
 
 # Thanos

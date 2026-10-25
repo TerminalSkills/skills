@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags:
-    - zoho
-    - crm
-    - zoho-crm
-    - zoho-books
-    - automation
+  tags: "zoho, crm, zoho-crm, zoho-books, automation"
 ---
 
 # Zoho

@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["storybook", "component-testing", "ui-development", "documentation", "visual-testing"]
+  tags: "storybook, component-testing, ui-development, documentation, visual-testing"
   repository: https://github.com/storybookjs/storybook
 ---
 

@@ -11,7 +11,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/tj/commander.js
-  tags: [commander, cli, nodejs, developer-tools, terminal]
+  tags: "commander, cli, nodejs, developer-tools, terminal"
 ---
 
 # Commander.js

@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/restic/restic
-  tags:
-    - restic
-    - backup
-    - encryption
-    - deduplication
-    - s3
+  tags: "restic, backup, encryption, deduplication, s3"
 ---
 
 # Restic

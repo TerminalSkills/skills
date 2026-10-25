@@ -17,7 +17,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["seo", "programmatic-seo", "search-console", "content-strategy", "indexing"]
+  tags: "seo, programmatic-seo, search-console, content-strategy, indexing"
 ---
 
 # Programmatic SEO

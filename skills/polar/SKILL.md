@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["payments", "subscriptions", "license-keys", "webhooks", "billing"]
+  tags: "payments, subscriptions, license-keys, webhooks, billing"
   repository: https://github.com/polarsource/polar
 ---
 

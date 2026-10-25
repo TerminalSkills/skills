@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/modelcontextprotocol/typescript-sdk
-  tags: ["mcp", "ai-agents", "tools", "integration", "protocol"]
+  tags: "mcp, ai-agents, tools, integration, protocol"
 ---
 
 # MCP Server Builder

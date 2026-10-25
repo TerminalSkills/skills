@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["signup", "conversion-optimization", "forms", "onboarding", "authentication"]
+  tags: "signup, conversion-optimization, forms, onboarding, authentication"
 ---
 
 # Signup Flow CRO

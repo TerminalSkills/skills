@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["hiring", "offer-letter", "hr", "employment", "compensation"]
-  use-cases:
-    - "Generate a formal offer letter for a new hire with full compensation details"
-    - "Create offer letter templates for different role levels"
-    - "Draft a revised offer with updated compensation terms"
-  agents: ["claude-code", "openai-codex", "gemini-cli", "cursor"]
+  tags: "hiring, offer-letter, hr, employment, compensation"
+  use-cases: "Generate a formal offer letter for a new hire with full compensation details, Create offer letter templates for different role levels, Draft a revised offer with updated compensation terms"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Offer Letter

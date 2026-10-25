@@ -9,7 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/ToolJet/ToolJet
-  tags: ["internal-tools", "low-code", "open-source", "admin-panel", "self-hosted"]
+  tags: "internal-tools, low-code, open-source, admin-panel, self-hosted"
 ---
 # ToolJet — Open-Source Low-Code App Builder
 

@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: productivity
-  tags: ["prompts", "prompt-library", "community"]
+  tags: "prompts, prompt-library, community"
 ---
 
 # Prompts.chat

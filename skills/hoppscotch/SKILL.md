@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - hoppscotch
-    - api-testing
-    - postman
-    - rest
-    - graphql
+  tags: "hoppscotch, api-testing, postman, rest, graphql"
   repository: https://github.com/hoppscotch/hoppscotch
 ---
 

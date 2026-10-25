@@ -14,12 +14,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/twilio/twilio-node
-  tags:
-    - twilio
-    - sms
-    - voice
-    - whatsapp
-    - messaging
+  tags: "twilio, sms, voice, whatsapp, messaging"
 ---
 
 # Twilio

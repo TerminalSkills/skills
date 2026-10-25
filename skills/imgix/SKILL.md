@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: content
-  tags: [imgix, images, cdn, optimization, responsive]
+  tags: "imgix, images, cdn, optimization, responsive"
   repository: https://github.com/imgix/js-core
 ---
 

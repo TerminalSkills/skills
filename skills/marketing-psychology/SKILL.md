@@ -18,7 +18,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: business
-  tags: ["behavioral-science", "persuasion", "pricing", "experimentation", "marketing"]
+  tags: "behavioral-science, persuasion, pricing, experimentation, marketing"
 ---
 
 # Marketing Psychology: Evidence-Graded Behavioural Science

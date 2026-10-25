@@ -13,12 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - tiled
-    - level-editor
-    - tilemap
-    - game-development
-    - phaser
+  tags: "tiled, level-editor, tilemap, game-development, phaser"
   repository: https://github.com/mapeditor/tiled
 ---
 

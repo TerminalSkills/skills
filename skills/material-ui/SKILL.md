@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["react", "ui-library", "material-design", "theming", "nextjs"]
+  tags: "react, ui-library, material-design, theming, nextjs"
   repository: https://github.com/mui/material-ui
 ---
 # Material UI — React components that implement Material Design

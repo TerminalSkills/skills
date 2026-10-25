@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.2.0"
   category: development
-  tags:
-    - act
-    - github-actions
-    - ci
-    - local
-    - docker
+  tags: "act, github-actions, ci, local, docker"
   repository: https://github.com/nektos/act
 ---
 

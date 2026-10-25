@@ -11,7 +11,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/rolldown/rolldown
   category: devops
-  tags: ["bundling", "rolldown", "rollup", "rust", "vite"]
+  tags: "bundling, rolldown, rollup, rust, vite"
 ---
 
 # Rolldown

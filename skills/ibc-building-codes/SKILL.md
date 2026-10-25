@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: [ibc, building-codes, occupancy, construction-type, egress]
+  tags: "ibc, building-codes, occupancy, construction-type, egress"
 ---
 
 # IBC Building Codes Reference

@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["serverless", "lambda", "debugging", "cold-start", "cloudwatch"]
+  tags: "serverless, lambda, debugging, cold-start, cloudwatch"
 ---
 
 # Serverless Debugger

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.1"
   category: data-ai
-  tags: ["rag", "evaluation", "llm-testing", "retrieval", "ai-quality"]
+  tags: "rag, evaluation, llm-testing, retrieval, ai-quality"
   repository: https://github.com/vibrantlabsai/ragas
 ---
 

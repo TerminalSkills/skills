@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - voice
-    - tts
-    - stt
-    - speech
-    - real-time
+  tags: "voice, tts, stt, speech, real-time"
   repository: https://github.com/microsoft/VibeVoice
 ---
 

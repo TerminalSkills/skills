@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/exceljs/exceljs
   category: documents
-  tags: ["excel", "xlsx", "spreadsheet", "exceljs", "reports"]
+  tags: "excel, xlsx, spreadsheet, exceljs, reports"
 ---
 
 # ExcelJS

@@ -16,12 +16,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/medusajs/medusa
-  tags:
-    - medusa
-    - ecommerce
-    - headless
-    - payments
-    - orders
+  tags: "medusa, ecommerce, headless, payments, orders"
 ---
 
 # Medusa

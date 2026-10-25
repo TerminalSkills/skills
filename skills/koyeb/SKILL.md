@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["paas", "serverless", "deployment", "docker", "cli"]
+  tags: "paas, serverless, deployment, docker, cli"
   repository: https://github.com/koyeb/koyeb-cli
 ---
 

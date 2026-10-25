@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["llm", "testing", "evaluation", "promptfoo", "prompts"]
+  tags: "llm, testing, evaluation, promptfoo, prompts"
   repository: https://github.com/promptfoo/promptfoo
 ---
 

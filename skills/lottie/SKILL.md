@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: design
   repository: https://github.com/airbnb/lottie-web
-  tags: ["lottie", "animation", "after-effects", "motion", "micro-interactions"]
+  tags: "lottie, animation, after-effects, motion, micro-interactions"
 ---
 
 # Lottie

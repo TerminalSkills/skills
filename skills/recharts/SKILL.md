@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["charts", "react", "data-visualization", "svg", "dashboard"]
+  tags: "charts, react, data-visualization, svg, dashboard"
   repository: https://github.com/recharts/recharts
 ---
 # Recharts — React Charting Library

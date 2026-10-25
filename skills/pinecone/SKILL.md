@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags:
-    - pinecone
-    - vector-database
-    - embeddings
-    - ai
-    - semantic-search
+  tags: "pinecone, vector-database, embeddings, ai, semantic-search"
 ---
 
 # Pinecone

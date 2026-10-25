@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: content
-  tags:
-    - davinci-resolve
-    - video-editing
-    - color-grading
-    - scripting
-    - nle
+  tags: "davinci-resolve, video-editing, color-grading, scripting, nle"
 ---
 
 # DaVinci Resolve

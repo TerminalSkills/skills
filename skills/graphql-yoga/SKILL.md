@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/graphql-hive/graphql-yoga
-  tags: ["graphql", "server", "api", "typescript", "envelop"]
+  tags: "graphql, server, api, typescript, envelop"
 ---
 
 # GraphQL Yoga

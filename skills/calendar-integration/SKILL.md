@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/googleapis/google-api-nodejs-client
   category: development
-  tags:
-    - calendar
-    - google-calendar
-    - outlook
-    - microsoft-graph
-    - scheduling
+  tags: "calendar, google-calendar, outlook, microsoft-graph, scheduling"
 ---
 
 # Calendar Integration

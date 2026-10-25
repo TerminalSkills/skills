@@ -12,12 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags:
-    - trpc
-    - typescript
-    - api
-    - react
-    - nextjs
+  tags: "trpc, typescript, api, react, nextjs"
   repository: https://github.com/trpc/trpc
 ---
 

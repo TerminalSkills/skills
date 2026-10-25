@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - cassandra
-    - nosql
-    - distributed-database
-    - cql
-    - nodejs
+  tags: "cassandra, nosql, distributed-database, cql, nodejs"
   repository: https://github.com/apache/cassandra
 ---
 

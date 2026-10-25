@@ -8,15 +8,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: design
-  tags: ["magicui", "react", "animations", "ui-components", "tailwind"]
+  tags: "magicui, react, animations, ui-components, tailwind"
   repository: https://github.com/magicuidesign/magicui
-  use-cases:
-    - "Add a particle/confetti effect to a landing page hero section"
-    - "Create an animated number counter for displaying stats"
-    - "Build a shimmer button with gradient animation for CTAs"
-    - "Add a scrolling marquee for logos or testimonials"
-    - "Create sparkle text for highlighting key phrases"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Add a particle/confetti effect to a landing page hero section, Create an animated number counter for displaying stats, Build a shimmer button with gradient animation for CTAs, Add a scrolling marquee for logos or testimonials, Create sparkle text for highlighting key phrases"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Magic UI

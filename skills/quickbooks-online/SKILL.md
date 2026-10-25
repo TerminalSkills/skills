@@ -11,14 +11,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: business
-  tags: ["quickbooks", "qbo", "accounting", "invoices", "oauth2"]
+  tags: "quickbooks, qbo, accounting, invoices, oauth2"
   repository: https://github.com/intuit/oauth-pythonclient
-  use-cases:
-    - "Sync customer invoices from your app to QuickBooks Online automatically"
-    - "Pull P&L and balance sheet reports for financial dashboards"
-    - "Import expenses and bills from payment processors into QBO"
-    - "Keep customers and vendors in sync between your app and QuickBooks"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Sync customer invoices from your app to QuickBooks Online automatically, Pull P&L and balance sheet reports for financial dashboards, Import expenses and bills from payment processors into QBO, Keep customers and vendors in sync between your app and QuickBooks"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # QuickBooks Online

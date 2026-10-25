@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/elysiajs/elysia
-  tags: ["bun", "api", "typescript", "websocket", "elysia"]
+  tags: "bun, api, typescript, websocket, elysia"
 ---
 
 # Elysia

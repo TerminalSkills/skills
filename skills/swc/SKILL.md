@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["compiler", "rust", "typescript", "babel-alternative", "minifier"]
+  tags: "compiler, rust, typescript, babel-alternative, minifier"
   repository: https://github.com/swc-project/swc
 ---
 

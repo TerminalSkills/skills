@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: "https://github.com/elixir-lang/elixir"
-  tags:
-    - elixir
-    - erlang
-    - beam
-    - phoenix
-    - concurrency
+  tags: "elixir, erlang, beam, phoenix, concurrency"
 ---
 
 # Elixir — Functional Language for Scalable Applications

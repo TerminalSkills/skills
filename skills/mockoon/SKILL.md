@@ -15,11 +15,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/mockoon/mockoon
-  tags:
-    - api-mocking
-    - mock-server
-    - openapi
-    - development
+  tags: "api-mocking, mock-server, openapi, development"
 ---
 
 # Mockoon

@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["hipaa", "healthcare", "compliance", "phi", "encryption"]
+  tags: "hipaa, healthcare, compliance, phi, encryption"
 ---
 
 # HIPAA Compliance

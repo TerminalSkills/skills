@@ -13,12 +13,7 @@ metadata:
   repository: https://github.com/ImageMagick/ImageMagick
   version: 1.1.0
   category: design
-  tags:
-    - image-processing
-    - cli
-    - batch
-    - resize
-    - thumbnail
+  tags: "image-processing, cli, batch, resize, thumbnail"
 ---
 
 # ImageMagick — Command-Line Image Processing

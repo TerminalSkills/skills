@@ -14,7 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/drizzle-team/drizzle-orm
-  tags: ["turso", "drizzle", "sqlite", "libsql", "edge"]
+  tags: "turso, drizzle, sqlite, libsql, edge"
 ---
 
 # Turso + Drizzle ORM

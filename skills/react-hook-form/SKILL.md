@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/react-hook-form/react-hook-form
   category: development
-  tags:
-    - react-hook-form
-    - forms
-    - validation
-    - react
-    - zod
+  tags: "react-hook-form, forms, validation, react, zod"
 ---
 
 # React Hook Form

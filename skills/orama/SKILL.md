@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-  - search
-  - full-text
-  - vector-search
-  - browser
-  - edge
+  tags: "search, full-text, vector-search, browser, edge"
   repository: https://github.com/oramasearch/orama
 ---
 

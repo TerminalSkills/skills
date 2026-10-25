@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   repository: https://github.com/confident-ai/deepeval
   category: data-ai
-  tags:
-  - llm-testing
-  - evaluation
-  - ai-quality
-  - unit-testing
-  - benchmarking
+  tags: "llm-testing, evaluation, ai-quality, unit-testing, benchmarking"
 ---
 
 # DeepEval — LLM Testing & Evaluation Framework

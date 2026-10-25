@@ -6,11 +6,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags:
-    - load-testing
-    - performance
-    - websocket
-    - yaml
+  tags: "load-testing, performance, websocket, yaml"
 ---
 
 # Artillery

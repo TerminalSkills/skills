@@ -15,12 +15,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - rest
-    - api
-    - express
-    - fastapi
-    - openapi
+  tags: "rest, api, express, fastapi, openapi"
 ---
 
 # REST API

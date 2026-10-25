@@ -13,7 +13,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/tensorflow/tensorflow
-  tags: ["tensorflow", "keras", "deep-learning", "tflite", "python"]
+  tags: "tensorflow, keras, deep-learning, tflite, python"
 ---
 
 # TensorFlow — Deep Learning Framework

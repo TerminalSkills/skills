@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/aircrack-ng/aircrack-ng
-  tags:
-    - aircrack-ng
-    - wireless-security
-    - wpa2
-    - penetration-testing
-    - wifi
+  tags: "aircrack-ng, wireless-security, wpa2, penetration-testing, wifi"
 ---
 
 # Aircrack-ng

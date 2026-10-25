@@ -9,12 +9,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/google-gemini/gemini-cli
-  tags:
-    - ai-coding
-    - terminal
-    - cli
-    - google
-    - gemini
+  tags: "ai-coding, terminal, cli, google, gemini"
 ---
 
 # Gemini CLI — Google's AI Coding Agent for the Terminal

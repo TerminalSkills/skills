@@ -14,11 +14,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/locustio/locust
-  tags:
-    - load-testing
-    - python
-    - distributed
-    - performance
+  tags: "load-testing, python, distributed, performance"
 ---
 
 # Locust

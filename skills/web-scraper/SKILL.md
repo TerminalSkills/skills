@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: automation
-  tags: ["scraping", "data-extraction", "beautifulsoup", "etl", "bright-data"]
+  tags: "scraping, data-extraction, beautifulsoup, etl, bright-data"
 ---
 
 # Web Scraper

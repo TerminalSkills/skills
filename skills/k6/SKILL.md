@@ -9,11 +9,7 @@ metadata:
   version: "1.1.0"
   repository: "https://github.com/grafana/k6"
   category: development
-  tags:
-    - load-testing
-    - performance
-    - stress-testing
-    - benchmarking
+  tags: "load-testing, performance, stress-testing, benchmarking"
 ---
 
 # k6

@@ -12,11 +12,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: data-ai
-  tags:
-    - llm
-    - prompts
-    - optimization
-    - python
+  tags: "llm, prompts, optimization, python"
   repository: https://github.com/stanfordnlp/dspy
 ---
 

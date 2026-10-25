@@ -15,12 +15,7 @@ metadata:
   version: 1.1.0
   category: productivity
   repository: https://github.com/linear/linear
-  tags:
-    - linear
-    - project-management
-    - issue-tracker
-    - graphql
-    - automation
+  tags: "linear, project-management, issue-tracker, graphql, automation"
 ---
 
 # Linear

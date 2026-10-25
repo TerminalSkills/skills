@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: development
   repository: https://github.com/biomejs/biome
-  tags:
-    - linter
-    - formatter
-    - rust
-    - eslint-alternative
-    - prettier-alternative
+  tags: "linter, formatter, rust, eslint-alternative, prettier-alternative"
 ---
 
 # Biome — Fast Linter and Formatter (ESLint + Prettier Replacement)

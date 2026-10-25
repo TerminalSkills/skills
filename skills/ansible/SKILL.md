@@ -9,12 +9,7 @@ metadata:
   version: 1.1.0
   category: devops
   repository: https://github.com/ansible/ansible
-  tags:
-    - ansible
-    - configuration-management
-    - automation
-    - infrastructure
-    - devops
+  tags: "ansible, configuration-management, automation, infrastructure, devops"
 ---
 
 # Ansible

@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: development
-  tags:
-    - ipfs
-    - decentralized
-    - storage
-    - nft
-    - pinning
+  tags: "ipfs, decentralized, storage, nft, pinning"
 ---
 
 # IPFS

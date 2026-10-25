@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "2.1.0"
   category: design
-  tags: ["image-diff", "visual-regression", "ssim", "screenshots", "testing"]
+  tags: "image-diff, visual-regression, ssim, screenshots, testing"
 ---
 
 # Image Compare

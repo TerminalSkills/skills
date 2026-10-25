@@ -7,12 +7,7 @@ metadata:
   author: terminal-skills
   version: 1.2.0
   category: development
-  tags:
-  - baas
-  - google
-  - realtime-database
-  - auth
-  - hosting
+  tags: "baas, google, realtime-database, auth, hosting"
 ---
 
 # Firebase — Google's Backend-as-a-Service

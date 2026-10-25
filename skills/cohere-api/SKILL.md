@@ -12,12 +12,9 @@ metadata:
   version: "1.1.0"
   category: data-ai
   repository: https://github.com/cohere-ai/cohere-python
-  tags: ["cohere", "embeddings", "rerank", "rag", "enterprise-nlp"]
-  use-cases:
-    - "Build a semantic search engine with Cohere Embed"
-    - "Improve RAG pipeline accuracy by reranking retrieved documents with Cohere Rerank"
-    - "Build an enterprise knowledge base Q&A system with Command A"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "cohere, embeddings, rerank, rag, enterprise-nlp"
+  use-cases: "Build a semantic search engine with Cohere Embed, Improve RAG pipeline accuracy by reranking retrieved documents with Cohere Rerank, Build an enterprise knowledge base Q&A system with Command A"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Cohere API

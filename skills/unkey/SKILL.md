@@ -13,12 +13,7 @@ metadata:
   version: "1.1.0"
   category: development
   repository: https://github.com/unkeyed/unkey
-  tags:
-    - api-keys
-    - authentication
-    - rate-limiting
-    - usage
-    - developer-platform
+  tags: "api-keys, authentication, rate-limiting, usage, developer-platform"
 ---
 
 # Unkey — API Key Management

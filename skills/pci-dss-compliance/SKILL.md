@@ -10,12 +10,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["pci-dss", "payment", "compliance", "security", "ecommerce"]
-  use-cases:
-    - "Scope and minimize the cardholder data environment for a SaaS payment flow"
-    - "Select the right SAQ type and implement required controls"
-    - "Use tokenization to reduce PCI DSS scope"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "pci-dss, payment, compliance, security, ecommerce"
+  use-cases: "Scope and minimize the cardholder data environment for a SaaS payment flow, Select the right SAQ type and implement required controls, Use tokenization to reduce PCI DSS scope"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # PCI DSS Compliance

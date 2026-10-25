@@ -14,12 +14,7 @@ metadata:
   author: terminal-skills
   version: 1.2.0
   category: development
-  tags:
-    - maps
-    - geolocation
-    - google-maps
-    - mapbox
-    - leaflet
+  tags: "maps, geolocation, google-maps, mapbox, leaflet"
 ---
 
 # Maps & Geolocation

@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["email", "writing", "communication", "business", "outreach"]
-  use-cases:
-    - "Draft professional emails for client communication and follow-ups"
-    - "Write cold outreach emails for sales, partnerships, or recruiting"
-    - "Compose internal emails for team updates, requests, and announcements"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "email, writing, communication, business, outreach"
+  use-cases: "Draft professional emails for client communication and follow-ups, Write cold outreach emails for sales, partnerships, or recruiting, Compose internal emails for team updates, requests, and announcements"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Email Drafter

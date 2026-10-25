@@ -13,12 +13,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/spring-projects/spring-boot
   category: development
-  tags:
-    - java
-    - spring
-    - rest
-    - jpa
-    - enterprise
+  tags: "java, spring, rest, jpa, enterprise"
 ---
 
 # Spring Boot

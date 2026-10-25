@@ -11,12 +11,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: productivity
-  tags: ["writing", "blog", "marketing", "content", "copywriting"]
-  use-cases:
-    - "Write blog posts and articles on technical or business topics"
-    - "Draft marketing copy for landing pages, ads, and campaigns"
-    - "Create newsletter content and thought leadership pieces"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "writing, blog, marketing, content, copywriting"
+  use-cases: "Write blog posts and articles on technical or business topics, Draft marketing copy for landing pages, ads, and campaigns, Create newsletter content and thought leadership pieces"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Content Writer

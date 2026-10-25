@@ -8,12 +8,7 @@ metadata:
   author: terminal-skills
   version: 1.1.0
   category: business
-  tags:
-  - analytics
-  - metrics
-  - retention
-  - cohorts
-  - funnels
+  tags: "analytics, metrics, retention, cohorts, funnels"
 ---
 
 # Product Analytics — Metrics, Funnels, and Growth

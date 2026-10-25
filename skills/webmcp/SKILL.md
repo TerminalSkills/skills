@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: ["webmcp", "mcp", "ai-agents", "browser-api"]
+  tags: "webmcp, mcp, ai-agents, browser-api"
   repository: https://github.com/webmachinelearning/webmcp
 ---
 # WebMCP

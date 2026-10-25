@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["sendgrid", "email", "transactional", "webhooks", "deliverability"]
+  tags: "sendgrid, email, transactional, webhooks, deliverability"
   repository: https://github.com/sendgrid/sendgrid-nodejs
 ---
 

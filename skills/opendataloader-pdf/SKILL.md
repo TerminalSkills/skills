@@ -13,13 +13,10 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: [pdf, parsing, document-processing, rag, data-extraction]
+  tags: "pdf, parsing, document-processing, rag, data-extraction"
   repository: https://github.com/opendataloader-project/opendataloader-pdf
-  use-cases:
-    - "Extract structured data from invoices, contracts, and reports"
-    - "Parse PDFs for RAG ingestion with table and image extraction"
-    - "Build an automated PDF processing pipeline for document analysis"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  use-cases: "Extract structured data from invoices, contracts, and reports, Parse PDFs for RAG ingestion with table and image extraction, Build an automated PDF processing pipeline for document analysis"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # OpenDataLoader PDF — AI-Ready Document Parsing

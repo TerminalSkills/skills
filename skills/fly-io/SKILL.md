@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: devops
-  tags: ["fly-io", "deployment", "edge", "multi-region", "infrastructure"]
+  tags: "fly-io, deployment, edge, multi-region, infrastructure"
   repository: "https://github.com/superfly/flyctl"
 ---
 

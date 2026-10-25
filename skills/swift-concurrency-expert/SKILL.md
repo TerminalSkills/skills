@@ -8,7 +8,7 @@ metadata:
   author: terminal-skills
   version: "2.0.0"
   category: development
-  tags: ["swift", "concurrency", "swift6", "actors", "sendable"]
+  tags: "swift, concurrency, swift6, actors, sendable"
 ---
 
 # Swift Concurrency Expert

@@ -12,12 +12,7 @@ metadata:
   version: 1.1.0
   category: data-ai
   repository: https://github.com/huggingface/transformers
-  tags:
-    - nlp
-    - transformers
-    - deep-learning
-    - model-hub
-    - fine-tuning
+  tags: "nlp, transformers, deep-learning, model-hub, fine-tuning"
 ---
 
 # Hugging Face

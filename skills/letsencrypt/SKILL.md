@@ -13,7 +13,7 @@ metadata:
   version: "1.1.0"
   category: devops
   repository: https://github.com/certbot/certbot
-  tags: ["letsencrypt", "tls", "ssl", "https", "certbot"]
+  tags: "letsencrypt, tls, ssl, https, certbot"
 ---
 
 # Let's Encrypt

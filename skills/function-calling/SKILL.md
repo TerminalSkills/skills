@@ -12,12 +12,9 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: data-ai
-  tags: ["function-calling", "tool-use", "llm", "agents", "anthropic"]
-  use-cases:
-    - "Build an AI assistant that can query a database and send emails"
-    - "Create a multi-step agent that searches the web and summarizes results"
-    - "Let an LLM call your internal APIs to fetch and update data"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: "function-calling, tool-use, llm, agents, anthropic"
+  use-cases: "Build an AI assistant that can query a database and send emails, Create a multi-step agent that searches the web and summarizes results, Let an LLM call your internal APIs to fetch and update data"
+  agents: "claude-code, openai-codex, gemini-cli, cursor"
 ---
 
 # Function Calling

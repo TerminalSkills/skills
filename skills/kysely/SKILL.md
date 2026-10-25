@@ -11,12 +11,7 @@ metadata:
   version: 1.1.0
   repository: https://github.com/kysely-org/kysely
   category: data-ai
-  tags:
-    - kysely
-    - sql
-    - query-builder
-    - typescript
-    - database
+  tags: "kysely, sql, query-builder, typescript, database"
 ---
 
 # Kysely

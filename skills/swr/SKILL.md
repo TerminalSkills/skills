@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.1.0"
   category: development
-  tags: ["data-fetching", "swr", "react", "cache", "revalidation"]
+  tags: "data-fetching, swr, react, cache, revalidation"
   repository: "https://github.com/vercel/swr"
 ---
 
