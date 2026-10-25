@@ -1,0 +1,58 @@
+evals:
+- name: weekly-ranking-review-digest
+  prompt: 'I''m connected to the SEOG MCP server. Give me this week''s local SEO digest
+
+    for my coffee shop (it''s already in my SEOG portfolio): keyword movement,
+
+    review situation, and draft replies for anything negative that''s unanswered.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Starts from list_businesses (or a known businessId) and passes businessId to every later call: 15pts
+
+    - Uses list_keywords for current positions AND keyword_history for the week''s trend (not check_keyword alone): 25pts
+
+    - Runs sync_reviews before reading reviews, then review_stats and/or list_reviews with filter "needs-response" or "negative": 25pts
+
+    - Drafts replies (generate_review_reply / draft_review_response) and does NOT call publish_review_reply without explicit approval: 25pts
+
+    - Presents a digest (rank deltas + review deltas + drafted replies), not raw JSON dumps: 10pts
+
+    '
+- name: onboard-business-keyword-tracking
+  prompt: 'Add "Bright Smile Dental" in Austin to my SEOG account and start tracking
+
+    the keywords that matter for it, including how it ranks from the Hyde Park
+
+    neighborhood specifically.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Uses search_places with the business name (optionally lat/lng bias) and picks a candidate placeId: 25pts
+
+    - Imports via import_business with that placeId (idempotent) and captures the returned businessId: 25pts
+
+    - Checks keyword_recommendations_cache (free) or runs keyword_recommendations before adding keywords: 20pts
+
+    - add_keyword with locationLabel "Hyde Park" (or explicit searchLat/searchLng) for the neighborhood ask: 20pts
+
+    - States that add_keyword/check_keyword spend credits before running them: 10pts
+
+    '
+- name: credit-exhaustion-handling
+  prompt: 'Run a full weekly sweep on every business in my SEOG account: fresh rank
+
+    checks, review sync, competitor snapshots and a grid scan each.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Checks get_credit_balance (and/or list_feature_prices) before a multi-business paid sweep: 30pts
+
+    - On an INSUFFICIENT_CREDITS tool error, reports the price, the balance and the top-up link from the message: 30pts
+
+    - Stops the paid sweep instead of retrying the same failing call in a loop: 25pts
+
+    - Still delivers a digest from FREE reads (list_keywords, review_stats, get_action_plan): 15pts'

@@ -1,0 +1,48 @@
+evals:
+- name: price-before-launch
+  prompt: 'I''m connected to the VidVibe MCP server. Make me a 30-second product teaser
+
+    for my brand from this script, using one of the ready-made flows.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Calls list_flows (or list_my_flows) and get_flow to read the flow''s input schema: 20pts
+
+    - Calls get_flow_price with the intended inputs and states price_cr vs balance_cr to the user BEFORE launching: 30pts
+
+    - Passes brand_id from list_brands (or explains that omitting it keeps the last-used brand): 15pts
+
+    - Launches with launch_flow, then polls get_flow_run at the returned poll.interval_seconds instead of a tight loop: 25pts
+
+    - Returns the review_url / app_url link, not just raw JSON: 10pts
+
+    '
+- name: generation-two-step
+  prompt: 'Generate a 16:9 hero image for the landing page and put it in my VidVibe library.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Calls generate_image with aspect_ratio "16:9" and captures the returned flow_run_id: 30pts
+
+    - Polls get_flow_run with that flow_run_id until status = "completed": 30pts
+
+    - Calls save_image with the SAME flow_run_id to mint the library entry (does not assume generation alone saves it): 30pts
+
+    - Surfaces the returned app_url / share link so the user can open the result: 10pts
+
+    '
+- name: insufficient-credits-handling
+  prompt: 'Run my "weekly product shorts" flow for all 12 products in this CSV.
+
+    '
+  rubric: 'Score 0-100 by points achieved:
+
+    - Checks get_credit_balance and get_flow_price for one run, then multiplies out the batch cost before starting: 30pts
+
+    - On an {"error": "insufficient_credits"} result, relays needed_cr, balance_cr and topup_url: 30pts
+
+    - Stops the batch instead of retrying the same refused launch in a loop: 25pts
+
+    - Reports which runs did launch (run_ids) so nothing paid for is lost: 15pts'
