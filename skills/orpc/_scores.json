@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:63b87814024b0f5322a426ce06535d27e10af882d57d809c10c5ba16d8b0f744",
+  "scoredAt": "2026-10-28T18:56:38.434Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover all error scenarios and edge cases, focusing mainly on happy path examples."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Skill contains verbose explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is limited to Node.js and TypeScript environments, not platform-agnostic."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "user-api-with-openapi",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use the required orpc constructs."
+      },
+      {
+        "name": "contract-first-products-api",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use oc.route, implement(contract), or OpenAPIHandler and lacks a client example."
+      },
+      {
+        "name": "orders-api-with-coerce-and-error",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required specifications."
+      }
+    ]
+  }
+}
