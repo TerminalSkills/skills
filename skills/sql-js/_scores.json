@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e9b800af450b9ea80c63f3d1ac8bde9334cb17ee157fd7c3b796276ee101e50b",
+  "scoredAt": "2026-10-28T19:00:49.198Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.72,
+    "baselineAvg": 18,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "node-load-and-list-tables",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses a different SQLite driver and does not meet the specified criteria."
+      },
+      {
+        "name": "browser-load-filter-download",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Both responses omit the required DELETE statement, but Response A includes correct blob type and more complete logic, earning a slightly higher score."
+      },
+      {
+        "name": "node-custom-aggregate-median",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses a different SQLite driver and misses key initSqlJs steps."
+      }
+    ]
+  }
+}
