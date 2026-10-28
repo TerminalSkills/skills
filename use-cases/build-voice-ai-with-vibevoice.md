@@ -24,253 +24,177 @@ MedCare, a healthcare startup, serves 2,000+ elderly patients who struggle with 
 - Schedule and manage appointments
 - Check and refill medications
 - Get daily health reminders
-- Ask simple health questions
 
-The solution: a voice-first interface powered by VibeVoice. Patients call a phone number or open a simple app — they just talk, and the system handles everything.
+The idea: a voice-first interface. Patients call a phone number or open a simple page and just talk. This page builds the pipeline as a prototype with Microsoft's open-source VibeVoice models, and is honest about what that means: Microsoft states the models are for research and development and does not recommend commercial or real-world use without further testing. Treat this as something to evaluate with consent and supervision, not a medical device, and check your privacy obligations (HIPAA or local equivalent) before real patient data touches any service in the chain, including the hosted ones.
 
 ## Skills Used
 
-- [vibe-voice](/skills/vibe-voice) — Speech recognition and synthesis
-- [anthropic-sdk](/skills/anthropic-sdk) — Intent processing with Claude
-- [supermemory](/skills/supermemory) — Patient conversation memory
+- [vibe-voice](/skills/vibe-voice) — speech recognition with speaker labels and hotwords, and a real-time text-to-speech model
+- [anthropic-sdk](/skills/anthropic-sdk) — intent processing with Claude
+- [supermemory](/skills/supermemory) — patient conversation memory
+
+## What VibeVoice Offers Today
+
+The repository `microsoft/VibeVoice` is MIT-licensed and active (checked October 2026). Weights on Hugging Face are also MIT. What it ships:
+
+| Model | Use | Notes |
+|---|---|---|
+| VibeVoice-ASR (7B) | speech to text | 60 minutes in one pass, speaker labels and timestamps, custom hotwords, 50+ languages |
+| VibeVoice-ASR-Streaming (7B) | live captions | text arrives chunk by chunk, hotwords, 10 languages |
+| VibeVoice-ASR-BitNet | CPU-only ASR | about 1.6 GB, runs through the separate `microsoft/VibeASR.cpp` engine |
+| VibeVoice-Realtime-0.5B | text to speech | one speaker, English supported, about 10 minutes per generation, streaming output |
+
+Not available: Microsoft removed the VibeVoice-TTS (multi-speaker, 1.5B) inference code in September 2025 after misuse, so the repository cannot run it. There is no `pip install vibevoice` from Microsoft and no `VibeVoiceASR` or `VibeVoiceRealtime` Python class; older tutorials that use them do not work.
 
 ## Architecture
 
 ```
-Patient speaks → VibeVoice ASR → Claude (intent + logic) → VibeVoice TTS → Patient hears response
-                                       ↕
-                              Patient DB + Memory
+Patient speaks -> VibeVoice ASR -> Claude (intent + tools) -> VibeVoice Realtime TTS -> Patient hears reply
+                                          |
+                                  Patient records + memory
 ```
 
 ## Step 1: Speech-to-Text with VibeVoice ASR
 
-Patient calls in and says: *"I need to refill my blood pressure medication."*
+Patient audio arrives as a file or recording: *"I need to refill my blood pressure medication."* ASR is in Hugging Face Transformers 5.3 and later (the VibeVoice repository itself pins `transformers<5`, so use a separate virtual environment):
 
-```python
-from vibevoice import VibeVoiceASR
-
-asr = VibeVoiceASR.from_pretrained("microsoft/VibeVoice-ASR")
-
-# Real-time transcription from audio stream
-result = asr.transcribe(
-    audio_stream,
-    hotwords=["Lisinopril", "Metformin", "Amlodipine", "Atorvastatin",
-              "appointment", "refill", "prescription", "Dr. Patel"]
-)
-
-transcript = result.text
-# "I need to refill my blood pressure medication"
+```bash
+python -m venv .venv-asr && source .venv-asr/bin/activate
+pip install "transformers>=5.3.0" accelerate librosa
 ```
 
-### Why VibeVoice for Healthcare
+```python
+from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration
 
-- **Custom hotwords** — medical terms, drug names, doctor names transcribed accurately
-- **60-minute single-pass** — handles long patient conversations without chunking
-- **Speaker diarization** — distinguishes patient from caregiver in shared calls
-- **50+ languages** — serves diverse patient populations
+model_id = "microsoft/VibeVoice-ASR-HF"
+processor = AutoProcessor.from_pretrained(model_id)
+model = VibeVoiceAsrForConditionalGeneration.from_pretrained(model_id, device_map="auto")
+
+def transcribe(path: str) -> str:
+    inputs = processor.apply_transcription_request(
+        audio=path,
+        prompt="Terms: Lisinopril, Metformin, Amlodipine, Atorvastatin, refill, Dr. Patel",  # hotwords
+    ).to(model.device, model.dtype)
+    output_ids = model.generate(**inputs)
+    generated = output_ids[:, inputs["input_ids"].shape[1]:]
+    return processor.decode(generated, return_format="transcription_only")[0]
+```
+
+`return_format="parsed"` instead returns segments with `Start`, `End`, `Speaker` and `Content`, which tells a patient from a caregiver on a shared call (speaker ids are numbers; you map them to roles). The `prompt` argument is where hotwords and background context go; it noticeably helps with drug and doctor names. The 7B model needs a large GPU (the repository publishes no minimum; plan for 16 GB or more). For live captions use the streaming checkpoint `microsoft/VibeVoice-ASR-Streaming-7B` with `demo/vibevoice_asr_streaming_fastapi_demo.py` from a clone of the repository.
 
 ## Step 2: Intent Processing with Claude
 
-The transcript goes to Claude for understanding and action:
+The transcript goes to Claude, which decides whether to call one of your tools. The three tools are your own backend; the schemas are what Claude sees:
 
 ```python
 import anthropic
 
-client = anthropic.Anthropic()
+claude = anthropic.Anthropic()
 
-# Patient context from memory
-patient_context = memory.profile("P-1234").profile
+TOOLS = [
+    {"name": "check_medications",
+     "description": "Look up the patient's current medications and refill status",
+     "input_schema": {"type": "object", "properties": {"patient_id": {"type": "string"}},
+                      "required": ["patient_id"]}},
+    {"name": "create_refill_request",
+     "description": "Submit a refill request to the patient's pharmacy after the patient confirmed it",
+     "input_schema": {"type": "object",
+                      "properties": {"patient_id": {"type": "string"}, "medication": {"type": "string"}},
+                      "required": ["patient_id", "medication"]}},
+    {"name": "schedule_appointment",
+     "description": "Request an appointment with the patient's doctor",
+     "input_schema": {"type": "object",
+                      "properties": {"patient_id": {"type": "string"}, "preferred_time": {"type": "string"}},
+                      "required": ["patient_id"]}},
+]
 
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    system="""You are a healthcare voice assistant. Be warm, clear, and concise.
-    Speak in short sentences — this will be read aloud to elderly patients.
-    Always confirm actions before executing them.
-
-    Patient context:
-    - Name: Margaret Johnson, 78 years old
-    - Medications: Lisinopril 10mg (BP), Metformin 500mg (diabetes)
-    - Doctor: Dr. Patel, next appointment April 5
-    - Pharmacy: Walgreens on Oak Street
-    - Preferences: prefers morning appointments, speaks slowly
-    """,
-    messages=[
-        {"role": "user", "content": f"Patient said: {transcript}"}
-    ],
-    tools=[
-        {
-            "name": "check_medications",
-            "description": "Look up patient's current medications and refill status",
-            "input_schema": {"type": "object", "properties": {"patient_id": {"type": "string"}}}
-        },
-        {
-            "name": "create_refill_request",
-            "description": "Submit a medication refill request to the pharmacy",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "patient_id": {"type": "string"},
-                    "medication": {"type": "string"},
-                    "pharmacy_id": {"type": "string"}
-                }
-            }
-        },
-        {
-            "name": "schedule_appointment",
-            "description": "Schedule an appointment with the patient's doctor",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "patient_id": {"type": "string"},
-                    "doctor_id": {"type": "string"},
-                    "preferred_time": {"type": "string"}
-                }
-            }
-        }
-    ]
-)
+def handle_turn(patient_id: str, transcript: str, profile_facts: list[str], messages: list[dict]) -> str:
+    system = (
+        "You are a healthcare voice assistant. Be warm, clear and concise; short sentences, "
+        "because the reply is read aloud to an elderly patient. Always confirm an action with the "
+        "patient before you execute it. Never give medical advice; for symptoms, tell the patient "
+        "to call the clinic or emergency services.\n\nKnown about this patient:\n"
+        + "\n".join(f"- {f}" for f in profile_facts)
+    )
+    messages.append({"role": "user", "content": transcript})
+    while True:
+        res = claude.messages.create(model="claude-sonnet-5-5", max_tokens=400,
+                                     system=system, tools=TOOLS, messages=messages)
+        messages.append({"role": "assistant", "content": res.content})
+        if res.stop_reason != "tool_use":
+            return "".join(b.text for b in res.content if b.type == "text")
+        results = []
+        for block in res.content:
+            if block.type == "tool_use":
+                out = run_tool(block.name, block.input)   # your backend; returns a string
+                results.append({"type": "tool_result", "tool_use_id": block.id, "content": out})
+        messages.append({"role": "user", "content": results})
 ```
 
-Claude identifies the intent (medication refill), checks the medication database, and creates a refill request.
+`run_tool` dispatches to your patient database and pharmacy API. Enforce authorization there: the `patient_id` must come from the authenticated call, never from what the model or the caller says.
 
-## Step 3: Execute the Action
+## Step 3: Text-to-Speech with VibeVoice Realtime
+
+The 0.5B model is served by the demo web app from a clone of the repository. The bundled launcher binds to all interfaces, so start the app with uvicorn directly on loopback instead:
+
+```bash
+git clone https://github.com/microsoft/VibeVoice.git && cd VibeVoice
+pip install -e .[streamingtts]
+cd demo
+MODEL_PATH=microsoft/VibeVoice-Realtime-0.5B MODEL_DEVICE=cuda \
+  uvicorn web.app:app --host 127.0.0.1 --port 3000
+```
+
+The app (`demo/web/app.py`) exposes a WebSocket at `/stream?text=...&voice=...` and answers with raw 16-bit mono PCM chunks at 24 kHz (it serves one request at a time and returns "busy" to a second client). Voice names are the file stems in `demo/voices/streaming_model`, such as `en-Emma_woman` or `en-Carter_man`. Download more with `bash demo/download_experimental_voices.sh`. A client:
 
 ```python
-# Claude calls check_medications → finds Lisinopril 10mg
-# Claude calls create_refill_request → submits to Walgreens
+import asyncio
+from urllib.parse import quote
+import websockets
 
-refill_result = pharmacy_api.create_refill(
-    patient_id="P-1234",
-    medication="Lisinopril 10mg",
-    pharmacy_id="walgreens-oak-st"
-)
-# Returns: {"status": "submitted", "ready_by": "2026-03-30T10:00:00Z"}
+async def synthesize(text: str, voice: str = "en-Emma_woman"):
+    url = f"ws://127.0.0.1:3000/stream?text={quote(text)}&voice={voice}"
+    async with websockets.connect(url, max_size=None) as ws:
+        async for message in ws:
+            if isinstance(message, bytes):
+                yield message          # PCM16, 24 kHz, mono; send to the patient's audio stream
 ```
 
-## Step 4: Text-to-Speech Response
+Server log messages arrive as text frames and are skipped here. The model is English-focused and single-speaker, becomes unstable for inputs of three words or fewer, and cannot read code or unusual symbols, so keep replies in plain sentences and normalize drug doses ("ten milligrams") before synthesis. There is no speed or "clarity" setting; the voice is whatever the preset gives. For a slower pace, write shorter sentences. The voices are synthetic: tell patients they are talking to an AI.
 
-Claude generates a patient-friendly response, and VibeVoice speaks it:
+## Step 4: Conversation Memory
 
-```python
-from vibevoice import VibeVoiceRealtime
-
-tts = VibeVoiceRealtime.from_pretrained("microsoft/VibeVoice-Realtime-0.5B")
-
-response_text = (
-    "Margaret, I've submitted your refill for Lisinopril. "
-    "Your Walgreens on Oak Street will have it ready by tomorrow morning. "
-    "Would you like me to do anything else?"
-)
-
-# Stream audio back to patient in real-time
-for audio_chunk in tts.stream(response_text, speaker="warm_female_01"):
-    send_to_patient(audio_chunk)
-```
-
-### Voice Selection for Patients
-
-```python
-# Warm, clear voice for elderly patients
-PATIENT_VOICE = "warm_female_01"
-
-# Slower speech rate for better comprehension
-tts_config = {
-    "speaker": PATIENT_VOICE,
-    "speed": 0.85,  # Slightly slower than normal
-    "clarity": "high"
-}
-```
-
-## Step 5: Conversation Memory
-
-Every interaction is stored so the system remembers patient preferences:
+Store each call under a stable `id` in a per-patient namespace so the next call starts informed (Supermemory SDK v5: namespace first):
 
 ```python
 from supermemory import Supermemory
 
-memory = Supermemory()  # reads SUPERMEMORY_API_KEY from the environment
+memory = Supermemory()  # reads SUPERMEMORY_API_KEY
 
-# Store this interaction (one namespace per patient)
 memory.add(
-    "P-1234",
-    content=f"Patient requested Lisinopril refill. Submitted to Walgreens Oak St. Ready by tomorrow.",
-    id="call_2026-03-29_1430",
-    date="2026-03-29T14:30:00Z",
-    metadata={
-        "type": "medication_refill",
-        "medication": "Lisinopril",
-    },
+    "patient_P-1234",
+    content="Patient asked for a Lisinopril refill. Request submitted. Prefers morning appointments.",
+    id="call_2026-10-28_1430",
+    date="2026-10-28T14:30:00Z",
+    metadata={"type": "call"},
 )
 
-# Future sessions can retrieve:
-# "When was Margaret's last Lisinopril refill?"
-# "Has she mentioned any side effects?"
+profile = memory.profile("patient_P-1234").profile
+facts = [m.memory for m in profile.static + profile.dynamic]   # feed to handle_turn
 ```
 
-## Step 6: Daily Health Reminders (Outbound Calls)
+Supermemory is a hosted third-party service. For health data, either confirm in writing that it meets your compliance needs or keep memory in your own database; the skill notes a local mode (`npx supermemory local`) for development.
 
-The system proactively calls patients for reminders:
+## Step 5: Daily Reminders
 
-```python
-import schedule
+For outbound reminders, a scheduler builds the text from the patient's records and your telephony provider plays the synthesized audio. The reminder text can be generated by Claude with the same `facts` list. Keep reminders factual ("Your appointment with Dr. Patel is on Saturday at 10 AM") and let the patient reply by voice through Steps 1 and 2.
 
-def morning_reminder(patient_id: str):
-    patient = get_patient(patient_id)
-    context = memory.profile(patient_id).profile
+## What to Measure Before Trusting It
 
-    reminder_text = generate_reminder(patient, context)
-    # "Good morning, Margaret. Don't forget to take your Lisinopril
-    #  and Metformin with breakfast. Your appointment with Dr. Patel
-    #  is next Saturday at 10 AM."
+Run a supervised pilot with a handful of consenting patients and track: word error rate on drug names with and without hotwords, share of calls that needed a human, refill requests that were wrong, and what patients say about the voice. The pipeline's cost is mostly GPU time (a 7B ASR model plus the 0.5B TTS model) plus the Claude API and telephony; measure it on your own traffic rather than trusting a table.
 
-    # Call patient and play audio
-    call = telephony.call(patient.phone)
-    for chunk in tts.stream(reminder_text, speaker=PATIENT_VOICE):
-        call.play(chunk)
+## Related Skills
 
-    # Listen for response
-    response = asr.transcribe(call.audio_stream, timeout=30)
-    if response.text:
-        # Process any follow-up ("Can you reschedule that appointment?")
-        handle_followup(patient_id, response.text)
-
-# Schedule daily reminders
-for patient in get_active_patients():
-    schedule.every().day.at(patient.preferred_reminder_time).do(
-        morning_reminder, patient.id
-    )
-```
-
-## Results
-
-After 3 months of deployment:
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Patient calls handled by staff | 100% | 30% |
-| Avg. call wait time | 8 min | 0 (instant) |
-| Medication refill compliance | 62% | 89% |
-| Missed appointments | 23% | 8% |
-| Patient satisfaction (65+) | 3.2/5 | 4.6/5 |
-| Staff hours on routine calls | 120h/week | 36h/week |
-
-### Why It Works
-
-1. **Zero learning curve** — patients just talk, no apps or passwords
-2. **Accurate medical terms** — VibeVoice hotwords handle drug names correctly
-3. **Natural voice** — patients report it "sounds like a real person"
-4. **Memory** — the system remembers preferences, no repeating information
-5. **Proactive** — outbound reminders improve medication compliance
-6. **Scalable** — handles 2,000 patients with no additional staff
-
-### Cost Breakdown
-
-| Component | Monthly Cost |
-|-----------|-------------|
-| VibeVoice ASR (self-hosted, 1x A100) | ~$2,000 |
-| VibeVoice TTS Realtime (self-hosted) | ~$800 |
-| Claude API (intent processing) | ~$400 |
-| Telephony (Twilio) | ~$600 |
-| **Total** | **~$3,800** |
-
-vs. 3 FTE call center staff at ~$12,000/month — **68% cost reduction** while improving patient outcomes.
+- [vibe-voice](/skills/vibe-voice) — VibeVoice ASR, streaming ASR and Realtime TTS
+- [anthropic-sdk](/skills/anthropic-sdk) — Claude API with tool use
+- [supermemory](/skills/supermemory) — long-term memory per patient
