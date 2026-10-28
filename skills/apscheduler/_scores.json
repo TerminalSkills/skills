@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c42d7478e3988eb45c2c887d00131933a4b8eac7165e760a1d226c351a488202",
+  "scoredAt": "2026-10-28T18:50:27.673Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered padded."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Python 3.8+ environment and specific libraries, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.66,
+    "baselineAvg": 35,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "flask-persistent-reminders",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items, including timezone, job id, listener, and persistence, whereas Response A omits several key requirements."
+      },
+      {
+        "name": "fastapi-async-polling",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response A is closer to the rubric, using AsyncIOScheduler and an async job, while Response B uses a background scheduler and misses key details."
+      },
+      {
+        "name": "replace-crontab-with-worker",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Response A covers more rubric items, including timezone and job_defaults, though it misnames job IDs; Response B lacks timezone, job_defaults, and uses wrong triggers."
+      }
+    ]
+  }
+}
