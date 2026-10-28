@@ -6,6 +6,7 @@ description: >
   and data lineage tracking — so when a dashboard number looks wrong,
   you can trace it back to the source table in seconds.
 skills:
+  - kestra
   - typescript
   - postgresql
   - redis
@@ -289,3 +290,7 @@ export default app;
 - **Retry success**: 15% of transient failures auto-recovered (were permanent before)
 - **Data freshness SLA**: 99.5% of tables updated by 7 AM (was untracked)
 - **Impact analysis**: before changing a table, see every downstream dependency instantly
+
+## Related Skills
+
+- [kestra](/skills/kestra) — choose it when you would rather adopt a declarative YAML orchestrator with schedules, retries and a UI than build the orchestrator yourself

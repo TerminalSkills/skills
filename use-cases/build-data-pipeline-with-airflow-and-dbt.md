@@ -3,6 +3,7 @@ title: Build a Data Pipeline with Airflow and dbt
 slug: build-data-pipeline-with-airflow-and-dbt
 description: Build an ETL pipeline that extracts data from APIs, loads it into PostgreSQL, transforms it with dbt, and orchestrates the entire workflow with Apache Airflow.
 skills:
+  - kestra
   - airflow
   - dbt
   - postgresql
@@ -315,3 +316,7 @@ dbt docs generate && dbt docs serve
 ```
 
 The Airflow UI at `http://localhost:8080` shows the DAG graph, task durations, and logs. Failed tasks retry automatically based on the configured policy, and you can set up email or Slack alerts for persistent failures.
+
+## Related Skills
+
+- [kestra](/skills/kestra) — a YAML-based alternative to Airflow for scheduling and retrying the same extract-load-transform steps
