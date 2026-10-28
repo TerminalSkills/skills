@@ -2,7 +2,7 @@
 title: "Build a RAG System with Accurate Source Citations"
 slug: build-rag-with-citations
 description: "Build a retrieval-augmented generation pipeline over PDFs that answers with exact, verifiable citations: pgvector and full-text retrieval, Cohere reranking and Claude's native citations."
-skills: [langchain, cohere-api, anthropic-sdk]
+skills: [langchain, cohere-api, anthropic-sdk, pageindex]
 category: data-ai
 difficulty: advanced
 time_estimate: "5 hours"
@@ -217,3 +217,4 @@ This pipeline finds and quotes text; it does not interpret it. A lawyer still re
 - [langchain](../skills/langchain/SKILL.md) -- document loaders and text splitters for the ingestion step
 - [cohere-api](../skills/cohere-api/SKILL.md) -- embeddings and reranking
 - [anthropic-sdk](../skills/anthropic-sdk/SKILL.md) -- Claude Messages API with citations
+- [pageindex](../skills/pageindex/SKILL.md) -- alternative retrieval for long structured PDFs: a section tree searched by an LLM instead of embeddings, with page-level citations
