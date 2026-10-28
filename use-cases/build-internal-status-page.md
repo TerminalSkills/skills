@@ -11,37 +11,35 @@ tags: [status-page, monitoring, uptime, incidents, internal-tools]
 
 ## The Problem
 
-Your team runs 8 microservices, 3 databases, a message queue, and 2 third-party integrations. When something goes down, the first 10 minutes are wasted on triage: "Is it the API or the database?" "Is Stripe down or is it us?" "Is staging broken too?" Engineers ping each other on Slack, the support team asks for status updates, and the PM wants an ETA -- all before anyone has started actually debugging.
+Your team runs 6 services, a PostgreSQL primary with a replica behind a connection pooler, Redis, a message queue, and 3 third-party integrations. When something goes down, the first 10 minutes are wasted on triage: "Is it the API or the database?" "Is Stripe down or is it us?" "Is staging broken too?" Engineers ping each other on Slack, support asks for updates, and the PM wants an ETA, all before anyone has started debugging.
 
-The "is X down?" messages in Slack have become a running joke. Last week, the payments service went down because Stripe had an outage. Five engineers independently investigated for 15 minutes before someone checked Stripe's status page and realized it was not an internal problem. That is over an hour of senior engineering time wasted because there was no single place to look.
+Last week the payments service went down because of a Stripe outage. Five engineers investigated independently for 15 minutes before someone realized it was not an internal problem. There was no single place to look.
 
-Public status page services like Statuspage or Instatus cost $79-299/month and are designed for customer-facing communication -- clean, minimal, and deliberately vague. Internal engineering needs are different: auto-detection of service health, a dependency graph that shows cascading failures at a glance, and enough context that the on-call engineer can start the right runbook immediately instead of playing detective.
+Hosted status page products are built for customer-facing communication: clean, minimal, deliberately vague. Internal engineering needs are different: automatic detection of service health, a dependency graph that shows cascading failures at a glance, and enough context that the on-call engineer can open the right runbook immediately.
 
 ## The Solution
 
-Using the **coding-agent**, **frontend-design**, and **api-tester** skills, the agent builds a health check system that probes all 14 components every 30 seconds, a dashboard with dependency graphs and incident timelines, and automated Slack alerting with enough context to skip the triage phase entirely.
+Using the **coding-agent**, **frontend-design**, and **api-tester** skills, the agent builds a health check runner that probes all 14 components every 30 seconds, a dashboard with a dependency graph and incident timeline, and Slack alerts with enough context to skip the triage phase.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Map Services and Health Endpoints
 
-Start by cataloging every component and what "healthy" means for each one:
+Start by cataloging every component and what "healthy" means for each one, and let **api-tester** confirm that each endpoint answers the way the map says:
 
 ```text
-List all our services, their health check endpoints, dependencies, and what "healthy" means for each. Include databases, queues, and third-party services.
+List all our services, their health check endpoints, dependencies, and what "healthy" means for each. Include databases, queues, and third-party services. Then call each internal health endpoint once with curl (--max-time 10) and record status code and latency.
 ```
-
-The service map covers 14 components across three tiers:
 
 | Tier | Components |
 |------|-----------|
 | **Services** (6) | api-gateway, auth, orders, payments, worker, frontend |
-| **Infrastructure** (5) | postgresql-primary, postgresql-replica, redis-cache, rabbitmq |
+| **Infrastructure** (5) | postgresql-primary, postgresql-replica, pgbouncer, redis-cache, rabbitmq |
 | **Third-party** (3) | stripe-api, sendgrid, s3-storage |
 
-Each component gets a health endpoint, response time threshold, and dependency mapping. The dependency graph is the critical piece: `orders` depends on postgresql, redis, and rabbitmq. `payments` depends on postgresql and stripe. `worker` depends on redis, rabbitmq, sendgrid, and s3. When postgresql-primary goes down, the status page immediately shows that orders, payments, and worker are affected -- before anyone needs to investigate manually.
+Each component gets a health endpoint, a latency threshold and a dependency list. `orders` depends on pgbouncer, redis and rabbitmq; `payments` depends on pgbouncer and stripe; `worker` depends on redis, rabbitmq, sendgrid and s3. When postgresql-primary goes down, the page shows orders, payments and worker as affected before anyone investigates.
 
-The third-party checks are particularly valuable. Stripe, SendGrid, and S3 each have public status pages, but nobody checks them during an incident. The status page probes their APIs directly and can distinguish "our payments code is broken" from "Stripe is having an outage" in 30 seconds.
+Third-party status feeds are a poor signal on their own: they are updated by humans, sometimes late, and not every vendor publishes a machine-readable one. Probe the integration you actually use instead, with a cheap authenticated read-only call and a restricted key (`$STRIPE_PROBE_KEY`, `$SENDGRID_PROBE_KEY`) stored as an environment variable, and a `HeadBucket` call for the S3 bucket. That tells you whether *your* integration works, which is the question during an incident.
 
 ### Step 2: Build the Health Check System
 
@@ -49,38 +47,56 @@ The third-party checks are particularly valuable. Stripe, SendGrid, and S3 each 
 Create a health check runner that probes all 14 components every 30 seconds. Store results with latency and error details. Detect degraded states, not just up/down.
 ```
 
-The checker runs three types of probes in parallel every 30 seconds:
+The runner executes three kinds of probe in parallel:
 
-- **HTTP probe** -- for services and third-party APIs. Checks status code, response time, and optionally validates response body content
-- **TCP probe** -- for databases and Redis. Verifies connection and measures round-trip latency
-- **Custom probe** -- for service-specific metrics like RabbitMQ queue depth, PostgreSQL replication lag, and Redis memory usage
+- **HTTP probe** for services and third-party APIs: status code, response time, optionally a body check.
+- **TCP probe** for PostgreSQL, Redis and RabbitMQ: connection and round-trip time.
+- **Custom probe** for service-specific metrics such as queue depth, replication lag and Redis memory.
 
-Health states go beyond simple up/down, because "degraded" is often more useful than "down":
+The core of an HTTP probe is small. Every request has a hard timeout so one hung dependency cannot stall the loop:
+
+```typescript
+type State = 'operational' | 'degraded' | 'major_outage';
+
+export async function probeHttp(url: string, baselineMs: number): Promise<{ state: State; ms: number; error?: string }> {
+  const start = performance.now();
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    const ms = Math.round(performance.now() - start);
+    if (!res.ok) return { state: 'major_outage', ms, error: `HTTP ${res.status}` };
+    return { state: ms > baselineMs * 2 ? 'degraded' : 'operational', ms };
+  } catch (err) {
+    return { state: 'major_outage', ms: Math.round(performance.now() - start), error: String(err) };
+  }
+}
+```
+
+Health states go beyond up/down, because "degraded" is often the more useful signal:
 
 | State | Meaning | Example |
 |-------|---------|---------|
 | **Operational** | All checks pass, latency within normal range | API responding in 45ms (baseline: 50ms) |
-| **Degraded** | Passing but latency exceeds 2x baseline, or partial failures | API responding in 340ms (baseline: 50ms) |
+| **Degraded** | Passing but latency above 2x baseline | API responding in 340ms (baseline: 50ms) |
 | **Partial Outage** | Some checks failing, service still responding | 2 of 5 health check endpoints failing |
-| **Major Outage** | Health check failing or timing out | No response after 10s timeout |
+| **Major Outage** | Health check failing or timing out | No response after 10s |
 
-Results store in SQLite for the last 30 days of history, and a Slack webhook fires on every state change -- so the team learns about problems from the status page, not from user complaints.
+Results are stored in SQLite with a 30-day retention, and a Slack incoming webhook (`$SLACK_WEBHOOK_URL`) fires on every state change. Alert only after two consecutive failed probes so a single dropped packet does not page anyone.
 
 ### Step 3: Build the Dashboard
 
 ```text
-Create a clean status page dashboard showing all services, current status, uptime percentages, and a 90-day incident timeline. Make it fast-loading and auto-refreshing.
+Create a clean status page dashboard showing all services, current status, uptime percentages, and a 90-day incident timeline. Make it fast-loading and auto-refreshing. Follow the frontend-design skill: dark theme, high contrast status colors that do not rely on color alone.
 ```
 
-The dashboard has five panels designed for two audiences: the on-call engineer who needs to diagnose quickly, and the team lead who needs to track reliability over time.
+The dashboard has five panels for two audiences, the on-call engineer who needs to diagnose quickly and the team lead who tracks reliability:
 
-- **Service Grid** -- color-coded status indicators for all 14 components, grouped by tier. Green, yellow, orange, or red at a glance.
-- **Dependency Graph** -- visual map showing service relationships and current state. When postgresql-primary goes red, the downstream services (orders, payments, worker) immediately show their dependency is unhealthy. This is the panel that saves the most triage time.
-- **Uptime Bars** -- 90-day history per service. Click any day to see incidents that occurred. The bars make reliability trends obvious: is this service getting more or less stable over time?
-- **Latency Sparklines** -- 24-hour trend lines per service. A gradually increasing latency curve often predicts an outage hours before it happens.
-- **Incident Timeline** -- current and past incidents with duration, impact scope, and resolution notes.
+- **Service Grid**: status indicators for all 14 components, grouped by tier, with a text label next to each color.
+- **Dependency Graph**: when postgresql-primary goes red, the downstream services show an unhealthy dependency. This panel saves the most triage time.
+- **Uptime Bars**: 90-day history per service, click a day to see its incidents.
+- **Latency Sparklines**: 24-hour trend lines. A slowly rising curve often precedes an outage.
+- **Incident Timeline**: current and past incidents with duration, scope and resolution notes.
 
-The frontend auto-refreshes via Server-Sent Events (no polling), is mobile responsive for on-call engineers checking from their phone at 3 AM, includes dark mode by default, and ships under 100KB. No framework -- just vanilla HTML, CSS, and JavaScript, so it loads instantly even on a slow connection.
+The frontend subscribes to Server-Sent Events (`EventSource`) instead of polling, and works on a phone for the engineer on call at 3 AM. Vanilla HTML, CSS and JavaScript keep it small and dependency-free.
 
 ### Step 4: Add Incident Management
 
@@ -88,42 +104,38 @@ The frontend auto-refreshes via Server-Sent Events (no polling), is mobile respo
 Add incident creation and tracking. When a service goes red, auto-create an incident. Let engineers add updates and mark resolved.
 ```
 
-Incidents can be created two ways:
+**Automatic:** when a component enters Major Outage, an incident is created and its impact is computed from the dependency graph. If postgresql-primary goes down, the incident lists orders, payments and worker as affected.
 
-**Automatic:** when a service enters Major Outage state, an incident is created and impact is calculated from the dependency graph. If postgresql-primary goes down, the incident immediately lists orders, payments, and worker as affected services -- without anyone needing to investigate the blast radius manually.
+**Manual:** engineers create, update and resolve incidents from the dashboard, or from Slack through a slash command you register in your own Slack app. Manual incidents cover what health checks cannot see, such as data integrity problems.
 
-**Manual:** engineers create, update, and resolve incidents via `/incident create|update|resolve` in Slack or directly through the dashboard. Manual incidents cover situations the health checks cannot detect, like data integrity issues or degraded functionality that still passes health checks.
+A typical timeline:
 
-A typical incident timeline:
+> **14:32**: payments enters Major Outage. Incident auto-created, alert sent to `#engineering`.
+> **14:38**: Engineer adds update: "Stripe returning 503, monitoring."
+> **15:12**: payments recovers. Incident auto-resolved. Duration: 40 minutes.
 
-> **14:32** -- payments-service enters Major Outage. Incident auto-created, Slack alert sent to `#engineering`.
-> **14:38** -- Engineer adds update: "Stripe returning 503, monitoring their status page."
-> **15:12** -- payments-service recovers. Incident auto-resolved. Duration: 40 minutes.
-
-After resolution, the system generates an incident summary with the full timeline, all affected services, total duration, and any updates posted during the incident -- ready for the post-mortem document.
+On resolution the system produces a summary with the timeline, affected services and total duration, ready to paste into the post-mortem.
 
 ### Step 5: Deploy and Configure Alerts
 
-```text
-Deploy the status page internally. Set up Slack alerts for state changes and a daily health summary.
-```
+The status page shows your internal architecture, so it must not be reachable from the public internet. Run it as a Docker Compose stack with one container for the checker, one for the web dashboard and a volume for SQLite. Publish the dashboard only on the loopback or internal interface and put your SSO or VPN in front of it, for example `ports: ["127.0.0.1:8088:8088"]` behind your internal reverse proxy. Keep the webhook URL and probe keys in environment variables, never in the repository.
 
-Deployment is a single Docker Compose stack at `status.internal.company.com` -- one container for the checker, one for the web dashboard, and the SQLite database stored on a volume.
+Alerts to Slack:
 
-**Real-time alerts to Slack:**
-- State change: `#engineering` -- "orders-service: Major outage (dependency: postgresql-primary unhealthy)"
-- Degraded for 5+ minutes: `#on-call` -- "postgresql-replica lag >5s (threshold: 2s)"
-- Recovery: `#engineering` -- "orders-service recovered (duration: 12min)"
+- State change to `#engineering`: "orders: Major outage (dependency: postgresql-primary unhealthy)".
+- Degraded for 5+ minutes to `#on-call`: "postgresql-replica lag above 5s (threshold: 2s)".
+- Recovery to `#engineering`: "orders recovered (duration: 12 min)".
 
-**Daily summary at 9:00 AM:**
-> All services operational. 24h uptime: 99.97%. postgresql-replica had 8min degradation at 03:14 (auto-recovered). Slowest service: payments-service (avg latency: 340ms, +15% vs 7-day baseline).
-
-**Weekly report:** uptime percentages per service, incident count, mean time to recovery, and reliability trends. This report feeds directly into the team's SLO tracking.
+A daily 9:00 summary (uptime, slowest service, incidents) and a weekly report with uptime per service, incident count and mean time to recovery feed the team's SLO tracking.
 
 ## Real-World Example
 
-Oscar, a platform engineer at a 20-person SaaS startup, spent the first 10 minutes of every incident figuring out what was actually broken. The team ran 8 services with complex dependencies, and Slack was the unofficial status page -- "is X down?" messages flooded `#engineering` multiple times a week.
+Oscar, a platform engineer at a 20-person SaaS startup, spent the first 10 minutes of every incident working out what was actually broken. "Is X down?" messages flooded `#engineering` several times a week.
 
-He built the internal status page in an afternoon. The health check system probes all 14 components every 30 seconds. The dependency graph shows cascading failures at a glance -- when a database goes down, every dependent service lights up immediately. The health checks distinguish between "down" and "degraded," catching slow responses and replication lag before they become outages.
+He built the page in an afternoon with the coding agent. The following Monday the PostgreSQL replica fell behind; within a minute the page opened an incident and sent: "postgresql-replica degraded, replication lag 12s, affects: read-heavy queries in orders." The on-call engineer opened the dashboard, saw which services were impacted, and started the right runbook without any Slack detective work. In Oscar's team, "is X down?" messages dropped to a handful per month and time-to-diagnosis fell from about 10 minutes to about 2.
 
-The following Monday, the PostgreSQL replica fell behind. The status page caught it in 30 seconds, auto-created an incident, and sent a Slack alert with context: "postgresql-replica degraded -- replication lag 12s, affects: read-heavy queries in orders-service." The on-call engineer opened the dashboard, saw exactly which services were impacted via the dependency graph, and started the right runbook immediately. No Slack detective work, no pinging colleagues, no investigating the wrong service. "Is X down?" messages in Slack dropped to near zero. Average time-to-diagnosis went from 10 minutes to under 2.
+## Related Skills
+
+- [coding-agent](../skills/coding-agent/) -- builds the checker, dashboard and incident logic in scoped tasks
+- [frontend-design](../skills/frontend-design/) -- shapes the dashboard layout and accessible status colors
+- [api-tester](../skills/api-tester/) -- confirms every health endpoint answers as the service map says
