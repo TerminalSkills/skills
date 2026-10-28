@@ -6,6 +6,7 @@ skills:
   - agent-memory
   - supabase
   - test-generator
+  - hindsight
 category: data-ai
 tags:
   - memory
@@ -394,3 +395,7 @@ function extractKey(text: string): string {
 Riku's agent now loads MEMORY.md at every session start — in under a second, it knows the entire project context. It uses Vitest, not Jest. It deploys to Railway, not Vercel. It uses tRPC exclusively. When it encounters something new — a tricky edge case, a team preference, a deployment gotcha — it logs it to the daily file and eventually consolidates it into long-term memory.
 
 After a month, the agent has built a comprehensive knowledge base of the project. New team members can read MEMORY.md to get up to speed. The agent's suggestions get better over time because it learns from corrections. The repeated context-setting that used to waste hours every week is gone — the agent remembers.
+
+## Related Skills
+
+- [hindsight](/skills/hindsight) — a self-hosted memory server with retain, recall and reflect, when file-based memory is no longer enough
