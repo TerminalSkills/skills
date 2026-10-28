@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f306b72198fe4b63a6719c942af90a1afc72a25a38b7644a07bc5759c656224d",
-  "scoredAt": "2026-09-04T19:39:38.403Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9460e7fedcb44e42abb583c277d7f7826bffd371fea983bbf34e528cf8e330ac",
+  "scoredAt": "2026-10-28T18:45:02.174Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.5,
-    "baselineAvg": 3,
-    "treatmentAvg": 75,
+    "multiplier": 1.95,
+    "baselineAvg": 40,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "generate-facebook-covers",
-        "baseline": 10,
-        "treatment": 50,
-        "rationale": "Response A uses several MCP tools but omits autofill-design, export-design, and PNG export, whereas Response B does not use any MCP tools at all."
+        "name": "generate-social-post-mcp",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A covers all required steps with detailed API calls, while Response B is incomplete and lacks the necessary export URL."
       },
       {
-        "name": "edit-design-add-text",
-        "baseline": 0,
+        "name": "batch-product-cards-connect-api",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response A covers more of the required endpoints (upload, autofill, export, polling) even though some names differ, whereas Response B omits the asset upload step."
+      },
+      {
+        "name": "edit-and-export-mp4-mcp",
+        "baseline": 45,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with all required calls, while Response B does not provide any of the required calls."
-      },
-      {
-        "name": "connect-api-upload-autofill-export",
-        "baseline": 0,
-        "treatment": 75,
-        "rationale": "Response A covers three of the four required Connect API endpoints (asset upload, autofill, export) and is closer to the rubric, while Response B uses incorrect endpoints and misses the required asset upload and autofill calls."
+        "rationale": "Response B fully matches the required function names and returns a signed export URL, while Response A uses different command names and does not provide the signed URL."
       }
     ]
   }

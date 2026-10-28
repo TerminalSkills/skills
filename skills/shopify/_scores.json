@@ -1,29 +1,24 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:6345e69f9de00d9fbd74ce16dd5c2ddf2608a062d89999a17aa0d5b839ab2c96",
-  "scoredAt": "2026-10-03T13:11:23.587Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.1",
+  "skillHash": "sha256:a33f6957595c5e4099dd5cbc0d4d36174069aa7a96854ca5cc8ff3fe78bd4c75",
+  "scoredAt": "2026-10-28T18:47:29.369Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Error handling is thin: the fetch helpers never check HTTP status, GraphQL top-level errors, rate limits or throttling, and webhook setup and HMAC verification are not covered even though Example 2 relies on them."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The three examples are only a user prompt and a one-line description of what the agent will do, with no concrete code or output, and Examples 2 and 3 are not backed by runnable code in the skill, such as webhook handling or cartCreate."
+        "detail": "The instructions lack coverage of error handling and edge cases such as missing tokens or network failures."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.96,
-    "baselineAvg": 79,
-    "treatmentAvg": 76,
+    "multiplier": 1.55,
+    "baselineAvg": 42,
+    "treatmentAvg": 65,
     "scenarios": [
       {
-        "name": "staff-editable-hero-section",
-        "baseline": 85,
-        "treatment": 72,
-        "rationale": "Both supply a section file with a schema (image_picker, text, richtext, url), a preset, section.settings.* reads, a blank check guarding the button, and image_url: width:; Response B reads more fully as a finished section because it adds responsive image_tag output, a placeholder fallback and style controls, while Response A is simpler but fully meets the core rubric."
+        "name": "custom-shopify-theme-with-hero-product-grid-newsletter",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response B includes a schema block and a product-card snippet, whereas Response A lacks a schema and a section file; neither provides the required Ajax cart JS, so B scores higher."
       },
       {
-        "name": "admin-api-create-product",
-        "baseline": 62,
-        "treatment": 68,
-        "rationale": "Both pin the API version, use X-Shopify-Access-Token, select userErrors, call publishablePublish and read the admin token from an environment variable, but A uses the rubric's productCreate mutation with ProductCreateInput while B uses productSet with ProductSetInput, which the rubric doesn't allow; A also states that productCreate leaves the product unpublished, while B explains the same point less directly and verifies more thoroughly."
+        "name": "order-webhook-integration-with-warehouse",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits the adminQuery pattern; Response B fails to use GraphQL and the required pattern."
       },
       {
-        "name": "headless-cart-checkout-flow",
-        "baseline": 90,
-        "treatment": 88,
-        "rationale": "Both meet every rubric item: POST to the Storefront endpoint with a pinned API version and the token header, products queried with edges/node (A) or nodes (B), cartCreate with merchandiseId and quantity lines, redirect to cart.checkoutUrl, and no legacy Checkout mutations. A follows the rubric's edges/node structure literally, while B uses the `nodes` shorthand and adds a more complete cart (update, fragments, context) plus useful notes, so B is slightly ahead on depth and A slightly ahead on literal match."
+        "name": "hydrogen-headless-storefront",
+        "baseline": 60,
+        "treatment": 75,
+        "rationale": "Response A includes the required Hydrogen command and product query, missing only the dev command and cartCreate mutation, whereas Response B lacks the Hydrogen command and dev command but provides a mutation; thus A is closer to the rubric."
       }
     ]
   }

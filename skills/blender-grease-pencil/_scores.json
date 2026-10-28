@@ -1,53 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:d0dee86e6bdec7f91b01751bffe45671a1eb8c33769a6dd7bf117f00eb6b48a8",
-  "scoredAt": "2026-10-13T11:12:58.824Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:73ffafbc88357c443392752cbd9d85896edeafb0476666e7390a5b2421b974a2",
+  "scoredAt": "2026-10-28T18:42:31.618Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling is limited to a few notes (frame already exists, stale stroke references); there is no guidance on handling missing attributes, wrong Blender versions, or failed script runs, and the scripts are explicitly untested in Blender."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.49,
-    "baselineAvg": 57,
-    "treatmentAvg": 85,
+    "multiplier": 4.35,
+    "baselineAvg": 23,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "gp-build-reveal-signature",
-        "baseline": 55,
-        "treatment": 82,
-        "rationale": "A uses the attributes API (position/radius) after add_strokes, bpy.data.grease_pencils.new, objects.new, and a GREASE_PENCIL_BUILD modifier with length/time_mode, and sets the frame range; B also uses the right object creation and modifier, but fills points through drawing.strokes[0].points (not the attributes API), uses a questionable grease_pencils_v3 getattr and read_factory_settings, and sets frame_end to 49 instead of 48."
+        "name": "create-basic-gp-drawing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with detailed, runnable code, while Response B provides no content."
       },
       {
-        "name": "port-legacy-gp-v2-script",
-        "baseline": 55,
-        "treatment": 82,
-        "rationale": "A fills strokes through drawing.attributes position and radius (matching the rubric) and covers layers.new, frames.new().drawing, add_strokes, and the pressure/line_width to radius mapping, while B uses stroke.points/point.position (the legacy-style API, not attributes) and a nonexistent grease_pencils_v3 fallback, though it does state the radius/opacity replacement."
+        "name": "apply-gp-modifiers",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric while Response A is incomplete and uses the wrong property for layer filtering."
       },
       {
-        "name": "gp-red-filled-shapes-with-material",
-        "baseline": 62,
-        "treatment": 90,
-        "rationale": "Response A matches the rubric closely: create_gpencil_data materials with color/fill_color/show_fill, materials appended to slot indices, cyclic and material_index set through CURVE-domain attributes, and a radius of 0.03-0.05. Response B covers materials and radius but sets cyclic and material_index via the stroke object properties instead of curve-domain attributes, and it mixes in a per-stroke fill_color and a speculative API-version fallback."
+        "name": "animate-expanding-square",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not use drawing.add_strokes and attributes as specified."
       }
     ]
   }
