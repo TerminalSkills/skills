@@ -777,6 +777,19 @@
       ]
     },
     {
+      "name": "apscheduler",
+      "slug": "apscheduler",
+      "description": "APScheduler is a Python library that runs functions on a schedule inside your own process, using cron expressions, fixed intervals or one-off dates, and can keep its jobs in a database so they survive restarts. Use when a user wants to \"run a Python function every night\", \"replace crontab scripts\", \"schedule background jobs in Flask or FastAPI\", \"persist scheduled jobs in SQLite\", or \"stop missed runs from piling up\". Covers the 3.x API that pip installs today.",
+      "category": "automation",
+      "tags": [
+        "apscheduler",
+        "python",
+        "cron",
+        "scheduler",
+        "background-jobs"
+      ]
+    },
+    {
       "name": "architectural-dimensions",
       "slug": "architectural-dimensions",
       "description": "Reference for architectural dimensions, proportions, and building codes for AI-generated 3D/2D models. Use when: generating floor plans, creating 3D buildings, validating architectural designs, ensuring correct human-scale proportions in models.",
@@ -1301,6 +1314,19 @@
         "incident-management",
         "status-page",
         "on-call"
+      ]
+    },
+    {
+      "name": "bevy",
+      "slug": "bevy",
+      "description": "Bevy is a data-driven game engine for Rust built on an Entity Component System (ECS), for 2D and 3D games on desktop and other platforms. Use when asked to \"make a game in Rust\", \"set up a Bevy project\", \"write a Bevy system\", \"fix a Bevy compile error after upgrading\", \"add keyboard input or states to a Bevy game\", or \"speed up Bevy compile times\". Written against Bevy 0.20, where Message and required components replace older Event and Bundle APIs.",
+      "category": "development",
+      "tags": [
+        "rust",
+        "game-engine",
+        "ecs",
+        "bevy",
+        "game-development"
       ]
     },
     {
@@ -2377,6 +2403,19 @@
       ]
     },
     {
+      "name": "codegraph",
+      "slug": "codegraph",
+      "description": "CodeGraph indexes a source tree into a local SQLite knowledge graph of symbols, calls and imports, and serves it to coding agents over MCP and a CLI. Use it when an agent burns tool calls on grep and file reads to understand a codebase, or when you need callers, callees, blast radius or affected tests for a symbol. Covers install, `codegraph init`, query/explore/impact/affected commands, MCP registration, exclusions and troubleshooting. Triggers: \"index my repo for the agent\", \"who calls this function\", \"what breaks if I change this\", \"codegraph\".",
+      "category": "development",
+      "tags": [
+        "code-graph",
+        "mcp",
+        "code-intelligence",
+        "impact-analysis",
+        "agents"
+      ]
+    },
+    {
       "name": "coderabbit",
       "slug": "coderabbit",
       "description": "CodeRabbit reviews pull requests with AI on GitHub, GitLab, Azure DevOps and Bitbucket, and reviews local changes from a CLI before they are pushed. Use when a user asks to set up automated PR reviews, write or validate a .coderabbit.yaml, add path-specific review instructions, control a review with @coderabbitai commands, or run coderabbit review from the terminal or a coding agent.",
@@ -2866,6 +2905,19 @@
         "streaming",
         "data-import",
         "export"
+      ]
+    },
+    {
+      "name": "cua",
+      "slug": "cua",
+      "description": "Cua gives AI agents a computer of their own: disposable Linux, Windows or macOS sandboxes on your machine that an agent can run commands in, take screenshots of, and drive with mouse and keyboard, from a `cua` command line or a Python SDK. Use when someone asks to \"give my agent a sandboxed desktop\", \"run a command in an isolated container or VM\", \"take a screenshot of the sandbox\", \"automate a GUI app safely\", or \"script a computer-use agent environment\". Local sandboxes only; no account needed.",
+      "category": "automation",
+      "tags": [
+        "computer-use",
+        "sandbox",
+        "desktop-automation",
+        "vm",
+        "python-sdk"
       ]
     },
     {
@@ -4028,6 +4080,19 @@
       ]
     },
     {
+      "name": "fallow",
+      "slug": "fallow",
+      "description": "Fallow is a fast static analyzer for TypeScript and JavaScript repositories that finds unused files, exports and dependencies, circular imports, copy-pasted code and overly complex functions, and gates pull requests on only the problems a change introduces. Use it when asked to \"find dead code\", \"clean up unused dependencies\", \"check code health before merging\", \"find complexity hotspots\", \"audit this PR\", or \"migrate from knip\". Needs no TypeScript compiler and no config to start.",
+      "category": "development",
+      "tags": [
+        "dead-code",
+        "code-health",
+        "complexity",
+        "typescript",
+        "static-analysis"
+      ]
+    },
+    {
       "name": "fast-check",
       "slug": "fast-check",
       "description": "Find edge-case bugs with property-based testing using fast-check — generate thousands of random inputs automatically. Use when someone asks to \"find edge cases\", \"fast-check\", \"property-based testing\", \"fuzz testing in TypeScript\", \"generate random test data\", \"QuickCheck for JavaScript\", or \"test with random inputs\". Covers property definitions, arbitraries, shrinking, model-based testing, and integration with Vitest/Jest.",
@@ -4465,6 +4530,19 @@
         "llm",
         "agents",
         "anthropic"
+      ]
+    },
+    {
+      "name": "fzf",
+      "slug": "fzf",
+      "description": "fzf is a command-line fuzzy finder that filters any list of lines, such as files, git branches, processes or command history, as you type and prints the selection. Use it when the user asks to \"pick a file with fuzzy search\", \"add Ctrl-R fuzzy history\", \"preview files while searching\", \"choose a git branch interactively\", \"set up fzf key bindings\", or when a script needs non-interactive fuzzy matching with `fzf --filter`. Covers install, shell integration, FZF_DEFAULT_COMMAND and FZF_DEFAULT_OPTS, preview windows, key bindings and scripting flags.",
+      "category": "productivity",
+      "tags": [
+        "fzf",
+        "fuzzy-finder",
+        "shell",
+        "terminal",
+        "cli"
       ]
     },
     {
@@ -5319,6 +5397,19 @@
       ]
     },
     {
+      "name": "hindsight",
+      "slug": "hindsight",
+      "description": "Hindsight is a self-hosted agent memory server: an agent stores facts with retain, searches them with recall, and asks for reasoned answers over them with reflect, per isolated memory bank. Use when an agent or chatbot must remember users and projects across sessions, or when asked to \"set up Hindsight\", \"retain and recall memories\", \"add per-user memory banks\", \"run a memory server for my agent\", or \"connect an MCP client to Hindsight memory\".",
+      "category": "data-ai",
+      "tags": [
+        "agent-memory",
+        "hindsight",
+        "llm-agents",
+        "retain-recall",
+        "mcp"
+      ]
+    },
+    {
       "name": "hipaa-compliance",
       "slug": "hipaa-compliance",
       "description": "HIPAA compliance for software that handles protected health information (PHI): which data counts as PHI, what the Security Rule requires of encryption, access control, audit controls and logoff, how business associate agreements work, and the Breach Notification Rule deadlines. Use when someone asks to \"make this app HIPAA compliant\", \"encrypt PHI\", \"add audit logging for patient records\", \"check what a BAA needs\", or \"prepare for a hospital security review\". Not legal advice.",
@@ -5679,6 +5770,19 @@
         "cdn",
         "optimization",
         "responsive"
+      ]
+    },
+    {
+      "name": "imgui",
+      "slug": "imgui",
+      "description": "Dear ImGui is a C++ immediate-mode GUI library for building debug panels, tools and editors inside games, simulations and other real-time apps. Use when asked to \"add a debug UI to my C++ app\", \"integrate Dear ImGui with GLFW and OpenGL\", \"add sliders and a live graph to my renderer\", \"fix ImGui widget ID conflicts\", or \"use ImGui fonts in version 1.92 or later\". Covers setup with the bundled backends, the per-frame loop, common widgets and the pitfalls of immediate mode.",
+      "category": "development",
+      "tags": [
+        "cpp",
+        "imgui",
+        "gui",
+        "debug-tools",
+        "game-development"
       ]
     },
     {
@@ -6127,6 +6231,19 @@
         "vps",
         "kamal",
         "zero-downtime"
+      ]
+    },
+    {
+      "name": "kestra",
+      "slug": "kestra",
+      "description": "Kestra is an open-source workflow orchestrator where pipelines are declarative YAML flows with tasks, schedules, webhooks, retries and a web UI. Use when asked to \"orchestrate a data pipeline with Kestra\", \"write a Kestra flow\", \"schedule a job with cron in Kestra\", \"run a Python script on a schedule\", \"trigger a flow from a webhook\", or \"deploy flows with kestractl\".",
+      "category": "devops",
+      "tags": [
+        "kestra",
+        "orchestration",
+        "workflow",
+        "yaml",
+        "data-pipelines"
       ]
     },
     {
@@ -8693,6 +8810,19 @@
       ]
     },
     {
+      "name": "orpc",
+      "slug": "orpc",
+      "description": "oRPC is a TypeScript framework for building end-to-end type-safe APIs: you write server procedures with Zod schemas and get a typed client, an RPC endpoint, a REST endpoint and an OpenAPI document with no code generation. Use when asked to \"build a type-safe API\", \"tRPC alternative with OpenAPI\", \"contract-first TypeScript API\", \"generate an OpenAPI spec from my router\", or \"share types between server and client\".",
+      "category": "development",
+      "tags": [
+        "typescript",
+        "rpc",
+        "openapi",
+        "zod",
+        "type-safe-api"
+      ]
+    },
+    {
       "name": "otel-js",
       "slug": "otel-js",
       "description": "OpenTelemetry for Node.js adds distributed tracing and metrics to a service and exports them over OTLP to any backend. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices. Covers the current SDK (resourceFromAttributes, ESM loader hook, OTLP endpoint rules).",
@@ -8807,6 +8937,19 @@
         "landing-pages",
         "ab-testing",
         "web-performance"
+      ]
+    },
+    {
+      "name": "pageindex",
+      "slug": "pageindex",
+      "description": "PageIndex answers questions about long PDFs without a vector database: it builds a table-of-contents tree for each document and lets an LLM walk the tree to the pages that matter, with page-level citations. Use when asked to build vectorless or reasoning-based RAG, \"index this 10-K and answer questions\", \"RAG without embeddings or chunking\", or to get a document's tree structure as JSON. Covers the open-source Python SDK in local mode and the run_pageindex.py script.",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "vectorless-rag",
+        "pdf",
+        "document-qa",
+        "llm"
       ]
     },
     {
@@ -10631,6 +10774,19 @@
       ]
     },
     {
+      "name": "scalar",
+      "slug": "scalar",
+      "description": "Scalar renders an OpenAPI document as interactive API documentation with a built-in request client, and ships a CLI to validate, lint, bundle, mock and preview specs. Use when asked to \"add API docs to my Express/Fastify/Hono app\", \"replace Swagger UI\", \"preview my openapi.yaml\", \"lint an OpenAPI file\", \"mock an API from a spec\", or \"serve a reference page from a spec\".",
+      "category": "development",
+      "tags": [
+        "openapi",
+        "api-documentation",
+        "express",
+        "fastify",
+        "hono"
+      ]
+    },
+    {
       "name": "schema-markup",
       "slug": "schema-markup",
       "description": "Adds, repairs and verifies schema.org structured data (JSON-LD) on a website, and says honestly which Google rich results the markup can still earn. Use when a user asks to \"add schema markup\", \"add structured data\", \"write JSON-LD for this page\", \"fix structured data errors in Search Console\", \"why are my star ratings / FAQ rich results gone\", or wants Product, Article, Organization, LocalBusiness, Breadcrumb, Event, Video or SoftwareApplication markup. Covers choosing types per page, required properties, wiring into Next.js, static sites and CMSs, and checking the result from the command line.",
@@ -10692,6 +10848,19 @@
         "python",
         "browser-automation",
         "data-extraction"
+      ]
+    },
+    {
+      "name": "scrcpy",
+      "slug": "scrcpy",
+      "description": "scrcpy shows an Android phone or tablet screen on the computer and lets you control it with the keyboard and mouse over USB or Wi-Fi, with no app on the device and no root. Use it when the user asks to \"mirror my Android phone\", \"record the Android screen\", \"control the phone from my computer\", \"connect to the phone over Wi-Fi\", \"record a demo of my app\", \"use the phone camera as a video source\", or needs scrcpy flags. Covers install, adb connection, wireless mode, recording, audio, camera, headless runs and tuning. Only for devices the user owns or may use.",
+      "category": "development",
+      "tags": [
+        "scrcpy",
+        "android",
+        "adb",
+        "screen-recording",
+        "mirroring"
       ]
     },
     {
@@ -10872,6 +11041,19 @@
         "debugging",
         "cold-start",
         "cloudwatch"
+      ]
+    },
+    {
+      "name": "sglang",
+      "slug": "sglang",
+      "description": "SGLang is a high-throughput serving engine that runs open-weight language, vision-language and embedding models on your own GPU behind an OpenAI-compatible HTTP API. Use this skill when asked to serve a Hugging Face model with SGLang, run `sglang serve` or `python -m sglang.launch_server`, split a model across GPUs with tensor parallelism, tune GPU memory, enable tool calling, reasoning parsing or JSON-schema constrained output, or call a self-hosted model with the OpenAI SDK.",
+      "category": "data-ai",
+      "tags": [
+        "sglang",
+        "llm-serving",
+        "inference",
+        "openai-compatible",
+        "gpu"
       ]
     },
     {
@@ -11249,6 +11431,19 @@
       ]
     },
     {
+      "name": "sql-js",
+      "slug": "sql-js",
+      "description": "sql.js is SQLite compiled to WebAssembly, so a browser page or a Node.js script can create, load, query and export a real SQLite database with no server and no native module. Use when a user wants to \"open a .sqlite file in the browser\", \"run SQL on the client\", \"query SQLite in Node without native bindings\", \"export a database to a file\", or \"add custom SQL functions in JavaScript\". Covers initSqlJs, exec, prepared statements, export, and how persistence must be handled.",
+      "category": "development",
+      "tags": [
+        "sqlite",
+        "wasm",
+        "javascript",
+        "browser",
+        "sql"
+      ]
+    },
+    {
       "name": "sql-optimizer",
       "slug": "sql-optimizer",
       "description": "Analyze and optimize SQL queries for performance. Use when a user asks to optimize a query, speed up a slow query, analyze a query plan, add indexes, fix N+1 queries, reduce query time, tune database performance, or rewrite SQL for efficiency. Supports PostgreSQL, MySQL, and SQLite.",
@@ -11574,6 +11769,19 @@
       ]
     },
     {
+      "name": "stryker-js",
+      "slug": "stryker-js",
+      "description": "StrykerJS is a mutation testing tool for JavaScript and TypeScript: it makes small deliberate changes to your source code and checks whether your tests fail, which shows how well the tests really protect the code. Use it when asked to \"run mutation testing\", \"check test quality\", \"find weak tests\", \"improve the mutation score\", \"set up Stryker\", or to gate a CI build on a mutation score.",
+      "category": "development",
+      "tags": [
+        "mutation-testing",
+        "testing",
+        "javascript",
+        "typescript",
+        "test-quality"
+      ]
+    },
+    {
       "name": "subfinder",
       "slug": "subfinder",
       "description": "Discover subdomains of a target domain using passive and active enumeration techniques. Use when tasks involve subdomain enumeration, attack surface mapping, DNS reconnaissance, finding hidden services, identifying forgotten subdomains, or expanding the scope of a security assessment. Subfinder uses passive sources (certificate transparency logs, DNS datasets, search engines) to find subdomains without touching the target directly.",
@@ -11792,6 +12000,19 @@
         "enterprise",
         "api",
         "doctrine"
+      ]
+    },
+    {
+      "name": "syncthing",
+      "slug": "syncthing",
+      "description": "Syncthing keeps folders identical across your own computers and servers over encrypted peer-to-peer connections, with no cloud account or central server. Use when a user wants to \"sync a folder between two machines\", \"replace Dropbox with something self-hosted\", \"back up a laptop folder to a server\", \"add a device or folder from the command line\", \"check whether a remote device is fully synced\", or \"ignore files in a synced folder\". Covers installation, headless setup, the syncthing cli and the REST API.",
+      "category": "productivity",
+      "tags": [
+        "syncthing",
+        "file-sync",
+        "peer-to-peer",
+        "self-hosted",
+        "backup"
       ]
     },
     {
@@ -13694,6 +13915,19 @@
       ]
     },
     {
+      "name": "yazi",
+      "slug": "yazi",
+      "description": "Yazi is a fast terminal file manager written in Rust with asynchronous I/O, file previews, tabs, bulk selection and Lua plugins. Use it when the user asks to \"install yazi\", \"set up a terminal file manager\", \"make yazi change my shell directory on exit\", \"configure yazi keybindings\", \"add a yazi plugin\", \"show git status in yazi\", or \"preview images and PDFs in the terminal\". Covers installing the yazi and ya binaries, the optional helper tools, the `y` shell wrapper, yazi.toml, keymap.toml, init.lua and `ya pkg`.",
+      "category": "productivity",
+      "tags": [
+        "yazi",
+        "file-manager",
+        "tui",
+        "terminal",
+        "rust"
+      ]
+    },
+    {
       "name": "yjs",
       "slug": "yjs",
       "description": "Yjs is a high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications: shared types whose concurrent edits merge automatically. Use when a user asks to add real-time collaborative editing, shared cursors and presence, offline-first sync, or peer-to-peer collaboration to an app, to run or secure a y-websocket server, to persist Yjs documents, or to make a Tiptap or ProseMirror editor collaborative.",
@@ -13888,5 +14122,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-25T11:36:58.083Z"
+  "updatedAt": "2026-10-28T19:07:49.053Z"
 }
