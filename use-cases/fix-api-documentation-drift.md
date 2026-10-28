@@ -2,7 +2,7 @@
 title: "Fix API Documentation Drift with AI"
 slug: fix-api-documentation-drift
 description: "Detect and fix discrepancies between your API code and its OpenAPI documentation before they break client integrations."
-skills: [api-doc-generator, api-tester, code-reviewer]
+skills: [api-doc-generator, api-tester, code-reviewer, scalar]
 category: development
 tags: [api, documentation, openapi, drift-detection, developer-experience]
 ---
@@ -137,3 +137,7 @@ The breaking change review identified 2 changes requiring client notification, w
 The result: an accurate spec, two bugs caught, and client trust restored -- in under 20 minutes instead of a full day.
 
 The lasting fix was structural: the engineer added a CI check that runs the drift scan on every PR touching route or controller files. If a developer changes an endpoint without updating the spec, the PR fails with a clear message listing the discrepancies. Three months later, the spec has zero drift -- not because developers suddenly became disciplined about documentation, but because the machine catches it before the PR can merge.
+
+## Related Skills
+
+- [scalar](/skills/scalar) — lint and preview the corrected OpenAPI spec (`scalar document lint`, `scalar document serve`) before merging
