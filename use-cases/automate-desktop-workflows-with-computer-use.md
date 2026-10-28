@@ -4,6 +4,7 @@ slug: automate-desktop-workflows-with-computer-use
 description: "Use Claude's computer use tool to automate repetitive GUI tasks, from legacy desktop apps to browser workflows, inside a sandbox and without brittle CSS selectors."
 skills:
   - claude-computer-use
+  - cua
 category: automation
 difficulty: intermediate
 time_estimate: "2-4 hours"
@@ -174,3 +175,4 @@ Alex's three Monday exports run as three tasks in one sandbox session. The first
 ## Related Skills
 
 - [claude-computer-use](/skills/claude-computer-use) - API shape, member tools, sandboxing and the agent loop
+- [cua](/skills/cua) — when the agent needs a disposable local Linux, Windows or macOS desktop with screenshot, mouse, keyboard and shell access, as an alternative to the reference Docker container
