@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7496edbc3edae795218337716b22bd754078a1d61449eb3940f87790d08e4082",
+  "scoredAt": "2026-10-28T19:05:37.718Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases such as missing dependencies or build failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.13,
+    "baselineAvg": 47,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-imgui-glfw-opengl",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A omits the pinned submodule, explicit CMake file list, config flags, and uses a slightly incorrect init sequence."
+      },
+      {
+        "name": "unique-widget-ids-entity-list",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the ImGui-specific rubric, while Response A discusses unrelated HTML/JS solutions."
+      },
+      {
+        "name": "load-custom-font-imgui",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A explicitly shows ImGui::CreateContext, AddFontFromFileTTF, and PushFont/PopFont usage, fully meeting the rubric, while Response B omits an explicit CreateContext call, making it slightly less complete."
+      }
+    ]
+  }
+}
