@@ -47,67 +47,146 @@ The routing table consolidates 8 service URLs into a single domain with clear ac
 
 | Path | Service | Rate Limit |
 |---|---|---|
-| `/api/users/*` | user-service:4002 | 200 req/min per user |
-| `/api/billing/*` | billing-service:4003 | 200 req/min per user |
-| `/api/notifications/*` | notification-service:4004 | 200 req/min per user |
-| `/api/uploads/*` | upload-service:4005 | 20 req/min per user |
-| `/api/search/*` | search-service:4006 | 60 req/min per user |
+| `/api/users/*` | user-service:4002 | 200 req/min per consumer |
+| `/api/billing/*` | billing-service:4003 | 200 req/min per consumer |
+| `/api/notifications/*` | notification-service:4004 | 200 req/min per consumer |
+| `/api/uploads/*` | upload-service:4005 | 20 req/min per consumer |
+| `/api/search/*` | search-service:4006 | 60 req/min per consumer |
 
 **Public routes (no auth):**
 
 | Path | Service | Rate Limit |
 |---|---|---|
 | `/api/auth/*` | auth-service:4001 | 10 req/min per IP (login) |
-| `/api/health` | Gateway health aggregation | -- |
+| `/api/health` | Answered by the gateway itself (`request-termination`) | -- |
 
-**Internal routes (API key required):**
+**Internal routes (API key or internal network only):**
 
 | Path | Service | Notes |
 |---|---|---|
-| `/api/analytics/*` | analytics-service:4007 | Server-to-server only |
-| `/internal/admin/*` | admin-service:4008 | Internal network only |
+| `/api/analytics/*` | analytics-service:4007 | `key-auth`, server-to-server only |
+| `/internal/admin/*` | admin-service:4008 | `ip-restriction`, internal network only |
 
 The upload service gets a tighter rate limit (20/min) to prevent abuse. The login endpoint is rate-limited by IP rather than user (since there is no auth token yet) to block brute-force attacks. Search is capped at 60/min because each query is expensive.
 
 ### Step 3: Generate the Kong Configuration
 
+With the **docker-helper** skill the agent also writes a Compose file that runs Kong in DB-less mode, with Redis for the shared rate-limit counters:
+
 ```yaml
-# kong.yml (declarative configuration)
+# docker-compose.yml
+services:
+  kong:
+    image: kong:3.9
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+    volumes:
+      - ./kong.rendered.yml:/etc/kong/kong.yml:ro
+    ports:
+      - "127.0.0.1:8000:8000"   # put TLS termination in front for anything public
+    depends_on: [redis]
+  redis:
+    image: redis:8-alpine
+```
+
+The file below is trimmed to five of the services (billing, notifications and search follow the user-service pattern). The declarative file is rendered at deploy time so no secret lives in git: `ANALYTICS_API_KEY=... envsubst '${ANALYTICS_API_KEY}' < kong.yml > kong.rendered.yml`. (Kong's `{vault://...}` references are not resolved when a key-auth credential is looked up, so the key has to be in the rendered file.) The JWT credential holds only auth-service's public key.
+
+```yaml
 _format_version: "3.0"
+
+consumers:
+  - username: web-app
+    jwt_secrets:
+      - key: auth-service            # must equal the "iss" claim in tokens auth-service issues
+        algorithm: RS256
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          PLACEHOLDER
+          -----END PUBLIC KEY-----
+  - username: analytics-ingest
+    keyauth_credentials:
+      - key: "${ANALYTICS_API_KEY}"
 
 services:
   - name: auth-service
     url: http://auth-service:4001
     routes:
-      - paths: ["/api/auth"]
+      - name: auth
+        paths: ["/api/auth"]
         strip_path: true
     plugins:
       - name: rate-limiting
-        config: { minute: 10, policy: redis, limit_by: ip }
+        config:
+          minute: 10
+          limit_by: ip
+          policy: redis
+          redis: { host: redis, port: 6379 }
 
   - name: user-service
     url: http://user-service:4002
     routes:
-      - paths: ["/api/users"]
+      - name: users
+        paths: ["/api/users"]
         strip_path: true
     plugins:
       - name: jwt
+        config: { claims_to_verify: [exp] }
       - name: rate-limiting
-        config: { minute: 200, policy: redis }
+        config:
+          minute: 200
+          limit_by: consumer
+          policy: redis
+          redis: { host: redis, port: 6379 }
 
   - name: upload-service
     url: http://upload-service:4005
     routes:
-      - paths: ["/api/uploads"]
+      - name: uploads
+        paths: ["/api/uploads"]
         methods: ["GET", "POST", "DELETE"]
+        strip_path: true
     plugins:
       - name: jwt
+        config: { claims_to_verify: [exp] }
       - name: rate-limiting
-        config: { minute: 20 }
+        config:
+          minute: 20
+          limit_by: consumer
+          policy: redis
+          redis: { host: redis, port: 6379 }
       - name: request-size-limiting
-        config: { allowed_payload_size: 50 }  # 50MB max
+        config: { allowed_payload_size: 50, size_unit: megabytes }
 
-# Global plugins applied to all routes
+  - name: analytics-service
+    url: http://analytics-service:4007
+    routes:
+      - name: analytics
+        paths: ["/api/analytics"]
+        strip_path: true
+    plugins:
+      - name: key-auth
+
+  - name: admin-service
+    url: http://admin-service:4008
+    routes:
+      - name: admin
+        paths: ["/internal/admin"]
+        strip_path: true
+    plugins:
+      - name: ip-restriction
+        config: { allow: ["10.0.0.0/8"] }
+
+  - name: gateway-health
+    url: http://127.0.0.1:8001     # never reached: request-termination answers first
+    routes:
+      - name: health
+        paths: ["/api/health"]
+    plugins:
+      - name: request-termination
+        config: { status_code: 200, content_type: application/json, body: '{"status":"ok"}' }
+
+# Global plugin applied to all routes
 plugins:
   - name: cors
     config:
@@ -117,21 +196,21 @@ plugins:
       max_age: 3600
 ```
 
-CORS is configured exactly once, at the gateway level. No more per-service CORS headers to keep in sync. JWT validation happens at the gateway — services behind it receive pre-validated requests with the user ID injected as a header, so they never touch auth logic directly.
+CORS is configured exactly once, at the gateway level. No more per-service CORS headers to keep in sync. The `jwt` plugin verifies the token signature (and, with `claims_to_verify: [exp]`, the expiry), matches the `iss` claim to the consumer's credential, and forwards `X-Consumer-Username` and `X-Consumer-ID` headers upstream, so services behind the gateway never verify tokens themselves. Rate limits are counted per consumer (the calling application) rather than per end user, because Kong's built-in limiter keys on the consumer, credential, IP, header or path. `/internal/admin` answers 403 to any address outside `10.0.0.0/8`.
 
-### Step 4: Validate with a Comprehensive Test Suite
+### Step 4: Validate with a Test Suite
 
-The test suite covers 47 cases across four categories:
+With the **api-tester** skill, the agent writes the checks as curl or Python `requests` calls against the running gateway and groups them by what can break:
 
-**Route resolution (8 tests):** every service is reachable through its gateway path, and path stripping works correctly (the service receives `/profiles/123`, not `/api/users/profiles/123`).
+**Route resolution:** every service is reachable through its gateway path, and path stripping works correctly (the service receives `/profiles/123`, not `/api/users/profiles/123`).
 
-**Auth enforcement (12 tests):** protected routes return 401 without a JWT. The auth service itself is accessible without a token. Invalid tokens get 403. Expired tokens get 401 with a clear error message.
+**Auth enforcement:** protected routes return 401 without a JWT, with a bad signature or with an expired token. The auth routes are reachable without a token. `/api/analytics` returns 401 without the `apikey` header and passes with it.
 
-**Rate limiting (8 tests):** each route enforces its configured limit. Exceeding the limit returns 429 with a `Retry-After` header. Different users have independent limits.
+**Rate limiting:** each route enforces its configured limit. Exceeding it returns 429 with a `Retry-After` header. Different consumers have independent limits.
 
-**Security (19 tests):** CORS headers are correct for browser requests. Internal API key headers are stripped from responses (so they don't leak to the client). Services return 503 through the gateway when they are down, not a raw connection error.
+**Security:** CORS preflight from `https://app.example.com` succeeds and other origins get no `Access-Control-Allow-Origin`. `/internal/admin` is refused from outside the internal network. A stopped service produces a gateway error (502 or 503), not a hang.
 
-Results from the first run: 45 passed, 2 warnings. The warnings catch an upload service endpoint missing `Content-Length` validation for multipart uploads, and the analytics service leaking the internal API key header in responses. Both are fixed before deployment.
+Against a local gateway with unreachable upstreams, the first run showed the expected pattern: no token gave 401, a valid RS256 token passed the gateway (the upstream error was 503, not 401), a token with a broken signature gave 401, the admin route gave 403, and `/api/health` answered 200 from the gateway itself. Gaps found by running it, such as a missing size limit on the upload route, are fixed before deployment.
 
 ### Step 5: Deploy with Zero-Downtime Migration
 
