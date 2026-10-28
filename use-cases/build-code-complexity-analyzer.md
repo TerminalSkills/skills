@@ -2,7 +2,7 @@
 title: "Build an Automated Code Complexity Analyzer and Refactoring Planner with AI"
 slug: build-code-complexity-analyzer
 description: "Analyze codebase complexity metrics and generate a prioritized refactoring plan based on risk and business impact."
-skills: [code-reviewer, coding-agent, report-generator]
+skills: [code-reviewer, coding-agent, report-generator, fallow]
 category: development
 tags: [code-quality, refactoring, complexity, technical-debt, analysis]
 ---
@@ -130,3 +130,7 @@ Kenji, a tech lead at the startup, needs to justify two sprints of refactoring t
 This time he brings data. The scan identifies 3 critical files and 14 high-complexity files in under two minutes. Cross-referencing with git history reveals that `invoice-engine.js` accounts for 31 of the last 80 bug-fix commits -- 39% of all bugs trace back to one file. The refactoring plan breaks the work into 13 story points across 2 sprints, with a projected 40% reduction in billing-area bugs.
 
 Kenji presents the correlation: complexity scores, bug frequency, estimated effort, and projected ROI. The product team approves the two sprints. After refactoring, the next quarter shows a 52% drop in billing-related bugs. New developer onboarding time drops from 3 weeks to 10 days -- because the billing code is no longer a 2,800-line mystery that only two people can safely modify. The CI complexity gate catches three pull requests that would have pushed files back above the threshold, preventing the problem from returning.
+
+## Related Skills
+
+- [fallow](/skills/fallow) — for JavaScript and TypeScript repositories: `fallow health --targets --hotspots` ranks complex functions and refactoring targets, and `fallow audit` gates pull requests on newly introduced complexity.
