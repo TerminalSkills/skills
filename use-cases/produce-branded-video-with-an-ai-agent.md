@@ -55,8 +55,8 @@ npx terminal-skills install vidvibe brand-guidelines youtube-marketing tiktok-ma
 
 Sign up at [app.vidvibe.io](https://app.vidvibe.io), then **Settings → API**
 (`/api-keys`) → **Create Token**. Scope it to what the integration actually needs — for
-this workflow: `flows:read`, `flows:execute`, `flow_runs:read`, `brands:read`,
-`videos:read`, `videos:create`, `uploads:create`, `channels:read`,
+this workflow: `flows:read`, `flows:execute`, `flow_runs:read`, `flow_runs:update` (approve or reject
+at review gates), `brands:read`, `brands:create`, `styles:read`, `videos:read`, `videos:create`, `uploads:create`, `channels:read`,
 `publishing:read`, `publishing:execute`, `billing:read`. The token (`vv_` + 64 hex) is
 shown once.
 
@@ -70,16 +70,23 @@ up in that user's library. Keep it in the environment, never in a committed conf
 
 ### Step 2: Define the brand once, inherit it everywhere
 
-> "Create a VidVibe brand from our website and make it the default for my generations."
+First write the brand down. Have the agent use the **brand-guidelines** skill to produce a
+short guide: personality traits, hex palette, voice and tone rules, audience. Then encode
+it as a VidVibe brand:
 
-`create_brand_from_url("https://acme.dev")` pulls name, industry, audience, colours and
-logo into a brand kit; VidVibe injects that context into every prompt made *for* that
-brand. From then on `brand_id` is tri-state on `generate_video`, `generate_image` and
+> "Create a VidVibe brand from brand-guide.md and use it for my generations."
+
+`create_brand(name, description, target_audience, industry, website_url, brand_voice,
+brand_colors)` stores the guide's voice and hex colours directly. The shortcut
+`create_brand_from_url("https://acme.dev")` extracts a brand from a website instead, but
+it is a charged tool, so quote the price first (Step 3) and check the result against the
+guide. VidVibe injects the brand's context into every prompt made *for* that brand. From
+then on `brand_id` is tri-state on `generate_video`, `generate_image` and
 `create_character`: **omit** it to keep the last-used brand, pass `null` for explicitly
 unbranded, pass an id for a specific one. (`launch_flow` is the exception — omitting
-`brand_id` there means no brand, so pass it explicitly.) Use the **brand-guidelines**
-skill to settle tone and visual rules first, then encode them as the brand plus a saved
-style from `list_styles` — that is what keeps forty clips looking like one campaign.
+`brand_id` there means no brand, so pass it explicitly.) Pair the brand with a saved
+style from `list_styles` and the guide's rules stay fixed across all forty clips, so they
+read as one campaign.
 
 ### Step 3: Price the run, then launch it
 
@@ -137,8 +144,13 @@ is ready to go out, and then:
 
 ```
 publish_video_to_youtube(video_id, title, description, privacy: "unlisted", youtube_account_id)
-get_publish_status(job_id)  every 15 s  → "published"
+                            → { publish_job_id, status: "queued", poll: { interval_seconds: 15 } }
+get_publish_status(job_id = publish_job_id)  every 15 s  → status "PUBLISHED" (or "ERROR")
 ```
+
+The TikTok cut goes out the same way with `publish_video_to_tiktok(video_id, title,
+tiktok_account_id, privacy: "SELF_ONLY")`, where `title` is the caption and `SELF_ONLY` keeps
+it private until a human has watched it.
 
 Publishing is public and hard to walk back, so the agent quotes the title, description
 and privacy first and waits for a yes — `"unlisted"` for a first pass, flipped to public
