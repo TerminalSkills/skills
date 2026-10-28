@@ -43,7 +43,7 @@ Those targets aren't arbitrary — p50 is what most users experience on most req
 
 ### Step 2: Generate the Benchmark Scripts
 
-The agent produces a complete benchmark suite with six files:
+The agent produces a complete benchmark suite with five files:
 
 ```text
 Generate a k6 benchmark suite for those four endpoints. Use realistic payloads from our seed data, include authentication, and set concurrency levels that match our production traffic patterns.
@@ -53,14 +53,39 @@ Here's the resulting suite under `benchmarks/api-performance/`:
 
 | File | Purpose |
 |------|---------|
-| `scenarios/products-list.yml` | 100 concurrent users, 60s duration |
-| `scenarios/product-detail.yml` | 200 concurrent users, 60s duration |
-| `scenarios/create-order.yml` | 50 concurrent users, 60s duration, realistic payloads |
-| `scenarios/user-orders.yml` | 100 concurrent users, 60s duration |
-| `run-benchmarks.sh` | Orchestrator script that runs all scenarios and collects results |
-| `thresholds.json` | Pass/fail criteria based on the p50/p95/p99 targets |
+| `scenarios/products-list.js` | 100 concurrent users, 60s duration |
+| `scenarios/product-detail.js` | 200 concurrent users, 60s duration |
+| `scenarios/create-order.js` | 50 concurrent users, 60s duration, realistic payloads |
+| `scenarios/user-orders.js` | 100 concurrent users, 60s duration |
+| `run-benchmarks.sh` | Orchestrator script that runs all scenarios with `k6 run --summary-export` and collects the JSON |
 
-Each scenario includes realistic payloads, authentication headers, and data setup — not just `GET /` with an empty body. The order creation scenario generates random line items with valid product IDs and quantity ranges that match production patterns. The user orders scenario uses accounts with varying order histories (5 to 200 orders) to test how the endpoint behaves at different data volumes. The concurrency levels are calibrated to stress the endpoint without overwhelming it — the goal is to measure latency under realistic load, not to find the breaking point.
+k6 scripts are JavaScript, and the pass/fail criteria live in each script's `thresholds` option. The list scenario looks like this (a trimmed version, run here against a local stub server):
+
+```javascript
+import http from 'k6/http';
+import { check } from 'k6';
+
+export const options = {
+  scenarios: {
+    products_list: { executor: 'constant-vus', vus: 100, duration: '60s', exec: 'listProducts' },
+  },
+  thresholds: {
+    'http_req_duration{endpoint:products-list}': ['p(50)<100', 'p(95)<300', 'p(99)<500'],
+    http_req_failed: ['rate<0.01'],
+  },
+  summaryTrendStats: ['avg', 'p(50)', 'p(95)', 'p(99)', 'max'],
+};
+
+export function listProducts() {
+  const res = http.get(`${__ENV.BASE_URL}/api/v1/products?page=1&per_page=50`, {
+    headers: { Authorization: `Bearer ${__ENV.API_TOKEN}` },
+    tags: { endpoint: 'products-list' },
+  });
+  check(res, { 'status is 200': (r) => r.status === 200 });
+}
+```
+
+k6 exits with code 99 when a threshold is crossed, which is what the CI gate in Step 6 relies on. Tokens come from `API_TOKEN` in the environment, never from the script. Each scenario includes realistic payloads, authentication headers, and data setup — not just `GET /` with an empty body. The order creation scenario generates random line items with valid product IDs and quantity ranges that match production patterns. The user orders scenario uses accounts with varying order histories (5 to 200 orders) to test how the endpoint behaves at different data volumes. The concurrency levels are calibrated to stress the endpoint without overwhelming it — the goal is to measure latency under realistic load, not to find the breaking point.
 
 ### Step 3: Run Against Staging
 
@@ -68,9 +93,9 @@ Each scenario includes realistic payloads, authentication headers, and data setu
 Run the full benchmark suite against our staging API at https://staging-api.example.com and show me the results.
 ```
 
-The orchestrator script runs each scenario sequentially (to avoid interference between tests), collects timing data at p50/p95/p99 percentiles, and compares against the thresholds defined in Step 1. Each scenario warms up for 10 seconds before measurement begins — cold-start latency (JIT compilation, connection pool initialization, cache warming) is a separate concern from sustained performance. The warm-up ensures the benchmarks measure the experience users actually have, not the first-request-after-deploy experience that's always slower.
+The orchestrator script runs each scenario sequentially (to avoid interference between tests) with `API_TOKEN` and `BASE_URL` set in the environment, and writes one `--summary-export` JSON file per scenario with p50/p95/p99 percentiles. The thresholds from Step 1 decide pass or fail. Each scenario starts with a short warm-up phase whose requests carry a different tag, so the threshold only measures the tagged requests. Cold-start latency (JIT compilation, connection pools, cache warming) is a separate concern from sustained performance.
 
-Results are saved as JSON artifacts that the trend dashboard (Step 5) consumes. Each run is tagged with the git commit SHA so regressions can be traced to a specific change.
+Results are saved as JSON artifacts that the trend analysis (Step 5) consumes. Each file name includes the git commit SHA so regressions can be traced to a specific change.
 
 ### Step 4: Analyze Results and Diagnose Failures
 
@@ -102,7 +127,7 @@ The 95 req/s throughput confirms the database is the bottleneck — the server i
 One benchmark run tells you where you are. Trend data tells you where you're heading:
 
 ```text
-Create a chart showing p95 latency trends for all endpoints over the last 10 benchmark runs.
+Load the summary JSON files from the last 10 benchmark runs with pandas (the p(95) value under each endpoint's http_req_duration metric), and plot p95 latency per endpoint against commit date.
 ```
 
 The time-series visualization makes regressions visually obvious — a flat line that suddenly spikes after a specific deployment tells you exactly which release introduced the problem, and the git log for that release tells you which PR to investigate. A gradual upward trend is equally valuable: it means the endpoint is degrading slowly as data grows, and you need to optimize before it crosses the threshold.
@@ -117,7 +142,29 @@ The final step is prevention:
 Add the benchmark suite as a GitHub Actions step that runs on every PR targeting main. If any endpoint exceeds its threshold, fail the check and post a comment showing the regression.
 ```
 
-The CI integration runs the benchmark suite against a staging deployment of the PR branch. If any endpoint's p95 or p99 exceeds the threshold, the check fails and a PR comment shows exactly which endpoint regressed and by how much:
+The CI integration runs the benchmark suite against a staging deployment of the PR branch. A workflow along these lines installs k6 with `grafana/setup-k6-action` and runs the orchestrator; `API_TOKEN` is a repository secret:
+
+```yaml
+name: perf-gate
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: grafana/setup-k6-action@v1
+      - run: ./benchmarks/api-performance/run-benchmarks.sh
+        env:
+          BASE_URL: ${{ vars.STAGING_URL }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+```
+
+If any endpoint's p95 or p99 exceeds the threshold, k6 exits non-zero, the check fails, and a follow-up step posts a PR comment (`gh pr comment`) showing exactly which endpoint regressed and by how much:
 
 > **Performance Regression Detected**
 > `GET /users/:id/orders` p95: 245ms -> 890ms (+263%, threshold: 300ms)
