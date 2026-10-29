@@ -623,6 +623,19 @@
       ]
     },
     {
+      "name": "anything-llm",
+      "slug": "anything-llm",
+      "description": "All-in-one private AI app that chats with your own documents in workspaces, using any local or hosted LLM, a built-in vector database and a developer REST API. Use when someone asks to \"run AnythingLLM in Docker\", \"chat with my PDFs privately\", \"create a workspace and upload documents through the API\", \"generate an AnythingLLM API key\", or \"connect AnythingLLM to Ollama\".",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "document-chat",
+        "self-hosted",
+        "local-llm",
+        "workspaces"
+      ]
+    },
+    {
       "name": "apache-arrow",
       "slug": "apache-arrow",
       "description": "Expert guidance for Apache Arrow, the cross-language columnar memory format for analytics workloads. Helps developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).",
@@ -1173,6 +1186,19 @@
         "serverless",
         "observability",
         "s3"
+      ]
+    },
+    {
+      "name": "axios",
+      "slug": "axios",
+      "description": "Axios is a promise-based HTTP client for Node.js and browsers that sends requests, parses JSON, and rejects on error status codes. Use it when asked to \"call a REST API from Node\", \"add a base URL and auth header to every request\", \"retry on 503\", \"cancel a request\", \"set a timeout\", \"handle axios errors\", or \"upgrade axios because of a security advisory\". Covers instances, interceptors, AbortController cancellation, timeouts, error handling, the fetch adapter, size limits, and which versions to avoid.",
+      "category": "development",
+      "tags": [
+        "axios",
+        "http-client",
+        "rest-api",
+        "nodejs",
+        "javascript"
       ]
     },
     {
@@ -1977,6 +2003,19 @@
       ]
     },
     {
+      "name": "chartjs",
+      "slug": "chartjs",
+      "description": "Chart.js draws bar, line, pie, doughnut, radar, scatter and bubble charts on an HTML canvas from a plain JavaScript config object. Use when a user asks to \"add a chart to the page\", \"plot this data with Chart.js\", \"update a chart live\", \"make the chart responsive\", \"register Chart.js components for a smaller bundle\", or \"use Chart.js in React\". Covers v4 ESM registration, config shape, updating data, plugins, responsive sizing, time scales and export to PNG.",
+      "category": "data-ai",
+      "tags": [
+        "chartjs",
+        "charts",
+        "canvas",
+        "data-visualization",
+        "javascript"
+      ]
+    },
+    {
       "name": "chatwoot",
       "slug": "chatwoot",
       "description": "Deploys and integrates Chatwoot, an open-source customer support platform with live chat and a shared multi-channel inbox. Use when a user asks to set up open-source customer support, add live chat without SaaS costs, build a multi-channel inbox, or deploy a free Intercom alternative.",
@@ -2387,6 +2426,19 @@
         "bugs",
         "security",
         "best-practices"
+      ]
+    },
+    {
+      "name": "code-server",
+      "slug": "code-server",
+      "description": "code-server runs VS Code on a remote machine and serves it to any web browser, so you can code from a laptop, tablet or thin client while the files, terminal and compute stay on a server. Use this skill to install code-server from a release archive or package, configure ~/.config/code-server/config.yaml with password auth, keep it on localhost behind an SSH tunnel or a TLS reverse proxy, install extensions from Open VSX and run it as a service. Trigger phrases: \"VS Code in the browser\", \"remote dev server\", \"install code-server\", \"code from my iPad\".",
+      "category": "development",
+      "tags": [
+        "code-server",
+        "vscode",
+        "remote-development",
+        "browser-ide",
+        "self-hosted"
       ]
     },
     {
@@ -4520,6 +4572,19 @@
       ]
     },
     {
+      "name": "frp",
+      "slug": "frp",
+      "description": "frp is a reverse proxy that lets you publish services running behind NAT or a firewall through a server that has a public IP. A server (frps) and a client (frpc) are configured in TOML. Use this skill to expose a local web app, SSH or any TCP/UDP port from your own machines, protect the tunnel with a token and TLS, and check proxy status on the dashboard. Trigger phrases: \"expose my local server\", \"self-hosted tunnel\", \"frp config\", \"frps frpc\", \"reach my home machine over SSH\", \"alternative to ngrok\".",
+      "category": "devops",
+      "tags": [
+        "frp",
+        "reverse-proxy",
+        "tunnel",
+        "nat-traversal",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "function-calling",
       "slug": "function-calling",
       "description": "Function calling (tool use) lets an LLM request calls to your own functions while your code runs them and returns the results in a loop. Covers the OpenAI Responses API, the Anthropic Messages API, parallel calls, tool_choice, strict schemas and error handling. Use when building AI agents with tools, letting LLMs query APIs or databases, or creating agentic workflows.",
@@ -5786,6 +5851,19 @@
       ]
     },
     {
+      "name": "immich",
+      "slug": "immich",
+      "description": "Immich is a self-hosted photo and video library with a web app, mobile backup, face and object search, and a REST API. Use this skill to deploy Immich with Docker Compose, bulk-import an existing photo archive with the immich CLI, create scoped API keys, call the API from scripts, and back up the database and media. Triggers: \"self-host Google Photos\", \"immich docker compose\", \"immich upload folder\", \"immich API key\", \"immich backup and restore\", \"photo library on my own server\".",
+      "category": "devops",
+      "tags": [
+        "immich",
+        "photos",
+        "self-hosted",
+        "docker-compose",
+        "backup"
+      ]
+    },
+    {
       "name": "impeccable",
       "slug": "impeccable",
       "description": "Impeccable is a design skill pack for AI coding agents: one /impeccable skill with 24 commands (init, audit, critique, polish, typeset, layout and more) plus a CLI that scans HTML, CSS, JSX and live URLs for 61 deterministic anti-patterns of AI-generated UI. Use when a user says \"my AI-generated UI looks generic\", \"install impeccable\", \"run /impeccable audit\", \"polish this page before launch\", \"stop the purple gradients and Inter everywhere\", or wants a design lint for UI files in CI or as an agent hook in Claude Code, Cursor, Codex, GitHub Copilot or Grok Build.",
@@ -5848,6 +5926,19 @@
         "flux",
         "metrics",
         "monitoring"
+      ]
+    },
+    {
+      "name": "ink-cli",
+      "slug": "ink-cli",
+      "description": "Ink is a library for building interactive command-line interfaces with React components, Flexbox layout and hooks, rendered into the terminal. Use it when asked to \"build a CLI with React\", \"make a terminal UI with progress and keyboard input\", \"use Ink\", \"scaffold an Ink app\", \"handle keypresses in a CLI\", \"exit an Ink app cleanly\", or \"test an Ink component\". Covers Ink 8 requirements (ESM, Node 22, React 19.3), render, Box and Text, useInput, useApp, non-TTY behaviour, create-ink-app and ink-testing-library.",
+      "category": "development",
+      "tags": [
+        "ink",
+        "react",
+        "cli",
+        "terminal-ui",
+        "javascript"
       ]
     },
     {
@@ -6737,6 +6828,19 @@
         "automation",
         "ai-agents",
         "lightpanda"
+      ]
+    },
+    {
+      "name": "lightrag",
+      "slug": "lightrag",
+      "description": "Graph-based RAG library and server that extracts entities and relationships from documents into a knowledge graph and answers questions with local, global, hybrid or mix retrieval. Use when someone asks to \"build a graph RAG over my documents\", \"run lightrag-server\", \"insert text and query with LightRAG\", \"pick a QueryParam mode\", or \"expose a RAG API with a web UI\".",
+      "category": "data-ai",
+      "tags": [
+        "graph-rag",
+        "knowledge-graph",
+        "rag",
+        "python",
+        "retrieval"
       ]
     },
     {
@@ -7658,6 +7762,19 @@
       ]
     },
     {
+      "name": "monaco-editor",
+      "slug": "monaco-editor",
+      "description": "Monaco Editor is the code editor that powers VS Code, packaged as a browser component with syntax highlighting, IntelliSense, diagnostics and a diff view. Use when a user asks to \"embed a code editor in the web app\", \"add Monaco to a React or Vite project\", \"show a JSON or YAML editor with validation\", \"build a diff viewer\", \"set up Monaco web workers\", or \"use @monaco-editor/react without the CDN\". Covers bundler setup, models, languages, markers and the diff editor.",
+      "category": "development",
+      "tags": [
+        "monaco-editor",
+        "code-editor",
+        "vscode",
+        "web-workers",
+        "react"
+      ]
+    },
+    {
       "name": "moneyprinterturbo",
       "slug": "moneyprinterturbo",
       "description": "MoneyPrinterTurbo turns a topic or keyword into a finished short video: it writes the script, picks stock footage, adds a voiceover, subtitles and background music, and renders an HD clip. Use when asked to \"generate a short video from a topic\", \"make faceless YouTube Shorts or TikToks\", \"batch-produce videos from a list of subjects\", \"run MoneyPrinterTurbo\", or \"call its API to create a video\". Covers pip and Docker install, config.toml, the mpt CLI with batch manifests, and the REST API.",
@@ -7875,6 +7992,19 @@
         "checks",
         "notifications",
         "plugins"
+      ]
+    },
+    {
+      "name": "nango",
+      "slug": "nango",
+      "description": "Nango is an integration platform that handles OAuth, API-key storage, token refresh and authenticated API calls for 1,000+ third-party APIs, plus a TypeScript runtime for sync and action functions. Use it when a user asks to \"let my customers connect their HubSpot or GitHub account\", \"add OAuth to my product\", \"proxy requests to a customer's API\", \"sync records from an external API\", or \"give an AI agent access to a user's SaaS tools\" without writing per-provider auth code.",
+      "category": "development",
+      "tags": [
+        "nango",
+        "oauth",
+        "integrations",
+        "api-proxy",
+        "typescript"
       ]
     },
     {
@@ -9367,6 +9497,19 @@
       ]
     },
     {
+      "name": "plane",
+      "slug": "plane",
+      "description": "Plane is an open-source project management tool (work items, cycles, modules, pages) that can run on your own server or in Plane Cloud, as an alternative to Jira or Linear. Use this skill to self-host the Community edition with Docker, call the REST API with a personal access token, create and update work items from scripts, or connect an agent through the official Plane MCP server. Triggers: \"self-host Plane\", \"makeplane\", \"Plane API key\", \"create Plane work items from a script\", \"Plane MCP server\", \"replace Jira with something self-hosted\".",
+      "category": "productivity",
+      "tags": [
+        "plane",
+        "project-management",
+        "self-hosted",
+        "issue-tracker",
+        "rest-api"
+      ]
+    },
+    {
       "name": "planetscale",
       "slug": "planetscale",
       "description": "PlanetScale is a managed database platform running Vitess (MySQL-compatible), Postgres and Neki (sharded Postgres), with Git-like database branches, deploy requests for non-blocking schema changes, and query insights. Use when asked to \"set up PlanetScale\", \"create a PlanetScale branch\", \"run a deploy request\", \"use the pscale CLI\", \"connect to PlanetScale from serverless or edge functions\", or \"check slow queries on PlanetScale\".",
@@ -9549,6 +9692,19 @@
       ]
     },
     {
+      "name": "postgres-js",
+      "slug": "postgres-js",
+      "description": "Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to \"connect Node to Postgres\", \"run a SQL query from TypeScript\", \"insert rows with postgres.js\", \"use a transaction\", \"listen for Postgres notifications\", \"stream a big result set with a cursor\", or \"cancel a slow query\". Covers v4 connection options, dynamic inserts and filters, transactions, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.",
+      "category": "development",
+      "tags": [
+        "postgres",
+        "postgresql",
+        "nodejs",
+        "sql",
+        "database-client"
+      ]
+    },
+    {
       "name": "postgresql",
       "slug": "postgresql",
       "description": "Assists with designing schemas, writing performant queries, managing indexes, and operating PostgreSQL databases. Use when working with JSONB, full-text search, window functions, CTEs, row-level security, replication, or performance tuning. Trigger words: postgresql, postgres, sql, database, jsonb, rls, window functions, cte.",
@@ -9572,6 +9728,19 @@
         "product-analytics",
         "session-replay",
         "feature-flags"
+      ]
+    },
+    {
+      "name": "postiz",
+      "slug": "postiz",
+      "description": "Postiz is an open-source social media scheduler that publishes and schedules posts to dozens of networks (X, LinkedIn, Bluesky, Instagram, YouTube, Reddit and more) from one calendar, with a public REST API and a command-line client. Use this skill to self-host Postiz with Docker Compose, connect channels, and schedule posts from scripts or an agent. Triggers: \"self-host Postiz\", \"schedule social posts from the command line\", \"Postiz API\", \"postiz cli\", \"open-source Buffer alternative\".",
+      "category": "content",
+      "tags": [
+        "postiz",
+        "social-media",
+        "scheduler",
+        "self-hosted",
+        "automation"
       ]
     },
     {
@@ -9835,6 +10004,19 @@
       ]
     },
     {
+      "name": "prometheus",
+      "slug": "prometheus",
+      "description": "Prometheus is an open-source monitoring server that scrapes metrics from your services over HTTP, stores them as time series, and evaluates PromQL queries and alerting rules. Use this skill to write prometheus.yml scrape configs and service discovery, add recording and alerting rules, validate them with promtool, unit-test alerts, query the HTTP API, and set retention. Trigger phrases: \"set up Prometheus\", \"scrape this service\", \"write an alert rule\", \"PromQL query\", \"promtool check\", \"reload Prometheus config\". Alert routing lives in prometheus-alertmanager.",
+      "category": "devops",
+      "tags": [
+        "prometheus",
+        "promql",
+        "monitoring",
+        "alerting-rules",
+        "promtool"
+      ]
+    },
+    {
       "name": "prometheus-alertmanager",
       "slug": "prometheus-alertmanager",
       "description": "Configure Prometheus Alertmanager for alert routing, grouping, silencing, and notification delivery. Use when a user needs to set up alert receivers (Slack, PagerDuty, email), define routing trees, manage silences and inhibition rules, or troubleshoot alert delivery pipelines.",
@@ -10089,6 +10271,19 @@
         "llm-testing",
         "retrieval",
         "ai-quality"
+      ]
+    },
+    {
+      "name": "ragflow",
+      "slug": "ragflow",
+      "description": "Self-hosted RAG engine that parses complex documents (PDFs, Office files, scans, tables) into searchable chunks and serves them through a web UI, an HTTP API and a Python SDK. Use when someone asks to \"deploy RAGFlow\", \"build a knowledge base over our PDFs\", \"create a chat assistant over my documents\", \"upload and parse files through the RAGFlow API\", or \"retrieve chunks with ragflow-sdk\".",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "document-parsing",
+        "knowledge-base",
+        "docker",
+        "python-sdk"
       ]
     },
     {
@@ -10565,6 +10760,19 @@
         "admin-panel",
         "dashboard",
         "crud"
+      ]
+    },
+    {
+      "name": "revealjs",
+      "slug": "revealjs",
+      "description": "reveal.js is an open-source framework that turns HTML or Markdown into a browser-based slide deck with nested slides, fragments, speaker notes, code highlighting and PDF export. Use it when a user asks to \"build a slide deck as a web page\", \"write my presentation in Markdown\", \"make slides with code walkthroughs\", \"add speaker notes\", or \"export reveal.js slides to PDF\". Covers npm install, plugins, config options and headless Chrome PDF export for reveal.js 6.",
+      "category": "content",
+      "tags": [
+        "reveal-js",
+        "presentations",
+        "slides",
+        "markdown",
+        "html"
       ]
     },
     {
@@ -13915,6 +14123,19 @@
       ]
     },
     {
+      "name": "xyflow",
+      "slug": "xyflow",
+      "description": "xyflow is the library family behind React Flow (@xyflow/react) and Svelte Flow (@xyflow/svelte) for building node-based editors: draggable nodes, connectable edges, zoom and pan. Use when a user asks to \"build a workflow editor\", \"add a node graph or flowchart to the app\", \"make a drag-and-drop pipeline builder\", \"create custom nodes with handles\", or \"save and restore a React Flow diagram\". Covers v12 setup, controlled state, custom nodes, handles, providers and persistence.",
+      "category": "development",
+      "tags": [
+        "react-flow",
+        "xyflow",
+        "node-editor",
+        "workflow",
+        "diagram"
+      ]
+    },
+    {
       "name": "yazi",
       "slug": "yazi",
       "description": "Yazi is a fast terminal file manager written in Rust with asynchronous I/O, file previews, tabs, bulk selection and Lua plugins. Use it when the user asks to \"install yazi\", \"set up a terminal file manager\", \"make yazi change my shell directory on exit\", \"configure yazi keybindings\", \"add a yazi plugin\", \"show git status in yazi\", or \"preview images and PDFs in the terminal\". Covers installing the yazi and ya binaries, the optional helper tools, the `y` shell wrapper, yazi.toml, keymap.toml, init.lua and `ya pkg`.",
@@ -14122,5 +14343,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-29T22:05:31.879Z"
+  "updatedAt": "2026-10-29T23:09:53.349Z"
 }
