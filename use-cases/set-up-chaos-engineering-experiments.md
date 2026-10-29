@@ -19,7 +19,7 @@ The team knows they need chaos engineering. But nobody has time to learn Chaos M
 
 ## The Solution
 
-Using the **coding-agent**, **docker-helper**, and **cicd-pipeline** skills, this walkthrough maps failure modes by business impact, generates Chaos Mesh experiments with safe blast radius limits, builds a local test environment with toxiproxy for safe iteration, and integrates chaos tests into the CI pipeline so resilience gets verified on every deploy.
+Using the **coding-agent**, **docker-helper**, and **cicd-pipeline** skills, this walkthrough maps failure modes by business impact, generates Chaos Mesh experiments with safe blast radius limits, builds a local test environment with toxiproxy for safe iteration, and integrates chaos tests into a GitLab CI pipeline so resilience gets verified on every deploy.
 
 ## Step-by-Step Walkthrough
 
@@ -75,13 +75,21 @@ These hypotheses define success. If the system holds these numbers under fault i
 
 ### Step 3: Generate the First Experiment
 
+Chaos Mesh (current release 2.8.7) is installed once per cluster with Helm. On clusters that use containerd, tell the chaos daemon where the socket is:
+
+```console
+$ helm repo add chaos-mesh https://charts.chaos-mesh.org
+$ helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh --create-namespace --version 2.8.7 \
+    --set chaosDaemon.runtime=containerd --set chaosDaemon.socketPath=/run/containerd/containerd.sock
+```
+
 Marta starts with the highest-impact scenario:
 
 ```text
 Generate a Chaos Mesh experiment for scenario 1: inject a 30-second network delay between payment-service and PostgreSQL. The blast radius should be 1 pod only. Include a rollback mechanism and steady-state hypothesis.
 ```
 
-The experiment definition targets a single payment-service pod with a 30-second latency injection to all PostgreSQL traffic, running for 2 minutes total:
+The experiment definition targets a single payment-service pod in the `payments` namespace with a 30-second latency injection on its traffic towards PostgreSQL, running for 2 minutes total:
 
 ```yaml
 # chaos-experiments/payment-db-latency.yaml
@@ -94,16 +102,19 @@ spec:
   action: delay
   mode: one              # Only 1 pod affected — safe blast radius
   selector:
+    namespaces: [payments]   # without this, only the experiment's own namespace is searched
     labelSelectors:
       app: payment-service
+  direction: to              # traffic leaving payment-service towards the target
   delay:
     latency: "30s"
   duration: "120s"        # Auto-reverts after 2 minutes
   target:
+    mode: all
     selector:
+      namespaces: [payments]
       labelSelectors:
         app: postgresql
-    mode: all
 ```
 
 The `mode: one` setting is critical -- it ensures only a single pod gets the fault injection. If the payment service has 4 replicas, 3 continue operating normally. The `duration: 120s` means Chaos Mesh automatically removes the fault after 2 minutes even if someone forgets to stop the experiment.
@@ -116,11 +127,29 @@ Running chaos experiments directly against staging is risky when you don't know 
 Create a docker-helper setup that mimics our payment-service -> PostgreSQL flow so we can run the chaos experiment locally before touching staging.
 ```
 
-The docker-helper file spins up the payment service, a PostgreSQL instance, and toxiproxy sitting between them. Toxiproxy lets Marta inject the same latency fault locally:
+The docker-helper skill produces a Compose file with PostgreSQL and toxiproxy (ports bound to 127.0.0.1, password from the environment); the payment service is pointed at `127.0.0.1:15432` instead of PostgreSQL directly:
 
-```bash
-# Add 30-second latency to the PostgreSQL connection
-toxiproxy-cli toxic add -t latency -a latency=30000 postgres_proxy
+```yaml
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.13.0
+    ports:
+      - "127.0.0.1:8474:8474"
+      - "127.0.0.1:15432:15432"
+    depends_on: [postgres]
+```
+
+Marta creates the proxy and injects the same latency fault locally with `toxiproxy-cli` (latency is in milliseconds):
+
+```console
+$ toxiproxy-cli create --listen 0.0.0.0:15432 --upstream postgres:5432 postgres_proxy
+$ toxiproxy-cli toxic add -t latency -a latency=30000 postgres_proxy
+Added downstream latency toxic 'latency_downstream' on proxy 'postgres_proxy'
+$ toxiproxy-cli toxic remove -n latency_downstream postgres_proxy
 ```
 
 This is where the team discovers the first real finding: the payment service has no connection retry logic. On the first timeout, it crashes. No circuit breaker, no graceful degradation -- just an unhandled exception that kills the process. In production, Kubernetes would restart the pod, but during the restart window all in-flight transactions would fail.
@@ -132,10 +161,56 @@ After adding retry logic and a circuit breaker to the payment service, the local
 Now the experiments move into the CI pipeline:
 
 ```text
-Add a chaos testing stage to our GitHub Actions pipeline that runs the top 3 experiments against staging after every deployment, with automatic rollback if error rate exceeds 5%.
+Add a chaos testing stage to our GitLab CI pipeline that runs the top 3 experiments against staging after every deployment, and fails the pipeline if the error rate exceeds 5%.
 ```
 
-Every staging deploy now runs a 2-minute resilience check. The pipeline injects each of the top 3 faults, monitors the steady-state hypotheses, and fails the deploy if any hypothesis is violated. The team catches resilience regressions the same way they catch test failures -- before the code reaches production.
+The cicd-pipeline skill produces a job that applies one experiment at a time, runs a steady-state check while the fault is active, and always removes the experiment afterwards:
+
+```yaml
+chaos-payment-db-latency:
+  stage: chaos
+  image: alpine/k8s:1.34.12       # a shell image that includes kubectl
+  script:
+    - kubectl apply -f chaos-experiments/payment-db-latency.yaml
+    - sh scripts/check-steady-state.sh --max-error-rate 0.05 --duration 120   # PROM_URL is a CI variable
+  after_script:
+    - kubectl delete -f chaos-experiments/payment-db-latency.yaml --ignore-not-found
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+The steady-state check is a short script the coding agent writes into the repo as `scripts/check-steady-state.sh`. It polls the Prometheus HTTP API (`PROM_URL`, a CI variable) for the payment-service 5xx ratio every 10 seconds and exits 1 on the first reading above the limit, or when there is no traffic to measure. The metric and label names in the query (`http_requests_total`, `service`, `code`) are placeholders: use your own. It needs `curl`, `jq` and `awk`, which the `alpine/k8s` image provides.
+
+```sh
+#!/bin/sh
+# Usage: check-steady-state.sh --max-error-rate 0.05 --duration 120
+# Needs PROM_URL (Prometheus base URL). Exits 1 when the 5xx ratio exceeds the limit or there is no traffic to measure.
+set -eu
+MAX=0.05; DURATION=120
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --max-error-rate) MAX="$2"; shift 2 ;;
+    --duration) DURATION="$2"; shift 2 ;;
+    *) echo "unknown flag $1" >&2; exit 2 ;;
+  esac
+done
+QUERY='sum(rate(http_requests_total{service="payment-service",code=~"5.."}[1m])) / sum(rate(http_requests_total{service="payment-service"}[1m]))'
+end=$(( $(date +%s) + DURATION ))
+while [ "$(date +%s)" -lt "$end" ]; do
+  rate=$(curl -fsS --get "$PROM_URL/api/v1/query" --data-urlencode "query=$QUERY" \
+    | jq -r '.data.result[0].value[1] // "NaN"')
+  echo "error rate: $rate (limit $MAX)"
+  if awk -v r="$rate" -v m="$MAX" 'BEGIN { exit !(r == "NaN" || r + 0 > m + 0) }'; then
+    echo "steady-state violated" >&2; exit 1
+  fi
+  sleep "${INTERVAL:-10}"
+done
+echo "steady state held for ${DURATION}s"
+```
+
+`after_script` runs even when the check fails, and the experiment's `duration` removes the fault by itself if the runner dies. The CI service account needs RBAC permission for `networkchaos.chaos-mesh.org` in the `chaos-testing` namespace and nothing else.
+
+Every staging deploy now runs a 2-minute resilience check. The pipeline injects each of the top 3 faults, runs the steady-state check, and fails the pipeline if any hypothesis is violated. The team catches resilience regressions the same way they catch test failures -- before the code reaches production.
 
 ## Real-World Example
 
@@ -143,4 +218,10 @@ Two weeks after setting up the chaos pipeline, a developer pushes a change that 
 
 The developer adds pool overflow handling, the chaos test passes, and the deploy goes through. Without the experiment, this would have been another 45-minute cascading outage -- discovered at 3 AM instead of during a CI run.
 
-Marta tracks the numbers over the first quarter: the chaos pipeline has caught 3 resilience regressions, all at the CI stage. Zero cascading outages in production. The 90-second-to-45-minute Redis incident that started this project has not repeated.
+Over the first quarter the chaos stage catches three more resilience regressions before they reach production, and the Redis incident that started this project has not repeated.
+
+## Related Skills
+
+- [coding-agent](/skills/coding-agent) -- writes the experiment definitions and steady-state checks
+- [docker-helper](/skills/docker-helper) -- builds the local toxiproxy environment
+- [cicd-pipeline](/skills/cicd-pipeline) -- adds the chaos stage to the pipeline
