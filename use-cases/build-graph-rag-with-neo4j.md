@@ -1,7 +1,7 @@
 ---
 title: "Build GraphRAG with Neo4j and Vector Search"
 description: "Combine knowledge graphs with vector embeddings to answer multi-hop reasoning questions that standard RAG can't handle."
-skills: [anthropic-sdk, neo4j]
+skills: [anthropic-sdk, neo4j, lightrag]
 difficulty: advanced
 time_estimate: "7 hours"
 tags: [graphrag, neo4j, knowledge-graph, rag, anthropic, entities, reasoning]
@@ -279,3 +279,4 @@ To see what the graph adds, compare against plain vector search: call only the e
 
 - [anthropic-sdk](../skills/anthropic-sdk/) -- Messages API and structured outputs for extraction and answering
 - [neo4j](../skills/neo4j/) -- Cypher, indexes, constraints and the Node.js driver
+- [lightrag](/skills/lightrag) — choose it when you want entity and relationship extraction, graph storage and local/global/hybrid/mix retrieval handled by a library or server instead of hand-written Cypher and extraction prompts
