@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:80b4a01a1dd5a861c8ca75deb5b57bd829907f7619d4468116b622a15861696d",
+  "scoredAt": "2026-10-29T23:08:32.099Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 3,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "self-host-plane-with-custom-ports",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the required steps."
+      },
+      {
+        "name": "create-work-item-via-rest-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A does not."
+      },
+      {
+        "name": "backup-self-hosted-plane",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response A includes the required ./setup.sh backup command and lists the backup directory, while Response B omits the required command and does not address the rubric."
+      }
+    ]
+  }
+}
