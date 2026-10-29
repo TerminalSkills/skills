@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:5885a5a273a89c0c28d3385d1c9ca076d57529851c8e193f43d5fb908f154dd0",
+  "scoredAt": "2026-10-29T22:50:16.787Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "dynamic-multi-row-insert",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A largely follows the required sql template and includes a RETURNING clause, but it uses the wrong column name ('price' instead of 'price_cents'), whereas Response B does not use the required tagged template syntax at all."
+      },
+      {
+        "name": "atomic-order-and-stock-update",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with sql.begin usage, transaction control, and no outer sql calls, while Response A does not use sql.begin and relies on PL/pgSQL instead."
+      },
+      {
+        "name": "listen-for-order-changes",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required sql.listen syntax and reconnection note."
+      }
+    ]
+  }
+}
