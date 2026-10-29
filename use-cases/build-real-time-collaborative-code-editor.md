@@ -13,6 +13,7 @@ skills:
   - docker-helper
   - e2b
   - zod
+  - monaco-editor
 category: development
 tags:
   - collaborative-editing
@@ -293,3 +294,7 @@ export default app;
 - **Offline resilience**: edits queue locally and sync when reconnected
 - **Pair programming**: 2-8 developers collaborate in same editor
 - **Session persistence**: code saved for 7 days, shareable via link
+
+## Related Skills
+
+- [monaco-editor](/skills/monaco-editor) — the Monaco editor component, worker setup and models for the browser editing surface
