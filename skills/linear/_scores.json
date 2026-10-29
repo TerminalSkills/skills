@@ -1,34 +1,29 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:71c911cc7044f416f801db92ab8edda2f6b0075346e2966792db4c25ea627384",
-  "scoredAt": "2026-10-03T13:04:46.120Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:c9d72a3df7f23191d7ec82a162bf1a75401d68a1fd42e9de17607260014e146d",
+  "scoredAt": "2026-10-29T22:26:10.174Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Code samples mostly cover the happy path: the CSV export does not escape quotes in titles, the webhook handler's fire-and-forget SDK calls have no error handling, and only the Guidelines mention rate-limit backoff."
+        "detail": "The skill does not explicitly cover error handling or edge cases, such as API rate limits or missing fields."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The MCP setup uses the Claude Code-specific `claude mcp add` and `/mcp` commands with no equivalent for other agents, and examples refer to 'the agent' without noting portability."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The two examples are prose descriptions of what the agent will do, with no concrete code, commands, or sample output, and Example 2 relies on Slack steps that the skill never shows."
+        "detail": "The skill relies heavily on Node.js SDK and code examples, limiting usability for agents that do not support Node.js."
       }
     ]
   },
@@ -37,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.45,
-    "baselineAvg": 62,
-    "treatmentAvg": 90,
+    "multiplier": 8,
+    "baselineAvg": 0,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "secure-webhook-auto-assign-bug",
-        "baseline": 90,
-        "treatment": 90,
-        "rationale": "Both responses use express.raw, verify the hex HMAC-SHA256 with a length check and timingSafeEqual before parsing, reject stale webhookTimestamp with 401, check type, action and the bug label, and update assigneeId. A uses the Linear SDK and B uses a raw GraphQL call. The two are essentially equal on the rubric."
+        "name": "create-project-with-issue",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but omits targetDate and startDate, while Response B uses a different platform and misses all Linear-specific requirements."
       },
       {
-        "name": "sprint-rollover-and-velocity",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "A matches the rubric closely: isActive filter, next cycle via startsAt gte active.endsAt, state type in unstarted/started, update with cycleId, and a velocity query using isCompleted eq true, last: 4, scopeCount and completedScopeCount; B uses activeCycle and number+1, nin of completed/canceled, and a completedAt filter with history arrays, so it misses most rubric specifics despite working in spirit."
+        "name": "auto-assign-and-notify-webhook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B implements a GitHub Actions workflow unrelated to Linear webhooks."
       },
       {
-        "name": "export-all-issues-rate-limited",
-        "baseline": 62,
-        "treatment": 90,
-        "rationale": "B matches the rubric closely: first: 100, the 2,500/hr personal limit, HTTP 400 with RATELIMITED, backoff, and watching X-RateLimit-Requests-Remaining. A uses first: 250, states the wrong 5,000/hr personal limit, and mentions the remaining header only as a minor safety margin, though it does cover the 400/RATELIMITED behavior."
+        "name": "roll-issues-and-velocity-report",
+        "baseline": 0,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric items but misses the exact active cycle filter; Response B fails to use Linear API and rubric requirements."
       }
     ]
   }
