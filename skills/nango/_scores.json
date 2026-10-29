@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:cac9715071e9cbccb4e93de57d840080bafac9ec83eef82df7eff6657ddc9bc5",
+  "scoredAt": "2026-10-29T22:48:23.413Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as handling unexpected webhook payloads or API failures beyond basic examples."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment and specific SDKs, limiting its applicability to agents that can run Node.js, which is a platform assumption."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.13,
+    "baselineAvg": 15,
+    "treatmentAvg": 62,
+    "scenarios": [
+      {
+        "name": "github-connect-and-list-repos",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not address any of the specified Nango integration steps."
+      },
+      {
+        "name": "github-issues-sync-function",
+        "baseline": 20,
+        "treatment": 0,
+        "rationale": "Response B contains some general guidance but fails to provide the specific commands, environment variable reference, and code details required by the rubric, whereas Response A is empty."
+      },
+      {
+        "name": "hubspot-proxy-contacts-fetch",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response B meets the rubric requirements (correct endpoint, providerConfigKey, retries, token refresh explanation, and connectionId usage) while Response A uses the wrong endpoint, omits retries, and does not use nango.get as required."
+      }
+    ]
+  }
+}
