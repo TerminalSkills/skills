@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ce62cf42cb9ebc99bf09c0fe541d7e869fc1efcafd302e00b77234acaa5ed98d",
+  "scoredAt": "2026-10-29T22:39:59.957Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.77,
+    "baselineAvg": 48,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "responsive-time-line-live",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A lacks imports, registration, proper dataset structure, and uses update() instead of update('none')."
+      },
+      {
+        "name": "react-doughnut-export",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response B better meets the rubric: it includes a cutout option, correct legend positioning, and proper toBase64Image usage, whereas Response A lacks cutout, uses default toBase64Image, and both miss required imports and registration of CategoryScale and LinearScale."
+      },
+      {
+        "name": "bar-chart-plugin-background",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A omits the required imports and registration of Chart.js components."
+      }
+    ]
+  }
+}
