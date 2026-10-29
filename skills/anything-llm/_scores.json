@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:25d523ea47f83a4f75a296ad63ac774bb2d12d9cb1e9af3cff47ea1f6a5623d1",
+  "scoredAt": "2026-10-29T22:37:52.699Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "run-llm-docker",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A misses the specified image, port, capabilities, mounts, environment variables, and verification endpoint."
+      },
+      {
+        "name": "create-workspace-upload-chat",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key details such as chatMode, topN, addToWorkspaces, and proper endpoint usage."
+      },
+      {
+        "name": "vector-search-query",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A correctly shows the required POST request but omits explicit verification of array length and content field, while Response B does not use the specified API endpoint at all."
+      }
+    ]
+  }
+}
