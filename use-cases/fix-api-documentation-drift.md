@@ -2,7 +2,7 @@
 title: "Fix API Documentation Drift with AI"
 slug: fix-api-documentation-drift
 description: "Detect and fix discrepancies between your API code and its OpenAPI documentation before they break client integrations."
-skills: [api-doc-generator, api-tester, code-reviewer, scalar]
+skills: [openapi-spec, api-tester, code-reviewer, scalar]
 category: development
 tags: [api, documentation, openapi, drift-detection, developer-experience]
 ---
@@ -19,7 +19,7 @@ Manual spec maintenance doesn't scale either. With 86 endpoints across 14 contro
 
 ## The Solution
 
-Point the agent at your codebase and existing OpenAPI spec. It scans route definitions, extracts current schemas from type annotations, diffs them against the published spec, and produces an updated OpenAPI document plus a human-readable changelog. Then it validates every updated endpoint by hitting staging with test requests -- catching cases where even the new spec doesn't match reality.
+Point the agent at your codebase and existing OpenAPI spec. Using the **openapi-spec** skill, it scans route definitions, extracts current schemas from type annotations, diffs them against the published spec, and writes an updated OpenAPI 3.1 document, then lints it with Redocly CLI. With **api-tester** it validates every changed endpoint by hitting staging with test requests -- catching cases where even the new spec doesn't match reality. **code-reviewer** reviews the spec diff for breaking changes, and `oasdiff` makes that check repeatable in CI.
 
 ## Step-by-Step Walkthrough
 
@@ -29,7 +29,7 @@ Point the agent at your codebase and existing OpenAPI spec. It scans route defin
 Compare our OpenAPI spec at docs/openapi.yaml against the actual route handlers in src/routes/ and src/controllers/. List every discrepancy — missing endpoints, removed endpoints, and schema changes.
 ```
 
-The drift report lands in seconds -- 5 discrepancies across 34 endpoints. Each one maps back to a specific file and line number, so you can see exactly when the drift happened:
+The agent reads the code and reports 5 discrepancies in this example. Each one maps back to a specific file and line number, so you can see exactly when the drift happened:
 
 **Added in code but missing from docs:**
 - `POST /api/v2/teams/:teamId/invites` -- `src/controllers/teams.ts:87`
@@ -51,10 +51,10 @@ That `workspaceId` field is the most dangerous discrepancy. Any client sending a
 ### Step 2: Generate the Updated OpenAPI Spec
 
 ```text
-Generate an updated openapi.yaml that fixes all 5 discrepancies. Keep the existing descriptions and examples where they're still accurate. Add realistic examples for new fields.
+Generate an updated OpenAPI 3.1 openapi.yaml that fixes all 5 discrepancies. Keep the existing descriptions and examples where they're still accurate. Add realistic examples for new fields. Then run `npx @redocly/cli lint openapi.yaml` and fix every error.
 ```
 
-A clean OpenAPI 3.0.3 document comes back with properly referenced schemas, updated paths, and example values derived from the type definitions in the codebase. Existing descriptions and examples are preserved where they're still accurate -- only the drifted parts change.
+An OpenAPI 3.1 document comes back with referenced schemas, updated paths, and example values derived from the type definitions in the codebase. It must pass `npx @redocly/cli lint openapi.yaml` ("Your API description is valid") before you move on. Existing descriptions and examples are preserved where they're still accurate -- only the drifted parts change.
 
 The new endpoints get full documentation. Here's what the generated spec looks like for the invite endpoint:
 
@@ -75,14 +75,13 @@ The new endpoints get full documentation. Here's what the generated spec looks l
             type: object
             required: [email, role]
             properties:
-              email: { type: string, format: email, example: "jane@techcorp.com" }
+              email: { type: string, format: email, examples: ["jane@example.com"] }
               role: { type: string, enum: [member, admin], default: member }
-          example:
-            email: "jane@techcorp.com"
-            role: "member"
     responses:
       '201':
         description: Invite created
+      '401':
+        description: Missing or invalid token
       '409':
         description: User already a member of this team
 ```
@@ -94,7 +93,7 @@ The spec uses `$ref` references for shared schemas instead of inlining them, so 
 ### Step 3: Validate Endpoints Against the New Spec
 
 ```text
-Hit each of the 5 changed endpoints on our staging server at https://staging-api.internal:3000 and verify the responses match the updated spec. Use the test auth token from .env.staging.
+Hit each of the 5 changed endpoints on our staging server at $STAGING_URL and verify the responses match the updated spec. Use the test token in the $STAGING_TOKEN environment variable and never print it. Only send requests to staging.
 ```
 
 Four of five endpoints match perfectly. The fifth reveals something a manual spec update would have missed:
@@ -108,15 +107,15 @@ Four of five endpoints match perfectly. The fifth reveals something a manual spe
 
 That last one is a catch within a catch. The `owner` field did change from string to object -- that part was correct. But the `email` sub-field can be null for users who signed up via SSO without providing an email. A developer manually updating the spec would have written `email: string` (required) based on the TypeScript type, because the type definition says `string`. The actual database allows null for SSO users -- a gap between the type system and the data layer that only live validation would catch.
 
-The fix: mark `owner.email` as nullable in the spec. Two characters of YAML that prevent a runtime crash for every client that tries to read an SSO user's email.
+The fix: in OpenAPI 3.1 the field becomes `email: { type: [string, "null"], format: email }` (the 3.0-style `nullable: true` is not valid in 3.1). One line of YAML that prevents a runtime crash for every client that reads an SSO user's email.
 
 ### Step 4: Review the Diff for Breaking Changes
 
 ```text
-Review the diff between the old and new openapi.yaml. Flag any breaking changes that need a version bump or client notification.
+Review the diff between the old and new openapi.yaml. Flag any breaking changes that need a version bump or client notification. Also run `oasdiff breaking openapi.old.yaml openapi.yaml` and compare its list with yours.
 ```
 
-The breaking change analysis separates what's safe from what needs a migration plan:
+`oasdiff breaking <base> <revision>` (from the oasdiff project) lists the changes that break existing clients, and `oasdiff changelog` lists every consumer-visible change. Both accept git refs such as `main:openapi.yaml`. The analysis separates what's safe from what needs a migration plan:
 
 **1 BREAKING change:** `POST /api/v2/users` now requires `workspaceId`. Clients sending requests without this field get a 422. Three options exist: bump to v3 with a migration guide, make the field optional with a default workspace, or add a request interceptor that injects a default `workspaceId` for clients on the v2 contract. The agent recommends option 2 (optional with default) as the least disruptive path.
 
@@ -136,7 +135,7 @@ The breaking change review identified 2 changes requiring client notification, w
 
 The result: an accurate spec, two bugs caught, and client trust restored -- in under 20 minutes instead of a full day.
 
-The lasting fix was structural: the engineer added a CI check that runs the drift scan on every PR touching route or controller files. If a developer changes an endpoint without updating the spec, the PR fails with a clear message listing the discrepancies. Three months later, the spec has zero drift -- not because developers suddenly became disciplined about documentation, but because the machine catches it before the PR can merge.
+The lasting fix was structural: the engineer added two CI steps on every PR that touches route or controller files. `npx @redocly/cli lint openapi.yaml` fails on an invalid spec, and `oasdiff breaking main:openapi.yaml openapi.yaml --fail-on ERR` fails when the PR introduces a breaking change that the spec does not call out. A scheduled job replays the api-tester checks against staging to catch code that diverges from a valid spec. Drift now fails the PR instead of reaching a client.
 
 ## Related Skills
 

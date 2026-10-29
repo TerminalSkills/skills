@@ -1,11 +1,12 @@
 ---
 title: "Create 3D Animated Product Showcases with Blender"
 slug: create-3d-animated-product-showcase-with-blender
-description: "Model, animate, and render product showcase videos in Blender using 3D modeling for assets, keyframe animation for motion, and grease pencil for annotation overlays."
+description: "Model, animate, and render product showcase videos in Blender using scripted scene setup, keyframe animation for motion, Grease Pencil for leader-line overlays, and automated rendering."
 skills:
-  - blender-3d-modeling
+  - blender-scripting
   - blender-animation
   - blender-grease-pencil
+  - blender-render-automation
 category: design
 tags:
   - blender
@@ -23,48 +24,113 @@ A consumer electronics company launches 4 products per year and needs 3D animate
 
 ## The Solution
 
-Use **blender-3d-modeling** to import and prepare product geometry from CAD exports, **blender-animation** to create turntable rotations, exploded views, and camera movements with proper easing, and **blender-grease-pencil** to add 2D annotation overlays (feature labels, dimension lines, callout arrows) that render directly in the 3D scene for a polished technical-meets-creative look. The three skills cover the full pipeline from raw geometry to final rendered video.
+Use **blender-scripting** to import and clean the product geometry, **blender-animation** to keyframe the turntable, exploded view and camera, **blender-grease-pencil** to draw leader lines in the 3D scene, and **blender-render-automation** to render the outputs from the command line. All scripts target Blender 5.x (the Grease Pencil and animation APIs changed in 4.3 and 5.0) and run with `blender --background --python script.py`.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Import and prepare the product model
 
-Convert the engineering CAD file into a render-ready Blender model with proper materials, scale, and optimization.
+Blender cannot import STEP files. Export the CAD model as glTF, FBX or OBJ first (from your CAD tool, or from FreeCAD), then bring that file in.
 
-> Import our wireless headphone STEP file into Blender. Clean up the mesh: remove internal geometry that will never be visible, merge duplicate vertices, and recalculate normals. Separate the model into logical parts (left earcup, right earcup, headband, cushions, drivers, battery, PCB) so each can be animated independently for the exploded view. Apply PBR materials: brushed aluminum for the headband with 0.3 roughness, matte black plastic for the earcups, soft leather texture for the cushions, and translucent silicone for the ear tips. Set the scene scale so the headphones measure accurately at 18cm wide.
+> Use blender-scripting. Import headphones.glb into a fresh scene, delete hidden internal geometry, merge duplicate vertices (`bmesh.ops.remove_doubles`), recalculate normals, and keep each logical part (earcups, headband, cushions, driver, battery, PCB) as its own object so it can be animated separately. Set metric units and check the model is 18 cm wide.
+
+Assign materials with Principled BSDF inputs (read them by node type, not by name). Brushed aluminium is a high Metallic value with Roughness around 0.3; matte plastic is Metallic 0 with higher Roughness.
 
 ### 2. Create the hero turntable animation
 
-Build a smooth 360-degree rotation with professional lighting and camera work for the product page header. The turntable is the highest-value asset because it works on product pages, in presentations, and in trade show displays.
+> Use blender-animation and blender-render-automation. Parent the product to an empty, rotate the empty 360 degrees about Z over 180 frames at 30 fps (6 seconds), and make the first and last keyframes linear so the loop does not slow down at the seam. Add a three-point light rig (key, fill, rim) and a camera that moves slightly closer during the turn. Enable `scene.render.film_transparent` and render a 4K RGBA PNG sequence.
 
-> Create a 6-second turntable animation of the headphones. Set up a three-point HDRI lighting rig with a warm key light at 45 degrees, a cool fill light opposite, and a rim light from behind for edge definition. The product rotates 360 degrees on a seamless white cyclorama with a subtle ground shadow. Use ease-in-out on the rotation so it starts and stops smoothly. Add a slight camera dolly from medium to close-up during the rotation. Render at 4K 60fps with transparent background as a PNG sequence so marketing can composite it over any backdrop.
+Set `scene.render.film_transparent = True`, `image_settings.file_format = 'PNG'` and `image_settings.color_mode = 'RGBA'` so marketing can composite the turntable over any backdrop. Keyframes default to Bezier interpolation, which eases in and out; for a seamless loop switch the rotation curve to `LINEAR`. In Blender 5.0 the F-Curves live in the action's channelbag (`action.fcurves` was removed):
 
-Rendering with transparent background (alpha channel) is essential for reusability: the same turntable works on a white product page, a dark landing page, or composited into a lifestyle photograph.
+```python
+import bpy, math
+from bpy_extras import anim_utils
+
+scene = bpy.context.scene
+scene.render.fps = 30
+scene.frame_start, scene.frame_end = 1, 180
+
+pivot = bpy.data.objects.new("Turntable", None)    # empty; parent the product to it
+scene.collection.objects.link(pivot)
+pivot.keyframe_insert("rotation_euler", index=2, frame=1)
+pivot.rotation_euler.z = math.radians(360)
+pivot.keyframe_insert("rotation_euler", index=2, frame=181)   # frame 181 equals frame 1, so 1-180 loops without a repeated frame
+
+anim = pivot.animation_data
+channelbag = anim_utils.action_get_channelbag_for_slot(anim.action, anim.action_slot)
+for fcurve in channelbag.fcurves:
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
+```
 
 ### 3. Build the exploded view animation
 
-Animate each component separating from the assembled product to reveal the internal engineering. The staggered timing is what makes this look professional rather than mechanical -- parts separate in a logical sequence that tells a story.
+> Use blender-animation. Create a 10-second exploded view at 30 fps. Hold the assembled product for 2 seconds, then move each part 15-20 cm along its own axis with staggered start frames, outside to inside, hold the exploded state for 3 seconds, and reverse it so the clip loops.
 
-> Create a 10-second exploded view animation. Start with the fully assembled headphones, pause for 2 seconds, then smoothly separate each component along its logical axis: earcups slide outward, cushions lift off, drivers separate from the housing, the PCB rises from the left earcup, and the battery drops below. Each part moves 15-20cm from its original position. Use staggered timing so parts separate in sequence from outside to inside over 4 seconds. Hold the exploded view for 3 seconds, then reverse the animation to reassemble. Add subtle rotation to each floating part so they catch the light during separation.
+Insert location keyframes per part with `obj.keyframe_insert("location", index=2, frame=...)`. Bezier interpolation gives the ease; stagger by offsetting each part's start frame. For the reverse, copy the keys in the Dope Sheet or insert the return keys explicitly.
 
-The reverse reassembly is important for looping: the video can play continuously on a product page without a visible jump cut.
+### 4. Add Grease Pencil leader lines and text labels
 
-### 4. Add grease pencil annotation overlays
+Grease Pencil is a 2D drawing object that lives in 3D space. In Blender 4.3 it was rewritten (GPv3) and in 5.0 the old API was removed, so older tutorials with `stroke.points.add()` or `layer.info` fail. Strokes are filled through attributes on a layer's drawing. Grease Pencil has no text tool, so the labels are ordinary text objects and Grease Pencil draws the lines.
 
-Draw 2D labels, dimension lines, and feature callout arrows directly in the 3D scene so they track with the camera and product movement.
+> Use blender-grease-pencil. Create a Grease Pencil object with one layer, draw a leader line from each component to a label position, reveal each line with a Build modifier timed to when its part separates, and add the label text as Font objects facing the camera.
 
-> Using Blender grease pencil, add annotation overlays to the exploded view scene. Draw leader lines from each component to text labels: "40mm Custom Drivers" pointing to the driver unit, "750mAh Li-Po Battery" pointing to the battery with a dimension line showing its thickness, "Active Noise Cancellation Microphones" with arrows pointing to the 3 mic positions, and "Memory Foam Cushions" with a cross-section callout. Style the annotations with a clean sans-serif font, 2px white lines with drop shadows, and animate them to appear as each component separates. The grease pencil elements should render in front of the 3D geometry with consistent screen-space sizing regardless of camera distance.
+```python
+import bpy, math
+
+gp_data = bpy.data.grease_pencils.new("Callouts")          # 5.0+: bpy.data.grease_pencils is v3
+gp_obj = bpy.data.objects.new("Callouts", gp_data)
+bpy.context.collection.objects.link(gp_obj)
+
+mat = bpy.data.materials.new("GP_White")
+bpy.data.materials.create_gpencil_data(mat)
+mat.grease_pencil.color = (1, 1, 1, 1)
+gp_data.materials.append(mat)
+
+def add_stroke(drawing, points, radius=0.01):
+    attrs = drawing.attributes
+    first = attrs.domain_size('POINT')
+    drawing.add_strokes([len(points)])
+    rad_attr = attrs.get("radius") or attrs.new("radius", 'FLOAT', 'POINT')   # create it if missing
+    pos, rad = attrs["position"].data, rad_attr.data
+    for i, co in enumerate(points):
+        pos[first + i].vector = co
+        rad[first + i].value = radius
+    drawing.tag_positions_changed()
+
+drawing = gp_data.layers.new("Callouts").frames.new(1).drawing
+add_stroke(drawing, [(0.5, 0, 0.9), (1.2, 0, 1.3), (1.8, 0, 1.3)])      # driver leader line
+
+build = gp_obj.modifiers.new("Reveal", 'GREASE_PENCIL_BUILD')
+build.mode = 'SEQUENTIAL'
+build.time_mode = 'FRAMES'
+build.length = 30            # frames to draw the line
+build.start_delay = 150      # frames to wait before the line starts drawing; match it to when the part has separated
+
+curve = bpy.data.curves.new("driver label", 'FONT')
+curve.body = "40mm driver"
+curve.size = 0.2
+label = bpy.data.objects.new("driver label", curve)
+label.location = (1.9, 0, 1.25)
+label.rotation_euler = (math.radians(90), 0, 0)    # stand the text up to face a camera looking along +Y
+bpy.context.collection.objects.link(label)
+```
+
+I ran this on Blender 5.0.1 and rendered frames: the line is absent before the build delay and fully drawn after it. Line thickness is `radius` per point in scene units, so it scales with camera distance like any 3D object: it does not keep a constant on-screen size, so check the lines at both ends of the camera move. Dimension lines and arrowheads are just more strokes.
 
 ### 5. Render the final showcase suite
 
-Output all animation sequences with proper encoding for web, social media, and trade show displays.
+> Use blender-render-automation. Render with Cycles at 128 samples with denoising: the turntable as a 4K PNG sequence with alpha, the exploded view as H.264 MP4 with the callouts, and a second exploded-view file with the Callouts object hidden for the engineering team.
 
-> Render the complete showcase suite. The hero turntable: 4K PNG sequence with alpha channel, plus an H.264 MP4 at 4K 60fps for the website and a 1080x1080 crop for Instagram. The exploded view: 4K 30fps H.264 with the annotation overlays baked in, plus a version without annotations for the engineering team. Render using Cycles at 128 samples with denoising for clean results. Set up the render as background jobs that can run overnight across available CPU cores. Output a contact sheet showing key frames from each animation for marketing approval before final render.
+From the shell, render a frame range with `blender -b showcase.blend -s 1 -e 180 -a`, and pick the GPU with `-- --cycles-device OPTIX` (or CUDA, HIP, METAL, ONEAPI). A 1080x1080 social crop is a separate render with the resolution set to 1080x1080 and the camera framed for it. Check a few frames at low samples first, and encode the PNG sequence to MP4 with ffmpeg or the VSE.
 
 ## Real-World Example
 
-The in-house designer produced the complete showcase suite for the company's new wireless earbuds in one week. The STEP file import and material setup took a full day -- the CAD model had 200,000 faces of internal geometry that needed removal, but once cleaned down to 45,000 faces, the optimized model rendered smoothly at 128 Cycles samples.
+An in-house designer builds the showcase suite for a new pair of earbuds. The CAD export arrives with far more internal geometry than the product needs, so cleaning the mesh and separating the parts takes the first day. The turntable renders overnight as a transparent PNG sequence. The exploded view takes the most care: eight parts with staggered separations only look natural once the timing is tuned by eye. The Grease Pencil leader lines and text labels are the last pass, and the transparent turntable is reused on the product page, in the investor deck and on the trade show screen.
 
-The turntable animation was complete by day two, rendered overnight as a 4K PNG sequence. The exploded view took two days because timing the staggered separation of 8 components required careful keyframe adjustment to look natural rather than mechanical. The grease pencil annotations added another half-day, but the result was striking: technical labels that floated in 3D space alongside the separated components, tracking correctly with camera movement, giving the video a feel that flat 2D motion graphics could not match.
+## Related Skills
 
-The total cost was one week of the designer's time versus $15,000 and four weeks from the external studio. The marketing team received the assets three weeks earlier than the previous product launch. The Instagram exploded-view clip generated 3x the engagement of their previous product announcement posts, and the transparent-background turntable animation was reused on the product page, in the investor deck, and in the trade show booth display -- three uses from a single render.
+- [blender-scripting](../skills/blender-scripting/) -- headless bpy scripting for import and cleanup
+- [blender-animation](../skills/blender-animation/) -- keyframes, interpolation and layered actions in Blender 5.x
+- [blender-grease-pencil](../skills/blender-grease-pencil/) -- Grease Pencil v3 strokes, layers and modifiers
+- [blender-render-automation](../skills/blender-render-automation/) -- Cycles settings and command-line rendering

@@ -9,10 +9,10 @@ description: >-
   templating, theme development, Storefront/Admin APIs, custom apps, checkout
   extensions, and Hydrogen (React-based headless).
 license: Apache-2.0
-compatibility: "Liquid (themes). Node.js 22.12+ and Git 2.28+ for Shopify CLI. React (Hydrogen)."
+compatibility: "Liquid (themes). Node.js 22.12+ and Git 2.38+ for Shopify CLI. React (Hydrogen)."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.1"
   category: business
   tags: "shopify, ecommerce, liquid, storefront, hydrogen"
   repository: "https://github.com/Shopify/cli"
@@ -28,7 +28,6 @@ Shopify is the leading e-commerce platform — from simple stores to enterprise.
 
 - Building an online store (products, cart, checkout, payments)
 - Customizing Shopify themes (layout, design, sections)
-- Building custom functionality (apps, integrations, webhooks)
 - Headless commerce (custom frontend, Shopify as backend)
 - Staff-manageable stores where non-technical people update products and content
 
@@ -37,13 +36,17 @@ Shopify is the leading e-commerce platform — from simple stores to enterprise.
 ### Theme Development with Liquid
 
 ```bash
-# Install Shopify CLI
-npm install -g @shopify/cli@latest   # needs Node.js 22.12+ and Git 2.28+
-shopify theme init            # clones the Dawn reference theme; asks for a name
-cd dawn                       # or the folder name you chose
+# Install Shopify CLI (5.0 and later)
+npm install -g @shopify/cli@latest   # needs Node.js 22.12+ and Git 2.38+
+shopify theme init my-theme   # clones Shopify's Skeleton theme (the default)
+# For the full Dawn reference theme instead:
+# shopify theme init my-theme --clone-url https://github.com/Shopify/dawn.git
+cd my-theme
 shopify theme dev --store my-store.myshopify.com   # local preview with hot reload (asks you to log in)
 shopify theme push --unpublished --theme "Redesign test"   # upload as a new unpublished theme
 ```
+
+Shopify CLI 5.0 removed the `--poll` flag from `theme dev` (hot reload needs no flag) and the `app logs` and `app logs sources` commands (read Shopify Functions logs from the `app dev` output). Most commands accept `--json`, but the JSON shape of some commands changed in 5.0, so re-check any script that parses it. In CI use `--no-input`; theme commands that need identity verification stop and print a link. For app automation set `SHOPIFY_SERVICE_ACCOUNT_TOKEN`; `SHOPIFY_APP_AUTOMATION_TOKEN` and `SHOPIFY_CLI_PARTNERS_TOKEN` are deprecated.
 
 #### Theme Structure
 
@@ -54,18 +57,14 @@ my-theme/
 ├── templates/
 │   ├── index.json            # Homepage (JSON template)
 │   ├── product.json          # Product page (JSON template listing sections)
-│   ├── collection.json       # Collection page
-│   ├── cart.json             # Cart page
-│   └── page.json             # Generic page
+│   └── collection.json       # Collection page, and so on
 ├── sections/
 │   ├── header.liquid          # Header section (customizable in admin)
 │   ├── hero-banner.liquid     # Hero banner section
-│   ├── featured-products.liquid
 │   └── footer.liquid
 ├── blocks/                    # Optional: reusable theme blocks (*.liquid)
 ├── snippets/
-│   ├── product-card.liquid    # Reusable product card
-│   └── price.liquid           # Price display with compare-at
+│   └── product-card.liquid    # Reusable product card
 ├── assets/
 │   ├── theme.css
 │   └── theme.js
@@ -194,7 +193,7 @@ Checkout runs through the cart: create one with `cartCreate` (lines of `merchand
 
 ### Admin API (Backend/Apps)
 
-Admin API is GraphQL; the REST Admin API is legacy and new public apps must use GraphQL. Scaffold an app with `shopify app init`. Apps created in the Dev Dashboard get a token by POSTing `grant_type=client_credentials`, `client_id` and `client_secret` to `https://my-store.myshopify.com/admin/oauth/access_token` (works when app and store are in the same organization; the token lasts 24 hours, so cache and refresh it). Never ship the token to the browser.
+Admin API is GraphQL; the REST Admin API is legacy and new public apps must use GraphQL. Scaffold an app with `shopify app init` (templates: `--template reactRouter` or `none`). Apps created in the Dev Dashboard get a token by POSTing `grant_type=client_credentials`, `client_id` and `client_secret` to `https://my-store.myshopify.com/admin/oauth/access_token` (works when app and store are in the same organization; the token lasts 24 hours, so cache and refresh it). Never ship the token to the browser.
 
 ```typescript
 // admin/products.ts — Manage products via Admin API
@@ -286,14 +285,12 @@ The agent will set up Storefront API queries for products/collections/cart, hand
 
 - **Sections for customizability** — anything staff should edit goes in a section with `{% schema %}`
 - **JSON templates** — use `templates/*.json` for drag-and-drop section ordering
-- **Snippets for reusability** — `{% render 'product-card', product: product %}`
 - **Ajax API for cart** — `/cart/add.js`, `/cart/change.js`, `/cart.js` for no-reload cart
 - **Storefront API for headless** — GraphQL, buyer-facing, public token
 - **Admin API for apps** — GraphQL, secret token kept server-side, full CRUD
 - **Image optimization** — always use `| image_url: width: X` filter
 - **Metafields for custom data** — extend products/pages with custom fields
-- **Theme settings for global config** — colors, fonts, social links in `settings_schema.json`
-- **`shopify theme dev` for local development** — hot reload, sync with store
+- **`shopify theme dev` for local development** — hot reload, sync with store; check with `shopify theme check` before `theme push`
 - **Checkout is managed by Shopify** — `checkout.liquid` is gone; customize with checkout UI extensions and Shopify Functions
 - **Pin an API version** and bump it each quarter; retired versions silently fall forward
 - **Staff training** — sections + settings make themes self-service for non-devs

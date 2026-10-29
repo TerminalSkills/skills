@@ -17,7 +17,7 @@ Every new feature requires coordinating endpoint changes across backend, BFF, an
 
 ## The Solution
 
-Using an incremental strangler-fig approach with the **graphql**, **api-tester**, and **code-migration** skills, the agent stands up a GraphQL gateway that wraps existing REST service functions, migrates consumers one screen at a time, and deprecates old routes only after traffic drops to zero. Existing clients never break because the REST endpoints keep working unchanged.
+Using an incremental strangler-fig approach with the **graphql**, **api-tester**, and **code-migration** skills (code-migration supplies the phased plan and the per-file execution; api-tester the parallel checks), the agent stands up a GraphQL gateway that wraps existing REST service functions, migrates consumers one screen at a time, and deprecates old routes only after traffic drops to zero. Existing clients never break because the REST endpoints keep working unchanged.
 
 ## Step-by-Step Walkthrough
 
@@ -40,6 +40,8 @@ The audit produces a structured inventory of 34 REST endpoints across 4 domains:
 | Auth | 5 | login, refresh, logout, verify, reset-password |
 
 The high-value migration candidates are the endpoints with the worst over-fetch ratios. `GET /products/:id` returns 4.2 KB on average, but clients typically use about 800 bytes -- the rest is nested seller data, all review objects, and variant details the client doesn't need for most views. `GET /orders/:id` bundles line items, shipping details, and payment info into one blob even when the client only needs the order status.
+
+Next, the code-migration skill's assess-then-plan routine turns the audit into a phased plan: (1) add `/graphql` with no REST changes, (2) move one screen at a time, (3) deprecate REST routes only once their traffic is zero. Each phase is non-breaking and can be reverted on its own.
 
 These endpoints cause the most pain for mobile clients on slow connections and are exactly where GraphQL's field selection pays off immediately.
 
@@ -80,7 +82,7 @@ A mobile client that only needs `order.id` and `order.status` now gets exactly t
 ```text
 For each GraphQL type, generate resolvers in src/graphql/resolvers/ that call
 the existing REST service functions directly (not over HTTP). Use DataLoader
-for batching — especially for orders->products and products->reviews
+(created per request) for batching — especially for orders->products and products->reviews
 relationships. Add error mapping from REST status codes to GraphQL errors.
 ```
 
@@ -88,36 +90,46 @@ This is where the strangler-fig pattern shines. Resolvers call the existing serv
 
 DataLoader solves the N+1 problem that would otherwise kill performance. When a query requests 50 orders with their products, DataLoader batches those 50 individual `getProductById()` calls into a single `getProductsByIds([...])` call. Without it, a list of 50 orders with products would fire 50 separate database queries.
 
-Error mapping translates REST conventions to GraphQL -- and this is trickier than it sounds. A REST 404 becomes a null field with an optional error in the `errors` array (because in GraphQL, a missing product in a list shouldn't fail the whole query). A 401 becomes an `UNAUTHENTICATED` error code that triggers the client's auth refresh flow. A 422 maps validation errors to field-level error extensions so the UI can highlight the exact form field that failed.
+Error mapping (throw `GraphQLError` with an `extensions.code`) translates REST conventions to GraphQL -- and this is trickier than it sounds. A REST 404 becomes a null field with an optional error in the `errors` array (because in GraphQL, a missing product in a list shouldn't fail the whole query). A 401 becomes an `UNAUTHENTICATED` error code that triggers the client's auth refresh flow. A 422 maps validation errors to field-level error extensions so the UI can highlight the exact form field that failed.
 
 The resolver layer also handles the authentication pass-through: the GraphQL context extracts the JWT from the request headers and passes the authenticated user to every resolver, exactly like the REST middleware does today.
 
-### Step 4: Set Up the Compatibility Proxy
+### Step 4: Mount GraphQL Next to the REST Routes
 
 ```text
-Configure the API gateway so that existing REST routes still work unchanged.
-Add a /graphql endpoint alongside them. Write an Express middleware that checks
-the Accept header — requests with application/json hit REST, requests with
-application/graphql hit the new layer. Add request logging to track which
-clients still use REST.
+Add a /graphql endpoint to the existing Express app with Apollo Server 5, next to
+the REST routes. Leave every REST route unchanged. Add request logging that records
+which API key or User-Agent still calls each REST endpoint. Turn introspection off
+in production and add a query depth limit.
 ```
 
-Both interfaces run side by side on the same server. Existing REST routes work exactly as before -- no client changes needed. The new `/graphql` endpoint accepts queries from clients that have migrated. An Express middleware routes based on the `Accept` header, so the cutover is per-client and per-request.
+Both interfaces run side by side on the same server. Install Apollo Server 5 with `npm install @apollo/server graphql@16 @as-integrations/express4 dataloader graphql-depth-limit` (use `@as-integrations/express5` on Express 5). The `expressMiddleware` function comes from that integration package, not from `@apollo/server`. There is no content negotiation to write: GraphQL clients send `POST /graphql` with `Content-Type: application/json` and a body of `{ "query": "...", "variables": {...} }`, while REST clients keep calling their old URLs. The cutover is per client.
 
-Request logging tracks REST usage by endpoint and by client (via API key or User-Agent). A simple dashboard shows which clients still hit which REST endpoints and how frequently. When traffic on a REST endpoint drops to zero for 30 days, it's safe to deprecate. Until then, it stays live and fully functional.
+Create the DataLoaders **per request** (in the Apollo `context` function), together with the authenticated user from the JWT. A loader shared across requests would cache one user's data and serve it to another.
 
-This is the key advantage of strangler-fig over big-bang: zero coordination required between teams, zero downtime, zero risk to existing clients. The React web app can migrate to GraphQL this sprint while the mobile apps stay on REST for another quarter, and the third-party integrations can take as long as they need. Each client migrates at its own pace.
+Request logging tracks REST usage by endpoint and by client. When traffic on a REST endpoint stays at zero for an agreed period (30 days is a common choice), it is safe to deprecate. Until then it stays live and unchanged. The React web app can migrate this sprint while the mobile apps stay on REST for another quarter, and the third-party integrations can take as long as they need.
 
 ### Step 5: Validate with Parallel Testing
 
+With the **api-tester** skill, the agent sends the same request through both interfaces and diffs the results:
+
 ```text
 Write integration tests that call both the old REST endpoint and the equivalent
-GraphQL query, then diff the responses. Run them against GET /products/:id,
-GET /orders?status=pending, and GET /users/:id. Report any field mismatches
-or missing data.
+GraphQL query against the local dev server, then diff the responses. Run them
+against GET /products/:id, GET /orders?status=pending, and GET /users/:id. Report
+any field mismatches or missing data.
 ```
 
-Parallel tests call both the REST endpoint and the equivalent GraphQL query for the same data, then diff the responses field by field:
+A GraphQL call in the test is a plain JSON POST:
+
+```bash
+curl -s --max-time 30 -X POST http://127.0.0.1:3000/graphql \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -d '{"query":"query($id: ID!){ product(id: $id){ id name price } }","variables":{"id":"p-42"}}'
+```
+
+Parallel tests diff the REST and GraphQL responses field by field:
 
 | Endpoint Pair | Result | Issue |
 |--------------|--------|-------|
@@ -125,22 +137,19 @@ Parallel tests call both the REST endpoint and the equivalent GraphQL query for 
 | `GET /orders?status=pending` vs `query { orders(status: PENDING) { ... } }` | Mismatch | REST returns `created_at`, GraphQL returns `createdAt` |
 | `GET /users/:id` vs `query { user(id: "u-1") { ... } }` | Match | After alias fix |
 
-The `created_at` vs `createdAt` mismatch is exactly the kind of subtle inconsistency that parallel testing catches before it reaches production. The REST API uses snake_case (common in Ruby and Python ecosystems), while the GraphQL schema followed JavaScript convention with camelCase. A field alias in the resolver resolves it -- the database column stays `created_at`, the REST response stays `created_at`, but the GraphQL field is `createdAt` with the resolver mapping transparently.
-
-After the alias fix, all three endpoint pairs produce identical data. These parallel tests run in CI on every PR that touches resolvers, so future changes can't introduce field mismatches without immediate detection.
+The `created_at` vs `createdAt` mismatch is the kind of subtle inconsistency that parallel testing catches before production. The REST API uses snake_case while the GraphQL schema followed JavaScript camelCase. Pick one convention for the GraphQL schema and map it in the resolver; the database column and the REST response stay `created_at`. Run these tests in CI on every PR that touches resolvers. Also assert that an unauthenticated request gets an `UNAUTHENTICATED` error and that a query nested deeper than the depth limit is rejected.
 
 ## Real-World Example
 
 A lead backend engineer at a mid-size e-commerce company manages an API consumed by a React web app, two native mobile apps, and three third-party integrations. The mobile team has been complaining for months about slow list screens -- the orders endpoint returns 6 KB per item when they need 400 bytes, and on cellular connections the wasted bandwidth is visible in scroll jank and loading spinners.
 
-She asks the agent to audit all 34 endpoints and rank them by over-fetch ratio. The agent generates a GraphQL schema covering the top three domains in 20 minutes. Resolvers are scaffolded with DataLoader batching, reusing the existing service functions that have been battle-tested in production for years. The compatibility proxy routes old clients to REST and new clients to GraphQL -- both running on the same server.
+She asks the agent to audit all 34 endpoints and rank them by over-fetch ratio. The agent generates a GraphQL schema covering the top three domains in 20 minutes. Resolvers are scaffolded with DataLoader batching, reusing the existing service functions that have been battle-tested in production for years. Old clients stay on REST and new clients use `/graphql` -- both running on the same server.
 
-Parallel tests catch the one field-naming inconsistency before anything ships. After deploying, the mobile team migrates the orders screen to GraphQL. Payload drops 82% -- from 6 KB per order to 1.1 KB. List screens load in under a second on 3G. No existing client breaks. The REST endpoints stay live, gradually losing traffic as teams migrate screen by screen.
+Parallel tests catch the one field-naming inconsistency before anything ships. After deploying, the mobile team migrates the orders screen to GraphQL. In the team's own measurements the payload drops from 6 KB per order to 1.1 KB. No existing client breaks. The REST endpoints stay live, gradually losing traffic as teams migrate screen by screen.
 
-Three months later, 60% of traffic flows through GraphQL. The BFF layer that stitched together multiple REST calls is gone -- GraphQL queries handle the composition natively. The backend team ships features faster because a single schema change serves all clients, instead of coordinating three endpoint updates across backend, BFF, and mobile.
+Three months later, most traffic flows through GraphQL. The BFF layer that stitched together multiple REST calls is gone -- GraphQL queries handle the composition natively. The backend team ships features faster because a single schema change serves all clients, instead of coordinating three endpoint updates across backend, BFF, and mobile.
 
-The REST endpoints for Users and Products still serve the three third-party integrations, which have no incentive to migrate. That's fine -- the compatibility proxy keeps them working indefinitely with zero maintenance cost. The REST traffic dashboard shows a slow decline as integrators update at their own pace. One of them migrated to GraphQL voluntarily after seeing the mobile team's payload reduction numbers.
+The REST endpoints for Users and Products still serve the three third-party integrations, which have no incentive to migrate. That's fine -- the REST routes were never touched, so they keep working with no extra maintenance. The REST traffic dashboard shows a slow decline as integrators update at their own pace. One of them migrated to GraphQL voluntarily after seeing the mobile team's payload reduction numbers.
 
 The biggest surprise: backend development velocity increased. Adding a new field to the API used to require updating the REST endpoint, the BFF transformation, and notifying mobile to update their parsing. Now it's one line in the schema, one line in the resolver, and every client gets it immediately -- or ignores it if they don't need it. The schema itself serves as living API documentation, replacing the Swagger docs that were perpetually out of date.
 
-The mobile team's bandwidth savings translate directly to better user experience: order list screens that used to take 3 seconds on 3G now load in under 1 second. Users on the mobile app notice the difference and the app store ratings tick up from 3.8 to 4.3 stars over the quarter.

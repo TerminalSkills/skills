@@ -1759,7 +1759,7 @@
     {
       "name": "canva",
       "slug": "canva",
-      "description": "Automate Canva from an agent — via the AI Connector MCP server (generate, find, edit, export designs in natural language) or the Connect REST API (OAuth 2.0 + PKCE, brand template autofill, asset uploads, exports, folders, comments). Use when: connecting an agent to Canva, batch-producing social posts or decks from a brand template and a spreadsheet, exporting designs to PDF/PNG/PPTX/MP4, uploading assets into a Canva account, building a Canva integration, or when the user mentions \"Canva\", \"brand template\", \"autofill\", \"Connect API\", or \"mcp.canva.com\".",
+      "description": "Automate Canva from an agent — via the AI Connector MCP server (generate, find, edit, export designs in natural language) or the Connect REST API (OAuth 2.0 + PKCE, brand template autofill, asset uploads, exports, folders, comments). Use when: connecting an agent to Canva, batch-producing social posts or decks from a brand template and a spreadsheet, exporting designs to PDF/PNG/PPTX/MP4, uploading assets into a Canva account, building a Canva integration, or when the user mentions \"Canva\", \"brand template\", \"autofill\", \"Connect API\", or \"Canva MCP\".",
       "category": "design",
       "tags": [
         "canva",
@@ -14122,5 +14122,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-28T19:07:49.053Z"
+  "updatedAt": "2026-10-29T22:05:31.879Z"
 }

@@ -22,7 +22,7 @@ A growing SaaS company has 6 frontend developers building features independently
 
 ## The Solution
 
-Use the **brand-guidelines** skill to define the foundational visual identity (colors, typography, spacing, voice), then use the **ui-ux-pro-max** skill to translate those guidelines into a complete component specification system with interaction patterns, accessibility requirements, and responsive behavior for every UI element in the product. Brand guidelines define how things look; the component specifications define how they behave.
+Use the **brand-guidelines** skill to write down the visual identity (colors, typography, spacing, voice) as exact values, turn those values into CSS custom properties with a contrast check that runs in CI, then use the **ui-ux-pro-max** skill to look up interaction and accessibility rules and write the component specifications. Brand guidelines define how things look; the component specifications define how they behave.
 
 ## Step-by-Step Walkthrough
 
@@ -38,13 +38,76 @@ The audit typically reveals that inconsistencies cluster around components built
 
 Establish the foundational brand system: color palette, typography scale, spacing units, and visual principles that every component will inherit.
 
-> Create comprehensive brand guidelines for our product. Define a primary color palette (primary blue, success green, warning amber, error red, and 5 neutral grays) with specific hex values and WCAG AA contrast ratios against both white and dark backgrounds. Establish a type scale using Inter as the primary font: 6 heading sizes and 3 body sizes with specific line heights and letter spacing. Define an 8px spacing system with named tokens (xs through 3xl). Document our visual principles: clean over decorative, information-dense but not cluttered, consistent border-radius of 8px for containers and 6px for inputs.
+> Use brand-guidelines. Create brand guidelines for our product. Define a primary color palette (primary blue, success green, warning amber, error red, and 5 neutral grays) with exact hex values, and give the contrast ratio of every text/background pair that will be used, checked against WCAG 2.x AA (4.5:1 for body text, 3:1 for large text and UI boundaries), for both the light and the dark theme. Establish a type scale using Inter as the primary font: 6 heading sizes and 3 body sizes with specific line heights and letter spacing. Define an 8px spacing system with named tokens (xs through 3xl). Document our visual principles: clean over decorative, information-dense but not cluttered, consistent border-radius of 8px for containers and 6px for inputs.
+
+Then make the values machine-readable so nobody retypes a hex from memory. Put them in one `tokens.css` and check the pairs in CI:
+
+```css
+:root {
+  --color-primary: #2563eb;
+  --color-on-primary: #ffffff;
+  --color-error: #dc2626;
+  --color-text: #1e293b;
+  --color-text-muted: #475569;
+  --color-bg: #ffffff;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --radius-container: 8px;
+  --radius-input: 6px;
+}
+```
+
+```python
+# check_contrast.py: exit 1 when a text/background pair falls below WCAG 2.x AA (4.5:1)
+import re, sys
+
+PAIRS = [("--color-on-primary", "--color-primary"), ("--color-text", "--color-bg"),
+         ("--color-text-muted", "--color-bg"), ("--color-error", "--color-bg")]
+
+def channel(c):
+    c /= 255
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+def luminance(h):
+    r, g, b = (int(h[i:i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+
+def ratio(a, b):
+    hi, lo = sorted((luminance(a), luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+tokens = dict(re.findall(r"(--[\w-]+):\s*(#[0-9a-fA-F]{6})", open(sys.argv[1]).read()))
+failed = False
+for fg, bg in PAIRS:
+    r = ratio(tokens[fg], tokens[bg])
+    failed |= r < 4.5
+    print(f"{'ok  ' if r >= 4.5 else 'FAIL'} {fg} on {bg}: {r:.2f}:1")
+sys.exit(1 if failed else 0)
+```
+
+```console
+$ python3 check_contrast.py tokens.css
+ok   --color-on-primary on --color-primary: 5.17:1
+ok   --color-text on --color-bg: 14.63:1
+ok   --color-text-muted on --color-bg: 7.58:1
+ok   --color-error on --color-bg: 4.83:1
+```
+
+White on `#3b82f6` (blue-500) is only 3.7:1, so a lighter blue like that can fill icons but not carry white button text. Re-run the check whenever a token changes, and add the dark-theme token set to the same script.
+
+If you have no brand yet, the UI UX Pro Max pack can propose a starting palette, type pairing and style from a product description. It is a local Python script, installed into the project with `npx ui-ux-pro-max-cli init --ai claude` (this copies seven skills into `.claude/skills/`, so confirm with the team first):
+
+```console
+$ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "B2B SaaS analytics dashboard" --design-system -p "Acme Console" -f markdown
+```
+
+It prints a style, a color table with CSS variable names, and a font pairing. Treat the output as a draft: check every pair with the contrast script before adopting it.
 
 ### 3. Specify core UI components
 
 Design the specification for every core component with exact dimensions, states, interaction behavior, and accessibility requirements. Each specification should be detailed enough that a developer can implement the component without asking a single follow-up question.
 
-> Create detailed UI/UX specifications for our core components based on the brand guidelines. For each component (button, input, select, checkbox, radio, toggle, card, modal, toast, tooltip, badge, avatar, table, pagination, tabs, breadcrumbs), specify: default dimensions and padding, all visual states (default, hover, active, focused, disabled, loading), keyboard interaction behavior, ARIA attributes and screen reader announcements, responsive behavior at mobile and tablet breakpoints, and dark mode color mappings. Start with buttons and inputs since they appear on every page.
+> Create detailed UI/UX specifications for our core components based on the brand guidelines. For each component (button, input, select, checkbox, radio, toggle, card, modal, toast, tooltip, badge, avatar, table, pagination, tabs, breadcrumbs), specify: default dimensions and padding, all visual states (default, hover, active, focused, disabled, loading), keyboard interaction behavior, ARIA attributes and screen reader announcements, responsive behavior at mobile and tablet breakpoints, and dark mode color mappings. Start with buttons and inputs since they appear on every page. Use ui-ux-pro-max for the rules behind each spec: `python3 .claude/skills/ui-ux-pro-max/scripts/search.py "form validation error message" --domain ux -n 2` returns do/don't guidance (for example, a focusable error summary that links to each invalid field).
 
 ### 4. Design complex component patterns
 
@@ -62,10 +125,9 @@ Document how to use each component correctly with concrete examples of proper an
 
 ## Real-World Example
 
-The design lead and a senior frontend developer partnered on the design system over three weeks. The audit revealed 47 distinct component variations across the product -- 47 components that should have been 18. The four shades of blue turned out to be three developers using slightly different hex values from memory and one who had sampled the color from a compressed screenshot.
+A design lead and a senior frontend developer spent a few weeks on the system. The audit found the same button styled many ways; the "four blues" came from developers typing hex values from memory and one sampling a compressed screenshot. Once the palette and spacing lived in `tokens.css`, the "which blue?" review comments disappeared and the contrast check blocked pairs that failed AA. New pages were built from the component specs, with states, keyboard behavior and ARIA attributes already written down, and the design team began referring to components by name in briefs instead of drawing standard pages pixel by pixel.
 
-The brand guidelines locked down the color palette and spacing system as named tokens, immediately resolving the "which blue?" debates. The component specifications became the source of truth: when a developer needed to build a new settings page, they referenced the spec instead of copying styles from whatever page looked closest.
+## Related Skills
 
-The first page rebuilt using the new system -- the team management page -- took 40% less development time because every component had exact specifications including states, keyboard behavior, and ARIA attributes. The design team stopped producing pixel-perfect mockups for standard pages and instead referenced components by name in their briefs: "use the standard data table with sortable columns and inline editing."
-
-After 8 weeks, the entire product used the unified system, and the onboarding guide for new developers shrank from a scattered collection of Slack messages to a single design system document. The seventh developer hired after the system launched was productive on their first day because every visual question had a documented answer.
+- [brand-guidelines](../skills/brand-guidelines/) -- exact colors, type scale, spacing and voice as a shareable style guide
+- [ui-ux-pro-max](../skills/ui-ux-pro-max/) -- searchable UX rules, palettes and a design-system generator

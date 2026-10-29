@@ -1,24 +1,24 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:cbf9e4e603cbf594af74a6511295ea5696d5cac4cdee3874f68126da35cb6252",
-  "scoredAt": "2026-10-13T11:13:30.161Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:d52954695563c218fd39c5a39fc0902c0940b71abc7505d77c6d407db8bb3998",
+  "scoredAt": "2026-10-28T18:43:56.657Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Covers the happy path only: there is no handling for missing files, unsupported codecs, channel collisions, or failed renders, and the description's promised render-time estimation is never covered."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Blender and does not work with other AI agents."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.59,
-    "baselineAvg": 54,
-    "treatmentAvg": 86,
+    "multiplier": 6,
+    "baselineAvg": 7,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "crossfade-timeline-from-shot-list",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "B follows the rubric closely (checks/creates the sequence editor, uses strips.new_movie, alternates channels 1/2, overlaps by 12 frames, and adds GAMMA_CROSS via new_effect with length/input1/input2 on channel 3), while A uses type CROSS, frame_end/seq1/seq2 as the primary kwargs, and a .sequences fallback, which the rubric explicitly excludes."
+        "name": "crossfade-video-timeline",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "No content provided for either response, so cannot assess rubric compliance."
       },
       {
-        "name": "audio-fade-and-text-overlay",
-        "baseline": 72,
+        "name": "image-sequence-crop-scale",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A provides no content."
+      },
+      {
+        "name": "audio-fade-render-settings",
+        "baseline": 20,
         "treatment": 80,
-        "rationale": "Both keyframe volume 0→target→0 and set text/color/font_size/location/anchor centering, but A uses strips.new_effect with length=72 and right_handle exactly as the rubric specifies, whereas B uses frame_end for the title (not length), frame_final_end for the end, and sets unverified align_x/align_y properties rather than alignment_x."
-      },
-      {
-        "name": "render-mp4-h264-from-strips",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "B meets nearly every rubric item (strips_all with left_handle/right_handle, MPEG4/H264/AAC, 1080p, render animation, blender --background --python), while A uses deprecated frame_final_start/frame_final_end and sequences_all, and passes the .blend with -b rather than the exact invocation, though otherwise setting format/codec correctly."
+        "rationale": "Response A meets most rubric requirements but uses the wrong output path, while Response B fails to use strips.new_sound() and keyframe volume, and also uses a placeholder output path."
       }
     ]
   }

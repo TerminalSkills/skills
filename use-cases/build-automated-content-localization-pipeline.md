@@ -11,122 +11,152 @@ tags: [i18n, localization, translation, content, automation]
 
 ## The Problem
 
-A 15-person SaaS startup is expanding into three new markets — Germany, Brazil, and Japan. The app has over 800 translation keys spread across JSON locale files, marketing pages, and email templates. The current process: export strings to a spreadsheet, email it to freelance translators, wait 3-5 days for responses, then copy-paste translations back into the codebase. Keys get missed, context is lost ("button" could mean a UI button or a clothing button), and the Brazilian Portuguese translations read like they were written for Portugal — because the translator was Portuguese.
-
-Every feature release means another round of translation delays. The German translations use informal "du" when the brand voice requires formal "Sie." The Japanese locale file is 60 keys behind the English one because nobody tracked what was added last sprint. And there are 23 hardcoded English strings buried in React components that never went through the i18n pipeline at all — invisible to anyone who only checks the locale files.
-
-A trade show in six weeks needs all three languages shipped. The old process would take three weeks just for the back-and-forth with translators, leaving no buffer for review or fixes.
+A 15-person SaaS startup is expanding into Germany, Brazil and Japan. The app has hundreds of translation keys in JSON locale files, plus marketing pages and email templates. The current process: export strings to a spreadsheet, email it to freelance translators, wait days, then copy-paste the result back. Keys get missed, context is lost ("board" could be a Kanban board or a bulletin board), the Brazilian translations read as if written for Portugal, and German uses informal "du" where the brand needs formal "Sie". Nobody tracks which keys were added last sprint, and some English strings are hardcoded in React components and never reach the locale files. A trade show in six weeks needs all three languages.
 
 ## The Solution
 
-Using the **content-writer**, **batch-processor**, and **data-extractor** skills, the workflow extracts every translatable string from source code and locale files (including the hardcoded ones that slipped through), generates culturally adapted translations for all three markets in a single run, handles pluralization and gender rules per language, and validates completeness — turning three weeks of translator coordination into four hours of focused work.
+**data-extractor** finds every translatable string (locale files, email templates; a lint rule finds hardcoded JSX text), **batch-processor** splits the missing keys into small resumable batches, and **content-writer** supplies the brief (audience, tone, glossary) that the model follows when translating each batch. A small script then checks the result mechanically: same keys, same placeholders, correct plural forms per language. The model writes translations; a native speaker still reviews what the checks flag and the brand-critical screens.
 
-The pipeline is reusable: once set up, incremental translations for new features take minutes instead of days. Ship a feature on Monday, have it translated by Tuesday.
+This page assumes i18next with react-i18next (current majors 26 and 17), whose JSON uses `{{name}}` placeholders and `_one`/`_other` plural suffixes. If you prefer ICU MessageFormat (`{count, plural, one {# project} other {# projects}}`), add the `i18next-icu` plugin; do not mix the two styles in one file.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Extract All Translatable Strings
+### 1. Find every string that needs translating
 
-The first surprise in any localization project: the number of translatable strings is always higher than expected. Start by finding everything that needs translation, not just what's in the locale files:
+Locale files are the easy part. Hardcoded JSX text is found with `eslint-plugin-i18next`, whose `i18next/no-literal-string` rule reports literal strings in components (flat config: `i18next.configs['flat/recommended']`). ESLint only lints `.js`/`.mjs`/`.cjs` by default, so the config must also match your component files (`files: ['**/*.{jsx,tsx}']`, with the TypeScript parser for `.tsx`); until it does, `npx eslint src` silently reports nothing.
 
-```text
-Scan ./src and ./emails for all translatable strings. Extract every key from en.json and find any hardcoded English strings in React components that should be externalized.
+```console
+$ npm install --save-dev eslint-plugin-i18next
+$ npx eslint src      # with i18next.configs['flat/recommended'] added to eslint.config.mjs
 ```
 
-The scan covers three sources:
+> Using data-extractor: list the text blocks of every file in ./emails with BeautifulSoup, skipping script and style, and write them to emails-strings.json. Then replace each literal string reported by the lint rule with a `t('...')` call and add the key to `src/locales/en.json`.
 
-- **Locale file** (`src/locales/en.json`): 847 keys
-- **Hardcoded strings**: 23 English strings found across 14 React components that were never externalized
-- **Email templates**: 6 files with translatable content blocks
-
-**Total: 912 strings to translate.** That's 65 more than the 847 keys in the locale file — and those 65 are the ones that would have stayed in English forever in a manual process.
-
-The 23 hardcoded strings are the kind of thing that slips through every localization effort — someone writes `<h2>Settings</h2>` instead of `<h2>{t('settings.title')}</h2>`, and it stays in English for every non-English user forever. A German user sees a fully translated app with random English headings scattered throughout. These get externalized into proper i18n keys as part of this step, so the locale files become the single source of truth for all user-facing text.
-
-### Step 2: Generate Culturally Adapted Translations
-
-Literal translation isn't localization. Context matters — formality, tone, cultural conventions, and even string length for UI elements:
-
-```text
-Translate all 912 strings to de-DE, pt-BR, and ja-JP. This is a project management SaaS app. Use informal tone for pt-BR, formal Sie-form for de-DE. Keep UI strings under 40 characters where the English is under 30. For date and number formats, use each locale's native convention.
+```python
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(open("emails/welcome.html", encoding="utf-8"), "html.parser")
+blocks = [e.decode_contents().strip() for e in soup.select("h1,h2,h3,p,li,td,button") if e.get_text(strip=True)]
 ```
 
-The character limit constraint is practical: German words are notoriously long ("Projekteinstellungen" has 22 characters where "Settings" has 8), and Japanese can be more compact than English in some cases but needs more vertical space. Without constraints, translated button labels overflow their containers and break the layout. The formality constraint is equally important — addressing German business users with "du" (informal) when the brand requires "Sie" (formal) is the equivalent of starting a business email with "Hey dude."
+Taking whole block elements keeps inline markup such as `<b>trial</b>` inside the sentence, so translators see full sentences instead of fragments. Nested blocks (a `p` inside an `li`) can appear twice; de-duplicate before translating.
 
-### Step 3: Review Batch Results
+### 2. Write the brief once, translate in small batches
 
-The batch processor handles all 912 strings across three locales with locale-specific adaptations:
+> Using content-writer, write `localization-brief.md`: product description (project management SaaS), audience, tone per locale (de: formal Sie; pt-BR: informal "você"; ja: polite desu/masu), a glossary (board, sprint, dashboard: translate or keep English), and the rule that placeholders like `{{name}}` and plural suffixes stay exactly as in the source.
 
-**Cultural adaptations applied:**
+Then split the keys still missing per locale into batches (batch-processor's resume pattern: a batch file that already exists is never overwritten, and finished batches are not redone):
 
-| Locale | Formality | Decimal Separator | Date Format | Number Format |
-|--------|-----------|-------------------|-------------|---------------|
-| de-DE | Formal "Sie" | Comma (1.234,56) | DD.MM.YYYY | Dots for thousands |
-| pt-BR | Informal "voce" | Comma (1.234,56) | DD/MM/YYYY | Dots for thousands |
-| ja-JP | Polite desu/masu | Period (1,234.56) | YYYY年MM月DD日 | Commas for thousands |
-
-**Warnings flagged for review:**
-
-- **12 strings** exceeded the 40-character limit in de-DE — German compound words push past the boundary. Each flagged string includes a suggested shorter alternative.
-- **3 strings** in ja-JP need review: the word "board" is ambiguous without context (掲示板 for bulletin board vs. ボード for project board in a Kanban sense)
-- **2 strings** in pt-BR flagged: English idioms ("Get started" and "Jump right in") that don't translate directly and need culturally appropriate alternatives
-
-Output written to `src/locales/de-DE.json`, `src/locales/pt-BR.json`, and `src/locales/ja-JP.json`.
-
-The warnings are the most valuable part. A human translator might silently choose the wrong meaning for "board" and nobody catches it until a Japanese user reports confusion three months later. Flagging ambiguity upfront means the team can make an intentional decision rather than discovering the mistake in production.
-
-The character limit warnings come with alternatives: instead of "Projekteinstellungen" (22 chars), the agent suggests "Einstellungen" (13 chars) which loses the "project" prefix but fits the UI. The team decides which trade-off to make.
-
-### Step 4: Handle Pluralization and Gender Rules
-
-Different languages have fundamentally different grammar rules that English doesn't prepare you for:
-
-```text
-Check all translated strings for pluralization issues. German has different plural forms than English, Japanese doesn't pluralize nouns, and Portuguese has gendered nouns. Update the locale files to use ICU MessageFormat where needed.
+```console
+$ python3 locales.py split src/locales de 50
+$ python3 locales.py split src/locales pt-BR 50
+$ python3 locales.py split src/locales ja 50
 ```
 
-The fixes are substantial:
+> For each file in `todo/`, translate the values following localization-brief.md and write the result next to it as `done/<name>.json` with identical keys. Keep UI labels short: German runs about a third longer than English, so flag any value over 40 characters for a shorter alternative. Report ambiguous terms instead of guessing.
 
-- **de-DE**: 34 strings updated to handle German plural forms correctly
-- **pt-BR**: 18 strings updated for gendered variants — "o projeto" (masculine) vs. "a tarefa" (feminine). When the app says "1 novo projeto" it needs to say "1 nova tarefa" for tasks, because the adjective agrees with the noun's gender.
-- **ja-JP**: 12 strings simplified by removing unnecessary plural markers that don't exist in Japanese. "5 projects" becomes "5件のプロジェクト" with a counter word, not a plural suffix.
-- All count-dependent strings converted to ICU MessageFormat patterns like `{count, plural, one {# project} other {# projects}}`
+Merge the `done/` files into `src/locales/<locale>.json` (use `de`, `pt-BR` and `ja` as file names matching your i18next language codes).
 
-A naive translation would show Brazilian users "1 projetos" instead of "1 projeto" and "2 tarefa" instead of "2 tarefas." These aren't cosmetic issues — they make the app feel like it was machine-translated by someone who doesn't speak the language, which undermines the entire reason for localizing in the first place. Users notice grammatical errors faster than they notice feature gaps.
+### 3. Get plural forms right per language
 
-### Step 5: Validate Completeness
+Plural categories come from CLDR; ask the runtime rather than a table from memory:
 
-The final check catches gaps, suspicious translations, and leftover English:
-
-```text
-Verify that all three locale files have the same keys as en.json. Flag any translations that are identical to the English original, suspiciously short, or containing untranslated English words embedded in otherwise translated strings.
+```console
+$ node -e 'for (const l of ["en","de","pt-BR","ja"]) console.log(l, new Intl.PluralRules(l).resolvedOptions().pluralCategories)'
+en [ 'one', 'other' ]
+de [ 'one', 'other' ]
+pt-BR [ 'one', 'many', 'other' ]
+ja [ 'other' ]
 ```
 
-**Validation results:**
+German has the same two categories as English (the noun form changes, not the number of forms), Brazilian Portuguese has `one`, `many` and `other` (`many` is for large round numbers such as "1 milhão de projetos"; for `one`, 0 and 1 both select it, so "0 projeto"), and Japanese has only `other` (use a counter such as `{{count}}件のプロジェクト`). In i18next that means `count_one` and `count_other` for German, `count_one`, `count_many` and `count_other` for Portuguese, and only `count_other` for Japanese. Gender agreement ("1 nova tarefa" vs "1 novo projeto") is a translation concern: give the translator the noun, not just the adjective, in the key's context.
 
-| Locale | Keys Present | Identical to English | Issues Found |
-|--------|-------------|---------------------|--------------|
-| de-DE | 912/912 | 0 | 2 embedded English words |
-| pt-BR | 912/912 | 1 ("OK" button — acceptable) | 0 |
-| ja-JP | 912/912 | 0 | 5 technical terms for review |
+Format dates and numbers with `Intl` at runtime rather than translating them: `new Intl.NumberFormat("de-DE").format(1234.56)` gives `1.234,56`, the same call with `ja-JP` gives `1,234.56`, and `new Intl.DateTimeFormat("ja-JP", { dateStyle: "long" })` gives `2026年10月28日`.
 
-**Flagged for human review:**
+### 4. Validate mechanically, then review by hand
 
-- ja-JP: "dashboard" left untranslated — common practice in Japanese tech UIs, but the team should decide whether to keep the English or use the katakana ダッシュボード
-- ja-JP: "sprint" left untranslated — same question (keep English or use スプリント)
-- de-DE: "Setup" embedded in a German sentence — should be "Einrichtung"
-- de-DE: "Feature" used instead of "Funktion" — English loanword that's common in German tech but may confuse non-technical users
+> Run `python3 locales.py check src/locales` after every merge and fix what it prints.
 
-Seven strings need a human decision out of 2,736 total translations (912 strings x 3 locales). That's a 99.7% automation rate, with the remaining 0.3% flagged with specific context for a quick human decision — not a vague "please review," but a concrete question like "should 'dashboard' stay in English or become katakana?" that can be answered in seconds.
+```python
+"""python3 locales.py check src/locales        -> report problems per locale, exit 1 if any
+python3 locales.py split src/locales de 50    -> todo/de-001.json ... with the keys still to translate"""
+import json
+import re
+import sys
+from pathlib import Path
+
+PLURAL = {"de": ["one", "other"], "pt-BR": ["one", "many", "other"], "ja": ["other"]}
+VAR = re.compile(r"\{\{\s*(\w+)\s*\}\}")
+
+
+def flat(d, prefix=""):
+    for k, v in d.items():
+        if isinstance(v, dict):
+            yield from flat(v, f"{prefix}{k}.")
+        else:
+            yield f"{prefix}{k}", v
+
+
+def load(path):
+    return dict(flat(json.loads(Path(path).read_text(encoding="utf-8"))))
+
+
+def base(key):  # settings.files_one -> settings.files
+    return re.sub(r"_(zero|one|two|few|many|other)$", "", key)
+
+
+def check(folder):
+    en = load(f"{folder}/en.json")
+    en_bases = {base(k) for k in en}
+    bad = 0
+    for loc, cats in PLURAL.items():
+        tr = load(f"{folder}/{loc}.json")
+        for k in sorted(en_bases - {base(k) for k in tr}):
+            print(f"{loc}: missing {k}"); bad += 1
+        for k in sorted({base(k) for k in tr} - en_bases):
+            print(f"{loc}: stale {k}"); bad += 1
+        for k, v in tr.items():
+            src = en.get(k) or en.get(base(k) + "_other") or en.get(base(k))
+            if src is None:
+                continue
+            if set(VAR.findall(src)) != set(VAR.findall(v)) and not k.endswith("_one"):
+                print(f"{loc}: {k}: placeholders differ: {src!r} vs {v!r}"); bad += 1
+            if v == src and len(v) > 3:
+                print(f"{loc}: {k}: identical to English"); bad += 1
+        for b in {base(k) for k in tr if k != base(k)}:  # plural groups need this language's categories
+            have = {k.rsplit("_", 1)[1] for k in tr if base(k) == b and k != b}
+            if have != set(cats):
+                print(f"{loc}: {b}: plural forms {sorted(have)}, expected {cats}"); bad += 1
+    return bad
+
+
+def split(folder, loc, n):
+    en, tr = load(f"{folder}/en.json"), {}
+    if Path(f"{folder}/{loc}.json").exists():
+        tr = load(f"{folder}/{loc}.json")
+    todo = {k: v for k, v in en.items() if k not in tr}
+    Path("todo").mkdir(exist_ok=True)
+    items = list(todo.items())
+    for i in range(0, len(items), n):
+        out = Path(f"todo/{loc}-{i // n + 1:03d}.json")
+        if not out.exists():  # resumable: never clobber a batch that is already in progress
+            out.write_text(json.dumps(dict(items[i:i + n]), ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"{len(items)} keys to translate into {loc}")
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "check":
+        sys.exit(1 if check(sys.argv[2]) else 0)
+    split(sys.argv[2], sys.argv[3], int(sys.argv[4]))
+```
+
+On a fixture with deliberate errors it reported a missing key, a renamed placeholder (`{{nom}}` for `{{name}}`), an untranslated string and the missing Portuguese `many` form, and exited with status 1, so it can gate CI. What it cannot judge is meaning: have a native speaker review the flagged ambiguous terms (is "board" a Kanban board?), the formality of sales-facing screens, and any value the model reported as ambiguous.
 
 ## Real-World Example
 
-Dani, a frontend developer at the 15-person startup, needs to ship German, Brazilian Portuguese, and Japanese versions before a trade show in six weeks. The CEO already committed to demos in all three languages with prospective enterprise customers in each market. The old process of emailing spreadsheets to freelance translators would take three weeks of back-and-forth alone — and that's assuming the translators are available on short notice, which they usually aren't for a 912-string rush job.
+Dani, a frontend developer at the startup, runs the lint rule and finds two dozen hardcoded strings; they become keys in `en.json`. The brief fixes "Sie" for German, a glossary decision on "dashboard" and "sprint" for Japanese, and the model translates the roughly 900 keys in 50-key batches. The check script catches a renamed placeholder and several missing plural forms before anything ships. A native-speaking colleague reviews the flagged terms and the checkout and onboarding screens in a short call, and the team ships all three locales before the trade show. For later releases the same `split` and `check` steps run on just the new keys, which is a small step in the release checklist rather than a translator round trip.
 
-The agent extracts 912 translatable strings in under a minute, including 23 hardcoded English strings that would have stayed in English forever in a manual process. All three locale files generate with culturally appropriate translations, and 15 strings get flagged for human review due to ambiguous context or cultural decisions.
+## Related Skills
 
-Dani reviews the flagged strings with a native-speaking colleague over a 30-minute video call — 10 of the 15 flags are quick "yes, keep the English term" decisions for Japanese tech vocabulary, and 5 need actual translation corrections. The agent externalizes the 23 hardcoded strings, creating proper i18n keys and updating the React components so they use `useTranslation()` instead of hardcoded text. That refactor alone would have taken a developer half a day manually.
-
-Total time: 4 hours instead of 3 weeks. The trade show deadline is met with weeks to spare, and the demos in all three languages go smoothly — the German enterprise prospect specifically comments that the formal "Sie" form shows attention to their market.
-
-And every future feature release reuses the same pipeline for incremental translations. When the team ships a new feature with 15 new strings, the pipeline translates just those 15 strings into all three locales, validates completeness, and flags any that need human review. What used to be a three-day delay on every release becomes a 10-minute step in the deployment checklist.
+- **content-writer** for the localization brief: tone, audience and glossary.
+- **batch-processor** for resumable batches over many keys.
+- **data-extractor** for pulling strings out of templates and source files.
