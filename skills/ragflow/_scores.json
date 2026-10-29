@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f2dd133295d071ea0836e6d8f8041ffc258ace9bf49ee614ac0a0e700b5cce01",
+  "scoredAt": "2026-10-29T22:57:31.445Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Docker Compose and Python 3.13, not platform-agnostic."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "deploy-and-check-readiness",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers the Docker Compose steps and health checks (missing only port 443), while Response B does not use Docker Compose and omits all required steps."
+      },
+      {
+        "name": "index-pdfs-and-retrieve-clause",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response A largely follows the rubric, missing only the exact page_size of 5, while Response B does not use ragflow-sdk or any of the required steps."
+      },
+      {
+        "name": "create-chat-assistant-and-stream-answer",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not use ragflow-sdk or the required API calls."
+      }
+    ]
+  }
+}
