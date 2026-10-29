@@ -6,6 +6,7 @@ skills:
   - ngrok
   - telegram-bot-builder
   - shopify
+  - frp
 category: development
 tags:
   - webhooks
@@ -209,3 +210,7 @@ The inspector captures request timing too — if a webhook handler takes 8 secon
 Dani runs one command (`ngrok start --all`) and has three public URLs: one for Stripe webhooks with signature verification, one for the Telegram bot, and one for client previews with password protection. The development cycle drops from 10-minute deploy loops to instant local iteration. The client reviews work in real time. Stripe webhooks arrive locally and can be replayed for debugging. The Telegram bot works exactly as it will in production.
 
 When the checkout flow is ready, Dani deploys to production and swaps the ngrok URLs for real domains. The code doesn't change — only the environment variables for webhook URLs. What took a week of deploy-test-fix cycles took two days of focused local development.
+
+## Related Skills
+
+- [frp](/skills/frp) — self-hosted alternative to ngrok: publish the same local ports through your own server with token auth

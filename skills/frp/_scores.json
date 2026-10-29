@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2a455824dc058afa4a1ab96ffb7d5b4fb67a58ce9a5a99a9571d4be558c4d3cc",
+  "scoredAt": "2026-10-29T22:42:50.619Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases, such as failed connections or configuration errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a bash shell and Unix-like environment, limiting compatibility with non-bash agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.5,
+    "baselineAvg": 7,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "expose-local-web-app",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with proper TOML configs, auth, proxy block, and verification commands; Response B uses INI files and omits required TOML and verification steps."
+      },
+      {
+        "name": "ssh-home-server-with-stcp",
+        "baseline": 20,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items, while Response B lacks required config details."
+      },
+      {
+        "name": "quick-tcp-tunnel",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers all required flags but omits the frpc status check, while Response A provides no content at all."
+      }
+    ]
+  }
+}
