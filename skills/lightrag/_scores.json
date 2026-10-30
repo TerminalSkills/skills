@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:da2735ae3d8406ae80b75de3ce5731c03c295c8b2eb48fef5148f82c084989b5",
+  "scoredAt": "2026-10-29T22:46:12.379Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Incomplete coverage of error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes a Python environment, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "setup-server-ollama-auth",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the .env configuration, server start command, upload endpoint, mode setting, and reference structure."
+      },
+      {
+        "name": "library-insert-ids-global-query",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits async initialization, uses the wrong insert and query methods, and lacks the required QueryParam."
+      },
+      {
+        "name": "debug-retrieval-context",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully covers the rubric by showing QueryParam(only_need_context=True) and aquery_data usage, while Response B does not mention these methods and is off-topic."
+      }
+    ]
+  }
+}

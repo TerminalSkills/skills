@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3dcc1a10227e650b98de6efb5d75369d16018a2f630dbae2c590f6b6ec33a1cc",
+  "scoredAt": "2026-10-29T22:38:53.399Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.35,
+    "baselineAvg": 37,
+    "treatmentAvg": 87,
+    "scenarios": [
+      {
+        "name": "instance-retry-auth",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items, missing only the headers in axios.create and try/catch usage, while Response B fails to meet several key requirements such as correct retry logic, delay, and try/catch logging."
+      },
+      {
+        "name": "timeout-cancel",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use axios or the required error handling."
+      },
+      {
+        "name": "formdata-fetch-upload",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response B better because it includes the required Blob and more config items."
+      }
+    ]
+  }
+}

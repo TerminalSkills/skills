@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:36455b8aeafa3a0d4a08ee8190a781672ff998f459c83d5c551206ac33b2b45a",
+  "scoredAt": "2026-10-29T22:55:53.205Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill provides installation and usage instructions that are specific to Linux/macOS environments and does not include Windows-compatible commands, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.7,
+    "baselineAvg": 27,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "scrape-new-service-with-alert",
+        "baseline": 30,
+        "treatment": 20,
+        "rationale": "Both responses miss key rubric items, but B includes the required promtool test rules command and a closer expression, earning a slightly higher score."
+      },
+      {
+        "name": "recording-rule-and-retention-update",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A includes all required elements; Response B omits the storage block and promtool query instant command."
+      },
+      {
+        "name": "service-discovery-validation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the required promtool check service-discovery command with prometheus.yml and job name and shows discovered labels, while Response A uses the wrong command and does not meet the rubric."
+      }
+    ]
+  }
+}

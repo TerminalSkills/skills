@@ -7,6 +7,7 @@ skills:
   - postgresql
   - hono
   - zod
+  - postiz
 category: content
 tags:
   - social-media
@@ -192,3 +193,7 @@ export async function processScheduled(): Promise<number> {
 - **Approval workflow** — intern's post requires manager approval before publishing; typo caught; 50K followers protected
 - **Calendar view** — see all scheduled posts across platforms for the week; gaps visible; no accidental double-posting
 - **Platform-aware validation** — Twitter post cut to 280 chars with 3 hashtags; LinkedIn expanded to 3000 chars with industry hashtags; each platform optimized
+
+## Related Skills
+
+- [postiz](/skills/postiz) — choose it when you would rather self-host an existing open-source scheduler (calendar, many networks, public API and CLI) than build the engine yourself

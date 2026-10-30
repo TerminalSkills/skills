@@ -9,6 +9,7 @@ skills:
   - redis
   - hono
   - zod
+  - ragflow
 category: data-ai
 tags:
   - rag
@@ -283,3 +284,6 @@ Rules:
 - **Sources are clickable** — every answer includes the exact documents and sections used; customers verify answers themselves, building trust
 - **Re-indexing takes 10 minutes** — when docs are updated, re-ingestion chunks and re-embeds only changed documents; the knowledge base stays current
 - **Embedding cost: $0.02 per 1M tokens** — text-embedding-3-small is extremely cheap; indexing 500 documents costs less than $1
+
+## Related Skills
+- [ragflow](/skills/ragflow) — choose it when you want a self-hosted engine that parses, chunks and indexes the documents and exposes retrieval over an API, instead of writing the pipeline in code

@@ -11,6 +11,7 @@ skills:
   - openai-sdk
   - ollama
   - chromadb
+  - ragflow
 category: data-ai
 tags:
   - rag
@@ -333,3 +334,6 @@ export async function POST(req: NextRequest) {
 ```
 
 The system handles both modes transparently — lawyers don't need to know whether their question was processed by Claude or Ollama. They just upload documents, ask questions, and get cited answers. For standard documents, Claude provides high-quality analysis with precise citations. For sensitive documents, Ollama provides good-enough answers without any data leaving the firm's infrastructure.
+
+## Related Skills
+- [ragflow](/skills/ragflow) — choose it when you would rather host a ready-made document-parsing and retrieval engine (web UI, API and Python SDK) than build the ingestion and search steps yourself

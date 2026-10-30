@@ -9,6 +9,7 @@ skills:
   - open-webui
   - airllm
   - sglang
+  - anything-llm
 category: data-ai
 tags:
 - local-llm
@@ -302,3 +303,4 @@ Total monthly cost: $500 for the GPU server. Compared to estimated OpenAI costs 
 - [open-webui](/skills/open-webui) — a chat interface for the whole team on top of the local models, with accounts, shared prompts and document chat
 - [airllm](/skills/airllm) — Choose airllm when a model is larger than the GPU memory you have and slow, offline batch answers are acceptable: it streams the model one layer at a time from disk, so nothing leaves the machine but each token takes far longer than on llama.cpp or LocalAI.
 - [sglang](/skills/sglang) — choose it when the stack has a GPU server and many concurrent users or agents: it serves open-weight models behind an OpenAI-compatible API with tensor parallelism, tool calling and schema-constrained JSON.
+- [anything-llm](/skills/anything-llm) — choose it when users want a ready desktop or Docker app that chats with their own documents in workspaces on top of the local model server, with a developer API for scripts
