@@ -12777,6 +12777,19 @@
       ]
     },
     {
+      "name": "trademark-clearance",
+      "slug": "trademark-clearance",
+      "description": "Screens a proposed brand, product or company name for trademark conflicts before launch or filing: builds exact, phonetic and spelling-variant searches for the USPTO Trademark Search system, checks each hit in TSDR, covers foreign registers through TMview and the WIPO Global Brand Database, looks for unregistered (common law) use and domains, rates each conflict with the du Pont likelihood-of-confusion factors, and writes a clearance report with filing costs and next steps. Use when a user asks \"is this name trademarked\", \"can I use this brand name\", \"run a trademark search\", \"check a name before we launch\", \"trademark knockout search\", or \"will the USPTO refuse my mark\". Produces a screening report, not a legal opinion.",
+      "category": "business",
+      "tags": [
+        "trademark",
+        "uspto",
+        "brand-naming",
+        "clearance-search",
+        "legal-research"
+      ]
+    },
+    {
       "name": "trading-agents",
       "slug": "trading-agents",
       "description": "TradingAgents is an open-source multi-agent LLM framework that analyzes a stock or crypto ticker with analyst, bull/bear researcher, trader, risk and portfolio-manager agents and returns a rated trading decision. Use when running TradingAgents from its CLI or Python API, configuring its LLM providers and data vendors, backtesting its past decisions, or building a similar multi-agent financial analysis pipeline with LangGraph.",
@@ -14343,5 +14356,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-29T23:09:53.349Z"
+  "updatedAt": "2026-11-03T23:08:28.161Z"
 }
