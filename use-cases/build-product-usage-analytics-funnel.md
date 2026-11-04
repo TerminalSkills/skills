@@ -52,30 +52,41 @@ Two additional tracking dimensions make the funnel actionable rather than just i
 Generate the tracking code for these funnel events. We use a Node.js backend with Express and a React frontend. Use a provider-agnostic approach so we can send events to any analytics backend.
 ```
 
-The tracking layer is provider-agnostic -- a thin wrapper that can send to Mixpanel, Amplitude, PostHog, or a custom backend without changing any call sites:
+The tracking layer is provider-agnostic -- a thin wrapper around a two-line `AnalyticsProvider` interface. Point `setProvider` at the Mixpanel, Amplitude, PostHog or GA4 client you choose (or at your own `/events` endpoint) without changing any call site. Pass an opaque user ID, never an email address, and fire each event from the server once the action succeeded (the project row exists), not when a button is clicked:
 
 ```typescript
-// lib/analytics.ts — provider-agnostic event tracking
-
-type FunnelEvent =
-  | { name: 'signup_completed'; properties: { source: string; referrer: string } }
+// lib/analytics.ts: provider-agnostic funnel events
+export type FunnelEvent =
+  | { name: 'signup_completed'; properties: { source: string } }
   | { name: 'email_verified'; properties: { delay_seconds: number } }
   | { name: 'profile_setup_completed'; properties: { team_size: string; role: string } }
   | { name: 'first_project_created'; properties: { template_used: boolean; template_name?: string } }
-  | { name: 'first_member_invited'; properties: { invite_method: 'email' | 'link' | 'slack' } }
+  | { name: 'first_member_invited'; properties: { invite_method: 'email' | 'link' } }
   | { name: 'first_task_completed'; properties: { time_to_complete_hours: number } }
   | { name: 'user_returned'; properties: { days_since_signup: number; session_count: number } };
 
-export function track(event: FunnelEvent): void {
-  analyticsProvider.track(event.name, {
+export interface AnalyticsProvider {
+  track(name: string, properties: Record<string, unknown>): void;
+}
+
+let provider: AnalyticsProvider = { track: () => {} };
+
+export function setProvider(p: AnalyticsProvider): void {
+  provider = p;
+}
+
+export function track(userId: string, event: FunnelEvent): void {
+  provider.track(event.name, {
     ...event.properties,
+    user_id: userId,
     timestamp: new Date().toISOString(),
-    userId: getCurrentUserId(),
   });
 }
 ```
 
 The typed union ensures every call site provides the right properties for each event. No more passing `{ event: "signup" }` from one file and `{ type: "user_signup" }` from another -- the TypeScript compiler catches mismatches at build time.
+
+Keep event names to lowercase letters, digits and underscores (GA4 allows 40 characters, 25 parameters per event, and silently drops anything over the limits), and use Google's recommended names such as `sign_up` if you send these to GA4 -- the **analytics-tracking** skill has the full rules and the consent-mode setup you need for EU visitors. Fire `user_returned` only for a session 1-7 days after signup, so the stage means what its name says.
 
 Backend events (signup, email verification) fire from Express middleware. Frontend events (project creation, task completion) fire from React components. Both use the same event names and property shapes, so when querying funnel data later, there is no mismatch between what the frontend and backend report.
 
@@ -83,7 +94,59 @@ One subtle but important detail: each event captures timing information. `delay_
 
 ### Step 3: Analyze the Funnel Data
 
-After two weeks of data collection, the numbers tell a clear story. Out of 1,847 signups in the last 90 days, only 72 made it all the way to "returned within 7 days" -- a 3.9% end-to-end activation rate:
+Export the events (from your analytics tool, or the events table) to `events.csv` with `user_id`, `event`, `ts` and `source` columns. The **data-analysis** skill loads it with pandas and computes each transition from every user's first timestamp per stage, counting a user as converted only if the next stage happened after the previous one. The numbers below are this example team's own, from 90 days of data. Out of 1,847 signups in the last 90 days, only 72 made it all the way to "returned within 7 days" -- a 3.9% end-to-end activation rate:
+
+```python
+import sys
+
+import pandas as pd
+
+STAGES = [
+    "signup_completed",
+    "email_verified",
+    "profile_setup_completed",
+    "first_project_created",
+    "first_member_invited",
+    "first_task_completed",
+    "user_returned",
+]
+
+
+def funnel(events: pd.DataFrame) -> pd.DataFrame:
+    """events: one row per event with user_id, event, ts (UTC)."""
+    first = (
+        events[events["event"].isin(STAGES)]
+        .groupby(["user_id", "event"])["ts"].min()
+        .unstack("event")
+        .reindex(columns=STAGES)
+        .apply(pd.to_datetime, utc=True)  # a stage nobody reached comes back all-NaN, not datetime
+    )
+    rows = []
+    for prev, cur in zip(STAGES, STAGES[1:]):
+        reached_prev = first[prev].notna()
+        # a user converts only if the next stage happened after the previous one
+        converted = reached_prev & (first[cur] >= first[prev])
+        gap = (first.loc[converted, cur] - first.loc[converted, prev]).median()
+        rows.append({
+            "transition": f"{prev} -> {cur}",
+            "from_users": int(reached_prev.sum()),
+            "to_users": int(converted.sum()),
+            "conversion": round(converted.sum() / max(reached_prev.sum(), 1), 3),
+            "median_gap": gap,
+        })
+    return pd.DataFrame(rows)
+
+
+if __name__ == "__main__":
+    df = pd.read_csv(sys.argv[1], parse_dates=["ts"])
+    out = funnel(df)
+    print(out.to_string(index=False))
+    if "source" in df.columns:
+        users = df[df["event"] == "signup_completed"].drop_duplicates("user_id")[["user_id", "source"]]
+        for source, grp in df.merge(users, on="user_id", suffixes=("", "_signup")).groupby("source_signup"):
+            print(f"\n== {source}")
+            print(funnel(grp)[["transition", "from_users", "conversion"]].to_string(index=False))
+```
 
 ```text
 Analyze our funnel data from the last 90 days. Show conversion rates between each stage, median time between stages, and segment by signup source (organic, paid, referral).
@@ -114,15 +177,17 @@ Break down the funnel by signup source and company size. Are enterprise trial us
 
 The segments tell a dramatically different story:
 
-| Segment | Signups | Signup -> First Project | First Project -> 7-day Return |
+| Segment | Signups | Signup -> First Project | Signup -> 7-day Return |
 |---|---|---|---|
-| Self-serve (organic) | 1,200 | 41% | 18% |
-| Self-serve (paid ads) | 400 | 38% | 12% |
-| Enterprise trials | 247 | 82% | 61% |
+| Self-serve (organic) | 1,200 | 23% (272) | 2.5% (30) |
+| Self-serve (paid ads) | 400 | 12% (48) | 1.0% (4) |
+| Enterprise trials | 247 | 63% (155) | 15.4% (38) |
 
-Enterprise users who get a guided onboarding call have 3x the activation rate. The call does not teach them anything magical -- it just walks them through creating a project with their real data instead of staring at a blank screen. Self-serve users need in-product guidance to match that experience.
+The segments add up to the overall funnel: 475 first projects and 72 returning users out of 1,847 signups.
 
-Paid ad users perform worst of all at 12% seven-day return. This suggests a targeting problem -- the ads are reaching people who are curious but not ready to commit, or the landing page sets expectations the product does not immediately deliver on. That is $400/month in ad spend with a 12% activation rate vs. organic users at 18%. The paid channel may not be broken, but it needs different onboarding treatment than organic signups.
+Enterprise users who get a guided onboarding call activate at about six times the rate of organic self-serve users. The call does not teach them anything magical -- it just walks them through creating a project with their real data instead of staring at a blank screen. Self-serve users need in-product guidance to match that experience.
+
+Paid ad users perform worst of all: 1.0% end-to-end activation against 2.5% for organic. This suggests a targeting problem -- the ads are reaching people who are curious but not ready to commit, or the landing page sets expectations the product does not immediately deliver on. The paid channel may not be broken, but it needs different onboarding treatment than organic signups.
 
 ### Step 5: Visualize and Share Findings
 
