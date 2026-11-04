@@ -20,164 +20,160 @@ tags:
 
 # Implement Service Mesh for Microservices
 
-You have an existing Kubernetes cluster running a microservices application — a frontend, an API gateway, several backend services, and a database. Services communicate over plain HTTP with no encryption, no retries, and no traffic control. This walkthrough adds Istio to give you mTLS everywhere, traffic management, and observability.
+You have an existing Kubernetes cluster running a microservices application: a frontend, an API gateway, several backend services, and a database. Services talk plain HTTP with no encryption, no retries and no traffic control. This walkthrough adds Istio to give you mutual TLS, traffic management and observability. It uses the classic sidecar data plane; Istio also offers ambient mode (no sidecars), covered in the `istio` skill.
 
-## Step 1: Local Development Setup with Docker Compose
+## Step 1: Verify the Services Together Locally
 
-Before deploying to Kubernetes with Istio, verify the microservices work together locally.
+Before deploying to Kubernetes with Istio, check that the microservices work together with Docker Compose. Keep credentials out of the file and bind published ports to localhost.
 
 ```yaml
-# docker-helper.yml — Local development stack for the microservices
-version: "3.8"
+# compose.yaml (the top-level `version:` key is obsolete and omitted)
 services:
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
+    ports: ["127.0.0.1:3000:3000"]
     environment:
-      - API_URL=http://api-gateway:8080
-
+      API_URL: http://api-gateway:8080
   api-gateway:
     build: ./api-gateway
-    ports:
-      - "8080:8080"
+    ports: ["127.0.0.1:8080:8080"]
     environment:
-      - USERS_SERVICE=http://users:8081
-      - ORDERS_SERVICE=http://orders:8082
-      - PAYMENTS_SERVICE=http://payments:8083
-
+      USERS_SERVICE: http://users:8081
+      ORDERS_SERVICE: http://orders:8082
+      PAYMENTS_SERVICE: http://payments:8083
   users:
     build: ./users
     environment:
-      - DATABASE_URL=postgresql://app:secret@postgres:5432/users
-
+      DATABASE_URL: postgresql://app:${DB_PASSWORD:?set DB_PASSWORD}@postgres:5432/users
   orders:
     build: ./orders
     environment:
-      - DATABASE_URL=postgresql://app:secret@postgres:5432/orders
-      - PAYMENTS_SERVICE=http://payments:8083
-
+      DATABASE_URL: postgresql://app:${DB_PASSWORD:?set DB_PASSWORD}@postgres:5432/orders
+      PAYMENTS_SERVICE: http://payments:8083
   payments:
     build: ./payments
     environment:
-      - DATABASE_URL=postgresql://app:secret@postgres:5432/payments
-
+      DATABASE_URL: postgresql://app:${DB_PASSWORD:?set DB_PASSWORD}@postgres:5432/payments
   postgres:
-    image: postgres:15
+    image: postgres:17
     environment:
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: secret
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # CREATE DATABASE users; orders; payments;
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      retries: 10
 volumes:
   pgdata:
 ```
 
-```bash
-# local-test.sh — Verify services work locally
-docker compose up -d
-curl http://localhost:8080/health
-docker compose down
+```console
+$ echo "DB_PASSWORD=$(openssl rand -hex 16)" > .env
+$ docker compose up -d --wait
+$ curl http://127.0.0.1:8080/health
+$ docker compose down
 ```
 
 ## Step 2: Install Istio on the Cluster
 
-Install Istio with the default profile and enable sidecar injection for your application namespace.
+Install an `istioctl` that matches the release you want (1.31.x at the time of writing) from the GitHub release, checking the published checksum, then install the default profile (istiod plus an ingress gateway).
 
-```bash
-# install-istio.sh — Install Istio and enable injection
-istioctl install --set profile=default -y
+```console
+$ ISTIO_VERSION=1.31.3
+$ BASE=https://github.com/istio/istio/releases/download/$ISTIO_VERSION
+$ curl -fsSLO $BASE/istioctl-$ISTIO_VERSION-linux-amd64.tar.gz
+$ curl -fsSLO $BASE/istioctl-$ISTIO_VERSION-linux-amd64.tar.gz.sha256
+$ sha256sum -c istioctl-$ISTIO_VERSION-linux-amd64.tar.gz.sha256
+$ tar xzf istioctl-$ISTIO_VERSION-linux-amd64.tar.gz && sudo install istioctl /usr/local/bin/
 
-kubectl create namespace microservices
-kubectl label namespace microservices istio-injection=enabled
+$ istioctl x precheck
+$ istioctl install --set profile=default -y
+$ kubectl -n istio-system get pods
 
-istioctl verify-install
+$ kubectl create namespace microservices
+$ kubectl label namespace microservices istio-injection=enabled
 ```
+
+`istioctl verify-install` no longer exists; the pod listing and `istioctl analyze` replace it.
 
 ## Step 3: Deploy the Application with Helm
 
-Use Helm to deploy the microservices into the mesh-enabled namespace. With sidecar injection enabled, each pod automatically gets an Envoy proxy.
+With injection enabled, every pod created in the namespace gets an Envoy proxy. Deploy with Helm (see the `kubernetes-helm` skill for chart structure); the chart must label Deployments with `app` and `version` (used by the canary step).
 
-```bash
-# deploy-app.sh — Deploy microservices via Helm
-helm install microservices ./helm/microservices \
-  --namespace microservices \
-  --set global.image.tag=v1.0.0 \
-  --wait
+```console
+$ helm upgrade --install microservices ./helm/microservices \
+    --namespace microservices --set global.image.tag=v1.0.0 --wait --timeout 5m
+$ kubectl get pods -n microservices
+$ istioctl proxy-status
+$ istioctl analyze -n microservices
 ```
 
-Verify all pods have 2 containers (app + istio-proxy sidecar):
-
-```bash
-# verify-injection.sh — Confirm sidecar injection
-kubectl get pods -n microservices
-# Each pod should show 2/2 READY
-istioctl analyze -n microservices
-```
+`istioctl proxy-status` lists every injected proxy and whether it is in sync with istiod. In `kubectl get pods`, a pod shows `2/2` when the proxy is a regular container, or `1/1` when Istio runs it as a Kubernetes native sidecar (init container), which it does automatically on supported Kubernetes versions.
 
 ## Step 4: Enable Strict mTLS
 
-Enforce mutual TLS across the entire mesh so all service-to-service communication is encrypted and authenticated.
+Roll out in two moves. First apply `PERMISSIVE` and confirm in Kiali (Step 8) that every edge between services is encrypted; then switch to `STRICT`, which rejects plaintext from any pod without a sidecar. A `PeerAuthentication` in the root namespace `istio-system` applies mesh-wide.
 
 ```yaml
-# security/peer-authentication.yaml — Enforce strict mTLS mesh-wide
-apiVersion: security.istio.io/v1beta1
+# security/peer-authentication.yaml
+apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: default
   namespace: istio-system
 spec:
   mtls:
-    mode: STRICT
+    mode: STRICT        # start with PERMISSIVE
 ```
 
-```bash
-# apply-mtls.sh — Enable strict mTLS
-kubectl apply -f security/peer-authentication.yaml
-
-# Verify mTLS is active between services
-istioctl proxy-config secret deploy/api-gateway -n microservices | head
+```console
+$ kubectl apply -f security/peer-authentication.yaml
+$ istioctl proxy-config secret deploy/api-gateway -n microservices
 ```
 
-## Step 5: Configure Traffic Management
+The second command lists the workload certificate (`default`) and root CA that proxies use for mTLS. Anything outside the mesh that calls a service directly, such as a monitoring agent, now needs a sidecar or an explicit exception.
 
-Set up destination rules for circuit breaking and virtual services for retries and timeouts.
+## Step 5: Traffic Management
+
+Destination rules set connection limits and circuit breaking, and virtual services add timeouts and retries. Istio keeps one `DestinationRule` per host: put the circuit-breaking policy and the canary subsets (Step 7) in the same rule, or one silently wins.
 
 ```yaml
-# networking/destination-rules.yaml — Circuit breaking for backend services
-apiVersion: networking.istio.io/v1beta1
+# networking/destination-rules.yaml
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: users-service
+  name: users
   namespace: microservices
 spec:
   host: users
   trafficPolicy:
     connectionPool:
-      tcp:
-        maxConnections: 50
-      http:
-        http1MaxPendingRequests: 50
-        http2MaxRequests: 100
+      tcp: { maxConnections: 50 }
+      http: { http1MaxPendingRequests: 50, http2MaxRequests: 100 }
     outlierDetection:
       consecutive5xxErrors: 3
       interval: 10s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
+  subsets:
+    - name: stable
+      labels: { version: v1 }
+    - name: canary
+      labels: { version: v2 }
 ---
-apiVersion: networking.istio.io/v1beta1
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: payments-service
+  name: payments
   namespace: microservices
 spec:
   host: payments
   trafficPolicy:
     connectionPool:
-      http:
-        http1MaxPendingRequests: 25
-        http2MaxRequests: 50
+      http: { http1MaxPendingRequests: 25, http2MaxRequests: 50 }
     outlierDetection:
       consecutive5xxErrors: 2
       interval: 10s
@@ -185,19 +181,17 @@ spec:
 ```
 
 ```yaml
-# networking/virtual-services.yaml — Retries and timeouts for API gateway routes
-apiVersion: networking.istio.io/v1beta1
+# networking/virtual-services.yaml
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: api-gateway
   namespace: microservices
 spec:
-  hosts:
-    - api-gateway
+  hosts: [api-gateway]
   http:
     - route:
-        - destination:
-            host: api-gateway
+        - destination: { host: api-gateway }
       timeout: 15s
       retries:
         attempts: 3
@@ -205,18 +199,19 @@ spec:
         retryOn: 5xx,reset,connect-failure
 ```
 
-```bash
-# apply-traffic.sh — Apply traffic management rules
-kubectl apply -f networking/
+Retry only idempotent calls: a `POST /payments` retried on `5xx` can charge twice unless the service accepts an idempotency key. Scope `retries` to the routes that are safe.
+
+## Step 6: Ingress Gateway with TLS
+
+The gateway's TLS secret must live in the namespace of the ingress gateway workload (`istio-system` with the default profile), not in the application namespace.
+
+```console
+$ kubectl create secret tls app-tls-cert -n istio-system --cert=app.crt --key=app.key
 ```
 
-## Step 6: Set Up Ingress Gateway
-
-Expose the application through Istio's ingress gateway with TLS.
-
 ```yaml
-# networking/gateway.yaml — Istio Gateway for external HTTPS access
-apiVersion: networking.istio.io/v1beta1
+# networking/gateway.yaml
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: app-gateway
@@ -225,108 +220,80 @@ spec:
   selector:
     istio: ingressgateway
   servers:
-    - port:
-        number: 443
-        name: https
-        protocol: HTTPS
+    - port: { number: 443, name: https, protocol: HTTPS }
       tls:
         mode: SIMPLE
         credentialName: app-tls-cert
-      hosts:
-        - "app.example.com"
+      hosts: ["app.example.com"]
 ---
-apiVersion: networking.istio.io/v1beta1
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: app-ingress
   namespace: microservices
 spec:
-  hosts:
-    - "app.example.com"
-  gateways:
-    - app-gateway
+  hosts: ["app.example.com"]
+  gateways: [app-gateway]
   http:
     - match:
-        - uri:
-            prefix: /api
+        - uri: { prefix: /api }
       route:
-        - destination:
-            host: api-gateway
-            port:
-              number: 8080
+        - destination: { host: api-gateway, port: { number: 8080 } }
     - route:
-        - destination:
-            host: frontend
-            port:
-              number: 3000
+        - destination: { host: frontend, port: { number: 3000 } }
 ```
+
+Istio also supports the Kubernetes Gateway API (`gateway.networking.k8s.io/v1`); the `istio` skill shows the equivalent resources. The Istio `Gateway` above remains supported.
 
 ## Step 7: Canary Deployment
 
-Deploy a new version of the users service with traffic splitting to gradually roll out changes.
+Run `version: v2` Deployments of `users` next to `v1` and shift traffic with weights. The `stable` and `canary` subsets are defined in the `users` rule from Step 5.
 
 ```yaml
-# canary/users-canary.yaml — Canary deployment with 10% traffic to v2
-apiVersion: networking.istio.io/v1beta1
+# canary/users-canary.yaml
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: users-canary
   namespace: microservices
 spec:
-  hosts:
-    - users
+  hosts: [users]
   http:
     - route:
-        - destination:
-            host: users
-            subset: stable
+        - destination: { host: users, subset: stable }
           weight: 90
-        - destination:
-            host: users
-            subset: canary
+        - destination: { host: users, subset: canary }
           weight: 10
----
-apiVersion: networking.istio.io/v1beta1
-kind: DestinationRule
-metadata:
-  name: users-versions
-  namespace: microservices
-spec:
-  host: users
-  subsets:
-    - name: stable
-      labels:
-        version: v1
-    - name: canary
-      labels:
-        version: v2
 ```
+
+Raise the canary weight in steps (10, 25, 50, 100) while watching 5xx rates in Kiali or Prometheus, and set it back to 0 to roll back instantly.
 
 ## Step 8: Observability
 
-Install Kiali, Grafana, and Jaeger to visualize the mesh traffic and trace requests across services.
+The Istio release ships sample manifests for Prometheus, Grafana, Jaeger and Kiali. They are for evaluation, not production hardening. Pin them to the same release as your control plane.
 
-```bash
-# install-observability.sh — Deploy Istio observability addons
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons/prometheus.yaml
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons/grafana.yaml
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons/jaeger.yaml
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons/kiali.yaml
-
-# Access dashboards
-istioctl dashboard kiali
-istioctl dashboard grafana
-istioctl dashboard jaeger
+```console
+$ for a in prometheus grafana jaeger kiali; do
+    kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.31/samples/addons/$a.yaml
+  done
+$ istioctl dashboard kiali
 ```
+
+`istioctl dashboard` also opens `grafana`, `jaeger` and `prometheus`; it port-forwards to localhost only. Jaeger shows traces only if the applications propagate trace headers (`traceparent`, `x-request-id`), which Envoy does not do for them.
 
 ## Verification
 
-```bash
-# verify-mesh.sh — Confirm the service mesh is fully operational
-istioctl proxy-status
-istioctl analyze -n microservices
-kubectl get virtualservices,destinationrules,gateways -n microservices
-curl -k https://app.example.com/api/health
+```console
+$ istioctl proxy-status
+$ istioctl analyze -n microservices
+$ kubectl get virtualservices,destinationrules,gateways -n microservices
+$ curl --cacert ca.crt https://app.example.com/api/health
 ```
 
-The microservices now communicate over encrypted mTLS connections, have automatic retries and circuit breaking, support canary deployments through traffic splitting, and provide full observability through Kiali, Grafana, and Jaeger dashboards.
+Services now communicate over mutual TLS, have retries and circuit breaking, support canary releases through traffic splitting, and can be observed in Kiali, Grafana and Jaeger.
+
+## Related Skills
+
+- `istio` - installation, traffic, security and debugging for the mesh
+- `kubernetes-helm` - chart structure and releases for the application
+- `docker-helper` - Dockerfiles and the local Compose stack
