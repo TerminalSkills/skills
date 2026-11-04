@@ -11,15 +11,15 @@ tags: [ssr, ssg, seo, performance, react, nextjs, web-vitals, migration]
 
 ## The Problem
 
-Elena, front-end lead at a 55-person B2B SaaS company, watches their marketing site's Google Search Console rankings plummet month after month. Their React SPA loads with a blank white screen for 4.2 seconds while JavaScript bundles download and parse. PageSpeed Insights gives them 31/100 on mobile, with Largest Contentful Paint at 7.1 seconds -- nearly triple the 2.5-second threshold for Core Web Vitals.
+Elena, front-end lead at a 55-person B2B SaaS company, watches their marketing site's Search Console rankings slide month after month. Their React SPA (built with Vite) serves an empty `<div id="root">` and shows a blank screen for several seconds while JavaScript downloads and runs. PageSpeed Insights gives the mobile page 31/100, with Largest Contentful Paint at 7.1 seconds, nearly triple the 2.5-second threshold for a "good" score.
 
-The SEO damage is brutal: product pages rank on page 3-4 despite having better content than competitors. Organic traffic dropped 67% over 18 months as Google increasingly penalizes slow sites. Their $120K/year SEO consultant's report is damning: "JavaScript-dependent content invisible to search bots. Recommend complete technical overhaul."
+The SEO damage is visible: product pages rank on page 3-4 despite better content than competitors, and the titles, descriptions and Open Graph tags are set by JavaScript after load, so link previews and some crawlers see none of them. The outside SEO consultant's report says it plainly: "content that depends on JavaScript is the first thing to go wrong; render it on the server."
 
-The business numbers tell the rest of the story. Conversion rates on marketing pages dropped from 8.2% to 3.1% as bounce rates hit 73%. Mobile performance is even worse -- 11.3 seconds to interactive on 3G networks, where 67% of their traffic originates. The sales team reports that prospects mention "your website feels slow" during demos. Each 1-second improvement in load time correlates with 12% higher conversion rates in their industry.
+Conversion on the marketing pages has dropped as bounce rates climbed, and the sales team hears "your website feels slow" in demos.
 
 ## The Solution
 
-Using the **ssr-migration** skill for React-to-Next.js conversion, **frontend-design** for performance optimization, and **docker-helper** for deployment infrastructure, the agent migrates from client-side rendering to a hybrid SSR/SSG architecture -- static generation for marketing content, server rendering for dynamic pages -- and optimizes every Core Web Vital along the way.
+The **ssr-migration** skill drives the React-to-Next.js move (App Router, one route at a time), **frontend-design** keeps the rebuilt pages stable and responsive while they are re-created as server components, and **docker-helper** packages the result. Marketing, product and blog pages become static (SSG with incremental regeneration); pages that depend on the visitor become server-rendered. The code in this page was built and run with Next.js 16 (Node 20.9 or newer) and React 19.
 
 ## Step-by-Step Walkthrough
 
@@ -29,116 +29,182 @@ Using the **ssr-migration** skill for React-to-Next.js conversion, **frontend-de
 Audit our React SPA's performance and SEO issues. The app has 47 pages:
 12 marketing pages (static content), 18 product feature pages (semi-static),
 8 blog pages (static), 6 customer case studies (static), and 3 dynamic
-pricing/demo request pages. Analyze Core Web Vitals, SEO crawlability,
-and determine the best SSR/SSG strategy for each page type.
+pricing/demo request pages. Measure Core Web Vitals (LCP, INP, CLS), check
+what a crawler sees without JavaScript, and decide SSG, ISR or SSR per page type.
 ```
 
-The audit exposes the full extent of the problem:
+Run the audit with Lighthouse or PageSpeed Insights, and check crawlability with `curl -s https://yoursite.com/pricing | grep -c "<h1"`: if the HTML a crawler downloads has no headline, nothing indexable ships with the page. The current Core Web Vitals targets are LCP at 2.5 seconds or less, INP (Interaction to Next Paint, which replaced First Input Delay) at 200 milliseconds or less, and CLS under 0.1.
 
-**Performance (mobile):**
+| Metric (mobile) | Elena's baseline | Target |
+|-----------------|------------------|--------|
+| Largest Contentful Paint | 7.1s | 2.5s or less |
+| Interaction to Next Paint | 480ms | 200ms or less |
+| Cumulative Layout Shift | 0.23 | 0.1 or less |
+| JavaScript downloaded | 847 KB | as little as possible |
 
-| Metric | Current | Target | Status |
-|--------|---------|--------|--------|
-| First Contentful Paint | 4.8s | <1.8s | Failing |
-| Largest Contentful Paint | 7.1s | <2.5s | Failing |
-| First Input Delay | 340ms | <100ms | Failing |
-| Cumulative Layout Shift | 0.23 | <0.1 | Failing |
-| JavaScript bundle size | 847 KB | <200 KB | 4x over budget |
-
-**SEO crawlability:** only 23% of pages successfully indexed. Meta descriptions missing on 89% of pages (generated client-side, invisible to crawlers). No Open Graph tags, no schema markup, no structured data for rich snippets.
-
-The migration strategy splits 47 pages into two groups:
-
-- **SSG (38 pages):** marketing pages, product features (with ISR on 24-hour revalidation), blog posts, and case studies -- all pre-rendered at build time
-- **SSR (9 pages):** pricing calculator, demo request forms, and user dashboard -- server-rendered with edge caching
+The plan splits the 47 pages: 44 become static with revalidation (marketing, product features, blog, case studies), and 3 (pricing, demo request, the logged-in dashboard) render per request.
 
 ### Step 2: Migrate to Next.js with Static Generation
 
 ```text
-Convert our React SPA to Next.js with static site generation for all marketing,
-product, and blog pages. Optimize images, implement proper meta tags and schema
-markup, and ensure all static content pre-renders at build time. Include
-automatic sitemap generation and proper URL structure for SEO.
+Create a Next.js App Router project next to the SPA and move the marketing,
+product and blog routes into it one at a time, rendering as static with
+revalidation. Add per-page metadata, canonical URLs, JSON-LD, a sitemap and
+robots.txt. Serve the routes not yet migrated through a rewrite to the old app.
 ```
 
-The project restructures around Next.js pages with `getStaticProps`:
+A Vite or CRA app cannot be converted in place, so the new project grows beside it and takes over route by route. A product page as a server component, with ISR and metadata:
 
-```typescript
-// pages/products/[slug].tsx
-export async function getStaticProps({ params }) {
-  const product = await getProductBySlug(params.slug);
+```tsx
+// app/products/[slug]/page.tsx
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getAllProducts, getProductBySlug } from "@/lib/products";
+
+export const revalidate = 86400; // regenerate at most once per day
+
+// Known products are pre-rendered at build time; unknown slugs render on first request, then are cached
+export async function generateStaticParams() {
+  return (await getAllProducts()).map((p) => ({ slug: p.slug }));
+}
+
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const product = await getProductBySlug((await params).slug);
+  if (!product) return {};
   return {
-    props: { product },
-    revalidate: 86400, // ISR: regenerate every 24 hours
+    title: product.name,
+    description: product.summary,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: { title: product.name, description: product.summary, type: "website" },
   };
 }
 
-export async function getStaticPaths() {
-  const products = await getAllProducts();
-  return {
-    paths: products.map(p => ({ params: { slug: p.slug } })),
-    fallback: 'blocking', // New products SSR on first request, then cache
-  };
+export default async function ProductPage({ params }: Props) {
+  const product = await getProductBySlug((await params).slug);
+  if (!product) notFound();
+  const jsonLd = { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.summary };
+  return (
+    <main>
+      <h1>{product.name}</h1>
+      <p>{product.summary}</p>
+      {/* escape "<" so content can never close the script tag */}
+      <script type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    </main>
+  );
 }
 ```
 
-Product pages use Incremental Static Regeneration -- pre-rendered at build time but refreshed every 24 hours, with on-demand revalidation via webhook for urgent content changes. Blog posts generate at build time with automatic sitemap.xml and RSS feed creation.
+In Next.js 15 and 16, `params` is a Promise, which is why it is awaited. Set `metadataBase` in the root layout so canonical and Open Graph URLs resolve to absolute addresses. The sitemap and robots rules are plain files that Next.js turns into `/sitemap.xml` and `/robots.txt`:
 
-SEO optimization covers all the gaps the audit found: dynamic meta tags (title, description, keywords per page), Open Graph and Twitter Card tags for social sharing, canonical URLs to prevent duplicate content, and JSON-LD structured data (Organization, Product, Article schemas) for rich snippets in search results.
+```ts
+// app/sitemap.ts
+import type { MetadataRoute } from "next";
+import { getAllProducts } from "@/lib/products";
 
-The Next.js Image component handles automatic WebP/AVIF conversion, responsive image sizing, lazy loading, and blur placeholders. Combined with critical CSS inlining and intelligent link prefetching, the JavaScript bundle drops from 847 KB to 156 KB through automatic code splitting and tree shaking.
-
-### Step 3: Implement SSR for Dynamic Pages and Optimize Core Web Vitals
-
-```text
-Set up server-side rendering for dynamic pages like pricing calculator and
-demo forms. Implement advanced performance optimizations to pass all Core
-Web Vitals: optimize LCP, reduce CLS, minimize FID. Include edge caching
-and progressive enhancement.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = "https://www.example.com";
+  return [{ url: base }, ...(await getAllProducts()).map((p) => ({ url: `${base}/products/${p.slug}` }))];
+}
 ```
 
-Dynamic pages use `getServerSideProps` with aggressive caching -- the pricing calculator caches for 5 minutes at the edge, demo request forms include A/B testing variants, and the user dashboard renders personalized content server-side.
+For urgent content changes, the CMS calls a webhook that revalidates one path. The secret is compared in constant time and the slug is validated:
 
-Core Web Vitals optimization targets each metric individually:
+```ts
+// app/api/revalidate/route.ts
+import { timingSafeEqual } from "node:crypto";
+import { revalidatePath } from "next/cache";
 
-**LCP: 7.1s to 1.2s** -- hero image optimization (2.1 MB to 387 KB via WebP), critical CSS inlining for above-the-fold content, font preloading before layout, and server-rendered HTML visible immediately instead of waiting for JavaScript.
-
-**FID: 340ms to 45ms** -- JavaScript bundle reduction from 847 KB to 156 KB, per-page code splitting so each page loads only what it needs, third-party scripts deferred, heavy calculations moved to Web Workers.
-
-**CLS: 0.23 to 0.02** -- explicit width/height on all images to prevent layout jumps, `font-display: swap` to prevent Flash of Invisible Text, reserved space for dynamic content, and animations restricted to `transform` and `opacity` (no layout-triggering properties).
-
-Progressive enhancement ensures core content works without JavaScript. Hydration adds interactivity after the initial render. Service workers cache critical pages for offline access. Skeleton screens and error boundaries provide graceful degradation.
-
-### Step 4: Deploy and Measure SEO Improvements
-
-```text
-Set up production deployment with Docker containers, implement proper caching
-headers, and measure SEO performance improvements. Include A/B testing to
-measure conversion rate improvements.
+export async function POST(request: Request) {
+  const secret = process.env.REVALIDATE_SECRET ?? "";
+  const given = (request.headers.get("authorization") ?? "").replace(/^Bearer /, "");
+  const ok = secret.length > 0 && given.length === secret.length &&
+    timingSafeEqual(Buffer.from(given), Buffer.from(secret));
+  if (!ok) return new Response("Unauthorized", { status: 401 });
+  const slug = new URL(request.url).searchParams.get("slug");
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) return new Response("Bad slug", { status: 400 });
+  revalidatePath(`/products/${slug}`);
+  return Response.json({ revalidated: slug });
+}
 ```
 
-The production stack runs behind nginx with optimized caching headers: static assets get `max-age=31536000, immutable`, HTML pages use `s-maxage=86400` with `stale-while-revalidate`, and API routes cache based on data freshness. Brotli compression achieves 73% average file size reduction. CloudFront distributes content across 25+ global edge locations.
+`next build` prints `●` next to each pre-rendered product page, and `curl -s localhost:3000/products/lead-scoring` returns the title, canonical link and JSON-LD in the first response, with no JavaScript needed.
 
-The before/after numbers after 90 days tell the story:
+### Step 3: Server-Render the Dynamic Pages and Fix Core Web Vitals
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Performance Score (mobile) | 31/100 | 96/100 | +209% |
-| Largest Contentful Paint | 7.1s | 1.2s | -83% |
-| Pages indexed by Google | 23% | 91% | +297% |
-| Average search position | Page 3.4 | Page 1.8 | +94% |
-| Bounce rate | 73% | 34% | -53% |
-| Conversion rate | 3.1% | 7.9% | +155% |
-| Mobile conversion rate | 1.8% | 6.2% | +244% |
+```text
+Make the pricing page render per request from the visitor's cookie. Then get
+LCP, INP and CLS into the "good" range: stable image sizes, a prioritized hero
+image, less client JavaScript, and a mobile-first layout with skeleton states.
+```
 
-An A/B test running the old CSR version against the new SSR/SSG version for 30 days shows 3.1% versus 7.9% conversion at 99.7% statistical confidence.
+A route that reads request data is rendered on each request automatically:
+
+```tsx
+// app/pricing/page.tsx
+import { cookies } from "next/headers";
+
+export default async function Pricing() {
+  const plan = (await cookies()).get("plan")?.value ?? "starter";
+  return <main><h1>Pricing</h1><p>Your current plan: {plan}</p></main>;
+}
+```
+
+The metrics map to specific changes, guided by the frontend-design skill (mobile first, semantic HTML, real content when testing, skeletons instead of spinners):
+
+- **LCP:** the hero uses `next/image` with `preload` (in Next.js 16 it replaces the deprecated `priority` prop), so it is preloaded and served resized. Next.js serves WebP by default; AVIF is opt-in through `images.formats` in `next.config.ts`. HTML arrives with the content already in it.
+- **INP:** components are server components by default, so only interactive pieces (a pricing slider, a demo form) carry `"use client"` and ship JavaScript. Heavy browser-only widgets load with `next/dynamic` from a Client Component.
+- **CLS:** `width` and `height` on every image reserve its space, skeletons match the final dimensions, and animations stay on `transform` and `opacity`.
+
+```tsx
+<Image src="/hero.png" alt="Product overview" width={1200} height={630} preload />
+```
+
+Hydration errors are the typical migration bug: anything that differs between server and client (`new Date()` in render, `window` checks, `localStorage` at module level) belongs in a `useEffect` or a client-only component. The ssr-migration skill has the audit commands that find these before the move.
+
+### Step 4: Deploy and Measure
+
+```text
+Package the Next.js app as a Docker image, run it behind a reverse proxy,
+and set up before/after measurement for LCP, INP and indexed pages.
+```
+
+Next.js can emit a minimal server with `output: "standalone"` in `next.config.ts`. The docker-helper image builds it in one stage and runs it in another, as a non-root user:
+
+```dockerfile
+FROM node:24-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:24-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+Add a `.dockerignore` with `node_modules`, `.next` and `.env*`, and publish the port on loopback behind nginx or Caddy: `docker run -d -p 127.0.0.1:3000:3000 -e REVALIDATE_SECRET marketing-site`. `HOSTNAME=0.0.0.0` is for the container; the published port is what controls exposure. Put a CDN in front: static assets under `/_next/static` are fingerprinted and safe to cache for a year, and ISR pages already send `s-maxage` with `stale-while-revalidate`.
+
+Measure with real-user data rather than lab runs alone: the Core Web Vitals report and the Pages indexing report in Search Console, plus the field data in PageSpeed Insights. Compare 28 days before and after, and run the old and new versions side by side with a traffic split if you want a conversion comparison.
 
 ## Real-World Example
 
-A B2B marketing automation platform was losing prospects before they could even see the product. Their React SPA took 8.3 seconds to show content on mobile, causing a 78% bounce rate and devastating inbound lead generation. Despite $85K annually on content marketing and SEO, organic traffic declined 12% quarter-over-quarter. The crisis point: their biggest competitor launched a faster site and jumped 2 positions for primary keywords, stealing an estimated $180K in annual contract value.
+Elena's team migrates the 47 pages over six weeks, route by route, with the SPA still serving everything not yet moved. The first week is the audit and the Next.js project; the next four move marketing, product, blog and case-study routes to static rendering with revalidation; the last two cover the pricing and demo pages, the Docker image and the redirects from the old URLs.
 
-Weeks 1-2 focused on analysis: an 847 KB JavaScript bundle, 4.8s FCP, only 31% of pages indexed by Google. 38 pages suitable for SSG, 9 requiring SSR. Weeks 3-4 converted React components to Next.js pages with `getStaticProps`, added automatic image optimization and responsive images, and implemented proper meta tags and schema markup. Weeks 5-6 optimized Core Web Vitals through code splitting (82% bundle reduction), ISR for semi-static content, and edge caching.
+The numbers below are Elena's own results from her production site, not benchmarks you should expect: mobile PageSpeed went from 31 to the 90s, LCP from 7.1s to about 1.2s, and the pages Google had indexed rose from under a quarter of the site to nearly all of it over the following quarter. Her team now ships a marketing page by merging a pull request: the content is in the first HTML response, the preview cards work in Slack and LinkedIn, and sales stopped hearing about site speed in demos.
 
-After 120 days: PageSpeed score 28/100 to 94/100. All Core Web Vitals passing. Organic search traffic up 203%. Average search position improved from page 3.7 to page 1.4. Mobile conversion rate jumped from 1.9% to 8.3%. The migration added $67K in monthly recurring revenue from organic traffic alone.
+## Related Skills
 
-The sales team noticed the difference immediately -- prospects stopped mentioning website speed as a concern and started complimenting it instead. Six months after the migration, they acquired two smaller competitors who cited the superior web experience as a factor in choosing their platform for acquisition. What started as a technical SEO fix became a measurable competitive advantage. The hosting costs actually decreased despite the better performance -- static generation means most pages are served from CDN cache at pennies per million requests, compared to the old setup where every page load required a full client-side render with 847 KB of JavaScript.
+- [ssr-migration](/skills/ssr-migration) - incremental CSR to SSR/SSG migration, hydration fixes, deployment
+- [frontend-design](/skills/frontend-design) - responsive, accessible layout and component design for the rebuilt pages
+- [docker-helper](/skills/docker-helper) - the multi-stage image for the Next.js standalone server
