@@ -19,29 +19,33 @@ The worst part: nobody knows which queries to fix first. `EXPLAIN` output looks 
 
 ## The Solution
 
-Using the **sql-optimizer**, **db-explain-analyzer**, and **data-analysis** skills, the approach is to profile query performance across the slow query log, decode execution plans to find the actual bottlenecks, rewrite the worst queries, add strategic indexes, and set up monitoring to catch regressions before they become incidents.
+Using the **sql-optimizer** skill for plans, rewrites and indexes and the **data-analysis** skill to rank the `pg_stat_statements` export by total time, the approach is to profile query performance, decode execution plans to find the actual bottlenecks, rewrite the worst queries, add strategic indexes, and set up monitoring to catch regressions before they become incidents.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Identify and Profile the Slowest Queries
 
-```text
-Analyze our PostgreSQL slow query log from the past 7 days. Find the top 10
-slowest queries by total time consumed (query duration x frequency). Include
-the query text, average duration, frequency per hour, and percentage of total
-database load.
+PostgreSQL does not keep a slow query log by default. The usual source is the `pg_stat_statements` extension: add it to `shared_preload_libraries` (needs a restart), run `CREATE EXTENSION pg_stat_statements;` in the database, then export the heaviest statements:
+
+```sql
+\copy (SELECT queryid, calls, total_exec_time, mean_exec_time, query FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 50) TO 'top_queries.csv' CSV HEADER
 ```
 
-The slow query log tells a clear story when sorted by total impact (duration multiplied by frequency):
+```text
+Analyze top_queries.csv (a pg_stat_statements export). Rank the queries by total_exec_time
+(duration x calls), and show the query text, mean_exec_time, calls and each query's share of the total.
+```
+
+Sorted by total impact (duration multiplied by frequency), the export tells a clear story:
 
 | Rank | Query | Avg Duration | Calls/Day | Total Impact |
 |---|---|---|---|---|
 | 1 | Customer Analytics Dashboard | 47.3s | 840 | 11.1 hours/day (46.3%) |
 | 2 | User Order History | 12.4s | 2,340 | 8.1 hours/day (33.8%) |
-| 3 | Sales Report Generation | 23.1s | 96 | 2.2 hours/day (9.2%) |
-| 4 | Top Products by Revenue | 18.7s | 180 | 1.4 hours/day (5.8%) |
+| 3 | Sales Report Generation | 23.1s | 343 | 2.2 hours/day (9.2%) |
+| 4 | Top Products by Revenue | 18.7s | 270 | 1.4 hours/day (5.8%) |
 
-The top 4 queries account for 95% of total database load. The database is running at 100% utilization during business hours — not because it's undersized, but because these four queries are doing full table scans through millions of rows.
+The top 4 queries account for 95% of total database load. The database is saturated during business hours — not because it's undersized, but because these four queries are doing full table scans through millions of rows.
 
 Connection pool saturation sits at 18.7 out of 20 average connections. That means every new query waits. The $850/month instance isn't slow — it's being asked to do needlessly expensive work.
 
@@ -57,7 +61,7 @@ The execution plan for the customer analytics query reveals the problem immediat
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
-SELECT u.email, u.signup_date, COUNT(o.id), SUM(o.total)
+SELECT u.email, u.signup_date, COUNT(o.id) AS order_count, SUM(o.total) AS total_spent
 FROM users u
 JOIN orders o ON u.id = o.customer_id
 WHERE o.created_at > '2024-01-01'
@@ -66,12 +70,12 @@ ORDER BY total_spent DESC
 LIMIT 100;
 ```
 
-The plan shows a **sequential scan on 4.2 million orders** taking 28.9 seconds. There's no index on `orders.customer_id` — the most obvious foreign key in the schema. The `created_at` filter also has no index, so every single row gets read from disk just to check the date.
+The plan shows a **sequential scan on 4.2 million orders** taking 28.9 seconds. PostgreSQL does not index foreign keys automatically, so `orders.customer_id` has no index. The `created_at` filter has none either, so every single order row gets read just to check the date.
 
 Three critical issues in this one query:
-- Sequential scan on `orders` (28.9s) — missing composite index on `(customer_id, created_at)`
-- Sequential scan on 894K `users` (12.3s) — missing index on frequently joined columns
-- Hash join without proper indexes causing 1.5 million buffer reads from disk
+- Sequential scan on `orders` (28.9s) — no index on `created_at` (a covering index fixes it, see Step 3)
+- Hash join over the unaggregated 4.2 million order rows (12.3s) — the join and the GROUP BY run before the LIMIT can cut anything
+- 1.5 million buffer reads from disk, because every order row is fetched just to test the date
 
 The other two queries have similar patterns. Missing indexes on foreign keys and date columns are the theme — these columns were added as the product grew but never properly indexed.
 
@@ -115,13 +119,31 @@ The key insight: aggregate 4.2 million orders down to 100 rows *before* joining 
 Required indexes:
 
 ```sql
-CREATE INDEX CONCURRENTLY idx_orders_customer_date ON orders(customer_id, created_at);
-CREATE INDEX CONCURRENTLY idx_orders_total_desc ON orders(total DESC);
+-- Order history: WHERE customer_id = ? ORDER BY created_at DESC
+CREATE INDEX CONCURRENTLY idx_orders_customer_date ON orders (customer_id, created_at);
+-- Dashboard: date-range filter, then aggregate customer_id and total from the index alone
+CREATE INDEX CONCURRENTLY idx_orders_created_covering ON orders (created_at) INCLUDE (customer_id, total);
 ```
+
+`CREATE INDEX CONCURRENTLY` avoids blocking writes but cannot run inside a transaction block, so run it outside a migration wrapped in one. If a build fails it leaves an `INVALID` index: drop it and retry. Index-only scans also need a recent `VACUUM` to keep the visibility map current.
 
 **Query 2: Sales Report** — pre-computed daily aggregates with a date range index. **23.1s down to 0.7s** (33x faster).
 
-**Query 3: Top Products** — materialized view with a covering index. **18.7s down to 0.9s** (21x faster).
+**Query 3: Top Products** — a materialized view, refreshed on a schedule. **18.7s down to 0.9s** (21x faster). `REFRESH MATERIALIZED VIEW CONCURRENTLY` needs a unique index on the view:
+
+```sql
+CREATE MATERIALIZED VIEW top_products_30d AS
+SELECT oi.product_id, SUM(oi.quantity * oi.price) AS revenue
+FROM order_items oi
+JOIN orders o ON o.id = oi.order_id
+WHERE o.created_at > now() - interval '30 days'
+GROUP BY oi.product_id;
+
+CREATE UNIQUE INDEX ON top_products_30d (product_id);
+REFRESH MATERIALIZED VIEW CONCURRENTLY top_products_30d;
+```
+
+These timings are the example team's projections: run `EXPLAIN (ANALYZE, BUFFERS)` before and after on your own data, and confirm the rewrite returns the same rows as the original.
 
 ### Step 4: Set Up Performance Monitoring
 
@@ -130,7 +152,7 @@ Create a performance monitoring setup that tracks query execution times, identif
 regressions, and alerts when queries exceed baseline thresholds.
 ```
 
-With the optimizations deployed, the database metrics shift dramatically:
+With the optimizations deployed, the example team's database metrics shift dramatically:
 
 | Metric | Before | After | Improvement |
 |---|---|---|---|
@@ -140,7 +162,7 @@ With the optimizations deployed, the database metrics shift dramatically:
 | I/O wait time | 340ms avg | 45ms avg | 87% reduction |
 
 Monitoring alerts catch regressions early:
-- Any query exceeding 5x its baseline duration triggers a Slack alert
+- Any query whose `mean_exec_time` in `pg_stat_statements` exceeds 5x its baseline triggers a Slack alert (compare snapshots; call `pg_stat_statements_reset()` only after saving one)
 - Connection pool above 15/20 for more than 5 minutes fires a warning
 - Buffer hit ratio dropping below 90% signals potential index issues
 - New queries appearing in the slow query log get flagged for review
@@ -149,7 +171,7 @@ The dashboard load time drops from 47.3 seconds to 1.8 seconds. Report generatio
 
 ## Real-World Example
 
-Ravi applies all three query rewrites and four indexes in a single deployment. The total database load drops from 24 hours/day of query time to 1.2 hours/day — a 94% reduction.
+Ravi applies all three query rewrites and four indexes in a single deployment. The total database load drops from 24 hours/day of query time to 1.2 hours/day — a 95% reduction.
 
 The infrastructure cost impact is immediate. The $850/month database instance is dramatically oversized now. Ravi downgrades to a $280/month instance that handles the optimized workload with headroom to spare. The read replica discussion ($400/month each) is dead. The DBA hiring conversation ($140K/year) is shelved.
 
