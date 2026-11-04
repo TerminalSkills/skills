@@ -65,6 +65,37 @@ The validation report is immediate and unambiguous:
 
 **Pipeline verdict: BLOCK.** Fix nulls in `amount_cents` before loading.
 
+A prompt is good for exploring. For a rule that must run on every file, the agent turns the same rules into code that exits non-zero when the load must stop. The pandas version below was run against a synthetic 30,000-row file and blocked it on the null amounts and the email null rate:
+
+```python
+import sys
+import pandas as pd
+
+df = pd.read_csv(sys.argv[1], parse_dates=["processed_at"])
+today = pd.Timestamp.now(tz="UTC").normalize()
+failures = []
+
+if df["transaction_id"].duplicated().any():
+    failures.append(f"{df['transaction_id'].duplicated().sum()} duplicate transaction_id")
+if df["amount_cents"].isna().any():
+    failures.append(f"{df['amount_cents'].isna().sum()} null amount_cents")
+if df["customer_email"].isna().mean() >= 0.01:
+    failures.append(f"customer_email null rate {df['customer_email'].isna().mean():.1%} (limit 1%)")
+if not 25_000 <= len(df) <= 50_000:
+    failures.append(f"row count {len(df)} outside 25,000-50,000")
+if not df["currency"].isin(["USD", "EUR", "GBP"]).all():
+    failures.append("unexpected currency code")
+if (df["processed_at"].dt.tz_convert("UTC").dt.normalize() != today).any():
+    failures.append("records not dated today (UTC)")
+
+if failures:
+    print("BLOCK:\n- " + "\n- ".join(failures))
+    sys.exit(1)
+print("PASS")
+```
+
+Run it as the first task of the load (`python gate.py payments_20260217.csv`); the orchestrator stops the DAG on a non-zero exit. Timestamps in the file must carry a UTC offset (`Z`), or `tz_convert` raises. Once the rules grow, move them into a schema library such as pandera or Great Expectations.
+
 This is the key shift -- instead of loading everything and hoping for the best, the pipeline now has a gate. Bad data doesn't get through.
 
 ### Step 3: Investigate the Root Cause
@@ -87,7 +118,7 @@ Kenji needs these checks to run automatically after every load, not just when so
 Write a SQL validation query I can run after each load to catch these issues automatically.
 ```
 
-The query runs all checks in a single pass using conditional aggregation:
+The query runs all checks in a single pass using conditional aggregation. `COUNT(*) FILTER (WHERE ...)` works in PostgreSQL and SQLite 3.30+; on MySQL or BigQuery use `SUM(CASE WHEN ... THEN 1 ELSE 0 END)`:
 
 ```sql
 -- Post-load validation: runs after each daily payments ingestion
@@ -102,16 +133,18 @@ WITH checks AS (
   WHERE load_date = CURRENT_DATE
 )
 SELECT *,
+  CASE WHEN total_rows NOT BETWEEN 25000 AND 50000
+    THEN 'FAIL' ELSE 'PASS' END AS volume_check,
   CASE WHEN null_amounts > 0
     THEN 'FAIL' ELSE 'PASS' END AS amount_check,
-  CASE WHEN null_emails::float / total_rows > 0.01
+  CASE WHEN null_emails * 1.0 / NULLIF(total_rows, 0) > 0.01
     THEN 'FAIL' ELSE 'PASS' END AS email_check,
   CASE WHEN duplicate_txns > 0
     THEN 'FAIL' ELSE 'PASS' END AS uniqueness_check
 FROM checks;
 ```
 
-This runs in under 200ms on 50,000 rows. If any check returns `FAIL`, the pipeline halts and sends an alert to Slack before bad data propagates to production tables.
+`NULLIF` turns an empty load into a failed volume check instead of a division error (verified on SQLite with 30,000 synthetic rows). Run it with `EXPLAIN (ANALYZE, BUFFERS)` as the sql-optimizer skill teaches: if staging grows large, an index or partition on `load_date` keeps the `WHERE load_date = CURRENT_DATE` scan cheap. If any check returns `FAIL`, the pipeline halts and sends an alert to Slack before bad data propagates to production tables. dbt users can express the same rules as `not_null` and `unique` tests on the source.
 
 ### Step 5: Formalize a Data Contract
 
@@ -133,9 +166,9 @@ Kenji shares this contract with the payments provider and wires it into the pipe
 
 ## Real-World Example
 
-Three weeks after setting up validation, the system catches something Kenji would have missed entirely. One of the 12 merchant APIs his team ingests nightly changed their response format -- order amounts switched from cents (integer) to dollars (float), silently inflating revenue by 100x.
+Three weeks after setting up validation, the system catches something Kenji would have missed entirely. One of the 12 merchant APIs his team ingests nightly changed their response format -- order amounts switched from dollars (decimal) to cents (integer), silently inflating revenue by 100x.
 
-The profiling step flags it immediately: merchant #7's average amount jumped from 4,500 to 450,000 overnight. The type-check rule confirms it -- the `amount` field changed from integer to float with decimal values. Without validation, this would have shown a 100x revenue spike on every dashboard for days before anyone questioned why the numbers looked too good.
+The profiling step flags it immediately: merchant #7's average amount jumped from 45.00 to 4,500 overnight. The type-check rule confirms it -- the `amount` field changed from decimal values to integers. Without validation, this would have shown a 100x revenue spike on every dashboard for days before anyone questioned why the numbers looked too good.
 
 Kenji adds a type-drift rule to the pipeline and notifies the merchant about their API change. Total time from detection to fix: 15 minutes. The previous approach -- waiting for someone to notice bad dashboards -- would have taken 3 days and another round of stakeholder trust erosion.
 
