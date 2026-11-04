@@ -11,126 +11,110 @@ tags: [retrospective, sprint, agile, team-metrics, engineering-management]
 
 ## The Problem
 
-It's Friday afternoon, sprint retro time. The engineering manager asks "what went well?" and gets silence. Then "what didn't go well?" and gets vague complaints about "too many meetings" and "unclear requirements." The retro devolves into the same 3 people talking about the same 3 problems every 2 weeks. Everyone knows the meeting is supposed to help, but it feels like a ritual — predictable, repetitive, and ultimately toothless.
+It is Friday afternoon, retro time. The manager asks "what went well?" and gets silence, then vague complaints about "too many meetings" and "slow reviews". Three people talk about the same three problems every two weeks. Without numbers, the loudest voice wins and recency bias dominates: "reviews take too long" has been on the board for months, and nobody can say whether it is getting better or worse, or whether one person is carrying most of the load.
 
-The real story of the sprint lives in the data: Git commits, PR review times, ticket cycle times, deploy frequency, and incident logs. But nobody has time to compile this before the meeting. Without data, retros become opinion-driven sessions where the loudest voice wins and recency bias dominates. "Reviews take too long" has been on the board for months — but nobody can say whether it's getting better or worse, or quantify the impact. The same issues get raised, the same vague action items get written, and the same problems persist. It hits different when you can show that the average PR sat for 26 hours before first review, and that one person is carrying 26% of the review load.
+The facts are in GitHub: PR timestamps, reviews, check results, workflow runs. Nobody has time to compile them before the meeting.
 
 ## The Solution
 
-Using the **github** skill to pull PR and commit activity, **data-analysis** to identify patterns and bottlenecks, and **report-generator** to produce a structured retro document, the agent turns raw repository data into a sprint narrative the team can actually discuss — with numbers that prove or disprove what everyone "feels" is happening.
+- **github** (the `gh` CLI) pulls merged PRs with their reviews, and workflow runs, for the sprint window as JSON.
+- **data-analysis** turns that JSON into metrics with pandas: time to first review, PR size, review load per person, CI pass rate. It compares them with earlier sprints.
+- **report-generator** writes the retro document in its weekly-status structure (summary, went well, needs attention, action items, key metrics with trend), so every claim carries a number.
+
+Ticket-tracker data (Jira, Linear) is not covered by `gh`; if you want it in the report, export it as CSV and load it with the same pandas code. The rest of this page uses GitHub data only.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Gather Sprint Data from GitHub
-
-The agent starts by pulling everything from the repository for the sprint window. No manual spreadsheet assembly, no guessing which PRs landed this sprint versus last:
+### Step 1: Pull the sprint's data with gh
 
 ```text
-Pull all activity from our repo for sprint 23 (Feb 3-14). Get PRs merged,
-review times, commit patterns, and CI failure rates. Include per-developer
-breakdowns for reviews given and received.
+Pull all PRs merged between 2026-02-03 and 2026-02-14 in acme-shop/web-store with their
+reviews, and all workflow runs created in that window. Save them as JSON.
 ```
 
-The raw numbers for Sprint 23 (Feb 3-14):
+```console
+$ gh auth status
+$ gh pr list -R acme-shop/web-store --state merged --search "merged:2026-02-03..2026-02-14" \
+    --limit 500 --json number,author,createdAt,mergedAt,additions,deletions,reviews > prs.json
+$ gh run list -R acme-shop/web-store --created "2026-02-03..2026-02-14" \
+    --limit 1000 --json databaseId,workflowName,conclusion,createdAt > runs.json
+```
 
-| Metric | Value |
-|---|---|
-| PRs opened / merged / still open | 34 / 31 / 3 |
-| Commits | 187 across 8 contributors |
-| Reviews given | 89 total, avg 2.8 per PR |
-| CI runs | 142 total, 118 passed (83.1% pass rate) |
-| Production deploys | 7 (3.5 per week) |
+`gh pr list` and `gh run list` accept `--json` with the fields shown, and `reviews` carries each review's author, state and `submittedAt`. The default limit is 30 for PRs and 20 for runs, so always pass `--limit`, and check that the number of rows is below the limit; otherwise the data is silently cut off. In scripts and CI, `gh` reads the token from `GH_TOKEN`; it is never printed or committed.
 
-The distribution numbers tell a deeper story than the averages. Average first review takes 26.3 hours — but the median is 14 hours, which means a few PRs are sitting for days and skewing the mean. Merge after approval takes 4.1 hours. Average PR is 247 lines. The largest PR clocks in at 1,842 lines — a billing refactor that nobody wanted to review because of its size.
-
-And the review load is wildly uneven: Noa gave 23 reviews, while Wei and Sam gave 2-3 each. That's not a distribution — it's a dependency on one person.
-
-### Step 2: Analyze Patterns and Trends
-
-A single sprint's numbers show what happened. But patterns only emerge when you compare across sprints — is review time getting worse, or was this sprint an anomaly? Is the CI pass rate a trend or a blip?
+### Step 2: Compute the metrics
 
 ```text
-Analyze the sprint data. Compare against the last 3 sprints. Identify trends, bottlenecks, and anomalies.
+For each PR compute hours to first review (ignoring the author's own reviews), hours
+to merge and size in changed lines. Then per reviewer review counts, and the CI pass rate.
 ```
 
-The trend analysis across four sprints reveals patterns invisible in any single sprint:
+```python
+import pandas as pd
 
-| Metric | S20 | S21 | S22 | S23 | Trend |
-|---|---|---|---|---|---|
-| PRs merged | 28 | 32 | 29 | 31 | Stable |
-| Avg review time | 18h | 21h | 24h | 26h | Degrading |
-| CI pass rate | 91% | 88% | 85% | 83% | Degrading |
-| Deploy frequency | 4/wk | 3.5/wk | 4/wk | 3.5/wk | Stable |
-| Avg PR size | 189 | 210 | 231 | 247 | Growing |
+def pr_frame(prs):
+    rows = []
+    for pr in prs:
+        author = (pr.get("author") or {}).get("login")
+        reviews = [r for r in pr["reviews"] if (r.get("author") or {}).get("login") != author and r.get("submittedAt")]
+        first = min((pd.Timestamp(r["submittedAt"]) for r in reviews), default=None)
+        created = pd.Timestamp(pr["createdAt"])
+        rows.append({
+            "number": pr["number"], "author": author, "lines": pr["additions"] + pr["deletions"],
+            "hours_to_first_review": (first - created).total_seconds() / 3600 if first is not None else None,
+            "hours_to_merge": (pd.Timestamp(pr["mergedAt"]) - created).total_seconds() / 3600,
+            "reviewers": sorted({r["author"]["login"] for r in reviews}),
+        })
+    return pd.DataFrame(rows)
 
-Three bottlenecks stand out:
+df = pr_frame(prs)
+per_reviewer = df.explode("reviewers")["reviewers"].value_counts()
+ci = pd.DataFrame(runs)
+done = ci[ci["conclusion"].isin(["success", "failure"])]       # skip cancelled and skipped runs
+metrics = {
+    "median_hours_to_first_review": df["hours_to_first_review"].median(),
+    "mean_hours_to_first_review": df["hours_to_first_review"].mean(),
+    "prs_over_500_lines": int((df["lines"] > 500).sum()),
+    "ci_pass_rate": (done["conclusion"] == "success").mean(),
+    "top_reviewer_share": per_reviewer.iloc[0] / per_reviewer.sum(),
+}
+```
 
-1. **Review time up 44% over 4 sprints** — Noa handles 26% of all reviews. The team doesn't have a generic "reviews are slow" problem; it has a Noa dependency problem. When Noa is in focused coding mode or on PTO, the entire review pipeline stalls.
-2. **CI pass rate down 8 points** — 11 of the 24 failures trace back to the same flaky test in the payments module (`payments/checkout.spec.ts`). One test is responsible for nearly half the CI noise, and it's been failing intermittently for 3 sprints without getting fixed.
-3. **PR sizes creeping up** — 4 PRs exceeded 500 lines this sprint. Larger PRs take longer to review (the 1,842-line PR sat for 3 days), which feeds back into the review time problem. It's a compounding cycle.
+The script was run on a small synthetic dataset to check the logic. Things the agent has to state with the numbers:
 
-On the positive side: zero production incidents (first clean sprint in 6 cycles), and Kai, the new hire, shipped 3 PRs in week 2 — the fastest ramp-up the team has seen.
+- Report the median next to the mean. One 1,800-line PR waiting three days drags the mean up; the median shows the typical wait.
+- PRs merged with no review have no first-review time; count them separately (`df["hours_to_first_review"].isna().sum()`) because that is a finding in itself.
+- Review counts are review submissions, not comments, and an author's own reviews are excluded.
+- The workflow-run pass rate counts every run, including re-runs of the same commit, so a flaky test shows up as lower pass rate even if the final build is green. Say which it is.
+- Deploy frequency is only available if deploys are a workflow: filter `gh run list --workflow deploy.yml` to successful runs. Otherwise leave it out.
 
-### Step 3: Generate the Retrospective Report
-
-The raw analysis is useful for the engineering manager, but the retro meeting needs a document the whole team can discuss — organized around what to celebrate, what to fix, and what to do about it:
+### Step 3: Compare with earlier sprints
 
 ```text
-Create a sprint retrospective report with sections for what went well,
-what needs attention, specific action items, and team shoutouts. Include
-the data to back up every claim. No vague observations — every "needs
-attention" item should have a number attached.
+Run the same code for the last three sprint windows, append each result to
+retro-history.json, and show the trend table.
 ```
 
-**Sprint 23 Retrospective Report (Feb 3-14)**
+Each sprint's `metrics` dictionary is appended to `retro-history.json` with the sprint label, and a pandas DataFrame over that file gives the trend table. Mark a metric as "degrading" only if it moved in the same direction across at least three sprints; with two points, say it moved and wait for the next one. The script is the same every sprint, which is the point: the numbers stay comparable.
 
-**Dashboard:** 31 PRs merged | 187 commits | 7 deploys | 0 incidents | 83% CI pass rate
+For a cause behind a CI trend, look at the failures themselves. `gh run view <run-id> --log-failed` prints the logs of the failed jobs; the agent counts which test name appears most across the failed runs, and reports "N of M failures name the same test" only when it has counted them.
 
-**What Went Well**
-- Zero production incidents — first clean sprint in 6 cycles
-- Kai (new hire) shipped 3 PRs in week 2, fully ramped
-- Billing refactor landed (1,842 lines) without breaking anything
-- Deploy cadence held steady at 3.5/week despite review delays
-
-**What Needs Attention**
-- **Review time up 44% over 4 sprints** (now 26h average). Noa handled 26% of all reviews while Wei and Sam averaged 2-3 each. Suggestion: rotate review assignments with a round-robin bot, set an 8-hour SLA for first review.
-- **CI reliability declining** (83% pass rate, was 91% four sprints ago). 11 of 24 failures from the same flaky test in the payments module. Suggestion: fix or quarantine `payments/checkout.spec.ts` this sprint.
-- **PR sizes creeping up** (247 avg lines, was 189 four sprints ago). 4 PRs exceeded 500 lines this sprint. Suggestion: add a CI warning at 300 lines encouraging developers to split into stacked PRs.
-
-**Action Items**
-1. Fix flaky test: `payments/checkout.spec.ts` — owner: Sam, by Sprint 24 Wednesday
-2. Set up round-robin PR assignment in GitHub — owner: Noa, by Sprint 24 Monday
-3. Add PR size warning at 300 lines in CI — owner: Amir, by Sprint 24 Friday
-
-**Shoutouts**
-- Noa: 23 reviews this sprint, keeping the team unblocked (even though the load is unsustainable)
-- Kai: fastest ramp-up in team history, 3 quality PRs in first full week
-- Team: first zero-incident sprint in 3 months
-
-### Step 4: Track Action Item Follow-Through
-
-The retro report is useless if nobody follows up. The biggest failure mode of retrospectives isn't generating the wrong insights — it's writing action items that never get done. Checking the historical record:
+### Step 4: Write the retro document
 
 ```text
-Check which action items from the last 3 retros were actually completed. Show the follow-through rate.
+Create retro-sprint-23.md using the report template: a two-sentence summary, what went well,
+what needs attention (each with a number), action items with an owner and a date, and a
+metrics table showing this sprint, last sprint and the trend.
 ```
 
-| Sprint | Action Items | Completed | Partial | Abandoned | Rate |
-|---|---|---|---|---|---|
-| S20 | 4 | 2 | 1 | 1 | 50% |
-| S21 | 3 | 2 | 0 | 1 | 67% |
-| S22 | 5 | 3 | 0 | 2 | 60% |
+report-generator's weekly template gives the structure; the agent fills it only from the metrics above. The rules from that skill apply: lead with impact, quantify every "needs attention" item, label items honestly (On Track, At Risk, Blocked, Complete) and keep it to one page. Observations about people ("Noa did 26% of the reviews") are framed as load on the process, not as a judgement, and the manager reads them before the meeting.
 
-Overall follow-through: **58%**. Nearly half the action items from retros never get completed. The team is generating insights faster than it's acting on them.
+### Step 5: Track the action items
 
-Worse: two items keep recurring without resolution. "Reduce flaky tests" appeared in S20, S21, and S23 — three retros, same problem, never fixed. "Distribute review load" appeared in S21 and S23. The same problems keep surfacing because the action items are too vague ("reduce flaky tests") instead of specific ("fix `payments/checkout.spec.ts`, owner: Sam, by Wednesday").
-
-Recommendation: limit action items to 3 per sprint (not 4-5), assign explicit owners, and set concrete deadlines. Fewer commitments, more completions. Track follow-through in every retro report so the team can see whether things are actually changing.
+Keep the previous retro's action items in the history file with an owner, a due date and a status. Before generating the new report, the agent lists last retro's items and asks the manager for each status (completed, partial, abandoned); it does not guess from commits. The new document opens with that follow-through rate. Items that recur in several retros are written more specifically ("quarantine `payments/checkout.spec.ts`, owner Sam, Wednesday" instead of "reduce flaky tests"), and the team takes at most three items per sprint.
 
 ## Real-World Example
 
-Jess, engineering manager at a 12-person product team, ran the same retro format for 8 months. The team always said reviews were slow and tests were flaky, but nothing changed. Without data, she couldn't prioritize which problem mattered more, prove it was getting worse, or assign meaningful ownership.
+Jess, engineering manager of a 12-person product team, has run the same retro format for eight months. She runs the two `gh` commands and the script before the next retro and gets a table covering the last four sprints. The median time to first review is the stable number; the mean is far higher because of a few PRs that waited days, and one reviewer accounts for about a quarter of all reviews. These figures are for the example team.
 
-She ran the analysis workflow before the next retro. The data showed review time had increased 44% over 4 sprints — a trend completely invisible in weekly experience but obvious in the numbers. More striking: one engineer was doing 26% of all reviews while two others averaged 2-3 per sprint. The problem wasn't "reviews are slow" — it was "we're dependent on one person for a quarter of our review capacity, and that person is burning out."
-
-She projected the report in the retro meeting. For the first time, the discussion was specific: not "reviews are slow" but "reviews average 26 hours and Noa is carrying 26% of the load." The team agreed on 3 targeted actions with owners and deadlines. She tracked follow-through in the next sprint's report — 2 of 3 completed, and review time dropped to 18 hours. The retro went from a ritual everyone endured to a tool that actually changed how the team worked.
+In the meeting she projects the report. The discussion moves from "reviews are slow" to "reviews for large PRs wait the longest, and a quarter of the reviews depend on one person". The team picks three actions with owners and dates. The next sprint's report opens with the follow-through on those items and the new review numbers, so the effect of the change is visible instead of remembered.
