@@ -1,11 +1,10 @@
 ---
 title: Add Product Analytics to a SaaS App
 slug: add-product-analytics-to-saas-app
-description: Deploy PostHog self-hosted, instrument event tracking for a Next.js SaaS app, build onboarding funnels, and add session replay to debug UX issues.
+description: Set up PostHog for a Next.js SaaS app (Cloud or a self-hosted hobby instance), instrument event tracking, build onboarding funnels, add session replay, and send billing events from the server.
 skills:
   - posthog
   - nextjs
-  - docker-helper
 category: data-ai
 tags:
   - product-analytics
@@ -18,605 +17,160 @@ tags:
 
 # Add Product Analytics to a SaaS App
 
-Mateo's team shipped a project management tool three months ago. They have 2,000 users, but they're flying blind — no idea which features people actually use, where users drop off during onboarding, or why the free-to-paid conversion rate sits at 3%. They've decided to deploy PostHog self-hosted (they handle sensitive project data and need to keep analytics in-house) and instrument their Next.js app with event tracking, funnels, and session replay.
+Mateo's team shipped a project management tool three months ago. They have 2,000 users, but they're flying blind: no idea which features people use, where users drop off during onboarding, or why the free-to-paid conversion rate sits at 3%. They decide to use PostHog for event tracking, funnels and session replay in their Next.js app.
 
-## Step 1 — Deploy PostHog Self-Hosted with Docker Compose
+## Step 1: Choose where PostHog runs
 
-The team runs their infrastructure on a single VPS with Docker Compose. PostHog needs PostgreSQL, Redis, ClickHouse, and Kafka — the official Docker Compose file bundles everything.
+The simplest route is PostHog Cloud. Mateo's team handles sensitive project data, so they pick the EU region (`https://eu.i.posthog.com` for ingestion, `https://eu.posthog.com` for the app and API), which keeps events in the EU. In the project settings they copy the **project token** (`phc_...`). It is public and may appear in browser code. A **personal API key** (`phx_...`) is secret and is never shipped to the browser.
 
-```yaml
-# docker-helper.posthog.yml — PostHog self-hosted stack.
-# Sits alongside the existing app stack. Uses a dedicated network.
-version: '3.8'
+If policy requires running it themselves, PostHog supports a "hobby" deployment on one Linux VM with Docker (PostHog's docs ask for roughly 4 vCPU, 16 GB RAM and 30 GB of storage on Ubuntu, plus a DNS A record pointing at the VM). It is meant for small installs, and PostHog states that self-hosted deployments are officially unsupported. PostHog ships the installer as a script in its repository; it supports Ubuntu only and uses `sudo` and `apt`, so Mateo downloads it, reads it, and only then runs it. The script is not piped into a shell. It clones the PostHog repository, writes the configuration, asks for a domain and starts the whole stack (web, worker, Postgres, ClickHouse, Redis, a Redpanda broker and a Caddy proxy that obtains the TLS certificate) with Docker Compose. It also sends one anonymous install-start event to PostHog, which he accepts or removes after reading the script.
 
-services:
-  posthog:
-    image: posthog/posthog:latest
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgres://posthog:${POSTHOG_DB_PASSWORD}@posthog-db:5432/posthog
-      REDIS_URL: redis://posthog-redis:6379/
-      CLICKHOUSE_HOST: posthog-clickhouse
-      KAFKA_HOSTS: posthog-kafka:9092
-      SECRET_KEY: ${POSTHOG_SECRET_KEY}
-      SITE_URL: https://analytics.projectflow.io
-      IS_BEHIND_PROXY: 'true'
-    ports:
-      - '127.0.0.1:8000:8000'
-    depends_on:
-      - posthog-db
-      - posthog-redis
-      - posthog-clickhouse
-      - posthog-kafka
-    networks:
-      - posthog-net
+```bash
+curl -fsSL -o deploy-hobby https://raw.githubusercontent.com/PostHog/posthog/HEAD/bin/deploy-hobby
+less deploy-hobby                      # read it first
+bash deploy-hobby latest-release analytics.projectflow.io
+```
 
-  posthog-db:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: posthog
-      POSTGRES_USER: posthog
-      POSTGRES_PASSWORD: ${POSTHOG_DB_PASSWORD}
-    volumes:
-      - posthog-pg-data:/var/lib/postgresql/data
-    networks:
-      - posthog-net
+Hand-written compose files for the whole stack, as older guides show, do not match the current architecture. Use PostHog's current self-hosting page for upgrades and sizing.
 
-  posthog-redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - posthog-redis-data:/data
-    networks:
-      - posthog-net
+## Step 2: Add the SDK to Next.js
 
-  posthog-clickhouse:
-    image: clickhouse/clickhouse-server:23.8
-    restart: unless-stopped
-    volumes:
-      - posthog-ch-data:/var/lib/clickhouse
-    networks:
-      - posthog-net
-
-  posthog-kafka:
-    image: bitnami/kafka:3.5
-    restart: unless-stopped
-    environment:
-      KAFKA_CFG_ZOOKEEPER_CONNECT: posthog-zookeeper:2181
-      ALLOW_PLAINTEXT_LISTENER: 'yes'
-    depends_on:
-      - posthog-zookeeper
-    networks:
-      - posthog-net
-
-  posthog-zookeeper:
-    image: bitnami/zookeeper:3.8
-    restart: unless-stopped
-    environment:
-      ALLOW_ANONYMOUS_LOGIN: 'yes'
-    volumes:
-      - posthog-zk-data:/bitnami/zookeeper
-    networks:
-      - posthog-net
-
-volumes:
-  posthog-pg-data:
-  posthog-redis-data:
-  posthog-ch-data:
-  posthog-zk-data:
-
-networks:
-  posthog-net:
-    driver: bridge
+```bash
+npm install posthog-js
 ```
 
 ```bash
-# deploy-posthog.sh — Generate secrets and bring up the PostHog stack.
-# Run once on the server to initialize PostHog.
-#!/bin/bash
-set -euo pipefail
-
-export POSTHOG_SECRET_KEY=$(openssl rand -hex 32)
-export POSTHOG_DB_PASSWORD=$(openssl rand -hex 16)
-
-# Save secrets
-cat > .env.posthog <<EOF
-POSTHOG_SECRET_KEY=$POSTHOG_SECRET_KEY
-POSTHOG_DB_PASSWORD=$POSTHOG_DB_PASSWORD
-EOF
-
-# Start the stack
-docker compose -f docker-helper.posthog.yml --env-file .env.posthog up -d
-
-# Wait for PostHog to be ready
-echo "Waiting for PostHog..."
-until curl -sf http://localhost:8000/_health > /dev/null 2>&1; do
-  sleep 5
-done
-echo "PostHog is running. Set up your account at http://localhost:8000"
+# .env.local (the project token is public; the personal API key never goes here)
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_your_project_token
+NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-Mateo puts Caddy in front of PostHog to handle TLS:
-
-```Caddyfile
-# Caddyfile — Reverse proxy for PostHog with automatic HTTPS.
-analytics.projectflow.io {
-    reverse_proxy localhost:8000
-}
-```
-
-## Step 2 — Install the PostHog SDK in Next.js
-
-The app is a Next.js 14 App Router project. PostHog needs to initialize on the client side and persist across route changes.
+Next.js loads `instrumentation-client.ts` from the project root before the app hydrates, so no provider component is needed:
 
 ```typescript
-// lib/posthog.ts — PostHog client initialization for Next.js.
-// Configured with autocapture, session recording, and development debug mode.
-import posthog from 'posthog-js'
+// instrumentation-client.ts
+import posthog from "posthog-js";
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY!
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST!
-
-export function initPostHog() {
-  if (typeof window === 'undefined') return
-
-  posthog.init(POSTHOG_KEY, {
-    api_host: POSTHOG_HOST,
-    autocapture: true,
-    capture_pageview: false, // We handle this manually for App Router
-    capture_pageleave: true,
-    session_recording: {
-      maskAllInputs: false,
-      maskInputOptions: {
-        password: true,
-        email: false,
-      },
-      maskTextSelector: '[data-ph-mask]',
-    },
-    loaded: (ph) => {
-      if (process.env.NODE_ENV === 'development') ph.debug()
-    },
-  })
-}
-
-export { posthog }
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
+  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
+  defaults: "2026-08-30",
+  person_profiles: "identified_only",
+  session_recording: {
+    maskAllInputs: true,
+    maskTextSelector: "[data-ph-mask]",
+    blockSelector: "[data-ph-block]",
+  },
+});
 ```
+
+`defaults` pins SDK behavior to a date; with a date from 2025-05-24 on, single-page route changes produce pageviews automatically. `person_profiles: "identified_only"` creates profiles only for logged-in users. If the site sets a Content-Security-Policy, allow `https://*.posthog.com` in `script-src` and `connect-src`, and `blob:` in `worker-src`, or events silently never arrive. (On a self-hosted instance, allow your own PostHog domain instead.)
+
+## Step 3: Instrument the key events
+
+Mateo keeps a short, documented list of events named `object_action` in snake_case, and puts variations in properties:
 
 ```typescript
-// components/posthog-provider.tsx — PostHog context provider for React.
-// Wraps the app to initialize tracking and capture page views on navigation.
-'use client'
-import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect, useRef } from 'react'
-import { initPostHog, posthog } from '@/lib/posthog'
+// lib/analytics.ts
+import posthog from "posthog-js";
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const initialized = useRef(false)
-
-  useEffect(() => {
-    if (!initialized.current) {
-      initPostHog()
-      initialized.current = true
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!initialized.current) return
-    const url = `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`
-    posthog.capture('$pageview', { $current_url: url })
-  }, [pathname, searchParams])
-
-  return <>{children}</>
+export function identifyUser(user: { id: string; email: string; plan: string }) {
+  posthog.identify(user.id, { email: user.email, plan: user.plan });
 }
+
+export function logout() {
+  posthog.reset();
+}
+
+export const track = {
+  signedUp: (method: "email" | "github") => posthog.capture("user_signed_up", { method }),
+  onboardingStep: (step: string) => posthog.capture("onboarding_step_completed", { step_name: step }),
+  projectCreated: (template: string) => posthog.capture("project_created", { template }),
+};
 ```
 
-```typescript
-// app/layout.tsx — Root layout with PostHog provider.
-// Wraps the entire app so every page gets tracking.
-import { PostHogProvider } from '@/components/posthog-provider'
-import { Suspense } from 'react'
+`identifyUser` runs once after login with the ID from the app's own auth system (not the email), which joins anonymous browsing, replays and later server events into one person. `logout` resets the identity so the next user of the browser does not inherit it. The wizard calls `track.onboardingStep("create_workspace")`, `track.onboardingStep("invite_team")` and so on, and `track.projectCreated(template)` after the first project is saved.
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <Suspense fallback={null}>
-          <PostHogProvider>{children}</PostHogProvider>
-        </Suspense>
-      </body>
-    </html>
-  )
-}
+## Step 4: Build the onboarding funnel
+
+After a few days of traffic, in PostHog he opens **Product analytics > New insight > Funnels** and adds the steps in order: `user_signed_up`, `onboarding_step_completed` filtered by `step_name = create_workspace`, the same event with `step_name = invite_team`, then `project_created`. He sets the conversion window to 14 days. The chart shows conversion and drop-off between steps, and clicking a drop-off bar lists the people who left, with a link to their session recordings. The free-to-paid funnel is built the same way, ending in `upgrade_completed` (Step 6). Retention is a second insight: first event `user_signed_up`, returning event `project_created`, by week.
+
+To reuse an insight in code or a report, query it with HogQL through the API from a trusted machine, using a personal API key with the `query:read` scope:
+
+```bash
+export POSTHOG_PERSONAL_API_KEY=phx_...   # set from your secret store
+curl -s https://eu.posthog.com/api/projects/$POSTHOG_PROJECT_ID/query/ \
+  -H "Authorization: Bearer $POSTHOG_PERSONAL_API_KEY" -H "Content-Type: application/json" \
+  -d '{"query": {"kind": "HogQLQuery", "query": "SELECT properties.step_name, count() FROM events WHERE event = '"'"'onboarding_step_completed'"'"' AND timestamp > now() - INTERVAL 14 DAY GROUP BY 1 ORDER BY 2 DESC"}}'
 ```
 
-## Step 3 — Instrument Key Feature Events
+## Step 5: Session replay for UX debugging
 
-Mateo's team defines a tracking plan: the events that matter for understanding user behavior and measuring conversions. They create a typed event layer to keep tracking consistent.
+Replay is switched on per project under **Settings > Replay**. The `session_recording` options in Step 2 mask all inputs (password fields are always masked), blur anything marked `data-ph-mask` and drop anything marked `data-ph-block`. Add the class `ph-no-capture` to anything that must never be recorded, such as card forms or health data. EU users need a consent decision before recording: start with `opt_out_capturing_by_default: true` and call `posthog.opt_in_capturing()` from the consent banner.
 
-```typescript
-// lib/analytics.ts — Centralized event tracking for the ProjectFlow app.
-// Every tracked interaction goes through this module for consistency.
-import { posthog } from '@/lib/posthog'
+In **Replay**, Mateo filters recordings by the person's properties (`plan = free`) or by an event such as the last funnel step they reached, and watches the sessions of users who stopped at "Invite team". The pattern he finds, an invite form that fails silently on a malformed address, becomes a fix the same week.
 
-// --- Authentication events ---
+## Step 6: Send billing events from the server
 
-export function trackSignup(method: 'google' | 'github' | 'email') {
-  posthog.capture('user_signed_up', {
-    method,
-  })
-  posthog.people.set({ signup_method: method })
-}
+Upgrades happen in Stripe, so the server sends `upgrade_completed` from its webhook. Mateo sets `client_reference_id` to the app's own user ID when creating the Checkout Session, so the server event joins the same person as the browser events. The handler verifies the signature (`stripe.Webhook.construct_event` checks the HMAC in constant time and rejects old timestamps) before it trusts anything, and ignores replays of an event it has already seen:
 
-export function trackLogin(method: string) {
-  posthog.capture('user_logged_in', { method })
-}
-
-// --- Onboarding events ---
-
-export function trackOnboardingStarted() {
-  posthog.capture('onboarding_started')
-}
-
-export function trackOnboardingStep(step: number, stepName: string) {
-  posthog.capture('onboarding_step_completed', {
-    step_number: step,
-    step_name: stepName,
-  })
-}
-
-export function trackOnboardingCompleted(totalTimeSeconds: number) {
-  posthog.capture('onboarding_completed', {
-    total_time_seconds: totalTimeSeconds,
-  })
-}
-
-// --- Core feature events ---
-
-export function trackProjectCreated(templateUsed: boolean) {
-  posthog.capture('project_created', { template_used: templateUsed })
-}
-
-export function trackTaskCreated(projectId: string, hasDeadline: boolean, hasAssignee: boolean) {
-  posthog.capture('task_created', {
-    project_id: projectId,
-    has_deadline: hasDeadline,
-    has_assignee: hasAssignee,
-  })
-}
-
-export function trackInviteSent(role: string) {
-  posthog.capture('team_invite_sent', { role })
-}
-
-export function trackViewSwitched(view: 'board' | 'list' | 'timeline' | 'calendar') {
-  posthog.capture('view_switched', { view_type: view })
-}
-
-// --- Upgrade events ---
-
-export function trackUpgradePromptShown(trigger: string) {
-  posthog.capture('upgrade_prompt_shown', { trigger })
-}
-
-export function trackUpgradeStarted(plan: string) {
-  posthog.capture('upgrade_started', { plan })
-}
-
-export function trackUpgradeCompleted(plan: string, amount: number) {
-  posthog.capture('upgrade_completed', { plan, amount_usd: amount })
-}
-
-// --- User identification ---
-
-export function identifyUser(
-  userId: string,
-  properties: { email: string; name: string; plan: string; createdAt: string }
-) {
-  posthog.identify(userId, {
-    email: properties.email,
-    name: properties.name,
-    plan: properties.plan,
-    created_at: properties.createdAt,
-  })
-}
+```bash
+pip install posthog stripe flask
 ```
-
-Then they wire the events into the actual components:
-
-```typescript
-// app/(app)/onboarding/steps.tsx — Onboarding wizard with analytics tracking.
-// Each step completion fires an event that feeds into the onboarding funnel.
-'use client'
-import { useState, useRef } from 'react'
-import {
-  trackOnboardingStarted,
-  trackOnboardingStep,
-  trackOnboardingCompleted,
-} from '@/lib/analytics'
-
-const STEPS = [
-  { name: 'Create Workspace', component: CreateWorkspaceStep },
-  { name: 'Invite Team', component: InviteTeamStep },
-  { name: 'Create First Project', component: CreateProjectStep },
-  { name: 'Add First Task', component: AddTaskStep },
-]
-
-export function OnboardingWizard() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const startTime = useRef(Date.now())
-
-  // Track onboarding start on mount
-  useState(() => {
-    trackOnboardingStarted()
-  })
-
-  function handleStepComplete() {
-    trackOnboardingStep(currentStep + 1, STEPS[currentStep].name)
-
-    if (currentStep === STEPS.length - 1) {
-      const totalSeconds = Math.round((Date.now() - startTime.current) / 1000)
-      trackOnboardingCompleted(totalSeconds)
-      // Redirect to dashboard
-      return
-    }
-
-    setCurrentStep((s) => s + 1)
-  }
-
-  const StepComponent = STEPS[currentStep].component
-
-  return (
-    <div className="max-w-xl mx-auto py-12">
-      <div className="mb-8">
-        <p className="text-sm text-gray-500">
-          Step {currentStep + 1} of {STEPS.length}
-        </p>
-        <h2 className="text-2xl font-bold">{STEPS[currentStep].name}</h2>
-      </div>
-      <StepComponent onComplete={handleStepComplete} />
-    </div>
-  )
-}
-```
-
-## Step 4 — Build the Onboarding Funnel
-
-With events flowing, Mateo creates a funnel in PostHog to see where users drop off during onboarding. He uses the PostHog API to set this up programmatically so it's reproducible:
 
 ```python
-# scripts/setup_funnels.py — Create PostHog insights for onboarding analysis.
-# Run once to set up the dashboards the team needs.
-import requests
+# billing_webhook.py
+import os
 
-POSTHOG_HOST = 'https://analytics.projectflow.io'
-API_KEY = 'phx_your_personal_api_key'
-PROJECT_ID = '1'
-
-headers = {'Authorization': f'Bearer {API_KEY}'}
-
-# Onboarding funnel
-onboarding_funnel = requests.post(
-    f'{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights/',
-    headers=headers,
-    json={
-        'name': 'Onboarding Funnel',
-        'description': 'Tracks user progression through the 4-step onboarding wizard',
-        'filters': {
-            'insight': 'FUNNELS',
-            'events': [
-                {'id': 'user_signed_up', 'type': 'events', 'order': 0, 'name': 'Signed Up'},
-                {'id': 'onboarding_started', 'type': 'events', 'order': 1, 'name': 'Started Onboarding'},
-                {'id': 'onboarding_step_completed', 'type': 'events', 'order': 2, 'name': 'Created Workspace',
-                 'properties': [{'key': 'step_name', 'value': 'Create Workspace', 'type': 'event'}]},
-                {'id': 'onboarding_step_completed', 'type': 'events', 'order': 3, 'name': 'Invited Team',
-                 'properties': [{'key': 'step_name', 'value': 'Invite Team', 'type': 'event'}]},
-                {'id': 'onboarding_step_completed', 'type': 'events', 'order': 4, 'name': 'Created Project',
-                 'properties': [{'key': 'step_name', 'value': 'Create First Project', 'type': 'event'}]},
-                {'id': 'onboarding_completed', 'type': 'events', 'order': 5, 'name': 'Completed Onboarding'},
-            ],
-            'funnel_window_days': 7,
-            'funnel_viz_type': 'steps',
-        }
-    }
-)
-print(f"Onboarding funnel created: {onboarding_funnel.json().get('short_id')}")
-
-# Free-to-paid conversion funnel
-conversion_funnel = requests.post(
-    f'{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights/',
-    headers=headers,
-    json={
-        'name': 'Free to Paid Conversion',
-        'description': 'Tracks the journey from signup to paid subscription',
-        'filters': {
-            'insight': 'FUNNELS',
-            'events': [
-                {'id': 'user_signed_up', 'type': 'events', 'order': 0},
-                {'id': 'onboarding_completed', 'type': 'events', 'order': 1},
-                {'id': 'project_created', 'type': 'events', 'order': 2},
-                {'id': 'team_invite_sent', 'type': 'events', 'order': 3},
-                {'id': 'upgrade_prompt_shown', 'type': 'events', 'order': 4},
-                {'id': 'upgrade_completed', 'type': 'events', 'order': 5},
-            ],
-            'funnel_window_days': 30,
-        }
-    }
-)
-print(f"Conversion funnel created: {conversion_funnel.json().get('short_id')}")
-
-# Weekly retention
-retention = requests.post(
-    f'{POSTHOG_HOST}/api/projects/{PROJECT_ID}/insights/',
-    headers=headers,
-    json={
-        'name': 'Weekly Retention',
-        'description': 'Are users coming back week over week?',
-        'filters': {
-            'insight': 'RETENTION',
-            'target_entity': {'id': 'user_signed_up', 'type': 'events'},
-            'returning_entity': {'id': '$pageview', 'type': 'events'},
-            'retention_type': 'retention_first_time',
-            'total_intervals': 8,
-            'period': 'Week',
-        }
-    }
-)
-print(f"Retention insight created: {retention.json().get('short_id')}")
-```
-
-## Step 5 — Add Session Replay for UX Debugging
-
-Session replay is already enabled from the SDK config in Step 2. Now Mateo configures it to be useful — linking recordings to specific users and events so the team can find relevant sessions quickly.
-
-```typescript
-// lib/posthog-replay.ts — Session replay helpers for targeted debugging.
-// Tag recordings and control capture for specific scenarios.
-import { posthog } from '@/lib/posthog'
-
-export function tagSessionWithError(error: Error, context: string) {
-  /**
-   * When an error occurs, tag the recording so the team can find it.
-   * These sessions show up when filtering recordings by the error tag.
-   */
-  posthog.capture('$exception', {
-    $exception_message: error.message,
-    $exception_type: error.name,
-    context,
-  })
-}
-
-export function markSessionAsHighValue(reason: string) {
-  /**
-   * Flag sessions from paying users or users hitting upgrade flows.
-   * The team reviews these weekly to understand what drives conversions.
-   */
-  posthog.capture('high_value_session', { reason })
-}
-```
-
-```typescript
-// components/error-boundary.tsx — React error boundary with PostHog session tagging.
-// Captures errors and links them to the session recording for debugging.
-'use client'
-import { Component, ReactNode } from 'react'
-import { tagSessionWithError } from '@/lib/posthog-replay'
-
-interface Props {
-  children: ReactNode
-  fallback: ReactNode
-}
-
-interface State {
-  hasError: boolean
-}
-
-export class AnalyticsErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false }
-
-  static getDerivedStateFromError(): State {
-    return { hasError: true }
-  }
-
-  componentDidCatch(error: Error) {
-    tagSessionWithError(error, 'react-error-boundary')
-  }
-
-  render() {
-    if (this.state.hasError) return this.props.fallback
-    return this.props.children
-  }
-}
-```
-
-## Step 6 — Backend Event Tracking for Subscriptions
-
-Some events happen server-side — Stripe webhooks for payments, API usage metering, and background jobs. The team adds the Python SDK to their FastAPI backend.
-
-```python
-# app/analytics.py — Server-side PostHog tracking for the FastAPI backend.
-# Captures events that originate from webhooks and background processes.
+import stripe
+from flask import Flask, request
 from posthog import Posthog
 
-posthog_client = Posthog(
-    project_api_key='phc_your_project_key',
-    host='https://analytics.projectflow.io'
+app = Flask(__name__)
+posthog = Posthog(
+    os.environ["POSTHOG_PROJECT_TOKEN"],
+    host=os.environ.get("POSTHOG_HOST", "https://eu.i.posthog.com"),
 )
+WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
+seen_events: set[str] = set()  # use a unique DB constraint or Redis SETNX in production
 
-def track_subscription_event(user_id: str, event: str, plan: str, amount_cents: int):
-    """Track subscription lifecycle events from Stripe webhooks."""
-    posthog_client.capture(
-        distinct_id=user_id,
-        event=event,
-        properties={
-            'plan': plan,
-            'amount_cents': amount_cents,
-            'currency': 'usd',
-        }
-    )
 
-def track_api_usage(user_id: str, endpoint: str, latency_ms: float, status_code: int):
-    """Track API call for usage metering and performance analysis."""
-    posthog_client.capture(
-        distinct_id=user_id,
-        event='api_call',
-        properties={
-            'endpoint': endpoint,
-            'latency_ms': latency_ms,
-            'status_code': status_code,
-        }
-    )
-
-def update_user_plan(user_id: str, plan: str, mrr_cents: int):
-    """Update the user's plan in PostHog after a subscription change."""
-    posthog_client.identify(
-        distinct_id=user_id,
-        properties={
-            'plan': plan,
-            'mrr_cents': mrr_cents,
-        }
-    )
-```
-
-```python
-# app/webhooks/stripe.py — Stripe webhook handler with PostHog tracking.
-# Fires analytics events for subscription lifecycle changes.
-from fastapi import APIRouter, Request, HTTPException
-import stripe
-from app.analytics import track_subscription_event, update_user_plan
-
-router = APIRouter()
-
-@router.post('/webhooks/stripe')
-async def stripe_webhook(request: Request):
-    payload = await request.body()
-    sig_header = request.headers.get('stripe-signature')
-
+@app.post("/webhooks/stripe")
+def stripe_webhook():
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400)
+        # Verifies the Stripe-Signature HMAC (constant-time) and the timestamp tolerance
+        event = stripe.Webhook.construct_event(
+            request.get_data(), request.headers.get("Stripe-Signature", ""), WEBHOOK_SECRET
+        )
+    except (ValueError, stripe.SignatureVerificationError):
+        return "", 400
 
-    if event['type'] == 'customer.subscription.created':
-        sub = event['data']['object']
-        user_id = sub['metadata']['user_id']
-        plan = sub['metadata']['plan']
-        amount = sub['items']['data'][0]['price']['unit_amount']
+    if event["id"] in seen_events:  # Stripe retries; do not count a payment twice
+        return "", 200
+    seen_events.add(event["id"])
 
-        track_subscription_event(user_id, 'subscription_created', plan, amount)
-        update_user_plan(user_id, plan, amount)
-
-    elif event['type'] == 'customer.subscription.deleted':
-        sub = event['data']['object']
-        user_id = sub['metadata']['user_id']
-        plan = sub['metadata']['plan']
-
-        track_subscription_event(user_id, 'subscription_cancelled', plan, 0)
-        update_user_plan(user_id, 'free', 0)
-
-    return {'status': 'ok'}
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"].to_dict()  # StripeObject has no .get()
+        user_id = session.get("client_reference_id")  # set to your own user ID at checkout
+        if user_id:
+            posthog.capture(
+                "upgrade_completed",
+                distinct_id=user_id,
+                properties={
+                    "amount_cents": session.get("amount_total"),
+                    "currency": session.get("currency"),
+                    "$insert_id": event["id"],
+                },
+            )
+    return "", 200
 ```
 
-After a week of data collection, Mateo's team discovers that 60% of users drop off at the "Invite Team" onboarding step — people signing up solo don't want to invite teammates yet. They make the step optional, and the onboarding completion rate jumps from 35% to 58%. Session replays show that users on the free plan keep clicking the timeline view (a paid feature), so they redesign the upgrade prompt to appear contextually when users interact with premium features instead of burying it in settings. The free-to-paid conversion rate climbs from 3% to 7% in the first month.
+The PostHog Python client batches events in a background thread. A long-running server needs nothing more, but short scripts and serverless handlers must call `posthog.flush()` or `posthog.shutdown()` before they exit. The raw request body must reach `construct_event` unparsed.
+
+## Summary
+
+With about 200 lines of code, the team now sees where onboarding loses people, watches the sessions behind each drop-off, and ties revenue events to the same person as their clicks. Choosing Cloud or a self-hosted hobby instance only changes the `api_host` value and who operates the servers.
+
+## Related Skills
+
+- `posthog`: events, funnels, replay, feature flags and the query API
+- `nextjs`: the App Router app that hosts the instrumentation
