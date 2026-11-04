@@ -15,7 +15,7 @@ Your engineering team is about to take on a major project requiring Kubernetes, 
 
 ## The Solution
 
-Use **data-analysis** to process skills data and identify gaps, **report-generator** to produce individual development plans and team-level summaries, and **web-research** to recommend specific training resources.
+Use **data-analysis** to process skills data and identify gaps, **report-generator** to produce individual development plans and team-level summaries, and **web-research** to find current training resources. Check every recommended course or certification yourself before it goes into a plan: the agent searches live, but courses get renamed and retired.
 
 ## Step-by-Step Walkthrough
 
@@ -35,27 +35,38 @@ Tell the agent what skills matter for your team:
 
 ### 2. Analyze the skills data
 
-```text
-Skills Gap Analysis — Engineering Team (12 members)
+**data-analysis** loads the survey with pandas and counts, per skill, how many engineers rate 3 or higher. `skills-survey.csv` has one row per engineer and one 1-5 column per skill:
 
-Skill Coverage Map (1-5 scale, 3+ = proficient):
+```python
+import pandas as pd
 
-| Skill                | Team Avg | Proficient | Gap    |
-|----------------------|----------|------------|--------|
-| TypeScript           | 3.8      | 10/12      | Low    |
-| PostgreSQL           | 3.2      | 8/12       | Low    |
-| CI/CD                | 3.0      | 7/12       | Medium |
-| Kubernetes           | 1.9      | 2/12       | HIGH   |
-| Event-driven arch    | 2.1      | 3/12       | HIGH   |
-| Real-time processing | 1.6      | 1/12       | HIGH   |
-
-Critical gaps: Only 2 team members are proficient in Kubernetes,
-and only 1 can handle real-time data processing independently.
+df = pd.read_csv("skills-survey.csv").set_index("engineer")
+summary = pd.DataFrame({"avg": df.mean().round(1), "proficient": (df >= 3).sum()})
+summary["of"] = len(df)
+# share of the team at 3+: under 35% = HIGH gap, under 60% = Medium
+summary["gap"] = pd.cut(summary["proficient"] / summary["of"],
+                        bins=[-0.01, 0.34, 0.6, 1.0], labels=["HIGH", "Medium", "Low"])
+print(summary.sort_values("avg"))
 ```
 
-### 3. Get individual development plans
+```console
+$ python gap.py
+              avg  proficient  of     gap
+realtime      1.6           1  12    HIGH
+kubernetes    1.9           2  12    HIGH
+event_driven  2.1           3  12    HIGH
+cicd          3.0           7  12  Medium
+postgresql    3.2           8  12     Low
+typescript    3.8          10  12     Low
+```
 
-> Generate a personalized development plan for each team member based on their current skills and the team's gaps. Prioritize so we cover the critical gaps fastest.
+Only 2 of 12 engineers are proficient in Kubernetes, and only 1 can handle real-time data processing independently. Self-ratings are inconsistent, so ask each engineer's lead to review the ratings for the three HIGH rows before acting on them.
+
+### 3. Ask for individual development plans
+
+> Generate a personalized development plan for each team member based on their current skills and the team's gaps. Prioritize so we cover the critical gaps fastest. For each gap, use web-research to find the official documentation, tutorials or certification that fits, and cite the URL.
+
+(web-research calls the Brave Search API, so it needs a `BRAVE_API_KEY` in the environment; Brave's Search plan includes a small free monthly credit but requires a card.)
 
 ### 4. Create targeted development plans
 
@@ -64,14 +75,14 @@ Individual Development Plans:
 
 ALEX (Current: TypeScript 5, PostgreSQL 4, Kubernetes 1)
 Priority: Kubernetes — best candidate due to strong infrastructure interest
-- Week 1-2: Complete "Kubernetes for Developers" on KodeKloud
-- Week 3-4: Deploy the staging environment to k8s with mentor support
-- Week 5-6: Handle one production k8s debugging session with oversight
-Target: Kubernetes proficiency level 3 within 6 weeks
+- Week 1-2: Work through the official [Kubernetes tutorials](https://kubernetes.io/docs/tutorials/) on a local cluster
+- Week 3-4: Deploy the staging environment to Kubernetes with mentor support
+- Week 5-6: Handle one production Kubernetes debugging session with oversight
+Target: Kubernetes proficiency level 3 within 6 weeks; optional stretch goal, the [CKAD certification](https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/)
 
 NORA (Current: TypeScript 4, Event-driven 2, Real-time 2)
 Priority: Real-time processing — has event-driven foundation to build on
-- Week 1-2: Study WebSocket patterns with the Socket.io docs and build a prototype
+- Week 1-2: Study WebSocket patterns with the [Socket.IO docs](https://socket.io/docs/v4/) and build a prototype
 - Week 3-4: Implement real-time notifications feature in the product
 - Week 5-6: Lead the streaming data pipeline design session
 Target: Real-time processing level 3 within 6 weeks
@@ -83,14 +94,14 @@ Target: Real-time processing level 3 within 6 weeks
 
 > Create an executive summary with hiring recommendations if training alone won't close the gaps in time.
 
-The agent produces a report showing which gaps training can close, which require hiring, and the estimated timeline and cost for each option.
+**report-generator** turns the table and the plans into a Markdown or PDF report. It shows which gaps training can close, which require hiring, and the estimated timeline and cost for each option.
 
 ## Real-World Example
 
-Femi is the engineering manager at a 20-person SaaS startup that just landed a contract requiring real-time analytics — a capability the team hasn't built before. Using the skills gap analysis:
+Femi is the engineering manager at a 20-person SaaS startup (12 of them engineers) that just landed a contract requiring real-time analytics — a capability the team hasn't built before. Using the skills gap analysis:
 
 1. Femi collects self-assessments from all 12 engineers via a simple 1-5 rating spreadsheet
 2. The agent cross-references skills with the project requirements and identifies that real-time processing is the most critical gap with only one semi-proficient engineer
 3. Development plans are generated — two engineers with strong data backgrounds are fast-tracked for streaming training
-4. The agent recommends hiring one senior engineer with Kafka experience rather than training everyone, saving 8 weeks of ramp-up time
+4. The agent recommends hiring one senior engineer with Kafka experience rather than training everyone, which Femi estimates saves about 8 weeks of ramp-up time
 5. Femi uses the report to justify the hire to the CEO and allocate the $4,800 training budget to the three highest-impact development plans
