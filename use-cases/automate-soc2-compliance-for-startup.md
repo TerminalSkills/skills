@@ -1,259 +1,233 @@
 ---
 title: Automate SOC 2 Compliance for a Growing Startup
 slug: automate-soc2-compliance-for-startup
-description: A 25-person SaaS startup automates SOC 2 Type II compliance — using infrastructure-as-code for audit trails, automated vulnerability scanning in CI, access control policies enforced via code, encrypted secrets management, and continuous monitoring — turning a 6-month manual audit nightmare into a self-documenting, always-compliant system.
-skills: [semgrep, checkov, infisical, otel-js, docker-helper]
+description: A 25-person SaaS startup automates the evidence for a SOC 2 Type II report using code scanning in CI, infrastructure-as-code checks, managed secrets, scripted access reviews and incident metrics, so audit questions have automatic, timestamped answers.
+skills: [semgrep, checkov, infisical, otel-js]
 category: devops
 tags: [compliance, soc2, security, automation, audit, infrastructure, devsecops]
 ---
 
 # Automate SOC 2 Compliance for a Growing Startup
 
-Mei is the CTO of a 25-person SaaS startup that just landed their first enterprise prospect. The deal is worth $400K/year, but the procurement team requires SOC 2 Type II certification. Mei has heard horror stories: 6+ months of preparation, $50K+ in consulting fees, teams of people filling spreadsheets. She doesn't have the budget for a compliance team, so she automates everything — every control is enforced via code, every policy is a CI check, every audit question has an automated answer.
+Mei is the CTO of a 25-person SaaS startup that just landed its first enterprise prospect. The procurement team requires a SOC 2 Type II report. Mei has no compliance team, so she makes the technical controls produce their own evidence: every control runs as code, every run leaves a timestamped artifact, and the audit questions about engineering practice have an automated answer.
 
-## The Problem: 80+ Controls, Zero Compliance Team
+## What automation can and cannot do
 
-SOC 2 Type II requires demonstrating that security controls work *continuously* over a review period (typically 6-12 months). The five trust service criteria — Security, Availability, Processing Integrity, Confidentiality, and Privacy — translate into 80+ specific controls. Doing this manually means:
+SOC 2 is an attestation report written by an independent CPA firm, not a certification you can buy. A Type I report describes whether controls are designed properly at one date. A Type II report covers an observation period (commonly 3 to 12 months, agreed with the auditor) and shows the controls operated the whole time. That is why evidence has to be continuous.
 
-- Reviewing access permissions quarterly (and proving it)
-- Scanning for vulnerabilities regularly (and documenting results)
-- Managing secrets securely (and showing rotation logs)
-- Monitoring infrastructure for anomalies (and keeping incident records)
-- Maintaining change management processes (and tracking every deploy)
+Scripts cover the technical controls: secure development, change management, access reviews, secrets, monitoring. They do not replace the written policies, risk assessment, vendor reviews, onboarding and offboarding records, security training or the auditor's own testing. Mei starts by agreeing with the auditor which criteria are in scope (Security is always included) and which evidence format they accept. The control IDs and thresholds below are a starting point, not a mapping the auditor has signed off.
 
-Mei's approach: make compliance a side effect of good engineering practices, all codified and automated.
+## Control 1: Secure code, static analysis on every pull request
 
-## Control 1: Secure Code — Static Analysis in CI
-
-Every pull request is automatically scanned for security vulnerabilities before merge. This satisfies multiple SOC 2 controls around secure development practices.
+The open-source Semgrep CLI runs in CI. It fails the build on error-level findings in code changed by the pull request, and the SARIF file is kept as evidence and shown in GitHub code scanning. (`returntocorp/semgrep-action` is the old, retired way to do this.)
 
 ```yaml
 # .github/workflows/security-scan.yml
 name: Security Scan
 on: pull_request
-
+permissions:
+  contents: read
+  security-events: write       # upload SARIF to code scanning
 jobs:
   semgrep:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Semgrep SAST scan
-        uses: returntocorp/semgrep-action@v1
+      - uses: actions/checkout@v7
         with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/owasp-top-ten
-            p/typescript
-          generateSarif: true
-
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v3
+          fetch-depth: 0       # --baseline-commit needs the base branch
+      - run: pip install semgrep
+      - name: Semgrep (fails on new ERROR findings)
+        run: >-
+          semgrep scan --config p/security-audit --config p/secrets --config p/owasp-top-ten --config p/typescript
+          --metrics=off --severity=ERROR --error
+          --sarif --output=semgrep.sarif
+          --baseline-commit=origin/${{ github.base_ref }}
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always()
         with:
           sarif_file: semgrep.sarif
-
-      # Fail PR if critical/high findings
-      - name: Check for blocking findings
-        run: |
-          CRITICAL=$(cat semgrep.sarif | jq '[.runs[].results[] | select(.level == "error")] | length')
-          if [ "$CRITICAL" -gt 0 ]; then
-            echo "❌ $CRITICAL critical findings. Fix before merging."
-            exit 1
-          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: semgrep-${{ github.sha }}
+          path: semgrep.sarif
+          retention-days: 90
 ```
 
-The audit evidence is automatic: every PR shows the scan results, every merge proves the code was reviewed and scanned. No spreadsheet needed.
+Registry rulesets are fetched with `--config p/...`; `--metrics=off` keeps usage data private. Every pull request now has a scan result attached, and the branch protection rule "require status checks" makes the scan unskippable, which is the evidence for the change-management control. GitHub deletes artifacts after 90 days by default (the limit can be raised up to 400 days on private repositories), so a monthly job copies them to the audit storage described under Control 2.
 
-## Control 2: Infrastructure Security — IaC Scanning
+## Control 2: Infrastructure security, IaC scanning
 
-Infrastructure misconfigurations (public S3 buckets, unencrypted databases, overly permissive IAM) are caught before they reach production:
+Checkov evaluates Terraform (and Dockerfiles or Kubernetes manifests) against built-in policies before anything is applied. It exits 1 when a check fails, which blocks the pull request.
 
 ```yaml
   checkov:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v7
       - name: Checkov IaC scan
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: ./infrastructure
           framework: terraform,dockerfile,kubernetes
-          output_format: sarif
-          soft_fail: false
-          # SOC 2 relevant checks
-          check: >-
-            CKV_AWS_18,CKV_AWS_19,CKV_AWS_20,CKV_AWS_21,
-            CKV_AWS_145,CKV_AWS_149,CKV_AWS_300
-
-      # Generate compliance report
-      - name: Compliance report
-        run: |
-          checkov -d ./infrastructure --framework terraform \
-            --output json > /tmp/checkov-report.json
-
-          # Store as audit artifact
-          aws s3 cp /tmp/checkov-report.json \
-            s3://audit-artifacts/checkov/$(date +%Y-%m-%d)/report.json
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: checkov-${{ github.sha }}
+          path: results.sarif
+          retention-days: 90
 ```
 
-Every infrastructure change is scanned, and results are stored in an audit bucket with timestamps. When the auditor asks "how do you ensure infrastructure is configured securely?", Mei shows them the CI pipeline and the artifact bucket.
+On day one an existing codebase fails many checks. Mei starts from a baseline (the same job with `soft_fail: true`), fixes the findings on the access, encryption and logging policies first, then removes `soft_fail`. A check she decides not to meet gets an inline `#checkov:skip=CKV_AWS_18:reason` comment, so the exception and its justification live in the repository and in the review history. The auditor reads those comments as documented risk acceptance.
 
-## Control 3: Secrets Management
+For long-term retention, a scheduled workflow assumes an AWS role through GitHub OIDC (`aws-actions/configure-aws-credentials@v6`, no stored keys) and copies the artifacts to an S3 bucket with versioning and object lock enabled, so the evidence cannot be edited after the fact.
 
-No hardcoded secrets, rotating credentials, audit logs for every access:
+## Control 3: Secrets management
+
+No secrets in the repository or in `.env` files on servers. Infisical holds them per environment, and each service authenticates as a machine identity with read access to its own environment only.
 
 ```typescript
-// lib/config.ts — All secrets from Infisical, never from env files
-import { InfisicalClient } from "@infisical/sdk";
+// lib/config.ts
+import { InfisicalSDK } from "@infisical/sdk";
 
-const infisical = new InfisicalClient({
-  siteUrl: "https://vault.ourcompany.com",
-  auth: { universalAuth: { clientId: process.env.INFISICAL_CLIENT_ID!, clientSecret: process.env.INFISICAL_CLIENT_SECRET! } },
-});
+const client = new InfisicalSDK({ siteUrl: process.env.INFISICAL_SITE_URL });
 
-export async function getSecrets() {
-  const secrets = await infisical.listSecrets({
+export async function loadSecrets() {
+  await client.auth().universalAuth.login({
+    clientId: process.env.INFISICAL_CLIENT_ID!,
+    clientSecret: process.env.INFISICAL_CLIENT_SECRET!,
+  });
+  const { secrets } = await client.secrets().listSecrets({
     environment: process.env.NODE_ENV === "production" ? "prod" : "dev",
     projectId: process.env.INFISICAL_PROJECT_ID!,
+    secretPath: "/",
   });
-
-  return {
-    databaseUrl: secrets.find(s => s.secretName === "DATABASE_URL")!.secretValue,
-    stripeKey: secrets.find(s => s.secretName === "STRIPE_SECRET_KEY")!.secretValue,
-    jwtSecret: secrets.find(s => s.secretName === "JWT_SECRET")!.secretValue,
+  const byName = new Map(secrets.map((s) => [s.secretKey, s.secretValue]));
+  const need = (name: string) => {
+    const v = byName.get(name);
+    if (!v) throw new Error(`secret ${name} is missing`);
+    return v;
   };
-}
-
-// Infisical provides:
-// - Audit log of every secret access (who, when, which secret)
-// - Automatic rotation reminders
-// - Secret versioning (rollback if rotation breaks something)
-// - IP allowlisting (secrets only accessible from production IPs)
-```
-
-The SOC 2 evidence: Infisical's audit log shows every secret access with timestamps, user IDs, and IP addresses. Automatic rotation policies prove secrets are rotated quarterly.
-
-## Control 4: Access Control Reviews
-
-Instead of quarterly manual reviews, access is defined as code and continuously validated:
-
-```typescript
-// scripts/access-audit.ts — Runs weekly via cron
-// Generates evidence for SOC 2 access review controls
-
-async function auditAccess() {
-  const report: AuditReport = {
-    date: new Date().toISOString(),
-    findings: [],
-    summary: { totalUsers: 0, activeUsers: 0, inactiveUsers: 0, excessivePermissions: 0 },
-  };
-
-  // Check GitHub org members
-  const githubMembers = await octokit.orgs.listMembers({ org: "ourcompany" });
-  const activeEmployees = await hr.getActiveEmployees();
-  const activeEmails = new Set(activeEmployees.map(e => e.email));
-
-  for (const member of githubMembers.data) {
-    const profile = await octokit.users.getByUsername({ username: member.login });
-    if (!activeEmails.has(profile.data.email)) {
-      report.findings.push({
-        severity: "high",
-        type: "orphaned-account",
-        detail: `GitHub user ${member.login} (${profile.data.email}) not found in active employee list`,
-        recommendation: "Remove from GitHub organization",
-      });
-    }
-  }
-
-  // Check AWS IAM for excessive permissions
-  const iamUsers = await iam.listUsers({}).promise();
-  for (const user of iamUsers.Users) {
-    const policies = await iam.listAttachedUserPolicies({ UserName: user.UserName }).promise();
-    const hasAdmin = policies.AttachedPolicies.some(p => p.PolicyName === "AdministratorAccess");
-    if (hasAdmin) {
-      report.findings.push({
-        severity: "medium",
-        type: "excessive-permission",
-        detail: `IAM user ${user.UserName} has AdministratorAccess`,
-        recommendation: "Replace with least-privilege policy",
-      });
-      report.summary.excessivePermissions++;
-    }
-  }
-
-  // Store report for auditor
-  await s3.putObject({
-    Bucket: "audit-artifacts",
-    Key: `access-reviews/${new Date().toISOString().split("T")[0]}/report.json`,
-    Body: JSON.stringify(report, null, 2),
-  }).promise();
-
-  // Alert on findings
-  if (report.findings.some(f => f.severity === "high")) {
-    await slack.send("#security", `⚠️ Access audit found ${report.findings.length} issues. Review: ${reportUrl}`);
-  }
-
-  return report;
+  return { databaseUrl: need("DATABASE_URL"), jwtSecret: need("JWT_SECRET") };
 }
 ```
 
-## Control 5: Continuous Monitoring and Incident Response
+`INFISICAL_SITE_URL` is only set for the EU cloud or a self-hosted instance. The client ID and secret are the one secret the service is deployed with, so Mei prefers OIDC or Kubernetes auth where the platform supports it and rotates the Universal Auth client secret on a schedule. Infisical keeps an audit log of secret access and changes and versions every secret. Secret rotation is configured in the dashboard per secret (for example a database user with a rotation interval in days); services must re-read the secret at least once per interval. Check which of these features your Infisical plan includes before promising them to the auditor, and export the audit log to the evidence bucket at the end of each month.
 
-All services report to a centralized observability stack. Anomalies trigger alerts, and every alert creates an incident record:
+## Control 4: Access reviews
+
+A quarterly spreadsheet becomes a weekly script. It compares GitHub organization members against the HR system's export and flags IAM users with `AdministratorAccess`. Matching is by GitHub login, because members' email addresses are often private and the API returns `null` for them.
 
 ```typescript
-// lib/monitoring.ts — Structured incident logging
-import { trace, metrics } from "@opentelemetry/api";
+// scripts/access-audit.ts  (npm install @octokit/rest @aws-sdk/client-iam)
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { Octokit } from "@octokit/rest";
+import { IAMClient, ListUsersCommand, ListAttachedUserPoliciesCommand } from "@aws-sdk/client-iam";
 
-const meter = metrics.getMeter("compliance");
-const incidentCounter = meter.createCounter("security_incidents", {
+type Finding = { severity: "high" | "medium"; type: string; detail: string };
+
+async function main() {
+  const findings: Finding[] = [];
+  // HR export: [{ "github": "mei-chen", "active": true }, ...] (kept outside the repo, read from a path)
+  const people: { github: string; active: boolean }[] = JSON.parse(readFileSync(process.env.HR_EXPORT!, "utf8"));
+  const activeLogins = new Set(people.filter((p) => p.active).map((p) => p.github.toLowerCase()));
+
+  const octokit = new Octokit({ auth: process.env.AUDIT_GH_TOKEN });
+  const members = await octokit.paginate(octokit.rest.orgs.listMembers, { org: process.env.AUDIT_ORG!, per_page: 100 });
+  for (const m of members) {
+    if (!activeLogins.has(m.login.toLowerCase())) {
+      findings.push({ severity: "high", type: "orphaned-account", detail: `GitHub user ${m.login} is not an active employee` });
+    }
+  }
+
+  const iam = new IAMClient({});
+  let marker: string | undefined;
+  do {
+    const page = await iam.send(new ListUsersCommand({ Marker: marker }));
+    for (const u of page.Users ?? []) {
+      const attached = await iam.send(new ListAttachedUserPoliciesCommand({ UserName: u.UserName }));
+      if (attached.AttachedPolicies?.some((p) => p.PolicyName === "AdministratorAccess")) {
+        findings.push({ severity: "medium", type: "excessive-permission", detail: `IAM user ${u.UserName} has AdministratorAccess` });
+      }
+    }
+    marker = page.IsTruncated ? page.Marker : undefined;
+  } while (marker);
+
+  const date = new Date().toISOString().slice(0, 10);
+  mkdirSync("evidence", { recursive: true });
+  writeFileSync(`evidence/access-review-${date}.json`, JSON.stringify({ date, findings }, null, 2));
+  if (findings.some((f) => f.severity === "high")) process.exit(1); // a red scheduled run notifies the team
+}
+main();
+```
+
+```yaml
+# .github/workflows/access-review.yml
+name: Access review
+on:
+  schedule: [{ cron: "0 6 * * 1" }]    # Mondays 06:00 UTC
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AUDIT_ROLE_ARN }}     # read-only IAM role, trusted via OIDC
+          aws-region: eu-west-1
+      - run: npx tsx scripts/access-audit.ts
+        env:
+          AUDIT_ORG: ourcompany
+          AUDIT_GH_TOKEN: ${{ secrets.AUDIT_GH_TOKEN }}   # fine-grained token, organization permission "Members: read" only (secret names cannot start with GITHUB_)
+          HR_EXPORT: ./hr-export.json                      # an earlier step must write it from your HR system
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: access-review-${{ github.run_id }}
+          path: evidence/
+```
+
+A high finding exits non-zero, the scheduled run turns red and the team is notified by the usual workflow alerts. Fixing it (removing the orphaned account) and the date of the fix are recorded in the ticket that links to the run. Even with this script, the written offboarding checklist is what the auditor tests for terminated employees.
+
+## Control 5: Monitoring and incident records
+
+Services export metrics and traces over OTLP (set up as in the `otel-js` skill). Security alerts increment a counter, so dashboards and alert rules can show how many incidents occurred, and every alert also becomes a persistent incident record, because the auditor samples incidents and asks to see how each was handled.
+
+```typescript
+// lib/incidents.ts
+import { metrics } from "@opentelemetry/api";
+
+type Severity = "low" | "medium" | "high";
+export interface SecurityAlert { id: string; severity: Severity; type: string; description: string }
+export interface IncidentStore { create(i: { alertId: string; severity: Severity; type: string; description: string; status: "open"; detectedAt: Date }): Promise<{ id: string }> }
+
+const incidentCounter = metrics.getMeter("compliance").createCounter("security_incidents", {
   description: "Security incidents detected",
 });
 
-async function handleSecurityAlert(alert: SecurityAlert) {
+export async function handleSecurityAlert(alert: SecurityAlert, store: IncidentStore) {
   incidentCounter.add(1, { severity: alert.severity, type: alert.type });
-
-  // Create incident record (SOC 2 requires documented incident response)
-  const incident = await db.incidents.create({
-    data: {
-      alertId: alert.id,
-      severity: alert.severity,
-      type: alert.type,
-      description: alert.description,
-      status: "open",
-      detectedAt: new Date(),
-      assignedTo: getOnCallEngineer(),
-    },
+  return store.create({
+    alertId: alert.id, severity: alert.severity, type: alert.type,
+    description: alert.description, status: "open", detectedAt: new Date(),
   });
-
-  // Notify
-  await slack.send("#incidents", {
-    text: `🚨 Security incident INC-${incident.id}: ${alert.description}`,
-    blocks: [
-      { type: "section", text: { type: "mrkdwn", text: `*Severity:* ${alert.severity}\n*Type:* ${alert.type}\n*Assigned:* ${incident.assignedTo}` } },
-      { type: "actions", elements: [
-        { type: "button", text: { type: "plain_text", text: "Acknowledge" }, action_id: `ack-${incident.id}` },
-      ] },
-    ],
-  });
-
-  return incident;
 }
 ```
 
-## Results
+The `IncidentStore` is whatever the team already uses for tickets (an issue tracker, an incidents table). Each record must be updated with who acknowledged it, when it was resolved and what was changed, and an incident that touches customer data also follows the breach-notification steps in the written incident response policy.
 
-Mei's team achieves SOC 2 Type II certification in 4 months (vs. typical 6-12 months), spending $12K total (vs. $50K+ typical).
+## What the evidence folder looks like
 
-- **Audit readiness**: Auditor accessed artifact bucket and reviewed CI pipelines; 90% of evidence was already collected automatically
-- **Findings**: Zero critical findings; 3 minor observations (all addressed same week)
-- **Time investment**: 2 engineers, ~4 hours/week each for 4 months; not a full-time compliance role
-- **CI security**: Semgrep caught 47 vulnerabilities in PRs before merge over the review period (all documented)
-- **IaC scanning**: Checkov prevented 12 infrastructure misconfigurations from reaching production
-- **Secret hygiene**: Zero hardcoded secrets found in codebase; all rotated on schedule
-- **Access reviews**: Weekly automated reviews caught 2 orphaned accounts within 1 day of employee departure
-- **Incident response**: 8 security alerts during review period, all acknowledged within 15 minutes, resolved within 4 hours
-- **Enterprise deal**: Closed the $400K contract 3 weeks after certification; 2 more enterprise prospects in pipeline
-- **Ongoing effort**: <2 hours/week to maintain compliance; everything is automated and continuous
+After a few weeks of operation Mei's evidence bucket contains, per pull request, a Semgrep and a Checkov result tied to a commit; per week, an access review file; per month, a secrets audit-log export; and the incident records with timestamps. When the auditor asks how insecure code is stopped from reaching production, she shows the required status checks and a sample of recent runs instead of screenshots. The remaining effort is the human side: policies, training records and the auditor's walkthroughs. The timeline and cost depend on the auditor, the observation period and how many controls are already in place, so ask for quotes before promising a date to the prospect.
+
+## Related Skills
+
+- `semgrep`: static analysis rules, SARIF output and CI setup
+- `checkov`: IaC policy scanning, baselines and inline skips
+- `infisical`: secrets per environment, machine identities, audit log
+- `otel-js`: OpenTelemetry traces and metrics for Node.js services
