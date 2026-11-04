@@ -102,6 +102,7 @@ underlying skill ([seog](skills/seog/)) still installs on its own with
 | [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
 | [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
 | [routerbase-gateway](skills/routerbase-gateway/) | Data & AI | Integrate OpenAI-compatible apps with [routerbase](https://routerbase.com/) model routing and media generation |
+| [bifrost](skills/bifrost/) | Data & AI | Run a self-hosted, open-source AI gateway with fallbacks, virtual keys, caching and an MCP gateway |
 | [prompt-tester](skills/prompt-tester/) | Data & AI | Test and evaluate AI prompts systematically with rubrics and test suites |
 | [monorepo-manager](skills/monorepo-manager/) | Development | Manage dependencies and workspaces in monorepos |
 | [data-validator](skills/data-validator/) | Data & AI | Validate data quality in CSV, JSON, and database exports |
