@@ -1,7 +1,7 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:1230869a4c954e9c8ef3d07ea967004c1c6d840a1e74d0d12b6c38337381264b",
-  "scoredAt": "2026-11-04T23:54:40.468Z",
+  "version": "1.3.0",
+  "skillHash": "sha256:8372762831c4c5613db0948d8241cfacf0f4ec77c951ff5964a118ca7800d146",
+  "scoredAt": "2026-11-05T20:42:20.937Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing environment variables or exporter failures."
+        "detail": "The instructions lack guidance for error handling and edge cases such as missing environment variables or unreachable endpoints."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes specific platforms (Node.js, Python, Docker) and a Grafana LGTM stack, limiting portability to other environments."
+        "detail": "The skill assumes specific runtime versions (Node.js 22.15+, Python 3.10+) and Docker usage, limiting applicability to agents without those environments."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.23,
-    "baselineAvg": 30,
-    "treatmentAvg": 67,
+    "multiplier": 3.85,
+    "baselineAvg": 20,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "node-express-instrumentation-with-custom-span",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A covers the instrumentation setup, environment variables, and loading flag, but the custom span example deviates from the rubric; Response B lacks the required imports, OTLP exporters, and key details."
+        "name": "nodejs-express-otel-instrumentation",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Response A covers almost all rubric items except the OTEL_SEMCONV_STABILITY_OPT_IN variable, while Response B lacks several key requirements such as the instrumentation file, metric exporter, proper launch method, and required environment variables."
       },
       {
-        "name": "python-service-opentelemetry-and-structured-logs",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A covers more of the rubric, including pip install, bootstrap, and instrumentation command, while Response B omits key items."
+        "name": "otel-collector-config-with-memory-limiter",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A meets almost all rubric items except the validation command, while Response B fails multiple key requirements such as processor type, exporter names, and missing validation."
       },
       {
-        "name": "collector-config-and-grafana-dashboard-with-alerts",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A covers the collector config and image usage but lacks dashboard and alerts; Response B fails to match exporter names and also lacks dashboard and alerts."
+        "name": "grafana-dashboard-and-alert-setup",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes panels and alerts but omits the Loki derived field and Tempo trace linking required by the rubric, whereas Response A is empty."
       }
     ]
   }
