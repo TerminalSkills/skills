@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:48b9124b1ec7a9e3100ea996d44d12b44ec4831dfab7b349d83b364c7cf0b589",
+  "scoredAt": "2026-11-04T23:48:11.334Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.57,
+    "baselineAvg": 28,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "ts-test-watch-env",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is empty."
+      },
+      {
+        "name": "permission-restrict-script",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention node --permission or child_process.spawn restrictions."
+      },
+      {
+        "name": "debug-node-server",
+        "baseline": 85,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, including the tunneling note, while Response A omits the remote debugging tunneling requirement."
+      }
+    ]
+  }
+}
