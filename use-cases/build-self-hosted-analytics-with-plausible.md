@@ -74,12 +74,14 @@ For email reports and invitations, add `MAILER_ADAPTER`, `MAILER_EMAIL`, `SMTP_H
 
 Copy the snippet from **Site settings, General, Tracking, Site installation**. The `pa-` id in the script URL is unique to your site; do not guess it. Older tutorials show `data-domain` scripts, which are the legacy form.
 
-On the app server, keep the URL in config so it can change without code edits (set it before the first push, so it exists at build time):
+On the app server, keep the URL in config so it can change without code edits (set it before the first push: `NEXT_PUBLIC_*` values are inlined when Next.js builds):
 
 ```bash
 dokku config:set --no-restart invoice-app NEXT_PUBLIC_PLAUSIBLE_SRC="$PLAUSIBLE_SCRIPT_URL"
 git push dokku main
 ```
+
+On a buildpack deploy the variable is visible to the build. A Dockerfile build does not expose config values on its own. Name the variable as a build argument, without a value (Dokku exports every `config:set` value to `docker build`, so the key is enough): `dokku docker-options:add invoice-app build '--build-arg NEXT_PUBLIC_PLAUSIBLE_SRC'`, and declare `ARG NEXT_PUBLIC_PLAUSIBLE_SRC` before `npm run build`.
 
 `next-plausible` 4.x takes the script URL, not the domain:
 
@@ -127,7 +129,7 @@ Never put emails, names or user ids into properties; individual values cannot be
 
 ## Step 4: Slack Weekly Digest
 
-Create a Stats API key in account settings, API Keys (limited to 600 requests per hour). The API is `POST /api/v2/query`; the old `GET /api/v1/stats/*` endpoints belong to the previous generation. Without dimensions the answer is one row whose metrics follow the order requested.
+Create a Stats API key in account settings, API Keys, on your own instance (limited to 600 requests per hour; on Plausible Cloud the Stats API is a Business-plan feature, on CE it is included). The API is `POST /api/v2/query`; the old `GET /api/v1/stats/*` endpoints belong to the previous generation. Without dimensions the answer is one row whose metrics follow the order requested.
 
 ```bash
 #!/bin/bash
