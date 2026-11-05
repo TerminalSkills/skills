@@ -40,7 +40,7 @@ Homebrew (`brew install cc-connect`) and release binaries from the GitHub releas
 
 At [api.slack.com/apps](https://api.slack.com/apps) choose Create New App, From scratch, then:
 
-1. OAuth & Permissions, Bot Token Scopes: `app_mentions:read`, `chat:write`, `im:history`, `im:read`, `im:write`, `users:read`. Add `channels:history` and `groups:history` only if the bot should read channel messages without being mentioned.
+1. OAuth & Permissions, Bot Token Scopes: `app_mentions:read`, `chat:write`, `im:history`, `im:read`, `im:write`, `users:read`. Add `channels:history` and `groups:history` (plus the `message.channels` event) only if the bot should read channel messages without being mentioned.
 2. Socket Mode: enable it and generate an app-level token with the `connections:write` scope (it starts with `xapp-`).
 3. Event Subscriptions: enable events (no Request URL is needed in Socket Mode) and subscribe to the bot events `app_mention` and `message.im`.
 4. Install App, Install to Workspace, and copy the Bot User OAuth Token (it starts with `xoxb-`).
@@ -49,7 +49,7 @@ After changing scopes or events, reinstall the app or the change does not take e
 
 ### Step 3: Write the configuration
 
-cc-connect reads TOML from `~/.cc-connect/config.toml` (or `cc-connect -config <path>`). The first run creates the file, and `cc-connect web` opens an optional admin UI. Keep the tokens out of the file you commit; paste them in on the machine that runs the bridge.
+cc-connect reads TOML from `~/.cc-connect/config.toml` (or `cc-connect --config <path>`). The first run creates the file, and `cc-connect web` opens an optional admin UI. Keep the tokens out of the file you commit; paste them in on the machine that runs the bridge.
 
 ```toml
 [[projects]]
@@ -83,7 +83,7 @@ Leaving `allow_from` at its default of `"*"` lets everyone who can reach the bot
 cc-connect
 ```
 
-You should see `slack: connected` and `platform started` in the log. Invite the bot to the channel with `/invite @cc-connect` and mention it: `@cc-connect which PRs touch the billing module?`. With the default `mode = "default"`, the bot asks in chat before it runs a tool, and you reply `allow` to approve.
+You should see `slack: connected` and `platform started` in the log. Invite the bot to the channel with `/invite @cc_connect` and mention it: `@cc_connect which PRs touch the billing module?`. With the default `mode = "default"`, the bot asks in chat before it runs a tool, and you reply `allow` to approve.
 
 ### Step 5: Schedule recurring tasks
 
@@ -139,7 +139,7 @@ allow_from = "198274563"        # numeric Telegram user IDs
 
 ## Real-World Example
 
-Marcus, a senior developer at a 12-person startup, runs cc-connect on a dedicated dev box with a checkout of the billing service and `mode = "default"`. Three teammates are listed in `allow_from`. On Monday morning a product manager asks in a thread, `@cc-connect which open PRs touch the billing module, and do any look risky?`. Claude Code reads the repository, lists the PRs and flags a query built by string concatenation in one of them. The PM forwards the thread to the author without opening a terminal. Marcus approves the occasional tool prompt from his phone, and the weekday 9:00 `/cron` summary replaces his own Monday ritual of triaging the PR list.
+Marcus, a senior developer at a 12-person startup, runs cc-connect on a dedicated dev box with a checkout of the billing service and `mode = "default"`. Three teammates are listed in `allow_from`. On Monday morning a product manager asks in a thread, `@cc_connect which open PRs touch the billing module, and do any look risky?`. Claude Code reads the repository, lists the PRs and flags a query built by string concatenation in one of them. The PM forwards the thread to the author without opening a terminal. Marcus approves the occasional tool prompt from his phone, and the weekday 9:00 `/cron` summary replaces his own Monday ritual of triaging the PR list.
 
 ## Related Skills
 
