@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js 18.19+ or 20.6+, Python 3.10+. Grafana LGTM stack via Docker."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   repository: "https://github.com/open-telemetry/opentelemetry-js"
   category: devops
   tags: "observability, opentelemetry, grafana, tracing, monitoring"
@@ -166,7 +166,7 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [loki]
+      exporters: [otlphttp/loki]
 ```
 
 Put `memory_limiter` first in each pipeline, and use the `otel/opentelemetry-collector-contrib` image (the core image lacks `prometheusremotewrite`). Validate with `otelcol-contrib validate --config=otel-collector-config.yaml`.
@@ -205,7 +205,7 @@ Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
 
 **Output:** Grafana's all-in-one development image bundles the collector, Prometheus, Tempo, Loki, Pyroscope and Grafana (not for production):
 ```bash
-docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 grafana/otel-lgtm
+docker run --rm -p 127.0.0.1:3000:3000 -p 127.0.0.1:4317:4317 -p 127.0.0.1:4318:4318 grafana/otel-lgtm
 ```
 Open http://localhost:3000 (login admin/admin), send telemetry to `http://localhost:4318`, and find traces in Explore with the Tempo data source. For production use the separate Tempo, Loki and Mimir (or Prometheus) deployments behind your own collector config above, with pinned image tags from each project's releases page.
 
