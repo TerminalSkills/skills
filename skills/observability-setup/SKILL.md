@@ -8,10 +8,10 @@ description: >-
   configuration, Grafana LGTM stack deployment, dashboard provisioning, and
   alert rules.
 license: Apache-2.0
-compatibility: "Node.js 18.19+ or 20.6+, Python 3.10+. Grafana LGTM stack via Docker."
+compatibility: "Node.js 22.15+ (current @opentelemetry/sdk-node), Python 3.10+. Grafana LGTM stack via Docker."
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   repository: "https://github.com/open-telemetry/opentelemetry-js"
   category: devops
   tags: "observability, opentelemetry, grafana, tracing, monitoring"
@@ -45,16 +45,18 @@ This skill helps AI agents implement the three pillars of observability — trac
    // the exporters append /v1/traces and /v1/metrics themselves.
    const sdk = new NodeSDK({
      traceExporter: new OTLPTraceExporter(),
-     metricReader: new PeriodicExportingMetricReader({
-       exporter: new OTLPMetricExporter(),
-       exportIntervalMillis: 15000,
-     }),
+     metricReaders: [
+       new PeriodicExportingMetricReader({
+         exporter: new OTLPMetricExporter(),
+         exportIntervalMillis: 15000,
+       }),
+     ],
      instrumentations: [getNodeAutoInstrumentations()],
    });
    sdk.start();
    process.on('SIGTERM', () => sdk.shutdown().finally(() => process.exit(0)));
    ```
-   (`@opentelemetry/sdk-metrics` is installed as a dependency of the SDK; add it explicitly if your package manager is strict.)
+   (`@opentelemetry/sdk-metrics` is installed as a dependency of the SDK; add it explicitly if your package manager is strict. `@opentelemetry/sdk-node` 0.301+ takes `metricReaders` as an array; the old singular `metricReader` option is gone. It requires Node.js 22.15 or newer.)
 
 3. Load it before the app. Plain Node cannot `--require` a `.ts` file, so use the compiled file or a TypeScript runner:
    `node --require ./dist/instrumentation.js dist/index.js` or `npx tsx --import ./src/instrumentation.ts src/index.ts`. ESM apps additionally need `--experimental-loader=@opentelemetry/instrumentation/hook.mjs`. Set `OTEL_SEMCONV_STABILITY_OPT_IN=http` to get the stable `http.server.request.duration` metric used in the queries below.
@@ -205,7 +207,7 @@ Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
 
 **Output:** Grafana's all-in-one development image bundles the collector, Prometheus, Tempo, Loki, Pyroscope and Grafana (not for production):
 ```bash
-docker run --rm -p 127.0.0.1:3000:3000 -p 127.0.0.1:4317:4317 -p 127.0.0.1:4318:4318 grafana/otel-lgtm
+docker run --rm -p 127.0.0.1:3000:3000 -p 127.0.0.1:4317:4317 -p 127.0.0.1:4318:4318 grafana/otel-lgtm:0.39.0
 ```
 Open http://localhost:3000 (login admin/admin), send telemetry to `http://localhost:4318`, and find traces in Explore with the Tempo data source. For production use the separate Tempo, Loki and Mimir (or Prometheus) deployments behind your own collector config above, with pinned image tags from each project's releases page.
 
