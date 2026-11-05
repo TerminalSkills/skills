@@ -14086,7 +14086,7 @@
     {
       "name": "xquik-twitter",
       "slug": "xquik-twitter",
-      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, listing followers, exporting followers, monitoring accounts or keywords, or Xquik Twitter research and social listening.",
+      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, listing followers, exporting followers, monitoring accounts or keywords, or Xquik Twitter research and social listening. Read-only: this plugin version does not post, reply, like or send DMs.",
       "category": "automation",
       "tags": [
         "xquik",
@@ -14356,5 +14356,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-03T23:08:28.161Z"
+  "updatedAt": "2026-11-05T00:07:49.133Z"
 }
