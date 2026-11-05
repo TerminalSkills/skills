@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fdcdbc1cc7a17116e6e259d53e124a7273e1d567d8eae1e92fb9eeb374a3edf3",
+  "scoredAt": "2026-11-04T23:42:20.179Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling for API failures or missing environment variables, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Linux environment with root access or Docker, limiting applicability to other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.2,
+    "baselineAvg": 15,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "install-and-hardening",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, while Response A lacks the unattended install, result file read, and firewall/tunnel details."
+      },
+      {
+        "name": "add-client-with-quota",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with the required curl POST and GET, while Response A uses a different command and lacks the specified API calls."
+      },
+      {
+        "name": "backup-and-restart",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with correct endpoints, methods, and filename format, while Response B uses incorrect endpoints, methods, and date format."
+      }
+    ]
+  }
+}
