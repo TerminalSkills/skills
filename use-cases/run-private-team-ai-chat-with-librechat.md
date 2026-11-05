@@ -6,6 +6,7 @@ skills:
   - librechat
   - caddy
   - openrouter
+  - lobehub
 category: devops
 tags:
   - self-hosted
@@ -171,3 +172,4 @@ Brightpath moved all 25 people over in one afternoon. After the first month the 
 - [librechat](/skills/librechat) — deploys the chat app, configures providers, balances and user accounts
 - [caddy](/skills/caddy) — terminates HTTPS for chat.brightpath.dev and proxies to port 3080
 - [openrouter](/skills/openrouter) — supplies open models through one OpenAI-compatible key
+- [lobehub](/skills/lobehub) — an alternative chat workspace for the same job; choose it when the team wants agents and a knowledge base alongside chat and accepts running Postgres and S3-compatible storage next to it
