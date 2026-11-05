@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'Node.js 20+, TypeScript or modern JavaScript; an n8n instance and API key to deploy'
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: automation
   tags: "n8n, workflow, automation, sdk, typescript"
   repository: https://github.com/n8n-io/n8n
@@ -20,7 +20,7 @@ metadata:
 
 ## Overview
 
-`@n8n/workflow-sdk` is n8n's own TypeScript SDK (it lives in `packages/@n8n/workflow-sdk` of the n8n monorepo). You declare nodes with a few factory functions, wire them with `.add()` / `.to()`, and get standard n8n workflow JSON. It validates workflows, turns existing JSON into SDK code (`generateWorkflowCode`) and parses SDK code back into JSON (`parseWorkflowCode`). Checked against 0.34.2 (1 October 2026; a `beta` tag 0.35.x also exists). The package is pre-1.0 and changes weekly, so pin an exact version.
+`@n8n/workflow-sdk` is n8n's own TypeScript SDK (it lives in `packages/@n8n/workflow-sdk` of the n8n monorepo). You declare nodes with a few factory functions, wire them with `.add()` / `.to()`, and get standard n8n workflow JSON. It validates workflows, turns existing JSON into SDK code (`generateWorkflowCode`) and parses SDK code back into JSON (`parseWorkflowCode`). Checked against 0.39.5 (5 November 2026: the npm `latest` and `stable` tags; `beta` is 0.40.0 and `rc` 1.1.0). The package is pre-1.0 and changes weekly, so pin an exact version.
 
 The API is generic: there are no per-node helpers such as `httpRequest()` or `code()` and no `new WorkflowBuilder()`. Every node is `node({ type, version, config })`, and the node's `type` and `version` come from n8n (copy them from an exported workflow or `generateWorkflowCode`).
 
@@ -29,7 +29,7 @@ The API is generic: there are no per-node helpers such as `httpRequest()` or `co
 ### Install
 
 ```bash
-npm install --save-exact @n8n/workflow-sdk@0.34.2
+npm install --save-exact @n8n/workflow-sdk@0.39.5
 ```
 
 ### Building blocks
@@ -89,10 +89,10 @@ const addToNurture = node({
 
 export const leadRouting = workflow('lead-routing', 'Lead Routing')
   .add(intake)
-  .to(isHot.onTrue(notifySales).onFalse(addToNurture));
+  .to(isHot.onTrue!(notifySales).onFalse!(addToNurture));
 ```
 
-`leadRouting.validate()` returns `{ valid, errors, warnings }`; `leadRouting.toJSON()` returns `{ id, name, nodes, connections, settings }`. The `ifElse` conditions object must include `options`, `conditions` and `combinator`.
+(`onTrue!` and `onFalse!` are only there because the SDK's TypeScript types mark them optional on the node instance; they exist at runtime. The same goes for `onCase!`.) `leadRouting.validate()` returns `{ valid, errors, warnings }`; `leadRouting.toJSON()` returns `{ id, name, nodes, connections, settings }`. The `ifElse` conditions object must include `options`, `conditions` and `combinator`.
 
 ### An AI agent with memory and a tool
 
@@ -195,7 +195,7 @@ Output: `{ valid: true, errors: [], warnings: [] }` and `[ 'New Lead', 'Score >=
 ### Example 2: "Move our exported n8n workflows into git as code"
 
 ```bash
-npm install --save-exact @n8n/workflow-sdk@0.34.2 tsx
+npm install --save-exact @n8n/workflow-sdk@0.39.5 tsx
 npx tsx tools/roundtrip.ts
 ```
 
@@ -206,6 +206,6 @@ Each exported JSON becomes a readable `trigger(...)`/`node(...)` file with posit
 - Pre-1.0 and fast-moving: pin the exact version, re-run validation after every upgrade, and treat `type`/`version` pairs as data from your own n8n version (node versions differ between n8n releases).
 - Always run `validate()` or `validateWorkflow()` before deploying; it catches wrong parameters, unsafe `$json` in sub-nodes and missing `conditions` fields. Warnings such as a missing agent system message are worth fixing too.
 - Keep runtime logic in nodes (Set, Filter, IF, Code) or inside `expr('{{ ... }}')`; builder code only describes the graph.
-- Never put API keys or tokens into node parameters; use n8n credentials and `$env` or the credential store.
+- Never put API keys or tokens into node parameters; use n8n credentials. Code nodes cannot read `$env` by default in n8n 2.x (`N8N_BLOCK_ENV_ACCESS_IN_NODE` is `true`).
 - The licence is the Sustainable Use License (source-available, not open source): fine for internal business use, restricted for resale or hosting it for others. Check the terms before building a product on it.
 - The SDK produces workflow definitions only; it does not run them. Execution happens in n8n.
