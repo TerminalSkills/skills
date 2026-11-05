@@ -5,10 +5,10 @@ description: |
   Learn Docker deployment, database connections, creating questions and dashboards,
   embedding analytics, and API usage.
 license: Apache-2.0
-compatibility: 'Docker or Java 21 on macos/linux; Metabase 0.64'
+compatibility: 'Docker or Java 25 on macos/linux; Metabase 0.65'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   repository: https://github.com/metabase/metabase
   category: data-ai
   tags: "metabase, business-intelligence, dashboards, docker, analytics"
@@ -18,7 +18,7 @@ metadata:
 
 ## Overview
 
-Metabase lets anyone in your organization ask questions about data and visualize the answers as charts and dashboards — no SQL required (but SQL is supported too). The open-source edition publishes Docker images as `metabase/metabase:v0.x.y` (latest 0.64.3 at the time of writing); the paid edition is `metabase/metabase-enterprise` with `v1.x.y` tags. The Metabase API is not versioned and may change between releases.
+Metabase lets anyone in your organization ask questions about data and visualize the answers as charts and dashboards — no SQL required (but SQL is supported too). The open-source edition publishes Docker images as `metabase/metabase:v0.x.y` (0.65.3.3 is the latest at the time of writing; 0.64 is the long-term-support line, currently 0.64.5.x); the paid edition is `metabase/metabase-enterprise` with `v1.x.y` tags. The Metabase API is not versioned and may change between releases.
 
 ## Instructions
 
@@ -29,7 +29,7 @@ Metabase lets anyone in your organization ask questions about data and visualize
 # docker-compose.yml: Metabase with PostgreSQL backend
 services:
   metabase:
-    image: metabase/metabase:v0.64.3
+    image: metabase/metabase:v0.65.3.3
     ports:
       - "127.0.0.1:3000:3000"
     environment:
