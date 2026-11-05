@@ -6,6 +6,8 @@ skills:
   - pandas
   - scikit-learn
   - jupyter
+  - marimo
+  - zenml
   - postgresql
 category: data-ai
 tags:
@@ -427,3 +429,8 @@ After running the churn prediction pipeline for three months, Tomas measures the
 - **Revenue saved: $47K/month** — 74 customers per month retained × $635 average MRR. The pipeline cost is negligible (runs nightly on existing database server in <2 minutes).
 - **Top churn predictors**: login trend (declining usage), failed payments, low feature breadth, and high support ticket volume. This data helped product prioritize UX improvements for underused features.
 - **False positives are useful too** — customers flagged as high-risk who weren't actually going to churn still appreciated the proactive outreach. NPS for contacted customers increased by 12 points.
+
+## Related Skills
+
+- [marimo](/skills/marimo) — choose it instead of Jupyter for the exploration step when notebooks must be diffable in pull requests and runnable as scripts or apps
+- [zenml](/skills/zenml) — choose it when the training steps need versioned artifacts, tracked runs and a model version per nightly retrain
