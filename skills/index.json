@@ -40,6 +40,19 @@
       ]
     },
     {
+      "name": "3x-ui",
+      "slug": "3x-ui",
+      "description": "Deploys and operates 3x-ui, a web control panel for Xray-core proxy servers, and scripts it through its REST API: create inbounds, add clients with traffic quotas, expiry and IP limits, read usage, and restart Xray. Use when asked to \"install 3x-ui\", \"run an Xray panel in Docker\", \"add a proxy user with a 50 GB limit\", \"automate 3x-ui with its API\", \"reset 3x-ui credentials\", or \"back up the panel\". For hand-written Xray config files use the xray skill instead.",
+      "category": "devops",
+      "tags": [
+        "3x-ui",
+        "xray",
+        "proxy",
+        "vless",
+        "api"
+      ]
+    },
+    {
       "name": "a2a-protocol",
       "slug": "a2a-protocol",
       "description": "Builds Agent2Agent (A2A) servers and clients, the open protocol (originally from Google, now under the Linux Foundation) that lets AI agents from different frameworks call each other. Use when the user wants to create an A2A-compliant agent, build an Agent Card, implement task management, connect agents across frameworks, set up agent discovery, handle streaming responses, implement push notifications, or orchestrate multi-agent workflows. Trigger words: a2a, agent to agent, agent2agent, a2a protocol, a2a server, a2a client, agent card, agent interoperability, agent collaboration, multi-agent, agent discovery, a2a sdk, a2a task.",
@@ -3511,6 +3524,19 @@
       ]
     },
     {
+      "name": "dockurr-windows",
+      "slug": "dockurr-windows",
+      "description": "Runs a real Windows desktop or server inside a Docker container on a Linux host with KVM, using a QEMU virtual machine that installs itself and is viewed in a browser or over RDP. Use when someone asks to \"run Windows in Docker\", \"spin up a disposable Windows 11 test machine\", \"test a Windows installer from Linux\", \"get a Windows VM with RDP\", \"dockur windows\", or \"unattended Windows install with a compose file\". Covers image setup, VERSION values, resources, shared folders, first-boot scripts, RDP access and licensing.",
+      "category": "devops",
+      "tags": [
+        "windows",
+        "docker",
+        "qemu",
+        "kvm",
+        "rdp"
+      ]
+    },
+    {
       "name": "documentation-and-adrs",
       "slug": "documentation-and-adrs",
       "description": "Writes architecture decision records (ADRs) and keeps the rest of a project's documentation true after a change: README, reference comments on public interfaces and the changelog. Use when a user says \"write an ADR\", \"record this decision\", \"document why we chose X\", \"set up a decision log\", \"supersede the old decision\", \"update the README\", \"add a changelog entry\" or \"document this API\". Produces records in the Nygard or MADR format, a Keep a Changelog entry, and a script that checks the log for gaps and broken supersession links.",
@@ -4915,6 +4941,19 @@
         "hooks",
         "safety",
         "guardrails"
+      ]
+    },
+    {
+      "name": "gitdiagram",
+      "slug": "gitdiagram",
+      "description": "Shows how a public GitHub repository is built: an AI-made architecture diagram with a written explanation, the main components and their source paths, and Mermaid source. Use when the user asks \"how is owner/repo structured?\", wants an architecture overview of an open-source project before reading its code, needs Mermaid source for a repository, or wants to add the GitDiagram MCP server to Claude Code, Codex, Gemini CLI or Copilot CLI. Covers the hosted site, the .md endpoint, the MCP tools and self-hosting.",
+      "category": "development",
+      "tags": [
+        "architecture-diagram",
+        "github",
+        "mermaid",
+        "mcp",
+        "code-visualization"
       ]
     },
     {
@@ -7000,6 +7039,19 @@
       ]
     },
     {
+      "name": "lobehub",
+      "slug": "lobehub",
+      "description": "Deploys and configures LobeHub (formerly LobeChat), an open-source AI chat and agent workspace with accounts, saved conversations, agents, a knowledge base and many model providers. Use when a user asks to self-host LobeHub or LobeChat, run the lobehub/lobehub Docker image, set up Postgres, S3 and Better Auth for it, add OpenAI, Anthropic or OpenRouter keys through environment variables, restrict sign-ups, or update an existing instance.",
+      "category": "devops",
+      "tags": [
+        "lobehub",
+        "lobechat",
+        "self-hosted",
+        "ai-chat",
+        "docker"
+      ]
+    },
+    {
       "name": "localai",
       "slug": "localai",
       "description": "Expert guidance for LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. Helps developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.",
@@ -8125,6 +8177,19 @@
       ]
     },
     {
+      "name": "new-api",
+      "slug": "new-api",
+      "description": "New API is a self-hosted AI gateway that puts many LLM providers behind one OpenAI-compatible endpoint, with a web console for channels, API keys, quotas and usage logs. Use when the user asks to \"self-host an LLM gateway\", \"give each team its own API key and budget\", \"route requests across several upstream providers with failover\", \"deploy new-api\", or \"point an OpenAI client at my own gateway\". Lawful use with your own upstream keys only.",
+      "category": "devops",
+      "tags": [
+        "llm-gateway",
+        "api-gateway",
+        "openai-compatible",
+        "self-hosted",
+        "usage-tracking"
+      ]
+    },
+    {
       "name": "new-relic",
       "slug": "new-relic",
       "description": "Set up and manage New Relic for full-stack observability including APM, browser monitoring, infrastructure monitoring, and alerting. Use when a user needs to instrument applications, write NRQL queries, create dashboards, configure alert policies, or integrate New Relic with their deployment pipeline.",
@@ -8135,6 +8200,19 @@
         "apm",
         "nrql",
         "alerts"
+      ]
+    },
+    {
+      "name": "next-ai-draw-io",
+      "slug": "next-ai-draw-io",
+      "description": "Lets an AI agent draw and edit draw.io diagrams on a live browser canvas that the person can also edit by hand, with versions, undo and export to .drawio, .png and .svg. Use when the user asks to \"draw the architecture of this repo\", \"make a draw.io diagram\", \"edit this .drawio file\", \"export a diagram as PNG or SVG\", or to add the drawio MCP server (@next-ai-drawio/mcp-server) to Claude Code, Codex, Cursor or VS Code. Also covers self-hosting the Next AI Draw.io web app.",
+      "category": "design",
+      "tags": [
+        "drawio",
+        "diagrams",
+        "mcp",
+        "architecture-diagram",
+        "flowchart"
       ]
     },
     {
@@ -8307,6 +8385,19 @@
       ]
     },
     {
+      "name": "node",
+      "slug": "node",
+      "description": "Node.js is the JavaScript runtime that runs servers, command-line tools and build scripts outside the browser. Use this skill when a user asks which Node.js version to run, how to test with `node --test`, restart on change with `--watch`, load a `.env` file, run TypeScript files without a build step, restrict a script with the permission model, mix ESM and CommonJS, or attach a debugger with `--inspect`. Covers the 2026 release lines (26 Active LTS, 24 and 22 maintenance) and the built-in modules that replace common npm packages.",
+      "category": "development",
+      "tags": [
+        "nodejs",
+        "javascript",
+        "typescript",
+        "test-runner",
+        "runtime"
+      ]
+    },
+    {
       "name": "nomad",
       "slug": "nomad",
       "description": "HashiCorp Nomad is a workload orchestrator that schedules containers, VMs and standalone binaries across a cluster using HCL job files. Use when writing Nomad job specifications, running nomad job run and plan, configuring canary deployments, batch and periodic jobs, system jobs, autoscaling, Consul service registration, or Vault secrets in templates.",
@@ -8393,6 +8484,19 @@
         "ssr",
         "fullstack",
         "nitro"
+      ]
+    },
+    {
+      "name": "nvm",
+      "slug": "nvm",
+      "description": "nvm (Node Version Manager) is a shell script that installs several Node.js versions side by side in your home directory and switches between them per terminal session or per project. Use this skill when a user asks to install or upgrade Node.js without sudo, run a project on a different Node version, pin a version with `.nvmrc`, move to the newest LTS, keep global npm packages when upgrading, or fix \"nvm: command not found\" in scripts, Docker and CI. Works on Linux, macOS and WSL with bash, zsh or other POSIX shells; not for native Windows.",
+      "category": "development",
+      "tags": [
+        "nvm",
+        "nodejs",
+        "version-manager",
+        "nvmrc",
+        "shell"
       ]
     },
     {
@@ -10893,6 +10997,19 @@
       ]
     },
     {
+      "name": "ruflo",
+      "slug": "ruflo",
+      "description": "Adds an agent-orchestration layer to Claude Code (and Codex) projects: a CLI plus an MCP server that track swarms, agents, tasks and a searchable project memory, and an init step that writes agent definitions, slash commands, skills and hooks into the repository. Use when a user asks to set up ruflo or claude-flow, run \"ruflo init\", register the claude-flow MCP server, create a swarm or task list for several Claude Code agents, store and search shared project memory, or diagnose a ruflo install with \"ruflo doctor\".",
+      "category": "data-ai",
+      "tags": [
+        "multi-agent",
+        "orchestration",
+        "claude-code",
+        "mcp",
+        "agent-memory"
+      ]
+    },
+    {
       "name": "runway-ml",
       "slug": "runway-ml",
       "description": "Runway ML API generates and edits AI video and images from text, images or video, with models such as Gen-4.5, Gen-4 Turbo and Aleph 2.0. Use when generating video from a prompt or a still image, editing a clip with video-to-video, automating B-roll or product-ad pipelines, or polling Runway tasks from Python or Node.js.",
@@ -12117,6 +12234,19 @@
         "typescript",
         "babel-alternative",
         "minifier"
+      ]
+    },
+    {
+      "name": "swift",
+      "slug": "swift",
+      "description": "Swift is Apple's compiled, memory-safe programming language, and its toolchain (swift build, swift test, swift run, Swift Package Manager) builds command-line tools and servers on Linux and macOS as well as apps. Use when someone asks to \"install Swift on Linux\", \"create a Swift package\", \"add a dependency to Package.swift\", \"run Swift tests\", \"build a Swift CLI tool\", \"build a static Linux binary from Swift\", or \"pin a Swift version with swiftly\". Covers swiftly, Package.swift, Swift Testing and XCTest, and the Static Linux SDK.",
+      "category": "development",
+      "tags": [
+        "swift",
+        "swiftpm",
+        "swiftly",
+        "command-line",
+        "linux"
       ]
     },
     {
@@ -13854,6 +13984,19 @@
       ]
     },
     {
+      "name": "webpack",
+      "slug": "webpack",
+      "description": "webpack is a module bundler that turns a JavaScript project and its CSS, images and dependencies into optimized static files for the browser. Use when someone asks to \"set up webpack\", \"write a webpack config\", \"split my bundle\", \"fix a huge bundle\", \"add content hashes for caching\", \"run the webpack dev server\", \"analyze bundle size\", or to debug a webpack build error. Covers webpack 5 with webpack-cli 7, loaders, asset modules, code splitting, filesystem caching and bundle analysis.",
+      "category": "development",
+      "tags": [
+        "webpack",
+        "bundler",
+        "javascript",
+        "code-splitting",
+        "build-tools"
+      ]
+    },
+    {
       "name": "websocket-builder",
       "slug": "websocket-builder",
       "description": "When the user wants to build real-time features using WebSockets. Use when the user mentions \"WebSocket,\" \"real-time,\" \"live updates,\" \"socket,\" \"ws,\" \"push notifications,\" \"live chat,\" \"streaming data,\" or \"bidirectional communication.\" Covers server setup, room management, authentication, reconnection handling, and scaling with Redis pub/sub. For data persistence, see realtime-database.",
@@ -14356,5 +14499,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-05T20:45:40.170Z"
+  "updatedAt": "2026-11-07T11:48:57.290Z"
 }
