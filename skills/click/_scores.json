@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:0144e6dd84a27e3b984535a800e69b72924a586548e2da6c22ca9ebcce9ac06c",
+  "scoredAt": "2026-11-05T20:44:25.185Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.68,
+    "baselineAvg": 28,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "group-with-envvar-and-confirmation",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric items; Response B lacks context_settings, envvar usage, and abort=True in confirm."
+      },
+      {
+        "name": "cli-tests-with-clirunner",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Response B meets the rubric requirements more fully, using CliRunner.invoke with env and input, asserting exit codes 2 and 1, and checking prompt text, whereas Response A lacks several key checks and does not use env or the required exit codes."
+      },
+      {
+        "name": "package-cli-with-completion",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "Response B contains the required pyproject.toml and a completion script, but omits the context_settings and uses the wrong environment variable name, whereas Response A is empty."
+      }
+    ]
+  }
+}
