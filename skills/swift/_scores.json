@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:39c5ea991bb78c798656841cb486882d32ed1312f75c4b6a79d80f0566bc6e43",
+  "scoredAt": "2026-11-04T23:49:55.503Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "install-swift-and-run-hello",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands (swiftly init, swift package init, swift run hello, swift --version), while Response A omits swiftly init, package init, and the hello argument to swift run."
+      },
+      {
+        "name": "add-dependency-to-package",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required CLI commands and package entries; Response B omits the required swift package commands."
+      },
+      {
+        "name": "build-static-linux-binary",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required swift sdk install command, swift build command, and static binary confirmation."
+      }
+    ]
+  }
+}

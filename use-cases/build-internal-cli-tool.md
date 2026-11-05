@@ -2,7 +2,7 @@
 title: "Build a Custom Internal CLI Tool for Your Dev Team"
 slug: build-internal-cli-tool
 description: "Scaffold, implement, and distribute an internal CLI that automates repetitive team workflows like environment setup, deployments, and data seeding."
-skills: [coding-agent, test-generator, git-commit-pro, golang]
+skills: [coding-agent, test-generator, git-commit-pro, golang, swift]
 category: development
 tags: [cli, developer-tools, automation, internal-tooling, productivity]
 ---
@@ -118,3 +118,4 @@ New hires now clone the repo, run `dx setup`, answer a few prompts for environme
 - [test-generator](/skills/test-generator) -- the Vitest suite for commands and confirmation flows.
 - [git-commit-pro](/skills/git-commit-pro) -- Conventional Commit messages for each step.
 - [golang](/skills/golang) -- choose Go when the CLI should ship as one static binary per OS instead of requiring Node and a private npm registry on every laptop.
+- [swift](/skills/swift) -- choose swift when the team already writes Swift and the CLI should ship as one statically linked Linux binary (swiftly toolchain, Swift Package Manager, Static Linux SDK) with no runtime on the servers.
