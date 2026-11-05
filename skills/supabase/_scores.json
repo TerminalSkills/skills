@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:fe1d8d25b53ec7f48ea845550ecfdd0f55e42946ff7a76dc14ef7f11abfcd7cf",
-  "scoredAt": "2026-10-24T16:06:25.922Z",
+  "version": "1.2.1",
+  "skillHash": "sha256:eaca3053183c5225e263b75d7992e2bf1a97a7e4350b6cf69c514e9061234e07",
+  "scoredAt": "2026-11-04T23:58:10.315Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -9,21 +9,21 @@
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for migration failures or Docker startup issues."
+        "detail": "The skill does not cover error handling for many steps."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on Docker and Homebrew, which may not be available on all platforms, limiting cross-platform compatibility."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory sections that could be trimmed."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.31,
-    "baselineAvg": 13,
-    "treatmentAvg": 95,
+    "multiplier": 2.63,
+    "baselineAvg": 35,
+    "treatmentAvg": 92,
     "scenarios": [
       {
         "name": "setup-blog-backend",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Response B meets all rubric requirements, while Response A omits key elements such as migrations, profiles table, policies, trigger, and reset/push commands."
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items, including init, migration, RLS, auth, but still misses type generation; Response A lacks init/migration and type generation."
       },
       {
-        "name": "realtime-todo-list",
-        "baseline": 5,
-        "treatment": 90,
-        "rationale": "Response A includes the required Supabase SQL and TypeScript subscription logic, while Response B describes a Socket.IO solution with no Supabase elements."
-      },
-      {
-        "name": "edge-welcome-email",
-        "baseline": 10,
+        "name": "add-realtime-post-updates",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Response B fully meets the rubric while Response A does not."
+        "rationale": "A fully meets rubric, B lacks publication alter, filter, and cleanup."
+      },
+      {
+        "name": "deploy-welcome-email-function",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B is unrelated to Supabase functions and thus fails to meet the rubric."
       }
     ]
   }
