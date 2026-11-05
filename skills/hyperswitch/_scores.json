@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:16f39218e8630f82043dce6db45be0fcc2f30de7c95fb31fba8387d7b708505c",
+  "scoredAt": "2026-11-05T20:32:05.811Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Docker Compose and specific system resources, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.04,
+    "baselineAvg": 23,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "start-stack-health-check",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Response A meets the rubric by using the exact command and showing a successful health check, while Response B uses a different compose command and lacks the required details."
+      },
+      {
+        "name": "register-stripe-test-connector",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric while Response A does not."
+      },
+      {
+        "name": "create-and-confirm-test-payment",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric while Response A does not use the required Hyperswitch endpoint or fields."
+      }
+    ]
+  }
+}
