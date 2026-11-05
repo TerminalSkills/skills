@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Python 3.10+; browser-based fetchers need the Chromium build that `scrapling install` downloads"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: "web-scraping, crawler, python, browser-automation, data-extraction"
   repository: https://github.com/D4Vinci/Scrapling
@@ -34,7 +34,7 @@ pip install "scrapling[fetchers]"
 scrapling install
 ```
 
-`pip install scrapling` alone installs only the parser; importing `scrapling.fetchers` or `scrapling.spiders` then raises `ModuleNotFoundError`. `scrapling install` downloads the browsers and their system dependencies; add `--force` to reinstall.
+`pip install scrapling` alone installs only the parser; importing `scrapling.fetchers` or `scrapling.spiders` then raises `ModuleNotFoundError`. `scrapling install` downloads the browsers and their system dependencies (the dependency step uses `sudo` on Linux); add `--force` to reinstall.
 
 | Extra | Adds |
 |---|---|
@@ -50,10 +50,9 @@ A Docker image with all extras and browsers is published as `pyd4vinci/scrapling
 | Class | Engine | Use for |
 |---|---|---|
 | `Fetcher` | HTTP with browser TLS impersonation | Static HTML and JSON APIs; fastest |
-| `DynamicFetcher` | Chromium through Playwright | Content rendered by JavaScript |
-| `StealthyFetcher` | Patched Chromium with fingerprint spoofing | Sites that block automated browsers |
+| `StealthyFetcher` | Patchright-patched Chromium with fingerprint spoofing | Content rendered by JavaScript, and sites that block automated browsers |
 
-Start with `Fetcher`. Move to a browser only when the data is missing from the raw HTML. Each class has a session variant (`FetcherSession`, `DynamicSession`, `StealthySession`) that keeps cookies and, for browsers, keeps the browser open between requests.
+Start with `Fetcher`. Move to a browser only when the data is missing from the raw HTML. Each class has a session variant (`FetcherSession`, `StealthySession`) that keeps cookies and, for browsers, keeps the browser open between requests. `RemoteSession` attaches to a browser that is already running (see below). Since 0.5 there is no separate plain-Playwright fetcher: `DynamicFetcher`, `DynamicSession` and `AsyncDynamicSession` were removed and importing them raises `ImportError`; use `StealthyFetcher`, `StealthySession` and `AsyncStealthySession`.
 
 ### HTTP requests
 
@@ -99,15 +98,15 @@ markdown = page.markdown()                           # whole page as Markdown
 ### JavaScript-rendered pages
 
 ```python
-from scrapling.fetchers import DynamicFetcher, DynamicSession
+from scrapling.fetchers import StealthyFetcher, StealthySession
 
 
 def open_second_page(browser_page):
-    browser_page.click("li.next a")                  # Playwright page API
+    browser_page.click("li.next a")                  # Patchright page API (Playwright-compatible)
     browser_page.wait_for_selector(".quote")
 
 
-page = DynamicFetcher.fetch(
+page = StealthyFetcher.fetch(
     "https://quotes.toscrape.com/js/",
     headless=True,
     network_idle=True,
@@ -117,15 +116,17 @@ page = DynamicFetcher.fetch(
 )
 print(page.url, len(page.css(".quote")))
 
-with DynamicSession(headless=True, network_idle=True) as session:
+with StealthySession(headless=True, network_idle=True) as session:
     for number in (1, 2, 3):
         listing = session.fetch(f"https://quotes.toscrape.com/js/page/{number}/")
         print(number, len(listing.css(".quote")))
 ```
 
-Useful options: `disable_resources=True` (skip fonts, images, stylesheets), `block_ads=True`, `proxy=`, `real_chrome=True` (use the installed Chrome), `cdp_url=` (attach to a running browser), `wait=` (extra milliseconds after load).
+Useful options: `disable_resources=True` (skip fonts, images, stylesheets), `block_ads=True`, `proxy=`, `real_chrome=True` (use the installed Chrome), `wait=` (extra milliseconds after load), `record_requests=True` on a session (then `session.network.search(url_pattern=...)` lists the XHR/fetch responses the page made; this replaces the removed `capture_xhr`).
 
-`StealthyFetcher.fetch()` takes the same arguments plus `solve_cloudflare=True`, `hide_canvas=True` and `block_webrtc=True`. After a challenge is solved, pass `wait_selector` so the call returns the real content and not the interstitial.
+`StealthyFetcher.fetch()` also takes `solve_cloudflare=True`, `hide_canvas=True` and `block_webrtc=True`. After a challenge is solved, pass `wait_selector` so the call returns the real content and not the interstitial. Callbacks that read the page's own JavaScript variables must call `page.evaluate(..., isolated_context=False)`, because Patchright isolates evaluation by default.
+
+To reuse a Chrome that is already running with a DevTools port, use `RemoteSession(cdp_url="http://127.0.0.1:9222")` (`new_context=False` keeps its logged-in state). `StealthyFetcher` and `StealthySession` no longer accept `cdp_url`.
 
 ### Crawl with a spider
 
@@ -163,6 +164,7 @@ result.items.to_jsonl("quotes.jsonl")
 - Other class attributes: `concurrent_requests_per_domain`, `max_blocked_retries`, `autothrottle_enabled`, `development_mode` (replay cached responses while editing `parse()`), `log_file`.
 - Hooks: `on_start`, `on_close`, `on_error`, `on_scraped_item`. Override `configure_sessions(self, manager)` to mix HTTP and browser sessions and route requests with `Request(url, sid="stealth")`.
 - For streaming, use `async for item in spider.stream()`.
+- Since 0.5, `response.follow()` starts a plain GET: pass `method`, `params`, `json` or `data` again when the next request needs them.
 - Ready-made templates: `CrawlSpider`, `SitemapSpider`, `XMLFeedSpider`, `CSVFeedSpider`, `ShopifySpider`, `SiteToMarkdownSpider`.
 
 ### Selectors that survive redesigns
@@ -188,11 +190,11 @@ Matching is by similarity with a default threshold of 40 percent (`percentage=40
 pip install "scrapling[shell]"
 scrapling extract get "https://quotes.toscrape.com/" quotes.md --css-selector ".quote"
 scrapling extract fetch "https://quotes.toscrape.com/js/" quotes.txt --network-idle --wait-selector ".quote"
-scrapling extract stealthy-fetch "https://quotes.toscrape.com/js/" quotes.html --solve-cloudflare
+scrapling extract fetch "https://nopecha.com/demo/cloudflare" page.html --solve-cloudflare
 scrapling mcp
 ```
 
-The output extension picks the format: `.md` Markdown, `.txt` text, `.html` raw HTML. `--ai-targeted` keeps only the main content and strips hidden elements. `scrapling mcp` runs the MCP server over STDIO; `--http --host 127.0.0.1 --port 8000` switches to HTTP.
+The output extension picks the format: `.md` Markdown, `.txt` text, `.html` raw HTML. `--ai-targeted` keeps only the main content and strips hidden elements. `fetch` uses `StealthyFetcher`; the old `stealthy-fetch` command is gone. `scrapling mcp` runs the MCP server over STDIO; `--http --host 127.0.0.1 --port 8000` switches to HTTP and refuses to start without an auth token.
 
 ## Examples
 
@@ -241,10 +243,10 @@ head -n 1 quotes.jsonl
 **Request:** "The quotes on quotes.toscrape.com/js/ do not show up in my scraper."
 
 ```python
-from scrapling.fetchers import DynamicFetcher, Fetcher
+from scrapling.fetchers import Fetcher, StealthyFetcher
 
 print(len(Fetcher.get("https://quotes.toscrape.com/js/").css(".quote")))
-page = DynamicFetcher.fetch("https://quotes.toscrape.com/js/", network_idle=True, wait_selector=".quote")
+page = StealthyFetcher.fetch("https://quotes.toscrape.com/js/", network_idle=True, wait_selector=".quote")
 print(len(page.css(".quote")))
 ```
 
@@ -266,5 +268,5 @@ print(len(page.css(".quote")))
 - **Browsers are expensive.** A browser fetch takes seconds and hundreds of megabytes. Prefer `Fetcher`, reuse one session for many pages, and set `disable_resources=True`.
 - **Proxies and secrets:** pass `proxy="http://user:password@host:port"` from an environment variable, never from source code. `ProxyRotator` from `scrapling.fetchers` rotates a list through `proxy_rotator=`.
 - **MCP server:** over HTTP, keep it on `127.0.0.1` and set `SCRAPLING_MCP_AUTH_TOKEN`; it can fetch any URL on the caller's behalf.
-- **Pin the version.** The API still moves between 0.4.x releases; for example `find_by_text()` in 0.4.15 has no `tag` argument although older examples show one.
+- **Pin the version.** The API moves between releases: 0.5 removed the `Dynamic*` browser classes, `capture_xhr`, `keep_cdata` and `cdp_url` on the stealthy fetchers, and made a failed `robots.txt` fetch block that domain when `robots_txt_obey=True`. Read the migration guide before upgrading a working scraper, and start a fresh `crawldir` after upgrading.
 - **When NOT to use it:** when the site offers an official API or data export, when only article text is needed (a content extractor such as Trafilatura is simpler), or for sites that forbid automated access.
