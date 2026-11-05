@@ -12,6 +12,7 @@ skills:
   - hono
   - zod
   - ai-sdk
+  - new-api
 category: data-ai
 tags:
   - llm-gateway
@@ -311,3 +312,10 @@ export async function recordSpend(teamId: string, costUsd: number): Promise<void
 - **Cost attribution**: each team sees real-time spend, drives optimization
 - **Model routing**: 60% of requests use gpt-4o-mini (16x cheaper than gpt-4o) with no quality impact
 - **Per-feature cost visibility**: chatbot=$2.1K, search=$1.8K, moderation=$0.4K, other=$2.5K
+
+## Related Skills
+
+- [typescript](/skills/typescript), [hono](/skills/hono), [zod](/skills/zod) — the gateway service and its request validation
+- [redis](/skills/redis), [postgresql](/skills/postgresql) — rate limits, spend counters and usage records
+- [ai-sdk](/skills/ai-sdk) — the provider-facing client calls
+- [new-api](/skills/new-api) — a ready-made self-hosted gateway (channels with priority fallback, per-key quotas, usage logs) to choose instead of writing the gateway yourself
