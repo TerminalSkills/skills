@@ -6,10 +6,10 @@ description: >-
   running fine-tuning jobs, needing enterprise IAM controls, VPC isolation,
   batch prediction at scale, or production ML pipelines on Google Cloud.
 license: Apache-2.0
-compatibility: "Python 3.10+ with google-genai 2.x and Google Cloud credentials (Application Default Credentials)"
+compatibility: "Python 3.11+ with google-genai 3.x and Google Cloud credentials (Application Default Credentials)"
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   repository: https://github.com/googleapis/python-genai
   category: data-ai
   tags: "vertex-ai, google-cloud, gemini, enterprise, mlops"
@@ -29,7 +29,7 @@ Vertex AI is Google Cloud's enterprise platform for Gemini. It serves the same G
 
 ### Step 1: Use the Google Gen AI SDK
 
-The Generative AI module of the Vertex AI SDK (`vertexai.generative_models`, `GenerativeModel`, `vertexai.tuning.sft`) was deprecated on June 24, 2025 and scheduled for removal on June 24, 2026 (Google's deprecations page). Do not write new code against it; migrate existing code to `google-genai` (Python 3.10+, version 2.33.0 when checked). Other languages: `@google/genai` (JS/TS), `google.golang.org/genai` (Go), `com.google.genai:google-genai` (Java), `Google.GenAI` (.NET).
+The Generative AI module of the Vertex AI SDK (`vertexai.generative_models`, `GenerativeModel`, `vertexai.tuning.sft`) was deprecated on June 24, 2025 and scheduled for removal on June 24, 2026 (Google's deprecations page). Do not write new code against it; migrate existing code to `google-genai` (Python 3.11+, version 3.0.0 when checked; Python 3.10 support was dropped in 2.34). Other languages: `@google/genai` (JS/TS), `google.golang.org/genai` (Go), `com.google.genai:google-genai` (Java), `Google.GenAI` (.NET).
 
 ```bash
 pip install google-genai
@@ -49,17 +49,21 @@ response = client.models.generate_content(
 print(response.text)
 ```
 
-The same client can come from environment variables: `GOOGLE_GENAI_USE_ENTERPRISE=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, then `genai.Client()`. The older `vertexai=True` argument and `GOOGLE_GENAI_USE_VERTEXAI` still work (checked in 2.33.0). If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is set without those variables, the client talks to the Gemini Developer API instead, so check which one you got.
+The same client can come from environment variables: `GOOGLE_GENAI_USE_ENTERPRISE=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, then `genai.Client()`. The older `vertexai=True` argument and `GOOGLE_GENAI_USE_VERTEXAI` still work (3.0.0 release notes). If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is set without those variables, the client talks to the Gemini Developer API instead, so check which one you got.
 
-`location="global"` routes to a region with capacity. Use a named region (`us-central1`, `europe-west4`) only for data residency. The SDK calls the beta API by default; pass `http_options=types.HttpOptions(api_version="v1")` to the client for the stable one.
+`location="global"` routes to a region with capacity. Use a named region (`us-central1`, `europe-west4`) only for data residency. In Vertex AI / Enterprise mode the SDK still calls the beta API (`v1beta1`) by default; pass `http_options=types.HttpOptions(api_version="v1")` to the client for the stable one, or set `GOOGLE_GENAI_API_VERSION`.
+
+**Upgrading from 2.x to 3.0.0 (Nov 5, 2026):** two breaking changes. The Gemini Developer API default moves from `v1beta` to `v1` (Vertex AI / Enterprise defaults are unchanged and stay on `v1beta1`; `GOOGLE_GENAI_API_VERSION` or `HttpOptions(api_version=...)` restores or sets a version). The default HTTP client changes from `httpx` to `httpx2`, and `httpx` is no longer installed: `pip install "google-genai[httpx]"` plus `GOOGLE_GENAI_HTTP_CLIENT=httpx` restores it, and any timeout or transport objects you pass in `HttpOptions` must match the active client. The `client.models`, `chats`, `batches` and `tunings` calls below are unchanged.
 
 ### Step 2: Models
 
-Take the current list from the model-versions page of the docs; IDs change several times a year. On 2026-10-23 it listed:
+Take the current list from the model-versions page of the docs; IDs change several times a year. On 2026-11-06 it listed:
 
 | Model ID | Notes |
 |---|---|
+| `gemini-4-argon` | released Oct 13, 2026, retirement Oct 13, 2027 or later |
 | `gemini-3.8-flash` | released Sep 2, 2026, retirement Sep 2, 2027 or later |
+| `gemini-3.7-flash`, `gemini-3.6-flash` | retire Jan 28, 2027 and Nov 19, 2026: migrate to `gemini-3.8-flash` |
 | `gemini-3.5-flash`, `gemini-3.5-flash-lite` | retirement May and July 2027 or later |
 | `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite` | retirement date Oct 20, 2026 has passed: treat as retired and migrate |
 | `gemini-embedding-001`, `gemini-embedding-2` | embeddings |
