@@ -1,7 +1,7 @@
 ---
 title: "Build an SEO Content Engine for Your SaaS"
 slug: build-seo-content-engine
-description: "Research competitors, plan content strategy, and generate optimized articles to grow organic traffic systematically."
+description: "Audit your site, plan content from real customer evidence, research competitor pages and ship a measured 90-day calendar to grow organic traffic systematically."
 skills: [seo-audit, content-strategy, web-research]
 category: content
 tags: [SEO, content-marketing, organic-traffic, keyword-research, SaaS]
@@ -11,140 +11,82 @@ tags: [SEO, content-marketing, organic-traffic, keyword-research, SaaS]
 
 ## The Problem
 
-Your SaaS gets 200 organic visitors a month. Your top competitor gets 15,000. Their blog has 140 articles covering every angle of the problem you solve. You have 3 posts: a launch announcement, a feature update nobody read, and a "why we built this" founder story.
+Your SaaS gets a few hundred organic visitors a month. Your top competitor's blog has well over a hundred articles covering every angle of the problem you solve. You have three posts: a launch announcement, a feature update nobody read, and a "why we built this" founder story.
 
-Content marketing is the most cost-effective SaaS growth channel long-term, but it requires both volume and strategy. Quality freelancers cost $300-500 per article, and you need 30+ for topical authority -- that is $9,000-15,000 before ranking for a single keyword. SEO agencies charge $3,000-8,000 per month with no guaranteed results for 3-6 months.
-
-The worst part: without keyword research and competitor gap analysis, you could write 30 articles on topics nobody searches for. You do not have an SEO specialist, a content strategist, or a writer. The gap widens every month your competitors publish and you do not. And unlike paid ads, the compound effect of SEO means each month of inaction makes the eventual catch-up harder.
+Content marketing is a cost-effective long-term growth channel, but it needs both volume and strategy. Freelancers and agencies are expensive, and without evidence about what readers need you can write thirty articles on topics nobody searches for, or on pages Google cannot index because of a technical fault nobody checked. You do not have an SEO specialist, a content strategist or a writer, and the gap widens every month you do not publish.
 
 ## The Solution
 
-Combine **seo-audit** for technical SEO and gap analysis, **content-strategy** for keyword research and planning, and **web-research** for deep topic research. This workflow finds where competitors rank and you do not, builds a prioritized calendar targeting achievable keywords, and produces optimized outlines with the depth to outrank existing content.
+Combine three skills, each doing one job:
+
+- **seo-audit** checks that the site can be crawled and indexed at all (robots.txt, sitemap, canonicals, rendering, Core Web Vitals), so new articles are not published into a broken foundation.
+- **content-strategy** turns counted customer evidence and Search Console data into a scored backlog and a 90-day calendar sized to the hours the team really has.
+- **web-research** reads what currently ranks for a target query through the Brave Search API and finds what those pages leave out, so each outline can beat them.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Audit Your SEO Position vs. Competitors
+### Step 1: Audit the technical foundation
 
 ```text
-Compare our SEO against our top 3 competitors. Show the keyword gap.
+Run an SEO audit of https://example-analytics.dev. We have 3 blog posts and almost no organic traffic.
+Check robots.txt, the sitemap, canonicals, rendering and Core Web Vitals, and rank the findings.
 ```
 
-The competitive analysis reveals the scale of the gap -- and, more importantly, where the opportunities are:
+The agent works in a scratch directory and keeps every output, as `seo-audit` prescribes. It checks the four host variants (http/https, www/bare) for one clean redirect, fetches `robots.txt` and `sitemap.xml`, runs a per-page signal checker over a sample of each template, compares the HTML the server sends with the rendered page, and reads Core Web Vitals field data from the CrUX API and a lab run from Lighthouse. The report is one table: severity, finding, the command and output that showed it, affected URLs, and the file to change.
 
-| Metric | Your Site | Competitor 1 | Competitor 2 | Competitor 3 |
-|---|---|---|---|---|
-| Domain Rating | 18 | 52 | 41 | 35 |
-| Keywords ranking | 34 | 847 | 523 | 312 |
-| Organic visitors/mo | ~210 | ~15,200 | ~8,400 | ~4,100 |
-| Blog posts | 3 | 142 | 89 | 67 |
+A typical result for a young SaaS site: the blog index is client-rendered so the server HTML has no links to posts, the sitemap lists staging URLs, and every blog post canonicalises to the blog index. Those are Blockers and Majors; fix them before writing anything, because every article in the calendar inherits them.
 
-The raw numbers look intimidating, but the keyword gap analysis tells a different story. Filtering for keywords where competitors rank but you do not, with low keyword difficulty and decent search volume:
-
-| Keyword | Monthly Volume | Keyword Difficulty |
-|---|---|---|
-| "product analytics for startups" | 720 | 22 |
-| "user retention analysis guide" | 520 | 24 |
-| "how to track feature adoption" | 480 | 18 |
-| "cohort analysis tutorial" | 390 | 15 |
-
-There are 247 total gap keywords. The top 10 alone represent 2,400-3,200 potential monthly visitors. These are winnable keywords -- low difficulty means a well-written article can rank within months even with a domain rating of 18.
-
-The critical insight is filtering by keyword difficulty. A DR 18 site has no business targeting "product analytics" (KD 72, dominated by Mixpanel and Amplitude). But "cohort analysis tutorial" at KD 15 is wide open -- the top results are mediocre blog posts, not authoritative guides. That is the gap to exploit.
-
-### Step 2: Build a 90-Day Content Calendar
+### Step 2: Turn evidence into needs and a backlog
 
 ```text
-Create a content calendar targeting keyword gaps. Organize as topic clusters.
+Plan our content for the next quarter. One marketer with 8 hours a week, an engineer who can review.
+Inputs: 60 support tickets, notes from 15 sales calls, 90 onboarding survey answers in docs/inputs/.
+We have no Search Console history yet beyond the 3 posts.
 ```
 
-The calendar organizes 24 articles into three topic clusters, published at a pace of 2 per week. Each cluster has a pillar page (comprehensive guide) and supporting articles that link to it:
+`content-strategy` does not start from a keyword tool. It tallies how many separate people raise each problem and writes each need with its count and evidence, for example "As a PM at a seed-stage startup who has an event table but no dashboards, I need to find out which features people actually use. Evidence: 11 of 15 sales calls, 23 of 90 survey answers". It then gives each candidate page one search intent and scores it:
 
-**Pillar 1: Product Analytics Fundamentals** (7 articles, weeks 1-6)
-- Week 1: "Product Analytics for Startups: Complete Guide" -- pillar page (720/mo, KD 22)
-- Week 2: "How to Track Feature Adoption Step-by-Step" (480/mo, KD 18)
-- Week 3: "Cohort Analysis Tutorial: Find Why Users Leave" (390/mo, KD 15)
-- Week 4: "8 Product Metrics Every PM Should Track" (620/mo, KD 26)
-- Weeks 5-6: 3 more supporting articles
+`score = (demand evidence + business fit + right to win) ÷ effort`
 
-**Pillar 2: Retention and Churn** (8 articles, weeks 3-8)
+Anything scoring 0 on business fit or on right to win is dropped, whatever its total. That removes the "What is product analytics?" article that every large competitor already owns and that you have nothing original to add to. Keyword volume from whichever tool you use is a supporting signal, not the ranking criterion.
 
-**Pillar 3: Implementation and Technical** (9 articles, weeks 5-12)
+The calendar comes from capacity: 8 hours × 13 weeks = 104 hours, minus 30% reserved for distribution, updates and review = 72 production hours. Pieces are taken from the top of the backlog until those hours run out, and the remainder is kept as slack. Each row names the publish week, title, need, intent, primary query, the original material it must include (your own usage data, a customer story, a template), the owner, the reviewer and the metric it is judged on. Pages on one topic link to a hub page and to each other, so the cluster is easy for readers and crawlers to follow.
 
-Every article links to its pillar page and 2 sibling articles within the cluster. This internal linking structure signals topical authority to search engines -- the cluster ranks together as it fills out.
-
-Projected traffic at 90 days: 2,400-3,200 organic visitors per month, up from 210.
-
-### Step 3: Research and Outline the Pillar Article
+### Step 3: Research what ranks, then outline a better page
 
 ```text
-Research "product analytics for startups." Analyze top 5 ranking articles, find gaps, create a better outline.
+Research "cohort analysis tutorial". Read the top 5 ranking pages, compare what they cover,
+find what none of them include, and draft an outline that fills the gaps.
 ```
 
-The top 5 results for this keyword are mostly high-level overviews (1,890-3,201 words). Analyzing them reveals four content gaps that none of the top articles cover:
+`web-research` plans sub-questions, then searches with the Brave Search API (`GET https://api.search.brave.com/res/v1/web/search`, key in the `X-Subscription-Token` header from `$BRAVE_API_KEY`). It fetches each of the top results, strips navigation and scripts, and tabulates what every page covers: depth, whether it has worked examples, code, downloadable data, and how recent it is. Brave's search plan includes $5 of free credit each month and requires a card, so a few dozen research queries cost nothing.
 
-- Budget-constrained tool selection for seed/Series A companies
-- A week-by-week implementation timeline
-- Open-source alternatives (PostHog, Plausible)
-- Dashboard templates or screenshots
+The output is a research report with sources and a short list of gaps. Typical gaps for a tutorial query: no runnable example data, no explanation of how to read a retention curve for a small user base, and no note on common mistakes such as mixing signup and activation cohorts. The outline then puts those into dedicated sections and names the first-hand material you must supply, such as your own anonymised cohort table. A fetched page is evidence of what competitors say, not a source for facts you will publish; verify every figure against its primary source before it goes into your article.
 
-Filling these gaps creates a genuinely more useful article than what currently ranks. The outline targets 3,500-4,000 words across 7 sections:
+### Step 4: Draft, review and publish
 
-- **H2: Why Startups Need Product Analytics** (400 words)
-- **H2: 5 Metrics That Matter Pre-Series A** (500 words)
-- **H2: Choosing Your Stack on a Startup Budget** (600 words -- includes a decision matrix comparing Mixpanel, Amplitude, PostHog, and Plausible by price, features, and self-hosting options)
-- **H2: Week-by-Week Implementation Guide** (800 words)
-- **H2: Common Mistakes That Waste Your First 90 Days** (400 words)
-- **H2: From Data to Decisions: A Framework** (500 words)
-- Internal links to 3 cluster articles
+Drafts from an agent are a starting point. The calendar row's owner adds the first-hand material and product screenshots, and the reviewer checks accuracy: code snippets should run, numbers should trace to a source. Google's guidance is that there is no preferred word count and that pages produced mainly to rank fall under its scaled-content-abuse policy however they were made, so publish the pages the plan justifies, not as many as you can.
 
-The primary keyword appears in the H1, intro, 2 H2 headings, and conclusion. LSI (latent semantic indexing) keywords are mapped across sections to capture related searches.
+Before each publish, rerun the page signal check from step 1 on the new URL: status 200, one H1, a self-referencing canonical, no `noindex`, present in the sitemap.
 
-### Step 4: Generate Article Drafts
+### Step 5: Measure and re-plan
 
 ```text
-Write the first 3 articles: analytics pillar, feature adoption guide, cohort tutorial.
+Pull Search Console data for the last 3 months by page and query and run the content audit.
 ```
 
-Three articles come out of a single session:
-
-| Article | Words | Read Time | Structure |
-|---|---|---|---|
-| "Product Analytics for Startups: Complete 2026 Guide" | 3,742 | 16 min | 7 H2s, 14 H3s, 4 internal links |
-| "How to Track Feature Adoption (Step-by-Step)" | 2,891 | 12 min | Code snippets in JS, Python, Ruby |
-| "Cohort Analysis Tutorial: Find Why Users Leave" | 3,104 | 13 min | Example data tables + walkthrough |
-
-Total: 9,737 words. At the $300-500/article freelancer rate, that is $900-1,500 worth of content. The drafts need a human pass -- brand voice, product screenshots, and real customer examples make the difference between generic content and something that builds trust. Plan about 2 hours per article for the review and enhancement pass.
-
-Each article includes internal links to other cluster articles. The feature adoption guide links to the pillar page and the cohort analysis tutorial. The pillar links down to all supporting articles. This cross-linking is not decoration -- it is how search engines understand that your site has deep expertise on a topic. A single article competes alone; a cluster competes as a unit.
-
-### Step 5: Set Up Monthly SEO Monitoring
-
-```text
-Create a tracking system to measure what's working and adjust strategy.
-```
-
-A monthly review cadence keeps the engine running. On the first Monday of every month, check three things: what ranked (double down), what declined (update or consolidate), and what to write next based on emerging keyword opportunities.
-
-Projected trajectory:
-
-| Month | Organic Visitors | What Happens |
-|---|---|---|
-| Month 1 | 210 -> 450 | Content indexed, early rankings |
-| Month 2 | 450 -> 1,200 | Rankings climbing, pillar pages gaining authority |
-| Month 3 | 1,200 -> 2,800 | Topical authority established, cluster effect kicks in |
-
-Track 24 target keywords with position goals by month. The cluster effect means individual articles boost each other -- as more articles in a cluster rank, the entire cluster climbs.
-
-The monthly review also catches content decay. Articles that ranked #5 in month 2 might slip to #8 by month 4 as competitors publish their own versions. Updating the article (adding new data, expanding a section, refreshing screenshots) often recovers the position faster than writing something new. The rule of thumb: update before you create. A refreshed article with existing backlinks outranks a brand-new article with none.
+Once pages have been live for a while, `content-strategy` reads a Search Analytics export grouped by page and query and lists three things: near-miss queries (average position 8 to 20 with real impressions, so improving that page is the cheapest win), queries split across two of your pages (merge or differentiate), and pages shown in search that nobody clicks (rewrite, merge or remove). Judge each page on its clicks and average position for its primary query 8 to 12 weeks after publication; Google says changes can take from hours to several months to show. Re-plan every quarter and update before you create: a refreshed article with existing links and history usually beats a brand-new one.
 
 ## Real-World Example
 
-The co-founder of a bootstrapped analytics SaaS had tried content marketing twice and quit both times. First attempt: 5 posts targeting high-difficulty keywords -- none ranked. Second attempt: 8 generic freelance articles from someone who had never used analytics software. Twelve months and $4,200 later, organic traffic was still 180 per month.
+The co-founder of a small analytics SaaS had tried content marketing twice. First attempt: five posts aimed at head terms that the largest vendors own; none ranked. Second attempt: eight generic freelance articles from a writer who had never used analytics software. Neither was ever checked technically.
 
-She ran the three-skill workflow on a Friday. The competitive analysis revealed something surprising: both main competitors had zero implementation-focused content. All their articles were thought leadership. Keywords like "how to set up event tracking for SaaS" (380/mo, KD 14) were wide open.
+She ran the three skills over one weekend. The audit found that every blog post canonicalised to the blog index, so none could be indexed under its own URL, a one-line template fix. The evidence tally showed her sales calls kept returning to implementation questions, such as setting up event tracking and choosing what to track first, while both main competitors published mostly thought leadership. Research on the top results for those queries showed no page with working example data.
 
-She built a 90-day calendar targeting 24 implementation guides -- the practical content competitors had not written. Over 6 weeks, she published 12 articles, spending about 2 hours each on review and adding product screenshots. By week 8, the cohort analysis tutorial ranked #4 for its target keyword. By week 12: 2,840 organic visitors per month, up from 180.
+The plan, built for her 8 hours a week, had eleven pages: a hub, six implementation guides with real event schemas from her own product, a comparison page and three templates. Two months in she reran the Search Console audit. It showed two of her guides at positions 9 to 12 with growing impressions, so she spent a week on those rather than writing new pages. Her own numbers will differ; the method is what carries over: fix the foundation, plan from evidence, research each page against what already ranks, and measure per page before deciding what to write next.
 
-The cluster effect was visible in the data. The first three articles ranked slowly on their own. But after the seventh article in the Product Analytics cluster went live, all seven started climbing together. The pillar page went from page 3 to page 1 in a single week as Google recognized the topical depth.
+## Related Skills
 
-Three visitors converted to paying customers in month 3 -- $2,700 in new MRR from content that cost essentially nothing to produce. By month 6, organic traffic was the startup's largest acquisition channel, surpassing paid ads for the first time.
+- **seo-audit**: confirms the site can be crawled and indexed before content is published, and re-checks each new URL.
+- **content-strategy**: scores evidence-backed topics, sizes the calendar to real hours, and audits Search Console data after launch.
+- **web-research**: reads the pages that currently rank for each target query via the Brave Search API and finds the gaps an outline should fill.
