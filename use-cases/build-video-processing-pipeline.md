@@ -2,7 +2,7 @@
 title: "Build a Video Processing Pipeline"
 slug: build-video-processing-pipeline
 description: "Create an automated pipeline that handles video uploads, transcodes them into multiple formats and resolutions, and stores the results in S3-compatible storage using a job queue."
-skills: [ffmpeg, media-transcoder, s3-storage, job-queue]
+skills: [ffmpeg, s3-storage, job-queue]
 category: development
 tags: [video, transcoding, ffmpeg, s3, pipeline, media]
 ---
@@ -17,7 +17,7 @@ The naive approach — running ffmpeg inline in the request handler — works fo
 
 ## The Solution
 
-Using the **job-queue**, **ffmpeg**, **media-transcoder**, and **s3-storage** skills, the agent builds an async pipeline that accepts uploads instantly, processes them through a multi-step worker with retries, and stores the results in S3 with proper organization and lifecycle rules.
+Using the **job-queue**, **ffmpeg**, and **s3-storage** skills, the agent builds an async pipeline that accepts uploads instantly, processes them through a multi-step worker with retries, and stores the results in S3 with proper organization and lifecycle rules.
 
 ## Step-by-Step Walkthrough
 
@@ -26,7 +26,7 @@ Using the **job-queue**, **ffmpeg**, **media-transcoder**, and **s3-storage** sk
 ```text
 I need a video upload endpoint that accepts files up to 2GB, validates
 the file type (mp4, mov, avi, mkv, webm), stores the raw upload temporarily,
-and queues a processing job. Use BullMQ with Redis for the queue. The endpoint
+and queues a processing job. Use BullMQ (current major: 6, needs Redis 6.2+) with Redis for the queue and multer 2.x for the upload. The endpoint
 should return immediately with a job ID so the client can poll for progress.
 ```
 
@@ -36,7 +36,7 @@ The upload endpoint does one thing fast: accept the file and get out of the way.
 // api/upload.ts — POST /videos/upload
 // Multer middleware: 2GB limit, temp storage in /tmp/uploads
 // Validates MIME type against allowlist
-// Returns 202 { videoId, status: 'queued' } in <100ms
+// Returns 202 { videoId, status: 'queued' } as soon as the file is on disk
 
 // queue/video-queue.ts — BullMQ configuration
 const videoQueue = new Queue('video-processing', {
@@ -71,7 +71,12 @@ Before transcoding, `ffprobe` extracts everything about the input file: duration
 Thumbnails are extracted at 10%, 50%, and 90% of the video duration — three candidates because the first frame is often black and the last is often credits. The 50% frame becomes the default thumbnail:
 
 ```bash
-ffmpeg -ss {timestamp} -i input -vframes 1 -vf scale=640:-2 thumb_{n}.jpg
+# Duration in seconds, then one frame at 10%, 50% and 90% of it
+DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 input.mp4)
+for pct in 10 50 90; do
+  ffmpeg -y -ss "$(echo "$DUR * $pct / 100" | bc -l)" -i input.mp4 \
+    -frames:v 1 -vf scale=640:-2 "thumb_${pct}.jpg"
+done
 ```
 
 ### Step 3: Transcode Into Multiple Resolutions and HLS
@@ -85,27 +90,31 @@ settings — these will run on standard cloud VMs, no GPU.
 Each resolution gets its own ffmpeg pass with tuned quality settings. The CRF values increase slightly at lower resolutions because the quality difference is less perceptible on smaller screens:
 
 ```bash
-# 1080p: crf 23, preset medium (~2x realtime on 4-core VM)
+# 1080p: crf 23, preset medium
 ffmpeg -i input.mov -vf scale=-2:1080 \
   -c:v libx264 -preset medium -crf 23 \
   -c:a aac -b:a 128k -movflags +faststart output_1080p.mp4
 
-# 720p:  crf 24, preset medium (~3x realtime)
-# 480p:  crf 25, preset fast (~5x realtime)
+# 720p:  same command with scale=-2:720 and -crf 24
+# 480p:  scale=-2:480, -crf 25, -preset fast
 ```
 
 The HLS bundle produces a master playlist with all available resolutions. Players that support adaptive bitrate streaming will automatically switch between quality levels based on the viewer's connection speed:
 
 ```bash
+# Each rendition needs its own audio stream, so -map 0:a appears once per rendition
 ffmpeg -i input.mov \
   -filter_complex "[0:v]split=3[v1][v2][v3]; \
     [v1]scale=-2:1080[o1];[v2]scale=-2:720[o2];[v3]scale=-2:480[o3]" \
-  -map "[o1]" -map "[o2]" -map "[o3]" -map 0:a \
-  -c:v libx264 -c:a aac \
+  -map "[o1]" -map "[o2]" -map "[o3]" -map 0:a -map 0:a -map 0:a \
+  -c:v libx264 -crf 23 -c:a aac -b:a 128k \
   -var_stream_map "v:0,a:0 v:1,a:1 v:2,a:2" \
   -hls_time 6 -hls_playlist_type vod \
-  -master_pl_name master.m3u8 stream_%v/playlist.m3u8
+  -hls_segment_filename "hls/stream_%v/segment_%03d.ts" \
+  -master_pl_name master.m3u8 hls/stream_%v/playlist.m3u8
 ```
+
+With only one `-map 0:a`, ffmpeg 6.1 fails with "Could not write header" because `a:1` and `a:2` do not exist, so keep one audio map per rendition. The command assumes the input has an audio track; for silent uploads, drop the audio maps and use `"v:0 v:1 v:2"`. Each stream directory ends up with `playlist.m3u8` and `segment_000.ts`, `segment_001.ts`, and so on; add `-b:v` caps if the master playlist should advertise real bandwidths.
 
 Progress is calculated by parsing ffmpeg's stderr output — comparing the current timestamp against the total duration — and fed back through `job.updateProgress()` so the client sees a real percentage.
 
@@ -127,16 +136,16 @@ videos/{videoId}/mp4/480p.mp4
 videos/{videoId}/hls/master.m3u8
 videos/{videoId}/hls/stream_0/playlist.m3u8
 videos/{videoId}/hls/stream_0/segment_*.ts
-videos/{videoId}/thumbnails/thumb_0.jpg
-videos/{videoId}/thumbnails/thumb_1.jpg
-videos/{videoId}/thumbnails/thumb_2.jpg
+videos/{videoId}/thumbnails/thumb_10.jpg
+videos/{videoId}/thumbnails/thumb_50.jpg
+videos/{videoId}/thumbnails/thumb_90.jpg
 ```
 
-Content types matter for streaming — HLS playlists need `application/vnd.apple.mpegurl` with `no-cache`, while segments and MP4s get `Cache-Control: max-age=31536000` (one year, since they are immutable). Files larger than 100MB use multipart upload with 50MB parts and 4 concurrent streams.
+Content types matter for streaming — HLS playlists need `application/vnd.apple.mpegurl` with `Cache-Control: no-cache`, segments `video/mp2t`, MP4s `video/mp4`, and segments and MP4s get `Cache-Control: max-age=31536000` (one year, since they are immutable). Files larger than 100MB use the SDK's multipart `Upload` helper (`@aws-sdk/lib-storage`) with 50MB parts and 4 concurrent parts; S3 requires at least 5MB per part except the last.
 
 Two lifecycle rules keep storage costs down:
-- **Originals** move to S3 Glacier after 30 days (rarely accessed after processing)
-- **Failed processing temp files** are deleted after 7 days
+- **Originals** (prefix `videos/`, tag `type=original`) transition to the `GLACIER` storage class after 30 days (rarely accessed after processing)
+- **Incomplete multipart uploads** from failed runs are aborted after 7 days (`AbortIncompleteMultipartUpload`)
 
 After successful upload, all temp files under `/tmp/uploads/{videoId}` are cleaned up.
 
@@ -172,6 +181,11 @@ A dashboard endpoint (`GET /videos/processing/stats`) pulls metrics from the Bul
 
 Marta runs a cooking tutorial platform where instructors upload lesson videos from phones and DSLRs alike. Before this pipeline, she manually ran ffmpeg commands and uploaded files through the AWS console — a 30-minute process per video that she personally handled every time.
 
-Now instructors upload through the app, get a progress bar, and within minutes their video is available in adaptive streaming quality. The queue handles weekend bursts — when 20 instructors upload their Monday content on Sunday night — without crashing the server. Each video processes at roughly 2-3x realtime on a standard 4-core VM, meaning a 10-minute video takes about 4 minutes to produce all outputs.
+Now instructors upload through the app, get a progress bar, and their video becomes available in adaptive streaming quality once the worker finishes. The queue absorbs weekend bursts — when 20 instructors upload their Monday content on Sunday night, the jobs wait their turn instead of crashing the server, and a failed job retries from the step that failed. Marta sizes the worker count to her own VM by timing a sample upload, since transcode speed depends on the CPU, the preset and the source codec.
 
-Storage costs dropped 40% after the lifecycle rules moved old originals to Glacier. The total infrastructure cost for processing 200+ videos per month: one $40/month VM for the worker and about $15/month in S3 storage.
+
+## Related Skills
+
+- [ffmpeg](../skills/ffmpeg/) — probes inputs, extracts thumbnails, and produces the MP4 renditions and HLS bundle.
+- [s3-storage](../skills/s3-storage/) — stores the outputs with correct content types, multipart uploads and lifecycle rules.
+- [job-queue](../skills/job-queue/) — runs the BullMQ worker with retries, progress and the stats endpoint.
