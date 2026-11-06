@@ -21,7 +21,7 @@ tags:
 
 # Build a Real-Time Analytics Pipeline
 
-Nadia runs analytics for a ride-sharing startup processing 50,000 events per minute — ride requests, driver locations, fare calculations, and completion events. Their current pipeline runs hourly batch jobs, meaning the ops team sees data that's always 1-2 hours stale. When a city has a surge event or driver supply drops, they find out too late. She builds a real-time pipeline: events flow through Kafka, get processed by Spark Streaming, land in ClickHouse, and appear on Grafana dashboards within seconds.
+Nadia runs analytics for a ride-sharing startup processing 50,000 events per minute — ride requests, driver locations, fare calculations, and completion events. Their current pipeline runs hourly batch jobs, meaning the ops team sees data that's always 1-2 hours stale. When a city has a surge event or driver supply drops, they find out too late. She builds a real-time pipeline: events flow through Kafka, get processed by Spark Structured Streaming, land in ClickHouse, and appear on Grafana dashboards within seconds.
 
 ## Step 1: Event Schema and Kafka Topics
 
@@ -37,7 +37,7 @@ topics = [
     NewTopic(
         'ride-events',
         num_partitions=12,           # 12 partitions for parallel processing
-        replication_factor=3,         # 3 replicas for fault tolerance
+        replication_factor=3,         # 3 replicas (needs at least 3 brokers)
         config={
             'retention.ms': str(7 * 24 * 60 * 60 * 1000),   # 7 days retention
             'compression.type': 'lz4',                        # fast compression
@@ -59,7 +59,10 @@ topics = [
     ),
 ]
 
-admin.create_topics(topics)
+# create_topics returns one future per topic; wait for each so failures are visible
+for name, future in admin.create_topics(topics).items():
+    future.result()   # raises KafkaException if the topic could not be created
+    print(f"created {name}")
 ```
 
 Each ride event carries a `ride_id` as the Kafka key — this ensures all events for the same ride land on the same partition, maintaining order. Driver locations use `driver_id` as the key for the same reason.
@@ -70,7 +73,7 @@ Each ride event carries a `ride_id` as the Kafka key — this ensures all events
 # services/event_producer.py — Produce ride events to Kafka
 from confluent_kafka import Producer
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 producer = Producer({
     'bootstrap.servers': 'kafka:9092',
@@ -90,7 +93,8 @@ def emit_ride_event(event_type: str, ride_id: str, data: dict):
     event = {
         'event_type': event_type,
         'ride_id': ride_id,
-        'timestamp': datetime.utcnow().isoformat(),
+        # naive UTC string: ClickHouse parses it with its default settings
+        'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f'),
         **data,
     }
 
@@ -110,11 +114,16 @@ emit_ride_event('requested', 'ride-abc-123', {
     'estimated_fare': 8.50,
     'city': 'bratislava',
 })
+producer.flush()                           # block until queued messages are delivered
 ```
 
 ## Step 3: Spark Streaming Processing
 
-Spark Structured Streaming reads from Kafka, computes rolling aggregations, and writes results both to ClickHouse (for dashboards) and back to Kafka (for downstream services).
+Spark Structured Streaming reads from Kafka, computes rolling aggregations per city, and writes them back to Kafka for downstream services. (ClickHouse, in the next step, reads the raw `ride-events` topic directly for the dashboards.) The Kafka source is not bundled with PySpark, so the job is submitted with the connector package that matches the Spark version:
+
+```console
+$ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0 jobs/ride_analytics.py
+```
 
 ```python
 # jobs/ride_analytics.py — Spark Structured Streaming job
@@ -124,8 +133,7 @@ from pyspark.sql.types import StructType, StructField, StringType, DoubleType, T
 
 spark = SparkSession.builder \
     .appName("RideAnalytics") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .config("spark.streaming.backpressure.enabled", "true") \
+    .config("spark.sql.session.timeZone", "UTC") \
     .getOrCreate()
 
 schema = StructType([
@@ -164,7 +172,7 @@ city_metrics = events \
         F.count(F.when(F.col("event_type") == "completed", 1)).alias("completions"),
         F.count(F.when(F.col("event_type") == "cancelled", 1)).alias("cancellations"),
         F.avg("estimated_fare").alias("avg_fare"),
-        F.countDistinct("user_id").alias("unique_riders"),
+        F.approx_count_distinct("user_id").alias("unique_riders"),   # exact distinct counts are not supported in streaming
     )
 
 # Write aggregated metrics to Kafka (for ClickHouse and downstream)
@@ -174,14 +182,14 @@ query = city_metrics \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:9092") \
     .option("topic", "analytics-aggregated") \
-    .option("checkpointLocation", "/tmp/checkpoints/ride-analytics") \
+    .option("checkpointLocation", "/var/lib/spark/checkpoints/ride-analytics") \
     .outputMode("update") \
     .start()
 
 query.awaitTermination()
 ```
 
-The watermark of 30 seconds means events arriving more than 30 seconds late are dropped — acceptable for operational dashboards where freshness matters more than completeness.
+The watermark of 30 seconds means events arriving more than 30 seconds behind the newest event time seen are dropped from the aggregates — acceptable for operational dashboards where freshness matters more than completeness. Structured Streaming has no backpressure setting to tune: the old `spark.streaming.backpressure.enabled` flag belongs to the legacy DStream API and does nothing here. Throughput is bounded with source options such as `maxOffsetsPerTrigger`, and adaptive query execution does not apply to streaming queries, so the job sets neither. Restarting with the same `checkpointLocation` resumes from the saved offsets; keep it on durable storage, not `/tmp`.
 
 ## Step 4: ClickHouse for Analytical Queries
 
@@ -214,7 +222,7 @@ CREATE TABLE ride_events (
 ) ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (city, timestamp)
-TTL timestamp + INTERVAL 90 DAY;
+TTL toDateTime(timestamp) + INTERVAL 90 DAY;
 
 -- Materialized view: auto-insert from Kafka to MergeTree
 CREATE MATERIALIZED VIEW ride_events_mv TO ride_events AS
@@ -240,23 +248,30 @@ ORDER BY requests DESC;
 
 ## Step 5: Grafana Dashboard
 
-Nadia connects Grafana to ClickHouse with the official plugin and builds a live ops dashboard.
+Nadia connects Grafana to ClickHouse with the official `grafana-clickhouse-datasource` plugin and builds a live ops dashboard. The plugin's macros tie each panel to the dashboard time range and bucket size:
 
 ```sql
--- Grafana panel: Rides per minute (time series)
+-- Grafana panel: ride requests per interval (time series)
 SELECT
-    toStartOfMinute(timestamp) as time,
+    $__timeInterval(timestamp) AS time,
     city,
-    count(*) as rides_per_minute
+    count(*) AS ride_requests
 FROM ride_events
-WHERE timestamp > now() - INTERVAL 1 HOUR
+WHERE $__timeFilter_ms(timestamp)
   AND event_type = 'requested'
 GROUP BY time, city
 ORDER BY time;
 ```
 
-The dashboard auto-refreshes every 10 seconds, giving the ops team near-real-time visibility. They set alerts: if cancellation rate exceeds 30% in any city for 5+ minutes, PagerDuty triggers.
+The dashboard auto-refreshes every 10 seconds, giving the ops team near-real-time visibility. Grafana alert rules on the same queries notify the on-call channel when, for example, the cancellation rate in a city stays above 30% for five minutes.
 
 ## Results
 
-The pipeline processes 50,000 events/minute with end-to-end latency under 15 seconds (event occurs → visible on dashboard). During a concert that doubles ride demand in one city, the ops team sees the surge in real-time and increases driver incentives within minutes — something that would have taken 2+ hours with the old batch pipeline. The ClickHouse queries that power the dashboard return in 50-200ms even across billions of historical events. Cost: 3 Kafka brokers + 2 Spark workers + 2 ClickHouse nodes — roughly $800/month on cloud VMs, replacing a $2,400/month managed analytics platform that was always behind.
+In Nadia's rollout an event is visible on the dashboard within seconds of happening, instead of one to two hours later. During a concert that doubles ride demand in one city, the ops team sees the surge as it builds and raises driver incentives within minutes. The ClickHouse queries behind the dashboard stay fast because they scan only the columns and partitions they need. Her team's own numbers: three Kafka brokers, two Spark workers and two ClickHouse nodes, replacing a managed analytics platform that was always behind. Your latency and cost depend on your hardware, topic sizing and trigger interval, so measure before you promise a number.
+
+## Related Skills
+
+- [kafka](/skills/kafka): topics, keys and producers for the event stream
+- [apache-spark](/skills/apache-spark): the Structured Streaming job that computes rolling per-city metrics
+- [clickhouse](/skills/clickhouse): Kafka-engine ingestion and fast analytical queries
+- [grafana](/skills/grafana): the live ops dashboard and alerts on top of ClickHouse
