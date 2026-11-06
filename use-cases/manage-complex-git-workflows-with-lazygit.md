@@ -40,7 +40,7 @@ git --version
 gh auth status
 ```
 
-lazygit 0.65.1 needs Git 2.32 or later; the machine has 2.43. `gh auth status` confirms the GitHub session that the pull request shortcut and the pull request icons depend on.
+lazygit 0.66 needs Git 2.32 or later; the machine has 2.43. `gh auth status` confirms the GitHub session that the pull request shortcut and the pull request icons depend on.
 
 ### 2. Write one configuration for all team repositories
 
