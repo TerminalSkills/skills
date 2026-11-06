@@ -1,7 +1,7 @@
 ---
 title: Secure an API with OAuth 2.0, Rate Limiting, and Security Scanning
 slug: secure-api-with-oauth-and-rate-limiting
-description: Harden a production API with OAuth 2.0 + PKCE authentication, tiered rate limiting, secrets management with Vault, and automated security scanning in CI — a complete security posture for a SaaS API.
+description: Harden a production API with OAuth 2.0 access tokens validated against the provider's JWKS, tiered Redis rate limiting, secrets from HashiCorp Vault, and OWASP ZAP scans in CI — a complete security posture for a SaaS API.
 skills:
   - oauth2-oidc
   - rate-limiter
@@ -18,372 +18,282 @@ tags:
 
 # Secure an API with OAuth 2.0, Rate Limiting, and Security Scanning
 
-Diego runs a fintech API that processes 2 million requests per day. A security audit flagged four issues: API keys in environment variables (no rotation), no rate limiting (one customer's automation script caused a 10-minute outage), basic auth on some endpoints (passwords in headers), and no automated security testing. He needs production-grade security before the company's SOC 2 audit in 8 weeks.
+Diego runs a fintech API that handles 2 million requests per day. A security audit flagged four issues: static API keys in environment variables (no rotation), no rate limiting (one customer's automation script caused a 10-minute outage), basic auth on some endpoints (passwords in headers), and no automated security testing. He needs production-grade security before the company's SOC 2 audit in 8 weeks.
 
-## Step 1 — Replace API Keys with OAuth 2.0 + PKCE
+## Step 1: Replace API keys with OAuth 2.0 access tokens
 
-Static API keys are the biggest risk: they don't expire, can't be scoped, and are often leaked in logs, Git history, or Slack messages. OAuth 2.0 with short-lived access tokens limits the blast radius of any leak.
+Static API keys do not expire, cannot be scoped, and leak into logs, Git history and chat. Short-lived access tokens limit the blast radius. The split of roles matters:
 
-```typescript
-// src/auth/oauth-config.ts — OAuth 2.0 provider configuration.
-// Uses the provider's OIDC discovery endpoint to auto-configure URLs.
-// Supports both user-facing (Authorization Code) and machine (Client Credentials) flows.
+- Your API is the **resource server**. It never sees passwords or client secrets, only bearer tokens, which it validates.
+- Customers' backend jobs get tokens with the **client credentials** grant. Browser and mobile apps use **Authorization Code with PKCE** (`S256`) through the identity provider. Do not use the implicit or password grants (RFC 9700).
 
-import { Issuer, Strategy } from "openid-client";
+A machine client fetches a token like this (the token URL comes from the provider's `/.well-known/openid-configuration`):
 
-// Auto-discover endpoints from the OIDC discovery URL
-const issuer = await Issuer.discover(process.env.OIDC_ISSUER_URL!);
-// issuer.metadata contains: authorization_endpoint, token_endpoint, jwks_uri, etc.
-
-export const oauthClient = new issuer.Client({
-  client_id: process.env.OAUTH_CLIENT_ID!,
-  client_secret: process.env.OAUTH_CLIENT_SECRET!,
-  redirect_uris: [process.env.OAUTH_REDIRECT_URI!],
-  response_types: ["code"],
-  token_endpoint_auth_method: "client_secret_post",
-});
-
-// JWKS for token verification — cached and auto-rotated
-export const JWKS = issuer.metadata.jwks_uri;
+```bash
+curl -s -u "$CLIENT_ID:$CLIENT_SECRET" \
+  -d grant_type=client_credentials -d scope="transactions:read" "$TOKEN_URL"
 ```
 
+The API validates every request: signature against the provider's JWKS (cached, refetched on an unknown `kid`), pinned algorithm, `exp`, `iss`, `aud`, and scope.
+
 ```typescript
-// src/middleware/auth.ts — JWT validation middleware.
-// Validates the access token on every API request.
-// Checks signature, expiration, issuer, audience, and scopes.
+// src/middleware/auth.ts
+import { createRemoteJWKSet, errors, jwtVerify, type JWTPayload } from "jose";
+import type { NextFunction, Request, Response } from "express";
 
-import { createRemoteJWKSet, jwtVerify, JWTPayload } from "jose";
-import { Request, Response, NextFunction } from "express";
+const JWKS = createRemoteJWKSet(new URL(process.env.JWKS_URI!));
 
-const JWKS = createRemoteJWKSet(
-  new URL(process.env.JWKS_URI!)
-);
+export type Tier = "free" | "pro" | "enterprise";
+export type AuthedRequest = Request & { user: JWTPayload & { scope?: string; org_id?: string; tier?: Tier } };
 
-interface AuthenticatedRequest extends Request {
-  user: JWTPayload & {
-    sub: string;
-    scope: string;
-    org_id?: string;
-    tier: "free" | "pro" | "enterprise";
-  };
-}
-
-export async function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({
-      error: "unauthorized",
-      message: "Missing or invalid Authorization header",
-    });
-  }
-
-  const token = authHeader.slice(7);
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
+  if (!token) return res.status(401).json({ error: "unauthorized" });
 
   try {
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: process.env.OIDC_ISSUER_URL,
-      audience: process.env.OAUTH_AUDIENCE,         // Ensures token was issued for this API
-      clockTolerance: 5,                             // 5-second clock skew tolerance
+      issuer: process.env.OIDC_ISSUER_URL!,
+      audience: process.env.OAUTH_AUDIENCE!,   // tokens minted for another API are rejected
+      algorithms: ["RS256"],                   // pin to what your provider signs with
+      clockTolerance: 5,
     });
-
-    (req as AuthenticatedRequest).user = payload as any;
+    (req as AuthedRequest).user = payload;
     next();
-  } catch (err: any) {
-    if (err.code === "ERR_JWT_EXPIRED") {
-      return res.status(401).json({
-        error: "token_expired",
-        message: "Access token has expired. Use your refresh token to get a new one.",
-      });
-    }
-
-    return res.status(401).json({
-      error: "invalid_token",
-      message: "Token validation failed",
-    });
+  } catch (err) {
+    const expired = err instanceof errors.JWTExpired;
+    res.status(401).json({ error: expired ? "token_expired" : "invalid_token" });
   }
 }
 
-// Scope-based authorization: check that token has required permissions
-export function requireScope(...requiredScopes: string[]) {
+// Some providers put scopes in `scp` as an array.
+export function requireScope(...required: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as AuthenticatedRequest).user;
-    const tokenScopes = user.scope?.split(" ") || [];
-
-    const hasAllScopes = requiredScopes.every((s) => tokenScopes.includes(s));
-
-    if (!hasAllScopes) {
-      return res.status(403).json({
-        error: "insufficient_scope",
-        message: `Required scopes: ${requiredScopes.join(", ")}`,
-        required: requiredScopes,
-        granted: tokenScopes,
-      });
+    const granted = ((req as AuthedRequest).user.scope ?? "").split(" ");
+    if (!required.every((s) => granted.includes(s))) {
+      return res.status(403).json({ error: "insufficient_scope", required });
     }
-
     next();
   };
 }
 ```
 
-## Step 2 — Implement Tiered Rate Limiting
+`org_id` and `tier` are custom claims you configure in the provider. Never accept an ID token as an API credential.
 
-Different customer tiers get different limits. The implementation uses Redis for distributed counting across multiple API server instances, and a sliding window algorithm for accurate rate enforcement.
+## Step 2: Tiered, atomic rate limiting with Redis
+
+The `rate-limiter` skill's guidance applies: layered limits (per IP before authentication, per organization after), a sliding-window counter, standard headers on every response, Redis server time, and no fail-open when Redis is down. The check and the update run in one Lua script, so concurrent API instances cannot race; a rejected request is not counted.
 
 ```typescript
-// src/middleware/rate-limiter.ts — Tiered rate limiting with Redis.
-// Sliding window counter: accurate, distributed, memory-efficient.
-// Returns standard rate limit headers so clients can implement backoff.
+// src/middleware/rate-limiter.ts
+import { Redis } from "ioredis";
+import type { NextFunction, Request, Response } from "express";
+import type { AuthedRequest, Tier } from "./auth.js";
 
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-import { Request, Response, NextFunction } from "express";
+const redis = new Redis(process.env.REDIS_URL!);
 
-// Initialize Redis-backed rate limiter
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_URL!,
-  token: process.env.UPSTASH_REDIS_TOKEN!,
+// KEYS[1]=key ARGV: windowMs, max, cost, nonce. Returns {allowed, used, resetMs}
+redis.defineCommand("slidingWindow", {
+  numberOfKeys: 1,
+  lua: `
+    local t = redis.call('TIME')
+    local now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
+    local window, max, cost = tonumber(ARGV[1]), tonumber(ARGV[2]), tonumber(ARGV[3])
+    redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, now - window)
+    local used = redis.call('ZCARD', KEYS[1])
+    local oldest = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+    local reset = window
+    if oldest[2] then reset = tonumber(oldest[2]) + window - now end
+    if used + cost > max then return {0, used, reset} end
+    for i = 1, cost do redis.call('ZADD', KEYS[1], now, ARGV[4] .. ':' .. i) end
+    redis.call('PEXPIRE', KEYS[1], window)
+    return {1, used + cost, reset}`,
 });
-
-// Tier-based rate limits
-const limiters = {
-  free: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, "1 m"),     // 100 requests/minute
-    prefix: "rl:free",
-    analytics: true,
-  }),
-  pro: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(1000, "1 m"),    // 1,000 requests/minute
-    prefix: "rl:pro",
-    analytics: true,
-  }),
-  enterprise: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10000, "1 m"),   // 10,000 requests/minute
-    prefix: "rl:enterprise",
-    analytics: true,
-  }),
-};
-
-// Endpoint-specific cost multipliers.
-// Expensive operations consume more of the quota.
-const endpointCosts: Record<string, number> = {
-  "POST /api/transactions/export": 10,    // Heavy DB query + file generation
-  "POST /api/reports/generate": 20,       // Report compilation is expensive
-  "GET /api/transactions": 1,             // Standard read
-  "POST /api/transactions": 2,            // Write operation
-};
-
-export async function rateLimit(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const user = (req as any).user;
-  if (!user) return next();  // Skip if not authenticated (auth middleware handles it)
-
-  const tier = user.tier || "free";
-  const limiter = limiters[tier as keyof typeof limiters] || limiters.free;
-
-  // Compute cost for this request
-  const endpointKey = `${req.method} ${req.path}`;
-  const cost = endpointCosts[endpointKey] || 1;
-
-  // Rate limit by organization (not individual user) for fairness
-  const identifier = user.org_id || user.sub;
-
-  const result = await limiter.limit(identifier, { rate: cost });
-
-  // Set standard rate limit headers
-  res.set({
-    "X-RateLimit-Limit": String(result.limit),
-    "X-RateLimit-Remaining": String(result.remaining),
-    "X-RateLimit-Reset": String(Math.ceil(result.reset / 1000)),
-  });
-
-  if (!result.success) {
-    const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-
-    res.set("Retry-After", String(retryAfter));
-
-    return res.status(429).json({
-      error: "rate_limit_exceeded",
-      message: `Rate limit exceeded. Retry after ${retryAfter} seconds.`,
-      limit: result.limit,
-      remaining: 0,
-      retryAfter,
-      tier,
-      upgradeUrl: tier === "free" ? "https://api.diego.dev/pricing" : undefined,
-    });
+declare module "ioredis" {
+  interface RedisCommander<Context> {
+    slidingWindow(key: string, windowMs: number, max: number, cost: number, nonce: string): Promise<[number, number, number]>;
   }
+}
 
-  next();
+const WINDOW_MS = 60_000;
+const TIER_LIMIT: Record<Tier, number> = { free: 100, pro: 1_000, enterprise: 10_000 };
+const COST: Record<string, number> = {
+  "POST /api/reports/generate": 20,
+  "POST /api/transactions/export": 10,
+  "POST /api/transactions": 2,
+};
+
+// Redis down: per-process fallback, never "unlimited".
+const local = new Map<string, { n: number; until: number }>();
+function localCheck(key: string, max: number, cost: number): [number, number, number] {
+  const now = Date.now();
+  const e = local.get(key);
+  const cur = e && e.until > now ? e : { n: 0, until: now + WINDOW_MS };
+  if (cur.n + cost > max) return [0, cur.n, cur.until - now];
+  cur.n += cost;
+  local.set(key, cur);
+  return [1, cur.n, cur.until - now];
+}
+
+export function rateLimit(layer: "ip" | "org") {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as Partial<AuthedRequest>).user;
+    const tier: Tier = user?.tier ?? "free";
+    // `req.ip` is only the client address if Express `trust proxy` matches your proxy setup.
+    const id = layer === "ip" ? `ip:${req.ip}` : `org:${user?.org_id ?? user?.sub}`;
+    const max = layer === "ip" ? 300 : TIER_LIMIT[tier];
+    const cost = layer === "org" ? COST[`${req.method} ${req.path}`] ?? 1 : 1;
+    const key = `rl:${id}`;
+
+    let result: [number, number, number];
+    try {
+      result = await redis.slidingWindow(key, WINDOW_MS, max, cost, `${Date.now()}-${Math.random()}`);
+    } catch (err) {
+      console.error("rate limiter: Redis unavailable, using local counter", err);
+      result = localCheck(key, max, cost);
+    }
+    const [allowed, used, resetMs] = result;
+
+    res.set({
+      "X-RateLimit-Limit": String(max),
+      "X-RateLimit-Remaining": String(Math.max(0, max - used)),
+      "X-RateLimit-Reset": String(Math.ceil((Date.now() + resetMs) / 1000)),
+    });
+    if (!allowed) {
+      const retryAfter = Math.max(1, Math.ceil(resetMs / 1000));
+      res.set("Retry-After", String(retryAfter));
+      return res.status(429).json({ error: "rate_limit_exceeded", retryAfter, tier });
+    }
+    next();
+  };
 }
 ```
 
-## Step 3 — Manage Secrets with Vault
+Wire it as `app.use(rateLimit("ip"), requireAuth, rateLimit("org"))`. `X-RateLimit-*` is a common convention, not a standard; the IETF `RateLimit` header fields are still a draft, so pick one scheme and document it. Test with concurrent requests, not only sequential ones.
+
+## Step 3: Pull secrets from Vault instead of environment variables
+
+The service holds only an AppRole `role_id` (shipped with the deployment) and `secret_id` (injected by CI or the orchestrator, short TTL). Everything else comes from Vault. Set up the policy and role once (CLI as in the `hashicorp-vault` skill):
+
+```bash
+cat > fintech-api.hcl <<'EOF'
+path "secret/data/fintech-api/*"          { capabilities = ["read"] }
+path "database/creds/fintech-api-role"    { capabilities = ["read"] }
+EOF
+vault policy write fintech-api fintech-api.hcl
+vault auth enable approle
+vault write auth/approle/role/fintech-api token_policies=fintech-api \
+  token_ttl=1h token_max_ttl=4h secret_id_ttl=24h
+vault write database/roles/fintech-api-role db_name=fintech default_ttl=1h max_ttl=24h \
+  creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO \"{{name}}\";"
+```
+
+The `database/config/fintech` connection must exist first (see the skill). The service talks to Vault's HTTP API over TLS:
 
 ```typescript
-// src/config/vault.ts — Dynamic secret loading from HashiCorp Vault.
-// Application fetches secrets at startup and refreshes before TTL expiry.
-// No secrets in environment variables, .env files, or code.
+// src/config/vault.ts
+const VAULT_ADDR = process.env.VAULT_ADDR!; // must be https:// outside local experiments
 
-import VaultClient from "node-vault";
-
-const vault = VaultClient({
-  apiVersion: "v1",
-  endpoint: process.env.VAULT_ADDR || "https://vault.internal:8200",
-});
-
-// Authenticate with AppRole (machine-to-machine auth)
-async function authenticate() {
-  const result = await vault.approleLogin({
-    role_id: process.env.VAULT_ROLE_ID!,
-    secret_id: process.env.VAULT_SECRET_ID!,  // Only 2 env vars needed
+async function vault<T>(path: string, token?: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${VAULT_ADDR}/v1/${path}`, {
+    method: body ? "POST" : "GET",
+    headers: { ...(token && { "X-Vault-Token": token }), "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
   });
-
-  vault.token = result.auth.client_token;
-
-  // Schedule token renewal before expiry
-  const ttl = result.auth.lease_duration;
-  setTimeout(() => authenticate(), (ttl - 60) * 1000);  // Renew 60s before expiry
+  if (!res.ok) throw new Error(`Vault ${path}: HTTP ${res.status}`);
+  return (await res.json()) as T;
 }
 
-// Fetch application secrets
-export async function getSecrets() {
-  await authenticate();
+export async function loadSecrets() {
+  const login = await vault<{ auth: { client_token: string } }>("auth/approle/login", undefined, {
+    role_id: process.env.VAULT_ROLE_ID,
+    secret_id: process.env.VAULT_SECRET_ID,
+  });
+  const token = login.auth.client_token;
 
-  // Static secrets from KV engine
-  const appSecrets = await vault.read("secret/data/fintech-api/config");
-
-  // Dynamic database credentials (auto-expire after 1 hour)
-  const dbCreds = await vault.read("database/creds/fintech-api-role");
-
-  // Dynamic Redis credentials
-  const redisCreds = await vault.read("database/creds/redis-role");
+  const kv = await vault<{ data: { data: Record<string, string> } }>("secret/data/fintech-api/config", token);
+  const db = await vault<{ lease_duration: number; data: { username: string; password: string } }>(
+    "database/creds/fintech-api-role", token);
 
   return {
-    oauthClientSecret: appSecrets.data.data.oauth_client_secret,
-    jwtSigningKey: appSecrets.data.data.jwt_signing_key,
-    encryptionKey: appSecrets.data.data.encryption_key,
-    database: {
-      host: appSecrets.data.data.db_host,
-      port: 5432,
-      username: dbCreds.data.username,     // Dynamic: "v-approle-fintech-a-xyz123"
-      password: dbCreds.data.password,     // Dynamic: auto-generated, 1-hour TTL
-      database: "fintech",
-    },
-    redis: {
-      username: redisCreds.data.username,
-      password: redisCreds.data.password,
-    },
+    app: kv.data.data,                         // e.g. oauth client secret, encryption key
+    database: { ...db.data, leaseSeconds: db.lease_duration },
   };
 }
 
-// Refresh database credentials before they expire
-export function scheduleCredentialRefresh(
-  onRefresh: (creds: Awaited<ReturnType<typeof getSecrets>>) => void
-) {
-  // Database creds have 1-hour TTL; refresh every 50 minutes
-  setInterval(async () => {
-    const newSecrets = await getSecrets();
-    onRefresh(newSecrets);
-  }, 50 * 60 * 1000);
+// Fetch new database credentials at two thirds of the lease, then rebuild the connection pool.
+export function refreshBeforeExpiry(current: { database: { leaseSeconds: number } },
+                                    onRefresh: (s: Awaited<ReturnType<typeof loadSecrets>>) => void) {
+  setTimeout(async () => {
+    const next = await loadSecrets();
+    onRefresh(next);
+    refreshBeforeExpiry(next, onRefresh);
+  }, (current.database.leaseSeconds * 2 / 3) * 1000);
 }
 ```
 
-## Step 4 — Automate Security Scanning in CI
+Each read of `database/creds/...` creates a new database user, so a leaked credential works for at most one hour. Enable at least two audit devices (`vault audit enable file file_path=/var/log/vault/audit.log`) before production traffic; the audit log is the access trail an auditor asks for.
+
+## Step 4: Scan automatically with OWASP ZAP
+
+A passive baseline scan on every pull request, and a full active scan against **staging** on a schedule. Active scans submit forms and can create records, so never point them at production.
 
 ```yaml
-# .github/workflows/security.yml — Automated security scanning.
-# Runs OWASP ZAP against the staging deployment after every merge to main.
-# Baseline scan (passive only) on PRs, full scan weekly.
-
+# .github/workflows/security.yml
 name: Security Scan
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
   schedule:
-    - cron: "0 3 * * 1"  # Full scan every Monday at 3 AM
+    - cron: "0 3 * * 1"   # full scan, Mondays 03:00 UTC
+permissions:
+  contents: read
+  issues: write           # ZAP actions file their findings as a GitHub issue
 
 jobs:
-  # Quick passive scan on every PR — catches common issues in ~2 minutes
-  baseline-scan:
+  baseline:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Start application
+      - name: Start the app
         run: |
           docker compose -f compose.test.yml up -d
-          sleep 10  # Wait for app to be ready
-
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+          curl --retry 30 --retry-delay 2 --retry-connrefused -fsS http://localhost:3000/healthz
+      - uses: zaproxy/action-baseline@v0.15.0
         with:
-          target: "http://localhost:3000"
-          rules_file_name: ".zap/baseline-rules.tsv"
-          cmd_options: "-a -j"  # Ajax spider + JSON report
-          fail_action: "warn"   # Don't block PRs, but flag issues
+          target: http://localhost:3000
+          rules_file_name: .zap/baseline-rules.tsv
+          cmd_options: -a -j     # alpha passive rules, Ajax spider
+          fail_action: false     # report only; turn on once the noise is triaged
 
-      - name: Upload report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: zap-baseline-report
-          path: report_html.html
-
-  # Full active scan on staging after merge to main
-  full-scan:
-    if: github.event_name == 'push' || github.event_name == 'schedule'
+  full:
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - uses: actions/checkout@v4
-
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.10.0
+      - uses: zaproxy/action-full-scan@v0.13.0
         with:
           target: ${{ vars.STAGING_URL }}
-          rules_file_name: ".zap/full-scan-rules.tsv"
-          cmd_options: >-
-            -a
-            -j
-            -z "-config api.addrs.addr.name=.* -config api.addrs.addr.regex=true"
-          fail_action: "fail"   # Block deployment on high-severity findings
-
-      - name: Upload report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: zap-full-report
-          path: report_html.html
-
-      # Notify on critical findings
-      - name: Alert on critical vulnerabilities
-        if: failure()
-        run: |
-          curl -X POST "${{ secrets.SLACK_WEBHOOK }}" \
-            -H "Content-Type: application/json" \
-            -d '{"text": "🚨 OWASP ZAP found critical vulnerabilities in staging. Check the security scan report."}'
+          rules_file_name: .zap/full-scan-rules.tsv
+          cmd_options: -a -j
+          fail_action: true      # fail the job on alerts not ignored in the rules file
 ```
+
+The actions run ZAP in Docker with host networking, so `localhost` reaches the app on the runner, and they upload the HTML/JSON/Markdown reports as the `zap_scan` artifact. ZAP reports every alert as a WARN until you set a rule to `IGNORE` or `FAIL` in the rules file (generate one with `zap-baseline.py -g gen.conf`, then edit it). An unauthenticated scan only sees what is reachable without a token; to cover the API behind OAuth, use `zaproxy/action-api-scan` with your OpenAPI file and an Authorization header, or an Automation Framework plan with an authentication block.
 
 ## Results
 
-Diego completed the security hardening in 5 weeks, well ahead of the SOC 2 audit:
+Diego finished the hardening in 5 weeks, ahead of the SOC 2 audit:
 
-- **Zero static secrets in env vars** — Vault manages all credentials with dynamic generation. Database passwords rotate every hour automatically. If a credential leaks, it's valid for at most 60 minutes.
-- **API key → OAuth migration**: 100% of clients migrated in 3 weeks. Access tokens expire in 15 minutes (vs API keys that never expired). Token theft impact reduced from "indefinite access" to "15-minute window."
-- **Rate limiting prevented 3 incidents** in the first month — one customer's runaway script hit the 1,000/min pro tier limit instead of overwhelming the database. The 429 response with `Retry-After` header let the script's backoff logic handle it gracefully.
-- **OWASP ZAP caught 12 issues** in the first full scan: 2 high (reflected XSS in search, missing CSRF token on settings), 4 medium (security headers, cookie flags), 6 low. All high/medium fixed within a week.
-- **SOC 2 audit passed** — the auditor specifically noted the dynamic secret rotation, automated security scanning, and rate limit logging as strong controls. Vault's audit log provided the access trail required for compliance.
-- **Rate limit headers improved client experience** — third-party developers integrating with the API reported that `X-RateLimit-Remaining` let them build efficient polling without guessing. Support tickets about "random 500 errors" (actually overload) dropped to zero.
+- **No static secrets in environment variables.** The service holds only its AppRole credentials; database passwords are generated per instance and expire after an hour.
+- **API keys retired.** Access tokens expire in 15 minutes, so a stolen one is useful for minutes, not indefinitely.
+- **Rate limiting contained the next runaway script.** A customer's loop hit the pro limit and got `429` with `Retry-After` instead of exhausting the database.
+- **ZAP findings reached the backlog.** The first full scan of staging produced a list of XSS, missing-header and cookie-flag alerts; the high and medium ones were fixed within a week, and the baseline scan keeps new ones out of pull requests.
+
+## Related Skills
+
+- **oauth2-oidc**: access-token validation, grant types and PKCE rules for Step 1
+- **rate-limiter**: layered limits, headers and fallback behavior for Step 2
+- **hashicorp-vault**: AppRole, policies and dynamic database credentials for Step 3
+- **owasp-zap**: baseline and full scans and the GitHub Actions in Step 4
