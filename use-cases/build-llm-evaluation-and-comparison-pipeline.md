@@ -18,72 +18,110 @@ tags:
 
 ## The Problem
 
-A startup building an AI-powered legal document reviewer is locked into GPT-4o at $1,200 per month in API costs. They chose it 6 months ago because it was the best at the time, but Claude, Gemini, and several open-source models have improved since then. Switching models manually is risky -- they do not know if a different model will handle their edge cases (contract clauses with nested conditions, ambiguous liability language, multi-jurisdiction compliance). They need a way to evaluate multiple models against the same test suite, compare quality metrics side by side, and catch regressions before they affect users, without running a month-long manual comparison.
+A startup building an AI-powered legal document reviewer has used the same model for a year. They chose it because it was the best option at the time, but several providers have shipped newer models since, and the model they use may be retired on the provider's schedule anyway. Switching is risky: they do not know whether another model will handle their edge cases (contract clauses with nested conditions, ambiguous liability language, multi-jurisdiction compliance). They need to run the same test suite against several models, compare quality, latency and cost side by side, and catch regressions before they reach users, without a month of manual comparison.
 
 ## The Solution
 
-Using the **langgraph** and **langsmith** skills, the workflow builds a multi-model evaluation graph with LangGraph that runs the same test cases through every model in parallel, then traces and scores every response in LangSmith to produce a comparison dashboard with per-model accuracy, latency, cost, and failure analysis.
+Use the **langsmith** skill to hold the evaluation dataset, trace every model call and store each run as an experiment, and the **langgraph** skill to build one graph that sends each test case to every candidate model in parallel. Model ids are read from environment variables, so the same pipeline works when the provider lineup changes.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Build the evaluation dataset in LangSmith
 
-Create a curated test suite from real legal documents with known-correct outputs that cover normal cases, edge cases, and adversarial inputs.
+Create a curated test suite from real (redacted) legal documents with known-correct outputs that cover normal cases, edge cases and adversarial inputs.
 
-> Create a LangSmith evaluation dataset called "legal-doc-review-v2" with 150 test cases from our production data. Include 3 categories: standard contract clauses (80 cases with clear correct answers), edge cases (50 cases with ambiguous language, nested conditions, or multi-party agreements), and adversarial inputs (20 cases designed to trigger hallucination or overly confident wrong answers). Each example should have the input document, the expected output classification, and the expected extracted key terms.
+> Set `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` from the environment. Create a LangSmith dataset called "legal-doc-review-v2" with `client.create_dataset` and `client.create_examples`, using 150 cases from our production data: standard clauses (80), edge cases such as ambiguous language, nested conditions and multi-party agreements (50), and adversarial inputs designed to trigger confident wrong answers (20). Pass them as `examples=[{"inputs": {"document": ...}, "outputs": {"classification": ..., "key_terms": [...]}, "split": "edge"}, ...]` to `create_examples`, with `split` set to `standard`, `edge` or `adversarial`.
 
-The dataset represents the real distribution of document types the system handles. Overweighting edge cases (33% of the dataset vs 15% in production) intentionally stresses the models on the cases that matter most -- a model that scores 95% on easy cases but 60% on edge cases is worse in practice than one scoring 90%/85%.
+Overweighting edge cases (a third of the dataset here, a smaller share of production) stresses the models on the cases that matter most. A model that scores 95% on easy cases but 60% on edge cases is worse in practice than one scoring 90% on both.
 
 ### 2. Build the multi-model evaluation graph with LangGraph
 
-Create a LangGraph workflow that sends each test case to multiple models in parallel, collects responses, and routes them to scoring nodes.
+Create a LangGraph graph with one node per candidate model. Several edges out of `START` make the nodes run in parallel, and a reducer on `answers` merges what each node returns.
 
-> Build a LangGraph evaluation graph with these nodes: "prepare" formats the input for each model's expected format, "evaluate_gpt4o" and "evaluate_claude_sonnet" and "evaluate_gemini_pro" and "evaluate_llama_70b" each call their respective model with the same prompt, "score" evaluates each response against the expected output using 4 criteria (accuracy, completeness, hallucination_check, format_compliance), and "compare" aggregates scores across all models per test case. Use parallel execution so all 4 models run simultaneously. Add LangSmith tracing to every node.
+> Build a LangGraph `StateGraph` with a node for each model in `MODELS`, all started from `START` and ending at `END`, using the same system prompt and temperature 0. Create each model with `init_chat_model("provider:model")`. Wrap the graph in a `target` function, write one evaluator that returns an `accuracy_<model>` score per model, and run it with `langsmith.evaluate`.
 
-The parallel execution means evaluating 150 test cases across 4 models takes 15 minutes instead of an hour. Each model node uses the same system prompt and few-shot examples, so differences in output are purely model capability, not prompt engineering.
+```python
+import os
+from typing import Annotated, TypedDict
+from langchain.chat_models import init_chat_model
+from langgraph.graph import StateGraph, START, END
+from langsmith import evaluate
 
-### 3. Run the evaluation and analyze results in LangSmith
+# "provider:model" ids come from the environment, so nothing is pinned to a retired model name
+MODELS = {
+    "model_a": os.environ.get("EVAL_MODEL_A", "openai:placeholder"),
+    "model_b": os.environ.get("EVAL_MODEL_B", "anthropic:placeholder"),
+    "model_c": os.environ.get("EVAL_MODEL_C", "google_genai:placeholder"),
+}
+SYSTEM = "Classify the contract clause and list its key terms. Reply as JSON."
 
-Execute the full evaluation suite and use LangSmith's dashboard to compare models across every metric.
+def merge(left: dict, right: dict) -> dict:  # reducer: parallel nodes each add one key
+    return {**left, **right}
 
-> Run the evaluation graph against the full 150-case dataset. In LangSmith, create a comparison view showing per-model scores on: overall accuracy, edge-case accuracy, hallucination rate, average latency, p95 latency, and estimated cost per 1000 documents. Highlight any test cases where models disagree -- those are the most informative for understanding capability differences.
+class EvalState(TypedDict):
+    document: str
+    answers: Annotated[dict[str, str], merge]
 
-The comparison dashboard produces a clear ranking across dimensions:
+def make_node(name: str, model_id: str):
+    llm = init_chat_model(model_id, temperature=0)
+    def node(state: EvalState) -> dict:
+        reply = llm.invoke([("system", SYSTEM), ("human", state["document"])])
+        return {"answers": {name: reply.content}}
+    node.__name__ = name
+    return node
 
-```text
-LangSmith Evaluation — legal-doc-review-v2 (150 cases)
-=========================================================
-Metric                  GPT-4o    Claude Sonnet  Gemini Pro  Llama 70B
-Overall accuracy        91.3%     93.1%          88.4%       82.0%
-Edge-case accuracy      83.0%     89.2%          79.6%       71.4%
-Hallucination rate      4.7%      2.1%           6.3%        11.2%
-Avg latency (ms)        1,240     980            1,450       680
-p95 latency (ms)        2,890     2,100          3,410       1,200
-Cost per 1K docs        $12.40    $8.60          $7.20       $1.80
+builder = StateGraph(EvalState)
+for name, model_id in MODELS.items():
+    builder.add_node(name, make_node(name, model_id))
+    builder.add_edge(START, name)   # several edges out of START = parallel branches
+    builder.add_edge(name, END)
+graph = builder.compile()
 
-Model disagreements: 23 of 150 cases (15.3%)
-  - Nested conditions:  Claude wins 8/11 disagreements
-  - Multi-jurisdiction: GPT-4o wins 6/7 disagreements
-  - Ambiguous liability: Models split evenly (5 cases)
+def target(inputs: dict) -> dict:
+    return graph.invoke({"document": inputs["document"], "answers": {}})["answers"]
+
+def accuracy(outputs: dict, reference_outputs: dict) -> dict:
+    expected = reference_outputs["classification"].lower()
+    return {"results": [
+        {"key": f"accuracy_{name}", "score": float(expected in str(text).lower())}
+        for name, text in outputs.items()
+    ]}
+
+if __name__ == "__main__":
+    evaluate(target, data="legal-doc-review-v2", evaluators=[accuracy],
+             experiment_prefix="model-comparison", max_concurrency=4)
 ```
 
-The disagreement analysis identifies the 15-20 test cases where model choice actually matters. These disagreement cases become the most valuable part of the evaluation dataset for future prompt optimization.
+Every model gets the same prompt, so differences in output reflect the model, not prompt tuning. Set `EVAL_MODEL_A`, `EVAL_MODEL_B` and `EVAL_MODEL_C` to the `provider:model` ids you want to compare (the provider packages, such as `langchain-openai`, `langchain-anthropic` or `langchain-google-genai`, must be installed). Check the model ids against each provider's current model list before a run, since retired ids fail at call time.
 
-### 4. Set up regression detection for ongoing monitoring
+### 3. Run the evaluation and compare in LangSmith
 
-Configure automated evaluation runs that trigger on prompt changes, model version updates, or weekly schedules to catch quality drift.
+Run `python evalgraph.py`. LangSmith records one experiment with a trace per test case; each model node is a child run with its own latency and token usage.
 
-> Set up a LangSmith evaluation pipeline that runs automatically: on every pull request that modifies prompts or model configuration, on a weekly schedule against the full 150-case dataset, and whenever a model provider announces a version update. Create alert rules: flag if overall accuracy drops below 88%, if edge-case accuracy drops below 80%, or if hallucination rate exceeds 5%. Store results as experiment runs in LangSmith so the team can compare across time.
+> Run the graph against the full dataset. In LangSmith, open the experiment and compare the `accuracy_*` feedback columns per model, compare the dataset splits (or re-run on `splits=["edge"]`) to get edge-case accuracy, and read latency and token cost from the per-node runs. Add a second evaluator for hallucination if you need one (an LLM-as-judge evaluator with temperature 0; spot-check its verdicts by hand). Open the test cases where the models' scores differ: those are the most informative.
 
-The automated pipeline catches the silent regressions that manual testing misses. When GPT-4o updated from version 0613 to 1106, a legal tech company discovered that accuracy on nested contract clauses dropped 7% -- visible in the weekly evaluation run but invisible in day-to-day usage because the affected cases are only 12% of total volume.
+The disagreement cases are the most valuable part of the dataset for later prompt work. To compare two experiments (for example the same model before and after a prompt change), use the compare view in the UI, or `evaluate_comparative` from `langsmith.evaluation`, which takes a pair of experiments and a pairwise evaluator you write.
+
+### 4. Catch regressions in CI
+
+Run the same evaluation from your CI system and fail the build when a score drops. LangSmith's alerts watch tracing projects (error rate, latency, feedback scores on live traffic), not experiments, so the experiment check lives in CI.
+
+> Add a pytest test that runs `evaluate` on the dataset, reads `results.to_pandas()`, and asserts that each `feedback.accuracy_<model>` mean for the model you ship is at or above an agreed floor and run it a second time with `data=client.list_examples(dataset_name="legal-doc-review-v2", splits=["edge"])` for a separate edge-case floor. Trigger it from CI on every pull request that touches prompts or model configuration, and on a weekly `schedule:` cron so a silent change in a provider's model alias shows up. Pin model versions where the provider offers dated ids, since an alias can change underneath you.
+
+Track cost and latency next to accuracy: a model update that improves accuracy but doubles token usage may not be an overall win.
 
 ## Real-World Example
 
-The legal tech startup ran their 150-case evaluation suite across GPT-4o, Claude Sonnet, Gemini 1.5 Pro, and Llama 3.1 70B. GPT-4o scored 91% overall, Claude Sonnet 93%, Gemini 88%, and Llama 70B 82%. But the edge-case breakdown told a different story: Claude scored 89% on nested conditions (vs GPT-4o's 83%), while GPT-4o outperformed on multi-jurisdiction cases (90% vs 85%). The team switched their primary model to Claude Sonnet for a projected $400/month savings (lower per-token cost at higher accuracy), kept GPT-4o as a fallback for the specific case types where it excels, and set up weekly LangSmith evaluations that have since caught two model-version regressions before they affected production users. Total monthly cost dropped from $1,200 to $780 while accuracy improved from 91% to 94%.
+The example legal-tech team runs the 150-case suite across three candidate models plus the incumbent. The overall scores are close, but the split comparison shows the models split on different clause types: one is better on nested conditions, another on multi-jurisdiction cases. The team picks the best overall model as primary, routes the clause types where another model is clearly ahead to it, and keeps the weekly CI run so a changed alias or a new release is caught by the numbers instead of by a customer. (All figures from such a run are the team's own and depend on the models, prompt and data; do not reuse them.)
 
 ## Tips
 
-- Overweight edge cases in your evaluation dataset (30-40% of cases) even though they represent a smaller fraction of production traffic. Edge cases are where models diverge most and where failures matter most.
-- Run evaluations with the exact same prompt and few-shot examples across all models. Differences in output should reflect model capability, not prompt tuning.
-- Track the disagreement cases separately over time. When a model update resolves a disagreement, it tells you the provider improved on that specific capability.
-- Set up regression alerts on both accuracy and cost. A model version update that improves accuracy but doubles latency or token usage may not be an overall win.
+- Overweight edge cases in the dataset; they are where models diverge most and where failures matter most.
+- Run every model with the same prompt, temperature and few-shot examples.
+- Track the disagreement cases separately over time; when a model update resolves one, the provider improved on that capability.
+- Keep model ids in configuration, not code, so swapping a retired model is a one-line change.
+
+## Related Skills
+
+- **langsmith** -- stores the dataset, traces every model call and records each run as an experiment for comparison
+- **langgraph** -- fans each test case out to all candidate models in parallel
