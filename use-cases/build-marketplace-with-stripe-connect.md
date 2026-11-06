@@ -1,7 +1,7 @@
 ---
 title: "Build a Two-Sided Marketplace with Stripe Connect"
 slug: build-marketplace-with-stripe-connect
-description: "Launch a freelance or service marketplace where buyers pay and sellers get paid automatically — with platform fees, instant payouts, and dispute handling via Stripe Connect."
+description: "Launch a freelance or service marketplace where buyers pay and sellers get paid automatically — with platform fees, automatic payouts, and dispute handling via Stripe Connect."
 skills:
   - stripe-connect
 category: business
@@ -21,7 +21,7 @@ Sofia is building a freelance marketplace — clients post jobs, freelancers com
 - Seller onboarding with Stripe Accounts v2 (Express dashboard)
 - Checkout flow that splits payment (seller + platform fee)
 - Webhook handling for payment events
-- Payout management for sellers
+- Seller Express dashboard link and balance lookup (payouts run on Stripe's automatic schedule)
 - Refund and dispute handling
 
 ## Step 1: Install & Configure
@@ -33,10 +33,8 @@ npm install stripe
 ```typescript
 import Stripe from "stripe";
 
-// Accounts v2 needs the Stripe Node SDK >= 20.2.0 and a recent API version.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-05-27.dahlia",
-});
+// stripe-node 23 (Node 20+) pins its own API version, so omit apiVersion.
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 ```
 
 ## Step 2: Onboard Sellers (Accounts v2)
@@ -46,13 +44,12 @@ v1 account `type`, you assign **configurations**: `merchant` (accept payments) a
 `recipient` (receive payouts). `dashboard: "express"` keeps Stripe's hosted onboarding UI.
 
 ```typescript
-// (Legacy Accounts v1 — still GA: stripe.accounts.create({ type: "express" }) +
-//  stripe.accountLinks.create({ type: "account_onboarding" }). Use if not registered for v2.)
-
 // POST /api/sellers/onboard
-async function createSellerAccount(sellerId: string) {
+async function createSellerAccount(sellerId: string, email: string) {
   // Create a connected account (Accounts v2)
   const account = await stripe.v2.core.accounts.create({
+    contact_email: email,
+    display_name: email,
     dashboard: "express",
     identity: { country: "us", entity_type: "individual" },
     configuration: {
@@ -71,10 +68,7 @@ async function createSellerAccount(sellerId: string) {
   });
 
   // Save account ID to your DB
-  await db.users.update({
-    where: { id: sellerId },
-    data: { stripeAccountId: account.id },
-  });
+  await db.users.update({ where: { id: sellerId }, data: { stripeAccountId: account.id } });
 
   // Generate onboarding link (Account Links v2)
   const accountLink = await stripe.v2.core.accountLinks.create({
@@ -82,64 +76,58 @@ async function createSellerAccount(sellerId: string) {
     use_case: {
       type: "account_onboarding",
       account_onboarding: {
-        configurations: ["merchant", "recipient"],
         refresh_url: `${process.env.APP_URL}/sellers/onboard?retry=true`,
         return_url: `${process.env.APP_URL}/sellers/dashboard`,
       },
     },
   });
 
-  return accountLink.url; // Redirect seller here (link expires in ~10 min)
+  return accountLink.url; // Redirect seller here (link expires in ~10 min); Stripe collects what the account's configurations need
 }
 
-// Check onboarding status — no outstanding requirements means done
+// Check onboarding status. v2 has no `currently_due` list: each open item is in
+// requirements.entries with a minimum_deadline.status.
 async function isSellerOnboarded(stripeAccountId: string): Promise<boolean> {
   const account = await stripe.v2.core.accounts.retrieve(stripeAccountId, {
-    include: ["requirements"],
+    include: ["requirements", "configuration.merchant"],
   });
-  return (account.requirements?.currently_due?.length ?? 0) === 0;
+  const blocking = (account.requirements?.entries ?? []).filter(
+    (e) => e.awaiting_action_from === "user" && e.minimum_deadline.status !== "eventually_due",
+  );
+  const cardActive =
+    account.configuration?.merchant?.capabilities?.card_payments?.status === "active";
+  return blocking.length === 0 && cardActive;
 }
 ```
 
 ## Step 3: Create Checkout with Platform Fee
 
-Use Payment Intents with `application_fee_amount` and `transfer_data`.
+Use Payment Intents with `application_fee_amount` and `transfer_data` (a destination charge: the charge sits on your platform account and the net amount moves to the seller's `recipient` balance).
 
 ```typescript
 // POST /api/orders/checkout
 async function createCheckout(order: {
+  orderId: string;     // your own order id, used as the idempotency key
   amount: number;      // in cents
   sellerId: string;
   jobTitle: string;
   buyerEmail: string;
 }) {
   const seller = await db.users.findUnique({ where: { id: order.sellerId } });
+  if (!seller?.stripeAccountId) throw new Error("Seller not onboarded with Stripe");
 
-  if (!seller?.stripeAccountId) {
-    throw new Error("Seller not onboarded with Stripe");
-  }
-
-  const platformFeePercent = 0.10; // 10%
-  const platformFee = Math.round(order.amount * platformFeePercent);
+  const platformFee = Math.round(order.amount * 0.10); // 10% platform fee
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: order.amount,
     currency: "usd",
     application_fee_amount: platformFee,
-    transfer_data: {
-      destination: seller.stripeAccountId,
-    },
-    metadata: {
-      jobTitle: order.jobTitle,
-      sellerId: order.sellerId,
-    },
+    transfer_data: { destination: seller.stripeAccountId },
+    metadata: { orderId: order.orderId, jobTitle: order.jobTitle, sellerId: order.sellerId },
     receipt_email: order.buyerEmail,
-  });
+  }, { idempotencyKey: `checkout-${order.orderId}` }); // a retried request cannot create a second PaymentIntent
 
-  return {
-    clientSecret: paymentIntent.client_secret,
-    paymentIntentId: paymentIntent.id,
-  };
+  return { clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id };
 }
 ```
 
@@ -149,61 +137,49 @@ async function createCheckout(order: {
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY!);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY!); // publishable key
 
-function CheckoutForm({ clientSecret }: { clientSecret: string }) {
+function CheckoutForm() {
   const stripe = useStripe();
   const elements = useElements();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const pay = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
-
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/orders/success`,
-      },
+      confirmParams: { return_url: `${window.location.origin}/orders/success` },
     });
-
     if (error) console.error(error.message);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={pay}>
       <PaymentElement />
       <button type="submit">Pay Now</button>
     </form>
   );
 }
 
-export function Checkout({ clientSecret }: { clientSecret: string }) {
-  return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <CheckoutForm clientSecret={clientSecret} />
-    </Elements>
-  );
-}
+export const Checkout = ({ clientSecret }: { clientSecret: string }) => (
+  <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <CheckoutForm />
+  </Elements>
+);
 ```
 
 ## Step 5: Webhook Handling
 
 ```typescript
 // POST /api/webhooks/stripe
-import { NextRequest } from "next/server";
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature")!;
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     return new Response("Webhook signature failed", { status: 400 });
   }
@@ -211,45 +187,58 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "payment_intent.succeeded": {
       const pi = event.data.object as Stripe.PaymentIntent;
-      await db.orders.update({
-        where: { paymentIntentId: pi.id },
+      // Stripe retries webhooks: only the first delivery flips the order and notifies
+      const { count } = await db.orders.updateMany({
+        where: { paymentIntentId: pi.id, status: { not: "paid" } },
         data: { status: "paid", paidAt: new Date() },
       });
-      await notifySeller(pi.metadata.sellerId, "New order paid!");
+      if (count > 0) await notifySeller(pi.metadata.sellerId, "New order paid!");
       break;
     }
 
     case "payment_intent.payment_failed": {
       const pi = event.data.object as Stripe.PaymentIntent;
-      await db.orders.update({
-        where: { paymentIntentId: pi.id },
-        data: { status: "failed" },
-      });
-      break;
-    }
-
-    // v2 accounts report onboarding via the thin event
-    // "v2.core.account[requirements].updated" on a v2 event destination —
-    // fetch the account and check requirements.currently_due. (v1 shown below.)
-    case "account.updated": {
-      // Seller onboarding completed
-      const account = event.data.object as Stripe.Account;
-      if (account.charges_enabled) {
-        await db.users.update({
-          where: { stripeAccountId: account.id },
-          data: { sellerStatus: "active" },
-        });
-      }
+      await db.orders.update({ where: { paymentIntentId: pi.id }, data: { status: "failed" } });
       break;
     }
 
     case "charge.dispute.created": {
+      // Destination charges: the platform answers the dispute (and can reclaim from the seller)
       const dispute = event.data.object as Stripe.Dispute;
       await handleDispute(dispute);
       break;
     }
   }
 
+  return new Response("OK");
+}
+```
+
+Accounts v2 does not send `account.updated` to this endpoint. It sends *thin events* to an
+**event destination** (Dashboard → Developers → Event destinations) with its own signing secret, so give it a second route:
+
+```typescript
+// POST /api/webhooks/stripe-v2
+export async function POST(req: Request) {
+  const body = await req.text();
+  const sig = req.headers.get("stripe-signature")!;
+  let notification;
+  try {
+    notification = stripe.parseEventNotification(body, sig, process.env.STRIPE_V2_WEBHOOK_SECRET!);
+  } catch {
+    return new Response("Webhook signature failed", { status: 400 });
+  }
+
+  if (notification.type === "v2.core.account[requirements].updated") {
+    const account = await notification.fetchRelatedObject(); // the full v2 Account
+    const done = (account.requirements?.entries ?? []).every(
+      (e) => e.awaiting_action_from !== "user" || e.minimum_deadline.status === "eventually_due",
+    );
+    await db.users.update({
+      where: { stripeAccountId: account.id },
+      data: { sellerStatus: done ? "active" : "onboarding" },
+    });
+  }
   return new Response("OK");
 }
 ```
@@ -263,14 +252,9 @@ async function getSellerDashboardLink(stripeAccountId: string): Promise<string> 
 }
 
 async function getSellerBalance(stripeAccountId: string) {
-  const balance = await stripe.balance.retrieve({
-    stripeAccount: stripeAccountId,
-  });
+  const balance = await stripe.balance.retrieve({}, { stripeAccount: stripeAccountId });
 
-  return {
-    available: balance.available[0]?.amount ?? 0,
-    pending: balance.pending[0]?.amount ?? 0,
-  };
+  return { available: balance.available[0]?.amount ?? 0, pending: balance.pending[0]?.amount ?? 0 };
 }
 ```
 
@@ -278,9 +262,6 @@ async function getSellerBalance(stripeAccountId: string) {
 
 ```typescript
 async function refundOrder(paymentIntentId: string, reason: string) {
-  // Reverse the transfer first
-  const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-
   const refund = await stripe.refunds.create({
     payment_intent: paymentIntentId,
     reason: "requested_by_customer",
@@ -288,19 +269,19 @@ async function refundOrder(paymentIntentId: string, reason: string) {
     refund_application_fee: true, // Refund platform fee too
   });
 
-  await db.orders.update({
-    where: { paymentIntentId },
-    data: { status: "refunded", refundReason: reason },
-  });
-
+  await db.orders.update({ where: { paymentIntentId }, data: { status: "refunded", refundReason: reason } });
   return refund;
 }
 ```
 
 ## Key Tips
 
-- Use **`dashboard: "express"`** (Accounts v2) for most marketplaces — fastest onboarding; register for Accounts v2 in the Dashboard first
+- Use **`dashboard: "express"`** (Accounts v2) for most marketplaces — Stripe hosts onboarding and the seller dashboard. Stay on Accounts v1 only for OAuth, the recipient service agreement (cross-border) or Treasury/Issuing
 - Set `transfer_data.destination` for automatic splits at payment time
 - Store `stripeAccountId` on your seller model — you'll use it constantly
-- Test with Stripe's test onboarding: use `000000000` for SSN, `0000` for zip
+- Test onboarding in test mode: SSN `000000000`, address line 1 `address_full_match` (see Stripe's Connect testing page); pay with card `4242 4242 4242 4242`
 - Enable webhook signing locally with `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+
+## Related Skills
+
+- **stripe-connect**: Accounts v2 onboarding, destination charges with `application_fee_amount`, Connect webhooks and refunds,
