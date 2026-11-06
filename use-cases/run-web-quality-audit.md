@@ -17,60 +17,85 @@ tags:
 
 ## The Problem
 
-Your web application fails Core Web Vitals on 40% of pages and has never been audited for WCAG compliance. The frontend team treats accessibility and performance as separate backlogs, but many of the same components cause both problems. A hero image without dimensions causes layout shift (CLS failure) and also lacks alt text (WCAG 1.1.1 failure). A modal that blocks the main thread for 400ms degrades INP and also traps keyboard focus (WCAG 2.1.2 failure).
+Your web application fails Core Web Vitals on 40% of pages and has never been audited for WCAG compliance. The frontend team treats accessibility and performance as separate backlogs, but many of the same components cause both problems. A hero image without dimensions causes layout shift (CLS failure) and also lacks alt text (WCAG 1.1.1 failure). A modal that blocks the main thread for 400 ms degrades INP and also traps keyboard focus (WCAG 2.1.2 failure).
 
-The European Accessibility Act deadline is approaching, and Google Search Console shows declining organic traffic from CWV penalties. The team cannot afford to run a 3-week accessibility audit followed by a 2-week performance sprint. They need a unified approach that identifies which component fixes deliver improvements in both dimensions simultaneously.
+The European Accessibility Act has applied to many consumer-facing products and services since 28 June 2025, and Search Console shows pages stuck in the "Needs improvement" and "Poor" Core Web Vitals groups. The team cannot afford a 3-week accessibility audit followed by a 2-week performance sprint. They need one pass that finds the component fixes that improve both dimensions at once.
 
 ## The Solution
 
-Use the **accessibility-auditor** and **web-vitals-analyzer** skills together to run a unified audit that flags both performance and accessibility issues per component, so a single code change can resolve violations in both categories at once.
+Use the **accessibility-auditor** and **web-vitals-analyzer** skills together. Tools measure what code review cannot: axe-core (through `@axe-core/cli`, or the accessibility category of Lighthouse) finds the automatable WCAG failures, and Lighthouse gives lab LCP and CLS. The skills then read the component source behind each finding, merge the two lists per component, and propose one change that closes both. Automated checks cover only part of WCAG, so keyboard and screen reader testing stays on the list, and Core Web Vitals pass or fail on field data (Chrome UX Report, PageSpeed Insights), where INP is measured. Lighthouse cannot measure INP; its Total Blocking Time is only a lab proxy.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Baseline both metrics on critical pages
 
-Start with the five highest-traffic page templates to establish current scores across both dimensions:
+Start with the highest-traffic page templates, against a staging or local build you can reach by URL. Collect the lab numbers first:
 
-> Audit the accessibility and Core Web Vitals of these five page templates: src/pages/Home.tsx, src/pages/ProductDetail.tsx, src/pages/Checkout.tsx, src/pages/Search.tsx, and src/pages/Account.tsx. Report WCAG 2.2 Level AA violations alongside LCP, CLS, and INP scores for each page.
+```console
+$ npx lighthouse https://staging.example.com/products/42 --only-categories=performance,accessibility \
+    --output=json --output-path=./audit/product-detail.json
+$ npx @axe-core/cli https://staging.example.com/products/42 \
+    --tags wcag2a,wcag2aa,wcag21aa,wcag22aa --save ./audit/product-detail-axe.json
+```
 
-The combined report shows that ProductDetail has the worst overlap: LCP of 5.1s from an unoptimized hero image that also has no alt text, and CLS of 0.31 from a review widget that also traps keyboard focus. Checkout has 3 form fields missing labels (WCAG 3.3.2) and a payment button with 280ms INP from synchronous validation.
+Lighthouse 13 needs a local Chrome; the axe CLI needs a matching chromedriver (`npx browser-driver-manager install chrome@<version>`, or pass `--chromedriver-path`). Then ask the agent to interpret the results against the code:
+
+> Audit ProductDetail, Checkout, Home, Search and Account. Use the Lighthouse and axe reports in ./audit/ and the source in src/pages/ and src/components/. For each page list the WCAG 2.2 AA violations (criterion, element, file) and the LCP element, CLS sources and long tasks. Pull INP from our field data in the attached PageSpeed Insights export; do not estimate it from the code.
+
+On ProductDetail the report shows an LCP of 5.1 s from a 2 MB hero image that is also missing alt text, and a CLS of 0.31 from a review widget that loads late and also traps keyboard focus. Checkout has three form fields without labels (WCAG 3.3.2) and a payment button whose field INP is 280 ms because validation runs synchronously in the click handler.
 
 ### 2. Identify overlapping fixes
 
-Many issues share root causes across the two domains:
+> Cross-reference the accessibility violations with the Web Vitals failures. Show me which components appear in both lists and what single code change would fix both.
 
-> Cross-reference the accessibility violations with the Web Vitals failures. Show me which components appear in both reports and what single code change would fix both issues simultaneously.
+The hero image is the clearest overlap. One edit adds `width`/`height`, a real `alt`, `fetchpriority="high"` and removes `loading="lazy"` from the LCP image, and it also moves it to a lighter format (WebP is the safe default; AVIF compresses better but decodes slower). That change targets LCP and CLS and closes WCAG 1.1.1 at the same time. A modal rewritten around the native `<dialog>` element gets focus trapping, Escape handling and focus return for free, and the click handler can hand non-urgent work to `setTimeout` or `scheduler.yield()` (feature-detect it; Chromium only) to shorten the interaction.
 
-The analysis identifies 8 components where a single fix addresses both an accessibility violation and a performance metric. The hero image fix alone -- adding dimensions, alt text, fetchpriority, and WebP format -- improves LCP by 2.4 seconds and resolves 3 WCAG violations. The modal refactor eliminates a keyboard trap while also reducing INP by 160ms.
+### 3. Prioritize by combined impact
 
-### 3. Prioritize by combined impact score
+> Create a prioritized fix list sorted by combined impact. Rank WCAG Critical violations and CWV failures that keep a page out of "Good" highest. Include a time estimate for each item.
 
-Not all fixes are equal. Rank by combined severity to maximize the value of each engineering hour:
-
-> Create a prioritized fix list sorted by combined impact. Weight WCAG Critical violations and CWV failures that block the "Good" threshold highest. Include estimated time to fix for each item.
-
-The result is a single backlog of 22 items. The top 5 fixes resolve 60% of accessibility violations and move 3 of 5 pages into "Good" CWV territory. Total estimated time: 6 hours for the top 5. Items 6-10 are accessibility-only fixes (form labels, ARIA attributes) that take minimal effort.
+The result is one backlog instead of two. Fixes that touch both lists come first, followed by accessibility-only quick wins (form labels, `autocomplete` attributes, `aria-live` on error messages) that take minutes each. Treat the time estimates as guesses until the first fixes are done.
 
 ### 4. Implement fixes and verify both checks pass
 
-After implementing the top-priority fixes, re-run the combined audit to confirm improvements:
+> Re-audit ProductDetail and Checkout after my changes. Confirm the WCAG violations are resolved and the lab LCP and CLS are inside the "Good" thresholds (LCP at most 2.5 s, CLS at most 0.1). Flag any new issues the changes introduced.
 
-> Re-audit ProductDetail.tsx and Checkout.tsx after my changes. Confirm the WCAG violations are resolved and the Web Vitals scores now pass the "Good" thresholds. Flag any new issues introduced by the changes.
-
-ProductDetail LCP drops from 5.1s to 1.8s, CLS from 0.31 to 0.04, and 9 of 11 WCAG violations are resolved. Checkout passes all three CWV metrics and has 2 remaining minor accessibility issues related to form error announcements that need aria-live regions.
+Re-run the same Lighthouse and axe commands and diff the JSON. Field INP updates only as real visits arrive, over roughly 28 days in the Chrome UX Report, so track it separately and do not wait on it to merge.
 
 ### 5. Set up regression monitoring
 
-Prevent future regressions by adding both checks to CI:
+Run both checks on every pull request with Lighthouse CI. Its `categories:accessibility` score is built on axe-core, and numeric assertions fail the build when lab LCP or CLS regress:
 
-> Add a CI check that runs both accessibility and performance audits on every PR that modifies frontend components. Fail the build if any new WCAG Critical violation is introduced or if any CWV metric regresses past the "Good" threshold.
+```json
+{
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:4173/", "http://localhost:4173/products/42"],
+      "startServerCommand": "npm run preview -- --port 4173",
+      "startServerReadyPattern": "Local",
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 200 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }]
+      }
+    }
+  }
+}
+```
 
-The CI check runs in 90 seconds per page template and catches regressions before they reach production. A new developer adding a lazy-loaded hero image would be blocked before merge because the audit would flag the missing alt text and the CLS regression simultaneously.
+Save it as `lighthouserc.json` and run `npx @lhci/cli autorun` in CI (version 0.16 at the time of writing). When an assertion fails the command exits 1 and prints which one failed and by how much. A new lazy-loaded hero image would be caught by the LCP assertion, and a missing `alt` or an unlabeled input by the accessibility score. Lab thresholds are a guard against regressions, not a substitute for the field data.
 
 ## Real-World Example
 
-A SaaS company preparing for the European Accessibility Act deadline ran separate accessibility and performance audits on their 30-page application. The accessibility consultant found 67 violations. The performance engineer found 14 CWV failures.
+A SaaS company preparing for the European Accessibility Act ran separate accessibility and performance audits on its 30-page application. The accessibility consultant reported 67 violations and the performance engineer 14 Core Web Vitals failures.
 
-When mapped together, 19 of the accessibility fixes and 8 of the CWV fixes overlapped on the same 12 components -- shared navigation, hero sections, modals, and form elements. By fixing those 12 components first, the team resolved 40% of accessibility violations and passed CWV on 80% of pages in a single sprint.
+When the two lists were mapped to components, 19 of the accessibility fixes and 8 of the performance fixes landed on the same 12 components: shared navigation, hero sections, modals and form elements. The team fixed those 12 first. A navigation component that trapped keyboard focus also ran a synchronous resize listener that held up interactions; one refactor addressed both. By the team's own estimate, the combined backlog took about 3.5 weeks instead of the 5 they had planned for two separate projects.
 
-A navigation component that trapped keyboard focus also ran a synchronous resize listener causing 300ms INP. One refactor fixed both. The combined-first approach cut the total effort from an estimated 5 weeks to 3.5 weeks.
+## Related Skills
+
+- **accessibility-auditor**: WCAG 2.2 AA checks, axe-core pass and exact code fixes for Steps 1 to 4
+- **web-vitals-analyzer**: LCP, CLS and INP diagnosis, with field data as the pass/fail source
