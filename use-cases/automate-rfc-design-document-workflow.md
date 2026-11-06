@@ -11,121 +11,122 @@ tags: [rfc, design-docs, workflow, documentation, engineering-process]
 
 ## The Problem
 
-A 35-person engineering org uses RFCs to make technical decisions, but the process is inconsistent and slow. Some engineers write 10-page documents, others write a single paragraph. There's no standard template, no tracking of which RFCs are pending review, and no way to find past decisions. Half the RFCs live in Google Docs, a quarter are in Notion, and the rest are scattered across GitHub issues.
+A 35-person engineering org uses RFCs to make technical decisions, but the process is inconsistent and slow. Some engineers write 10-page documents, others write a single paragraph. There is no standard template, no list of which RFCs are waiting for review, and no way to find past decisions. Half the RFCs live in Google Docs, a quarter in Notion, and the rest in GitHub issues.
 
-The real cost shows up six months later. A new engineer asks "why did we pick Postgres over DynamoDB?" and nobody can find the document that explains the decision. So the team relitigates it — burning a week of back-and-forth on a choice that was already made and reasoned through. Three senior engineers spend hours in meetings reconstructing reasoning from memory, which may or may not match the original reasoning. Meanwhile, the average RFC takes 3 weeks from draft to approval because reviewers forget about them and there's no escalation path for stale reviews.
+The cost shows up six months later. A new engineer asks "why did we pick Postgres over DynamoDB?" and nobody can find the document. The team relitigates a choice that was already made, and reviewers forget pending RFCs because nothing reminds them.
 
 ## The Solution
 
-Using the **markdown-writer** skill to generate well-structured RFC documents from rough notes, **github** to manage the review workflow through pull requests, and **template-engine** to maintain consistent formatting, the agent turns scattered notes into polished RFCs, tracks them through review, and builds a searchable archive of past decisions.
+- **template-engine** renders every new RFC from one Jinja2 template, and renders the decision log from the front matter of merged RFCs.
+- **markdown-writer** turns an engineer's rough notes into the template's sections.
+- **github** (the `gh` CLI) opens the pull request, requests reviewers, and lists RFCs that are waiting.
+- **openspec** takes over when the RFC describes a change to one codebase that an agent will implement.
+
+The RFCs live as Markdown files in the repository (`rfcs/`), so the review, the approval and the final text are in one place.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Generate an RFC from Rough Notes
+### Step 1: One template for every RFC
 
-Most engineers have the ideas — they just don't have the patience to structure them into a proper document. Writing a thorough RFC takes 2-3 hours, so engineers either procrastinate or write something incomplete. A brain dump is enough to get started:
-
-```text
-I need to write an RFC for migrating our session storage from Redis to DynamoDB. Here are my rough notes: current Redis setup hits memory limits at 50k concurrent sessions, DynamoDB would give us auto-scaling, estimated cost increase is $200/month, migration can be done with dual-write strategy over 2 weeks. Risks: DynamoDB latency is higher for single-key lookups. Generate a full RFC document.
-```
-
-### Step 2: Expand Notes into a Complete RFC
-
-Those rough notes become a fully structured document at `rfcs/2026-02-RFC-session-storage-migration.md`. Five bullet points of rough notes become a complete RFC:
-
-- **Title:** Migrate Session Storage from Redis to DynamoDB
-- **Status:** Draft
-- **Author and date** filled in automatically
-- **Problem Statement** — expands "hits memory limits at 50k" into a data-backed section with current memory usage (4.2 GB of 4.5 GB limit), growth rate (500 new sessions per day), and the specific failure mode when limits are hit (new sessions silently fail, users see "login successful" but get logged out on next request)
-- **Proposed Solution** — DynamoDB architecture with a table design showing partition key (session ID), TTL attribute (for automatic expiry), and on-demand capacity mode
-- **Alternatives Considered** — not just DynamoDB vs Redis, but also Redis Cluster (operational complexity), Memcached (no persistence), and Valkey (nascent ecosystem) with trade-offs for each
-- **Migration Plan** — the dual-write strategy broken into daily milestones across the 2-week window, with rollback triggers defined for each phase
-- **Cost Analysis** — the $200/month increase in context: at 100k sessions, Redis vertical scaling would cost $800/month, making DynamoDB cheaper at scale
-- **Risks and Mitigations** — latency numbers (Redis: 1-2ms, DynamoDB: 5-10ms for single reads), consistency guarantees, and a concrete rollback plan
-- **Success Criteria** — measurable outcomes like "p99 session lookup under 20ms" rather than vague goals
-- **Open Questions** — 3 specific items for reviewers to address, not generic "thoughts?"
-
-The technical substance comes from the engineer's knowledge; the structure and completeness come from the template. An engineer who knows the answer to "why DynamoDB?" gets a document that proves it — with data, alternatives, and trade-offs — in minutes instead of hours.
-
-### Step 3: Create a PR-Based Review Workflow
+Keep `rfcs/_template.md.j2` in the repo. The front matter is what the decision log reads later:
 
 ```text
-Open a pull request for this RFC. Assign reviewers from the backend and infrastructure teams. Set a review deadline of 5 business days.
+---
+title: "{{ title }}"
+status: draft          # draft | in-review | approved | rejected | deferred
+author: {{ author }}
+created: {{ date }}
+---
+## Problem statement
+## Proposed solution
+## Alternatives considered
+## Migration plan
+## Cost and risks
+## Success criteria
+## Open questions
 ```
 
-The PR goes up with structure that makes the review process trackable:
+Ask the agent to write `tools/new_rfc.py` once (a short Jinja2 script, per the template-engine skill; `autoescape` off is fine for Markdown, but never render templates built from untrusted strings). Then every new RFC is one command:
 
-- **PR #247** — "RFC: Migrate Session Storage from Redis to DynamoDB"
-- **Reviewers:** backend-team, infra-team
-- **Labels:** `rfc`, `status/draft`, `area/infrastructure`
-- **Review deadline:** noted in PR description as 2026-02-24
+```console
+$ python3 tools/new_rfc.py --title "Migrate session storage from Redis to DynamoDB" --author priya
+created rfcs/2026-11-session-storage-migration.md
+```
 
-Everything lives in GitHub now — comments, approvals, and the final decision are all in one place. No more hunting through Google Docs share links or Notion pages. And because it's a PR, the review process has built-in tooling: threaded comments, approval requirements, merge protections, and a permanent record of who approved what and when.
-
-The PR-based workflow also solves the "forgotten RFC" problem. A Google Doc can sit unread for weeks with no visibility. A PR with a review deadline shows up in the reviewer's GitHub notifications, in the team's PR dashboard, and in the status tracker. Ignoring it requires active effort.
-
-### Step 4: Track RFC Status Across the Organization
-
-With RFCs scattered across tools, nobody knew which decisions were pending. Now they're all PR-labeled and queryable:
+### Step 2: Expand rough notes into the sections
 
 ```text
-Show me all open RFCs, their status, who's blocking review, and how long they've been waiting.
+Write an RFC for migrating our session storage from Redis to DynamoDB. My notes: Redis hits its memory limit at about 50k concurrent sessions, DynamoDB would auto-scale, estimated cost increase $200/month, migration by dual-writing for 2 weeks. Risk: single-key lookups are slower on DynamoDB. Fill rfcs/2026-11-session-storage-migration.md.
 ```
 
-The status dashboard pulls from all RFC-labeled PRs:
+markdown-writer organises the notes under the template's headings: the problem from the memory limit, a proposed table design (session ID as partition key, a TTL attribute for expiry), alternatives to weigh (Redis Cluster, Memcached, Valkey or a larger Redis node), a day-by-day dual-write plan with rollback triggers, and success criteria such as "p99 session lookup under 20 ms".
 
-| RFC | Title | Status | Age | Approvals | Blocker |
-|---|---|---|---|---|---|
-| #247 | Session Storage Migration | Draft | 0 days | 0/2 | Awaiting review |
-| #231 | API Rate Limiting Strategy | In Review | 4 days | 1/2 | Waiting on @chen |
-| #218 | Event Sourcing for Audit Log | In Review | 11 days | 0/3 | **Stale** |
-| #205 | GraphQL Federation Plan | Approved | -- | 3/3 | Pending implementation |
+The agent only has the engineer's notes, so every number it needs but was not given (current memory use, growth rate, measured latencies) is written as `TODO(author): measure` instead of being made up. Reviewers should see which figures are measured and which are still open. The engineer fills those in before the PR leaves draft.
 
-Two things jump out immediately: RFC #218 has been sitting for 11 days with zero reviews — it needs either a ping to reviewers or a decision to close it. And RFC #231 is one approval away from completion, waiting on a single person. That's a 5-minute action that's been blocking a decision for 4 days.
+### Step 3: Open the pull request and request reviewers
 
-The dashboard replaces the "does anyone know what happened to that design doc?" conversations. Every RFC has a visible status, a clear blocker, and a number that shows how long it's been waiting.
+```console
+$ gh pr create --draft --title "RFC: Migrate session storage from Redis to DynamoDB" \
+    --body-file rfcs/pr-body.md --label rfc --reviewer my-org/backend,my-org/infra
+```
 
-### Step 5: Archive Decisions for Future Reference
+Labels must already exist (`gh label list`; create `rfc` once with `gh label create rfc`). Team reviewers are written `org/team-slug`. GitHub has no review-deadline field, so the PR body states it ("Review by Friday 2026-11-20") and the tracker below makes it visible. Mark the PR ready with `gh pr ready` when the TODOs are gone, and use branch protection with required approvals so that "approved" means something.
 
-When an RFC is approved and merged, it needs to be findable — not just by people who were in the room, but by engineers who join the team years later:
+### Step 4: Track RFCs waiting for review
 
 ```text
-Index all merged RFCs so the team can search past decisions. Create a decision log with title, date, outcome, and key trade-offs for each.
+Show all open RFC pull requests, how long each has been open, their review decision, and who still has to review.
 ```
 
-The decision log becomes the canonical "why we chose X" reference. Each entry looks like:
+The agent runs a query it can repeat on a schedule:
 
-| Date | RFC | Decision | Key Trade-offs |
-|---|---|---|---|
-| 2026-01-15 | Session Storage Migration | **Approved** | Higher latency (+3ms) for auto-scaling; $200/mo cost increase offset by avoiding $800/mo Redis scaling |
-| 2025-12-08 | API Rate Limiting | **Approved** | Token bucket over sliding window; simpler implementation, slightly less precise |
-| 2025-11-20 | Event Sourcing for Audit | **Deferred** | Benefits clear but team capacity insufficient; revisit Q2 |
-| 2025-10-30 | Postgres over DynamoDB | **Approved** | JOIN support and full-text search outweigh DynamoDB's scaling advantages at current scale |
+```console
+$ gh pr list --label rfc --state open --json number,title,createdAt,reviewDecision,reviewRequests \
+    --jq '.[] | [.number, .title, .createdAt[:10], (.reviewDecision | if . == "" or . == null then "NONE" else . end), ([.reviewRequests[] | (.login // .name)] | join(","))] | @tsv'
+247  RFC: Migrate session storage ...   2026-11-07  REVIEW_REQUIRED  my-org/backend,my-org/infra
+231  RFC: API rate limiting strategy    2026-11-03  REVIEW_REQUIRED  chen
+218  RFC: Event sourcing for audit log  2026-10-27  REVIEW_REQUIRED  my-org/backend
+```
 
-When the next new hire asks about the Postgres decision, they get pointed to a searchable index instead of a 45-minute hallway conversation. The answer includes the original reasoning, the alternatives that were considered, and the trade-offs that were accepted — not a reconstruction from fading memory.
+The agent turns it into a table with age in days and flags anything open longer than the team's limit (say 7 days) as stale, so a reminder goes to the people still in `reviewRequests`, for example with `gh pr comment 218 --body "Review requested 11 days ago; please approve or comment."`. Run it from a scheduled job or ask for it before the weekly engineering meeting.
 
-### Step 6: Summarize for All-Hands
+### Step 5: Archive decisions for future reference
 
-Technical decisions affect the whole company, but not everyone needs to read a 10-page RFC. The all-hands summary bridges that gap:
+When the PR merges, the author sets `status: approved` (or `rejected`, `deferred`) in the front matter, and the same merge updates the index. The decision log is rendered from the files by a second small Jinja2 script (`tools/render_decision_log.py`, written the same way), so it is never edited by hand:
+
+```console
+$ python3 tools/render_decision_log.py rfcs/ > rfcs/README.md
+```
+
+Each row shows date, title, status and a one-line trade-off pulled from the RFC's "Proposed solution" first sentence or a `summary:` front-matter field. Because the files are in the repo, `git log -- rfcs/` and a plain `grep -ril "dynamodb" rfcs/` answer "why did we pick X?" in seconds, with the original reasoning attached.
+
+### Step 6: When the RFC leads to code, hand it to OpenSpec
+
+If the approved RFC becomes an implementation task for an AI coding agent, create an OpenSpec change so the plan lives next to the code and is reviewed before anything is written:
+
+```console
+$ openspec new change migrate-session-storage \
+    --description "Dual-write sessions to DynamoDB behind a flag, then cut over"
+$ openspec validate migrate-session-storage --strict
+```
+
+The RFC explains why and what was decided; the OpenSpec proposal, delta specs and task list say exactly what will be built. Archive the change after the merge with `openspec archive migrate-session-storage --yes`. Do not use it for decisions that do not touch a single codebase.
+
+### Step 7: Summarize for all-hands
 
 ```text
-Summarize all RFCs approved this month into a 2-paragraph update I can
-include in the engineering all-hands notes. Focus on what changed and
-why it matters for the product — skip implementation details.
+Summarize the RFCs whose status changed to approved this month into two paragraphs for the engineering all-hands notes. Say what changed and why it matters for the product; skip implementation details.
 ```
 
-The summary distills technical RFCs into a concise update for a broader audience. Product managers learn that session storage is being migrated (which means better uptime during traffic spikes). Design learns that the API rate limiting RFC was approved (which means the "try again later" error state they mocked will actually be needed). Leadership gets visibility into infrastructure investment without reading PR discussions.
-
-The all-hands update becomes a regular section that people actually read, because it's written in outcomes rather than implementation details.
+The agent reads the merged RFC files and writes outcomes in plain language, so product and design learn what is changing without reading ten pages.
 
 ## Real-World Example
 
-Priya leads backend engineering at a 35-person SaaS company. New engineers constantly ask why certain architectural decisions were made, and nobody can find the documents. The last three "why did we..." conversations each burned half a day of senior engineer time reconstructing reasoning from memory — and in one case, the reconstruction was wrong, leading to a week of work based on a misunderstanding of the original constraints.
-
-She asks the agent to create an RFC template and generates the first RFC from rough notes about a storage migration. Three minutes later, she has a polished document with problem statement, alternatives, cost analysis, and migration plan. The PR goes up, reviewers are assigned, and the review completes in 4 days instead of the usual 3 weeks — because there's a deadline and a dashboard showing who's blocking.
-
-After a month, the team has 12 merged RFCs indexed and searchable. When a new hire asks about the Postgres decision, Priya points them to the decision log. The conversation takes 30 seconds instead of 30 minutes, and the answer is the actual reasoning from the time of the decision — not a reconstruction from fading memory. The "why did we pick X?" question, which used to derail entire afternoons, becomes a link.
+Priya leads backend engineering at a 35-person SaaS company, where the last few "why did we..." questions each cost a senior engineer half a day. She adds the template and the two small scripts to the repository, and the first RFC comes from rough notes in a few minutes, with the unmeasured numbers marked as TODOs for her to fill in. The PR goes up with team reviewers and a stated deadline, and a weekly stale-RFC list goes to the engineering channel. After a month the `rfcs/` folder holds a dozen decided RFCs and a generated index, and the answer to "why did we pick X?" is a link to the file. (The team and its figures are illustrative.)
 
 ## Related Skills
 
-- [openspec](/skills/openspec) — choose it when the RFC describes a change to one codebase that an AI agent will implement: the proposal, design and requirement changes live in the repository, are reviewed in the same pull request and are archived by date
+- **markdown-writer**: structures the engineer's rough notes into the RFC's sections.
+- **github**: opens the RFC pull request, requests team reviewers and lists RFCs still waiting.
+- **template-engine**: renders new RFCs and the decision log from Jinja2 templates.
+- **openspec**: turns an approved RFC for one codebase into a reviewed change plan for the coding agent.
