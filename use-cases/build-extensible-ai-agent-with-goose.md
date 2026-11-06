@@ -1,9 +1,9 @@
 ---
 title: "Build an Extensible AI Agent with Goose"
 description: >-
-  Build an AI-powered incident response agent using Goose that can SSH into
-  servers, check logs, restart services, and create Jira tickets from one
-  chat interface. Reduce incident response time from 45 minutes to 8 minutes.
+  Build an incident response agent with Goose that checks logs over SSH,
+  proposes a fix for your approval, and files a Jira ticket through a small
+  MCP server you write yourself, all from one recipe.
 skills: [goose, mcp-server-builder]
 difficulty: intermediate
 time: "45 minutes"
@@ -16,240 +16,218 @@ metadata:
 
 ## The Situation
 
-Dmitri is a DevOps engineer at a SaaS company running 12 microservices on AWS. When an alert fires, his current workflow is:
+Dmitri is a DevOps engineer at a SaaS company running a dozen services on AWS. When an alert fires, he SSHes into the affected server, reads logs, checks memory and disk, finds the cause, restarts a service, verifies recovery, and then writes a Jira ticket. Every step is the same each time; the ticket alone costs him a quarter of an hour at 3 AM.
 
-1. SSH into the affected server (2 min)
-2. Check application logs for errors (5 min)
-3. Check system metrics — CPU, memory, disk (3 min)
-4. Identify root cause from logs (10 min)
-5. Restart service or apply fix (5 min)
-6. Verify recovery (5 min)
-7. Create Jira ticket with full incident report (15 min)
-
-**Total: ~45 minutes per incident.** With 3-4 incidents per week, that's 6-8 hours of repetitive work.
-
-**Goal:** Build a Goose-powered agent that handles steps 1-7 from a single chat, cutting response time to under 10 minutes.
+**Goal:** a Goose recipe that does the investigation and the paperwork, while Dmitri approves every command that changes something.
 
 ## What You'll Build
 
-A Goose profile called "incident-responder" with:
-- SSH access to production servers
-- Jira integration via MCP for ticket creation
-- Custom health-check extension
-- Pre-built incident response playbooks
+- A recipe, `incident-responder.yaml`, with the incident playbook as its instructions
+- Shell and SSH access through Goose's built-in `developer` extension
+- A custom Jira extension: a ~50-line MCP server (Python, `mcp` 2.x) that Goose starts as a `stdio` extension
+- Approval mode on, so restarts and other writes wait for a yes
 
-## Step 1 — Install Goose
+## Step 1: Install Goose
+
+Goose is a single Rust binary, so there is no Python package to install for it.
 
 ```bash
-# macOS
-brew install block/tap/goose
-
-# Linux / cross-platform
-pipx install goose-ai
-
-# Verify
+brew install block-goose-cli     # macOS and Linux with Homebrew
 goose --version
+goose configure                  # choose a provider and paste its API key
+goose doctor                     # confirms the setup works
 ```
 
-Set up your LLM provider:
+The project also ships an install script on its GitHub releases page, but releases carry no checksum file, so do not pipe it into a shell. Provider keys belong in the environment or the system keyring, never in the recipe or `config.yaml`:
+
 ```bash
 export GOOSE_PROVIDER=anthropic
-export ANTHROPIC_API_KEY=sk-ant-...
-
-# Or use the interactive setup
-goose configure
+export GOOSE_MODEL=claude-sonnet-5-5
+export ANTHROPIC_API_KEY="$(cat ~/.secrets/anthropic)"
+export GOOSE_MODE=approve        # ask before every tool call; smart_approve asks only for risky ones
 ```
 
-## Step 2 — Configure SSH Extension
+## Step 2: SSH Access
 
-Goose's built-in `developer` extension already has shell access. For remote servers, set up SSH keys:
+The `developer` extension runs shell commands, so `ssh` works with no extra setup. Use a dedicated key with a restricted account:
 
 ```bash
-# Ensure SSH keys are configured for your servers
-ssh-add ~/.ssh/prod_key
-
-# Test direct access
-ssh deploy@prod-web-01 "hostname && uptime"
+ssh-add ~/.ssh/incident_key
+ssh deploy@prod-api-01 "hostname && uptime"
 ```
 
-No special Goose extension needed — the `developer` extension executes shell commands including SSH.
+With `GOOSE_MODE=approve` Goose shows each command before it runs. Keep the approvals on for production: the default mode (`auto`) runs commands without asking.
 
-## Step 3 — Add Jira MCP Tool
+## Step 3: Write the Jira Extension as an MCP Server
 
-Install the Jira MCP server:
-```bash
-npm install -g @modelcontextprotocol/server-jira
-```
-
-Get a Jira API token from: https://id.atlassian.com/manage-profile/security/api-tokens
+There is no official `@modelcontextprotocol/server-jira` npm package, so write the small server you need with the `mcp-server-builder` approach. In Python, the 2.x SDK calls the server class `MCPServer`:
 
 ```bash
-export JIRA_URL="https://yourteam.atlassian.net"
-export JIRA_EMAIL="dmitri@company.com"
-export JIRA_TOKEN="your-api-token"
+mkdir -p /opt/incident-tools && cd /opt/incident-tools || exit 1
+python3 -m venv .venv
+.venv/bin/pip install "mcp>=2,<3" httpx
 ```
 
-## Step 4 — Create the Incident Responder Profile
-
-Create `~/.config/goose/profiles.yaml`:
-
-```yaml
-incident-responder:
-  provider: anthropic
-  model: claude-sonnet-4-20250514
-  extensions:
-    - name: developer
-    - name: jira
-      type: mcp
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-jira"]
-      env:
-        JIRA_URL: "${JIRA_URL}"
-        JIRA_EMAIL: "${JIRA_EMAIL}"
-        JIRA_TOKEN: "${JIRA_TOKEN}"
-  system_prompt: |
-    You are an incident response agent for a SaaS platform.
-
-    ## Servers
-    - prod-web-01, prod-web-02: Nginx + Node.js frontend
-    - prod-api-01, prod-api-02: Python FastAPI backend
-    - prod-db-01: PostgreSQL primary
-    - prod-redis-01: Redis cache
-
-    ## SSH Access
-    User: deploy, Key: default SSH agent
-
-    ## Log Locations
-    - Nginx: /var/log/nginx/access.log, error.log
-    - App: /var/log/app/app.log
-    - System: journalctl -u <service>
-
-    ## Playbook
-    1. SSH into affected server
-    2. Check recent error logs (last 15 minutes)
-    3. Check system resources (free -h, df -h, top -bn1)
-    4. Identify root cause
-    5. Apply fix (restart service if needed: sudo systemctl restart <service>)
-    6. Verify recovery (curl health endpoint)
-    7. Create Jira ticket in OPS project with:
-       - Title: [INCIDENT] <brief description>
-       - Priority based on severity
-       - Full timeline and root cause in description
-```
-
-## Step 5 — Test with a Real Scenario
-
-Launch the incident responder:
-```bash
-goose session --profile incident-responder --name "incident-$(date +%s)"
-```
-
-### Scenario: API Returning 502 Errors
-
-```
-You: Monitoring alert: prod-api-01 returning 502 errors.
-     Rate: 23% of requests in last 5 minutes. Investigate and fix.
-
-Goose: I'll investigate the 502 errors on prod-api-01.
-
-[Executing: ssh deploy@prod-api-01 "tail -100 /var/log/app/app.log | grep -i error"]
-
-Found multiple OOM errors:
-  MemoryError: Cannot allocate 256MB for request processing
-  Worker pid:4523 exited with code 137 (OOM killed)
-
-[Executing: ssh deploy@prod-api-01 "free -h"]
-  Total: 8GB, Used: 7.6GB, Available: 180MB
-
-Root cause: Memory exhaustion. Checking what's consuming memory...
-
-[Executing: ssh deploy@prod-api-01 "ps aux --sort=-%mem | head -10"]
-
-Found: 3 zombie worker processes consuming 2GB each from a failed deployment.
-
-[Executing: ssh deploy@prod-api-01 "sudo systemctl restart app-api"]
-
-Service restarted. Verifying...
-
-[Executing: ssh deploy@prod-api-01 "curl -s localhost:8000/health"]
-  {"status": "healthy", "memory_usage": "42%"}
-
-[Executing: curl -s https://api.company.com/health]
-  {"status": "healthy", "response_time_ms": 45}
-
-Service recovered. Creating Jira ticket...
-
-[Creates Jira ticket OPS-847]:
-  Title: [INCIDENT] prod-api-01 502 errors — OOM from zombie workers
-  Priority: High
-  Description: Full timeline, root cause, and resolution steps
-
-✅ Incident resolved. Jira ticket: OPS-847
-   Total time: ~3 minutes
-```
-
-## Step 6 — Add Custom Health Check Extension
-
-For proactive monitoring, create a custom extension:
-
-Save as `~/.config/goose/extensions/health_checker.py`:
 ```python
-import json
-import subprocess
+# /opt/incident-tools/jira_mcp.py
+import os
 
-def check_all_services():
-    """Check health of all production services."""
-    services = {
-        "web-01": "https://prod-web-01.internal:443/health",
-        "web-02": "https://prod-web-02.internal:443/health",
-        "api-01": "http://prod-api-01.internal:8000/health",
-        "api-02": "http://prod-api-02.internal:8000/health",
-    }
-    results = {}
-    for name, url in services.items():
-        try:
-            r = subprocess.run(
-                ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "5", url],
-                capture_output=True, text=True
-            )
-            code = int(r.stdout.strip())
-            results[name] = {"status": "healthy" if code == 200 else "unhealthy", "code": code}
-        except Exception as e:
-            results[name] = {"status": "error", "error": str(e)}
-    return json.dumps(results, indent=2)
+import httpx
+from mcp.server import MCPServer
+
+mcp = MCPServer("jira-incidents")
+
+
+def _client() -> httpx.Client:
+    return httpx.Client(
+        base_url=os.environ["JIRA_BASE_URL"].rstrip("/") + "/rest/api/3",
+        auth=(os.environ["JIRA_USER_EMAIL"], os.environ["JIRA_API_TOKEN"]),
+        timeout=15,
+    )
+
+
+@mcp.tool()
+def create_incident(project_key: str, summary: str, details: str, priority: str = "High") -> str:
+    """Create a Jira Task for an incident. details is the plain-text timeline and root cause."""
+    body = {"fields": {
+        "project": {"key": project_key},
+        "issuetype": {"name": "Task"},
+        "summary": f"[INCIDENT] {summary}"[:250],
+        "priority": {"name": priority},
+        "description": {  # Jira Cloud wants Atlassian Document Format, not plain text
+            "type": "doc", "version": 1,
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": line}]}
+                        for line in details.splitlines() if line.strip()],
+        },
+    }}
+    with _client() as c:
+        r = c.post("/issue", json=body)
+    return f"Created {r.json()['key']}" if r.status_code == 201 else f"Jira error {r.status_code}: {r.text[:300]}"
+
+
+@mcp.tool()
+def find_open_incidents(project_key: str) -> str:
+    """List open issues in a project whose summary mentions INCIDENT."""
+    jql = f'project = "{project_key}" AND statusCategory != Done AND summary ~ "INCIDENT" ORDER BY created DESC'
+    with _client() as c:
+        r = c.post("/search/jql", json={"jql": jql, "fields": ["summary", "status"], "maxResults": 20})
+    if r.status_code != 200:
+        return f"Jira error {r.status_code}: {r.text[:300]}"
+    rows = [f"{i['key']} [{i['fields']['status']['name']}] {i['fields']['summary']}" for i in r.json()["issues"]]
+    return "\n".join(rows) or "None open."
+
 
 if __name__ == "__main__":
-    print(check_all_services())
+    mcp.run()   # stdio, launched by Goose
 ```
 
-Add to the profile:
-```yaml
-incident-responder:
-  extensions:
-    # ... existing extensions ...
-    - name: health-check
-      type: mcp
-      command: python
-      args: ["~/.config/goose/extensions/health_checker.py"]
+The search uses `POST /rest/api/3/search/jql`, because the old `/search` endpoint is being removed. Create an API token at `https://id.atlassian.com/manage-profile/security/api-tokens` and export the three variables the server reads:
+
+```bash
+export JIRA_BASE_URL="https://yourteam.atlassian.net"
+export JIRA_USER_EMAIL="dmitri@example.com"
+export JIRA_API_TOKEN="$(cat ~/.secrets/jira-token)"
 ```
+
+Test the server on its own with the MCP Inspector before wiring it into Goose: `npx @modelcontextprotocol/inspector /opt/incident-tools/.venv/bin/python /opt/incident-tools/jira_mcp.py`, connect, and call `find_open_incidents`.
+
+## Step 4: Write the Recipe
+
+Goose has no `profiles.yaml` and no `--profile` flag. A reusable agent setup is a recipe: a `.yaml` file (`.yml` is not supported) with instructions, parameters and extensions.
+
+```yaml
+# incident-responder.yaml
+version: "1.0.0"
+title: "Incident responder"
+description: "Investigate an alert on one server, propose a fix, and file a Jira ticket"
+parameters:
+  - key: host
+    input_type: string
+    requirement: required
+    description: "Server named in the alert, for example prod-api-01"
+  - key: alert
+    input_type: string
+    requirement: required
+    description: "The alert text"
+  - key: project
+    input_type: string
+    requirement: optional
+    default: "OPS"
+    description: "Jira project key for the ticket"
+instructions: |
+  You are an incident response agent. Servers are reached as `ssh deploy@<host>`
+  with the key already loaded in the SSH agent.
+  Playbook:
+  1. Read the last 15 minutes of the app log (/var/log/app/app.log) and
+     `journalctl -u app-api --since "15 min ago"`.
+  2. Check resources: `free -h`, `df -h`, `ps aux --sort=-%mem | head`.
+  3. State the root cause and the single change you propose. Wait for approval.
+  4. After the fix, verify with the service health endpoint.
+  5. Call create_incident with the timeline and root cause.
+  Run only read-only commands until the fix is approved. Never delete files.
+prompt: "Alert: {{ alert }}. Investigate {{ host }} and, when done, file a ticket in project {{ project }}."
+extensions:
+  - type: builtin
+    name: developer
+  - type: stdio
+    name: jira
+    cmd: /opt/incident-tools/.venv/bin/python
+    args: ["/opt/incident-tools/jira_mcp.py"]
+    env_keys: [JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN]
+    timeout: 60
+    description: "Create and list incident tickets in Jira"
+```
+
+`env_keys` makes Goose read each value from the environment (or its secret store) when it starts the extension. Check the file before using it:
+
+```bash
+goose recipe validate incident-responder.yaml
+goose run --recipe incident-responder.yaml --explain
+```
+
+## Step 5: Run It on an Alert
+
+```bash
+goose run --recipe incident-responder.yaml --interactive -n incident-api-502 --max-turns 40 \
+  --params host=prod-api-01 \
+  --params alert="502 on 23% of requests for 5 minutes"
+```
+
+`--max-turns 40` caps the loop. `--interactive` keeps the session open after the first pass, so Dmitri can approve the restart and ask follow-ups. A session started with `-n` can be reopened with `goose session --resume -n incident-api-502`.
+
+An illustrative run (your output depends on the server and the model):
+
+```console
+Goose: I'll start with read-only checks on prod-api-01.
+  [approve?] ssh deploy@prod-api-01 "tail -100 /var/log/app/app.log | grep -i error"
+  -> MemoryError: Cannot allocate 256MB ... Worker pid 4523 killed (OOM)
+  [approve?] ssh deploy@prod-api-01 "free -h"
+  -> Mem: 8.0Gi total, 7.6Gi used, 180Mi available
+Root cause: memory exhaustion from leftover workers after a failed deploy.
+Proposed fix: sudo systemctl restart app-api. Approve?
+You: yes
+  [approve?] ssh deploy@prod-api-01 "sudo systemctl restart app-api"
+  [approve?] ssh deploy@prod-api-01 "curl -s 127.0.0.1:8000/health"  -> {"status": "healthy"}
+  [jira] create_incident -> Created OPS-847
+```
+
+## Step 6: Extend It
+
+More extensions are added the same way. A one-off MCP server on the command line: `goose session --with-extension "uvx mcp-server-fetch"`. A shared remote MCP server goes in the recipe as `type: streamable_http` with a `uri`; SSE extensions are no longer supported. To expose only part of a server, list `available_tools` on the extension. For a read-only P3 variant, copy the recipe, drop the `jira` extension and change the instructions.
 
 ## Results
 
-| Metric | Before (Manual) | After (Goose) |
-|--------|-----------------|---------------|
-| Response time | ~45 min | ~8 min |
-| SSH + log check | 10 min | 30 sec (automated) |
-| Root cause analysis | 10 min | 2 min (AI-assisted) |
-| Jira documentation | 15 min | 30 sec (auto-generated) |
-| Weekly time spent | 6-8 hours | 1-1.5 hours |
-| Consistency | Varies by engineer | Standardized playbook |
-
-**Key win:** Dmitri now handles incidents from his phone using Goose's chat interface. The agent does the SSH work, he reviews and approves the fix. Jira tickets are created automatically with full context — no more writing incident reports at 3 AM.
+For the example team, the investigation and ticket steps move from typing to approving commands: Dmitri reads one root-cause summary, says yes to the restart, and the ticket is filed with the timeline already written. Treat any time saving as something to measure on your own incidents; the approvals are the point, not the speed.
 
 ## Tips
 
-- **Start small:** Begin with read-only access (log checking), then add write actions (restarts)
-- **Use named sessions:** `--name "incident-123"` lets you resume context if disconnected
-- **Audit trail:** Goose logs every command it runs — export session logs for compliance
-- **Safety:** Add confirmation prompts for destructive actions in the system prompt
-- **Multiple profiles:** Create separate profiles for different severity levels (P1 gets more aggressive, P3 is read-only)
+- Start read-only: give the agent log access first, add restart rights once you trust the playbook.
+- Keep `GOOSE_MODE=approve` or `smart_approve` for anything that touches production; run unattended jobs in a container or throwaway VM.
+- Cap loops with `--max-turns`; add `--debug` to see full tool parameters.
+- Give each extension only the environment variables it needs, and never put keys in a recipe or the repo.
+- Export or review the session after an incident (`goose session list`) for the post-mortem.
+
+## Related Skills
+
+- [goose](/skills/goose): installs Goose, runs the recipe, sets the approval mode and registers the extension.
+- [mcp-server-builder](/skills/mcp-server-builder): the pattern for the Python Jira MCP server in Step 3.
