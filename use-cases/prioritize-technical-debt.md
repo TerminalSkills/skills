@@ -32,7 +32,17 @@ duplicated code blocks, and any deprecated API usage. Cross-reference with git
 log to find which files change most often.
 ```
 
-The scan covers 247 files and 48,200 lines of code. The critical insight comes from correlating two dimensions: code complexity and change frequency. Neither dimension alone tells the full story — you need both.
+Under the hood the agent runs the signals the two skills teach, and you can run them yourself to check its numbers:
+
+```bash
+pip install lizard                       # in a virtual environment
+lizard src/ -C 15 -L 100 -w              # functions above cyclomatic complexity 15 or 100 lines
+grep -rnE "TODO|FIXME|HACK" --include="*.ts" src/
+git log --since="6 months ago" --pretty=format: --name-only | sort | uniq -c | sort -rn | head -30
+git log -E -i --since="6 months ago" --grep="fix|bug|hotfix" --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20
+```
+
+In Lena's repo, the scan covers 247 files and 48,200 lines of code. The critical insight comes from correlating two dimensions: code complexity and change frequency. Neither dimension alone tells the full story — you need both.
 
 **High-impact hotspots** (high complexity AND high change frequency) — these are the files that hurt the most because they're hard to work with and developers are forced to touch them constantly:
 
@@ -103,7 +113,7 @@ story points. Format them ready to paste into our issue tracker.
 **Acceptance criteria:**
 - Split into: `TaxCalculator`, `DiscountEngine`, `ProrateService`, `CurrencyConverter`
 - Each function complexity below 10
-- 100% existing test coverage preserved (currently 67% — add missing tests first)
+- Test coverage of the module raised from today's 67% before any code moves, and never lower afterward
 - No behavior changes — output parity verified against 50 production invoice samples
 
 **Suggested approach:**
@@ -127,13 +137,20 @@ The sync engine has 4 FIXME comments about error handling edge cases. Failed syn
 ### Step 4: Track Debt Trends Over Time
 
 ```text
-Set up a debt tracking baseline. Generate a JSON snapshot of current metrics
+Set up a debt tracking baseline. Save a snapshot of current metrics
 so we can compare next month and see if debt is growing or shrinking.
 ```
 
-The baseline snapshot captures every metric used in the scoring: complexity per file, change frequency, bug-fix density, TODO counts, and the aggregate score. Running the same scan monthly reveals whether debt is accumulating faster than the team is paying it down.
+The baseline snapshot should hold every input to the scoring: complexity per function, change frequency, bug-fix density and TODO counts (the agent adds the aggregate score on top). Complexity and churn are easy to keep in the repo yourself; bug-fix counts come from the second `git log` command in Step 1:
 
-This is the tool that changes the conversation permanently. Instead of the quarterly "we should do something about tech debt" hand-wringing, Lena shows a chart: "debt score increased 12% this quarter, concentrated in the billing module. Here are the three highest-ROI tickets." Data-backed arguments win sprint planning conversations in a way that vague appeals to "code quality" never do.
+```bash
+mkdir -p debt
+lizard src/ --csv > debt/complexity-$(date +%Y-%m).csv
+git log --since="6 months ago" --pretty=format: --name-only | sort | uniq -c | sort -rn > debt/churn-$(date +%Y-%m).txt
+```
+ Running the same scan monthly reveals whether debt is accumulating faster than the team is paying it down.
+
+Instead of the quarterly "we should do something about tech debt" hand-wringing, Lena shows a chart: "debt score increased 12% this quarter, concentrated in the billing module. Here are the three highest-ROI tickets." Data-backed arguments win sprint planning conversations in a way that vague appeals to "code quality" never do.
 
 ## Real-World Example
 
@@ -141,6 +158,11 @@ Lena presents the data-backed prioritization at the next sprint planning. For th
 
 The team completes all three P0/P1 refactoring tickets in one sprint — 13 story points total. The invoice calculator splits into four focused modules. The auth middleware gets a clean separation of concerns. The sync engine's error handling becomes predictable.
 
-The impact shows up in the following month's metrics: bug-fix PRs for billing drop from 2-3 per week to zero. The auth middleware, which 6 developers were contending over, stops generating merge conflicts. Developer velocity on billing-related features increases measurably because new pricing rules slot into `DiscountEngine` or `TaxCalculator` without touching the other concerns.
+The impact shows up in the following month's metrics: bug-fix PRs for billing drop from 2-3 per week to zero. The auth middleware, which 6 developers were contending over, stops generating merge conflicts. New pricing rules slot into `DiscountEngine` or `TaxCalculator` without touching the other concerns (the team's own observation after one month, not a benchmark).
 
 And the XML parser — complexity 41, the scariest-looking file in the codebase — stays exactly where it is. Untouched, unfixed, and causing no problems at all.
+
+## Related Skills
+
+- **tech-debt-analyzer** — finds TODO/FIXME markers, outdated dependencies and git-history hotspots, then scores and prioritizes them (Steps 1-3).
+- **code-complexity-scanner** — measures cyclomatic and cognitive complexity per function so the scoring has a complexity input (Step 1).
