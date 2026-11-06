@@ -9,29 +9,31 @@ tags: [gdpr, privacy, compliance, data-protection, consent-management]
 
 # Automate GDPR and Privacy Compliance for Web Apps
 
+> This page shows engineering work. It is not legal advice: which legal basis fits, whether you must appoint a data protection officer ([Article 37](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679) lists the cases), and what you owe your own regulator depend on your facts. Have a lawyer review the result.
+
 ## The Problem
 
-Sara runs a B2B SaaS tool with 12,000 users across the EU. The app collects emails, tracks page views, stores IP addresses, and uses third-party scripts that set cookies — all without a proper consent mechanism. Last Tuesday, a user in Berlin emailed asking for all their personal data to be deleted. Sara realized she has no idea where that user's data actually lives.
+Sara runs a B2B SaaS tool with 12,000 users across the EU. The app collects emails, tracks page views, stores IP addresses, and uses third-party scripts that set cookies, all without a proper consent mechanism. Last Tuesday, a user in Berlin emailed asking for all their personal data to be deleted. Sara realized she has no idea where that user's data actually lives.
 
 It is in PostgreSQL, obviously. But also in Redis sessions that store the user's last active timestamp. And in application logs where every API request includes the user's IP and auth token. And in the two third-party analytics tools the marketing team integrated last year without telling engineering. And in the payment processor that has the user's full name and billing address.
 
-The GDPR fines are real — up to 4% of global revenue — but hiring a Data Protection Officer and a compliance consultant costs more than Sara's entire engineering team. She needs to find every piece of personal data in her system, build proper consent flows, and create a process for handling deletion requests. The user in Berlin is waiting for a response, and GDPR gives Sara 30 days.
+The exposure is real: infringements of the consent rules and of data subjects' rights can be fined up to EUR 20 million or 4% of total worldwide annual turnover, whichever is higher ([GDPR Article 83(5)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)). The user in Berlin is waiting, and the controller must act on the request without undue delay and at the latest within one month of receipt; that can be extended by two further months for complex or numerous requests, but only if the user is told within the first month ([Article 12(3)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)).
 
 ## The Solution
 
-Using the **gdpr-compliance**, **security-audit**, and **code-reviewer** skills, the agent audits the codebase for personal data flows, generates a consent management system with granular cookie categories, builds API endpoints for data subject requests (access, deletion, portability), and sets up automated retention policies. Three skills cover the full compliance stack without the six-figure consultant bill.
+Using the **gdpr-compliance**, **security-audit**, and **code-reviewer** skills, the agent audits the codebase for personal data flows, generates a consent management system with granular cookie categories, builds API endpoints for data subject requests (access, deletion, portability), and sets up automated retention policies. The **security-audit** skill finds the places where personal data leaks (secrets and tokens in logs, injectable queries around the user tables), and **code-reviewer** reviews the generated endpoints before they ship.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Audit Personal Data Flows
 
-First, map where personal data actually lives. Not where you think it lives — where it actually lives. The gap between these two is where compliance violations hide.
+First, map where personal data actually lives. Not where you think it lives, where it actually lives. The gap between these two is where compliance violations hide.
 
 ```text
 Scan the codebase in src/ and the database schema in prisma/schema.prisma for personal data. Identify every field that stores PII: email, name, IP address, phone, location, device identifiers. Map where each piece of data flows — which services read it, which third-party APIs receive it, where it is logged. Output a data flow inventory as a markdown table.
 ```
 
-The scan finds 23 PII fields across 7 database models:
+On Sara's app the scan finds 23 PII fields across 7 database models; the inventory looks like this:
 
 | Data Type | DB Table | Field | Shared With | Retention |
 |---|---|---|---|---|
@@ -44,15 +46,15 @@ The scan finds 23 PII fields across 7 database models:
 
 Three issues jump out immediately:
 
-1. **No retention policy on any table** — data lives forever by default. A user who signed up three years ago and never logged in again still has their IP address, device ID, and location data sitting in the database.
-2. **IP addresses logged in plaintext in CloudWatch** with no log expiration policy. These logs are accessible to every developer with AWS console access.
-3. **The payment processor receives full names** without a documented Data Processing Agreement, which GDPR requires for every third-party processor handling EU personal data.
+1. **No retention policy on any table.** The storage-limitation principle ([Article 5(1)(e)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)) says personal data is kept no longer than necessary for its purpose. A user who signed up three years ago and never came back still has an IP address, device ID and location in the database.
+2. **IP addresses in plaintext logs** with no expiry, readable by every developer with console access. This is where the security-audit skill earns its place: it also flags auth tokens written to the same logs.
+3. **The payment processor receives full names** with no documented contract. Whenever a processor handles personal data on your behalf, [Article 28(3)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679) requires a binding contract (a data processing agreement) covering the subject matter, duration, data types and the processor's obligations. Most large vendors publish a standard one to sign.
 
-Every field marked "Indefinite" is a compliance risk. GDPR requires a legal basis and a defined retention period for each category of personal data. "We keep it forever because we never thought about it" is not a legal basis.
+Every field marked "Indefinite" is a risk: each category of personal data needs a legal basis and a defined retention period.
 
 ### Step 2: Generate a Consent Management System
 
-Cookie banners are the visible tip of the iceberg. The real work is blocking third-party scripts until consent is given and recording that consent with enough detail to prove compliance if someone asks.
+Cookie banners are the visible tip of the iceberg. The real work is blocking third-party scripts until consent is given and recording that consent so you can prove it later.
 
 ```text
 Build a cookie consent banner and preference center for the app. Categories: strictly_necessary (no consent needed), analytics, marketing, functional. Create a React component that blocks third-party scripts until consent is given. Store consent records in the database with timestamp, version, and granular choices. Generate the Prisma migration for the consent_records table.
@@ -60,70 +62,75 @@ Build a cookie consent banner and preference center for the app. Categories: str
 
 The consent system has four layers:
 
-- **Banner component** — appears on first visit, blocks all non-essential scripts until the user makes an active choice. No pre-checked boxes, no "continue browsing means you agree" tricks — both are GDPR violations.
-- **Preference center** — accessible from the footer at any time, lets users change their choices with one click
-- **Script blocker** — wraps third-party script tags (analytics, marketing pixels, chat widgets) and only injects them into the DOM after the relevant consent category is granted
-- **Consent record table** — stores `user_id`, `timestamp`, `consent_version`, and a JSONB column with granular choices like `{ analytics: true, marketing: false, functional: true }`
+- **Banner component.** Appears on first visit and blocks all non-essential scripts until the user makes an active choice. Pre-ticked boxes and "continue browsing means you agree" do not count: [Recital 32](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679) says "silence, pre-ticked boxes or inactivity should not therefore constitute consent".
+- **Preference center.** Reachable from the footer at any time. Withdrawing must be as easy as giving consent ([Article 7(3)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)), so one click.
+- **Script blocker.** Wraps third-party script tags (analytics, marketing pixels, chat widgets) and injects them only after the relevant category is granted. The exemption for `strictly_necessary` comes from the ePrivacy Directive, not the GDPR: storing or reading information on a user's device needs consent, except where it is strictly necessary for a service the user explicitly requested ([Directive 2002/58/EC Article 5(3), as amended by Directive 2009/136/EC](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32009L0136)). Be strict about what you put in that category: login sessions and CSRF tokens qualify, analytics does not.
+- **Consent record table.** Stores a user or visitor ID, timestamp, consent version, one boolean per category and a hashed IP, matching the schema in the gdpr-compliance skill.
 
-The consent version is critical for ongoing compliance. When the privacy policy changes — a new analytics tool, a new data processor, a change in retention periods — a new version number invalidates existing consent and the banner reappears. Every consent record is immutable: updates create new rows, preserving the full history for audit. If a regulator asks "did this user consent to analytics on March 15?", the answer is in the database.
+The consent version matters for ongoing compliance. When the privacy policy changes (a new analytics tool, a new processor), a new version number invalidates old consent and the banner reappears. Records are append-only: a change creates a new row. The controller must be able to demonstrate that the data subject consented ([Article 7(1)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)), and the history is that proof.
 
 ### Step 3: Build Data Subject Request Handlers
 
-When a user asks "show me my data" or "delete everything you have on me," the response needs to be automated, thorough, and auditable.
+When a user asks "show me my data" or "delete everything you have on me", the response needs to be automated, thorough, and auditable.
 
 ```text
-Create API endpoints for GDPR data subject requests:
+Create API endpoints for GDPR data subject requests, all requiring a freshly authenticated session:
 - GET /api/privacy/export — generates a JSON export of all personal data for the authenticated user
-- DELETE /api/privacy/delete — anonymizes or deletes all personal data, cascading across related tables
+- DELETE /api/privacy/delete — queues erasure and emails the user a link to cancel it
 - GET /api/privacy/consent-history — returns the user's consent history
-Add a 30-day verification flow for deletion requests. Log every DSR in an audit_log table.
+Run due erasures from a daily job. Log every request in an audit_log table without storing the personal data itself.
 ```
 
-The export endpoint collects data from every table that references the user: profile information, session records, event logs, consent history, and any third-party data that can be retrieved via API. It packages everything into a downloadable JSON file — the user's complete data portrait.
+The export endpoint collects data from every table that references the user: profile, session records, event logs, consent history, and third-party data that can be retrieved via API. The right of access is [Article 15](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679). Portability ([Article 20](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)) covers data the user provided, processed on consent or contract, in a structured, commonly used, machine-readable format, which JSON satisfies.
 
-The deletion endpoint is more nuanced. GDPR does not require deleting everything — it requires deleting personal data that is no longer necessary for the purpose it was collected. Order records need to exist for tax and accounting purposes (legal obligation), but the personal details within them get replaced with hashed values: the order total stays, but the name and address become `[REDACTED]`. Session data gets purged entirely. Event logs get their PII fields zeroed out while preserving the anonymous event data for analytics.
+The deletion path is more nuanced. The right to erasure ([Article 17](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)) applies "without undue delay" where, for example, the data is no longer necessary or consent is withdrawn, and has exceptions (for instance a legal obligation to keep records, Article 17(3)(b)). So order records that tax or accounting law requires you to keep are retained, but the personal details in them are cleared where the law allows. Replace values with random tombstones or null, not a hash: pseudonymised data is still personal data ([Recital 26](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)). Sessions are deleted outright, and the controller must tell each recipient the data was disclosed to (analytics, email, SMS providers) about the erasure ([Article 19](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679)), unless that is impossible or disproportionate.
 
-The 30-day verification window gives users time to change their mind and protects against accidental or malicious deletion requests. Someone gaining temporary access to an account should not be able to permanently destroy years of data with one API call. During the verification period, the user receives an email confirming their request with a link to cancel it.
+A short cancel window (the gdpr-compliance skill's example uses 30 days, which is a product choice, not a legal requirement) protects against someone using a hijacked session to destroy an account. Keep it short: the erasure must still be done within the one-month deadline, so a 7-day window is easier to defend than 30. The confirmation email carries a one-time cancel link whose token is stored only as a hash.
 
-Every data subject request, regardless of type, gets logged to an `audit_log` table with the request type, timestamp, each processing step, and the final completion status. This audit trail is what proves compliance if a regulator asks "what did you do with this user's deletion request?"
+Every request gets a row in `audit_log` with type, timestamps, steps and final status. That is your evidence if a regulator asks what happened to a request.
 
 ### Step 4: Add Retention Policies and Auto-Cleanup
 
-Data that is no longer needed should not exist. The simplest way to comply with data minimization requirements is to delete data automatically when it has served its purpose.
+Data that is no longer needed should not exist. The simplest way to meet the storage-limitation principle is to delete data automatically when it has served its purpose.
 
 ```text
 Based on the data flow inventory, add retention policies: anonymize IP addresses after 30 days, delete inactive sessions after 90 days, purge soft-deleted user data after 30 days. Create a scheduled job in src/jobs/data-retention.ts that runs daily and enforces these policies. Add dry-run mode that reports what would be deleted without actually deleting.
 ```
 
-The retention job runs at 3 AM daily. In dry-run mode (the default for the first two weeks), it reports what would be affected without changing anything:
+The periods are Sara's design choices, based on purpose; the GDPR sets none of them. In dry-run mode (the default for the first two weeks) the job reports what would change:
 
-- **IP addresses older than 30 days:** anonymized by replacing the last two octets with zeros (preserves country-level analytics without identifying individuals)
-- **Sessions inactive for 90+ days:** deleted entirely
-- **Soft-deleted user records past 30 days:** purged from all tables, with a final audit log entry recording the purge
+- **IP addresses older than 30 days:** the last octet is zeroed, which keeps coarse location for analytics. Treat truncated addresses as still potentially personal data unless you can show they cannot be linked back.
+- **Sessions inactive for 90+ days:** deleted.
+- **Soft-deleted user records past 30 days:** purged from all tables, with a final audit entry.
 
-Dry-run mode builds confidence. Sara reviews two weeks of reports, verifies nothing critical would be lost, and then flips it to live mode. The first real run anonymizes 47,000 IP addresses and clears 3,200 stale sessions. The database shrinks by 8%.
+Sara reviews two weeks of reports, confirms nothing needed would be lost, and switches to live mode. For logs, set an expiry on the log group itself (CloudWatch retention is a per-log-group setting) instead of cleaning it in the job.
 
 ### Step 5: Generate the Privacy Policy
 
-A privacy policy should describe what the app actually does, not what a generic template downloaded from the internet says it might do. Generic templates include clauses about data types the app does not collect and omit the specific third-party processors that actually receive user data. This creates a false sense of compliance.
+A privacy policy should describe what the app actually does, not what a downloaded template says it might do.
 
 ```text
 Based on the data flow inventory and consent categories, generate a privacy policy page in markdown. Include: what data is collected, legal basis for each type, retention periods, third-party processors, user rights (access, deletion, portability, rectification), and contact information placeholder. Keep language clear and non-legalistic.
 ```
 
-The generated policy is built directly from the data flow inventory. Every data type listed is one the app actually collects. Every third-party processor named is one that actually receives user data. Every retention period matches the actual retention job configuration. No boilerplate claims about data the app does not collect, and no missing disclosures about data it does.
+The policy is built from the inventory, so each data type, processor and retention period it names matches what the app and the retention job do. The information to give users is listed in [Articles 13 and 14](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679) (identity of the controller, purposes and legal basis, recipients, retention period or the criteria for it, the rights, and the right to complain to a supervisory authority). The legal bases come from [Article 6(1)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679):
 
-Each data type has a specific legal basis:
-- **Consent** for analytics and marketing data (revocable at any time through the preference center)
-- **Legitimate interest** for essential functionality like session management and rate limiting
-- **Contractual necessity** for billing and payment processing
+- **Consent** (6(1)(a)) for analytics and marketing data, revocable in the preference center.
+- **Contract** (6(1)(b)) for billing and for running the account the user signed up for.
+- **Legitimate interests** (6(1)(f)) for things like rate limiting and abuse prevention, which needs a documented balancing test.
 
-User rights are not just listed — they include direct links to the export and deletion endpoints, so a user reading the policy can exercise their rights immediately without contacting support.
+The skill leaves the company name, DPO contact (if you have one) and supervisory authority as placeholders; fill them in and have counsel read the page.
 
 ## Real-World Example
 
-Sara responds to the deletion request from the Berlin user within 48 hours — well within the GDPR's 30-day window. The export endpoint generates a complete data package showing the user exactly what was stored: their profile, 14 session records, 847 event log entries, and their consent history. The deletion endpoint anonymizes their records across all 7 database models (replacing names with hashed values, zeroing out IP addresses, clearing session data), purges their Redis sessions, and logs the completed request to the audit trail. Sara sends the user a confirmation email summarizing what was deleted and what was anonymized, along with an explanation of why some records (billing history) were anonymized rather than deleted (legal requirement for tax records).
+Sara answers the Berlin user within two days, well inside the one-month limit. The export endpoint produces a package showing the profile, 14 session records, 847 event log entries and the consent history. The user confirms the deletion, the cancel window passes, and the job clears or tombstones their records across all 7 models, deletes their Redis sessions, asks the analytics and email providers to erase the user, and writes the completed request to the audit log. Sara sends a confirmation noting that billing records were kept, with personal fields cleared where the law allows, because of a legal retention duty.
 
-The consent banner goes live the same week. Analytics scripts that were firing on every page load without consent are now blocked by default — about 40% of EU users decline analytics cookies, which reduces the marketing team's analytics coverage but eliminates the legal exposure. The daily retention job quietly cleans up stale data every night: 30-day-old IP addresses anonymized, 90-day inactive sessions purged, soft-deleted user data permanently removed after 30 days. The database shrinks by 8% in the first month just from clearing stale sessions that had been accumulating since the app launched.
+The banner goes live the same week, and analytics scripts that used to fire on every page load are now blocked until a visitor opts in. Marketing sees lower analytics coverage, which is the price of lawful tracking; the exact drop depends on your audience and your banner. The first real retention run on Sara's database anonymizes 47,000 IP addresses and removes 3,200 stale sessions. Those figures are Sara's; your own dry-run report will give yours.
 
-Total effort: one week of engineering time to go from "we have no process and a deletion request sitting in the inbox" to fully automated GDPR compliance. The first enterprise prospect who asks about data handling gets a clear, accurate privacy policy backed by real technical controls — data subject request endpoints, automated retention policies, granular consent management — instead of a scramble and a vague promise that "we take privacy seriously."
+The first enterprise prospect to ask about data handling gets an accurate privacy policy, a signed processor agreement from each vendor and the request logs, instead of a scramble.
+
+## Related Skills
+
+- **gdpr-compliance**: PII inventory, consent records, data subject request endpoints, retention job, privacy policy draft
+- **security-audit**: finds secrets, tokens and personal data in logs, and injectable queries around the user tables
+- **code-reviewer**: reviews the generated consent, export and deletion code before it ships
