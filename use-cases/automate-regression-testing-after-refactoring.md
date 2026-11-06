@@ -61,7 +61,16 @@ The agent identifies 31 distinct behavior contracts from the code's branching lo
 
 ### Step 3: Run Regression Tests Against Both Versions
 
-31 regression tests get generated across 3 test files. This is where it gets interesting — the tests run against both versions to establish what "correct" looks like:
+31 regression tests get generated across 3 new test files (the **test-generator** skill supplies the framework detection, mocks and fixtures; here the project uses Vitest). The agent checks out the pre-refactor code in a separate git worktree so your working tree stays untouched, copies the new tests in, and runs them on both sides:
+
+```console
+$ git worktree add ../app-baseline "$(git merge-base main HEAD)"
+$ cp -r tests/regression ../app-baseline/tests/ && (cd ../app-baseline && npm ci && npx vitest run tests/regression)
+$ npx vitest run tests/regression
+$ git worktree remove --force ../app-baseline
+```
+
+The tests run against both versions to establish what "correct" looks like:
 
 **Against the old code (main): 31/31 passed.**
 **Against the new code (HEAD): 29/31 passed.**
@@ -72,23 +81,24 @@ Two regressions surface. Neither would have been caught by the existing 12 tests
 
 The test "calculates 50% refund for order with percentage discount" catches a subtle math difference:
 
-- **Old behavior:** `refund = (item_total * 0.5) - (discount * 0.5)` = **$21.25**
-- **New behavior:** `refund = (item_total - discount) * 0.5` = **$21.00**
+For a $50.00 line with a $7.50 discount and a 50% refund:
+
+- **Old behavior:** `refund = lineTotal * 0.5 - discount * 0.5` = **$21.25**
+- **New behavior:** `refund = lineTotal * 0.5 - discount` = **$17.50**
 
 The problem is in `PricingService.ts:78`:
 
 ```typescript
-// Old code — discount applied after the split
-const refundPerItem = lineTotal * refundPercent;
-const discountPerItem = discount * refundPercent;
-return refundPerItem - discountPerItem; // $21.25
+// Old code — the discount is prorated with the refund
+const refundPerItem = lineTotal * refundPercent;      // 25.00
+const discountShare = discount * refundPercent;       // 3.75
+return refundPerItem - discountShare;                 // 21.25
 
-// New code — discount applied before the split (wrong)
-const discountedTotal = lineTotal - discount;
-return discountedTotal * refundPercent; // $21.00
+// New code — the full discount is deducted from a partial refund (wrong)
+return lineTotal * refundPercent - discount;          // 17.50
 ```
 
-Mathematically, `(a * r) - (b * r)` is not the same as `(a - b) * r` when applied to individual line items with rounding. The bug isn't obvious from reading the code — both versions look reasonable. In production, every customer with a percentage discount who requests a partial refund would receive $0.25 less. Across thousands of refunds, that adds up to real money — and more importantly, it's the kind of discrepancy that triggers a financial audit.
+The new line looks reasonable on its own: it only drops a variable during the move into the new file, and the signature and return type are unchanged. In production, every customer with a discount who requests a partial refund would receive less than they paid for. Across thousands of refunds, that adds up to real money, and it is the kind of discrepancy that triggers a financial audit.
 
 **Regression 2: Inventory not restored for bundled items on cancellation**
 
@@ -111,7 +121,7 @@ InventoryService. Run the regression tests again.
 
 All 31 regression tests pass against the updated code. Both specific fixes verified:
 
-- Partial refund with percentage discount: **$21.25** (matches old behavior)
+- Partial refund on a discounted line: **$21.25** (matches old behavior)
 - Bundle cancellation restores **3 individual items** (matches old behavior)
 - All 29 other behaviors preserved
 
@@ -130,6 +140,10 @@ The agent also generates additional edge case coverage while it has context on t
 
 Total test coverage for the refactored modules: **94%** (up from 67%). The refactored code is now better tested than the original ever was — and crucially, the tests verify behavior, not implementation. If someone refactors again in six months, these same tests will catch regressions in the new structure. Safe to merge.
 
+### Step 5: Review the diff itself
+
+Passing tests only prove the contracts the agent found. Before merging, the **code-reviewer** skill reads `git diff main...HEAD` for what tests rarely catch: leftover dead code in `OrderService`, a missing transaction around the pricing and inventory calls that used to share one, and error handling that changed when logic crossed a file boundary. Findings come back ranked by severity and marked as confirmed or suspected.
+
 ## Real-World Example
 
 Tomas, a senior developer at a 25-person e-commerce startup, needs to refactor the payment processing module. The code has become a liability — written by a developer who left a year ago, it handles 14 payment scenarios across credit cards, PayPal, and subscriptions, and has grown to 800 lines with deeply nested conditionals that nobody fully understands. Adding a new payment method means touching 6 different branches and hoping nothing breaks. It has 8 tests covering the 3 most common flows — new customer credit card payment, refund, and subscription renewal. The other 11 scenarios are untested.
@@ -138,4 +152,10 @@ He splits it into three focused services: PaymentGateway, InvoiceGenerator, and 
 
 Against the old code — all 38 pass. Against the new code — 35 pass, 3 fail. One regression is particularly nasty: subscription trial-to-paid conversion skips the proration step, which would have overcharged roughly 200 trial users on their first bill. The overcharge is small enough per user ($3-8) that most wouldn't notice, but large enough in aggregate to trigger a dispute with the payment processor.
 
-Tomas fixes the three regressions in 20 minutes. The agent re-verifies: all 38 tests pass on both implementations. The refactored code ships with 94% test coverage (up from 31%). Three months later, when a new developer modifies the pricing logic, the regression tests catch two issues before they leave the PR. The safety net pays for itself almost immediately — the team starts refactoring with confidence instead of dread.
+Tomas fixes the three regressions in 20 minutes. The agent re-verifies: all 38 tests pass on both implementations. The refactored code ships with 94% test coverage (up from 31%). Three months later, when a new developer modifies the pricing logic, the regression tests catch two issues before they leave the PR. The safety net pays for itself almost immediately — the team starts refactoring with confidence instead of dread. (Tomas, his team and these figures are illustrative.)
+
+## Related Skills
+
+- **regression-tester**: maps the refactoring scope and runs the generated tests against the old and new code.
+- **test-generator**: detects the framework and writes the mocks, fixtures and extra edge-case tests.
+- **code-reviewer**: reviews the diff for problems that tests do not exercise.
