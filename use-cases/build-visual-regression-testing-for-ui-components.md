@@ -27,253 +27,160 @@ tags:
 
 ## The Problem
 
-A design system with 200+ React components powers 4 product teams' UIs. CSS changes cause cascading visual bugs: updating a button's padding breaks card layouts, changing a color token makes text unreadable on dark backgrounds, and a z-index change hides dropdown menus. These bugs reach production 2-3 times per month because unit tests pass — the logic is correct, but the UI looks broken. Each visual bug takes 2-3 hours to find, fix, and deploy.
+A design system with 200+ React components powers four product teams' UIs. CSS changes cause cascading visual bugs: updating a button's padding breaks card layouts, changing a color token makes text unreadable on dark backgrounds, and a z-index change hides dropdown menus. These bugs reach production because unit tests pass — the logic is correct, but the UI looks broken. Each one takes hours to find, fix and deploy.
 
-## Step 1: Storybook Screenshot Capture
+The approach: build Storybook once, open every story in Playwright at three viewport widths and two themes, and compare each screenshot to a baseline committed in git. Playwright Test already does the capture, diffing, baseline storage and report (`toHaveScreenshot`), so there is no custom diff engine to maintain. The one trap is that the same page renders slightly differently on macOS, Windows and Linux (fonts, anti-aliasing), so baselines are only comparable if they are always produced in the same environment. Docker provides that.
+
+## Step 1: Functional story tests first
+
+Visual diffs are noisy when a story throws. Run the stories as tests before the screenshots. With Storybook 10 the Vitest addon turns every story and its `play` function into a test (`npx storybook add @storybook/addon-vitest`, then `npx vitest --project=storybook`). Fix those failures first; this page covers the visual layer.
+
+## Step 2: Playwright config and one test per story
+
+Install an exact Playwright version (the Docker image in Step 4 must carry the same one) and an HTTP server for the static build:
+
+```console
+$ npm i -D --save-exact @playwright/test@1.65.0
+$ npm i -D http-server
+```
 
 ```typescript
-// src/visual-tests/capture.ts
-import { chromium, type Browser, type Page } from 'playwright';
-import { readdir } from 'fs/promises';
-import { join } from 'path';
+// playwright.config.ts
+import { defineConfig, devices } from '@playwright/test';
 
-interface CaptureConfig {
-  storybookUrl: string;
-  outputDir: string;
-  viewports: Array<{ name: string; width: number; height: number }>;
-  themes: string[];
-}
-
-const defaultConfig: CaptureConfig = {
-  storybookUrl: 'http://localhost:6006',
-  outputDir: '.visual-tests/current',
-  viewports: [
-    { name: 'mobile', width: 375, height: 812 },
-    { name: 'tablet', width: 768, height: 1024 },
-    { name: 'desktop', width: 1440, height: 900 },
+export default defineConfig({
+  testDir: './tests/visual',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.001 },
+  },
+  use: { baseURL: 'http://127.0.0.1:6006' },
+  projects: [
+    { name: 'mobile', use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 812 } } },
+    { name: 'tablet', use: { ...devices['Desktop Chrome'], viewport: { width: 768, height: 1024 } } },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
   ],
-  themes: ['light', 'dark'],
-};
-
-export async function captureAllStories(config = defaultConfig): Promise<string[]> {
-  const browser = await chromium.launch();
-  const screenshots: string[] = [];
-
-  try {
-    // Fetch story list from Storybook API
-    const page = await browser.newPage();
-    await page.goto(`${config.storybookUrl}/index.json`);
-    const storyIndex = await page.evaluate(() => document.body.textContent);
-    const stories = JSON.parse(storyIndex!);
-
-    for (const [id, story] of Object.entries(stories.entries as Record<string, any>)) {
-      if (story.type !== 'story') continue;
-
-      for (const viewport of config.viewports) {
-        for (const theme of config.themes) {
-          const filename = `${id}--${viewport.name}--${theme}.png`;
-          const filepath = join(config.outputDir, filename);
-
-          await page.setViewportSize({ width: viewport.width, height: viewport.height });
-
-          // Navigate to story in iframe mode with theme
-          const url = `${config.storybookUrl}/iframe.html?id=${id}&globals=theme:${theme}`;
-          await page.goto(url, { waitUntil: 'networkidle' });
-
-          // Wait for animations to settle
-          await page.waitForTimeout(500);
-
-          await page.screenshot({ path: filepath, fullPage: true });
-          screenshots.push(filepath);
-        }
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-
-  return screenshots;
-}
+  webServer: {
+    command: 'npx http-server storybook-static -a 127.0.0.1 -p 6006 --silent',
+    url: 'http://127.0.0.1:6006/index.json',
+    reuseExistingServer: !process.env.CI,
+  },
+});
 ```
 
-## Step 2: Pixel-Level Diff Engine
+The server is bound to `127.0.0.1`, and Playwright waits for `index.json` before starting. Each project is one viewport, so every test runs three times.
 
 ```typescript
-// src/visual-tests/diff.ts
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import { join, basename } from 'path';
-import { PNG } from 'pngjs';
-import pixelmatch from 'pixelmatch';
+// tests/visual/stories.spec.ts
+import { readFileSync } from 'node:fs';
+import { test, expect } from '@playwright/test';
 
-interface DiffResult {
-  filename: string;
-  status: 'match' | 'changed' | 'new' | 'removed';
-  diffPercent: number;
-  diffPixels: number;
-  diffImagePath?: string;
-}
+type Entry = { id: string; type: 'story' | 'docs' };
+const index = JSON.parse(readFileSync('storybook-static/index.json', 'utf8')) as {
+  entries: Record<string, Entry>;
+};
+const storyIds = Object.values(index.entries)
+  .filter((entry) => entry.type === 'story')
+  .map((entry) => entry.id);
 
-export async function compareScreenshots(
-  baselineDir: string,
-  currentDir: string,
-  diffDir: string,
-  threshold: number = 0.1 // percent difference to flag
-): Promise<DiffResult[]> {
-  await mkdir(diffDir, { recursive: true });
-  const results: DiffResult[] = [];
-
-  const currentFiles = await readdir(currentDir);
-
-  for (const filename of currentFiles) {
-    if (!filename.endsWith('.png')) continue;
-
-    const currentPath = join(currentDir, filename);
-    const baselinePath = join(baselineDir, filename);
-
-    try {
-      const baselineData = await readFile(baselinePath);
-      const currentData = await readFile(currentPath);
-
-      const baseline = PNG.sync.read(baselineData);
-      const current = PNG.sync.read(currentData);
-
-      // Handle size changes
-      if (baseline.width !== current.width || baseline.height !== current.height) {
-        results.push({
-          filename, status: 'changed', diffPercent: 100, diffPixels: -1,
-          diffImagePath: currentPath,
-        });
-        continue;
-      }
-
-      const diff = new PNG({ width: baseline.width, height: baseline.height });
-      const diffPixels = pixelmatch(
-        baseline.data, current.data, diff.data,
-        baseline.width, baseline.height,
-        { threshold: 0.1 } // per-pixel sensitivity
-      );
-
-      const totalPixels = baseline.width * baseline.height;
-      const diffPercent = (diffPixels / totalPixels) * 100;
-
-      if (diffPercent > threshold) {
-        const diffPath = join(diffDir, `diff-${filename}`);
-        await writeFile(diffPath, PNG.sync.write(diff));
-
-        results.push({
-          filename, status: 'changed', diffPercent, diffPixels,
-          diffImagePath: diffPath,
-        });
-      } else {
-        results.push({ filename, status: 'match', diffPercent, diffPixels });
-      }
-    } catch {
-      // No baseline = new component
-      results.push({ filename, status: 'new', diffPercent: 100, diffPixels: -1 });
-    }
+for (const theme of ['light', 'dark']) {
+  for (const id of storyIds) {
+    test(`${id} [${theme}]`, async ({ page }) => {
+      await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=theme:${theme}`);
+      await page.locator('#storybook-root').waitFor();
+      await expect(page).toHaveScreenshot(`${id}--${theme}.png`, { fullPage: true });
+    });
   }
-
-  return results;
 }
 ```
 
-## Step 3: GitHub Actions Integration
+Notes:
+
+- `index.json` is written by `npx storybook build -o storybook-static`; entries of type `docs` are skipped.
+- `globals=theme:dark` only takes effect if your `.storybook/preview.ts` defines a `theme` global (a toolbar item or an entry in `initialGlobals`) and a decorator that applies it.
+- `toHaveScreenshot` disables CSS animations and waits for two consecutive identical frames before comparing, so no fixed `waitForTimeout` is needed. Mask or mock anything truly dynamic (dates, avatars) in the story itself.
+- Baselines are stored next to the spec in `tests/visual/stories.spec.ts-snapshots/`, named `<story>--<theme>-<project>-<platform>.png`. Commit them. A baseline created on macOS is named `-darwin` and will not be used on Linux, which is the reason for Step 4.
+
+When a test fails, Playwright writes the expected, actual and diff images to `test-results/` and into the HTML report. In a single-viewport check I changed a button's padding and got `1328 pixels (ratio 0.01 of all image pixels) are different`.
+
+## Step 3: Generate baselines, then review them like code
+
+Create or update baselines with `npx playwright test --update-snapshots` (Step 4 shows the Docker form). A design-token change then shows up as a PNG diff in the pull request, and the designer approves the change by approving the images, not by trusting a description.
+
+## Step 4: Render in the Playwright Docker image
+
+Playwright publishes versioned images that bundle the browsers and system fonts. Use the same tag locally and in CI so every baseline is rendered identically. The tag must match the pinned `@playwright/test` version, and `noble` is the Ubuntu 24.04 flavor.
+
+```console
+$ docker run --rm --init --ipc=host \
+    -v "$PWD":/work -v /work/node_modules -w /work \
+    -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+    mcr.microsoft.com/playwright:v1.65.0-noble \
+    sh -c 'npm ci && npx storybook build -o storybook-static && npx playwright test --update-snapshots && chown -R "$HOST_UID:$HOST_GID" tests/visual storybook-static'
+```
+
+`--ipc=host` and `--init` are Playwright's recommendation for Chromium in Docker. The anonymous `/work/node_modules` volume keeps the container's Linux `node_modules` from overwriting yours, and `--rm` removes it with the container. The `chown` hands the generated files back to your user, since the container runs as root. Bump the image tag together with `@playwright/test` and regenerate the baselines in the same PR.
+
+## Step 5: GitHub Actions
+
+CI runs inside the same image and fails the PR when any screenshot differs:
 
 ```yaml
 # .github/workflows/visual-test.yml
 name: Visual Regression Tests
 on:
   pull_request:
-    paths: ['src/components/**', 'src/styles/**', 'src/tokens/**']
+    paths: ['src/**', '.storybook/**', 'tests/visual/**', 'package*.json']
+
+permissions:
+  contents: read
 
 jobs:
   visual-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --ipc=host --init
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
       - run: npm ci
-
-      - name: Build Storybook
-        run: npx storybook build -o storybook-static
-
-      - name: Start Storybook
-        run: npx http-server storybook-static -p 6006 &
-        
-      - name: Wait for Storybook
-        run: npx wait-on http://localhost:6006
-
-      - name: Download baselines
-        uses: actions/download-artifact@v4
+      - run: npx storybook build -o storybook-static
+      - run: npx playwright test
+      - name: Upload report and diff images
+        if: failure()
+        uses: actions/upload-artifact@v7
         with:
-          name: visual-baselines
-          path: .visual-tests/baseline
-        continue-on-error: true
-
-      - name: Capture screenshots
-        run: npx tsx src/visual-tests/capture.ts
-
-      - name: Compare screenshots
-        id: diff
-        run: npx tsx src/visual-tests/diff.ts > diff-report.json
-
-      - name: Post PR comment with diffs
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('diff-report.json'));
-            const changed = results.filter(r => r.status === 'changed');
-            
-            if (changed.length === 0) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: '✅ **Visual Tests Passed** — No visual changes detected.',
-              });
-              return;
-            }
-            
-            let body = `## 🖼️ Visual Changes Detected (${changed.length})\n\n`;
-            for (const c of changed.slice(0, 20)) {
-              body += `- **${c.filename}**: ${c.diffPercent.toFixed(2)}% changed (${c.diffPixels} pixels)\n`;
-            }
-            body += '\n> Review the diff images in the artifacts to approve or fix these changes.';
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: context.issue.number, body,
-            });
-
-      - name: Fail on unexpected changes
-        run: |
-          CHANGED=$(cat diff-report.json | node -e "
-            const d=[];process.stdin.on('data',c=>d.push(c));
-            process.stdin.on('end',()=>{
-              const r=JSON.parse(d.join(''));
-              console.log(r.filter(x=>x.status==='changed').length)
-            })")
-          if [ "$CHANGED" -gt "0" ]; then
-            echo "❌ ${CHANGED} visual changes need review"
-            exit 1
-          fi
-
-      - name: Upload baselines
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-baselines
-          path: .visual-tests/current
-          retention-days: 90
+          name: visual-diff
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
 ```
+
+A failed run uploads the HTML report and the diff images; the `github` reporter also annotates the failing tests in the PR. To accept an intended change, regenerate the baselines with the Docker command from Step 4 and commit the new PNGs. Mark the job as a required check in branch protection so a visual change cannot merge unreviewed.
+
+With hundreds of stories the PNGs add up: store `tests/visual/**/*.png` with Git LFS, or shard the run with `npx playwright test --shard=1/4` across a matrix.
 
 ## Results
 
-- **Visual bugs in production**: dropped from 2-3/month to zero
-- **200+ components**: every variant screenshotted across 3 viewports × 2 themes = 1,200+ screenshots
-- **Unintended CSS changes**: caught in PR review with pixel-diff images
-- **Design token changes**: immediately see impact across all components
-- **Review confidence**: designers approve PRs with visual proof, not guesswork
-- **CI time**: 4 minutes for full visual regression suite
-- **Time saved**: 6-9 hours/month previously spent finding and fixing visual bugs
+For a design system of this size, the setup gives the team:
+
+- every story captured at 3 viewports × 2 themes, so 200 stories produce about 1,200 baseline images
+- CSS and token changes visible as pixel diffs in the pull request, not found in production
+- baselines that match between laptops and CI, because both render in the same Docker image
+- no custom diffing code to maintain: capture, comparison, retries and the report are Playwright's
+
+## Related Skills
+
+- [typescript](/skills/typescript) — typed config and spec files
+- [playwright-testing](/skills/playwright-testing) — `toHaveScreenshot`, projects and the report
+- [vitest](/skills/vitest) — the Storybook Vitest addon for functional story tests
+- [github-actions](/skills/github-actions) — the PR workflow, permissions and artifacts
+- [docker-helper](/skills/docker-helper) — running and pinning the Playwright image
+- [storybook](/skills/storybook) — building the static Storybook and its `index.json`
