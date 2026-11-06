@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f983227d1c7210e3c08f43db171f36417aad053cee57f918a6ac00fdff9082cf",
+  "scoredAt": "2026-11-06T22:42:49.465Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as handling missing dependencies or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a concise instruction set."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions rely on bash commands and Python 3.12+, which may not be available or behave differently on non-Linux platforms, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 22,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "write-and-backtest-sma-crossover",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits required command syntax and entry/exit trend methods."
+      },
+      {
+        "name": "dry-run-eth-5days",
+        "baseline": 5,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items but omits the log note; Response A fails to provide the required command and details."
+      },
+      {
+        "name": "setup-frequi-api-server",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not."
+      }
+    ]
+  }
+}
