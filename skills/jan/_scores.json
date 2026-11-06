@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:5787ba0a2fc5dc1da51b73f4e2954a17403d97da1710ec4d5b78a1d71112c087",
+  "scoredAt": "2026-11-06T22:55:59.377Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "install-jan-flatpak",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong package name and verification pattern, missing key elements."
+      },
+      {
+        "name": "verify-jan-local-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet the required URL, port, and Authorization header."
+      },
+      {
+        "name": "list-jan-models",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not."
+      }
+    ]
+  }
+}
