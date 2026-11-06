@@ -6,6 +6,7 @@ skills:
   - plane
   - docker-helper
   - cron
+  - vikunja
 category: productivity
 tags:
   - project-management
@@ -87,3 +88,4 @@ By Monday, the Billing board shows 312 work items in the right columns with thei
 - [plane](/skills/plane) — install, API key, work-item calls and backups for the tracker
 - [docker-helper](/skills/docker-helper) — inspect and troubleshoot the Compose services Plane runs on
 - [cron](/skills/cron) — schedule the nightly backup job
+- [vikunja](/skills/vikunja) — choose it instead of Plane for a smaller team that needs task lists, due dates and kanban in one lightweight container with a token-scoped API
