@@ -1,7 +1,7 @@
 ---
 title: "Create Automated Meeting Agendas from Project Status with AI"
 slug: create-meeting-agenda-from-project-status
-description: "Generate focused meeting agendas by pulling real-time project status from repos, tickets, and team updates."
+description: "Generate focused meeting agendas by pulling live project status (PRs, CI runs, blocker issues) from GitHub and carrying over last meeting's open action items."
 skills: [github, meeting-notes, report-generator]
 category: productivity
 tags: [meetings, agenda, project-management, productivity, automation]
@@ -13,31 +13,57 @@ tags: [meetings, agenda, project-management, productivity, automation]
 
 A 20-person product team has a weekly sync every Monday. The engineering manager spends 45 minutes before each meeting manually checking GitHub for open PRs, scanning Slack for blockers people mentioned during the week, reviewing the sprint board for overdue tickets, and writing up an agenda. Half the time, the agenda misses something important and the meeting derails into topics nobody prepared for. The other half, it covers things already resolved, wasting everyone's time.
 
-Twenty people in a 30-minute meeting that goes off the rails is 10 person-hours of lost productivity. Every single week. And the engineering manager — the highest-paid person preparing the agenda — is spending 3 hours per month on what is essentially data collection and formatting.
+Twenty people in a 30-minute meeting that goes off the rails is 10 person-hours spent on the wrong things. And the engineering manager — the highest-paid person preparing the agenda — is spending 3 hours per month on what is essentially data collection and formatting.
 
 The deeper issue is that the agenda reflects one person's memory of the week, not the actual state of the project. Critical blockers get forgotten because they were mentioned in a Slack thread at 11 PM on Wednesday. A PR that's been waiting for review for 5 days doesn't make the agenda because the reviewer didn't flag it.
 
 ## The Solution
 
-Using the **github** skill to pull PR status and recent commits, the **meeting-notes** skill to structure agendas with clear topics and time boxes, and the **report-generator** to compile everything into a shareable document, the agenda writes itself from live project data instead of someone's imperfect memory of the week.
+The **github** skill drives the `gh` CLI to pull PRs, CI runs and labeled issues. The **report-generator** skill turns that data into a status report in its weekly-update format. The **meeting-notes** skill reads last meeting's notes for open action items and, after the meeting, captures decisions in a form next week's run can read. The agenda is built from live data instead of one person's memory of the week.
+
+This covers GitHub data. Slack threads and sprint-board tickets are not read by these skills; paste the blockers from those places into the prompt (step 1) or label them as GitHub issues.
 
 ## Step-by-Step Walkthrough
 
-The workflow runs every Monday morning: pull live data from all project sources, cross-reference with last week's action items, generate a time-boxed agenda, and share it before the meeting starts. The entire cycle takes 5 minutes of human time.
+Every Monday morning: pull project data, cross-reference last week's action items, generate a time-boxed agenda, review it, share it. Human time is about five minutes.
 
-### Step 1: Pull Project Status from All Sources
+### Step 1: Pull project status from GitHub
 
-Start by telling the agent what to check — cast a wide net so nothing slips through:
+> Prepare an agenda for Monday's team sync in acme/product. Find open PRs older than 2 days with their review and CI state, failing runs on main, PRs merged since last Monday, and issues labeled "blocker" or "urgent". Also include these blockers from Slack: [pasted lines].
 
-```text
-Prepare an agenda for Monday's team sync. Check our GitHub org for: open PRs older than 2 days, any failing CI checks, PRs with unresolved review comments, and commits merged since last Monday. Also summarize any issues labeled "blocker" or "urgent".
+The github skill runs read-only `gh` commands. Authentication is `gh auth login`, or a `GH_TOKEN` in the environment in scripts:
+
+```bash
+SINCE=$(date -d 'last monday' +%F)   # GNU date; on macOS use: date -v-monday +%F
+
+# Open PRs with review, merge and CI state, keeping the ones older than 2 days
+gh pr list -R acme/product --state open --limit 100 \
+  --json number,title,author,createdAt,reviewDecision,mergeable,statusCheckRollup |
+jq -r '.[] | select((now - (.createdAt | fromdateiso8601)) > 172800)
+  | [.number, .author.login, (.reviewDecision // ""), .mergeable,
+     (if any(.statusCheckRollup[]?; (.conclusion // .state) == "FAILURE") then "ci-failing" else "ci-ok" end),
+     .title] | @tsv'
+
+# PRs merged since last Monday
+gh pr list -R acme/product --state merged --search "merged:>=$SINCE" --limit 100 \
+  --json number,title,mergedAt
+
+# Recent failures on main
+gh run list -R acme/product --branch main --status failure --limit 10 \
+  --json workflowName,displayTitle,createdAt,url
+
+# Blocker and urgent issues (a comma inside label: means OR)
+gh issue list -R acme/product --state open --search 'label:blocker,urgent' \
+  --json number,title,assignees,createdAt
 ```
 
-### Step 2: Review the Live Data
+`reviewDecision` is `REVIEW_REQUIRED`, `CHANGES_REQUESTED`, `APPROVED` or empty, and `mergeable` is `CONFLICTING` when there is a merge conflict. To see whether a test is flaky rather than broken, list the last runs of one workflow: `gh run list --workflow ci.yml --branch main --limit 5 --json conclusion,createdAt`.
 
-The scan comes back in under a minute with the full picture. No Slack-skimming, no sprint board scrolling, no relying on memory:
+### Step 2: Review the live data
 
-**Project Status (Feb 10-17):**
+The report-generator skill's weekly template (Completed, In Progress, Blockers and Risks, Key Metrics) is a good shape for the status, which for this example week looks like:
+
+**Project status (Nov 2 to Nov 9):**
 
 | Category | Count | Details |
 |----------|-------|---------|
@@ -46,99 +72,78 @@ The scan comes back in under a minute with the full picture. No Slack-skimming, 
 | Failing CI | 2 | One flaky test, one config issue |
 | Active blockers | 2 | Both impacting staging |
 
-**Stale PRs — these need attention:**
-- **#342** "Refactor payment flow" — waiting on review from Lena for 5 days. This is a 400-line change sitting unreviewed while the author context-switches to other work.
-- **#358** "Add CSV export" — CI failing for 2 days. Missing env var in test config — probably a 5-minute fix that nobody noticed.
-- **#361** "Update onboarding copy" — merge conflict for 3 days. Non-technical change blocked by a technical issue.
+**Stale PRs:**
+- **#342** "Refactor payment flow": waiting on review from Lena for 5 days, a 400-line change.
+- **#358** "Add CSV export": CI failing for 2 days, a missing env var in the test config.
+- **#361** "Update onboarding copy": merge conflict for 3 days.
 
 **Failing CI:**
-- `main` branch: flaky test in `auth.spec.js` (failed 3 of last 5 runs). This is the kind of thing that erodes trust in the test suite — developers start ignoring red builds because "it's probably just auth.spec again."
-- PR #358: missing env var in test config. Known cause, quick fix.
+- `main`: flaky test in `auth.spec.js` (failed 3 of the last 5 runs).
+- PR #358: the missing env var above.
 
 **Blockers:**
-- **ISSUE-891:** Stripe webhook endpoint returning 500 in staging. Nobody can test payment flows until this is resolved.
-- **ISSUE-903:** Memory leak in background worker — OOM every 6 hours. The worker has been silently restarting since Tuesday. If it hits production, customer-facing jobs will start failing.
+- **#891:** Stripe webhook endpoint returning 500 in staging; nobody can test payment flows.
+- **#903:** memory leak in the background worker, OOM every 6 hours; it has been restarting silently since Tuesday.
 
-That memory leak is the kind of thing that never makes a manually-written agenda. It's been killing the worker process for days, but because it auto-restarts, nobody noticed. Pulling live data from GitHub issues catches it before it becomes a production incident.
+The worker leak is the kind of item that never reaches a hand-written agenda, because auto-restart hides it. A label query on issues surfaces it.
 
-### Step 3: Generate a Time-Boxed Agenda
+### Step 3: Generate a time-boxed agenda
 
-```text
-Create a 30-minute meeting agenda from this status. Put blockers first, then stale PRs, then a quick wins section. Add time boxes for each topic. Skip anything already resolved.
-```
+> Create a 30-minute agenda from this status. Blockers first, then stale PRs, then quick updates. Add time boxes and an owner for each topic. Skip anything already resolved.
 
-The agenda puts the most urgent items first and assigns clear owners:
-
-### Team Sync — Monday Feb 17 (30 min)
+**Team Sync, Monday Nov 9 (30 min)**
 
 **Blockers (10 min)**
-1. Stripe webhook 500 in staging (ISSUE-891) — Dani, what do you need to unblock this?
-2. Memory leak in background worker (ISSUE-903) — who is picking this up? It's been OOMing every 6 hours since Tuesday.
+1. Stripe webhook 500 in staging (#891): Dani, what do you need to unblock this?
+2. Memory leak in background worker (#903): who is picking this up?
 
 **Stale PRs (10 min)**
-3. #342 Refactor payment flow (5 days) — Lena, can you review today?
-4. #358 CSV export — CI fix needed: missing env var in test config (5-min fix)
-5. #361 Onboarding copy — merge conflict needs resolution
+3. #342 Refactor payment flow (5 days): Lena, can you review today?
+4. #358 CSV export: add the missing env var to the test config
+5. #361 Onboarding copy: merge conflict needs resolution
 
-**Quick Updates (5 min)**
-6. Flaky auth test — is anyone tracking `auth.spec.js`? It's failed 3 of last 5 runs.
-7. Sprint velocity: 14 PRs merged this week, on track for Thursday release.
+**Quick updates (5 min)**
+6. Flaky `auth.spec.js`: is anyone tracking it?
+7. 14 PRs merged this week, on track for Thursday release
 
-**Open Floor (5 min)**
+**Open floor (5 min)**
 
-Every topic has a name attached to it. No more "does anyone know about...?" followed by 30 seconds of silence. The time boxes are aggressive on purpose — they force prioritization. If blockers take 15 minutes instead of 10, stale PRs get 5 minutes and the team handles the rest async.
+The time boxes are tight on purpose. If blockers overrun, the stale PR items move to async.
 
-### Step 4: Cross-Reference with Last Week's Action Items
+### Step 4: Cross-reference last week's action items
 
-Agendas without continuity let things slip through the cracks. The action items from last Monday's meeting should carry forward automatically:
+Keep each meeting's notes in a file so the next run can read them. The meeting-notes skill writes that file in a fixed structure with an Action Items section (step 5).
 
-```text
-Check last week's meeting notes in ./meetings/2025-02-10.md. Pull out any action items that were assigned but not yet completed. Add them to the agenda as follow-ups.
-```
+> Read ./meetings/2026-11-02.md. List the action items that were assigned and not completed, check each against the PR and issue data above, and add the open ones to the agenda as follow-ups.
 
-The cross-reference catches what fell through:
-
-| Assignee | Action Item | Status |
+| Assignee | Action item | Status |
 |----------|-------------|--------|
-| Dani | Investigate Stripe webhook 500 | Now ISSUE-891 — already on agenda |
-| Lena | Review payment flow PR | PR #342 — already on agenda, still unreviewed |
-| Ravi | Schedule user interviews for onboarding redesign | **NOT DONE** — adding to agenda |
-| ~~Tomas~~ | ~~Deploy CSV export to staging~~ | Completed Feb 12 |
+| Dani | Investigate Stripe webhook 500 | Now #891, already on agenda |
+| Lena | Review payment flow PR | #342, still unreviewed, already on agenda |
+| Ravi | Schedule user interviews for onboarding redesign | Not done, adding to agenda |
+| Tomas | Deploy CSV export to staging | Completed Nov 4 |
 
-Ravi's user interviews were assigned last Monday and quietly forgotten. Without the cross-reference, another week would pass before anyone noticed. Now it's back on the agenda under Open Floor before a third week slips by. This is the difference between a meeting culture that tracks commitments and one that generates them and forgets.
+Ravi's interviews have no GitHub trace, so only the notes file catches them.
 
-### Step 5: Share and Iterate
+### Step 5: Share, then capture the outcome
 
-The agenda exports as a markdown file and gets posted to the team channel 10 minutes before the meeting. Everyone walks in knowing what's on the table. No surprises, no "I didn't know we were discussing that," no scrambling to pull up context.
-
-After the meeting, the meeting-notes skill captures decisions and action items that feed directly into next week's agenda. The cycle sustains itself:
-
-1. Monday 9:00 AM — Agent pulls live project data
-2. Monday 9:02 AM — Agent cross-references last week's action items
-3. Monday 9:03 AM — Time-boxed agenda generated
-4. Monday 9:10 AM — Engineering manager reviews, adds personal notes
-5. Monday 9:15 AM — Agenda posted to team channel
-6. Monday 9:30 AM — Meeting starts, everyone prepared
-7. Monday 10:00 AM — Meeting ends, decisions and action items captured
-8. Next Monday — Repeat, with last week's items carried forward
-
-No more starting from scratch every Monday morning. No more 45-minute agenda prep sessions. No more relying on one person's memory of the week.
+Save the agenda as markdown, post it to the team channel before the meeting, and keep it next to the notes. After the meeting, give the meeting-notes skill the raw notes or transcript. It produces Decisions Made, Action Items (with owners and dates) and Open Questions; ask it to save them to `./meetings/2026-11-09.md`, which step 4 reads next Monday.
 
 ## Real-World Example
 
-Ravi, an engineering manager at the 20-person product team, used to spend 45 minutes every Monday morning assembling the weekly sync agenda. He'd check GitHub, skim Slack, and try to remember what people mentioned in passing last week. He missed things constantly — the PR that had been waiting for review for a week, the CI check that had been flaky for days, the action item from two meetings ago that nobody followed up on.
+Ravi, an engineering manager on a 20-person product team, spent about 45 minutes every Monday assembling the sync agenda from GitHub, Slack and memory. He kept missing things: a PR waiting a week for review, a flaky check, an action item from two meetings back.
 
-Now he kicks off the agent on Monday morning. It pulls status from the GitHub org — 3 stale PRs, 2 blockers, 2 CI issues — in under a minute. The time-boxed agenda gets generated with blockers first. The cross-reference catches Ravi's own forgotten action item: user interviews he was supposed to schedule last week.
-
-Ravi reviews the agenda, adds one note about a hiring update, and shares it in Slack 10 minutes before the meeting. The meeting stays focused — every topic is backed by real data, every item has an owner, and the time boxes keep discussions from spiraling. When Dani asks "what exactly is the error on that webhook?" the answer is already in the agenda — no one needs to context-switch to a browser and dig through GitHub issues during the meeting.
-
-Weekly agenda prep drops from 45 minutes to 5 minutes. But the real improvement isn't time savings — it's meeting quality. The team stops dreading Mondays because the meetings end on time and the discussions are about solving problems rather than figuring out what the problems are.
-
-Weekly agenda prep drops from 45 minutes to 5 minutes. But the real win isn't the time savings — it's that the meetings actually work. Action items get tracked across weeks. Blockers surface before they become incidents. The team stops dreading Mondays because the meetings end on time and cover what matters.
+Now he runs the prompts from steps 1 to 4 on Monday morning. The run lists 3 stale PRs, 2 blockers and 2 CI issues, and the cross-reference catches his own forgotten task of scheduling user interviews. He adds a hiring note and posts the agenda ten minutes before the meeting. When Dani asks what the webhook error is, the answer is already linked in the agenda. Ravi's own estimate is that prep dropped from 45 minutes to about 5, and the larger change is that every topic has an owner and the meeting ends on time.
 
 ## Tips for Better Agendas
 
-- **Run the agent 30 minutes before the meeting** so data is fresh but you still have time to review and add context
-- **Track agenda-to-outcome ratio** — if topics keep rolling over week to week, the meetings aren't effective and something needs to change
-- **Rotate the "open floor" section** — some weeks, replace it with a quick demo or knowledge share to keep the format from going stale
-- **Archive agendas alongside meeting notes** in a shared folder so decisions are traceable months later when someone asks "when did we decide to do X?"
+- Run it 30 minutes before the meeting so data is fresh and you still have time to add context.
+- Track how often topics roll over from week to week; repeated carry-over means the meeting is not resolving things.
+- Rotate the open-floor slot into a demo or knowledge share now and then.
+- Archive agendas beside the meeting notes so decisions can be traced later.
+
+## Related Skills
+
+- **github**: the `gh` commands that list stale PRs, CI failures and blocker issues.
+- **report-generator**: shapes the pulled data into a weekly status (completed, in progress, blockers).
+- **meeting-notes**: reads last week's action items and records this week's decisions for the next agenda.
