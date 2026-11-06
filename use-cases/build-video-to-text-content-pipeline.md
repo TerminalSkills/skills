@@ -28,19 +28,37 @@ Use **yt-dlp** to download videos and extract audio from YouTube and other platf
 
 ### 1. Download and organize video content
 
-Pull videos from YouTube, conference sites, and local recordings into a consistent format with metadata preserved. Yt-dlp supports hundreds of video platforms, so conference talks hosted on Vimeo, custom event sites, or private platforms all work the same way.
+Pull videos from YouTube, conference sites, and local recordings into a consistent format with metadata preserved. Yt-dlp supports well over a thousand sites, so conference talks hosted on YouTube, Vimeo or most public event sites work the same way (check `yt-dlp --list-extractors` for yours). It needs ffmpeg for audio extraction, and YouTube downloads need a JavaScript runtime such as deno (or Node.js via `--js-runtimes node`); keep yt-dlp current.
 
 > Download these 4 YouTube videos from our conference talk playlist using yt-dlp. Extract the audio as WAV files for transcription, and also download the best quality video files. Save each with the format YYYY-MM-DD-title-slug. Preserve the video metadata (title, description, duration, upload date) in a JSON sidecar file for each download.
+
+The agent runs a command like this per video (list the URLs in `urls.txt`):
+
+```bash
+yt-dlp -a urls.txt --download-archive done.txt --write-info-json \
+  -x --audio-format wav -k \
+  -o "%(upload_date>%Y-%m-%d)s-%(title).60B [%(id)s].%(ext)s"
+```
+
+`-x --audio-format wav -k` writes the WAV and keeps the downloaded video next to it, `--write-info-json` writes the metadata sidecar (title, description, duration, upload date), and `--download-archive` makes a re-run skip finished videos. The agent still slugifies the titles afterwards, since yt-dlp has no slug template.
 
 The metadata sidecar is important for the later content generation steps: the original video title, description, and upload date provide context that improves the quality of the generated blog posts and social media content.
 
 ### 2. Extract or generate transcriptions
 
-Check for existing human-made subtitles first, then fall back to Whisper for videos without quality captions. The order matters because human subtitles are faster to retrieve and often more accurate for domain-specific terminology.
+Check for existing human-made subtitles first, then fall back to Whisper for videos without quality captions. The order matters because human subtitles are faster to retrieve and often more accurate for domain-specific terminology. `yt-dlp --list-subs URL` shows which tracks are manual and which are auto-generated.
 
-> For each of the 4 videos, first check if YouTube has manually-uploaded English subtitles using youtube-transcription. If manual subtitles exist, pull those -- they are higher quality than auto-generated ones. For the two conference talks that only have auto-generated captions (or no captions at all), run Whisper locally using the large-v3 model to produce accurate transcripts. Output all transcripts in both SRT format (with timestamps) and plain text format.
+> For each of the 4 videos, first check if YouTube has manually-uploaded English subtitles using youtube-transcription. If manual subtitles exist, pull those -- they are higher quality than auto-generated ones. For the two conference talks that only have auto-generated captions (or no captions at all), run Whisper locally with large-v3 to produce accurate transcripts. Output all transcripts in both SRT format (with timestamps) and plain text format.
 
-Whisper's large-v3 model handles technical vocabulary (Kubernetes, gRPC, WebSocket) far better than YouTube's auto-generated captions, which frequently mangle technical terms into nonsense.
+```bash
+# Manual subtitles only (no --write-auto-subs), converted to SRT
+yt-dlp --skip-download --write-subs --sub-langs "en.*" --convert-subs srt -o "%(id)s.%(ext)s" URL
+
+# No manual track: transcribe locally (openai-whisper; faster-whisper is quicker on CPU)
+whisper talk.wav --model large-v3 --language en --output_format all --output_dir transcripts
+```
+
+`--output_format all` writes `.txt`, `.srt`, `.vtt`, `.tsv` and `.json`. The `large-v3` model is the most accurate and needs about 10 GB of VRAM; `turbo` (Whisper's default) is much faster with near-large accuracy for English transcription, and is the better choice when the GPU is small. Either handles technical vocabulary (Kubernetes, gRPC, WebSocket) better than YouTube's auto-generated captions, which can mangle technical terms, so spot-check product names and acronyms in the result.
 
 ### 3. Generate timestamped chapter markers
 
@@ -66,6 +84,12 @@ Each linked timestamp gives the social media post a built-in call to action: rea
 
 A developer relations team at an infrastructure startup had 18 months of conference talks, webinars, and tutorial recordings on their YouTube channel with zero written companion content. They ran the pipeline on a batch of 12 videos over a weekend. Yt-dlp pulled all videos and audio in under an hour, including two talks from a conference site that was not YouTube.
 
-Three videos had quality manual subtitles that youtube-transcription extracted instantly. The remaining nine went through Whisper's large-v3 model on a machine with an RTX 4090, processing at roughly 10x real-time -- a 45-minute talk transcribed in about 4.5 minutes. Whisper handled the technical content well: "Kubernetes" appeared correctly in every instance, whereas the YouTube auto-captions had rendered it as "Cooper Nettie's" in three separate talks.
+Three videos had quality manual subtitles that were pulled straight from YouTube. The remaining nine went through Whisper on the team's GPU machine overnight. Whisper handled the technical content well: "Kubernetes" came out correctly, whereas the YouTube auto-captions had rendered it as "Cooper Nettie's" in several talks.
 
-The transcripts fed into 12 blog posts published over the next six weeks, driving 34% more organic search traffic to the company site because search engines could now index the technical content that was previously locked inside video. The YouTube chapter markers alone increased average watch duration by 22% because viewers could jump to the sections relevant to their problem instead of scrubbing through a 45-minute timeline.
+The transcripts fed into 12 blog posts published over the next six weeks, so the technical content that was locked inside video could finally be searched and indexed. Each talk also got YouTube chapter markers, so viewers could jump to the section relevant to their problem instead of scrubbing through a 45-minute timeline. An engineer reviewed every generated post against the recording before publishing, because the model can misattribute or smooth over details.
+
+## Related Skills
+
+- [yt-dlp](../skills/yt-dlp/) — downloads videos and audio and writes the metadata sidecars.
+- [youtube-transcription](../skills/youtube-transcription/) — pulls existing captions first and shows the download-then-transcribe flow.
+- [whisper](../skills/whisper/) — transcribes locally when no good captions exist, and produces SRT/VTT/JSON output.
