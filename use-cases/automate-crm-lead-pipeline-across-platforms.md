@@ -20,56 +20,66 @@ tags:
 
 A B2B software company receives 300 inbound leads per week from webinars, content downloads, and demo requests. The marketing team captures leads in Zoho CRM, but the enterprise sales team works exclusively in Salesforce. Leads sit in Zoho for days before someone manually copies qualified ones into Salesforce.
 
-By then, competitors have already responded. The sales director estimates they lose 15-20% of high-intent leads to slow handoff. There is no scoring system to distinguish a VP downloading a whitepaper from an intern browsing the blog, so every lead gets the same treatment.
+By then, competitors have already responded. The sales director estimates they lose 15-20% of high-intent leads to slow handoff. There is no scoring system to distinguish a VP requesting a demo from an intern browsing the blog, so every lead gets the same treatment.
 
 ## The Solution
 
-Use the **lead-qualification** skill to score and segment inbound leads automatically, then use **zoho** and **salesforce** skills to sync qualified leads between platforms with enriched data and trigger assignment rules based on territory and deal size.
+Use the **zoho** skill to pull new leads out of Zoho CRM, the **lead-qualification** skill to score and tier them, and the **salesforce** skill to upsert the qualified ones into Salesforce, assign an owner, and create follow-up tasks. A scheduled run (cron, or any job runner) repeats the loop every hour.
+
+Before the first run, create the custom fields the pipeline writes to. In Zoho (Setup, Modules and Fields, Leads): `Lead_Score` (number) and `Lead_Tier` (text); note their API names. In Salesforce (Object Manager, Lead): `Lead_Score__c` (number), `Lead_Tier__c` (text) and `Zoho_Lead_Id__c` (text, marked **External ID** and unique). Add the picklist values you plan to use to Lead Source and Lead Status. Authenticate both APIs with the OAuth flows in the two skills (Zoho Self Client, Salesforce Connected App with the JWT flow) and keep every secret in environment variables.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Define lead scoring criteria
 
-Configure a scoring model that evaluates leads based on firmographic and behavioral signals:
+A first model that adds up to 100 points, and reflects intent more than company size:
 
-> Score all leads in Zoho CRM using these criteria: company size over 50 employees gets 20 points, director-level or above title gets 15 points, demo request source gets 25 points, technology industry gets 10 points. Leads scoring 60 or above are MQL-qualified. Pull company data from the Zoho lead record and enrich with LinkedIn company size where available.
+> Score each lead out of 100: demo request as lead source 30, pricing-page visit 15, title at director level or above 20, more than 50 employees 20, target industry (technology, financial services) 15. Tiers: Hot 80 and above, Warm 60-79, Nurture 40-59, Cold below 40. Anything 60 or above is an MQL.
 
-The scoring criteria should reflect your actual ICP. Weight behavioral signals (demo requests, pricing page visits) higher than firmographic ones because intent matters more than company size. Adjust thresholds monthly based on which scored leads actually convert to opportunities.
+The **lead-qualification** skill scores a table of leads in pandas (CSV or DataFrame) and returns score, tier, reasons and a recommended action, with the weights configurable. Adjust thresholds monthly by comparing scores with which leads actually became opportunities. Only score with data you already hold in the CRM or the signup form; do not send lead names and emails to third-party enrichment tools without a documented basis for sharing them.
 
-### 2. Qualify and segment leads in Zoho
+### 2. Pull new leads from Zoho
 
-Run the scoring model against the current Zoho lead queue and tag each lead with its score and segment:
+Query the leads that have not been worked yet with COQL (needs the `ZohoCRM.coql.READ` scope; COQL takes absolute timestamps, so compute "seven days ago" in the script, and it returns 200 rows per call by default and at most 2000, so page with `LIMIT offset, count`):
 
-> Query all Zoho CRM leads created in the last 7 days with status "New". Apply the scoring model to each lead. Update the lead record with the computed score in the custom field "Lead_Score" and set "Lead_Segment" to "Enterprise" if score is 60 or above, "Mid-Market" if 40-59, or "SMB" if below 40.
+> Run a COQL query against Zoho CRM v8 for leads where `Lead_Status = 'Not Contacted'` and `Created_Time` is after the cutoff, selecting `id`, `First_Name`, `Last_Name`, `Email`, `Phone`, `Company`, `Designation`, `Lead_Source`, `No_of_Employees` and `Industry`. Save the rows to `leads.csv`.
 
-Segmenting leads by score threshold creates different follow-up cadences. Enterprise leads get same-day outreach, Mid-Market gets a nurture sequence, and SMB leads enter a self-serve onboarding flow.
+The exact status values come from your org's Lead Status picklist, and the custom field API names come from Setup; check both before the first run.
 
-### 3. Sync qualified leads to Salesforce
+### 3. Score the leads and write the result back to Zoho
 
-Push MQL-qualified leads from Zoho into Salesforce as new Lead records with full context:
+> Score `leads.csv` with the model from step 1. Then update each Zoho lead with `PUT /crm/v8/Leads`, sending `id`, `Lead_Score` and `Lead_Tier`, 100 records per request, with `trigger: []` so the write does not fire your other workflow rules. Read the per-record `status` in the response, because a batch can partly succeed.
 
-> For each Zoho lead with Lead_Score >= 60, create a Salesforce Lead record. Map Zoho fields to Salesforce: Company to Company, Email to Email, Phone to Phone, Lead_Score to Lead_Score__c, Lead_Segment to Lead_Segment__c. Set Lead Source to "Inbound - Zoho" and Status to "MQL Qualified". Assign to the correct Salesforce user based on territory: West Coast leads to Sarah Chen, East Coast to Marcus Williams, International to Priya Kapoor.
+Tiers drive different follow-up cadences: Hot and Warm leads go to sales, Nurture leads enter a marketing sequence, Cold leads stay in Zoho.
 
-The field mapping between Zoho and Salesforce should include custom fields that preserve context. Territory assignment rules prevent leads from sitting in a generic queue. Include the original Zoho lead ID as a custom field in Salesforce for traceability and deduplication.
+### 4. Upsert MQLs into Salesforce
 
-### 4. Create follow-up tasks and Salesforce campaigns
+Using the external ID field means a lead that is synced twice updates the same Salesforce record instead of creating a duplicate:
 
-Generate immediate follow-up actions for the sales team so no lead goes cold:
+> For each lead with `Lead_Score` of 60 or above, call `PATCH /services/data/vNN.0/sobjects/Lead/Zoho_Lead_Id__c/<zoho id>` with `FirstName`, `LastName`, `Company`, `Email`, `Phone`, `Title`, `LeadSource`, `Lead_Score__c`, `Lead_Tier__c` and `OwnerId`. `LastName` and `Company` are required on a Salesforce Lead. Take the API version from the highest entry returned by `GET /services/data/`.
 
-> For each newly synced Salesforce Lead, create a Task with subject "Initial outreach - [Company Name]", due date tomorrow, and priority High. Add the lead to the active Salesforce Campaign "Q1 2026 Inbound Pipeline". If the lead source was "Demo Request", set task priority to Urgent and due date to today.
+Owners are Salesforce user IDs, not names. Look them up once (`SELECT Id, Username FROM User WHERE IsActive = true`) and keep a territory map in config, for example West leads to one rep, East to another, international to a third, derived from the lead's country or state. The call answers 201 when it creates a lead and 204 when it updates one.
 
-Demo request leads get priority treatment because they signal the highest buying intent. Setting the task due date to today ensures same-day response, which research shows increases contact rates by 7x compared to next-day follow-up.
+### 5. Create follow-up tasks and campaign membership
 
-### 5. Generate pipeline summary report
+> For each lead that was newly created, insert a `Task` with `Subject` "Initial outreach - <Company>", `WhoId` set to the lead's ID, `OwnerId` set to the lead's owner, `ActivityDate` tomorrow and `Priority` High. For Hot leads, set `ActivityDate` to today. Insert a `CampaignMember` with the lead's ID and the ID of your active inbound campaign.
 
-Produce a weekly snapshot showing lead flow, conversion rates, and pipeline health:
+The standard Task Priority values are High, Normal and Low; there is no "Urgent" unless an admin added it, so express urgency with the due date.
 
-> Generate a report showing: total leads received this week in Zoho, number qualified as MQL, number synced to Salesforce, average lead score by source channel, and leads still pending qualification. Include a breakdown by segment showing Enterprise vs Mid-Market vs SMB counts.
+### 6. Generate the weekly pipeline summary
 
-The weekly report surfaces trends over time. If webinar leads consistently score higher than content download leads, the marketing team can allocate more budget to webinars. If a particular industry segment is growing in the pipeline, the sales team can prepare industry-specific materials.
+> From Zoho, count leads created this week, how many are MQLs, and the average `Lead_Score` per `Lead_Source`, using COQL with `GROUP BY`. From Salesforce, count leads upserted this week and how many were converted, using SOQL. Show the tiers side by side.
+
+The report shows which channels produce high scorers, so marketing can move budget accordingly.
 
 ## Real-World Example
 
-The marketing team runs a webinar on Tuesday that generates 87 new leads in Zoho. By Wednesday morning, the scoring model has evaluated all 87: 23 score above 60 and qualify as MQLs, 31 fall into Mid-Market, and 33 are SMB. The 23 enterprise leads sync to Salesforce within minutes, each assigned to the correct territory rep with a follow-up task due that day. Sarah Chen in the West Coast territory picks up her 8 assigned leads before lunch and books 3 discovery calls by end of day. Before automation, those leads would have sat untouched in Zoho until Friday when someone remembered to export a CSV.
+A webinar on Tuesday produces 87 new leads in Zoho. By Wednesday morning the hourly job has scored all of them: 23 reach 60 or above and are upserted into Salesforce, 31 are Nurture and 33 are Cold. Each of the 23 has a territory owner and a task due the next day (today, for the Hot ones), so the West Coast rep works her 8 leads before lunch. Before automation, those leads sat in Zoho until Friday, when someone remembered to export a CSV.
 
-The pipeline summary at the end of the first month shows that average lead-to-qualified time dropped from 4.2 days to 6 hours, and the MQL-to-opportunity conversion rate increased from 12% to 19% because reps are reaching leads while buying intent is still fresh. The weekly report also reveals that webinar leads score 22 points higher on average than whitepaper download leads, prompting the marketing team to shift $4,000 monthly budget from gated content to live events.
+After a month, the team compares lead-to-first-touch time and MQL-to-opportunity conversion before and after the change, and re-weights the model from those numbers. The report also shows that webinar leads average well above whitepaper leads, so marketing shifts part of its content budget to live events. Those figures belong to the team; yours will differ, so measure your own baseline before you start.
+
+## Related Skills
+
+- **zoho**: pulls new leads with COQL and writes scores back through the CRM v8 API
+- **lead-qualification**: scores and tiers the leads (BANT-style weights you configure)
+- **salesforce**: upserts MQLs by external ID, assigns owners, creates tasks and campaign members
