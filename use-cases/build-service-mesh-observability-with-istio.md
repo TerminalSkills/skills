@@ -2,11 +2,7 @@
 title: Build Service Mesh Observability with Istio
 slug: build-service-mesh-observability-with-istio
 description: Deploy Istio service mesh on Kubernetes to get automatic mTLS, traffic observability, request tracing, and circuit breaking across microservices — without changing application code.
-skills:
-  - typescript
-  - docker-helper
-  - kubernetes-helm
-  - prometheus
+skills: [istio, typescript, docker-helper, kubernetes-helm, prometheus]
 category: devops
 tags:
   - service-mesh
@@ -20,106 +16,100 @@ tags:
 
 ## The Problem
 
-Alex leads platform engineering at a 55-person e-commerce company running 24 microservices on Kubernetes. Debugging production issues is a nightmare: when checkout latency spikes, the team spends hours tracing requests across services with `kubectl logs`. There's no encryption between services (everything trusts the cluster network), no circuit breakers (one slow service cascades failures everywhere), and no traffic visibility. Last month, a database migration in the inventory service caused 4 hours of cascading failures across checkout, payments, and shipping — because there was no way to see the dependency chain or automatically shed load. The estimated revenue loss: $180K.
+Alex leads platform engineering at a 55-person e-commerce company running 24 microservices on Kubernetes. Debugging production issues is a nightmare: when checkout latency spikes, the team spends hours tracing requests across services with `kubectl logs`. There's no encryption between services (everything trusts the cluster network), no circuit breakers (one slow service cascades failures everywhere), and no traffic visibility. Last month, a database migration in the inventory service caused 4 hours of cascading failures across checkout, payments, and shipping, because nobody could see the dependency chain or shed load automatically.
 
-## Step 1: Deploy Istio with Production-Grade Configuration
+## Step 0: Rehearse on a Local Cluster with Container-Ready Images
 
-Istio's control plane manages sidecar proxies injected into each pod. The setup enables automatic mTLS, telemetry collection, and traffic management without modifying any service code.
+Alex rehearses on a throwaway [kind](https://kind.sigs.k8s.io/) cluster (nodes run as Docker containers). Services run as a non-root, numeric user, which satisfies `runAsNonRoot` pod policies:
 
-```yaml
-# istio/istio-operator.yaml — Production Istio installation with resource limits
-apiVersion: install.istio.io/v1alpha1
-kind: IstioOperator
-metadata:
-  name: production-mesh
-  namespace: istio-system
-spec:
-  profile: default
-  
-  meshConfig:
-    # Enable access logging for all traffic
-    accessLogFile: /dev/stdout
-    accessLogFormat: |
-      {"timestamp":"%START_TIME%","method":"%REQ(:METHOD)%","path":"%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%","protocol":"%PROTOCOL%","response_code":"%RESPONSE_CODE%","response_flags":"%RESPONSE_FLAGS%","upstream_service":"%UPSTREAM_CLUSTER%","duration_ms":"%DURATION%","request_id":"%REQ(X-REQUEST-ID)%","upstream_host":"%UPSTREAM_HOST%"}
-    
-    # Automatic mTLS — encrypt all inter-service traffic
-    enableAutoMtls: true
-    
-    # Distributed tracing — sample 10% of requests in production
-    defaultConfig:
-      tracing:
-        sampling: 10.0  # percentage of requests traced
-      holdApplicationUntilProxyStarts: true  # prevent race conditions on startup
-    
-    # Outbound traffic policy — only allow registered services
-    outboundTrafficPolicy:
-      mode: REGISTRY_ONLY
-  
-  components:
-    pilot:
-      k8s:
-        resources:
-          requests:
-            cpu: 200m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        # High availability — 2 replicas for the control plane
-        replicaCount: 2
-        hpaSpec:
-          minReplicas: 2
-          maxReplicas: 5
-    
-    ingressGateways:
-      - name: istio-ingressgateway
-        enabled: true
-        k8s:
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 1000m
-              memory: 256Mi
-          service:
-            type: LoadBalancer
-            ports:
-              - port: 80
-                targetPort: 8080
-                name: http2
-              - port: 443
-                targetPort: 8443
-                name: https
+```dockerfile
+# checkout-service/Dockerfile — multi-stage build, non-root runtime
+FROM node:24-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build && npm prune --omit=dev
 
-  values:
-    # Sidecar proxy resource defaults
-    global:
-      proxy:
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+FROM node:24-alpine
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder --chown=node:node /app ./
+USER 1000
+CMD ["node", "dist/index.js"]
 ```
 
 ```bash
-# Install Istio with the operator configuration
-istioctl install -f istio/istio-operator.yaml --verify
-
-# Enable automatic sidecar injection for application namespaces
-kubectl label namespace default istio-injection=enabled
-kubectl label namespace staging istio-injection=enabled
+docker build -t checkout-service:1.0.0 checkout-service/
+kind create cluster --name mesh-lab && kind load docker-image checkout-service:1.0.0 --name mesh-lab
 ```
+
+## Step 1: Install Istio with Helm
+
+Helm is a supported Istio install path that fits GitOps. Three charts, in order: `base` (CRDs), `istiod` (control plane), `gateway`. Settings live in a reviewed values file:
+
+```yaml
+# istio/istiod-values.yaml — control plane, sidecar defaults and mesh settings
+autoscaleMin: 2                # two istiod replicas for availability
+resources:
+  requests: { cpu: 500m, memory: 2048Mi }
+global:
+  proxy:
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { cpu: 500m, memory: 256Mi }
+meshConfig:
+  accessLogFile: /dev/stdout
+  accessLogEncoding: JSON
+  defaultConfig:
+    holdApplicationUntilProxyStarts: true     # app starts after the sidecar is ready
+    # Envoy circuit-breaker stats are not exported by default; opt in
+    proxyStatsMatcher:
+      inclusionRegexps:
+        - ".*outlier_detection.*"
+        - ".*upstream_cx_overflow.*"
+        - ".*upstream_rq_pending_overflow.*"
+  extensionProviders:
+    - name: otel-tracing
+      opentelemetry:
+        service: jaeger-collector.observability.svc.cluster.local
+        port: 4317
+```
+
+```bash
+helm repo add istio https://istio-release.storage.googleapis.com/charts && helm repo update
+helm install istio-base istio/base -n istio-system --create-namespace --wait
+helm install istiod istio/istiod -n istio-system -f istio/istiod-values.yaml --wait
+helm install istio-ingress istio/gateway -n istio-ingress --create-namespace --wait
+
+istioctl analyze --all-namespaces            # lint the mesh configuration
+kubectl -n istio-system get pods             # istiod should be Running
+kubectl label namespace default istio-injection=enabled
+kubectl -n default rollout restart deployment  # injection applies to new pods only
+```
+
+Mutual TLS is on by default but permissive: sidecars still accept plaintext, so "automatic mTLS" alone does not mean all traffic is encrypted. After every workload has a sidecar, enforce it mesh-wide:
+
+```yaml
+# istio/peer-authentication.yaml — apply in PERMISSIVE first, then switch to STRICT
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system      # root namespace = mesh-wide
+spec:
+  mtls:
+    mode: STRICT
+```
+
+The default outbound policy (`ALLOW_ANY`) stays: `REGISTRY_ONLY` blocks every external call until each host has a `ServiceEntry`.
 
 ## Step 2: Configure Traffic Policies and Circuit Breakers
 
-Destination rules define how traffic flows between services. Circuit breakers prevent cascading failures by ejecting unhealthy endpoints before they bring down the whole system.
+Destination rules define how traffic flows between services. Circuit breakers (outlier detection) eject unhealthy endpoints before they drag down their callers.
 
 ```yaml
-# istio/destination-rules.yaml — Circuit breakers and load balancing for each service
+# istio/destination-rules.yaml
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
@@ -128,228 +118,130 @@ metadata:
 spec:
   host: checkout-service
   trafficPolicy:
-    # Connection pool limits — prevent one slow consumer from exhausting connections
     connectionPool:
-      tcp:
-        maxConnections: 100        # max TCP connections per host
-        connectTimeout: 5s
-      http:
-        h2UpgradePolicy: DEFAULT
-        http1MaxPendingRequests: 50   # max queued requests
-        http2MaxRequests: 100         # max concurrent requests
-        maxRequestsPerConnection: 10  # recycle connections
-        maxRetries: 3
-    
-    # Circuit breaker — eject hosts that start failing
+      tcp: { maxConnections: 100, connectTimeout: 5s }
+      http: { http1MaxPendingRequests: 50, http2MaxRequests: 100, maxRequestsPerConnection: 10 }
     outlierDetection:
-      consecutive5xxErrors: 3       # eject after 3 consecutive 5xx errors
-      interval: 10s                 # check every 10 seconds
-      baseEjectionTime: 30s         # eject for at least 30 seconds
-      maxEjectionPercent: 50        # never eject more than 50% of hosts
-      minHealthPercent: 30          # only enforce when >30% hosts are healthy
-    
-    # Load balancing — use least connections for even distribution
+      consecutive5xxErrors: 3         # eject after 3 consecutive 5xx
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30            # only enforce while more than 30% of hosts are healthy
     loadBalancer:
       simple: LEAST_REQUEST
-
 ---
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: inventory-service
-  namespace: default
-spec:
-  host: inventory-service
-  trafficPolicy:
-    connectionPool:
-      tcp:
-        maxConnections: 50
-        connectTimeout: 3s
-      http:
-        http1MaxPendingRequests: 25
-        http2MaxRequests: 50
-        maxRetries: 2
-    outlierDetection:
-      consecutive5xxErrors: 2       # stricter — inventory is critical
-      interval: 5s
-      baseEjectionTime: 60s         # eject for longer
-      maxEjectionPercent: 30
-    loadBalancer:
-      simple: ROUND_ROBIN
-
----
-# Retry policy for transient failures
+# Timeout and safe retries for payments (inventory-service gets its own, stricter DestinationRule the same way)
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: payment-service
   namespace: default
 spec:
-  hosts:
-    - payment-service
+  hosts: [payment-service]
   http:
     - route:
-        - destination:
-            host: payment-service
+        - destination: { host: payment-service }
       retries:
-        attempts: 3
+        attempts: 2
         perTryTimeout: 2s
-        retryOn: 5xx,reset,connect-failure,retriable-4xx
-      timeout: 10s   # total timeout including retries
+        retryOn: connect-failure,refused-stream   # the request never reached the app
+      timeout: 10s                                # total, including retries
 ```
 
-## Step 3: Build the Observability Dashboard
+Retries on `5xx` are deliberately not enabled for payments: a charge request that failed after reaching the service may already have been processed, and retrying it could charge the customer twice. Only failures where the request never reached the application are retried.
 
-Deploy Prometheus, Grafana, and Kiali to visualize the service mesh. Istio sidecars export metrics automatically — no instrumentation code needed in the services.
+## Step 3: Collect Metrics, Traces and the Service Graph
 
-```typescript
-// src/monitoring/dashboards.ts — Generate Grafana dashboard JSON for Istio metrics
-// This creates a comprehensive service mesh dashboard programmatically
+Prometheus scrapes the sidecars, Jaeger receives traces, and Kiali draws the graph. Prometheus comes from the `kube-prometheus-stack` chart (see the `prometheus` skill), Kiali from its own chart:
 
-interface Panel {
-  title: string;
-  type: string;
-  gridPos: { h: number; w: number; x: number; y: number };
-  targets: Array<{ expr: string; legendFormat: string }>;
-}
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add kiali https://kiali.org/helm-charts && helm repo update
+helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace \
+  --set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false \
+  --set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false --wait
+helm install kiali-server kiali/kiali-server -n istio-system \
+  --set auth.strategy=anonymous \
+  --set external_services.prometheus.url=http://monitoring-kube-prometheus-prometheus.monitoring:9090
 
-export function generateMeshDashboard(services: string[]): any {
-  const panels: Panel[] = [];
-  let yPos = 0;
-
-  // Row 1: Request rate and error rate across all services
-  panels.push({
-    title: "Request Rate (req/s) — All Services",
-    type: "timeseries",
-    gridPos: { h: 8, w: 12, x: 0, y: yPos },
-    targets: [
-      {
-        expr: 'sum(rate(istio_requests_total{reporter="destination"}[5m])) by (destination_service_name)',
-        legendFormat: "{{destination_service_name}}",
-      },
-    ],
-  });
-
-  panels.push({
-    title: "Error Rate (5xx) — All Services",
-    type: "timeseries",
-    gridPos: { h: 8, w: 12, x: 12, y: yPos },
-    targets: [
-      {
-        expr: 'sum(rate(istio_requests_total{reporter="destination",response_code=~"5.."}[5m])) by (destination_service_name) / sum(rate(istio_requests_total{reporter="destination"}[5m])) by (destination_service_name) * 100',
-        legendFormat: "{{destination_service_name}}",
-      },
-    ],
-  });
-  yPos += 8;
-
-  // Row 2: Latency percentiles
-  panels.push({
-    title: "P50 Latency (ms)",
-    type: "timeseries",
-    gridPos: { h: 8, w: 8, x: 0, y: yPos },
-    targets: [
-      {
-        expr: 'histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination"}[5m])) by (destination_service_name, le))',
-        legendFormat: "{{destination_service_name}}",
-      },
-    ],
-  });
-
-  panels.push({
-    title: "P95 Latency (ms)",
-    type: "timeseries",
-    gridPos: { h: 8, w: 8, x: 8, y: yPos },
-    targets: [
-      {
-        expr: 'histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination"}[5m])) by (destination_service_name, le))',
-        legendFormat: "{{destination_service_name}}",
-      },
-    ],
-  });
-
-  panels.push({
-    title: "P99 Latency (ms)",
-    type: "timeseries",
-    gridPos: { h: 8, w: 8, x: 16, y: yPos },
-    targets: [
-      {
-        expr: 'histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination"}[5m])) by (destination_service_name, le))',
-        legendFormat: "{{destination_service_name}}",
-      },
-    ],
-  });
-  yPos += 8;
-
-  // Row 3: Circuit breaker and connection pool metrics
-  panels.push({
-    title: "Circuit Breaker Ejections",
-    type: "timeseries",
-    gridPos: { h: 8, w: 12, x: 0, y: yPos },
-    targets: [
-      {
-        expr: 'sum(envoy_cluster_outlier_detection_ejections_active) by (cluster_name)',
-        legendFormat: "{{cluster_name}}",
-      },
-    ],
-  });
-
-  panels.push({
-    title: "Connection Pool Overflow",
-    type: "timeseries",
-    gridPos: { h: 8, w: 12, x: 12, y: yPos },
-    targets: [
-      {
-        expr: 'sum(rate(envoy_cluster_upstream_cx_overflow[5m])) by (cluster_name)',
-        legendFormat: "{{cluster_name}} overflow",
-      },
-      {
-        expr: 'sum(rate(envoy_cluster_upstream_rq_pending_overflow[5m])) by (cluster_name)',
-        legendFormat: "{{cluster_name}} pending overflow",
-      },
-    ],
-  });
-  yPos += 8;
-
-  // Row 4: mTLS status
-  panels.push({
-    title: "mTLS Coverage",
-    type: "stat",
-    gridPos: { h: 4, w: 6, x: 0, y: yPos },
-    targets: [
-      {
-        expr: 'sum(istio_requests_total{connection_security_policy="mutual_tls"}) / sum(istio_requests_total) * 100',
-        legendFormat: "mTLS %",
-      },
-    ],
-  });
-
-  return {
-    dashboard: {
-      title: "Service Mesh Overview",
-      panels,
-      templating: {
-        list: [
-          {
-            name: "namespace",
-            type: "query",
-            query: 'label_values(istio_requests_total, destination_service_namespace)',
-          },
-        ],
-      },
-      time: { from: "now-1h", to: "now" },
-      refresh: "10s",
-    },
-  };
-}
+kubectl create namespace observability
+kubectl -n observability create deployment jaeger --image=jaegertracing/jaeger:2.23.0 --port=4317
+kubectl -n observability expose deployment jaeger --name=jaeger-collector --port=4317
+istioctl dashboard kiali      # port-forwards to localhost only; anonymous auth is for this access path
 ```
 
-## Step 4: Build an Alerting System for Mesh Health
-
-Automated alerts catch issues before they cascade. The alert rules monitor error rates, latency spikes, and circuit breaker activations — the exact signals that would have caught the $180K incident.
+Two more resources make it work: a `PodMonitor` that scrapes each sidecar's Envoy port, and a `Telemetry` resource that turns tracing on (the Telemetry API, not `meshConfig.defaultConfig.tracing`, controls sampling):
 
 ```yaml
-# istio/prometheus-alerts.yaml — Alert rules for service mesh health
+# istio/telemetry.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-stats
+  namespace: istio-system
+spec:
+  namespaceSelector: { any: true }
+  selector: {}
+  podMetricsEndpoints:
+    - port: http-envoy-prom
+      path: /stats/prometheus
+      interval: 15s
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  tracing:
+    - providers: [{ name: otel-tracing }]
+      randomSamplingPercentage: 10.0
+```
+
+Services must still forward trace headers (`traceparent`, `x-request-id`) on outgoing calls; the sidecar cannot link a service's inbound and outbound requests by itself. The Grafana dashboard is generated in TypeScript and loaded through Grafana's sidecar as a labeled ConfigMap:
+
+```typescript
+// src/monitoring/dashboards.ts — writes the dashboard JSON for a ConfigMap labeled grafana_dashboard=1
+import { writeFileSync } from "node:fs";
+
+const dest = 'reporter="destination"';
+const byService = "by (destination_service_name)";
+const latency = (q: number) =>
+  `histogram_quantile(${q}, sum(rate(istio_request_duration_milliseconds_bucket{${dest}}[5m])) by (destination_service_name, le))`;
+
+function panel(title: string, x: number, y: number, w: number, expr: string, legend = "{{destination_service_name}}") {
+  return { title, type: "timeseries", gridPos: { h: 8, w, x, y }, targets: [{ expr, legendFormat: legend, refId: "A" }] };
+}
+
+export function meshDashboard() {
+  const panels = [
+    panel("Request rate (req/s)", 0, 0, 12, `sum(rate(istio_requests_total{${dest}}[5m])) ${byService}`),
+    panel("5xx error rate (%)", 12, 0, 12,
+      `100 * sum(rate(istio_requests_total{${dest},response_code=~"5.."}[5m])) ${byService} / sum(rate(istio_requests_total{${dest}}[5m])) ${byService}`),
+    panel("P95 latency (ms)", 0, 8, 12, latency(0.95)),
+    panel("P99 latency (ms)", 12, 8, 12, latency(0.99)),
+    panel("Circuit breaker ejections", 0, 16, 12,
+      "sum(envoy_cluster_outlier_detection_ejections_active) by (cluster_name)", "{{cluster_name}}"),
+    panel("Connection pool overflow", 12, 16, 12,
+      "sum(rate(envoy_cluster_upstream_cx_overflow[5m])) by (cluster_name)", "{{cluster_name}}"),
+  ];
+  return { title: "Service Mesh Overview", uid: "mesh-overview", schemaVersion: 39, panels, time: { from: "now-1h", to: "now" }, refresh: "10s" };
+}
+
+writeFileSync("mesh-overview.json", JSON.stringify(meshDashboard(), null, 2));
+```
+
+```bash
+kubectl -n monitoring create configmap mesh-overview --from-file=mesh-overview.json
+kubectl -n monitoring label configmap mesh-overview grafana_dashboard=1
+```
+
+## Step 4: Alert on Mesh Health
+
+The rules watch error rate, circuit-breaker ejections and plaintext traffic, the signals that would have caught the inventory incident (add a P99 latency rule on `istio_request_duration_milliseconds_bucket` the same way):
+
+```yaml
+# istio/prometheus-alerts.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -358,80 +250,46 @@ metadata:
 spec:
   groups:
     - name: service-mesh-health
-      interval: 30s
       rules:
-        # High error rate on any service
         - alert: ServiceHighErrorRate
           expr: |
             sum(rate(istio_requests_total{reporter="destination",response_code=~"5.."}[5m])) by (destination_service_name)
-            /
-            sum(rate(istio_requests_total{reporter="destination"}[5m])) by (destination_service_name)
-            > 0.05
+            / sum(rate(istio_requests_total{reporter="destination"}[5m])) by (destination_service_name) > 0.05
           for: 2m
-          labels:
-            severity: warning
+          labels: { severity: warning }
           annotations:
             summary: "{{ $labels.destination_service_name }} error rate above 5%"
-            description: "Error rate is {{ $value | humanizePercentage }} for the last 2 minutes"
-
-        # Critical error rate
-        - alert: ServiceCriticalErrorRate
-          expr: |
-            sum(rate(istio_requests_total{reporter="destination",response_code=~"5.."}[2m])) by (destination_service_name)
-            /
-            sum(rate(istio_requests_total{reporter="destination"}[2m])) by (destination_service_name)
-            > 0.20
-          for: 1m
-          labels:
-            severity: critical
-          annotations:
-            summary: "CRITICAL: {{ $labels.destination_service_name }} error rate above 20%"
-
-        # P99 latency spike
-        - alert: ServiceHighLatency
-          expr: |
-            histogram_quantile(0.99,
-              sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination"}[5m]))
-              by (destination_service_name, le)
-            ) > 2000
-          for: 3m
-          labels:
-            severity: warning
-          annotations:
-            summary: "{{ $labels.destination_service_name }} P99 latency above 2s"
-
-        # Circuit breaker activations
+            description: "Error rate is {{ $value | humanizePercentage }}"
         - alert: CircuitBreakerActive
-          expr: |
-            sum(envoy_cluster_outlier_detection_ejections_active) by (cluster_name) > 0
+          expr: sum(envoy_cluster_outlier_detection_ejections_active) by (cluster_name) > 0
           for: 1m
-          labels:
-            severity: warning
+          labels: { severity: warning }
           annotations:
-            summary: "Circuit breaker active for {{ $labels.cluster_name }}"
-            description: "Hosts are being ejected — upstream service may be unhealthy"
-
-        # mTLS coverage drop
-        - alert: MTLSCoverageDrop
+            summary: "Hosts are being ejected for {{ $labels.cluster_name }}"
+        - alert: PlaintextTrafficInMesh
           expr: |
-            sum(rate(istio_requests_total{connection_security_policy="mutual_tls"}[10m]))
-            /
-            sum(rate(istio_requests_total[10m]))
-            < 0.95
+            sum(rate(istio_requests_total{reporter="destination",connection_security_policy!="mutual_tls"}[10m])) > 0
           for: 5m
-          labels:
-            severity: warning
+          labels: { severity: warning }
           annotations:
-            summary: "mTLS coverage dropped below 95%"
-            description: "Some services may be communicating without encryption"
+            summary: "Plaintext requests reached a mesh workload"
 ```
+
+`PlaintextTrafficInMesh` should be silent before the switch to `STRICT`; while `PERMISSIVE`, anything it reports is a client without a sidecar.
 
 ## Results
 
-After deploying Istio across all 24 microservices:
+After rolling Istio out across all 24 microservices, the example team reports:
 
-- **Mean time to identify root cause dropped from 4 hours to 12 minutes** — Kiali's service graph shows the exact dependency chain and where latency or errors originate; no more guessing with kubectl logs
-- **Cascading failures eliminated** — circuit breakers ejected the inventory service within 30 seconds during a subsequent database migration, protecting checkout and payments; zero revenue impact vs. $180K previously
-- **100% mTLS coverage achieved** — all inter-service traffic encrypted automatically; passed SOC2 audit requirement without any application code changes
-- **P99 latency overhead from sidecars: 3ms** — well within acceptable range; the improved observability more than compensates
-- **Alert response time: under 5 minutes** — the team catches error rate spikes and latency degradation before users report issues; on-call engineer gets specific service + endpoint in the alert
+- **Root cause in minutes**: Kiali's graph and the Jaeger traces show the dependency chain and where latency or errors start, replacing `kubectl logs` archaeology (the team measured about 12 minutes against about 4 hours)
+- **Contained failures**: during a later database migration, circuit breakers ejected the failing inventory hosts and checkout kept serving
+- **Encrypted east-west traffic**: strict mTLS enforced mesh-wide, with no application code changes
+- **Sidecar cost**: extra latency and per-pod CPU and memory are real; the team measured them before sizing `global.proxy.resources`
+
+## Related Skills
+
+- [istio](/skills/istio): the mesh resources used throughout (DestinationRule, VirtualService, PeerAuthentication, Telemetry)
+- [docker-helper](/skills/docker-helper): the multi-stage, non-root service image and the local kind rehearsal
+- [kubernetes-helm](/skills/kubernetes-helm): installing Istio, Prometheus and Kiali from Helm charts
+- [prometheus](/skills/prometheus): scraping the sidecars and writing the alert rules
+- [typescript](/skills/typescript): the typed Grafana dashboard generator
