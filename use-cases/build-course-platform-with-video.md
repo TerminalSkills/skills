@@ -5,7 +5,6 @@ description: Build a coding bootcamp platform with adaptive video streaming, mod
 skills:
   - stripe-billing
   - prisma
-  - mux
 category: business
 tags:
   - video
@@ -19,32 +18,26 @@ tags:
 
 # Build a Video Course Platform with Chapters, Quizzes, and Progress Tracking
 
-Marco runs a coding bootcamp. He has 40 hours of recorded lessons sitting in Google Drive, a Notion document outlining the curriculum, and 200 students on a waitlist. He wants a platform where students can purchase access, watch lessons with adaptive streaming, complete quizzes, and earn certificates — without paying $500/month for a Teachable subscription he doesn't control.
+Marco runs a coding bootcamp. He has 40 hours of recorded lessons sitting in Google Drive, a Notion document outlining the curriculum, and 200 students on a waitlist. He wants a platform where students can purchase access, watch lessons with adaptive streaming, complete quizzes, and earn certificates, on infrastructure he controls rather than a hosted course marketplace.
+
+The stack: Next.js (App Router), Postgres with Prisma, Stripe Checkout, and Mux for video hosting and adaptive streaming. Mux is a hosted video API, so there is no skill for it in the catalog; the steps below use its Node SDK (`@mux/mux-node`) and player (`@mux/mux-player-react`) directly. All Mux, Stripe and Prisma calls were type-checked against `@mux/mux-node` 15, `stripe` 23 and `@mux/mux-player-react` 3.
 
 ## Step 1 — Model the Course Structure in Prisma
 
-A course contains modules, each module has lessons, each lesson can have a quiz. Progress is tracked per enrollment.
+A course contains modules, each module has lessons, each lesson can have a quiz. Progress is tracked per enrollment. `String[]` for quiz options needs Postgres (or another database that supports scalar lists).
 
 ```prisma
-// prisma/schema.prisma — Course platform data model.
-// Course → Module → Lesson → Quiz.
-// Enrollment links a User to a Course with progress state.
-
+// prisma/schema.prisma (models only; the datasource and generator blocks are yours).
 model Course {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  description String
-  thumbnailUrl String?
-  price       Int      // cents, 0 = free
-  priceId     String?  // Stripe price ID for one-time purchase
-  planId      String?  // Stripe price ID for subscription tier
+  priceId     String?  // Stripe price ID, one-time purchase
+  planId      String?  // Stripe price ID, subscription tier
   published   Boolean  @default(false)
   modules     Module[]
   enrollments Enrollment[]
-  createdAt   DateTime @default(now())
 }
-
 model Module {
   id       String   @id @default(cuid())
   title    String
@@ -53,51 +46,40 @@ model Module {
   course   Course   @relation(fields: [courseId], references: [id])
   lessons  Lesson[]
 }
-
 model Lesson {
-  id          String   @id @default(cuid())
-  title       String
-  position    Int
-  moduleId    String
-  module      Module   @relation(fields: [moduleId], references: [id])
-  muxAssetId  String?  // Mux asset ID after upload
-  muxPlaybackId String? // Mux playback ID for streaming
-  duration    Int?     // seconds
-  quiz        Quiz?
-  progress    LessonProgress[]
-}
-
-model Quiz {
-  id        String         @id @default(cuid())
-  lessonId  String         @unique
-  lesson    Lesson         @relation(fields: [lessonId], references: [id])
-  questions QuizQuestion[]
-}
-
-model QuizQuestion {
   id            String   @id @default(cuid())
-  quizId        String
-  quiz          Quiz     @relation(fields: [quizId], references: [id])
-  text          String
-  options       String[] // JSON array of answer options
-  correctIndex  Int      // index into options[]
+  title         String
   position      Int
+  moduleId      String
+  module        Module   @relation(fields: [moduleId], references: [id])
+  muxAssetId    String?  // set by the Mux webhook
+  muxPlaybackId String?  // signed playback ID
+  duration      Int?     // seconds
+  questions     QuizQuestion[]
+  progress      LessonProgress[]
 }
-
-model Enrollment {
+model QuizQuestion {
   id           String   @id @default(cuid())
-  userId       String
-  courseId     String
-  course       Course   @relation(fields: [courseId], references: [id])
+  lessonId     String
+  lesson       Lesson   @relation(fields: [lessonId], references: [id])
+  text         String
+  options      String[]
+  correctIndex Int      // never sent to the browser
+  position     Int
+}
+model Enrollment {
+  id              String   @id @default(cuid())
+  userId          String
+  courseId        String
+  course          Course   @relation(fields: [courseId], references: [id])
   stripeSessionId String?
-  completedAt  DateTime?
-  certificateUrl String?
-  createdAt    DateTime @default(now())
-  lessonProgress LessonProgress[]
-
+  stripeSubscriptionId String? // set for subscription purchases
+  completedAt     DateTime?
+  certificateUrl  String?
+  createdAt       DateTime @default(now())
+  lessonProgress  LessonProgress[]
   @@unique([userId, courseId])
 }
-
 model LessonProgress {
   id           String     @id @default(cuid())
   enrollmentId String
@@ -106,329 +88,211 @@ model LessonProgress {
   lesson       Lesson     @relation(fields: [lessonId], references: [id])
   watchedSecs  Int        @default(0)
   completed    Boolean    @default(false)
-  quizScore    Int?       // 0–100
+  quizScore    Int?       // 0-100, computed on the server
   completedAt  DateTime?
-
   @@unique([enrollmentId, lessonId])
 }
 ```
 
-## Step 2 — Upload Videos to Mux and Get Playback IDs
+## Step 2 — Upload Videos to Mux
 
-Mux handles transcoding and adaptive bitrate streaming. Upload via a direct upload URL — the file never touches your server.
+Mux transcodes to adaptive-bitrate HLS. The admin uploads through a direct upload URL, so the file never touches your server. The lesson ID travels in `passthrough`, which Mux echoes back on the asset, so the webhook can find the lesson.
 
 ```typescript
-// src/lib/mux.ts — Mux client initialization.
+// src/lib/mux.ts (also reads MUX_WEBHOOK_SECRET, MUX_SIGNING_KEY, MUX_PRIVATE_KEY from the environment)
 import Mux from "@mux/mux-node";
-
-export const mux = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID!,
-  tokenSecret: process.env.MUX_TOKEN_SECRET!,
-});
+export const mux = new Mux({ tokenId: process.env.MUX_TOKEN_ID!, tokenSecret: process.env.MUX_TOKEN_SECRET! });
 ```
 
 ```typescript
 // src/app/api/admin/lessons/[lessonId]/upload/route.ts
-// Creates a Mux direct upload URL. The browser uploads directly to Mux.
-// Mux fires a webhook when the asset is ready → we save the playback ID.
-
 import { NextResponse } from "next/server";
 import { mux } from "@/lib/mux";
-import { db } from "@/lib/db";
-
-export async function POST(
-  _req: Request,
-  { params }: { params: { lessonId: string } }
-) {
-  // Create a direct upload — returns a URL the client posts the file to
+import { requireAdmin } from "@/lib/auth"; // your own check; throws or returns a Response for non-admins
+export async function POST(_req: Request, { params }: { params: Promise<{ lessonId: string }> }) { // params is a Promise in Next.js 15+
+  await requireAdmin();
+  const { lessonId } = await params;
   const upload = await mux.video.uploads.create({
-    new_asset_settings: {
-      playback_policy: ["signed"],      // Require signed tokens for playback
-      encoding_tier: "smart",           // Smart encoding saves cost on short clips
-    },
     cors_origin: process.env.NEXT_PUBLIC_APP_URL!,
+    // "signed" playback needs a short-lived token (Step 4); video_quality replaces the deprecated encoding_tier
+    new_asset_settings: { playback_policy: ["signed"], video_quality: "basic", passthrough: lessonId },
   });
-
-  // Store the upload ID so we can match it in the webhook
-  await db.lesson.update({
-    where: { id: params.lessonId },
-    data: { muxAssetId: upload.id },   // Temporarily store upload ID
-  });
-
-  return NextResponse.json({ uploadUrl: upload.url, uploadId: upload.id });
+  return NextResponse.json({ uploadUrl: upload.url });
 }
 ```
 
-```typescript
-// src/app/api/webhooks/mux/route.ts — Mux webhook: asset ready.
-// When Mux finishes transcoding, save the playback ID to the lesson.
+The browser sends the file with `PUT` to `uploadUrl`. When the asset is ready, Mux calls your webhook. `verifySignature` returns nothing and throws on a bad signature, so use `unwrap`, which verifies and parses in one step:
 
-import { headers } from "next/headers";
+```typescript
+// src/app/api/webhooks/mux/route.ts
 import { mux } from "@/lib/mux";
 import { db } from "@/lib/db";
-
 export async function POST(req: Request) {
-  const body = await req.text();
-  const headersList = await headers();
-
-  // Verify webhook signature
-  const isValid = await mux.webhooks.verifySignature(
-    body,
-    Object.fromEntries(headersList.entries()),
-    process.env.MUX_WEBHOOK_SECRET!
-  );
-  if (!isValid) return new Response("Invalid signature", { status: 401 });
-
-  const event = JSON.parse(body);
-
+  const body = await req.text(); // raw body: the signature covers the exact bytes
+  let event;
+  try { event = await mux.webhooks.unwrap(body, req.headers, process.env.MUX_WEBHOOK_SECRET!); }
+  catch { return new Response("Invalid signature", { status: 400 }); }
   if (event.type === "video.asset.ready") {
-    const asset = event.data;
+    const asset = event.data, lessonId = asset.passthrough;
     const playbackId = asset.playback_ids?.[0]?.id;
-
-    // Find the lesson that was being uploaded
-    await db.lesson.updateMany({
-      where: { muxAssetId: asset.upload_id ?? asset.id },
-      data: {
-        muxAssetId: asset.id,          // Replace upload ID with asset ID
-        muxPlaybackId: playbackId,
-        duration: Math.round(asset.duration),
-      },
-    });
+    if (lessonId && playbackId) {
+      await db.lesson.updateMany({
+        where: { id: lessonId },
+        data: { muxAssetId: asset.id, muxPlaybackId: playbackId, duration: asset.duration ? Math.round(asset.duration) : null },
+      });
+    }
   }
-
   return new Response("OK");
 }
 ```
 
+Register the endpoint in the Mux dashboard (Settings, Webhooks) for `MUX_WEBHOOK_SECRET`. Separately create a signing key (Settings, Signing Keys) and put its ID and private key in `MUX_SIGNING_KEY` and `MUX_PRIVATE_KEY`.
+
 ## Step 3 — Sell Courses with Stripe (One-Time + Subscription)
+
+Create the prices in the Stripe dashboard and store their IDs on the course. Checkout creates the session, and the enrollment is created only from the verified webhook, never from the success redirect.
 
 ```typescript
 // src/app/api/courses/[courseId]/purchase/route.ts
-// Creates a Stripe Checkout session for one-time purchase or subscription.
-// Enrollment is created in the webhook after payment succeeds.
-
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-
-export async function POST(
-  req: Request,
-  { params }: { params: { courseId: string } }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ courseId: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { mode } = await req.json(); // "payment" | "subscription"
-  const course = await db.course.findUniqueOrThrow({ where: { id: params.courseId } });
-
-  const priceId = mode === "subscription" ? course.planId : course.priceId;
-  if (!priceId) return NextResponse.json({ error: "No price configured" }, { status: 400 });
-
-  const checkoutSession = await stripe.checkout.sessions.create({
+  const [{ courseId }, { mode }] = [await params, await req.json()];
+  if (mode !== "payment" && mode !== "subscription") return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
+  const course = await db.course.findUniqueOrThrow({ where: { id: courseId } });
+  const price = mode === "subscription" ? course.planId : course.priceId;
+  if (!price) return NextResponse.json({ error: "No price configured" }, { status: 400 });
+  const checkout = await stripe.checkout.sessions.create({
     mode,
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price, quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${course.slug}?enrolled=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${course.slug}`,
-    metadata: {
-      userId: session.user.id,
-      courseId: course.id,
-    },
+    metadata: { userId: session.user.id, courseId: course.id },
     customer_email: session.user.email!,
   });
-
-  return NextResponse.json({ url: checkoutSession.url });
+  return NextResponse.json({ url: checkout.url });
 }
 ```
 
 ```typescript
-// src/app/api/webhooks/stripe/route.ts — Create enrollment on successful payment.
-
+// src/app/api/webhooks/stripe/route.ts
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { headers } from "next/headers";
-
 export async function POST(req: Request) {
   const body = await req.text();
-  const headersList = await headers();
-  const sig = headersList.get("stripe-signature")!;
-
-  const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) return new Response("Missing signature", { status: 400 });
+  let event;
+  try { event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!); }
+  catch { return new Response("Invalid signature", { status: 400 }); }
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { userId, courseId } = session.metadata!;
-
-    await db.enrollment.upsert({
-      where: { userId_courseId: { userId, courseId } },
-      create: { userId, courseId, stripeSessionId: session.id },
-      update: {},                        // Already enrolled (e.g. subscription renewal)
-    });
+    // Card payments are paid at completion; delayed methods fire async_payment_succeeded instead.
+    if (session.payment_status === "paid" && session.metadata?.userId && session.metadata?.courseId) {
+      const { userId, courseId } = session.metadata;
+      await db.enrollment.upsert({ // idempotent: Stripe may deliver the event twice
+        where: { userId_courseId: { userId, courseId } }, create: { userId, courseId, stripeSessionId: session.id, stripeSubscriptionId: typeof session.subscription === "string" ? session.subscription : null }, update: {},
+      });
+    }
   }
-
   return new Response("OK");
 }
 ```
 
-## Step 4 — Track Progress and Issue Completion Certificates
+For subscriptions, also handle `customer.subscription.deleted`: find the enrollment by `stripeSubscriptionId` (`event.data.object.id`) and remove or expire it, otherwise cancelled students keep access. The **stripe-billing** skill covers the subscription lifecycle events. If you enable delayed payment methods, also handle `checkout.session.async_payment_succeeded`.
+
+## Step 4 — Play Lessons with Signed Tokens
+
+Because the playback policy is `signed`, the player needs a JWT that your server mints only for enrolled students. The server component below checks enrollment, signs a one-hour token and hands it to the player.
+
+```tsx
+// src/app/courses/[slug]/lessons/[lessonId]/page.tsx
+import { notFound } from "next/navigation";
+import MuxPlayer from "@mux/mux-player-react";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { mux } from "@/lib/mux";
+export default async function LessonPage({ params }: { params: Promise<{ slug: string; lessonId: string }> }) {
+  const { slug, lessonId } = await params;
+  const session = await auth();
+  if (!session?.user?.id) notFound();
+  const lesson = await db.lesson.findFirst({ where: { id: lessonId, module: { course: { slug } } } });
+  const enrollment = lesson && (await db.enrollment.findFirst({ where: { userId: session.user.id, course: { slug } } }));
+  if (!lesson?.muxPlaybackId || !enrollment) notFound();
+  const token = await mux.jwt.signPlaybackId(lesson.muxPlaybackId, { type: "video", expiration: "1h" });
+  return (
+    <MuxPlayer playbackId={lesson.muxPlaybackId} tokens={{ playback: token }} metadata={{ video_title: lesson.title }} />
+  );
+}
+```
+
+## Step 5 — Track Progress and Issue Certificates
+
+The browser reports `watchedSecs` and quiz `answers`, but the server decides what counts: the lesson must belong to the course and the quiz is graded here, against `correctIndex` values that never leave the server. `watchedSecs` is client-reported, so the 90% check is a speed bump, not proof of viewing.
 
 ```typescript
 // src/app/api/courses/[courseId]/lessons/[lessonId]/progress/route.ts
-// Called when a student marks a lesson complete or finishes a quiz.
-// Checks if all lessons are done → generates a certificate.
-
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateCertificate } from "@/lib/certificate";
-
-export async function POST(
-  req: Request,
-  { params }: { params: { courseId: string; lessonId: string } }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ courseId: string; lessonId: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { watchedSecs, quizScore } = await req.json();
-
-  // Find enrollment
-  const enrollment = await db.enrollment.findUniqueOrThrow({
-    where: { userId_courseId: { userId: session.user.id, courseId: params.courseId } },
+  const { courseId, lessonId } = await params;
+  const { watchedSecs, answers } = await req.json();
+  const enrollment = await db.enrollment.findUnique({
+    where: { userId_courseId: { userId: session.user.id, courseId } },
     include: { course: { include: { modules: { include: { lessons: true } } } } },
   });
-
-  // Upsert lesson progress
-  await db.lessonProgress.upsert({
-    where: { enrollmentId_lessonId: { enrollmentId: enrollment.id, lessonId: params.lessonId } },
-    create: {
-      enrollmentId: enrollment.id,
-      lessonId: params.lessonId,
-      watchedSecs,
-      quizScore,
-      completed: true,
-      completedAt: new Date(),
-    },
-    update: { watchedSecs, quizScore, completed: true, completedAt: new Date() },
-  });
-
-  // Check if all lessons in the course are complete
+  if (!enrollment) return NextResponse.json({ error: "Not enrolled" }, { status: 403 });
   const allLessons = enrollment.course.modules.flatMap((m) => m.lessons);
-  const completedCount = await db.lessonProgress.count({
-    where: { enrollmentId: enrollment.id, completed: true },
-  });
-
-  if (completedCount === allLessons.length && !enrollment.completedAt) {
-    const certUrl = await generateCertificate({
-      studentName: session.user.name!,
-      courseTitle: enrollment.course.title,
-      completedAt: new Date(),
-    });
-
-    await db.enrollment.update({
-      where: { id: enrollment.id },
-      data: { completedAt: new Date(), certificateUrl: certUrl },
-    });
+  const lesson = allLessons.find((l) => l.id === lessonId);
+  if (!lesson) return NextResponse.json({ error: "Lesson not in course" }, { status: 404 });
+  const watched = Math.max(0, Math.floor(Number(watchedSecs) || 0));
+  if (lesson.duration && watched < lesson.duration * 0.9) {
+    return NextResponse.json({ error: "Watch at least 90% of the lesson" }, { status: 422 });
   }
-
-  return NextResponse.json({ ok: true, totalCompleted: completedCount, total: allLessons.length });
-}
-```
-
-```typescript
-// src/lib/certificate.ts — Generate a PDF certificate with a verifiable URL.
-// Uses @react-pdf/renderer to create a branded PDF and uploads it to Mux Storage (or S3).
-
-import { renderToBuffer } from "@react-pdf/renderer";
-import { CertificateDocument } from "@/components/CertificateDocument";
-import { uploadFile } from "@/lib/storage";
-import { nanoid } from "nanoid";
-
-interface CertificateOptions {
-  studentName: string;
-  courseTitle: string;
-  completedAt: Date;
-}
-
-export async function generateCertificate(opts: CertificateOptions): Promise<string> {
-  const buffer = await renderToBuffer(
-    CertificateDocument({
-      ...opts,
-      verificationId: nanoid(12),        // Short ID for public verification
-    })
-  );
-
-  const key = `certificates/${nanoid()}.pdf`;
-  const url = await uploadFile(buffer, key, "application/pdf");
-  return url;
-}
-```
-
-## Step 5 — Student Dashboard: Continue Where You Left Off
-
-```typescript
-// src/app/dashboard/page.tsx — Student dashboard showing enrolled courses and resume points.
-
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import Link from "next/link";
-import MuxPlayer from "@mux/mux-player-react";
-
-export default async function DashboardPage() {
-  const session = await auth();
-
-  const enrollments = await db.enrollment.findMany({
-    where: { userId: session!.user.id },
-    include: {
-      course: { include: { modules: { include: { lessons: { orderBy: { position: "asc" } } }, orderBy: { position: "asc" } } } },
-      lessonProgress: true,
-    },
-    orderBy: { createdAt: "desc" },
+  let quizScore: number | null = null;
+  const questions = await db.quizQuestion.findMany({ where: { lessonId }, orderBy: { position: "asc" } });
+  if (questions.length > 0) {
+    const given: unknown[] = Array.isArray(answers) ? answers : [];
+    const right = questions.filter((q, i) => given[i] === q.correctIndex).length;
+    quizScore = Math.round((right / questions.length) * 100);
+  }
+  await db.lessonProgress.upsert({
+    where: { enrollmentId_lessonId: { enrollmentId: enrollment.id, lessonId } },
+    create: { enrollmentId: enrollment.id, lessonId, watchedSecs: watched, quizScore, completed: true, completedAt: new Date() },
+    update: { watchedSecs: watched, quizScore, completed: true, completedAt: new Date() },
   });
-
-  const coursesWithResume = enrollments.map((e) => {
-    const completedIds = new Set(e.lessonProgress.filter((p) => p.completed).map((p) => p.lessonId));
-    const allLessons = e.course.modules.flatMap((m) => m.lessons);
-    const nextLesson = allLessons.find((l) => !completedIds.has(l.id));
-    const progress = Math.round((completedIds.size / allLessons.length) * 100);
-
-    return { enrollment: e, course: e.course, nextLesson, progress };
-  });
-
-  return (
-    <div className="max-w-4xl mx-auto py-10 px-4 space-y-8">
-      <h1 className="text-2xl font-bold">My Courses</h1>
-      {coursesWithResume.map(({ course, nextLesson, progress, enrollment }) => (
-        <div key={course.id} className="border rounded-xl p-6 flex gap-6 items-center">
-          {course.thumbnailUrl && <img src={course.thumbnailUrl} className="w-32 h-20 rounded object-cover" alt="" />}
-          <div className="flex-1 space-y-2">
-            <h2 className="font-semibold text-lg">{course.title}</h2>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="text-sm text-gray-500">{progress}% complete</p>
-            {enrollment.certificateUrl ? (
-              <a href={enrollment.certificateUrl} target="_blank" rel="noopener noreferrer"
-                 className="text-sm text-green-600 font-medium">🎓 View Certificate</a>
-            ) : nextLesson ? (
-              <Link href={`/courses/${course.slug}/lessons/${nextLesson.id}`}
-                    className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-lg">
-                Continue →
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const completedCount = await db.lessonProgress.count({ where: { enrollmentId: enrollment.id, completed: true } });
+  if (completedCount >= allLessons.length && !enrollment.completedAt) {
+    // Claim completion first so two parallel requests cannot both issue a certificate.
+    const claimed = await db.enrollment.updateMany({ where: { id: enrollment.id, completedAt: null }, data: { completedAt: new Date() } });
+    if (claimed.count === 1) {
+      const certificateUrl = await generateCertificate({ studentName: session.user.name ?? "Student", courseTitle: enrollment.course.title, completedAt: new Date() });
+      await db.enrollment.update({ where: { id: enrollment.id }, data: { certificateUrl } });
+    }
+  }
+  return NextResponse.json({ ok: true, quizScore, totalCompleted: completedCount, total: allLessons.length });
 }
 ```
 
-## Results
+The certificate is a PDF rendered with `renderToBuffer` from `@react-pdf/renderer` (a React `<Document>` with the student name, course title and a `nanoid(12)` verification ID), uploaded to S3 or any object store under a random `certificates/<nanoid>.pdf` key so the URL cannot be guessed.
 
-Marco launched the bootcamp with 3 courses, 40 lessons total, and a $299 one-time price per course.
+## Step 6 — Dashboard with a Resume Point
 
-- **Platform cost: $0/month fixed** — Mux charges per minute of video stored (~$0.015/min) and per minute streamed (~$0.005/min). At 200 enrolled students averaging 5 hours of video each, streaming cost is ~$300. Still far cheaper than Teachable at $500/month flat.
-- **Enrollment flow: 4 minutes** — students land on course page, hit Buy, enter card in Stripe Checkout, land on the course player. Stripe handles tax, receipts, and refund requests.
-- **Progress UX** — the dashboard shows each student exactly where to resume. Completion rate went from 22% (when Marco sent Notion links) to 61% after the "continue" button launched.
-- **Certificates** — 47 students completed their first course in the first month. Each got a PDF certificate with a public verification URL. Several posted it on LinkedIn, driving organic signups.
-- **Quiz pass rates** — the assessment engine revealed that Lesson 12 (async/await) had a 38% fail rate. Marco re-recorded it; fail rate dropped to 9%.
+The dashboard query includes each course's lessons in order and the student's progress. Pick the first lesson without a completed row as the "Continue" target and show `completed / total` as the progress bar. Guard against a course with zero lessons before dividing, and render the certificate link when `certificateUrl` is set.
+
+## Real-World Example
+
+Marco launches with three courses, 40 lessons and a one-time price per course. A student lands on a course page, clicks Buy, pays in Stripe Checkout and returns to the player; the webhook has created the enrollment by then. Marco watches the per-lesson `quizScore` column: when Lesson 12 (async/await) shows a far lower average than the rest, he re-records it. Since video lives on Mux and billing on Stripe, the only servers he runs are the Next.js app and Postgres.
+
+## Related Skills
+
+- **stripe-billing**: Checkout sessions, verified webhooks and subscription lifecycle for the purchase flow.
+- **prisma**: the schema, migrations and upserts behind courses, enrollments and progress.
