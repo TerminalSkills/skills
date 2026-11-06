@@ -273,3 +273,10 @@ After 6 months of performance-gated CI, Jess's team reports (their own numbers):
 - Three N+1 queries caught by the API latency tests and traced with OpenTelemetry spans
 - No extra infrastructure: the checks run on existing CI, and Lighthouse and Vitest are free
 - The 3-run median keeps flaky failures rare; budgets are loosened per page only with a reviewed change
+
+## Related Skills
+
+- [docker-helper](/skills/docker-helper): the loopback-bound preview stack that Lighthouse audits in CI
+- [vitest](/skills/vitest): the API latency budget tests
+- [otel-js](/skills/otel-js): tracing that points a latency alert at the slow span
+- [checkly](/skills/checkly): the same budgets run against production on a schedule
