@@ -1,7 +1,7 @@
 ---
 title: Build an Event-Driven Backend with Durable Workflows
 slug: build-event-driven-backend-with-durable-workflows
-description: Create a reliable order processing system using Restate for durable execution, Hatchet for workflow orchestration, and Tinybird for real-time analytics.
+description: Create a reliable order processing system using Restate for durable execution, Hatchet for post-order workflows, Cloudflare D1 for the order record, and Tinybird for real-time analytics.
 skills:
   - restate
   - hatchet
@@ -18,191 +18,281 @@ tags:
 
 ## The Problem
 
-Priya's e-commerce platform processes 5,000 orders per day. The current system uses a single Express endpoint that charges the card, updates inventory, sends emails, and logs analytics — all in one request handler. When Stripe is slow, requests time out. When the email service is down, orders fail entirely even though the payment succeeded. Last week, a server crash between charging a card and updating inventory resulted in 12 "ghost charges" — customers charged but no order created. The team needs a system where each step is independent, retried on failure, and guaranteed to complete.
+Priya's e-commerce platform processes 5,000 orders per day. The current system uses a single Express endpoint that charges the card, updates inventory, sends emails, and logs analytics, all in one request handler. When Stripe is slow, requests time out. When the email service is down, orders fail entirely even though the payment succeeded. Last week, a server crash between charging a card and updating inventory resulted in 12 "ghost charges": customers charged but no order created. The team needs a system where each step is independent, retried on failure, and guaranteed to complete.
 
 ## The Solution
 
-Use Restate for durable execution of the core order flow (payment → inventory → fulfillment — each step executes exactly once even across crashes). Hatchet for orchestrating post-order workflows (notifications, loyalty points, analytics ingestion). Tinybird for real-time order analytics that the operations team can query without hitting the main database.
+Use Restate for durable execution of the core order flow (inventory, payment, confirmation: a completed step is journaled and never re-run after a crash). Use Hatchet for the post-order work (email, loyalty points, analytics ingestion), which can retry for as long as it needs without touching the order. Cloudflare D1 stores the confirmed order, and Tinybird gives the operations team live order analytics without querying the main database.
+
+```bash
+npx terminal-skills install restate hatchet tinybird d1-database
+npm install @restatedev/restate-sdk @hatchet-dev/typescript-sdk
+npm install --global @restatedev/restate-server@latest @restatedev/restate@latest
+```
+
+Restate's TypeScript SDK needs Node.js 22+. The Restate server stores its journal in a local directory (`restate-data`) and listens on 8080 (ingress) and 9070 (admin); keep both private.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Durable Order Processing with Restate
 
-The order flow must be bulletproof — a crash at any point should resume where it left off, not restart from the beginning.
+A crash at any point resumes where it left off instead of restarting. Two rules make that safe. Wrap every side effect in `ctx.run` with a name. And decide per failure whether it is transient (throw an ordinary `Error`, Restate retries with backoff) or final (throw `restate.TerminalError`, retrying stops and the caller gets the error). Compensate only on a terminal error, otherwise a transient blip would release inventory that Restate is about to use again.
 
 ```typescript
-// services/orders/handler.ts — Durable order processing
+// services/orders.ts: durable order processing
 import * as restate from "@restatedev/restate-sdk";
+import { createServer } from "node:http2";
+import { hatchet } from "../workflows/post-order";
 
 interface OrderRequest {
   orderId: string;
   userId: string;
-  items: Array<{ productId: string; quantity: number; price: number }>;
+  items: Array<{ productId: string; quantity: number; priceCents: number }>;
   paymentMethodId: string;
 }
 
-const orderService = restate.service({
+// The team's own internal services, on private URLs
+const INVENTORY = process.env.INVENTORY_URL!;
+const PAYMENTS = process.env.PAYMENTS_URL!;
+const ORDERS_DB = process.env.ORDERS_DB_URL!;   // the Cloudflare Worker from Step 3
+
+async function post(url: string, body: unknown, headers: Record<string, string> = {}) {
+  return fetch(url, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
+}
+
+export const orderService = restate.service({
   name: "orders",
   handlers: {
-    async processOrder(ctx: restate.Context, order: OrderRequest) {
-      const total = order.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    processOrder: async (ctx: restate.Context, order: OrderRequest) => {
+      const totalCents = order.items.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
 
-      // Step 1: Reserve inventory (durable — won't re-run on retry)
+      // 1. Reserve inventory. A 409 means out of stock: stop retrying and tell the caller
       const reservation = await ctx.run("reserve-inventory", async () => {
-        const res = await fetch("http://inventory:3001/reserve", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: order.orderId, items: order.items }),
-        });
-        if (!res.ok) throw new Error("Inventory reservation failed");
-        return res.json();
+        const res = await post(`${INVENTORY}/reserve`, { orderId: order.orderId, items: order.items });
+        if (res.status === 409) throw new restate.TerminalError("Out of stock", { errorCode: 409 });
+        if (!res.ok) throw new Error(`Inventory returned ${res.status}`);   // transient: Restate retries
+        return (await res.json()) as { id: string };
       });
 
-      // Step 2: Charge payment (exactly-once — safe to retry)
-      const charge = await ctx.run("charge-payment", async () => {
-        const res = await fetch("http://payments:3002/charge", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: order.orderId,
-            userId: order.userId,
-            amount: total,
+      // 2. Charge. A card decline is terminal; a timeout or 5xx is retried with the same idempotency key
+      let charge: { chargeId: string };
+      try {
+        charge = await ctx.run("charge-payment", async () => {
+          const res = await post(`${PAYMENTS}/charge`, {
+            orderId: order.orderId, userId: order.userId, amountCents: totalCents,
             paymentMethodId: order.paymentMethodId,
-            idempotencyKey: order.orderId,  // Stripe won't double-charge
-          }),
-        });
-        if (!res.ok) {
-          // Payment failed — release inventory (compensating action)
-          await fetch("http://inventory:3001/release", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reservationId: reservation.id }),
+            idempotencyKey: order.orderId,   // a retried call cannot charge twice
           });
-          throw new Error("Payment failed");
+          if (res.status === 402) throw new restate.TerminalError("Card declined", { errorCode: 402 });
+          if (!res.ok) throw new Error(`Payments returned ${res.status}`);
+          return (await res.json()) as { chargeId: string };
+        });
+      } catch (e) {
+        // Compensate only when we are giving up for good
+        if (e instanceof restate.TerminalError) {
+          await ctx.run("release-inventory", async () => {
+            if (!(await post(`${INVENTORY}/release`, { reservationId: reservation.id })).ok) throw new Error("Release failed");
+          });
         }
-        return res.json();
-      });
+        throw e;
+      }
 
-      // Step 3: Confirm order in database
+      // 3. Confirm the order in D1 (idempotent: the order id is the primary key)
       await ctx.run("confirm-order", async () => {
-        await fetch("http://orders-db:3003/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: order.orderId,
-            chargeId: charge.chargeId,
-            reservationId: reservation.id,
-            total,
-          }),
-        });
+        const body = { orderId: order.orderId, userId: order.userId, chargeId: charge.chargeId, totalCents };
+        const res = await post(`${ORDERS_DB}/confirm`, body, { Authorization: `Bearer ${process.env.ORDERS_DB_TOKEN}` });
+        if (!res.ok) throw new Error(`Orders DB returned ${res.status}`);
       });
 
-      // Step 4: Trigger post-order workflows (async — don't block the order)
-      await ctx.run("trigger-post-order", async () => {
-        await fetch("http://hatchet:7077/api/v1/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            key: "order:completed",
-            data: { orderId: order.orderId, userId: order.userId, total, items: order.items },
-          }),
-        });
-      });
+      // 4. Hand the slow, non-critical work to Hatchet
+      await ctx.run("trigger-post-order", () =>
+        hatchet.events.push("order:completed", { orderId: order.orderId, userId: order.userId, totalCents, itemCount: order.items.length }),
+      );
 
-      return {
-        orderId: order.orderId,
-        chargeId: charge.chargeId,
-        status: "completed",
-      };
+      return { orderId: order.orderId, chargeId: charge.chargeId, status: "completed" };
     },
   },
 });
 
-restate.endpoint().bind(orderService).listen(9080);
+// Loopback only. restate.serve({ services: [orderService], port: 9080 }) is the shortcut,
+// but it listens on every interface; the SDK endpoint should only be reachable by the Restate server.
+createServer(restate.createEndpointHandler({ services: [orderService] })).listen(9080, "127.0.0.1");
 ```
+
+(`restate.endpoint().bind(...).listen()` from older tutorials is deprecated.) Start the service, register it with the server (repeat after adding or renaming handlers), and call it through the ingress. Callers talk to the Restate server, never to port 9080:
+
+```bash
+restate deployments register http://localhost:9080 --yes
+
+curl localhost:8080/restate/call/orders/processOrder \
+  -H 'idempotency-key: order-1001' \
+  --json '{"orderId":"order-1001","userId":"user-381","paymentMethodId":"pm_card_visa","items":[{"productId":"KB-87","quantity":2,"priceCents":4900}]}'
+```
+
+The answer is `{"orderId":"order-1001","chargeId":"ch_02a61802","status":"completed"}`. The `idempotency-key` header makes a client retry return the recorded result instead of running the order again. A declined card comes back as HTTP 402 `{"code":402,"message":"Card declined","source":"invocation"}` after the reservation has been released. The `/restate/call/...` path is for Restate Server 1.7 and later.
 
 ### Step 2: Post-Order Workflows with Hatchet
 
-Non-critical workflows (email, analytics, loyalty) run asynchronously. If the email service is down, it retries without affecting the order.
+Non-critical work runs asynchronously. If the email service is down, Hatchet retries the task without affecting the order. These tasks use the v1 SDK (`hatchet.workflow`, `.task`, `fn`); the `.step()` style in older posts is the removed v0 API. The event is delivered at least once, so make each task idempotent.
 
 ```typescript
-// workflows/post-order.ts — Async post-order processing
-import Hatchet from "@hatchet-dev/typescript-sdk";
+// workflows/post-order.ts: post-order work, run by a Hatchet worker
+import { HatchetClient } from "@hatchet-dev/typescript-sdk";
 
-const hatchet = Hatchet.init();
+export const hatchet = HatchetClient.init();   // reads HATCHET_CLIENT_TOKEN
 
-const postOrderWorkflow = hatchet.workflow({
+type OrderCompleted = { orderId: string; userId: string; totalCents: number; itemCount: number };
+
+export const postOrder = hatchet.workflow<OrderCompleted>({
   name: "post-order",
-  on: { event: "order:completed" },
+  onEvents: ["order:completed"],
 });
 
-// Send confirmation email (retries 3x)
-postOrderWorkflow.step("send-confirmation", async (ctx) => {
-  const { userId, orderId, total } = ctx.input();
-  await emailService.send(userId, {
-    template: "order-confirmation",
-    data: { orderId, total: `$${(total / 100).toFixed(2)}` },
-  });
-  return { emailSent: true };
-}, { retries: 3, timeout: "30s" });
+// Tasks without parents run in parallel (a loyalty-points task would be a third sibling)
+postOrder.task({
+  name: "send-confirmation",
+  retries: 3,
+  backoff: { factor: 2, maxSeconds: 30 },
+  executionTimeout: "30s",
+  fn: async (input) => {
+    await emailService.send(input.userId, "order-confirmation", { orderId: input.orderId, totalCents: input.totalCents });
+    return { emailSent: true };
+  },
+});
 
-// Add loyalty points
-postOrderWorkflow.step("add-loyalty-points", async (ctx) => {
-  const { userId, total } = ctx.input();
-  const points = Math.floor(total / 100);  // 1 point per dollar
-  await loyaltyService.addPoints(userId, points);
-  return { pointsAdded: points };
-}, { retries: 2, timeout: "15s" });
-
-// Ingest into analytics (runs in parallel with email and loyalty)
-postOrderWorkflow.step("track-analytics", async (ctx) => {
-  const { orderId, userId, total, items } = ctx.input();
-
-  await fetch("https://api.tinybird.co/v0/events?name=orders", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.TINYBIRD_TOKEN}` },
-    body: JSON.stringify({
-      order_id: orderId,
-      user_id: userId,
-      total_cents: total,
-      item_count: items.length,
-      timestamp: new Date().toISOString(),
-    }),
-  });
-
-  return { tracked: true };
-}, { retries: 3, timeout: "10s" });
+postOrder.task({
+  name: "track-analytics",
+  retries: 3,
+  executionTimeout: "10s",
+  fn: async (input) => {
+    const row = {
+      order_id: input.orderId, user_id: input.userId, total_cents: input.totalCents, item_count: input.itemCount,
+      timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),   // 2026-11-07 09:15:02
+    };
+    const host = process.env.TINYBIRD_HOST ?? "https://api.tinybird.co";
+    const res = await fetch(`${host}/v0/events?name=orders&wait=true`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.TINYBIRD_INGEST_TOKEN}` },
+      body: JSON.stringify(row),   // NDJSON: one object per line
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) throw new Error(`Tinybird ingest failed: ${res.status}`);
+    return { tracked: true };
+  },
+});
 ```
 
-### Step 3: Real-Time Analytics with Tinybird
+Run it with a worker that lists the workflow (only listed workflows run): `const worker = await hatchet.worker("post-order-worker", { workflows: [postOrder] }); await worker.start();`.
+
+`emailService` and `loyaltyService` stand for the team's own clients. Create `HATCHET_CLIENT_TOKEN` in the Hatchet dashboard (Settings, API Tokens) and keep it in the environment.
+
+### Step 3: Confirm the order in Cloudflare D1
+
+D1 is reached through a Worker binding, so a tiny Worker sits in front of it and exposes one authenticated endpoint. `INSERT OR IGNORE` on the primary key makes a replayed Restate step harmless.
 
 ```sql
--- tinybird/datasources/orders.datasource
-SCHEMA >
-  `order_id` String,
-  `user_id` String,
-  `total_cents` Int64,
-  `item_count` Int32,
-  `timestamp` DateTime
-ENGINE MergeTree
-ENGINE_SORTING_KEY timestamp
-
--- tinybird/pipes/revenue_dashboard.pipe
-NODE hourly_revenue
-SQL >
-  SELECT
-    toStartOfHour(timestamp) AS hour,
-    count() AS order_count,
-    sum(total_cents) / 100 AS revenue_usd,
-    avg(total_cents) / 100 AS avg_order_usd
-  FROM orders
-  WHERE timestamp >= now() - INTERVAL 24 HOUR
-  GROUP BY hour
-  ORDER BY hour DESC
+-- migrations/0001_orders.sql
+CREATE TABLE orders (
+  order_id    TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  charge_id   TEXT NOT NULL,
+  total_cents INTEGER NOT NULL,
+  status      TEXT NOT NULL
+  );
 ```
 
-The operations team queries `GET /v0/pipes/revenue_dashboard.json` for a live revenue dashboard — no load on the main database.
+Bind the database as `DB` in `wrangler.jsonc` (`d1_databases`, as in the d1-database skill) and point `main` at `orders-db/worker.ts`.
 
-## The Outcome
+```typescript
+// orders-db/worker.ts
+interface Env {
+  DB: D1Database;
+  ORDERS_DB_TOKEN: string;   // npx wrangler secret put ORDERS_DB_TOKEN
+}
 
-Priya's platform processes 5,000 orders daily with zero ghost charges. When the email service went down for 2 hours last Tuesday, no orders were affected — Hatchet queued the emails and delivered them all when the service recovered. Restate's durable execution means a server crash during order processing resumes at the exact step that was interrupted. The operations team has real-time revenue dashboards via Tinybird that refresh every second without touching the production database. Failed step rate dropped from 2.3% to 0.01% (only genuine payment declines). The team sleeps better.
+async function sha256(text: string) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (new URL(request.url).pathname !== "/confirm" || request.method !== "POST") return new Response("Not found", { status: 404 });
+
+    // Hash both sides (equal length), then compare without an early exit
+    const [given, expected] = await Promise.all([sha256(request.headers.get("Authorization") ?? ""), sha256(`Bearer ${env.ORDERS_DB_TOKEN}`)]);
+    let diff = 0;
+    for (let i = 0; i < expected.length; i++) diff |= given[i] ^ expected[i];
+    if (diff !== 0) return new Response("Unauthorized", { status: 401 });
+
+    const o = await request.json<{ orderId: string; userId: string; chargeId: string; totalCents: number }>();
+    // INSERT OR IGNORE: if Restate replays this step, the second insert is a no-op
+    await env.DB.prepare(
+      "INSERT OR IGNORE INTO orders (order_id, user_id, charge_id, total_cents, status) VALUES (?, ?, ?, ?, 'confirmed')",
+    ).bind(o.orderId, o.userId, o.chargeId, o.totalCents).run();
+    return Response.json({ ok: true });
+  },
+};
+```
+
+```bash
+npx wrangler d1 create orders-db && npx wrangler d1 migrations apply orders-db --remote
+npx wrangler secret put ORDERS_DB_TOKEN && npx wrangler deploy
+```
+
+### Step 4: Real-Time Analytics with Tinybird
+
+Hatchet may retry an ingest, and the Events API is not idempotent, so the endpoint de-duplicates by `order_id` in its first node. Tinybird Forward projects are files; check them locally with `tb build` and ship with `tb --cloud deploy`.
+
+```text
+# tinybird/datasources/orders.datasource
+SCHEMA >
+    `order_id` String `json:$.order_id`,
+    `user_id` String `json:$.user_id`,
+    `total_cents` Int64 `json:$.total_cents`,
+    `item_count` Int32 `json:$.item_count`,
+    `timestamp` DateTime `json:$.timestamp`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, order_id"
+
+TOKEN orders_append APPEND
+```
+
+```text
+# tinybird/endpoints/revenue_dashboard.pipe
+TOKEN dashboard_read READ
+
+NODE unique_orders
+SQL >
+    %
+    SELECT order_id, min(timestamp) AS ts, any(total_cents) AS total_cents
+    FROM orders
+    WHERE timestamp >= now() - INTERVAL {{ Int32(hours, 24) }} HOUR
+    GROUP BY order_id
+
+NODE hourly_revenue
+SQL >
+    SELECT
+      toStartOfHour(ts) AS hour,
+      count() AS order_count,
+      sum(total_cents) / 100 AS revenue_usd
+    FROM unique_orders
+    GROUP BY hour
+    ORDER BY hour DESC
+
+TYPE endpoint
+```
+
+The operations team reads it with a `READ` token, `GET https://api.tinybird.co/v0/pipes/revenue_dashboard.json?hours=24`, so a live revenue dashboard puts no load on the order database. Use the host of your workspace region.
+
+## Real-World Example
+
+Priya's team moves the order flow onto the Restate service first and keeps the old endpoint behind a flag for a week. A test run kills the service process between `charge-payment` and `confirm-order`; on restart the invocation continues at `confirm-order` and the card is not charged again, which is the failure that produced the 12 ghost charges. When the email provider has an outage, `send-confirmation` retries in Hatchet while orders keep completing. The operations team gets its hourly revenue view from the Tinybird endpoint, and the order ID is the idempotency key in Restate, the payment provider and D1 alike.
+
+## Related Skills
+
+- [restate](../skills/restate/) -- durable execution for the order flow: journaled steps, `TerminalError`, compensation
+- [hatchet](../skills/hatchet/) -- v1 workflow and task API for the retried post-order work and event trigger
+- [tinybird](../skills/tinybird/) -- datasource, endpoint pipe and ingest for the revenue dashboard
+- [d1-database](../skills/d1-database/) -- Worker binding and migrations for the confirmed-order table
