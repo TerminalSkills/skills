@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:60989c3c1a2e7a998b81616abcafbbaf9efe1583422d6ad7fdad6adf94607ce8",
+  "scoredAt": "2026-11-06T22:41:48.096Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack explicit handling of error scenarios and edge cases, such as installation failures or missing environment variables."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 8,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "uv-install-with-initial-password",
+        "baseline": 5,
+        "treatment": 75,
+        "rationale": "Response B covers almost all rubric items except the required export of ASTRBOT_DASHBOARD_INITIAL_PASSWORD, while Response A fails to meet any of the specified requirements."
+      },
+      {
+        "name": "docker-deploy-loopback",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is missing."
+      },
+      {
+        "name": "configure-timezone-and-install-plugin",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully follows the rubric with correct commands and confirmation, while Response A omits the required astrbot conf set commands and does not confirm the plugin installation."
+      }
+    ]
+  }
+}
