@@ -11,13 +11,17 @@ tags: [code-review, pull-request, security, performance, testing]
 
 ## The Problem
 
-Code reviews are the biggest bottleneck in most development teams. A thorough review requires checking style consistency, test coverage, security vulnerabilities, and performance implications — but most reviewers only catch one or two of these. Senior engineers spend 5-10 hours per week reviewing PRs, and things still slip through. The result: slow merge cycles, missed security issues, and performance regressions that surface in production.
+Code review is a bottleneck in most teams. A thorough review checks style, test coverage, security and performance, but a human reviewer usually holds one or two of those lenses at a time. The security-minded engineer catches the injection bug but misses the N+1 query, and the performance-minded one catches the N+1 but not the missing authorization check. PRs get approved with blind spots, and the team finds the problems in staging, or in production.
 
-The math is brutal. A 6-person team opening 30 PRs per week needs roughly 15 hours of senior engineer time just for reviews. And even that isn't enough — the security-focused engineer catches injection bugs but misses the N+1 query, while the performance-minded engineer catches the N+1 but doesn't notice the missing authorization check. No single reviewer holds all four lenses at once. So PRs get approved with blind spots, and the team discovers problems in staging — or worse, in production.
+Picture a 6-person team opening about 30 PRs a week, where two senior engineers do most of the reviewing. Every PR waits in their queue, and the authors lose context while they wait.
 
 ## The Solution
 
-Using the **code-reviewer**, **security-audit**, **performance-reviewer**, and **test-generator** skills, the agent runs four review passes on every PR — code quality, security, performance, and test coverage — then produces a single consolidated report. Review depth that would take a senior engineer an hour gets compressed into minutes, and nothing falls through the cracks because each dimension has its own dedicated pass.
+Using the **code-reviewer**, **security-audit**, **performance-reviewer**, and **test-generator** skills, the agent runs four review passes over a PR's diff (code quality, security, performance, test coverage) and produces one consolidated report. Each dimension has its own pass, so a security finding is not buried under style nits.
+
+Install the four skills into the repository, for example with `npx terminal-skills install code-reviewer --agent claude-code` (repeat for the other three). That writes them to `.claude/skills/` in the current project; commit that folder so the CI checkout in Step 5 contains them.
+
+An AI review is a first pass that catches the mechanical problems before a person looks. It does not replace the human reviewer, who still owns design and the decision to merge.
 
 ## Step-by-Step Walkthrough
 
@@ -29,9 +33,11 @@ Point the agent at a PR branch:
 Review the PR on branch feature/user-permissions against main. Check everything: style, security, performance, and test coverage. Give me one consolidated report.
 ```
 
+The agent reads the diff with `git diff main...feature/user-permissions` (or `gh pr diff <number>`) and runs each skill's checklist over the changed files.
+
 ### Step 2: Four-Dimensional Analysis of the Diff
 
-The review comes back organized by dimension. Each pass runs independently, so a security finding doesn't get buried in a style nit, and a missing test doesn't get lost in a performance warning. Here's what the `feature/user-permissions` branch (14 files changed, +487 -92) reveals:
+The review comes back organized by dimension. Here is what a `feature/user-permissions` branch (14 files changed, +487 -92) might reveal:
 
 **Code Quality** (via code-reviewer):
 
@@ -53,13 +59,13 @@ const userId = req.auth.userId;
 await updateUser(userId, req.body.changes);
 ```
 
-- **WARNING** `src/middleware/auth.ts:15` — Permission check uses string comparison (`role === "admin"`) instead of an enum. A typo like `"admnin"` would silently fail open — the check passes for everyone because the condition never matches.
+- **WARNING** `src/middleware/auth.ts:15` — The permission check compares role strings (`role === "admin"`). A typo such as `"admnin"` compiles and never matches, so the check silently denies the right people, or, if the condition is written the other way round, lets the wrong ones through. A string-literal union type or an enum turns the typo into a compile error.
 
-This is the kind of vulnerability that's invisible during a normal code review. The logic looks right at a glance — there's an `if` check, the variable names make sense. But the data flow is wrong: the user controls the ID being checked. Without a dedicated security pass, this would ship.
+This is the kind of vulnerability that is easy to miss in a skim. The logic looks right at a glance: there is an `if`, the names make sense. But the data flow is wrong, because the user controls the ID being checked.
 
 **Performance** (via performance-reviewer):
 
-- **WARNING** `src/api/users.ts:52` — Loading all permissions for a user with a query per role (N+1). With 5 roles assigned, that's 6 queries per request.
+- **WARNING** `src/api/users.ts:52` — Loading all permissions for a user with a query per role (N+1). With 5 roles assigned, that is 6 queries per request.
 
 ```typescript
 // N+1 — one query per role
@@ -72,18 +78,20 @@ for (const role of user.roles) {
 const perms = await db.permissions.findByRoles(user.roles.map(r => r.id));
 ```
 
-At 100 requests per second, that's 600 database queries per second where 100 would suffice. Not a problem at current scale, but it'll become one.
+At 100 requests per second, that is 600 queries per second where 100 would do. Not a problem at current scale, but it will become one.
 
-- **INFO** `src/api/teams.ts:78` — Sequential awaits for fetching team members and permissions. `Promise.all()` would parallelize them and save roughly 200ms per request.
+- **INFO** `src/api/teams.ts:78` — Sequential awaits for fetching team members and permissions. `Promise.all()` would run them in parallel and cut the latency to the slower of the two calls.
 
 **Test Coverage** (via test-generator):
 
-- **CRITICAL** No tests for the new permission middleware. This is the most critical code in the PR — authorization logic without tests is a liability. Generated: `tests/middleware/auth.test.ts` with 8 test cases covering: admin access, member access, unauthenticated requests, expired tokens, invalid roles, resource-level permissions, cross-tenant access, and role inheritance.
-- **WARNING** `src/api/users.ts` — Existing tests don't cover the new permission check on the update endpoint. Added 3 test cases to `tests/api/users.test.ts`.
+- **CRITICAL** No tests for the new permission middleware. Authorization logic without tests is a liability. The agent detects the project's test framework (Jest or Vitest, from `package.json`) and generates `tests/middleware/auth.test.ts` with 8 cases: admin access, member access, unauthenticated requests, expired tokens, invalid roles, resource-level permissions, cross-tenant access, and role inheritance.
+- **WARNING** `src/api/users.ts` — Existing tests don't cover the new permission check on the update endpoint. Three cases added to `tests/api/users.test.ts`.
 
-**Summary: 1 critical security issue, 1 critical test gap, 3 warnings, 2 info.**
+Run the generated tests yourself: they are a draft that has to pass and assert something meaningful before they count.
 
-The two critical findings are the key takeaway. The privilege escalation would have let any authenticated user modify any other user's account — a vulnerability that could lead to account takeovers, data theft, and a very bad disclosure email to customers. The missing tests mean that even after fixing the security issue, there's no guarantee a future PR won't reintroduce it. Both need to be resolved before merge.
+**Summary: 1 critical security issue, 1 critical test gap, 3 warnings, 1 info.**
+
+The two critical findings are the takeaway. The privilege escalation would let any authenticated user modify any other user's account, and the missing tests mean a future PR could reintroduce it unnoticed. Both need to be resolved before merge.
 
 ### Step 3: Fix Critical Issues and Re-Review
 
@@ -93,44 +101,86 @@ After addressing the privilege escalation and adding tests:
 I fixed the privilege escalation and added the permission middleware tests. Can you re-review just the changed files?
 ```
 
-The re-review of 3 changed files comes back clean on the critical items:
+The re-review of the three changed files comes back clean on the critical items:
 
-- **Security** — Privilege escalation fixed. `req.auth.userId` now used correctly. The handler rejects requests where the path parameter doesn't match the authenticated user.
-- **Tests** — Permission middleware has 8 tests, all passing. Coverage: 94%. The remaining 6% is error handling for malformed JWT payloads — worth covering but not blocking.
-- **Remaining** — The N+1 query on user permissions is still there. It's a warning, not a blocker at current scale (under 1,000 users). Created an issue suggestion for tracking it as a follow-up.
+- **Security** — Privilege escalation fixed. `req.auth.userId` is now used, and the handler rejects requests where the path parameter doesn't match the authenticated user.
+- **Tests** — The permission middleware has 8 tests, all passing, with the coverage report from your test runner confirming the new lines are exercised.
+- **Remaining** — The N+1 query on user permissions is still there. It is a warning, not a blocker at current scale, and goes into a follow-up issue.
 
-**Verdict: Safe to merge.** The critical security and test coverage issues are resolved. The remaining items are improvements, not blockers.
+**Verdict: safe to merge** once a human reviewer agrees.
 
 ### Step 4: Get a Merge-Ready Summary
-
-The final step is producing something the team can read at a glance. Nobody wants to re-read the full analysis — they want the verdict, what was fixed, and what's left for follow-up.
 
 ```text
 Write a review summary I can post on the PR.
 ```
 
-The summary is ready to paste directly into the PR comment:
+The summary is ready to paste into the PR comment:
 
-**Status: Approved**
+**Status: Approved by automated review, pending human review**
 
-**What this PR does:** Adds role-based permission system with middleware for route-level authorization. Six new middleware functions, updated user and team API endpoints, and a permissions model.
+**What this PR does:** Adds a role-based permission system with middleware for route-level authorization, updated user and team API endpoints, and a permissions model.
 
 **Review findings (resolved):**
-- Fixed horizontal privilege escalation in user update endpoint — user ID now sourced from auth token, not request body
-- Added 11 tests for permission middleware and user API (94% coverage)
+- Fixed horizontal privilege escalation in the user update endpoint: user ID now sourced from the auth token, not the request body
+- Added 11 tests for the permission middleware and user API
 
 **Follow-up items:**
 - Optimize permission loading query (N+1, low priority at current scale)
-- Migrate role strings to TypeScript enum for type safety
+- Replace role strings with a TypeScript enum for type safety
 
 Reviewed: code quality, security, performance, test coverage.
 
-The entire cycle — initial review, fix, re-review, summary — takes about 20 minutes of developer time. A human-only review cycle for a 14-file PR with security implications would typically take 2-3 rounds over 2-4 days.
+### Step 5: Run It on Every Pull Request
+
+To have the review start without anyone asking, run the agent in CI. Anthropic publishes `anthropics/claude-code-action` for this (v1 takes a `prompt` and `claude_args`; see its [solutions guide](https://github.com/anthropics/claude-code-action/blob/main/docs/solutions.md)). This workflow follows the guide's automatic-review example (the `confirmed: true` matters: the action holds back inline comments without it and classifies them before posting):
+
+```yaml
+name: PR review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            Review this pull request with the code-reviewer, security-audit,
+            performance-reviewer and test-generator skills. Report findings by
+            severity, one section per skill. The PR branch is already checked
+            out. Use `gh pr comment` for the summary and
+            `mcp__github_inline_comment__create_inline_comment` (with
+            `confirmed: true`) for specific lines. Only post GitHub comments.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+```
+
+Keep the allowed tools narrow, as above: a PR is untrusted input, and its text and code can try to steer the agent. Store the API key as a repository secret, never in the file. Secrets are not passed to workflows triggered by pull requests from forks, so fork PRs need the handling described in the action's [security docs](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md) instead of a broader trigger.
 
 ## Real-World Example
 
-Priya leads a 6-person engineering team at a 30-person B2B SaaS startup. Their PR review process averages 2 days from open to merge because the two senior engineers are the bottleneck — they're the only ones who reliably catch security and performance issues. Every PR sits in a queue, and the senior engineers context-switch between feature work and reviews all day. Junior developers wait, lose context, and pick up other work in the meantime, which means they need to re-load context when the review finally arrives.
+Priya leads a 6-person team at a 30-person B2B SaaS startup. Their PRs average two days from open to merge, because two senior engineers are the only ones who reliably catch security and performance issues. She adds the workflow above to the repository, so every PR opened against `main` gets the four-pass review within minutes.
 
-She configures the AI agent to run on every PR opened against `main`, reviewing across all four dimensions automatically. The first real test comes when a junior developer opens a PR adding a new API endpoint for exporting user data. Within 3 minutes, the agent flags an SQL injection vulnerability in the query builder, a missing rate limit on the export endpoint (which could be used to scrape the entire user database), and generates 6 missing test cases. The junior developer fixes everything before any human reviewer sees the PR — the PR that reaches the senior engineer is already clean.
+The first real test is a junior developer's PR adding an endpoint that exports user data. The agent flags an SQL injection in the query builder, a missing rate limit on the export endpoint, and 6 missing test cases. The author fixes them before a human opens the PR, so the senior engineer reviews a cleaner diff and spends the time on design and architecture instead of hunting for injections and null checks.
 
-Over the first month, the numbers tell the story. Average time-to-merge drops from 2 days to 6 hours. Security issues caught before human review jump from 30% to 95%. The two senior engineers reclaim roughly 8 hours per week that was going to line-by-line reviews. They still review every PR — but now they spend their time on architecture and design decisions instead of hunting for SQL injections and missing null checks. The agent handles the mechanical checks; the humans handle the judgment calls. The team ships faster, and what they ship is more secure.
+Priya tracks time-to-merge and the number of security findings caught before human review, comparing a month before the workflow with a month after. Those numbers are her team's to measure; yours will depend on your codebase and how you tune the prompts. The senior engineers still review every PR.
+
+## Related Skills
+
+- **code-reviewer**: style, naming and correctness pass over the diff
+- **security-audit**: finds authorization gaps, injection and secrets in the changed code
+- **performance-reviewer**: flags N+1 queries, sequential awaits and similar regressions
+- **test-generator**: finds untested changes and drafts the missing tests
