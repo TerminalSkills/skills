@@ -31,9 +31,11 @@ Use the **proposal-writer** skill to generate structured proposals from engageme
 
 Create a tailored NDA before the first technical call with the prospective client:
 
-> Generate a mutual NDA between Meridian Consulting LLC (Delaware) and Nakamura Industries Ltd (Tokyo, Japan). Set the confidentiality period to 3 years. Include carve-outs for publicly available information and independently developed work. Use New York governing law. Include a clause permitting disclosure to subcontractors who sign equivalent NDAs. Format for electronic signature with signature blocks for both parties.
+> Generate a mutual NDA between Meridian Consulting LLC (Delaware) and Nakamura Industries Ltd (Tokyo, Japan). Set the confidentiality period to 3 years. Include the standard carve-outs (information that is or becomes public without breach, already known to the recipient, independently developed, or lawfully received from a third party) and a separate clause allowing disclosure that a court or authority legally requires. Use New York governing law. Include a clause permitting disclosure to subcontractors who sign equivalent NDAs. Generate it as an editable DOCX with signature blocks for both parties, and leave bracketed placeholders for anything not given.
 
-For cross-border engagements, the NDA should specify which country's courts have jurisdiction and whether disputes go to arbitration or litigation. A 3-year confidentiality period is standard for technology consulting; shorter periods may concern clients with sensitive IP.
+For cross-border engagements, the NDA should specify which country's courts have jurisdiction and whether disputes go to arbitration or litigation. A 3-year confidentiality period is a common choice for technology consulting. Trade secrets such as source code are better covered "for as long as they remain trade secrets" than by a fixed term. Keep the NDA about confidentiality only; put any non-compete or non-solicit in a separate agreement.
+
+> **Not legal advice.** The generated NDA, proposal terms and SOW are drafting templates, not legal advice. Enforceability of duration, governing law and scope varies by country and state, so have a qualified lawyer in the relevant jurisdictions review the NDA and contract terms before anyone signs.
 
 ### 2. Draft the project proposal from engagement details
 
@@ -61,14 +63,19 @@ Tying payments to milestone completion aligns incentives. The client does not pa
 
 ### 5. Review and finalize both documents
 
-Validate consistency between the proposal, SOW, and NDA before sending:
+Validate consistency between the proposal, SOW, and NDA before sending. The proposal skill writes the editable DOCX; convert it to PDF with LibreOffice (`soffice --headless --convert-to pdf`) and open the PDF to check the pricing table, because the PDF is what the client sees.
 
-> Review the Nakamura Industries proposal and NDA for consistency. Verify that the pricing in the proposal matches the SOW hour estimates. Check that the NDA confidentiality period covers the full project duration plus 2 years. Confirm the proposal terms reference the NDA by document title and date. Flag any missing sections or inconsistencies between the documents.
+> Review the Nakamura Industries proposal, SOW and NDA for consistency. Verify that the pricing in the proposal matches the SOW hour estimates multiplied by the hourly rates. Check that the NDA confidentiality period covers the full project duration plus 2 years (3 years from signing does for a 17-week project). Confirm the proposal terms reference the NDA by document title and date. Flag any missing sections or inconsistencies between the documents.
 
 Cross-referencing prevents embarrassing errors like the SOW totaling a different number than the proposal summary. Check that all dates, party names, and financial figures are consistent across every document in the package.
 
 ## Real-World Example
 
-On Tuesday morning, the agency gets an inquiry from Nakamura Industries about a cloud migration. By Tuesday afternoon, the NDA is generated, reviewed, and sent for signature via DocuSign. The client signs Wednesday morning, and the discovery call happens Wednesday afternoon. Using notes from the call, the proposal is drafted Thursday morning: 14 pages covering executive summary, technical approach, 17-week timeline, $347,000 total engagement cost with milestone-based billing, and a risk assessment that addresses the client's specific concerns about data residency requirements in Japan. The SOW appendix details 420 billable hours across four team members.
+On Tuesday morning, the agency gets an inquiry from Nakamura Industries about a cloud migration. By Tuesday afternoon, the NDA is generated, reviewed by the agency's lawyer, and sent for electronic signature. The client signs Wednesday morning after their own legal review, and the discovery call happens Wednesday afternoon. Using notes from the call, the proposal is drafted Thursday morning: 14 pages covering executive summary, technical approach, 17-week timeline, a $322,500 base price (plus the recommended 15% contingency, $48,375) with milestone-based billing, and a risk assessment that addresses the client's specific concerns about data residency requirements in Japan. The SOW appendix details 1,420 billable hours across four team members: 340 for the architect ($93,500), 800 for the two engineers ($180,000) and 280 for the project manager ($49,000).
 
 The client receives the complete package Thursday evening. Previously, this would have arrived the following Wednesday at the earliest. The VP of Operations at Nakamura responds Friday with two questions about the rollback procedure, which the team addresses in a 15-minute call. The contract is signed the following Monday, a full week faster than the agency's historical average for engagements of this size.
+
+## Related Skills
+
+- **proposal-writer**: builds the proposal and SOW as an editable DOCX with pricing tables, then a PDF for delivery.
+- **nda-generator**: drafts the mutual NDA with standard exclusions, compelled-disclosure clause and signature blocks.
