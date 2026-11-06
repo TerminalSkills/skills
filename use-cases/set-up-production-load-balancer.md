@@ -2,7 +2,7 @@
 title: "Set Up a Production Load Balancer with SSL and Traffic Management"
 slug: set-up-production-load-balancer
 description: "Configure Nginx as a reverse proxy with SSL termination, load balancing, rate limiting, and WebSocket support to handle production traffic reliably."
-skills: [load-balancer, cicd-pipeline]
+skills: [load-balancer, github-actions]
 category: devops
 tags: [nginx, load-balancer, ssl, reverse-proxy, devops, rate-limiting]
 ---
@@ -11,17 +11,17 @@ tags: [nginx, load-balancer, ssl, reverse-proxy, devops, rate-limiting]
 
 ## The Problem
 
-Ravi runs platform engineering at a 40-person fintech startup. Their API runs on three backend servers behind a single server with no load balancing — traffic hits one box, and when it goes down at 2 AM, everything goes down. There is no SSL termination (the app handles it), no rate limiting (a bot scraped their public API and caused a 20-minute outage last month), and no health checks (a zombie process on one server returned 502s for hours before anyone noticed).
+Ravi runs platform engineering at a 40-person fintech startup. Their API runs on three backend servers behind a single server with no load balancing: traffic hits one box, and when it goes down at 2 AM, everything goes down. There is no SSL termination (the app handles it), no rate limiting (a bot scraped their public API and caused a 20-minute outage last month), and no health checks (a zombie process on one server returned 502s for hours before anyone noticed).
 
-They need a proper traffic layer: load balance across backends, terminate SSL in one place, rate limit abusive clients, proxy WebSocket connections for their real-time dashboard, and automatically stop routing to unhealthy servers.
+They need a proper traffic layer: load balance across backends, terminate SSL in one place, rate limit abusive clients, proxy WebSocket connections for their real-time dashboard, and stop routing to unhealthy servers.
 
 ## The Solution
 
-Use the **load-balancer** skill to configure Nginx as a reverse proxy with upstream groups, SSL, rate limiting, and health checks. Use the **cicd-pipeline** skill to automate config deployment and reload on changes.
+Use the **load-balancer** skill to configure Nginx as a reverse proxy with upstream groups, SSL, rate limiting and failover. Use the **github-actions** skill to validate and deploy the Nginx config from git.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Assess Current Setup and Design the Architecture
+### Step 1: Design the architecture
 
 ```text
 I have 3 backend servers running a Node.js API on port 8080 (api1, api2, api3).
@@ -29,121 +29,252 @@ api1 and api2 are the same spec (4 vCPU, 8GB RAM), api3 is smaller (2 vCPU, 4GB)
 and should get less traffic. I also have a WebSocket service for real-time updates
 on ws1 and ws2, port 8080. I need Nginx in front of everything with: HTTPS on
 api.example.com, load balancing across the 3 API servers, WebSocket proxying on
-/ws/, rate limiting for the public API (30 req/s per IP, but auth endpoints at
-5 req/min), and health checks. Design the Nginx configuration.
+/ws/, rate limiting for the public API (30 req/s per IP, but the login endpoint at
+5 req/min), and failover. Design the Nginx configuration.
 ```
 
-The architecture is straightforward: all client traffic hits Nginx on port 443 with SSL, and Nginx routes it to the right upstream group.
-
-```
-Client --> Nginx (443/SSL) --> upstream app_servers (3 backends)
-                           --> upstream ws_servers (2 backends)
-```
-
-Two upstream groups handle different traffic patterns:
-
-**app_servers** uses `least_conn` algorithm with weighted backends. api1 and api2 get `weight=3`, api3 gets `weight=2` — proportional to their resources, so the smaller box gets roughly 33% less traffic. Passive health checks with `max_fails=3` and `fail_timeout=30s` automatically remove failing servers.
-
-**ws_servers** uses `ip_hash` for sticky sessions — WebSocket connections need to stay on the same backend for the lifetime of the connection.
-
-Rate limiting is split by path:
-- `/api/*` — 30 requests/second per IP, burst of 20
-- `/api/auth/*` — 5 requests/minute per IP, burst of 3 (brute force protection)
-- `/ws/*` — no rate limit (persistent connections)
-
-The configuration generates two files: `/etc/nginx/nginx.conf` with the upstream definitions and `/etc/nginx/conf.d/api.conf` with the server block and all location rules.
-
-### Step 2: Set Up SSL with Let's Encrypt
+All client traffic hits Nginx on port 443, and Nginx routes it to an upstream group:
 
 ```text
-Set up Let's Encrypt SSL for api.example.com on this Nginx server. Configure
-auto-renewal that reloads Nginx after certificate refresh. Use the webroot method
-since Nginx is already running. Also set up OCSP stapling for faster TLS handshakes.
+Client --> Nginx (443/SSL) --> upstream app_servers (3 backends)
+                           --> upstream ws_servers  (2 backends)
 ```
 
-Certificate provisioning:
-
-```bash
-certbot certonly --webroot -w /var/www/certbot -d api.example.com
-```
-
-The Nginx SSL block locks down the TLS configuration:
+`/etc/nginx/nginx.conf` holds the upstreams and rate-limit zones:
 
 ```nginx
-ssl_certificate     /etc/letsencrypt/live/api.example.com/fullchain.pem;
-ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
-ssl_protocols       TLSv1.2 TLSv1.3;
-ssl_stapling        on;
-ssl_stapling_verify on;
+user nginx;
+worker_processes auto;
+events { worker_connections 4096; }
+
+http {
+    server_tokens off;
+    limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+    limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+    limit_req_status 429;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      '';
+    }
+
+    upstream app_servers {
+        least_conn;
+        keepalive 32;
+        server api1:8080 weight=3 max_fails=3 fail_timeout=30s;
+        server api2:8080 weight=3 max_fails=3 fail_timeout=30s;
+        server api3:8080 weight=2 max_fails=3 fail_timeout=30s;
+    }
+
+    upstream ws_servers {
+        ip_hash;
+        server ws1:8080;
+        server ws2:8080;
+    }
+
+    include /etc/nginx/conf.d/*.conf;
+}
 ```
 
-Auto-renewal runs via cron at 3 AM daily: `certbot renew --quiet --post-hook "nginx -s reload"`. All HTTP traffic gets a 301 redirect to HTTPS. Security headers are added — `Strict-Transport-Security` with a 2-year max-age, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`. The result: an A+ rating on SSL Labs.
+`app_servers` uses `least_conn` with weights 3/3/2, so the smaller box takes about a third less traffic. `ws_servers` uses `ip_hash` so a client keeps reaching the same backend (clients behind one NAT share a backend).
 
-### Step 3: Configure Health Checks and Failover
+### Step 2: Terminate SSL with Let's Encrypt
 
 ```text
-Add proper health checks. Each API server has a /health endpoint that returns
-200 when healthy and checks database connectivity. If a server fails 3 health
-checks in a row, stop routing traffic to it. When it recovers, gradually
-reintroduce it. Also configure Nginx to retry the next upstream server if it
-gets a 502 or 503 from a backend.
+Set up Let's Encrypt SSL for api.example.com on this Nginx server using the webroot
+method since Nginx is already running. Redirect HTTP to HTTPS, add security headers,
+and make sure renewal reloads Nginx.
 ```
 
-Nginx's passive health checks handle the detection: after 3 consecutive failures, a server is marked down for 30 seconds. Traffic redistributes automatically to the remaining healthy servers.
+Request the certificate first. Nginx cannot load the port 443 block below until the certificate files exist, so before the first run keep only the port 80 server block in `api.conf` (it serves the ACME challenge from `/var/www/certbot`), reload Nginx, run certbot, then add the 443 block and reload again:
 
-The transparent retry is the part users never see:
+```bash
+sudo certbot certonly --webroot -w /var/www/certbot -d api.example.com
+sudo certbot renew --dry-run
+```
+
+`/etc/nginx/conf.d/api.conf`:
+
+```nginx
+server {
+    listen 80;
+    server_name api.example.com;
+
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name api.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/api.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Connection        "";
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+
+    location /api/ {
+        limit_req zone=api burst=20 nodelay;
+        proxy_pass http://app_servers;
+        proxy_next_upstream error timeout http_502 http_503;
+        proxy_next_upstream_tries 2;
+    }
+
+    location = /api/auth/login {
+        limit_req zone=login burst=3 nodelay;
+        proxy_pass http://app_servers;
+        proxy_next_upstream error timeout;
+        proxy_next_upstream_tries 2;
+    }
+
+    location /ws/ {
+        proxy_pass http://ws_servers;
+        # proxy_set_header here replaces the server-level set, so repeat the shared ones
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+        proxy_read_timeout 3600s;
+    }
+}
+```
+
+`http2 on;` is the current syntax (`listen 443 ssl http2;` is deprecated since nginx 1.25.1). There is no `ssl_stapling` line: Let's Encrypt ended OCSP in 2025 and its certificates no longer carry an OCSP responder URL, so stapling has nothing to staple.
+
+Renewal does not need a hand-written cron job. The certbot package (apt or snap) installs a systemd timer; check it with `systemctl list-timers | grep certbot`. Make renewals reload Nginx with a deploy hook, which runs only when a certificate was actually renewed:
+
+```bash
+printf '#!/bin/sh\nnginx -s reload\n' | sudo tee /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+```
+
+### Step 3: Failover when a backend dies
+
+```text
+If a server fails 3 requests in a row, stop routing traffic to it. Also configure
+Nginx to retry the next upstream server if it gets a 502 or 503 from a backend.
+```
+
+Open-source Nginx has only passive health checks. With `max_fails=3 fail_timeout=30s`, three failed attempts within 30 seconds take a server out of rotation for 30 seconds, after which Nginx tries it again. The retry directives in Step 2 make that invisible to clients:
 
 ```nginx
 proxy_next_upstream error timeout http_502 http_503;
 proxy_next_upstream_tries 2;
 ```
 
-If a backend returns 502 or 503, Nginx silently retries on the next server. The client sees no error unless all three servers fail. This single directive would have prevented the 3-hour 502 incident from last month — the zombie process would have been bypassed automatically.
+If a backend answers 502 or 503, Nginx retries on another server, so the client sees an error only if both attempts fail. By default Nginx does not retry POST, PATCH or LOCK requests; leave it that way unless the backend deduplicates. The login location retries only on connection errors and timeouts, so a 503 is never replayed against an authentication endpoint.
 
-One limitation: Nginx OSS doesn't support native slow-start (gradually ramping traffic to a recovered server). The workaround is weight adjustment during maintenance windows. For teams that need slow-start, HAProxy offers a `slowstart 60s` directive that handles it natively.
+Two limits to plan around. Passive checks only notice a dead server when real traffic hits it, and a zombie process that accepts connections but answers 502 is caught only because `http_502` is in `proxy_next_upstream`. Active probes of `/health` need HAProxy (`check inter 5s fall 3 rise 2`, plus `slowstart 60s` to ramp a recovered server back up) or Nginx Plus (`health_check`, `slow_start`); the load-balancer skill has the HAProxy config. Add `$upstream_response_time` to the access log format and alert on it to catch slow backends before they stop answering.
 
-Monitoring is added via the access log: `$upstream_response_time` tracks how long each backend takes. An alert fires when upstream response time exceeds 2 seconds for 5 minutes — catching slow backends before they become unresponsive ones.
-
-### Step 4: Test Rate Limiting and Attack Resilience
+### Step 4: Test the rate limits
 
 ```text
-Test the rate limiting configuration. Simulate: 1) normal API traffic at
-20 req/s from a single IP, 2) burst traffic at 50 req/s, 3) brute force
-login attempts at 10 req/s on /api/auth/login. Show me the expected
-behavior for each scenario.
+Test the rate limiting configuration against a local copy of this config: send a
+burst of 100 requests to /api/ and 8 requests to /api/auth/login from one address.
 ```
 
-Three scenarios validate the rate limiting configuration:
+Run this against a staging copy, never against production. Results from a test on nginx 1.30 (stub backends, one client address, requests sent back to back):
 
-**Normal traffic (20 req/s):** 200 out of 200 requests pass. All under the 30 req/s limit, no intervention needed.
+- `/api/`, 100 requests as fast as curl can send them: the first 21 pass instantly (1 plus the burst of 20), then requests pass at about 30 per second and the rest get `429`. In the run, 33 returned 200 and 67 returned 429.
+- `/api/auth/login`, 8 requests in a row: the first 4 pass (1 plus burst 3), the other 4 return `429`. The zone refills one token every 12 seconds (5 per minute), so an attacker gets about 5 attempts a minute once the burst is gone.
+- Zones are keyed on `$binary_remote_addr`, so each client address is limited separately. If the balancer sits behind a CDN, restore the real client address first (`real_ip_header`), or every visitor shares one limit.
+- `/ws/` has no rate limit; it carries long-lived connections, not request floods.
 
-**Burst traffic (50 req/s, 100 requests):** The first 50 requests pass (burst buffer of 20 plus the 30/s rate absorbs them). Of the next 50, only 30 pass — the remaining 20 get HTTP 429 Too Many Requests. The burst parameter handles legitimate traffic spikes without blocking real users.
-
-**Login brute force (10 req/s on /api/auth/login):** The first 3 requests pass (burst=3), then requests 4 through 10 all return 429. After 60 seconds, the next request passes. An attacker is effectively limited to 5 attempts per minute — making brute force impractical.
-
-Edge cases verified: rate limits are per-IP (`$binary_remote_addr`), different IPs are independently limited, and WebSocket paths are excluded from rate limiting entirely.
-
-### Step 5: Automate Config Deployment with CI/CD
+### Step 5: Validate and deploy the config from git
 
 ```text
-Create a GitHub Actions workflow that: validates Nginx config syntax on every PR
-(nginx -t), deploys updated configs to the Nginx server on merge to main, and
-reloads Nginx gracefully (no dropped connections). Store the Nginx configs in
-a nginx/ directory in our infrastructure repo.
+Create a GitHub Actions workflow that runs nginx -t on every PR that touches nginx/,
+and on merge to main copies the config to the load balancer over SSH, tests it
+there, and reloads gracefully. Keep the configs in a nginx/ directory.
 ```
 
-The pipeline at `.github/workflows/nginx-deploy.yml` has two stages:
+`nginx -t` fails in CI for two reasons that are not config errors: upstream host names such as `api1` do not resolve, and the certificate files do not exist. The workflow handles both with `--add-host` and a throwaway self-signed certificate:
 
-**On PR:** Spins up an Nginx container, copies the config files from the `nginx/` directory, and runs `nginx -t` for syntax validation. Comments on the PR with the result. Bad config never reaches production.
+```yaml
+# .github/workflows/nginx-deploy.yml
+name: nginx
+on:
+  pull_request:
+    paths: ["nginx/**"]
+  push:
+    branches: [main]
+    paths: ["nginx/**"]
 
-**On merge to main:** SSH to the load balancer server, rsync the `nginx/` directory to `/etc/nginx/`, run `nginx -t` on production (verify before applying), then `nginx -s reload` for a graceful reload. The reload is the key detail — it finishes serving in-flight requests on the old config while new requests use the updated config. Zero dropped connections.
+permissions:
+  contents: read
 
-If anything fails, the rollback restores the previous config from git and reloads. A Slack notification confirms success or failure.
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: nginx -t
+        run: |
+          mkdir -p certs/live/api.example.com
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=api.example.com \
+            -keyout certs/live/api.example.com/privkey.pem -out certs/live/api.example.com/fullchain.pem
+          docker run --rm \
+            --add-host api1:127.0.0.1 --add-host api2:127.0.0.1 --add-host api3:127.0.0.1 \
+            --add-host ws1:127.0.0.1 --add-host ws2:127.0.0.1 \
+            -v "$PWD/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            -v "$PWD/nginx/conf.d:/etc/nginx/conf.d:ro" \
+            -v "$PWD/certs:/etc/letsencrypt:ro" \
+            nginx:stable-alpine nginx -t
+
+  deploy:
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install SSH key and pinned host key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$LB_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        env:
+          DEPLOY_KEY: ${{ secrets.LB_DEPLOY_KEY }}
+          LB_KNOWN_HOSTS: ${{ secrets.LB_KNOWN_HOSTS }}
+      - name: Upload, test, reload
+        run: |
+          rsync -az --delete nginx/ deploy@lb.example.com:/tmp/nginx-new/
+          ssh deploy@lb.example.com 'set -e
+            sudo cp -a /etc/nginx /etc/nginx.bak
+            sudo rsync -a /tmp/nginx-new/ /etc/nginx/
+            if sudo nginx -t && sudo nginx -s reload; then
+              sudo rm -rf /etc/nginx.bak
+            else
+              sudo rsync -a --delete /etc/nginx.bak/ /etc/nginx/ && sudo nginx -s reload
+              sudo rm -rf /etc/nginx.bak
+              exit 1
+            fi'
+```
+
+`LB_KNOWN_HOSTS` holds the server's real host key line (from `ssh-keyscan` checked against a trusted source), so the deploy never accepts an unknown host. `nginx -s reload` starts new workers on the new config and lets old workers finish in-flight requests, so no connection is dropped. The server-side copy uses `rsync -a` without `--delete`, so files the repo does not manage (`mime.types`, `fastcgi_params`) stay in place; the backup in `/etc/nginx.bak` is what the failure branch restores.
 
 ## Real-World Example
 
-Ravi inherits a setup where three API servers sit behind a single point of failure with no load balancing, no SSL termination, and no rate limiting. Last month a scraper bot took down the API for 20 minutes, and a zombie backend process returned 502s for 3 hours before anyone noticed.
+Ravi inherits a setup where three API servers sit behind a single point of failure with no load balancing, no SSL termination and no rate limiting. A scraper bot took down the API for 20 minutes last month, and a zombie backend returned 502s for hours before anyone noticed.
 
-He configures Nginx as a reverse proxy with weighted load balancing across 3 servers, giving the smaller server proportionally less traffic. SSL is set up with Let's Encrypt auto-renewal and an A+ SSL Labs rating. Health checks catch a failing backend within 90 seconds and transparently reroute traffic with no customer impact. Rate limiting stops bot abuse: the general API at 30 req/s per IP, the login endpoint at 5 req/min.
+He configures Nginx with weighted `least_conn` balancing across the three servers, so the smaller one takes less traffic. Certbot's timer handles renewal and a deploy hook reloads Nginx. A backend that answers 502 or 503 is skipped by a transparent retry and removed from rotation after three failures, and the general API is capped at 30 req/s per address with login at 5 req/min. A GitHub Actions workflow runs `nginx -t` on every PR and deploys with a graceful reload on merge. The next scraper gets 429 responses while real users are unaffected.
 
-A CI/CD pipeline validates every config change on PR and deploys with zero-downtime reload on merge. The next time a backend server has issues, traffic shifts automatically. The bot that caused last month's outage now gets 429 responses while legitimate users are unaffected.
+## Related Skills
+
+- [load-balancer](/skills/load-balancer): the Nginx upstream, SSL, rate-limit and WebSocket configuration, and the HAProxy alternative for active health checks.
+- [github-actions](/skills/github-actions): the workflow that validates the config on pull requests and deploys it on merge.
