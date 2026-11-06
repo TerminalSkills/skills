@@ -8,6 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
+  - glance
 category: content
 tags:
   - rss
@@ -254,3 +255,12 @@ function extractCategories(item: any): string[] {
 - **Deduplication saves 40% reading time** — same story from TechCrunch, The Verge, and Ars Technica shows once with all source links; no redundant reading
 - **Feed health tracking** — broken feeds auto-paused after 5 failures; dashboard shows which feeds are active/errored; no silent data loss
 - **Cost: $20/user/month → $0** — self-hosted; unlimited feeds and users; OPML export ensures no lock-in
+
+## Related Skills
+
+- [typescript](/skills/typescript) — strict tsconfig and typed feed items for the service
+- [redis](/skills/redis) — cache and queues for feed polling and deduplication
+- [postgresql](/skills/postgresql) — storing feeds, items and categories
+- [hono](/skills/hono) — the HTTP API in front of the aggregator
+- [zod](/skills/zod) — validating feed configuration and untrusted feed data
+- [glance](/skills/glance) — choose it when a small team only needs to read many feeds on one page, without deduplication, scoring or digests
