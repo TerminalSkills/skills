@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6061bd00477d199f12bef5ae547cf43e51c574a5a3351ef8b920c9d22ad5c36a",
+  "scoredAt": "2026-11-06T22:53:43.239Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover error handling or edge cases beyond basic usage."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.44,
+    "baselineAvg": 18,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "annotate-detections-on-video",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use sv.process_video and thus falls short."
+      },
+      {
+        "name": "count-people-crossing-line",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A does not use LineZone or trigger and instead relies on ObjectCounter."
+      },
+      {
+        "name": "convert-coco-to-yolo",
+        "baseline": 25,
+        "treatment": 55,
+        "rationale": "Response A uses the required Supervision API and shows conversion, but omits the data_yaml_path argument; Response B uses a different dataset class and does not call as_yolo, missing key rubric items."
+      }
+    ]
+  }
+}
