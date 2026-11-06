@@ -18,75 +18,200 @@ tags:
 
 ## The Problem
 
-A product analytics team spends 40% of their time answering ad-hoc data questions from other departments. "How many users signed up last week?" "What is the conversion rate for the new pricing page?" "Which customers are on the enterprise plan but haven't used feature X?" Each question requires writing a SQL query, running it, formatting the results, and sending them in Slack. The analysts want to give everyone access to answers through their AI assistant (Claude Desktop, Cursor, or similar), but the data lives in PostgreSQL, a REST API, and a metrics service -- and AI agents cannot access any of them without custom tooling.
+A product analytics team spends much of its time answering ad-hoc data questions from other departments. "How many users signed up last week?" "What is the conversion rate for the new pricing page?" "Which customers are on the enterprise plan but haven't used feature X?" Each question requires writing a SQL query, running it, formatting the results, and sending them in Slack. The analysts want to give everyone access to answers through their AI assistant (Claude Desktop, Cursor, or similar), but the data lives in PostgreSQL, a REST API, and a metrics service, and AI agents cannot reach any of them without custom tooling.
 
 ## The Solution
 
-Using the **mcp-server-builder** and **langchain** skills, the workflow builds an MCP server that exposes database queries and API calls as structured tools that AI agents can invoke directly, then wraps them with a LangChain retrieval layer that translates natural language questions into the right tool calls with proper parameters.
+Use **mcp-server-builder** to build an MCP server that exposes database queries and API calls as typed tools any MCP client can call, on the current v2 TypeScript SDK (`@modelcontextprotocol/server`). Then use **langchain** (1.x, `create_agent`) with the `langchain-mcp-adapters` package to load those same tools into a LangChain agent that translates natural language questions into tool calls, for the cases where the question comes from your own app or Slack bot instead of an MCP client.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Build the MCP server with data access tools
 
-Create an MCP server that exposes three tools: one for running safe read-only SQL queries, one for querying the metrics API, and one for looking up customer details.
+Ask the agent for a server with three tools: a safe read-only SQL query, a metrics lookup, and a customer lookup.
 
-> Build an MCP server in TypeScript with three tools. First: "query-analytics" that accepts a SQL query string, validates it is a SELECT statement (reject INSERT/UPDATE/DELETE), runs it against a read-only PostgreSQL replica, and returns results as a JSON table with column names and rows. Second: "get-metric" that accepts a metric name, date range, and optional segment, and calls the internal metrics API to return time-series data. Third: "customer-lookup" that accepts an email or company name and returns the customer record with plan, usage stats, and feature flags. Add input validation with Zod and rate limiting (10 queries per minute per tool).
+> Build an MCP server in TypeScript with `@modelcontextprotocol/server` and `serveStdio`. Three tools, named with underscores. First: `query_analytics` that accepts one SELECT statement, runs it in a read-only transaction on a PostgreSQL read replica, and returns column names and up to 200 rows. Second: `get_metric` that accepts a metric name, date range, and optional segment, and calls the internal metrics API for time-series data. Third: `customer_lookup` that accepts an email or company name and returns plan, usage stats, and feature flags. Validate inputs with Zod and limit each tool to 10 calls per minute.
 
-The read-only validation is critical for safety. The MCP server connects to a PostgreSQL read replica so even if validation is bypassed, no data can be modified. Rate limiting prevents an enthusiastic agent from running 1,000 queries in a loop.
+The first tool, as the skill generates it:
 
-### 2. Add natural language query translation with LangChain
+```typescript
+// analytics.ts — read-only analytics tools for AI assistants
+import { McpServer } from "@modelcontextprotocol/server";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import pg from "pg";
+import * as z from "zod/v4";
 
-Build a LangChain chain that converts natural language questions into structured tool calls so users do not need to know SQL or API parameters.
+const pool = new pg.Pool({
+  connectionString: process.env.ANALYTICS_REPLICA_URL, // read-only role on a replica
+  max: 4,
+  statement_timeout: 15_000,
+});
 
-> Create a LangChain chain that takes a natural language question about product analytics and translates it into the correct MCP tool call. Use a few-shot prompt with 10 example question-to-tool mappings. For SQL questions, generate the query using the database schema (provide the schema as context). For metric questions, map common terms to metric names ("signups" maps to "user.registration.completed", "conversion rate" maps to "funnel.step.completion"). Include a validation step that checks the generated SQL against the schema before executing.
+// Allow at most `limit` calls per tool per minute
+const calls = new Map<string, number[]>();
+function rateLimited(tool: string, limit = 10): boolean {
+  const now = Date.now();
+  const recent = (calls.get(tool) ?? []).filter((t) => now - t < 60_000);
+  if (recent.length >= limit) return true;
+  calls.set(tool, [...recent, now]);
+  return false;
+}
 
-The translation layer converts natural language into structured tool calls:
+const fail = (text: string) => ({ content: [{ type: "text" as const, text }], isError: true });
 
-```text
-User: "How many enterprise customers used the export feature last month?"
+function createServer(): McpServer {
+  const server = new McpServer({ name: "analytics", version: "1.0.0" });
 
-Chain reasoning:
-  1. Intent: count customers matching criteria (SQL query)
-  2. Tables: customers, feature_usage
-  3. Filters: plan = 'enterprise', feature = 'export', date range = last month
-  4. Generated tool call: query-analytics
+  server.registerTool(
+    "query_analytics",
+    {
+      description:
+        "Run one read-only SQL SELECT against the analytics replica. Returns columns and up to 200 rows.",
+      inputSchema: z.object({ sql: z.string().min(1).max(4000).describe("A single SELECT statement") }),
+    },
+    async ({ sql }) => {
+      if (rateLimited("query_analytics")) return fail("Rate limit: 10 queries per minute. Try again shortly.");
+      const statement = sql.trim().replace(/;\s*$/, "");
+      if (!/^(select|with)\b/i.test(statement) || statement.includes(";")) {
+        return fail("Only a single SELECT statement is allowed.");
+      }
+      const client = await pool.connect();
+      try {
+        // The transaction is read-only, whatever the SQL says
+        await client.query("BEGIN READ ONLY");
+        // Wrapping in a subquery makes the database stop at 200 rows instead of sending them all
+        const result = await client.query(`SELECT * FROM (\n${statement}\n) AS q LIMIT 200`);
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              columns: result.fields.map((f) => f.name),
+              rowCount: result.rowCount,
+              rows: result.rows,
+            }),
+          }],
+        };
+      } catch (error) {
+        return fail(`Query failed: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        await client.query("ROLLBACK").catch(() => {});
+        client.release();
+      }
+    },
+  );
 
-SQL: SELECT COUNT(DISTINCT c.id) AS enterprise_export_users
-     FROM customers c
-     JOIN feature_usage fu ON fu.customer_id = c.id
-     WHERE c.plan = 'enterprise'
-       AND fu.feature_name = 'export'
-       AND fu.used_at >= date_trunc('month', now() - interval '1 month')
-       AND fu.used_at < date_trunc('month', now());
+  return server;
+}
 
-Result: { "enterprise_export_users": 147 }
+void serveStdio(createServer);
+console.error("analytics MCP server running on stdio");
 ```
 
-Instead of asking "run this SQL," a product manager can ask the question in plain language and the chain generates the correct tool call with proper date ranges and filters.
+Three layers protect the data. The database role on the replica has `SELECT` rights only, the query runs inside `BEGIN READ ONLY`, and the string check rejects anything that is not one SELECT. The first two are the real guard; the regex is a convenience. The rate limit stops an enthusiastic agent from running a thousand queries in a loop. Credentials come from the environment (`ANALYTICS_REPLICA_URL`), never from the tool arguments, and the server logs to stderr because stdout carries the protocol.
 
-### 3. Test tool calls with realistic queries
+Run it with `npx tsx analytics.ts`, or inspect it first with `npx @modelcontextprotocol/inspector npx tsx analytics.ts`.
 
-Verify that the MCP tools handle real-world queries correctly, including edge cases and ambiguous questions.
+### 2. Connect it to Claude Desktop, Cursor and Claude Code
 
-> Test the MCP tools with these 10 real questions that our team gets weekly: "How many users signed up last week?", "What is the trial-to-paid conversion rate this month?", "Which enterprise customers have not logged in for 30 days?", "What are the top 5 most-used features?", "How does this month's revenue compare to last month?", "Show me the signup trend for the last 90 days", "Which pricing plan has the highest churn?", "How many support tickets did we get yesterday?", "What percentage of users completed onboarding?", "List all customers on the legacy plan." Verify each returns correct, well-formatted results.
+A stdio server runs on each user's machine under their own read-only credentials, so no shared bearer token is needed. Use absolute paths, because the host does not start the server from your project directory.
 
-Testing with real questions reveals gaps in the few-shot examples and schema mapping. "Support tickets" might not map to any existing metric, revealing that the metrics API does not cover support data -- a gap the team did not realize existed until they tried to automate the queries.
+```json
+{
+  "mcpServers": {
+    "analytics": {
+      "command": "npx",
+      "args": ["tsx", "/home/dev/analytics-mcp/analytics.ts"],
+      "env": { "ANALYTICS_REPLICA_URL": "postgres://mcp_reader@replica.internal:5432/analytics" }
+    }
+  }
+}
+```
 
-### 4. Deploy and configure for AI assistants
+For Claude Code, the equivalent is `claude mcp add analytics -e ANALYTICS_REPLICA_URL="$ANALYTICS_REPLICA_URL" -- npx tsx /home/dev/analytics-mcp/analytics.ts`. Ask a question such as "How many enterprise customers used the export feature last month?" and the assistant writes the SQL itself from the table descriptions you gave it:
 
-Package the MCP server for use with Claude Desktop and other AI assistants, with authentication and logging.
+```text
+Tool call: query_analytics
+SELECT COUNT(DISTINCT c.id) AS enterprise_export_users
+FROM customers c
+JOIN feature_usage fu ON fu.customer_id = c.id
+WHERE c.plan = 'enterprise'
+  AND fu.feature_name = 'export'
+  AND fu.used_at >= date_trunc('month', now() - interval '1 month')
+  AND fu.used_at <  date_trunc('month', now());
 
-> Add bearer token authentication to the MCP server. Create a Claude Desktop configuration that connects to the server. Add query logging that records every tool call with the original question, generated query, execution time, and row count returned. Set up a weekly digest that shows the most common questions asked through the tool so the team knows what data needs are most frequent.
+Result: {"columns":["enterprise_export_users"],"rowCount":1,"rows":[{"enterprise_export_users":"147"}]}
+```
 
-The query log doubles as a requirements document. After a month of use, the top 20 most-asked questions reveal which dashboards the company actually needs to build -- data that was invisible when analysts were answering questions individually in Slack.
+Note that node-postgres returns `COUNT` values as strings.
+
+### 3. Reuse the tools in a LangChain agent
+
+For a Slack bot or internal web app, load the same MCP tools into a LangChain 1.x agent. The agent gets the schema and the metric vocabulary in its system prompt, so it picks the right tool and parameters.
+
+```bash
+pip install langchain langchain-mcp-adapters   # plus the provider package for your model, e.g. langchain-openai
+```
+
+```python
+# ask.py
+import asyncio
+import os
+import sys
+
+from langchain.agents import create_agent
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+SYSTEM = """You answer product analytics questions. Use query_analytics for counts and lists
+and get_metric for time series. Tables: customers(id, email, plan, created_at),
+feature_usage(customer_id, feature_name, used_at). Metric names: signups = user.registration.completed,
+conversion rate = funnel.step.completion. Never guess column names; say so if the schema lacks them."""
+
+
+async def main(question: str) -> None:
+    client = MultiServerMCPClient({
+        "analytics": {
+            "transport": "stdio",
+            "command": "npx",
+            "args": ["tsx", "/home/dev/analytics-mcp/analytics.ts"],
+            "env": {
+                "PATH": os.environ["PATH"],
+                "ANALYTICS_REPLICA_URL": os.environ["ANALYTICS_REPLICA_URL"],
+            },
+        }
+    })
+    tools = await client.get_tools()
+    agent = create_agent(os.environ["AGENT_MODEL"], tools, system_prompt=SYSTEM)  # e.g. "provider:model-name"
+    result = await agent.ainvoke({"messages": [{"role": "user", "content": question}]})
+    print(result["messages"][-1].content)
+
+
+asyncio.run(main(sys.argv[1]))
+```
+
+`create_agent` replaces the old `AgentExecutor` and `LLMChain` classes, which now live in `langchain-classic`. The model is a `"provider:model"` string, so changing providers is an environment variable.
+
+### 4. Test with the questions your team really gets
+
+Collect the ten questions the analysts answer every week ("What is the trial-to-paid conversion rate this month?", "Which enterprise customers have not logged in for 30 days?", "How many support tickets did we get yesterday?") and run each through the agent or the assistant. Check every answer against a query an analyst writes by hand.
+
+Testing with real questions reveals gaps in the schema description. "Support tickets" may map to no table or metric, exposing that the metrics API does not cover support data, a gap the team did not know about until they tried to automate the queries.
+
+### 5. Log every call
+
+Add one log line per tool call to stderr or a file: the tool name, the SQL, the duration and the row count. Do not log result rows, which may contain customer data. After a few weeks the log shows which questions are asked most, and therefore which dashboards the company actually needs.
 
 ## Real-World Example
 
-A 45-person SaaS company deployed an MCP analytics server connected to their PostgreSQL database and metrics API. Within the first week, 12 team members across product, marketing, and customer success connected it to Claude Desktop. The number of ad-hoc data requests in the analytics Slack channel dropped by 68% in the first month. Product managers who used to wait 2-4 hours for an analyst to answer a question now got answers in under 10 seconds. The query log revealed that "churn by plan" was asked 34 times in the first month -- leading the team to build a dedicated churn dashboard that eliminated the question entirely. The two analysts reclaimed roughly 16 hours per week, which they redirected toward building predictive models instead of answering repetitive data questions.
+A 45-person SaaS company connected an MCP analytics server to a PostgreSQL read replica and its metrics API, and twelve people in product, marketing and customer success added it to Claude Desktop in the first week. In the team's own count, ad-hoc requests in the analytics Slack channel dropped sharply in the first month. The query log showed that "churn by plan" was asked 34 times, so the team built a dedicated churn dashboard that made the question unnecessary. The two analysts moved their time from repeat questions to modelling work.
 
 ## Tips
 
-- Always connect to a read-only database replica, never the primary. Even with SQL validation, a read replica guarantees no accidental writes and isolates analytics query load from production traffic.
-- Include the database schema as context in the LangChain few-shot prompt. Without schema awareness, the chain guesses table and column names and generates invalid SQL.
-- Log every query the MCP server executes. The query log becomes a requirements document for dashboards -- the 20 most frequent questions tell you exactly what reports to build next.
-- Start with 10 few-shot examples covering the most common question patterns, then expand to 25-30 based on the first month's query log. More examples improve accuracy on ambiguous questions.
+- Connect to a read-only replica with a `SELECT`-only role, never the primary. String validation can be bypassed; database permissions cannot.
+- Put the table and column descriptions in the agent's system prompt. Without them the model guesses names and generates invalid SQL.
+- Cap rows and set a `statement_timeout`, so a runaway query cannot fill the model's context or hold a connection.
+- Do not log result rows; log the question, query, duration and row count.
+
+## Related Skills
+
+- [mcp-server-builder](/skills/mcp-server-builder): builds the v2 TypeScript server, its schemas and the client configuration
+- [langchain](/skills/langchain): `create_agent` loads the MCP tools into an agent for apps outside an MCP client
