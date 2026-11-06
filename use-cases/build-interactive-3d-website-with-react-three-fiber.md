@@ -15,12 +15,14 @@ Priya uses React Three Fiber (R3F) to write Three.js as React components, Drei f
 
 ## Setup
 
-R3F 9 requires React 19 and Drei 10 pairs with it. On React 18, install `@react-three/fiber@8` and `@react-three/drei@9` instead. The examples below were type-checked against R3F 9.8, Drei 10.7 and three 0.186.
+R3F 9 requires React 19 and Drei 10 pairs with it. On React 18, install `@react-three/fiber@8` and `@react-three/drei@9` instead. The examples below were type-checked against R3F 9.8, Drei 10.7 and three 0.187.
 
 ```bash
 npm install three @react-three/fiber @react-three/drei @react-three/postprocessing
 npm install -D @types/three
 ```
+
+In Next.js, every component that renders a `<Canvas>` or `<Spline>` must be a client component (`'use client'` at the top of the file).
 
 ## Step 1: 3D scene with React Three Fiber
 
@@ -163,12 +165,25 @@ export function SplineHero() {
     if (shoe) shoe.visible = true;
   }
   return (
-    <Spline scene={process.env.NEXT_PUBLIC_SPLINE_SCENE_URL!} onLoad={onLoad} style={{ width: "100%", height: "100vh" }} />
+    <section style={{ position: "relative" }}>
+      <Spline
+        scene={process.env.NEXT_PUBLIC_SPLINE_SCENE_URL!}
+        onLoad={onLoad}
+        htmlContentMode="sandbox"
+        style={{ width: "100%", height: "100vh" }}
+      />
+      {/* The React component draws a bare canvas with no badge, so credit Spline in the markup */}
+      <p style={{ position: "absolute", right: 12, bottom: 8, fontSize: 12 }}>
+        <a href="https://spline.design">Made with Spline</a>
+      </p>
+    </section>
   );
 }
 ```
 
 Keep the scene URL in an environment variable so staging and production can point at different exports. Spline events only exist in the React and vanilla JS code exports, not in the Three.js export.
+
+Two things the embed needs. A Spline scene can carry HTML content authored in the editor; `<Spline>` runs it inline as ordinary page script by default, so `htmlContentMode="sandbox"` (an isolated iframe) is set here, which matters most for a scene the page's developers did not author. And the "Made with Spline" link must stay visible: never hide the credit or a watermark baked into the scene.
 
 ## Step 4: Keep the model small
 
