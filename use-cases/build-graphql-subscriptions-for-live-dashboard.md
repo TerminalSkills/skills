@@ -1,7 +1,7 @@
 ---
 title: Build GraphQL Subscriptions for a Live Dashboard
 slug: build-graphql-subscriptions-for-live-dashboard
-description: Implement real-time GraphQL subscriptions with WebSocket transport to power a live analytics dashboard that updates instantly when backend data changes.
+description: Implement real-time GraphQL subscriptions with GraphQL Yoga, graphql-ws and Redis to power a live analytics dashboard that updates the moment backend data changes.
 skills:
   - graphql-yoga
   - typescript
@@ -21,537 +21,278 @@ tags:
 
 ## The Problem
 
-Dani runs engineering at a 40-person logistics startup. Their operations dashboard shows driver locations, delivery statuses, and warehouse throughput — but every metric is stale by the time dispatchers see it. Teams poll the REST API every 30 seconds, hammering the database with 12,000 queries per hour. Two dispatchers already routed drivers to the wrong warehouse because they were looking at 45-second-old data. Real-time visibility would eliminate $18K/month in misrouted shipments.
+Dani runs engineering at a 40-person logistics startup. Their operations dashboard shows driver locations, delivery statuses and warehouse throughput, but every metric is stale by the time dispatchers see it. The dashboard polls the REST API every 30 seconds, which means thousands of queries an hour against the database. Two dispatchers already routed drivers to the wrong warehouse because they were looking at 45-second-old data.
 
 ## Step 1: Set Up the GraphQL Server with Subscription Support
 
-The foundation is a GraphQL Yoga server with WebSocket transport for subscriptions. The HTTP layer handles queries and mutations; WebSocket handles the persistent subscription connections.
+Install the packages (**graphql-yoga** v6 needs Node 22.15 or newer; **@graphql-yoga/redis-event-target** declares `ioredis ^5` as its peer, so pin that major):
+
+```bash
+npm install graphql-yoga graphql graphql-ws ws jsonwebtoken pg ioredis@5 @graphql-yoga/redis-event-target
+npm install -D typescript tsx @types/ws @types/jsonwebtoken @types/pg
+```
+
+Yoga v6 serves subscriptions over Server-Sent Events by default, which needs no extra server. This dashboard uses WebSockets through `graphql-ws` instead, so one connection carries many subscriptions and the browser can send connection params. HTTP handles queries and mutations; the `ws` server handles subscriptions. The server binds to `127.0.0.1` (put a TLS proxy in front), checks the `Origin` header on the upgrade, and requires a short-lived RS256 token on both transports:
 
 ```typescript
-// src/server.ts — GraphQL Yoga server with WebSocket subscription transport
+// src/server.ts — Yoga over HTTP, graphql-ws over WebSocket, both on loopback
 import { createServer } from "node:http";
-import { createYoga, createSchema } from "graphql-yoga";
-import { useServer } from "graphql-ws/lib/use/ws";
+import jwt from "jsonwebtoken";
+import { createSchema, createYoga } from "graphql-yoga";
+import { useServer } from "graphql-ws/use/ws";
 import { WebSocketServer } from "ws";
-import { createPubSub } from "./pubsub";
 import { typeDefs } from "./schema";
 import { resolvers } from "./resolvers";
 
-const pubsub = createPubSub();
+// Short-lived RS256 token minted by your login endpoint; the algorithm is pinned so a token cannot pick its own
+const tokenOk = (t: unknown) => {
+  try { jwt.verify(String(t), process.env.JWT_PUBLIC_KEY!, { algorithms: ["RS256"], issuer: "app" }); return true; }
+  catch { return false; }
+};
+const origins = new Set([process.env.APP_ORIGIN!]);   // e.g. https://dash.example.com
 
 const yoga = createYoga({
   schema: createSchema({ typeDefs, resolvers }),
-  context: () => ({ pubsub }),
-  graphiql: {
-    subscriptionsProtocol: "WS", // enable subscription testing in GraphiQL
-  },
+  cors: { origin: [process.env.APP_ORIGIN!] },   // browser queries from the dashboard origin
+  graphiql: { subscriptionsProtocol: "WS" },   // GraphiQL is on only when NODE_ENV=development
+  plugins: [{   // HTTP queries and mutations need the same token as the sockets
+    onRequest({ request, fetchAPI, endResponse }) {
+      if (request.method !== "OPTIONS" && !tokenOk(request.headers.get("authorization")?.replace(/^Bearer /, "")))
+        endResponse(new fetchAPI.Response("Unauthorized", { status: 401 }));
+    },
+  }],
 });
 
 const server = createServer(yoga);
-
 const wsServer = new WebSocketServer({
   server,
   path: yoga.graphqlEndpoint,
+  maxPayload: 64 * 1024,   // ws defaults to 100 MiB
+  verifyClient: ({ origin }: { origin: string }) => origins.has(origin),   // browsers always send Origin
 });
 
-// Bind graphql-ws to handle subscription protocol
 useServer(
   {
+    onConnect: (ctx) => tokenOk(ctx.connectionParams?.token),   // false closes the socket with 4403
     execute: (args: any) => args.rootValue.execute(args),
     subscribe: (args: any) => args.rootValue.subscribe(args),
-    onSubscribe: async (ctx, msg) => {
-      const { schema, execute, subscribe, contextFactory, parse, validate } =
-        yoga.getEnveloped({
-          ...ctx,
-          req: ctx.extra.request,
-          socket: ctx.extra.socket,
-          params: msg.payload,
-        });
-
+    onSubscribe: async (ctx, _id, payload) => {
+      const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
+        ...ctx, req: ctx.extra.request, socket: ctx.extra.socket, params: payload,
+      });
       const args = {
         schema,
-        operationName: msg.payload.operationName,
-        document: parse(msg.payload.query),
-        variableValues: msg.payload.variables,
+        operationName: payload.operationName,
+        document: parse(payload.query),
+        variableValues: payload.variables,
         contextValue: await contextFactory(),
         rootValue: { execute, subscribe },
       };
-
       const errors = validate(schema, args.document);
-      if (errors.length) return errors;
-      return args;
+      return errors.length ? errors : args;
     },
   },
-  wsServer
+  wsServer,
 );
 
-server.listen(4000, () => {
-  console.log("GraphQL server ready at http://localhost:4000/graphql");
-});
+server.listen(Number(process.env.PORT ?? 4000), "127.0.0.1", () =>
+  console.log(`GraphQL on http://127.0.0.1:${process.env.PORT ?? 4000}/graphql`));   // TLS proxy in front
 ```
 
 ## Step 2: Define the Schema with Subscription Types
 
-The schema declares subscription types alongside queries and mutations. Each subscription maps to an event channel that resolvers can publish to.
+Postgres holds the data, so create the tables first, then declare the subscription fields next to queries and mutations:
 
-```graphql
-# src/schema.graphql — Type definitions with subscription support
-type Delivery {
-  id: ID!
-  driverId: String!
-  status: DeliveryStatus!
-  origin: String!
-  destination: String!
-  estimatedArrival: String
-  lat: Float
-  lng: Float
-  updatedAt: String!
-}
+```sql
+CREATE TABLE deliveries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), driver_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING', origin TEXT NOT NULL, destination TEXT NOT NULL,
+  lat DOUBLE PRECISION, lng DOUBLE PRECISION, updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE warehouse_metrics (
+  warehouse_id TEXT NOT NULL, throughput INT NOT NULL, utilization DOUBLE PRECISION NOT NULL,
+  active_drivers INT NOT NULL, pending_orders INT NOT NULL, timestamp TIMESTAMPTZ NOT NULL DEFAULT now());
+```
 
-enum DeliveryStatus {
-  PENDING
-  PICKED_UP
-  IN_TRANSIT
-  DELIVERED
-  FAILED
-}
-
-type WarehouseMetric {
-  warehouseId: String!
-  throughput: Int!       # packages per hour
-  utilization: Float!    # 0.0 - 1.0
-  activeDrivers: Int!
-  pendingOrders: Int!
-  timestamp: String!
-}
-
-type Query {
-  deliveries(status: DeliveryStatus): [Delivery!]!
-  warehouseMetrics(warehouseId: String!): WarehouseMetric
-}
-
-type Mutation {
-  updateDeliveryStatus(id: ID!, status: DeliveryStatus!, lat: Float, lng: Float): Delivery!
-  recordWarehouseMetric(warehouseId: String!, throughput: Int!, utilization: Float!, activeDrivers: Int!, pendingOrders: Int!): WarehouseMetric!
-}
-
-type Subscription {
-  deliveryUpdated(driverId: String): Delivery!
-  warehouseMetricChanged(warehouseId: String!): WarehouseMetric!
-  systemAlert: SystemAlert!
-}
-
-type SystemAlert {
-  severity: AlertSeverity!
-  message: String!
-  warehouseId: String
-  timestamp: String!
-}
-
-enum AlertSeverity {
-  INFO
-  WARNING
-  CRITICAL
-}
+```typescript
+export const typeDefs = /* GraphQL */ `
+  type Delivery { id: ID! driverId: String! status: DeliveryStatus! origin: String! destination: String!
+    lat: Float lng: Float updatedAt: String! }
+  enum DeliveryStatus { PENDING PICKED_UP IN_TRANSIT DELIVERED FAILED }
+  type WarehouseMetric { warehouseId: String! throughput: Int! utilization: Float! activeDrivers: Int!
+    pendingOrders: Int! timestamp: String! }
+  type SystemAlert { severity: AlertSeverity! message: String! warehouseId: String timestamp: String! }
+  enum AlertSeverity { INFO WARNING CRITICAL }
+  type Query { deliveries(status: DeliveryStatus): [Delivery!]! warehouseMetrics(warehouseId: String!): WarehouseMetric }
+  type Mutation {
+    updateDeliveryStatus(id: ID!, status: DeliveryStatus!, lat: Float, lng: Float): Delivery!
+    recordWarehouseMetric(warehouseId: String!, throughput: Int!, utilization: Float!, activeDrivers: Int!, pendingOrders: Int!): WarehouseMetric!
+  }
+  type Subscription { deliveryUpdated(driverId: String): Delivery! warehouseMetricChanged(warehouseId: String!): WarehouseMetric! systemAlert: SystemAlert! }
+`;
 ```
 
 ## Step 3: Build the Pub/Sub Layer with Redis
 
-A Redis-backed pub/sub ensures subscriptions work across multiple server instances. When one server processes a mutation, all servers with active subscriptions receive the event.
+Yoga's `createPubSub` is in-memory by default, so an event published on one server never reaches a subscriber on another. With a Redis event target every instance publishes to Redis and forwards events to its own sockets. Publisher and subscriber need separate connections, because a connection in subscribe mode cannot run other commands.
 
 ```typescript
-// src/pubsub.ts — Redis-backed pub/sub for distributed subscription events
-import { createClient } from "redis";
+// src/pubsub.ts — Yoga's PubSub backed by Redis, so every server instance sees every event
+import { createPubSub } from "graphql-yoga";
+import { createRedisEventTarget } from "@graphql-yoga/redis-event-target";
+import Redis from "ioredis";
 
-type EventMap = {
-  "delivery:updated": [{ driverId?: string; delivery: any }];
-  "warehouse:metric": [{ warehouseId: string; metric: any }];
-  "system:alert": [{ alert: any }];
-};
-
-export function createPubSub() {
-  const publisher = createClient({ url: process.env.REDIS_URL });
-  const subscriber = createClient({ url: process.env.REDIS_URL });
-
-  publisher.connect();
-  subscriber.connect();
-
-  const listeners = new Map<string, Set<(data: any) => void>>();
-
-  return {
-    async publish<K extends keyof EventMap>(
-      channel: K,
-      ...args: EventMap[K]
-    ) {
-      await publisher.publish(channel, JSON.stringify(args[0]));
-    },
-
-    async subscribe<K extends keyof EventMap>(
-      channel: K,
-      callback: (data: EventMap[K][0]) => void
-    ): Promise<() => void> {
-      if (!listeners.has(channel)) {
-        listeners.set(channel, new Set());
-        await subscriber.subscribe(channel, (message) => {
-          const data = JSON.parse(message);
-          listeners.get(channel)?.forEach((cb) => cb(data));
-        });
-      }
-
-      listeners.get(channel)!.add(callback);
-
-      // Return unsubscribe function for cleanup
-      return () => {
-        listeners.get(channel)?.delete(callback);
-        if (listeners.get(channel)?.size === 0) {
-          subscriber.unsubscribe(channel);
-          listeners.delete(channel);
-        }
-      };
-    },
-  };
-}
+export type Delivery = { id: string; driver_id: string; status: string; origin: string; destination: string; lat: number | null; lng: number | null; updated_at: Date | string };
+export type Metric = { warehouse_id: string; throughput: number; utilization: number; active_drivers: number; pending_orders: number; timestamp: Date | string };
+export type Alert = { severity: "INFO" | "WARNING" | "CRITICAL"; message: string; warehouseId: string | null; timestamp: string };
+const url = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
+export const pubSub = createPubSub<{
+  deliveryUpdated: [delivery: Delivery];
+  warehouseMetric: [warehouseId: string, metric: Metric];  // [topic, id, payload]
+  systemAlert: [alert: Alert]; }>({ eventTarget: createRedisEventTarget({ publishClient: new Redis(url), subscribeClient: new Redis(url) }) });
 ```
 
 ## Step 4: Implement Subscription Resolvers with Filtering
 
-Resolvers wire pub/sub events to GraphQL subscriptions. The filter logic ensures clients only receive events matching their subscription arguments — a driver dashboard sees only its own deliveries.
+A subscription resolver returns an async iterable. `pubSub.subscribe("warehouseMetric", warehouseId)` uses the id as part of the topic, so each client only receives its warehouse. For the driver filter, `pipe` and `filter` (exported by `graphql-yoga`) drop events the client did not ask for. The mutations write to Postgres first and publish after the row exists. The pool is a standard `pg` `Pool` exported from `./db` (`new Pool({ connectionString: process.env.DATABASE_URL })`).
 
 ```typescript
-// src/resolvers.ts — Resolvers including filtered subscriptions
-import { pool } from "./db"; // PostgreSQL connection pool
+// src/resolvers.ts — subscriptions are async iterables from the PubSub, filtered per client
+import { filter, pipe } from "graphql-yoga";
+import { pool } from "./db";
+import { pubSub, type Alert } from "./pubsub";
+
+const alert = (severity: Alert["severity"], message: string, warehouseId: string | null) =>
+  pubSub.publish("systemAlert", { severity, message, warehouseId, timestamp: new Date().toISOString() });
+
+// Rows are snake_case; events that crossed Redis carry dates as JSON strings, hence new Date()
+const toDelivery = (r: any) => ({ id: r.id, driverId: r.driver_id, status: r.status, origin: r.origin,
+  destination: r.destination, lat: r.lat, lng: r.lng, updatedAt: new Date(r.updated_at).toISOString() });
+const toMetric = (r: any) => ({ warehouseId: r.warehouse_id, throughput: r.throughput, utilization: r.utilization,
+  activeDrivers: r.active_drivers, pendingOrders: r.pending_orders, timestamp: new Date(r.timestamp).toISOString() });
 
 export const resolvers = {
   Query: {
-    deliveries: async (_: any, { status }: { status?: string }) => {
-      const query = status
-        ? "SELECT * FROM deliveries WHERE status = $1 ORDER BY updated_at DESC"
-        : "SELECT * FROM deliveries ORDER BY updated_at DESC";
-      const params = status ? [status] : [];
-      const { rows } = await pool.query(query, params);
-      return rows;
-    },
-    warehouseMetrics: async (_: any, { warehouseId }: { warehouseId: string }) => {
+    deliveries: async (_: unknown, { status }: { status?: string }) => {
       const { rows } = await pool.query(
-        "SELECT * FROM warehouse_metrics WHERE warehouse_id = $1 ORDER BY timestamp DESC LIMIT 1",
-        [warehouseId]
-      );
-      return rows[0] || null;
+        "SELECT * FROM deliveries WHERE ($1::text IS NULL OR status = $1) ORDER BY updated_at DESC LIMIT 500", [status ?? null]);
+      return rows.map(toDelivery);
+    },
+    warehouseMetrics: async (_: unknown, { warehouseId }: { warehouseId: string }) => {
+      const { rows } = await pool.query(
+        "SELECT * FROM warehouse_metrics WHERE warehouse_id = $1 ORDER BY timestamp DESC LIMIT 1", [warehouseId]);
+      return rows[0] ? toMetric(rows[0]) : null;
     },
   },
-
   Mutation: {
-    updateDeliveryStatus: async (
-      _: any,
-      { id, status, lat, lng }: any,
-      { pubsub }: any
-    ) => {
+    updateDeliveryStatus: async (_: unknown, { id, status, lat, lng }: any) => {
       const { rows } = await pool.query(
-        `UPDATE deliveries 
-         SET status = $2, lat = COALESCE($3, lat), lng = COALESCE($4, lng), updated_at = NOW()
-         WHERE id = $1 RETURNING *`,
-        [id, status, lat, lng]
-      );
-      const delivery = rows[0];
-
-      // Publish to subscription channel
-      await pubsub.publish("delivery:updated", {
-        driverId: delivery.driver_id,
-        delivery,
-      });
-
-      // Check for alert conditions
-      if (status === "FAILED") {
-        await pubsub.publish("system:alert", {
-          alert: {
-            severity: "WARNING",
-            message: `Delivery ${id} failed — reassignment needed`,
-            warehouseId: delivery.origin,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      }
-
-      return delivery;
+        `UPDATE deliveries SET status = $2, lat = COALESCE($3, lat), lng = COALESCE($4, lng), updated_at = now()
+         WHERE id = $1 RETURNING *`, [id, status, lat, lng]);
+      if (!rows[0]) throw new Error(`Delivery ${id} not found`);
+      await pubSub.publish("deliveryUpdated", rows[0]);
+      if (status === "FAILED") await alert("WARNING", `Delivery ${id} failed — reassignment needed`, rows[0].origin);
+      return toDelivery(rows[0]);
     },
-
-    recordWarehouseMetric: async (_: any, args: any, { pubsub }: any) => {
-      const { warehouseId, throughput, utilization, activeDrivers, pendingOrders } = args;
+    recordWarehouseMetric: async (_: unknown, a: any) => {
       const { rows } = await pool.query(
         `INSERT INTO warehouse_metrics (warehouse_id, throughput, utilization, active_drivers, pending_orders, timestamp)
-         VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *`,
-        [warehouseId, throughput, utilization, activeDrivers, pendingOrders]
-      );
-      const metric = rows[0];
-
-      await pubsub.publish("warehouse:metric", { warehouseId, metric });
-
-      // Alert on high utilization
-      if (utilization > 0.9) {
-        await pubsub.publish("system:alert", {
-          alert: {
-            severity: "CRITICAL",
-            message: `Warehouse ${warehouseId} at ${(utilization * 100).toFixed(0)}% capacity`,
-            warehouseId,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      }
-
-      return metric;
+         VALUES ($1, $2, $3, $4, $5, now()) RETURNING *`,
+        [a.warehouseId, a.throughput, a.utilization, a.activeDrivers, a.pendingOrders]);
+      await pubSub.publish("warehouseMetric", a.warehouseId, rows[0]);
+      if (a.utilization > 0.9) await alert("CRITICAL", `Warehouse ${a.warehouseId} at ${Math.round(a.utilization * 100)}% capacity`, a.warehouseId);
+      return toMetric(rows[0]);
     },
   },
-
   Subscription: {
     deliveryUpdated: {
-      subscribe: async function* (_: any, { driverId }: any, { pubsub }: any) {
-        const queue: any[] = [];
-        let resolve: (() => void) | null = null;
-
-        const unsubscribe = await pubsub.subscribe(
-          "delivery:updated",
-          (data: any) => {
-            // Filter: only send events matching the requested driverId
-            if (driverId && data.driverId !== driverId) return;
-            queue.push(data.delivery);
-            resolve?.();
-          }
-        );
-
-        try {
-          while (true) {
-            if (queue.length === 0) {
-              await new Promise<void>((r) => (resolve = r));
-            }
-            yield { deliveryUpdated: queue.shift() };
-          }
-        } finally {
-          unsubscribe();
-        }
-      },
-    },
-
+      subscribe: (_: unknown, { driverId }: { driverId?: string }) =>
+        pipe(pubSub.subscribe("deliveryUpdated"), filter((d) => !driverId || d.driver_id === driverId)),
+      resolve: toDelivery },
     warehouseMetricChanged: {
-      subscribe: async function* (_: any, { warehouseId }: any, { pubsub }: any) {
-        const queue: any[] = [];
-        let resolve: (() => void) | null = null;
-
-        const unsubscribe = await pubsub.subscribe(
-          "warehouse:metric",
-          (data: any) => {
-            if (data.warehouseId !== warehouseId) return;
-            queue.push(data.metric);
-            resolve?.();
-          }
-        );
-
-        try {
-          while (true) {
-            if (queue.length === 0) {
-              await new Promise<void>((r) => (resolve = r));
-            }
-            yield { warehouseMetricChanged: queue.shift() };
-          }
-        } finally {
-          unsubscribe();
-        }
-      },
-    },
-
-    systemAlert: {
-      subscribe: async function* (_: any, __: any, { pubsub }: any) {
-        const queue: any[] = [];
-        let resolve: (() => void) | null = null;
-
-        const unsubscribe = await pubsub.subscribe(
-          "system:alert",
-          (data: any) => {
-            queue.push(data.alert);
-            resolve?.();
-          }
-        );
-
-        try {
-          while (true) {
-            if (queue.length === 0) {
-              await new Promise<void>((r) => (resolve = r));
-            }
-            yield { systemAlert: queue.shift() };
-          }
-        } finally {
-          unsubscribe();
-        }
-      },
-    },
+      subscribe: (_: unknown, { warehouseId }: { warehouseId: string }) => pubSub.subscribe("warehouseMetric", warehouseId),
+      resolve: toMetric },
+    systemAlert: { subscribe: () => pubSub.subscribe("systemAlert"), resolve: (a: Alert) => a },
   },
 };
 ```
 
 ## Step 5: Build the React Dashboard with Live Subscriptions
 
-The frontend connects via `graphql-ws` and uses subscription hooks to render live-updating widgets. No polling, no manual refresh — data flows in the moment it changes.
+The client is a small hook on top of `graphql-ws`, used from a client component in a Next.js App Router page (`"use client"`). The browser fetches a fresh token on every (re)connect, so no long-lived secret reaches the bundle.
 
 ```typescript
-// src/components/LiveDashboard.tsx — React dashboard consuming GraphQL subscriptions
-import { useSubscription, gql } from "@apollo/client";
-import { useState, useEffect } from "react";
+// src/web/useSubscription.ts — one shared graphql-ws client; each hook call is one subscription
+"use client";
+import { useEffect, useState } from "react";
+import { createClient } from "graphql-ws";
 
-const WAREHOUSE_SUBSCRIPTION = gql`
-  subscription OnWarehouseMetric($warehouseId: String!) {
-    warehouseMetricChanged(warehouseId: $warehouseId) {
-      warehouseId
-      throughput
-      utilization
-      activeDrivers
-      pendingOrders
-      timestamp
-    }
-  }
-`;
+const client = createClient({
+  url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URL!,   // wss://api.example.com/graphql
+  // Called on every (re)connect: fetch a fresh short-lived token from your login endpoint
+  connectionParams: async () => ({ token: await fetch("/api/dashboard-token").then((r) => r.text()) }),
+  lazy: true,   // connect on the first subscription, close after the last one ends
+});
 
-const DELIVERY_SUBSCRIPTION = gql`
-  subscription OnDeliveryUpdated {
-    deliveryUpdated {
-      id
-      driverId
-      status
-      destination
-      lat
-      lng
-      updatedAt
-    }
-  }
-`;
+export function useSubscription<T>(query: string, variables: Record<string, unknown> = {}) {
+  const [data, setData] = useState<T | null>(null);
+  const key = JSON.stringify(variables);   // stable dependency for the variables object
+  useEffect(() => {
+    const dispose = client.subscribe<T>(
+      { query, variables: JSON.parse(key) },
+      { next: (r) => { if (r.data) setData(r.data); }, error: console.error, complete: () => {} },
+    );
+    return dispose;   // unsubscribes on unmount or when variables change
+  }, [query, key]);
+  return { data };
+}
+```
+```tsx
+// src/web/LiveDashboard.tsx — metric panels and an alert feed (deliveryUpdated is consumed the same way)
+"use client";
+import { useEffect, useState } from "react";
+import { useSubscription } from "./useSubscription";
 
-const ALERT_SUBSCRIPTION = gql`
-  subscription OnAlert {
-    systemAlert {
-      severity
-      message
-      warehouseId
-      timestamp
-    }
-  }
-`;
+type Alert = { severity: string; message: string; timestamp: string };
+type Metric = { throughput: number; utilization: number; activeDrivers: number; pendingOrders: number };
+
+const ALERT = `subscription { systemAlert { severity message timestamp } }`;
+const METRIC = `subscription ($warehouseId: String!) { warehouseMetricChanged(warehouseId: $warehouseId) { throughput utilization activeDrivers pendingOrders } }`;
 
 export function LiveDashboard({ warehouseIds }: { warehouseIds: string[] }) {
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [deliveries, setDeliveries] = useState<Map<string, any>>(new Map());
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const alert = useSubscription<{ systemAlert: Alert }>(ALERT).data?.systemAlert;
 
-  // Subscribe to delivery updates across all drivers
-  useSubscription(DELIVERY_SUBSCRIPTION, {
-    onData: ({ data }) => {
-      const delivery = data.data?.deliveryUpdated;
-      if (delivery) {
-        setDeliveries((prev) => new Map(prev).set(delivery.id, delivery));
-      }
-    },
-  });
-
-  // Subscribe to system alerts
-  useSubscription(ALERT_SUBSCRIPTION, {
-    onData: ({ data }) => {
-      const alert = data.data?.systemAlert;
-      if (alert) {
-        setAlerts((prev) => [alert, ...prev].slice(0, 50)); // keep last 50
-      }
-    },
-  });
+  // Fold pushed events into local state; events are not replayed, so load current rows with a query on mount
+  useEffect(() => { if (alert) setAlerts((a) => [alert, ...a].slice(0, 50)); }, [alert]);
 
   return (
-    <div className="grid grid-cols-3 gap-4 p-6">
-      {/* Warehouse panels — each with its own subscription */}
-      {warehouseIds.map((id) => (
-        <WarehousePanel key={id} warehouseId={id} />
-      ))}
-
-      {/* Live delivery map */}
-      <div className="col-span-2 bg-white rounded-lg shadow p-4">
-        <h2 className="text-lg font-semibold mb-3">Active Deliveries</h2>
-        <div className="space-y-2">
-          {[...deliveries.values()]
-            .filter((d) => d.status === "IN_TRANSIT")
-            .map((d) => (
-              <div key={d.id} className="flex justify-between border-b py-2">
-                <span className="font-mono text-sm">{d.id.slice(0, 8)}</span>
-                <span>{d.destination}</span>
-                <StatusBadge status={d.status} />
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Alert feed */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-lg font-semibold mb-3">System Alerts</h2>
-        {alerts.map((alert, i) => (
-          <div
-            key={i}
-            className={`p-2 rounded mb-2 text-sm ${
-              alert.severity === "CRITICAL"
-                ? "bg-red-100 text-red-800"
-                : "bg-yellow-100 text-yellow-800"
-            }`}
-          >
-            {alert.message}
-          </div>
-        ))}
-      </div>
+    <div>
+      {warehouseIds.map((id) => <WarehousePanel key={id} warehouseId={id} />)}
+      <h2>Alerts</h2>
+      <ul>{alerts.map((a) => <li key={a.timestamp + a.message}>[{a.severity}] {a.message}</li>)}</ul>
     </div>
   );
 }
 
 function WarehousePanel({ warehouseId }: { warehouseId: string }) {
-  const { data } = useSubscription(WAREHOUSE_SUBSCRIPTION, {
-    variables: { warehouseId },
-  });
-
-  const metric = data?.warehouseMetricChanged;
-  const utilizationPct = metric ? (metric.utilization * 100).toFixed(0) : "—";
-
+  const m = useSubscription<{ warehouseMetricChanged: Metric }>(METRIC, { warehouseId }).data?.warehouseMetricChanged;
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="font-semibold text-gray-700">{warehouseId}</h3>
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <MetricCard label="Throughput" value={metric?.throughput ?? "—"} unit="/hr" />
-        <MetricCard label="Utilization" value={`${utilizationPct}%`} />
-        <MetricCard label="Active Drivers" value={metric?.activeDrivers ?? "—"} />
-        <MetricCard label="Pending" value={metric?.pendingOrders ?? "—"} />
-      </div>
-    </div>
-  );
-}
-
-function MetricCard({ label, value, unit = "" }: any) {
-  return (
-    <div className="text-center">
-      <div className="text-2xl font-bold">{value}{unit}</div>
-      <div className="text-xs text-gray-500">{label}</div>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    IN_TRANSIT: "bg-blue-100 text-blue-800",
-    DELIVERED: "bg-green-100 text-green-800",
-    FAILED: "bg-red-100 text-red-800",
-    PENDING: "bg-gray-100 text-gray-800",
-  };
-  return (
-    <span className={`px-2 py-1 rounded text-xs ${colors[status] || colors.PENDING}`}>
-      {status}
-    </span>
+    <section>
+      <h3>{warehouseId}</h3>
+      {m ? `${m.throughput}/hr · ${Math.round(m.utilization * 100)}% · ${m.activeDrivers} drivers · ${m.pendingOrders} pending` : "waiting for data…"}
+    </section>
   );
 }
 ```
 
-## Results
+## Real-World Example
 
-After deploying the subscription-based dashboard:
+The logistics team replaced the 30-second REST poll with these subscriptions. Dispatchers see a status change when the mutation commits, the polling queries are gone, and a second server instance can be added because Redis carries events between instances. Pub/sub is at-most-once, so an offline dashboard misses events: on mount and reconnect it runs the `deliveries` and `warehouseMetrics` queries, then lets the subscriptions keep it fresh.
 
-- **Data latency dropped from 30–45 seconds to under 200ms** — dispatchers see delivery status changes in real time
-- **Database load decreased by 85%** — eliminated 12,000 polling queries per hour; subscriptions push only changed data
-- **Misrouted shipments dropped from 23/month to 2/month** — saving ~$16K/month in rerouting costs
-- **Dispatcher response time improved by 60%** — they act on live data instead of waiting for the next refresh cycle
-- **WebSocket connections stay efficient** — Redis pub/sub distributes events across server instances, supporting 500+ concurrent dashboard users on two nodes
+## Related Skills
+
+- [graphql-yoga](../skills/graphql-yoga/SKILL.md) — v6 server, subscriptions, `createPubSub` and the Redis event target (Steps 1, 3, 4)
+- [typescript](../skills/typescript/SKILL.md) — typed pub/sub topics and the `tsc --noEmit` check on the server and the client (Steps 3-5)
+- [redis](../skills/redis/SKILL.md) — pub/sub between server instances, separate publisher and subscriber connections (Step 3)
+- [postgresql](../skills/postgresql/SKILL.md) — deliveries and metrics tables, write-then-publish (Steps 2, 4)
+- [nextjs](../skills/nextjs/SKILL.md) — the dashboard as a client component in the App Router (Step 5)
