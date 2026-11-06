@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:5e9adf56245de177c4b37c1c451061f682415e1d29e70ea2127e7f432dd22ba7",
+  "scoredAt": "2026-11-06T22:57:07.322Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases, such as failed container start or API errors."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "deploy-and-create-admin",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A contains no substantive content."
+      },
+      {
+        "name": "post-and-retrieve-memo",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B better covers the rubric, though it fails to match the exact content string."
+      },
+      {
+        "name": "disable-open-signup",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with the required PATCH request, authorization, and verification, while Response A omits the PATCH step and uses configuration changes instead."
+      }
+    ]
+  }
+}

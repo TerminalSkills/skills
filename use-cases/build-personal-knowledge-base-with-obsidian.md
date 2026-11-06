@@ -3,7 +3,7 @@ title: Build a Personal Knowledge Base with Obsidian
 slug: build-personal-knowledge-base-with-obsidian
 description: "Design an Obsidian vault with linked notes, Dataview dashboards, Templater automation, a small custom plugin, and git backup for a developer knowledge base."
 category: productivity
-skills: [obsidian]
+skills: [obsidian, memos]
 tags: [obsidian, knowledge-management, pkm, dataview, templater, automation]
 ---
 
@@ -296,3 +296,4 @@ She opens the home dashboard and sees her open tasks, the week's meetings, the u
 ## Related Skills
 
 - [obsidian](../skills/obsidian/SKILL.md): vault structure, templates, Dataview and plugin development
+- [memos](/skills/memos) — choose it instead of a vault when the notes are short captures written from a phone or scripts and read back through an API
