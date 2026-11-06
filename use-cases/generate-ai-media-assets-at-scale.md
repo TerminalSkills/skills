@@ -18,78 +18,96 @@ tags:
 
 ## The Problem
 
-A content marketing team at an e-commerce company produces 200 product lifestyle images and 30 short video clips per month for social media, email campaigns, and landing pages. Traditional photo shoots cost $8,000 per session and take 2 weeks from scheduling to delivery. AI image generation could cut that to hours, but the results are inconsistent -- one prompt produces a great hero image while a slight variation generates something off-brand with wrong colors, weird proportions, or inconsistent style. They need a repeatable system where prompts are tested, scored, and optimized before running batch generation, so every asset meets brand standards without manual trial and error.
+A content marketing team at an e-commerce company needs around 200 product lifestyle images and a few dozen short video clips every month for social media, email and landing pages. Photo shoots are slow and expensive to schedule. AI generation is fast, but the results are inconsistent: one prompt gives a great hero image and a slight variation gives wrong colors, odd proportions or an off-brand style. They need a repeatable system where prompts are tested and scored before anyone runs a batch.
 
 ## The Solution
 
-Using the **vertex-media-generation** and **prompt-tester** skills, the workflow first builds and evaluates prompt templates against brand criteria using systematic A/B testing, then runs the winning prompts through Vertex AI Imagen and Veo to generate hundreds of on-brand images and videos in a single batch.
+The **prompt-tester** skill structures the prompt templates, rubric and comparison, so the winning template is chosen on scored evidence rather than favorites. The **vertex-media-generation** skill then runs that template through Gemini image models (`gemini-3.1-flash-lite-image`) and Veo 3.1 on Vertex AI, using the `ai` SDK with `@ai-sdk/google-vertex`.
+
+Google has discontinued the Imagen endpoints on Vertex AI (`imagen-3.0-*`, `imagen-4.0-*`, `imagegeneration@00x`) and maps them to Gemini image models. `gemini-2.5-flash-image`, the first replacement, is itself deprecated and retires on March 15, 2027, so this page uses its successor `gemini-3.1-flash-lite-image`. Any older prompt pipeline that calls Imagen with `style_preset`, `size` or `n` parameters has to move to the calls below.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Define brand criteria and build prompt templates
 
-Create structured prompt templates with variables for product type, scene, and mood, then define the evaluation rubric that every generated image must pass.
+> Create 5 prompt template variants for product lifestyle photography, each with variables `{product_name}`, `{scene_setting}`, `{lighting_style}` and `{color_palette}`. Brand rules: warm natural lighting, earth-tone backgrounds, minimalist composition, no text or logos in the image, 16:9. Write a scoring rubric with brand_consistency, composition_quality, product_visibility and usability, each 0-10, with a one-line description of what a 3, 6 and 9 look like.
 
-> Create 5 prompt template variants for product lifestyle photography. Each template should include variables for {product_name}, {scene_setting}, {lighting_style}, and {color_palette}. The brand guidelines are: warm natural lighting, earth-tone backgrounds, minimalist composition, no text overlays, 16:9 aspect ratio. Define a scoring rubric with these criteria: brand_consistency (0-10), composition_quality (0-10), product_visibility (0-10), and usability_score (0-10).
+Templates separate structure from content, so any product can be swapped in without changing the style. Keep them as plain files (`prompts/a.txt` ... `prompts/e.txt`) in version control.
 
-The prompt templates separate structure from content, so you can swap in any product while maintaining consistent style. Template A might use "editorial product photography" framing while Template B uses "lifestyle scene with product in natural use."
+### 2. Generate test samples and score them
 
-### 2. Test prompt variants systematically
+> For each template and each of three products (wireless earbuds, ceramic mug, leather wallet) generate 2 images with `gemini-3.1-flash-lite-image` via `generateImage` and save them under `tests/<template>/<product>/`. Then score every image against the rubric and build a matrix of average scores per template and per product.
 
-Run each template variant through the prompt tester to generate sample outputs, score them against the rubric, and identify which template consistently produces the best results.
+```typescript
+import { generateImage } from 'ai';
+import { createVertex } from '@ai-sdk/google-vertex';
 
-> Test all 5 prompt templates with 3 different products each (wireless earbuds, ceramic mug, leather wallet). Generate 2 images per combination using Vertex AI Imagen 4.0. Score each output against the brand rubric. Show me a comparison matrix of average scores per template, and identify which template performs best overall and which performs best per product category.
+// The image model is served from the global location only.
+const vertexGlobal = createVertex({ location: 'global' }) // project from GOOGLE_VERTEX_PROJECT;
 
-The systematic testing eliminates guesswork. Instead of running 50 ad-hoc generations and picking favorites, you generate 30 controlled samples and let the scoring rubric identify the template that consistently hits brand standards. Template C might average 8.4/10 overall while Template A averages 6.9 -- a difference invisible from looking at two cherry-picked examples.
-
-### 3. Generate image assets in batch
-
-Run the winning prompt template through Vertex AI Imagen to produce the full month's image assets in a single batch.
-
-> Using the winning prompt template, generate product lifestyle images for all 40 products in the Q1 catalog. Generate 3 variations per product at 1024x1792 resolution. Use Imagen 4.0 with style_preset set to "photographic" and negative prompt "text, watermark, blurry, distorted, cartoon." Save to ./generated_assets/{product_slug}/ with descriptive filenames.
-
-The batch job tracks progress and flags quality issues automatically:
-
-```text
-Batch Generation Report — Q1 Catalog
-=======================================
-Total products:     40
-Variations/product: 3
-Total generated:    120 images
-
-Quality Scores (automated rubric):
-  Passed (>= 7/10):  106 images (88.3%)
-  Flagged (< 7/10):   14 images (11.7%)
-
-Flagged breakdown:
-  Low product_visibility:  6 images (product partially occluded)
-  Low brand_consistency:   5 images (color palette drift)
-  Low composition_quality: 3 images (awkward cropping)
-
-Generation time:  52 minutes
-API cost:         $43.20 (120 images x $0.36/image)
-Storage:          2.1 GB (1024x1792 PNG)
-
-Flagged images queued for regeneration with adjusted parameters.
+const { image } = await generateImage({
+  model: vertexGlobal.image('gemini-3.1-flash-lite-image'),
+  prompt: renderedTemplate,
+  aspectRatio: '16:9',
+});
+fs.writeFileSync(file, image.uint8Array);
 ```
 
-The three variations per product give the design team options without requiring multiple prompt iterations. Flagged images get regenerated with adjusted parameters -- tighter cropping guidance for visibility issues, explicit color hex codes for palette drift.
+Gemini image models take `aspectRatio` (for example `16:9` or `4:5`), not `size` or `n`: make several images with a loop. Scoring needs a judge. A vision model as judge is quick but noisy, so use it to shortlist and have a designer confirm the top two templates. Thirty samples are enough to separate a clearly better template from a worse one; they do not prove small differences.
 
-### 4. Generate short video clips with Veo
+### 3. Generate the batch
 
-Produce 15-second product showcase videos using Vertex AI Veo, using the same tested prompt patterns adapted for video generation.
+Run the winning template over the catalog with a small script, not a one-off chat request, so failures are logged and reruns are cheap.
 
-> Generate 15-second product showcase videos for the top 10 products using Veo 3.1. Adapt the winning image prompt template for video: start with a close-up of the product, slowly pull back to reveal the lifestyle scene, end on a hero composition. Use 1080p resolution at 24fps. Generate 2 variations per product.
+> Using `prompts/winner.txt`, generate 3 variations per product in `products.json` with `gemini-3.1-flash-lite-image`, `aspectRatio: '16:9'`, at most 4 requests in flight, `maxRetries: 4`. Save to `generated_assets/<slug>/<slug>-v<n>.png`, write failures to `failed.txt`, then score the outputs with the rubric and list everything below 7 for regeneration.
 
-Video generation uses the same prompt principles validated in the image testing phase, adapted for temporal storytelling. The consistent style between still images and video clips creates a cohesive brand presence across channels.
+The script the agent writes follows this shape (a 4-worker queue; `failed.txt` holds any request that still failed after retries):
+
+```typescript
+const jobs = products.flatMap((p) => [1, 2, 3].map((n) => [p, n]));
+async function worker() {
+  for (let job = jobs.shift(); job; job = jobs.shift()) {
+    try { await render(...job); } catch (err) { failed.push(`${job[0].slug}: ${err.message}`); }
+  }
+}
+await Promise.all(Array.from({ length: 4 }, worker));
+```
+
+Check your project's Vertex AI quota and the current price per image on the Vertex AI pricing page before a large run, and do a 5-product pilot first. Regenerate low scorers with a corrective instruction (tighter crop for occluded products, the exact hex codes for palette drift) rather than rerunning the same prompt. Gemini image models can also edit: pass the source photo as a `Buffer` with an instruction such as "keep the mug unchanged, replace the background with a beach". There is no mask-based inpainting.
+
+### 4. Generate short videos with Veo
+
+> Generate an 8-second 1080p clip for each of the top 10 products with `veo-3.1-generate-001` (use `veo-3.1-fast-generate-001` for drafts). Adapt the winning template: start on a close-up of the product, pull back to reveal the scene, end on a hero composition. 16:9, 2 variations each, `pollTimeoutMs: 600000`.
+
+```typescript
+import { experimental_generateVideo as generateVideo } from 'ai';
+import { vertex } from '@ai-sdk/google-vertex'; // location from GOOGLE_VERTEX_LOCATION, e.g. us-central1
+
+const { video } = await generateVideo({
+  model: vertex.video('veo-3.1-generate-001'),
+  prompt,
+  aspectRatio: '16:9',
+  resolution: '1920x1080',
+  duration: 8,
+  providerOptions: { vertex: { generateAudio: false, pollTimeoutMs: 600000 } },
+});
+fs.writeFileSync(`${slug}.mp4`, video.uint8Array);
+```
+
+Veo 3.1 clips are 4, 6 or 8 seconds, in 16:9 or 9:16, at 720p or 1080p (with 4K output) and 24 fps. For a longer ad, generate several clips and join them in an editor. Generation is asynchronous and takes minutes per clip, so run videos as a separate job from the images. `veo-3.0-*` ids were retired on June 30, 2026; use the 3.1 ids.
 
 ## Real-World Example
 
-An e-commerce brand producing 200 lifestyle images monthly switched from agency photo shoots to this AI pipeline. The prompt testing phase took one afternoon and identified that "editorial flat-lay" templates scored 34% higher than "lifestyle scene" templates for their minimalist brand. Batch generation of 200 images through Vertex AI Imagen cost $45 in API credits and completed in 90 minutes. The design team rejected 12% of outputs (vs 8% rejection from traditional shoots), but the cost per usable image dropped from $38 to $0.26. Monthly video production went from zero (too expensive at $2,000 per clip) to 20 clips per month at $3.50 each. Total monthly content production cost dropped from $8,000 to $340, and turnaround went from 2 weeks to same-day delivery.
+A small e-commerce brand piloted this on 40 catalog products. In their own run, the testing afternoon showed that their flat-lay templates scored higher against the rubric than the in-use lifestyle templates for a minimalist brand, so they dropped the lifestyle set. They generated three variations per product, the design team approved roughly one image in two to three per product, and the rest were regenerated with corrective prompts. The team kept the rubric and template files in version control and reran the scoring whenever Google changed the model behind a model id. The video step stayed an experiment: clips went out only after a designer cut and approved them.
 
 ## Tips
 
-- Test at least 5 prompt template variants with 3 products each before committing to batch generation. A small upfront testing investment prevents regenerating hundreds of off-brand images.
-- Include explicit color hex codes from your brand guide in the prompt rather than color names. "Warm beige" is ambiguous; "#D4C5A9 background" is reproducible.
-- Generate 3 variations per asset and let the design team pick. The marginal cost of extra variations is negligible compared to the time spent iterating on prompts for a single perfect output.
-- Save the winning prompt templates in version control. When the brand guidelines update, you can diff the old and new templates to see exactly what changed.
+- Pin the model id (`gemini-3.1-flash-lite-image`, `veo-3.1-generate-001`) in the template config. Preview ids change often; check the AI SDK Vertex provider page before pinning one.
+- Put exact hex codes from the brand guide in the prompt ("#D4C5A9 background"); color names are ambiguous.
+- AI-generated product images should still match the real product. Have a person check shape, logo and color against the item before publishing, and follow your marketplace's disclosure rules for generated imagery.
+- Authenticate with `gcloud auth application-default login` (or a service account on a server) and set `GOOGLE_VERTEX_PROJECT` and `GOOGLE_VERTEX_LOCATION` (the variables the AI SDK Vertex provider reads); never put credentials in the prompt files.
+
+## Related Skills
+
+- [vertex-media-generation](/skills/vertex-media-generation) — generates and edits images with Gemini image models and videos with Veo 3.1 through the AI SDK Vertex provider
+- [prompt-tester](/skills/prompt-tester) — defines the rubric and test set, runs the template variants and compares scores before the batch
