@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:373ab52d6a88139ff8cc654638a3a365b305b5d96936fff9c28765cae64276d3",
+  "scoredAt": "2026-11-06T22:51:12.068Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases such as missing plugins or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory sections that could be trimmed for brevity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored to React and Node.js environments and does not support other AI agent platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.76,
+    "baselineAvg": 17,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "markdown-export-button",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses incorrect imports and plugin names, missing key rubric items."
+      },
+      {
+        "name": "yjs-collaboration-setup",
+        "baseline": 0,
+        "treatment": 95,
+        "rationale": "Response A meets all rubric requirements; Response B is empty."
+      },
+      {
+        "name": "migrate-h1-to-h2-script",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the specified requirements."
+      }
+    ]
+  }
+}
