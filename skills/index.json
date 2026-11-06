@@ -932,6 +932,19 @@
       ]
     },
     {
+      "name": "astrbot",
+      "slug": "astrbot",
+      "description": "AstrBot is a self-hosted AI chatbot platform that connects one LLM assistant to messaging apps such as Discord, Slack, Telegram, LINE and Mattermost, with a web panel for providers, platforms and plugins. Use this skill to install it with uv or Docker, keep the panel on localhost, set the admin password, reset it, script settings with `astrbot conf`, manage plugins, or point it at a local Ollama model. Trigger phrases: \"self-hosted chatbot for Discord and Slack\", \"deploy AstrBot\", \"AstrBot dashboard password\", \"run an LLM bot without writing code\".",
+      "category": "automation",
+      "tags": [
+        "chatbot",
+        "self-hosted",
+        "discord",
+        "slack",
+        "llm"
+      ]
+    },
+    {
       "name": "astro",
       "slug": "astro",
       "description": "Assists with building content-driven websites using Astro's island architecture. Use when creating static sites, blogs, documentation, or marketing pages that ship zero JavaScript by default. Trigger words: astro, static site, island architecture, content collections, SSG, hybrid rendering, astro components.",
@@ -4637,6 +4650,19 @@
       ]
     },
     {
+      "name": "freqtrade",
+      "slug": "freqtrade",
+      "description": "Freqtrade is a free, open-source crypto trading bot written in Python: you write a strategy class, download exchange candles, backtest it, then run it in dry-run mode (simulated orders) before risking money. Use when a user says \"backtest a crypto strategy\", \"download historical candles for freqtrade\", \"write a freqtrade strategy\", \"run a trading bot in dry-run\", or \"set up FreqUI\". Not financial advice: strategies usually lose money, and live trading can lose all of it. This skill defaults to dry-run and never handles exchange keys.",
+      "category": "data-ai",
+      "tags": [
+        "freqtrade",
+        "crypto",
+        "trading-bot",
+        "backtesting",
+        "python"
+      ]
+    },
+    {
       "name": "frontend-design",
       "slug": "frontend-design",
       "description": "Expert frontend design guidelines for creating beautiful, modern UIs. Use when a user asks to design a landing page, create a dashboard layout, build a modern UI, style a web application, design a hero section, create a responsive layout, implement frontend design patterns, or improve AI-generated UI quality with design-system-level controls.",
@@ -5058,6 +5084,19 @@
         "graph-rag",
         "mcp",
         "ai-agents"
+      ]
+    },
+    {
+      "name": "glance",
+      "slug": "glance",
+      "description": "Glance is a lightweight self-hosted dashboard that shows RSS feeds, Hacker News, Reddit, release trackers, service uptime and more on one page, configured entirely in YAML. Use this skill to install the single Go binary or Docker image, write and validate glance.yml, add password authentication, wire widgets such as rss, monitor and releases, and keep secrets in environment variables. Triggers: \"self-hosted start page\", \"RSS dashboard\", \"glance.yml\", \"homelab dashboard\", \"show all my feeds on one page\".",
+      "category": "productivity",
+      "tags": [
+        "glance",
+        "dashboard",
+        "rss",
+        "self-hosted",
+        "yaml"
       ]
     },
     {
@@ -6212,6 +6251,32 @@
         "distributed-tracing",
         "opentelemetry",
         "observability"
+      ]
+    },
+    {
+      "name": "jan",
+      "slug": "jan",
+      "description": "Jan is an open-source desktop app that runs LLMs on your own computer and serves them through an OpenAI- and Anthropic-compatible local API. Use this skill to install Jan, start and secure its Local API Server (127.0.0.1:1337), call it from curl or the OpenAI SDK, and inspect its model and thread files in the data folder. It also marks which steps are GUI-only. Trigger phrases: \"run a local model with Jan\", \"Jan local API server\", \"ChatGPT alternative that runs offline\", \"point my app at Jan\".",
+      "category": "data-ai",
+      "tags": [
+        "local-llm",
+        "desktop-app",
+        "openai-compatible",
+        "privacy",
+        "gguf"
+      ]
+    },
+    {
+      "name": "jellyfin",
+      "slug": "jellyfin",
+      "description": "Jellyfin is a free, open-source media server that streams a personal library of movies, shows, music and books to browsers, TVs and phones, with a REST API for automation. Use this skill to deploy Jellyfin with Docker Compose, finish the startup wizard through the API, create API keys, add libraries, trigger scans and list or search items from scripts. Triggers: \"self-host a media server\", \"Plex alternative\", \"jellyfin docker compose\", \"jellyfin API key\", \"scan jellyfin library\", \"stream my movie collection at home\".",
+      "category": "devops",
+      "tags": [
+        "jellyfin",
+        "media-server",
+        "self-hosted",
+        "docker-compose",
+        "rest-api"
       ]
     },
     {
@@ -7631,6 +7696,19 @@
         "personalization",
         "rag",
         "long-term-memory"
+      ]
+    },
+    {
+      "name": "memos",
+      "slug": "memos",
+      "description": "Memos is a self-hosted note-taking service: a private timeline of short Markdown notes with tags, search and a REST API, stored in one SQLite file. Use this skill to deploy Memos with Docker, create the first user, mint an access token and write or query notes from scripts and agents. Trigger phrases: \"self-host a notes app\", \"quick capture timeline\", \"memos api\", \"post notes to memos\", \"back up memos\", \"upgrade memos\".",
+      "category": "productivity",
+      "tags": [
+        "memos",
+        "note-taking",
+        "self-hosted",
+        "markdown",
+        "rest-api"
       ]
     },
     {
@@ -9330,6 +9408,19 @@
       ]
     },
     {
+      "name": "pake",
+      "slug": "pake",
+      "description": "Pake packages a website or a static web build into a small native desktop app (typically under 10 MB) using Tauri and the system WebView instead of a bundled Chromium. Use when the user says \"turn this website into a desktop app\", \"wrap a web app as a Mac/Windows/Linux app\", \"package ./dist as an installer\", \"make an Electron alternative for a web tool\", or wants a dedicated window for a web service. Covers the pake-cli flags, JSON output for automation, declarative config files, and build targets.",
+      "category": "development",
+      "tags": [
+        "pake",
+        "tauri",
+        "desktop-app",
+        "webview",
+        "packaging"
+      ]
+    },
+    {
       "name": "pandas",
       "slug": "pandas",
       "description": "Assists with loading, cleaning, transforming, and analyzing tabular data using pandas. Use when importing CSV/Excel/SQL data, handling missing values, performing groupby aggregations, merging datasets, working with time series, or building analysis-ready datasets. Trigger words: pandas, dataframe, csv, groupby, merge, time series, data cleaning.",
@@ -9767,6 +9858,19 @@
         "react",
         "typescript",
         "manifest-v3"
+      ]
+    },
+    {
+      "name": "plate",
+      "slug": "plate",
+      "description": "Plate is a plugin-based rich-text editor framework for React, built on Slate, with optional shadcn/ui components, Markdown import/export and Yjs real-time collaboration. Use it when a user asks to \"add a rich text editor to a React app\", \"build a Notion-style editor with Plate\", \"serialize Plate content to Markdown\", \"add collaboration to a Plate editor\", or \"migrate from @udecode/plate-* to platejs\". Covers the current platejs and @platejs/* packages, not the pre-v49 @udecode/plate-* ones.",
+      "category": "development",
+      "tags": [
+        "rich-text",
+        "editor",
+        "slate",
+        "react",
+        "collaboration"
       ]
     },
     {
@@ -11358,6 +11462,19 @@
       ]
     },
     {
+      "name": "screenshot-to-code",
+      "slug": "screenshot-to-code",
+      "description": "screenshot-to-code is a self-hosted web app that turns a screenshot, mockup or short screen recording into HTML, Tailwind, React, Vue, Bootstrap or Ionic code using a multimodal LLM. Use it when a user asks to \"turn this screenshot into code\", \"clone this UI from an image\", \"run screenshot-to-code locally\", \"self-host a screenshot to HTML tool\", or \"generate a React component from a mockup\". It needs an OpenAI, Anthropic or Gemini API key that the user supplies; the skill covers setup, configuration and scripting the backend.",
+      "category": "development",
+      "tags": [
+        "screenshot-to-code",
+        "design-to-code",
+        "tailwind",
+        "react",
+        "llm"
+      ]
+    },
+    {
       "name": "search-engine-setup",
       "slug": "search-engine-setup",
       "description": "Sets up and optimizes search engines for applications. Use when someone asks to \"add search to my app\", \"set up Elasticsearch\", \"configure Algolia\", \"fix search relevance\", \"add autocomplete\", \"fuzzy search\", or \"faceted filtering\". Covers index design, data sync, search API, autocomplete, relevance tuning, and query analysis.",
@@ -12325,6 +12442,19 @@
         "business-intelligence",
         "dashboards",
         "docker"
+      ]
+    },
+    {
+      "name": "supervision",
+      "slug": "supervision",
+      "description": "Supervision is a Python library of reusable computer-vision utilities: it wraps detection results in one Detections object, draws boxes, labels, masks and heat maps on frames, counts objects in zones or across lines, runs video through a callback, and converts datasets between YOLO and COCO formats. Use when a user says \"annotate detections on a video\", \"count people crossing a line\", \"count objects in a polygon zone\", \"slice a large image for small-object detection\", or \"convert my COCO dataset to YOLO\". It does not ship a model or a tracker.",
+      "category": "data-ai",
+      "tags": [
+        "computer-vision",
+        "object-detection",
+        "video-analytics",
+        "annotation",
+        "datasets"
       ]
     },
     {
@@ -13856,6 +13986,19 @@
       ]
     },
     {
+      "name": "vikunja",
+      "slug": "vikunja",
+      "description": "Vikunja is a self-hosted to-do and project management app with lists, kanban and gantt views, labels, assignees and a full REST API, shipped as one Go binary or Docker image. Use this skill to deploy Vikunja, register a user, create a scoped API token and manage projects and tasks from scripts or agents. Trigger phrases: \"self-host a todo app\", \"vikunja api\", \"create tasks in vikunja\", \"replace a hosted task tracker\", \"back up vikunja\", \"import tasks\".",
+      "category": "productivity",
+      "tags": [
+        "vikunja",
+        "todo",
+        "project-management",
+        "self-hosted",
+        "rest-api"
+      ]
+    },
+    {
       "name": "vinxi",
       "slug": "vinxi",
       "description": "Vinxi is a JavaScript SDK for composing full-stack apps and meta-frameworks from routers (static, http, spa, client) on top of Vite and Nitro. Use when maintaining an app or framework already built on Vinxi, or when a user asks how Vinxi routers, createApp and the vinxi CLI work. Note that SolidStart 2 and current TanStack Start no longer use it.",
@@ -14681,5 +14824,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-07T11:50:00.692Z"
+  "updatedAt": "2026-11-07T11:50:13.597Z"
 }
