@@ -11,138 +11,98 @@ tags: [pricing, saas, conversion, optimization, competitor-analysis]
 
 ## The Problem
 
-Marta is head of product at a 20-person SaaS startup selling a developer tool. Their pricing page converts at 2.1% -- well below the industry benchmark of 3-5% for SaaS products. The page has not been updated in six months. The tiers were set during the launch, based on what "felt right," and nobody has revisited them since.
+Marta is head of product at a 20-person SaaS startup selling a developer tool. Their pricing page converts 2.1% of visitors to a paid checkout. The page has not been updated in six months, and the tiers were set at launch based on what "felt right".
 
-The problem is that optimizing a pricing page well requires three different types of work at once: competitive intelligence (what are similar tools charging?), conversion rate optimization (what elements help or hurt?), and pricing psychology (how do tiers, anchoring, and feature gating affect decisions?). A product manager might spend two weeks on this research, and still not know if the new page actually performs better.
-
-Meanwhile, every day the page converts at 2.1% instead of 4% is revenue walking out the door. With 3,000 monthly visitors to the pricing page, a 2% improvement means 60 additional conversions per month. At their average contract value, that is over $100,000 in annual revenue sitting behind a page design problem.
-
-Marta has tried updating the page once before -- the design team tweaked colors and copy, but without data on what was actually wrong, the changes were cosmetic. Conversion stayed flat. This time, she wants to start with evidence: what specifically is broken, how do competitors handle it, and what does the research say about pricing psychology for developer tools.
+Optimizing a pricing page needs three kinds of work at once: competitive intelligence (what do similar tools charge, and for what?), conversion audit (what on the page helps or hurts?), and packaging (how do tiers, limits and feature gating steer the decision?). Marta tried once before: the design team changed colors and copy without data on what was wrong, and conversion stayed flat. This time she wants evidence first, and she wants to know up front whether her traffic can even measure the result.
 
 ## The Solution
 
-Use **pricing-strategy** to analyze current tiers and positioning, **page-cro** to audit conversion elements, **competitor-alternatives** to benchmark against similar products, and **web-research** to gather pricing psychology best practices. The workflow produces a complete pricing page specification -- not just "change X" recommendations, but the actual tier structure, copy, feature allocation, and A/B test parameters ready for implementation.
+Use **page-cro** to audit the page from the visitor's side, **pricing-strategy** to find the weak lever and propose packaging, **competitor-alternatives** (its sourced, dated claims ledger) and **web-research** to collect competitor pricing from public pages, and again **page-cro** to size a test for the traffic. The output is a pricing page specification with tiers, copy and test parameters, in which every change is tied to evidence.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Audit the Current Pricing Page
+### Step 1: Audit the Current Page
 
-Start by giving the agent your actual pricing page URL. A thorough audit evaluates six dimensions: tier structure and naming, feature presentation and packaging, calls to action, social proof placement, conversion friction points, and pricing psychology elements (anchoring, defaults, scarcity).
-
-```text
-Analyze our pricing page at https://app.example.com/pricing. Evaluate the tier structure, feature presentation, CTAs, and any conversion friction. Compare against SaaS pricing best practices.
-```
-
-The audit surfaces seven issues, ranked by likely impact on conversions:
-
-| Priority | Issue | Why It Matters |
-|---|---|---|
-| Critical | No free tier or trial CTA | 68% of top SaaS products offer a free entry point |
-| High | Feature comparison table has 24 rows | Cognitive overload -- best practice is 8-12 key features |
-| High | Enterprise tier says "Contact Sales" with no price anchor | Missing a starting price reduces conversions by ~30% |
-| Medium | Monthly/annual toggle defaults to monthly | Defaulting to annual with a savings badge increases annual signups |
-| Medium | No social proof near pricing | Missing customer count, logos, or testimonials |
-| Low | All CTAs say "Get Started" | Differentiating CTAs per tier ("Start Free" vs. "Start Trial" vs. "Talk to Sales") improves click-through |
-| Low | No FAQ section | Pricing pages with FAQ have 12% lower bounce rates |
-
-The 24-row feature table is a particularly common mistake. Users do not compare 24 features -- they scan for the 3-4 that matter to them and give up if they cannot find them quickly. Session recordings (via Hotjar or similar) typically show users scrolling the feature table for 8-10 seconds before bouncing. Collapsing to 8-12 key differentiators with an expandable "See all features" section keeps the page scannable while still making the detailed comparison available for the 15% of visitors who want it.
-
-The missing free tier is the critical issue. For developer tools especially, engineers want to try before they buy. A "Start Free" button removes the biggest psychological barrier on the page.
-
-### Step 2: Research Competitor Pricing
-
-The audit identifies what is wrong with the current page. Competitor research answers the harder question: what should the replacement look like?
-
-Pricing does not exist in a vacuum. By the time someone reaches your pricing page, they have probably already looked at 2-3 competitors. Your tiers, features, and price points are evaluated relative to what they saw five minutes ago.
+Give the agent the real page URL and your analytics, not only a request for "best practices". The `page-cro` skill measures first (conversion by device and traffic source, field speed data) and then reads the page the way a visitor does, separating defects from hypotheses.
 
 ```text
-Find 5 direct competitors in the project management SaaS space and compare their pricing tiers, feature packaging, and price points against ours.
+Audit our pricing page at https://app.example.com/pricing. Pull conversion by device and source from the analytics export in ./analytics/, check speed and accessibility, then walk the page as a visitor deciding between tiers. Rank the findings and say which are defects and which are hypotheses.
 ```
 
-The competitive landscape reveals a positioning problem. Here is how the pricing stacks up across four competitors:
+A typical result for a page like Marta's, with the example team's data:
 
-| Feature | You ($29/$79/$199) | Comp A ($12/$25/$59) | Comp B (Free/$15/$49) | Comp C ($19/$49/$99) |
+| Priority | Finding | Kind | Evidence |
+|---|---|---|---|
+| High | Mobile converts at 0.9% vs 3.4% on desktop; the comparison table overflows the screen | Defect | analytics segments, screenshot at 390 px |
+| High | 24-row feature table; the three limits that decide the plan (projects, users, API) are on rows 9, 14 and 21 | Hypothesis | scroll-depth data |
+| High | API access is only in the Enterprise tier, while the docs push the API to every visitor | Hypothesis | docs-to-pricing clickstream |
+| Medium | Enterprise says "Contact Sales" with no price or range | Hypothesis | sales call notes |
+| Medium | Billing toggle defaults to monthly and no annual price is shown up front | Hypothesis | plan mix in billing data |
+| Low | Every tier button reads "Get Started" | Hypothesis | none yet |
+
+The skill's rule applies here: a defect (broken layout, slow load) is fixed without a test, while a hypothesis (collapse the table, move API access) is a candidate for a test. Industry "benchmark" conversion rates from other companies are not a target; the useful comparison is this page against itself, by segment and over time.
+
+### Step 2: Build a Dated Competitor Pricing Ledger
+
+Pricing does not exist in a vacuum: visitors compare your tiers with the tools they saw five minutes earlier. The `competitor-alternatives` skill keeps a ledger of facts, each with a source URL and the date it was read, so nothing on the page rests on memory. `web-research` gathers the sources.
+
+```text
+Find 5 direct competitors of our developer tool. For each, record from its public pricing page: tier names, monthly and annual price, what limits each tier (seats, projects, API), whether there is a free plan or trial, and the page URL and date read. Mark anything you could not confirm as unverified.
+```
+
+The ledger feeds a comparison like this one. These competitor names and prices are invented for the example:
+
+| | You ($29 / $79 / $199) | Comp A ($12 / $25 / $59) | Comp B (Free / $15 / $49) | Comp C ($19 / $49 / $99) |
 |---|---|---|---|---|
-| Free tier | No | No | Yes (3 users) | No |
+| Free plan | No | No | Yes (3 users) | No |
 | Seat pricing | Flat per tier | Per user | Per user | Flat per tier |
-| API access | Enterprise only | All paid tiers | Pro+ | All paid tiers |
-| Annual discount | None shown | 20% | 17% | 25% |
+| API access | Enterprise only | All paid tiers | Pro and up | All paid tiers |
+| Annual discount | Not shown | 20% | 17% | 25% |
 
-Two findings stand out. First, the mid-tier at $79 is 58% higher than the competitor average of $46. That is not inherently bad if the value justification is obvious -- but with a 24-row feature table, the justification is buried in noise. Second, gating API access to the Enterprise tier is unusual: 3 of 4 competitors include it in their mid-tier. For a developer tool, API access is not a luxury feature -- it is table stakes. Gating it to Enterprise pushes developers to competitors who give it away.
+What the comparison supports: the $79 middle tier is about 2.7 times the competitors' middle tiers ($25, $15 and $49 average about $30), and the table makes the justification hard to find. Three of four competitors include API access below their top tier, which matters for a developer tool. Flat-per-tier pricing is shared by only one competitor and is worth stating plainly on the page. Competitor prices change, so re-read the ledger before every release of the page.
 
-The missing annual discount is also notable. Three of four competitors prominently display annual savings. Annual billing improves cash flow and reduces churn -- users who pay annually are less likely to cancel month-to-month because they have already committed for the year. Not showing the option leaves money on the table in both directions: less cash upfront and higher monthly churn.
+### Step 3: Generate the Pricing Page Spec
 
-One positive finding: the flat-per-tier pricing model (rather than per-user) is actually a differentiator. Only one competitor uses the same model. Per-user pricing creates anxiety for growing teams ("every new hire costs us more"). Flat pricing removes that friction and should be highlighted as a selling point.
-
-### Step 3: Generate an Optimized Pricing Page Spec
-
-With audit issues identified and competitor positioning mapped, the next step is designing the replacement. Not just "change the price" -- the full spec covers tier names, price points, feature allocation per tier, CTA copy, and the rationale for each decision.
+With the audit and ledger in hand, `pricing-strategy` works from the weak lever rather than from a template: which unit to charge for, where the plan limits fall, and where each price sits. It also models the change before proposing it, including what happens to existing customers on the old tiers (grandfather or migrate, with notice).
 
 ```text
-Based on the audit and competitor research, propose a new pricing structure with copy for each tier, feature allocation, and CTA text. Include the rationale for each change.
+Using the audit and the competitor ledger, propose a tier structure with names, prices, limits, CTA text and the reason for each change. Model revenue under a pessimistic and an expected plan mix, list the assumptions, and say what happens to current customers.
 ```
 
-The restructured pricing addresses all seven audit findings. It adds a free tier, repositions the mid-tier as the obvious choice, and moves API access out of the Enterprise gate:
+An example specification:
 
-**Free ($0)** -- "Get started with 2 projects"
+- **Free ($0)**: 2 projects, 1 user, community support. CTA "Start Free". Gives developers a way to try the API; the project limit is the upgrade trigger. This is a hypothesis: if the sales funnel shows buyers already trial the product through the docs sandbox, a time-limited trial may fit better.
+- **Starter ($19 / month)**: 10 projects, 5 users, API access, email support. CTA "Start 14-Day Trial". API access moves down from Enterprise.
+- **Pro ($49 / month)**, marked recommended: unlimited projects, 25 users, priority support, advanced analytics.
+- **Enterprise (custom)**: SSO/SAML, audit logs, SLA. CTA "Talk to Sales", with a "from $199 / month" line so prospects know the range before the call.
 
-- 2 projects, 1 user, community support
-- CTA: "Start Free"
-- Rationale: removes the biggest conversion barrier. 68% of top SaaS products offer a free entry point. The limit of 2 projects gives users enough room to evaluate but creates natural upgrade pressure.
+Page-level changes: the annual price is shown beside the monthly one with the saving stated as months free; the table shrinks to the 8 to 12 rows that separate the tiers, with a "See all features" expander; the layout is fixed for phones; a short FAQ answers plan switching, limit behavior and refunds (state only policies the company really has).
 
-**Starter ($19/month)** -- "For individuals and small teams"
+### Step 4: Plan the Test for the Traffic You Have
 
-- 10 projects, 5 users, API access, email support
-- CTA: "Start 14-Day Trial"
-- Rationale: $19 is 34% below the competitor mid-tier average, positioning as accessible. API access moves down from Enterprise -- critical for a developer tool where API access is table stakes, not a premium feature.
+`page-cro` ends with a check that most redesigns skip: whether the page has enough traffic to test at all. Marta has 3,000 visitors a month. For a two-sided test at 95% confidence and 80% power (the standard two-proportion sample-size formula, computed here with Python's `statistics.NormalDist`):
 
-**Pro ($49/month)** -- "Everything you need to scale" (highlighted as recommended)
+| Baseline | Lift to detect | Visitors needed per arm | At 3,000 visitors / month, 50/50 split |
+|---|---|---|---|
+| 2.1% | 3.1% (+1.0 point) | about 3,970 | about 2.6 months |
+| 2.1% | 4.2% (doubling) | about 1,085 | about 3 weeks |
 
-- Unlimited projects, 25 users, priority support, advanced analytics
-- CTA: "Start 14-Day Trial"
-- Rationale: anchored between $19 and custom pricing, the "recommended" badge and feature set make it the obvious choice. The jump from 5 to 25 users means growing teams upgrade naturally without friction.
+You can check any other pair with the same formula or a sample-size calculator such as <https://www.evanmiller.org/ab-testing/sample-size.html>. The consequence: 1,000 visitors per arm (about 21 conversions each) cannot tell a real +1 point from noise. So the plan is:
 
-**Enterprise (Custom)** -- "For organizations with advanced needs"
-
-- Unlimited everything, SSO, SAML, audit logs, dedicated support, SLA
-- CTA: "Talk to Sales" with "Starting at $199/month" anchor text
-- Rationale: the starting price anchor sets expectations before the sales call. Prospects who know the ballpark before clicking "Talk to Sales" are higher-intent leads and convert to closed deals at a higher rate than those who enter the conversation with no price context.
-
-The annual toggle defaults to annual billing with a "Save 20%" badge. The feature table collapses to 10 rows with an expandable "See all features" section. Social proof (customer logos, user count) sits directly above the pricing cards.
-
-A FAQ section addresses the objections that kill conversions silently: "Can I switch plans later?" (yes, prorated), "What happens when I hit the project limit?" (upgrade prompt, not a hard block), "Do you offer refunds?" (30-day, no questions). These questions seem basic, but unanswered objections are the top reason visitors leave a pricing page without converting. Every FAQ answer that is not on the page is a question that goes to the sales team -- or more likely, a visitor who silently bounces.
-
-The complete spec is ready for the design team: tier cards with copy, a feature comparison table with 10 rows, the FAQ section, and social proof placement. No ambiguity about what to build.
-
-### Step 4: Plan the A/B Test
-
-This is where most pricing redesigns go wrong. Teams spend weeks crafting the perfect page and then roll it out to 100% of traffic with no way to measure whether it actually performs better. The new pricing structure is a hypothesis, not a conclusion. Rolling it out to 100% of traffic without measurement risks breaking what currently works -- and you would never know why revenue dipped. The spec includes A/B test parameters:
-
-- **Control**: current page (3 tiers, no free, 24-row feature table)
-- **Variant**: new page (4 tiers, free entry, 10-row table, annual default)
-- **Primary metric**: pricing page to checkout conversion rate
-- **Secondary metrics**: plan distribution (watch for mid-tier cannibalization), annual vs. monthly split
-- **Traffic split**: 50/50
-- **Minimum sample**: 1,000 visitors per variant (roughly 2 weeks at current traffic)
-- **Duration**: minimum 2 full weeks to account for day-of-week variation
-- **Guardrail**: if average revenue per conversion drops below 85% of control, auto-pause
-
-Testing one variable at a time would take months. The compound test is acceptable here because the conversion gap (2.1% vs. 3-5% benchmark) is wide enough that even a directionally correct change is an improvement. If the variant wins, follow-up tests can isolate which specific changes drove the lift.
-
-One thing to watch carefully: revenue per conversion, not just conversion rate. A free tier can inflate conversion numbers while decreasing average revenue -- you could celebrate a 5% conversion rate that generates less revenue than the 2.1% rate it replaced. The guardrail metric catches this -- if average revenue per conversion drops below 85% of control, the test auto-pauses before it costs real money.
-
-Plan distribution is the other metric to monitor closely. If 80% of conversions go to the Free tier and only 5% reach Pro, the feature allocation between tiers needs adjustment. The goal is not to maximize Free signups -- it is to make Pro the obvious choice for anyone with serious usage.
+- **Fix defects now, without a test**: the phone layout and the table overflow.
+- **Run one compound test for about 2 to 3 months**, with the sample size, primary metric and end date fixed in advance, full weeks only, and no early stopping when the dashboard turns green. It tells you whether the new package beats the old one, not which change did it.
+- **Primary metric**: paid checkouts per pricing-page visitor. **Also track** free signups, revenue per paid conversion, plan mix and annual share. A free tier can raise signups while lowering revenue per visitor, so pause the test if revenue per paid conversion falls below an agreed floor (for example 85% of control).
+- **If waiting that long is not acceptable**, drop the test and decide from interviews with recent buyers, lost deals and plan-mix changes over the next two quarters; say so in the report rather than reading a two-week result as proof.
 
 ## Real-World Example
 
-Marta implements the new pricing page as an A/B test. She keeps the old page as the control and routes 50% of traffic to the new design. The guardrail metric (revenue per conversion) stays healthy throughout the test -- the free tier adds volume without diluting value. Within two weeks, the variant outperforms control on both conversion rate and revenue per visitor. The "Pro" tier, repositioned as the obvious choice at $49 with the "recommended" badge, captures 52% of new signups -- up from 31% on the old $79 mid-tier.
+Marta fixes the phone layout first, which can be seen directly in the mobile segment. She ships the new tiers as a 50/50 test, with the end date set twelve weeks out, from the sample-size table (about 2.6 months of traffic). In this example, the variant ends ahead on paid checkouts per visitor, the Pro tier takes a larger share of new signups than the old $79 tier did, and revenue per paid conversion stays above the floor. Those figures belong to the invented team, and a real result may be flat or negative; the point of the process is that the page either earned the change or did not. Existing customers stay on their old prices for twelve months with written notice, following the migration plan the `pricing-strategy` skill produces.
 
-The free tier does not cannibalize paid signups -- this was Marta's biggest fear. Instead, it creates a pipeline: 23% of free users upgrade to Starter within 30 days, and 8% of those move to Pro within 90 days. Free users who convert have 40% lower churn than users who started on a paid plan, likely because they had time to build habits before committing.
+Marta keeps the evidence together: the audit, the dated ledger, the model with its assumptions, and the test record. The next pricing review starts from plan-mix and conversion data by tier instead of from a blank page.
 
-The API access change is particularly impactful for a developer tool. Three customers specifically cite it in onboarding surveys as the reason they chose Starter over a competitor. Gating a must-have feature to the highest tier does not create Enterprise demand -- it creates competitor demand.
+## Related Skills
 
-Pricing page conversion climbs from 2.1% to 3.8% within six weeks -- comfortably within the 3-5% industry benchmark. Annual signups jump from 18% to 41% thanks to the default toggle and savings badge. The collapsed feature table reduces time-on-page from 4.2 minutes to 2.1 minutes -- but the conversion rate goes up, confirming that visitors were previously overwhelmed, not engaged.
-
-The quarterly impact: at 3,000 monthly pricing page visitors, the 1.7 percentage point improvement in conversion means roughly 51 additional conversions per month. With an average contract value weighted toward the $49 Pro tier, that translates to approximately $30,000 in additional annual revenue -- from one afternoon of research and analysis, not two weeks of guesswork.
-
-More importantly, the team now has a repeatable process. The next pricing review (planned for Q3) will start with 3 months of plan distribution data and conversion metrics by tier, making the second iteration faster and more precise than the first. Pricing optimization is not a one-time project -- it is a quarterly discipline that compounds over time.
+- **pricing-strategy**: finds the weak lever, packages the tiers, models revenue and plans the customer migration
+- **page-cro**: audits the page by segment, separates defects from hypotheses and sizes the test for the traffic
+- **competitor-alternatives**: keeps the competitor pricing facts in a sourced, dated ledger
+- **web-research**: collects the competitor pricing pages and sources for the ledger
