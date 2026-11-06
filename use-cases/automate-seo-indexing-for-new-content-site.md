@@ -1,7 +1,7 @@
 ---
 title: "Automate SEO Indexing and Content Publishing for a New Website"
 slug: automate-seo-indexing-for-new-content-site
-description: "Accelerate Google indexing of new pages by combining automated sitemap generation, index submission, and content scaffolding."
+description: "Get a new site's pages into Google faster by auditing crawlability, publishing a clean sitemap, notifying Bing and Yandex with IndexNow, and tracking real indexing status."
 skills:
   - google-indexing
   - web-scraper
@@ -18,71 +18,83 @@ tags:
 
 ## The Problem
 
-A startup just launched a documentation site with 200 pages. After two weeks, Google has only indexed 34 of them. The remaining 166 pages are invisible to search traffic, which means the company is missing out on organic visitors who are searching for exactly the topics those pages cover. Manually submitting URLs through Google Search Console one at a time is tedious, and the team has no way to verify which pages are actually indexed versus stuck in a crawl queue. Meanwhile, competitors with established domains rank for the same keywords because their content has been indexed for months.
+A startup just launched a documentation site with 200 pages. After two weeks, Google has only indexed 34 of them. The remaining 166 pages are invisible to search traffic. Submitting URLs through Search Console one at a time is tedious, and the team has no way to verify which pages are indexed and which are stuck in a crawl queue. Many of these pages are not blocked by a missing submission at all: they carry a stray `noindex`, share duplicate titles, or have almost no content.
 
 ## The Solution
 
-Using **google-indexing** to submit URLs to Google's Indexing API in bulk, **web-scraper** to audit the live site for crawlability issues, and **markdown-new** to scaffold SEO-optimized content pages with proper frontmatter and meta tags, the team gets 95% of their pages indexed within 72 hours.
+Google documents its Indexing API only for pages with `JobPosting` structured data or `BroadcastEvent` livestream markup. A docs site is not eligible, so bulk API submission is not the lever. What works for ordinary pages:
+
+1. **web-scraper** audits the live site for what keeps pages out of the index.
+2. **markdown-new** turns pages into clean Markdown so thin or badly structured content is easy to spot and fix.
+3. A complete XML sitemap, submitted in Search Console, is Google's supported route for a whole site.
+4. **IndexNow** notifies Bing, Yandex and the other participating engines on every change (Google is not among them).
+5. **google-indexing** is used for the pages that qualify (job or livestream pages, if the site has any), and its status check shows what Google last received.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Audit the site for crawlability issues
 
-Crawl the live site to identify pages that are blocking indexing due to missing meta tags, broken links, or incorrect robots directives.
+> Use web-scraper to crawl https://docs.example.com, starting from its sitemap, at no more than 2 requests per second and honouring robots.txt. For each page extract: title tag, meta description, canonical URL, meta robots, X-Robots-Tag header, internal links, HTTP status and word count. Flag pages with noindex, a canonical pointing elsewhere, duplicate titles, missing descriptions, broken internal links, or fewer than 150 words. Write the result to reports/crawl_audit.csv.
 
-> Use web-scraper to crawl https://docs.example.com and audit all 200 pages. For each page, extract: title tag, meta description, canonical URL, robots meta tag, internal links, response code, and page load time. Flag pages that have noindex tags, duplicate titles, missing meta descriptions, or broken internal links. Output the audit to /reports/crawl_audit.csv.
+Typical causes of "Crawled, currently not indexed" and "Discovered, currently not indexed" are exactly these findings, plus pages with no internal links pointing at them.
 
-### 2. Fix issues and scaffold missing content pages
+### 2. Fix thin or malformed pages
 
-Generate properly structured markdown pages for any gaps found in the site's topic coverage.
+> Use markdown-new to convert the 30 flagged pages to Markdown and list, for each, the heading outline (one H1, then H2/H3), the word count and the internal links. For pages with a broken outline or thin content, rewrite them in /content/docs/ with front matter (title, description of about 150 characters, date), a single H1, links to related pages, and a short FAQ drawn from real support questions.
 
-> Use markdown-new to create 15 new documentation pages for topics identified as gaps in our coverage. Each page should have YAML frontmatter with title, description (under 160 characters for meta), date, and category. Include proper heading hierarchy (single H1, H2 for sections, H3 for subsections), internal links to related existing pages, and a FAQ section targeting long-tail search queries. Save to /content/docs/.
+`markdown-new` reads public pages through the hosted markdown.new service, so use it only on pages that are already live and public. It does not generate content; the rewriting is the agent's job.
 
-### 3. Submit all URLs to Google for indexing
+### 3. Publish a sitemap and submit it
 
-Use the Indexing API to notify Google about all new and updated pages in bulk.
-
-> Use google-indexing to submit all 215 page URLs (200 existing plus 15 new) to the Google Indexing API. Submit in batches of 50 with a 2-second delay between batches to respect rate limits. For pages that were updated after the crawl audit fixes, use the URL_UPDATED notification type. For new pages, use URL_UPDATED as well. Log each submission response to /reports/indexing_log.csv with timestamp, URL, and API response status.
-
-The indexing submission log captures the API response for each URL, making it easy to identify failures:
+Generate `sitemap.xml` from the real list of canonical, indexable URLs (a single file holds at most 50,000 URLs or 50 MB uncompressed), reference it from `robots.txt`, and submit it in Search Console under Sitemaps:
 
 ```text
-google-indexing submit --urls /reports/all_urls.txt --batch-size 50 --delay 2s
+User-agent: *
+Allow: /
 
-Batch 1/5: 50 URLs submitted
-  [200] https://docs.example.com/getting-started
-  [200] https://docs.example.com/api/authentication
-  [200] https://docs.example.com/guides/deployment
-  ...
-Batch 2/5: 50 URLs submitted
-  [200] https://docs.example.com/api/webhooks
-  [429] https://docs.example.com/api/rate-limits   (rate limited, queued for retry)
-  ...
-Batch 5/5: 15 URLs submitted (final batch)
-
-Summary:
-  Submitted:    215 URLs
-  Accepted:     212 (200 OK)
-  Rate limited:   3 (429, auto-retried after 60s, all succeeded)
-  Errors:         0
-  Log saved:    /reports/indexing_log.csv
+Sitemap: https://docs.example.com/sitemap.xml
 ```
 
-The three rate-limited URLs were automatically retried after a 60-second backoff. All 215 URLs were accepted by the Indexing API on the first run.
+Keep `<lastmod>` truthful: Google uses it only when it has proven accurate. For one or two important pages, use the URL Inspection tool's "Request indexing"; Google limits these requests with a quota, so it is not a bulk tool.
 
-### 4. Monitor indexing progress and resubmit failures
+### 4. Notify IndexNow engines
 
-Track which pages get indexed and resubmit any that remain unindexed after 48 hours.
+IndexNow requires a key (8 to 128 characters: letters, digits, dashes) hosted as a UTF-8 file at `https://docs.example.com/<key>.txt` containing the key. Then submit up to 10,000 URLs per POST:
 
-> After 48 hours, use web-scraper to check Google's cache for each of the 215 URLs by querying "cache:url" and checking for a 200 response. Generate a report showing: pages confirmed indexed, pages still pending, and pages that returned errors during submission. Resubmit any unindexed pages. Compare organic search impressions this week versus last week from Search Console data.
+```console
+$ curl -s -o /dev/null -w "%{http_code}\n" -X POST https://api.indexnow.org/indexnow \
+    -H 'Content-Type: application/json; charset=utf-8' \
+    -d '{"host":"docs.example.com","key":"'"$INDEXNOW_KEY"'","urlList":["https://docs.example.com/getting-started","https://docs.example.com/api/webhooks"]}'
+200
+```
+
+200 or 202 means the engine received the URLs (202: key validation pending); 422 means a URL does not belong to the host or the key does not match. Each engine still decides for itself whether to index. IndexNow reaches Bing, Yandex and other participants, not Google.
+
+### 5. Use the Indexing API only where it is allowed
+
+If the site also publishes job postings or livestream pages with the matching structured data, submit those with google-indexing:
+
+> Use google-indexing to submit the URLs in reports/job_pages.txt with URL_UPDATED, one request per URL. Stop at 200 publish requests per day, and log each URL and response status to reports/indexing_log.csv.
+
+The skill's setup requires the Indexing API enabled in a Google Cloud project and the service account added as an owner of the verified Search Console property. Its metadata check reports when Google last received a notification for a URL, not whether it is indexed. Do not use it for documentation or blog pages.
+
+### 6. Monitor real indexing status
+
+The `cache:` search operator no longer works, so do not rely on it. Check status with the Search Console Page indexing report, or the URL Inspection API (2,000 queries per day and 600 per minute per property), and compare the Performance report week to week. Re-submit nothing blindly: for each URL still not indexed after a few weeks, return to the crawl audit and fix the cause.
 
 ## Real-World Example
 
-A developer tools startup launched their docs site and saw only 17% of pages indexed after two weeks. After running the crawl audit, they discovered 23 pages had accidental noindex tags from a staging environment config that carried over to production, and 41 pages had duplicate title tags making Google unsure which to index. They fixed those issues, scaffolded 15 new pages targeting high-volume keywords, and submitted all 215 URLs via the Indexing API. Within 72 hours, 204 of 215 pages were indexed. Organic search traffic went from 120 to 890 weekly visits within the first month.
+A developer tools team launched a docs site and saw about a sixth of its pages indexed after two weeks. The crawl audit showed that 23 pages carried a `noindex` tag copied over from a staging configuration, and 41 had identical title tags. They fixed both, rewrote the thinnest pages, published a sitemap with accurate `lastmod` dates and added IndexNow pings to their deploy pipeline. Over the following weeks the Page indexing report showed the indexed count climbing; the pages that stayed out were the ones the audit had already flagged as near-duplicates. (The numbers in this example are the team's own and illustrative.)
 
 ## Tips
 
-- Run the crawl audit before submitting URLs. Submitting pages that have noindex tags or broken canonical URLs wastes your daily Indexing API quota and can delay indexing of valid pages.
-- The Google Indexing API has a daily quota of 200 URL notifications per property. Plan your batch submissions accordingly and prioritize high-value pages if you exceed the limit.
-- Schedule a weekly re-check of the indexing status for your full URL set. Google can drop pages from its index if they return errors or if crawl budget is reallocated.
-- Meta descriptions under 160 characters perform best in search results. Longer descriptions get truncated, which reduces click-through rates.
+- Run the crawl audit before submitting anything. A sitemap that lists noindexed or redirecting URLs sends mixed signals.
+- Google gives no guarantee or time frame; crawling can take a few days to a few weeks after a sitemap or request.
+- Keep titles unique and descriptions specific; Google may rewrite them in results regardless of length.
+- Never commit the service account JSON key or the IndexNow key file's source of truth; read them from environment variables.
+
+## Related Skills
+
+- **google-indexing**: submits eligible job or livestream pages and checks the last notification Google received.
+- **web-scraper**: crawls the live site to find noindex, duplicate-title and thin-page problems.
+- **markdown-new**: converts live pages to Markdown to review outlines and word counts.
