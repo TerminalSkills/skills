@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4695bb86f27da24732fe8809638d8313cad5c090750643d15198961f2c1811b4",
-  "scoredAt": "2026-10-28T18:51:57.621Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:412bbc2e16ebb716b30e1415ef4a83b8124d7a3593e35fe3fbae55836f3d7297",
+  "scoredAt": "2026-11-06T23:38:17.949Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling or edge cases for sandbox operations."
+        "detail": "The instructions do not cover error handling or edge cases such as missing dependencies or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a concise instruction set."
       }
     ]
   },
@@ -27,27 +32,15 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.3,
-    "baselineAvg": 3,
-    "treatmentAvg": 93,
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
     "scenarios": [
       {
-        "name": "create-linux-sandbox-script",
-        "baseline": 10,
-        "treatment": 80,
-        "rationale": "Response A covers all required commands except the exact sandbox name, while Response B does not use any cua sb commands and thus fails the rubric entirely."
-      },
-      {
-        "name": "sdk-ephemeral-sandbox-interaction",
+        "name": "windows-sandbox-script-run",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A is missing or incomplete."
-      },
-      {
-        "name": "vm-service-http-request",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required VM sandbox API."
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric but still misses key elements (wrong sandbox name, paths, timeout, screenshot name), whereas Response A does not use the required CLI commands at all."
       }
     ]
   }
