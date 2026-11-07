@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2f61a0dd439d134dd8c5bd39f1c2f29e6e27596b3274061f36d7fc709b501449",
-  "scoredAt": "2026-05-13T10:33:53.026Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:e47e51d5222f6ecde21570b8938cfbc0bd9101168b63abb5bf22622bda65544d",
+  "scoredAt": "2026-11-07T12:20:25.040Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
@@ -16,14 +16,9 @@
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases for API failures."
-      },
-      {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Google Vertex AI and Node.js, not cross-platform."
+        "detail": "The skill is vendor-locked to Google Vertex AI and Vercel AI SDK, not cross-platform."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 95,
-    "multiplier": 3.8,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Imagen background swap with user-provided mask",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for @google-cloud/vertexai or the REST predict endpoint and misses the AI SDK generateImage surface with imagen-3.0-capability-001 and the EDIT_MODE_BGSWAP / MASK_MODE_USER_PROVIDED enums the rubric checks."
+        "name": "generate-product-photos",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric; Response B is closer but still missing key requirements."
       },
       {
-        "name": "Veo 3.1 9:16 video ad with audio via AI SDK",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline manually polls the Vertex predictLongRunning REST endpoint; treatment uses experimental_generateVideo with vertex.video, generateAudio:true, and pollTimeoutMs:600000 as documented."
+        "name": "edit-image-background",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not use generateImage or the required prompt structure."
+      },
+      {
+        "name": "create-video-ad-with-audio",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use experimental_generateVideo or Vertex at all."
       }
     ]
   }

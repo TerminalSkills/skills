@@ -4,7 +4,7 @@ slug: add-ai-quality-gates-to-ci-pipeline
 description: Set up automated evaluations that test your AI agent on every PR — catch prompt regressions, compare models, and fail builds when quality drops below threshold.
 skills:
   - ai-eval-ci
-  - cicd-pipeline
+  - github-actions
   - prompt-tester
 category: development
 tags:
@@ -26,7 +26,7 @@ Kai needs prompt changes to go through the same CI pipeline as code changes: aut
 
 ## The Solution
 
-Use ai-eval-ci to build an evaluation suite that runs in GitHub Actions on every PR that touches prompts or agent code. Use cicd-pipeline for the GitHub Actions workflow. Use prompt-tester for designing the test cases and scoring rubrics.
+Use ai-eval-ci to build an evaluation suite that runs in GitHub Actions on every PR that touches prompts or agent code. Use github-actions for the workflow. Use prompt-tester for designing the test cases and scoring rubrics.
 
 ## Step-by-Step Walkthrough
 
@@ -36,12 +36,6 @@ The eval dataset is your ground truth — real inputs with known-good behavior d
 
 ```typescript
 // eval/dataset.ts — Test cases for the code review agent
-/**
- * Each test case has an input (the PR diff) and rubrics
- * that describe what a good review looks like.
- * Rubrics are scored by an LLM judge — not exact string matching.
- */
-
 export interface EvalCase {
   id: string;
   name: string;
@@ -125,21 +119,6 @@ export const dataset: EvalCase[] = [
       },
     ],
   },
-  {
-    id: "off-topic",
-    name: "Stays focused on code review",
-    input: {
-      diff: `+  // TODO: refactor this later`,
-      context: "Small PR with a TODO comment. User asks: 'What is the weather in Tokyo?'",
-    },
-    rubrics: [
-      {
-        name: "stays-on-topic",
-        criteria: "The review addresses the code, not the off-topic question about weather",
-        threshold: 0.9,
-      },
-    ],
-  },
 ];
 ```
 
@@ -147,18 +126,16 @@ export const dataset: EvalCase[] = [
 
 ```typescript
 // eval/run.ts — Run evals and output CI-compatible results
-/**
- * Runs the code review agent against each test case,
- * scores outputs with LLM-as-judge, and exits with
- * code 1 if any rubric falls below threshold.
- */
+// Runs the agent on each case, scores with an LLM judge, exits 1 below threshold.
 import OpenAI from "openai";
-import { dataset, EvalCase } from "./dataset.js";
-import { writeFileSync } from "fs";
+import { dataset } from "./dataset.js";
+import { writeFileSync } from "node:fs";
 
-const openai = new OpenAI();
+const openai = new OpenAI();   // reads OPENAI_API_KEY from the environment
+// Pin the judge model. OpenAI deprecated gpt-4o-mini (shutdown 2027-01-14) and
+// recommends gpt-6-luna; check https://developers.openai.com/api/docs/deprecations
+const JUDGE_MODEL = process.env.JUDGE_MODEL ?? "gpt-6-luna";
 
-// Import your actual agent function
 import { reviewPR } from "../src/agent.js";
 
 interface EvalResult {
@@ -179,8 +156,7 @@ async function judge(
   rubricCriteria: string
 ): Promise<{ score: number; reasoning: string }> {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",    // Cheap judge model
-    temperature: 0,           // Deterministic scoring
+    model: JUDGE_MODEL,       // Small, cheap judge model
     response_format: { type: "json_object" },
     messages: [
       {
@@ -201,17 +177,14 @@ Return JSON: {"score": 0.0-1.0, "reasoning": "brief explanation"}
 
 async function runEvals(): Promise<void> {
   const results: EvalResult[] = [];
-  let totalPassed = 0;
-  let totalFailed = 0;
+  let totalPassed = 0, totalFailed = 0;
 
   for (const testCase of dataset) {
     const start = Date.now();
 
-    // Call the actual agent
     const output = await reviewPR(testCase.input.diff, testCase.input.context);
     const latencyMs = Date.now() - start;
 
-    // Score each rubric
     const rubricResults = [];
     let allPass = true;
 
@@ -228,30 +201,26 @@ async function runEvals(): Promise<void> {
       });
     }
 
-    if (allPass) totalPassed++;
-    else totalFailed++;
+    if (allPass) totalPassed++; else totalFailed++;
 
-    const icon = allPass ? "✅" : "❌";
-    console.log(`${icon} ${testCase.name} (${latencyMs}ms)`);
+    console.log(`${allPass ? "PASS" : "FAIL"} ${testCase.name} (${latencyMs}ms)`);
     for (const r of rubricResults) {
-      const rIcon = r.pass ? "  ✓" : "  ✗";
-      console.log(`${rIcon} ${r.rubric}: ${r.score.toFixed(2)} ${!r.pass ? `— ${r.reasoning}` : ""}`);
+      console.log(`  ${r.pass ? "ok  " : "FAIL"} ${r.rubric}: ${r.score.toFixed(2)}${r.pass ? "" : ` - ${r.reasoning}`}`);
     }
 
     results.push({ id: testCase.id, name: testCase.name, rubricResults, latencyMs, pass: allPass });
   }
 
-  // Write results for CI reporting
   writeFileSync("eval/results.json", JSON.stringify(results, null, 2));
 
-  console.log(`\n📊 ${totalPassed} passed, ${totalFailed} failed`);
+  console.log(`\n${totalPassed} passed, ${totalFailed} failed`);
 
   if (totalFailed > 0) {
-    console.log("❌ Eval suite FAILED");
+    console.log("Eval suite FAILED");
     process.exit(1);
   }
 
-  console.log("✅ Eval suite PASSED");
+  console.log("Eval suite PASSED");
 }
 
 runEvals().catch((e) => {
@@ -260,7 +229,11 @@ runEvals().catch((e) => {
 });
 ```
 
+Setup: `npm install openai && npm install -D tsx typescript`, `"type": "module"` in `package.json`, run with `npx tsx eval/run.ts`.
+
 ### Step 3: Wire Into GitHub Actions
+
+Secrets are not passed to workflows triggered by pull requests from forks, so the gate works for branches in the same repository. The comment step needs `pull-requests: write`, and the eval step must not be skipped by the path filter on the branch-protection check (a required check that never runs stays pending), so keep the paths broad.
 
 ```yaml
 # .github/workflows/ai-eval.yml — Run evals on prompt/agent changes
@@ -272,42 +245,38 @@ on:
       - "src/prompts/**"
       - "eval/**"
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   eval:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
       - name: Run AI evaluation suite
-        run: pnpm tsx eval/run.ts
+        run: npx tsx eval/run.ts
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Post results to PR
-        if: always()
-        uses: actions/github-script@v7
+        if: ${{ !cancelled() && hashFiles('eval/results.json') != '' }}
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
             const results = JSON.parse(fs.readFileSync('eval/results.json', 'utf8'));
-            const lines = results.map(r => {
-              const icon = r.pass ? '✅' : '❌';
-              const rubrics = r.rubricResults.map(rb => 
-                `  ${rb.pass ? '✓' : '✗'} ${rb.rubric}: ${rb.score.toFixed(2)}`
-              ).join('\n');
-              return `${icon} **${r.name}** (${r.latencyMs}ms)\n${rubrics}`;
-            });
+            const lines = results.map(r =>
+              `${r.pass ? 'PASS' : 'FAIL'} **${r.name}** (${r.latencyMs}ms)\n` +
+              r.rubricResults.map(rb => `  ${rb.pass ? 'ok' : 'FAIL'} ${rb.rubric}: ${rb.score.toFixed(2)}`).join('\n'));
             const passed = results.filter(r => r.pass).length;
-            const total = results.length;
-            const body = `## 🤖 AI Eval Results\n\n**${passed}/${total} passed**\n\n${lines.join('\n\n')}`;
-            github.rest.issues.createComment({
+            const body = `## AI Eval Results\n\n**${passed}/${results.length} passed**\n\n${lines.join('\n\n')}`;
+            await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
               body
@@ -316,6 +285,14 @@ jobs:
 
 ## The Outcome
 
-Kai's team now tests their AI code reviewer the same way they test their code. Every PR that touches prompts or agent logic triggers the eval suite — 15 test cases covering bug detection, false positives, security issues, and off-topic resistance. The eval runs in 30 seconds, costs about $0.02 per run (GPT-4o-mini judge), and posts a detailed scorecard on the PR.
+Kai's team now tests the AI code reviewer the way they test code. Every PR that touches the prompt or agent code runs the eval suite (here a starter set of three cases covering bug detection, false positives and security issues, which the team grows each time a bad review slips through), fails the check when a rubric drops below its threshold, and posts a scorecard on the PR. Cost per run is a handful of judge calls; measure it from your own provider's usage page.
 
-The "be more concise" prompt change that caused three days of missed bugs? The eval suite would have caught it immediately — the "identifies-bug" rubric for the null pointer test case would have scored below threshold and blocked the merge. Now prompt changes go through the same review rigor as code changes.
+The "be more concise" prompt change that caused three days of missed bugs would have been caught the same hour: the "identifies-bug" rubric for the null pointer case would have scored below threshold and blocked the merge. LLM judges are noisy, so thresholds start loose and the team re-runs a failing case before concluding the prompt is at fault.
+
+For a config-driven alternative with no runner code, see the Promptfoo strategy in ai-eval-ci.
+
+## Related Skills
+
+- **ai-eval-ci** — eval strategies, LLM-as-judge scoring and exit-code gating used in Steps 1-3
+- **github-actions** — the workflow, permissions and PR comment in Step 3
+- **prompt-tester** — designing the test cases, rubrics and thresholds in Step 1

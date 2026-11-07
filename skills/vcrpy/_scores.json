@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:767bb391eae9948483dade9517524498f01176a9152f53047336c2550869f179",
-  "scoredAt": "2026-10-24T23:22:10.783Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:ea7df6133036f99d9a299fb77305096d6a146c4b5794e87cb863de3a5e0efedc",
+  "scoredAt": "2026-11-07T00:06:56.801Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all possible error scenarios and edge cases, such as handling network failures or missing cassette files."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose explanations and padding, making it longer than necessary for quick reference."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5.47,
-    "baselineAvg": 17,
-    "treatmentAvg": 93,
+    "multiplier": 9.8,
+    "baselineAvg": 2,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "stop-live-api-with-secret-scrubbing",
+        "name": "stop-live-api-and-scrub-key",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements; Response A does not."
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
       },
       {
-        "name": "refresh-stale-cassette-for-shipping-api",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric by deleting the cassette, running pytest with --record-mode=rewrite, and showing a git diff, whereas Response B omits the required rewrite flag and diff command."
-      },
-      {
-        "name": "match-on-custom-parameters-for-local-server",
+        "name": "re-record-stale-cassette",
         "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items but omits the @pytest.mark.vcr requirement, whereas Response A provides no content."
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is about a different framework and misses all required steps."
+      },
+      {
+        "name": "match-on-local-server",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response A meets all rubric requirements; Response B is in Ruby and does not satisfy the Python/pytest criteria."
       }
     ]
   }

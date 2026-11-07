@@ -2,28 +2,60 @@
 title: Build and Deploy DeFi Smart Contracts with Foundry
 slug: build-and-deploy-defi-smart-contracts
 description: Build a DeFi yield vault using Foundry for development and testing, Viem for frontend integration, and OpenZeppelin for battle-tested contract primitives — with fuzz testing, fork testing against mainnet, and gas-optimized deployment to Ethereum.
-skills: [foundry, viem, hardhat]
+skills: [foundry, viem]
 category: development
 tags: [defi, smart-contracts, ethereum, solidity, testing, web3]
 ---
 
 # Build and Deploy DeFi Smart Contracts with Foundry
 
-Sana is a Solidity developer building a yield aggregator vault — users deposit USDC, the vault deploys capital across lending protocols (Aave, Compound), and rebalances for optimal yield. The contract will hold millions in user funds, so every line must be tested rigorously: fuzz testing for edge cases, fork testing against mainnet state, and formal invariant testing.
+Sana is a Solidity developer building a yield aggregator vault — users deposit USDC, the vault deploys capital across lending protocols (Aave, Compound), and rebalances for optimal yield. The contract will hold millions in user funds, so every line must be tested rigorously: fuzz testing for edge cases and fork testing against mainnet state.
 
-## Step 1: Smart Contract Development with Foundry
+## Step 1: Set Up the Project and Write the Contract
+
+```bash
+forge init yield-vault && cd yield-vault
+forge install OpenZeppelin/openzeppelin-contracts@v5.7.0   # pinned tag, recorded in foundry.lock
+export MAINNET_RPC_URL="https://your-provider.example/v2/$RPC_KEY"   # any mainnet archive-capable RPC endpoint
+```
+
+Fork tests find the `mainnet` alias through `foundry.toml`:
+
+```toml
+# foundry.toml
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+```
+
+The vault needs only two Aave v3 calls, so it declares a minimal interface instead of pulling in the whole Aave package:
+
+```solidity
+// src/interfaces/IPool.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+interface IPool {
+    function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+    function withdraw(address asset, uint256 amount, address to) external returns (uint256);
+}
+```
 
 ```solidity
 // src/YieldVault.sol — ERC-4626 yield aggregator
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IPool} from "@aave/v3-core/contracts/interfaces/IPool.sol";
+import {IPool} from "./interfaces/IPool.sol";
 
 contract YieldVault is ERC4626, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -63,6 +95,18 @@ contract YieldVault is ERC4626, Ownable, ReentrancyGuard {
         return super.deposit(assets, receiver);
     }
 
+    /// @dev Pay withdrawals from idle USDC first and pull the rest back from Aave,
+    ///      because totalAssets() counts aTokens that the vault does not hold as USDC.
+    function _withdraw(address caller, address receiver, address owner_, uint256 assets, uint256 shares)
+        internal override
+    {
+        uint256 idle = IERC20(asset()).balanceOf(address(this));
+        if (idle < assets) {
+            aavePool.withdraw(asset(), assets - idle, address(this));
+        }
+        super._withdraw(caller, receiver, owner_, assets, shares);
+    }
+
     /// @notice Deploy idle assets to Aave for yield
     function rebalance() external onlyOwner {
         uint256 idle = IERC20(asset()).balanceOf(address(this));
@@ -85,30 +129,27 @@ contract YieldVault is ERC4626, Ownable, ReentrancyGuard {
 }
 ```
 
-## Step 2: Comprehensive Testing
+## Step 2: Fuzz and Fork Testing
 
 ```solidity
 // test/YieldVault.t.sol — Fuzz + Fork + Invariant testing
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
 import {YieldVault} from "../src/YieldVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IPool} from "@aave/v3-core/contracts/interfaces/IPool.sol";
+import {IPool} from "../src/interfaces/IPool.sol";
 
 contract YieldVaultTest is Test {
     YieldVault vault;
 
-    // Mainnet addresses (used in fork tests)
     address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address constant AAVE_POOL = 0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2;
     address constant aUSDC = 0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c;
 
     address alice = makeAddr("alice");
-    address bob = makeAddr("bob");
 
     function setUp() public {
-        // Fork mainnet for realistic testing
         vm.createSelectFork("mainnet", 19_000_000);
 
         vault = new YieldVault(
@@ -117,12 +158,8 @@ contract YieldVaultTest is Test {
             IERC20(aUSDC)
         );
 
-        // Fund test users with real USDC (via whale impersonation)
-        address whale = 0x37305B1cD40574E4C5Ce33f8e8306Be057fD7341;
-        vm.startPrank(whale);
-        IERC20(USDC).transfer(alice, 100_000e6);
-        IERC20(USDC).transfer(bob, 50_000e6);
-        vm.stopPrank();
+        // Fund the test user with USDC by writing its balance slot (no whale needed)
+        deal(USDC, alice, 100_000e6);
     }
 
     function test_DepositAndWithdraw() public {
@@ -172,25 +209,51 @@ contract YieldVaultTest is Test {
         assertGt(shares, 0);
         assertEq(vault.totalAssets(), amount);
     }
+}
+```
 
-    function test_DepositCapEnforced() public {
-        deal(USDC, alice, 20_000_000e6);
-        vm.startPrank(alice);
-        IERC20(USDC).approve(address(vault), 20_000_000e6);
-        vm.expectRevert("Deposit cap reached");
-        vault.deposit(10_000_001e6, alice);
-        vm.stopPrank();
+Run the suite with `forge test --match-contract YieldVaultTest -vvv`. The fork block is pinned, so results are reproducible and the RPC responses are cached. `forge test --gas-report` prints the cost of each function and `forge snapshot --check` fails CI when gas regresses.
+
+## Step 3: Deploy with a Script
+
+```solidity
+// script/Deploy.s.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {Script, console} from "forge-std/Script.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {YieldVault} from "../src/YieldVault.sol";
+import {IPool} from "../src/interfaces/IPool.sol";
+
+contract DeployScript is Script {
+    function run() public {
+        vm.startBroadcast(); // signer comes from --account, never from a key in the repo
+        YieldVault vault = new YieldVault(
+            IERC20(vm.envAddress("USDC")), IPool(vm.envAddress("AAVE_POOL")), IERC20(vm.envAddress("AUSDC"))
+        );
+        vm.stopBroadcast();
+        console.log("YieldVault deployed at:", address(vault));
     }
 }
 ```
 
-## Step 3: Frontend Integration with Viem
+```bash
+cast wallet import deployer --interactive      # encrypted keystore, the key never touches the shell history
+forge script script/Deploy.s.sol --rpc-url sepolia        # simulation only, nothing is sent
+forge script script/Deploy.s.sol --rpc-url sepolia --account deployer \
+  --broadcast --verify --etherscan-api-key "$ETHERSCAN_API_KEY"
+```
+
+Set `USDC`, `AAVE_POOL` and `AUSDC` to the addresses of the network you deploy to (the Sepolia Aave deployment uses its own test USDC, not the mainnet addresses above). If a broadcast is interrupted, rerun the same command with `--resume`. Since Foundry v1.9.0, `--resume` stops when a recorded transaction reverted: fix the cause, then run `--broadcast --start-fresh` to archive the old run and send everything again. Keep the `broadcast/` and `cache/` directories until the deployment is complete.
+
+## Step 4: Frontend Integration with Viem
 
 ```typescript
 // src/lib/vault.ts — Type-safe contract interactions
 import { createPublicClient, createWalletClient, http, parseUnits, formatUnits } from "viem";
 import { mainnet } from "viem/chains";
-import { vaultAbi } from "./abis/vault";
+import { vaultAbi } from "./abis/vault"; // forge inspect YieldVault abi --json, saved as a typed `as const` export
 
 const VAULT_ADDRESS = "0x..." as const;
 const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as const;
@@ -223,11 +286,13 @@ export async function getVaultStats() {
 
 ## Results
 
-The vault launches on mainnet after 3 weeks of development. Foundry's testing suite gives Sana confidence that the contract handles edge cases correctly.
+Sana measures the vault instead of guessing, with Foundry's own commands:
 
-- **Test coverage**: 98% line coverage, 47 test cases (unit + fuzz + fork)
-- **Fuzz runs**: 10,000 fuzz iterations found 0 issues after fixing 2 edge cases in development
-- **Fork testing**: Verified against real Aave v3 mainnet state — deposit/withdraw/rebalance all work
-- **Gas optimization**: deposit() costs 89,000 gas (within target of <100K)
-- **Audit readiness**: Clean Slither report, all high/medium findings addressed
-- **TVL after 30 days**: $2.1M deposited, 4.8% APY delivered to users
+- **Tests**: unit, fuzz and fork tests run on every pull request (`forge test`).
+- **Gas**: `forge test --gas-report` shows the cost of `deposit()`, and `forge snapshot --check` blocks a pull request that makes it more expensive.
+- **Before mainnet**: an external audit and a testnet dry run with the deploy script, since a clean test suite does not replace a review of a contract that holds user funds.
+
+## Related Skills
+
+- **foundry**: project setup, fuzz and fork tests, gas reports and the deployment script with `--account`, `--resume` and `--start-fresh`
+- **viem**: type-safe reads of the deployed vault from the frontend

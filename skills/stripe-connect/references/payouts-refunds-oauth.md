@@ -37,9 +37,7 @@ export async function triggerPayout(sellerAccountId: string, amount: number) {
 
 ```ts
 export async function getSellerBalance(sellerAccountId: string) {
-  const balance = await stripe.balance.retrieve({
-    stripeAccount: sellerAccountId,
-  });
+  const balance = await stripe.balance.retrieve({}, { stripeAccount: sellerAccountId });
 
   return {
     available: balance.available[0]?.amount ?? 0,
@@ -73,20 +71,24 @@ export async function refundPayment(
 > If you authenticate connected accounts with OAuth, keep using the v1 Accounts API — Accounts v2 does not replace the OAuth flow.
 
 ```ts
-// 1. Redirect seller to Stripe OAuth
+// 1. Redirect seller to Stripe OAuth. `state` is a random value you also store in the
+//    seller's session (CSRF protection).
 export function getStripeOAuthUrl(state: string) {
   return `https://connect.stripe.com/oauth/authorize?` +
-    `response_type=code&client_id=${process.env.STRIPE_CLIENT_ID}` +
-    `&scope=read_write&state=${state}`;
+    `response_type=code&client_id=${encodeURIComponent(process.env.STRIPE_CLIENT_ID!)}` +
+    `&scope=read_write&state=${encodeURIComponent(state)}`;
 }
 
 // 2. Handle OAuth callback
 app.get("/auth/stripe/callback", async (req, res) => {
   const { code, state } = req.query;
+  if (typeof code !== "string" || state !== req.session.oauthState) {
+    return res.status(400).send("Invalid OAuth state"); // reject forged callbacks
+  }
 
   const response = await stripe.oauth.token({
     grant_type: "authorization_code",
-    code: code as string,
+    code,
   });
 
   const connectedAccountId = response.stripe_user_id!;

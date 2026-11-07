@@ -1,53 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:f0b33a2bdeb685b2e6b81668147f98bd31f0b4bffbfd3ee05835761e364bcf1c",
-  "scoredAt": "2026-10-24T21:37:39.922Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:18604cd8dd3bd6452eb8379326b4000bb0856f62820dc10d311792df97a50932",
+  "scoredAt": "2026-11-07T00:09:17.819Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose sections that may distract from core instructions."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5.59,
-    "baselineAvg": 17,
-    "treatmentAvg": 95,
+    "multiplier": 1.66,
+    "baselineAvg": 32,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "bulk-insert-leads-no-trigger",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A satisfies all rubric requirements, while Response B omits the required zoho helper POST, trigger array, and batch limit comment."
+        "name": "create-lead-with-automations",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A includes the required zoho('POST', `${CRM}/Leads`, ...) call but incorrectly adds a trigger field, while Response B uses a curl command and does not match the required zoho function syntax."
       },
       {
-        "name": "create-invoice-and-email",
+        "name": "deluge-create-invoice-on-deal-close",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with Zoho Books POSTs and zoho helper usage; Response B does not meet the rubric at all."
+        "treatment": 20,
+        "rationale": "Response B partially addresses the task but lacks key elements such as the required function signature, invokeurl calls, and invoice creation logic, while Response A appears to be missing or incomplete."
       },
       {
-        "name": "deluge-auto-invoice-on-deal-close",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Response B fully meets the rubric by using invokeurl with the zoho_books connection for all Books API calls, while Response A relies on the zoho.books wrapper and omits invokeurl usage."
+        "name": "setup-crm-webhook-with-secret",
+        "baseline": 65,
+        "treatment": 80,
+        "rationale": "Both responses cover the URL, parameters, header, and setup steps, but neither includes the required handler code; Response A better matches the expected JSON format for the webhook definition."
       }
     ]
   }

@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+. Optional: OpenAI/Anthropic API key for LLM-as-judge."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: "eval, ci-cd, llm, quality, regression"
 ---
@@ -20,13 +20,15 @@ metadata:
 
 ## Overview
 
-Test AI agents and LLM outputs the same way you test code — automated evaluations that run in CI, compare against baselines, and fail the build when quality drops. No dashboards to check manually. Just `npx eval run --ci` and a red or green build.
+Test AI agents and LLM outputs the same way you test code — automated evaluations that run in CI, compare against baselines, and fail the build when quality drops. No dashboards to check manually: the eval command exits non-zero when quality drops, and the build goes red. Strategy 1 uses `promptfoo eval` (exit code 100 on a failed test); Strategy 2 is a runner you write that calls `process.exit(1)`.
+
+Model IDs change and old ones are shut down on a schedule, so every model in this skill comes from an environment variable with a default. Check the vendor's deprecations page before pinning: OpenAI https://developers.openai.com/api/docs/deprecations, Anthropic https://platform.claude.com/docs/en/about-claude/model-deprecations.
 
 ## When to Use
 
 - Adding quality gates before deploying AI features to production
 - Catching prompt regressions when system prompts or models change
-- Comparing model performance (GPT-4o vs Claude Sonnet vs local Llama)
+- Comparing model performance (an OpenAI model vs a Claude model vs local Llama)
 - Validating RAG pipeline accuracy against a test dataset
 - Benchmarking agent tool-calling accuracy and latency
 
@@ -38,13 +40,18 @@ Promptfoo is the most popular open-source eval framework. Define test cases in Y
 
 ```yaml
 # promptfooconfig.yaml — Eval configuration
-# Tests a customer support agent across 3 models with quality assertions
+# Tests a customer support agent across 3 providers with quality assertions
 description: "Customer support agent eval"
 
 providers:
-  - id: openai:gpt-4o
-  - id: anthropic:messages:claude-sonnet-4-20250514
-  - id: ollama:llama3.1:8b
+  - id: openai:chat:{{ env.OPENAI_MODEL | default('gpt-6-luna') }}
+  - id: anthropic:messages:{{ env.ANTHROPIC_MODEL | default('claude-sonnet-5-5') }}
+  - id: ollama:chat:llama3.1:8b
+
+# Model that grades llm-rubric assertions (set JUDGE_MODEL to change it)
+defaultTest:
+  options:
+    provider: openai:chat:{{ env.JUDGE_MODEL | default('gpt-6-luna') }}
 
 prompts:
   - |
@@ -76,9 +83,7 @@ tests:
       message: "Your product deleted all my data!"
     assert:
       - type: llm-rubric
-        value: "Response shows empathy, takes the issue seriously, and offers next steps"
-      - type: sentiment
-        threshold: 0.3  # Must not be dismissive
+        value: "Response shows empathy, is not dismissive, and offers next steps"
 
   - vars:
       message: "What's the weather in Tokyo?"
@@ -93,8 +98,7 @@ tests:
 # Run evals locally
 npx promptfoo@latest eval
 
-# Run in CI with threshold — exits non-zero if any test fails
-# No --ci flag: promptfoo exits 100 when any test fails, which fails the CI step.
+# In CI: promptfoo exits 100 when any test fails, which fails the step (no --ci flag)
 npx promptfoo@latest eval --no-progress-bar --no-table -o results.json
 
 # Compare two prompt versions
@@ -107,11 +111,8 @@ When you need full control — custom scoring logic, database-backed test sets, 
 
 ```typescript
 // eval.ts — Custom AI eval framework with CI integration
-/**
- * Runs evaluation suites against AI agents/LLMs.
- * Each eval defines inputs, expected behavior, and scoring criteria.
- * Exits with code 1 if any score drops below threshold.
- */
+// Runs eval cases against an agent; exits 1 if any score is below its threshold
+import { writeFileSync } from "node:fs";
 import OpenAI from "openai";
 
 interface EvalCase {
@@ -119,7 +120,6 @@ interface EvalCase {
   input: string;
   rubric: string;          // What "good" looks like
   threshold: number;       // Minimum score 0-1
-  metadata?: Record<string, unknown>;
 }
 
 interface EvalResult {
@@ -131,15 +131,14 @@ interface EvalResult {
   latencyMs: number;
 }
 
-const openai = new OpenAI();
+const openai = new OpenAI(); // reads OPENAI_API_KEY from the environment
+// Judge model is configurable; gpt-4o-mini shuts down on 2027-01-14 (replacement: gpt-6-luna) (OpenAI deprecations page)
+const JUDGE_MODEL = process.env.JUDGE_MODEL ?? "gpt-6-luna";
 
-/**
- * Score an AI output using LLM-as-judge.
- * Returns a score 0-1 with reasoning.
- */
+// LLM-as-judge: score an output 0-1 against a rubric
 async function judge(output: string, rubric: string): Promise<{ score: number; reasoning: string }> {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",  // Cheap model for judging
+    model: JUDGE_MODEL,    // Small, cheap model for judging
     messages: [
       {
         role: "system",
@@ -153,15 +152,11 @@ Score 1.0 = perfect match. Score 0.0 = complete failure.`,
       },
     ],
     response_format: { type: "json_object" },
-    temperature: 0,  // Deterministic judging
   });
 
   return JSON.parse(response.choices[0].message.content!);
 }
 
-/**
- * Run a single eval case against your AI agent.
- */
 async function runEval(
   agentFn: (input: string) => Promise<string>,
   evalCase: EvalCase
@@ -182,40 +177,34 @@ async function runEval(
   };
 }
 
-/**
- * Run all evals and exit with appropriate code for CI.
- */
 async function runSuite(
   agentFn: (input: string) => Promise<string>,
   cases: EvalCase[]
 ): Promise<void> {
-  console.log(`Running ${cases.length} evals...\n`);
+  console.log(`Running ${cases.length} evals...`);
 
   const results: EvalResult[] = [];
   for (const evalCase of cases) {
     const result = await runEval(agentFn, evalCase);
     results.push(result);
-    const icon = result.pass ? "✅" : "❌";
-    console.log(`${icon} ${result.name}: ${result.score.toFixed(2)} (threshold: ${evalCase.threshold}) [${result.latencyMs}ms]`);
+    console.log(`${result.pass ? "PASS" : "FAIL"} ${result.name}: ${result.score.toFixed(2)} (threshold: ${evalCase.threshold}) [${result.latencyMs}ms]`);
     if (!result.pass) {
       console.log(`   Reasoning: ${result.reasoning}`);
     }
   }
 
-  // Summary
-  const passed = results.filter((r) => r.pass).length;
   const failed = results.filter((r) => !r.pass).length;
-  const avgScore = results.reduce((s, r) => s + r.score, 0) / results.length;
+  console.log(`\n${results.length - failed} passed, ${failed} failed`);
 
-  console.log(`\n📊 Results: ${passed} passed, ${failed} failed (avg score: ${avgScore.toFixed(2)})`);
+  // Machine-readable results for the PR comment step
+  writeFileSync("eval/results.json", JSON.stringify(results, null, 2));
 
   // CI exit code
   if (failed > 0) {
-    console.log("\n❌ Eval suite FAILED — quality below threshold");
+    console.log("Eval suite FAILED: quality below threshold");
     process.exit(1);
-  } else {
-    console.log("\n✅ Eval suite PASSED");
   }
+  console.log("Eval suite PASSED");
 }
 
 export { runSuite, EvalCase };
@@ -233,32 +222,42 @@ on:
       - "src/agents/**"
       - "eval/**"
 
+# The comment step needs pull-requests: write. Secrets are not passed to
+# workflows triggered by pull requests from forks, so the gate covers
+# branches in the same repository.
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   eval:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
       - run: npm ci
 
       - name: Run AI evals
-        run: npx tsx eval/run.ts --ci
+        run: npx tsx eval/run.ts
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: ${{ vars.JUDGE_MODEL || 'gpt-6-luna' }}
 
       - name: Post results to PR
-        if: always()
-        uses: actions/github-script@v7
+        if: ${{ !cancelled() && hashFiles('eval/results.json') != '' }}
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('eval/results.json'));
+            const results = JSON.parse(fs.readFileSync('eval/results.json', 'utf8'));
             const body = results.map(r => 
-              `${r.pass ? '✅' : '❌'} **${r.name}**: ${r.score.toFixed(2)} (${r.latencyMs}ms)`
+              `${r.pass ? 'PASS' : 'FAIL'} **${r.name}**: ${r.score.toFixed(2)} (${r.latencyMs}ms)`
             ).join('\n');
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
               body: `## AI Eval Results\n\n${body}`
@@ -280,7 +279,7 @@ The agent will:
 
 ### Example 2: Compare models before switching
 
-**User prompt:** "We're considering switching from GPT-4o to Claude Sonnet. Run our eval suite against both and show me which performs better."
+**User prompt:** "We're considering switching from our current OpenAI model to Claude Sonnet. Run our eval suite against both and show me which performs better."
 
 The agent will:
 - Configure promptfoo with both providers
@@ -291,8 +290,8 @@ The agent will:
 ## Guidelines
 
 - **Eval every prompt change** — treat prompts like code; test before deploying
-- **LLM-as-judge is good enough** — GPT-4o-mini costs pennies and correlates well with human judgment
-- **Use temperature 0 for judges** — deterministic scoring reduces noise
+- **LLM-as-judge is good enough for gating** — a small judge model is cheap, but verdicts are noisy: re-run a failing case before blaming the prompt
+- **Pin the judge in an env var** — `JUDGE_MODEL` changes in one place when a model is deprecated, and scores stay comparable between runs that use the same judge
 - **Keep test sets diverse** — happy path, edge cases, adversarial inputs, off-topic
 - **Set realistic thresholds and track over time** — start at 0.7, tighten as the agent improves, and log results to catch gradual quality drift
 - **Keep eval cheap** — judge with cheap models (production uses the best), and cache unchanged tests (hash input+prompt)

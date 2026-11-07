@@ -10,10 +10,10 @@ description: >-
   server/client/bidirectional streaming, interceptors, deadlines, metadata,
   reflection, and production patterns.
 license: Apache-2.0
-compatibility: 'Node.js 18+, Python 3.9+, or a currently supported Go release (grpc, protobuf)'
+compatibility: 'A supported Node.js LTS (@grpc/grpc-js), Python 3.10+ (grpcio 1.85), or a currently supported Go release (grpc, protobuf)'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: development
   tags: "grpc, rpc, protobuf, microservices, streaming"
 ---
@@ -153,16 +153,39 @@ const userService = {
 const server = new grpc.Server();
 server.addService(proto.UserService.service, userService);
 // grpc-js 1.10+ starts serving once bound; server.start() is deprecated and not needed
-server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
+// Local development: bind loopback only. createInsecure() sends everything in plaintext.
+server.bindAsync('127.0.0.1:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
   if (err) throw err;
   console.log(`gRPC listening on ${port}`);
 });
 ```
 
+Anything reachable from another host needs TLS (or a mesh/proxy that terminates it) and authentication:
+
+```javascript
+const fs = require('fs');
+const creds = grpc.ServerCredentials.createSsl(null, [
+  { private_key: fs.readFileSync('certs/server.key'), cert_chain: fs.readFileSync('certs/server.crt') },
+]);
+server.bindAsync('0.0.0.0:50051', creds, (err, port) => { if (err) throw err; });
+// client: grpc.credentials.createSsl(fs.readFileSync('certs/ca.crt'))  -- the CA that signed server.crt
+```
+
+Pass `null` as the first argument for server-side TLS only; to require client certificates, pass the CA bytes and `true` as `checkClientCertificate` (mTLS). The certificate must list the host the client dials in its subjectAltName.
+
+Dev-only reflection and the standard health service, for `grpcurl` and load balancers:
+
+```javascript
+const { ReflectionService } = require('@grpc/reflection');
+const { HealthImplementation } = require('grpc-health-check');
+new ReflectionService(packageDef).addToServer(server);          // dev only
+new HealthImplementation({ '': 'SERVING' }).addToServer(server); // '' = overall server status
+```
+
 ### Step 5: Client Implementation
 
 ```javascript
-const client = new proto.UserService('localhost:50051', grpc.credentials.createInsecure());
+const client = new proto.UserService('127.0.0.1:50051', grpc.credentials.createInsecure()); // local dev; use createSsl(...) for remote servers
 
 // Unary with deadline
 const deadline = new Date(); deadline.setSeconds(deadline.getSeconds() + 5);
@@ -198,9 +221,11 @@ INTERNAL (13)          — Server error (like HTTP 500)
 
 ```bash
 brew install grpcurl
-grpcurl -plaintext localhost:50051 list
-grpcurl -plaintext -d '{"email": "alice.moreau@northwind.dev", "name": "Alice"}' \
-  localhost:50051 userservice.v1.UserService/CreateUser
+# `list` needs reflection enabled on the server (see Step 4); otherwise pass the proto:
+grpcurl -plaintext 127.0.0.1:50051 list
+grpcurl -plaintext -import-path proto -proto user_service.proto \
+  -d '{"email": "alice.moreau@northwind.dev", "name": "Alice"}' \
+  127.0.0.1:50051 userservice.v1.UserService/CreateUser
 ```
 
 ## Examples
@@ -212,7 +237,7 @@ The agent will:
 1. Create `proto/user_service.proto` with `UserService` defining `GetUser`, `CreateUser`, `ListUsers` (unary RPCs) and `WatchUser` (server streaming)
 2. Load the proto dynamically using `@grpc/proto-loader`
 3. Implement handlers for each RPC method, using proper status codes (`NOT_FOUND`, `ALREADY_EXISTS`)
-4. Start the server on port 50051 and verify with `grpcurl -plaintext localhost:50051 list`
+4. Start the server on `127.0.0.1:50051` and verify with `grpcurl -plaintext -import-path proto -proto user_service.proto 127.0.0.1:50051 list`
 
 ### Example 2: Add batch user import with client streaming
 **User prompt:** "Add a batch import endpoint to the user service that accepts a stream of user records from a CSV file and returns a summary of created/failed records."
@@ -229,10 +254,10 @@ The agent will:
 2. **Never change field numbers** — add new fields, deprecate old ones with `reserved`
 3. **Use `FieldMask` for updates** — distinguishes "not sent" from "set to empty"
 4. **Always set deadlines** — unbound calls leak resources; 5-30s for most RPCs
-5. **Enable reflection in dev only** — `@grpc/reflection` (Node), `grpcio-reflection` (Python) make grpcurl/grpcui work without the .proto; do not expose it publicly in production
-11. **Use TLS outside localhost** — `createInsecure()` is for local development; use `grpc.ServerCredentials.createSsl(...)` or terminate TLS at the mesh
-6. **Health checks on every service** — standard gRPC health protocol for load balancers
-7. **Interceptors for cross-cutting concerns** — auth, logging, metrics, tracing
-8. **Use streaming sparingly** — unary RPCs are simpler to debug and load-balance
-9. **Version via package name** — `userservice.v1`, `userservice.v2`
-10. **Keep messages small** — gRPC default max is 4MB; large payloads should be chunked
+5. **Bind `127.0.0.1` for insecure servers, TLS for everything else** — `createInsecure()` on `0.0.0.0` exposes an unauthenticated plaintext API; use `ServerCredentials.createSsl(...)`, `grpcio`'s `ssl_server_credentials`, or terminate TLS at the mesh
+6. **Enable reflection in dev only** — `@grpc/reflection` (Node), `grpcio-reflection` (Python) make grpcurl/grpcui work without the .proto; do not expose it publicly in production
+7. **Health checks on every service** — standard gRPC health protocol for load balancers
+8. **Interceptors for cross-cutting concerns** — auth, logging, metrics, tracing
+9. **Use streaming sparingly** — unary RPCs are simpler to debug and load-balance
+10. **Version via package name** — `userservice.v1`, `userservice.v2`
+11. **Keep messages small** — gRPC default max is 4MB; large payloads should be chunked

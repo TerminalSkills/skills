@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ (discord.js 14.x), a Discord account with permission to add apps to a server"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.0.1"
   category: development
   tags: "discord, discord-js, bot, slash-commands, webhooks"
   repository: https://github.com/discordjs/discord.js
@@ -18,7 +18,7 @@ metadata:
 
 A Discord bot is an application with a bot user. It connects to the Gateway (a WebSocket that streams events such as interactions) and calls the REST API (`https://discord.com/api/v10`) to act. Most bots today are driven by **interactions**: users run slash commands or press buttons, Discord sends the bot an event, and the bot must respond within 3 seconds.
 
-This skill targets discord.js 14 (14.27 at the time of writing), the main Node.js library. Sources: the Discord developer docs (discord.com/developers/docs), the discord.js guide (discordjs.guide) and the library reference (discord.js.org). The code below type-checks under `tsc --strict` against discord.js 14.27.
+This skill targets discord.js 14 (14.28 at the time of writing), the main Node.js library. Sources: the Discord developer docs (discord.com/developers/docs), the discord.js guide (discordjs.guide) and the library reference (discord.js.org). The code below type-checks under `tsc --strict` against discord.js 14.28.1.
 
 Two lighter options need no gateway connection: a **webhook** (post-only, one URL per channel) and plain **REST calls** with the bot token.
 
@@ -219,7 +219,7 @@ export const postMessage = (channelId: string, content: string) =>
 ### 10. Rate limits
 
 - Global limit: 50 requests per second per bot, plus per-route buckets reported in `X-RateLimit-*` headers.
-- On HTTP 429 the body carries `retry_after` (seconds); wait that long. Repeated invalid requests (401, 403, 429) can get the IP banned by Cloudflare, so never loop on failures.
+- On HTTP 429 the body carries `retry_after` (seconds); wait that long. Responses 401, 403 and 429 count as invalid requests; an IP that makes 10,000 of them in 10 minutes is temporarily banned by Cloudflare, so never loop on failures. Interaction endpoints (replying to an interaction) are not bound by the 50 per second limit.
 - discord.js queues and retries REST calls for you; hand-written `fetch` code must do it itself, as above.
 - Do not edit a message or bulk-send in tight loops; batch with `bulkDelete` (up to 100 messages, none older than 14 days).
 

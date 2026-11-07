@@ -6,10 +6,10 @@ description: >-
   big data, run distributed computations, build ETL pipelines, analyse data at
   scale, read Parquet from S3, or stream from Kafka with PySpark.
 license: Apache-2.0
-compatibility: 'Python 3.10+ (PySpark 4.x), Java 17/21/25, Scala 2.13, R'
+compatibility: 'Python 3.11+ (PySpark 4.3), Java 17/21/25, Scala 2.13, R'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: data-ai
   repository: https://github.com/apache/spark
   tags: "spark, pyspark, big-data, etl, distributed"
@@ -19,7 +19,7 @@ metadata:
 
 ## Overview
 
-Apache Spark is a distributed data processing engine for batch jobs, SQL, structured streaming, machine learning (MLlib) and graph work. PySpark is the Python API. It runs locally for development, on a standalone cluster, YARN or Kubernetes, and on managed services (Databricks, EMR, Dataproc). This skill targets Spark 4.x (4.2.0 released July 2026), which needs Java 17, 21 or 25 and Scala 2.13 for JVM code; PySpark 4.2 needs Python 3.10+.
+Apache Spark is a distributed data processing engine for batch jobs, SQL, structured streaming, machine learning (MLlib) and graph work. PySpark is the Python API. It runs locally for development, on a standalone cluster, YARN or Kubernetes, and on managed services (Databricks, EMR, Dataproc). This skill targets Spark 4.x (4.3.0 released October 2026), which needs Java 17, 21 or 25 and Scala 2.13 for JVM code; PySpark 4.3 needs Python 3.11+ (Python 3.10 support was dropped in 4.3).
 
 ## Instructions
 
@@ -92,7 +92,7 @@ Spark 4 runs SQL in ANSI mode by default (`spark.sql.ansi.enabled=true`): an inv
 The Kafka source is not bundled with PySpark. Add it at submit time, with the Scala 2.13 artifact matching your Spark version:
 
 ```bash
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0 stream/events.py
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0 stream/events.py
 ```
 
 ```python
@@ -144,7 +144,7 @@ Result: `processed/daily_metrics/` contains one `date=YYYY-MM-DD/` folder per da
 ### Example 2: "Count signups per 5-minute window from the events topic"
 
 ```bash
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0 stream/events.py
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0 stream/events.py
 ```
 
 Result: the console prints a batch table each trigger, with columns `window`, `event_type` and `count`. Restarting the job with the same `checkpointLocation` resumes from the saved offsets rather than `startingOffsets`.

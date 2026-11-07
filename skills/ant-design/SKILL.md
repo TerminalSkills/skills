@@ -13,7 +13,7 @@ license: Apache-2.0
 compatibility: "antd 6.x; React 18 or 19; Node.js 16+ for the app, Node.js 20+ for the optional @ant-design/cli"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: "react, antd, component-library, admin-panel, design-tokens"
   repository: https://github.com/ant-design/ant-design
@@ -24,7 +24,7 @@ metadata:
 
 Ant Design (npm package `antd`) is an enterprise-class design language and React UI library. Its strength is dense business screens: `Table` with sorting, filtering, row selection and pagination built in; `Form` with a field store, validation rules and watchers; plus date pickers, cascaders, trees, drawers and menus. Styling is CSS-in-JS driven by design tokens, so a brand color or dark mode is one `ConfigProvider` prop instead of a stylesheet rewrite.
 
-The current major is **v6** (6.6.x at the time of writing). v6 needs React 18 or newer, uses CSS variables by default, drops IE, and renames many props (old names still work with console warnings until v7).
+The current major is **v6** (6.7.x at the time of writing). v6 needs React 18 or newer, uses CSS variables by default, drops IE, and renames many props (old names still work with console warnings until v7).
 
 ## Instructions
 
@@ -214,7 +214,7 @@ npm install antd @ant-design/nextjs-registry
 
 Create `app/theme.ts` with the `brandTheme` from the Theming section, `app/providers.tsx` with the App shell above, and wrap them in `AntdRegistry` in `app/layout.tsx`. Any page that renders antd components starts with `'use client'`.
 
-**Result:** `next build` prerenders the pages with antd's styles inlined in the HTML, so the primary buttons are teal from the first paint, tables use the dark header color, and spacing is the compact variant. The dark algorithm adjusts the seed, so the rendered primary is a darker teal (`--ant-color-primary:#106761` in antd 6.6.5, not `#0f766e`); check it with `theme.getDesignToken(brandTheme).colorPrimary`, and drop `darkAlgorithm` if the exact brand hex matters more than dark mode. Changing `colorPrimary` in one file re-derives hover, active and focus shades everywhere.
+**Result:** `next build` prerenders the pages with antd's styles inlined in the HTML, so the primary buttons are teal from the first paint, tables use the dark header color, and spacing is the compact variant. The dark algorithm adjusts the seed, so the rendered primary is a darker teal (`--ant-color-primary:#106761` in antd 6.7.0, not `#0f766e`); check it with `theme.getDesignToken(brandTheme).colorPrimary`, and drop `darkAlgorithm` if the exact brand hex matters more than dark mode. Changing `colorPrimary` in one file re-derives hover, active and focus shades everywhere.
 
 ### Example 3: Checking a v5 codebase before upgrading to v6
 
@@ -230,6 +230,7 @@ npx @ant-design/cli lint ./src --only deprecated
 ## Guidelines
 
 - Write v6 prop names: `Space orientation`, `Alert title`, `Modal destroyOnHidden`, `variant` instead of `bordered`, `popupRender` instead of `dropdownRender`, `size="medium"` instead of `"middle"` on `Table`. Old names still render but warn and disappear in v7. Lint did not flag `Table size="middle"` in testing, so check sizes by hand.
+- New in 6.7 (old names still work, with deprecation): `suffix` replaces `suffixIcon` on DatePicker, TimePicker, Select, AutoComplete, Cascader and TreeSelect; Table `components.ExpandIcon` replaces `expandable.expandIcon`; Form `labelAlign` takes `start`/`end` instead of `left`/`right`; the Alert container radius token is now `containerBorderRadius` (was `borderRadius`).
 - Upgrade `antd` and `@ant-design/icons` together; icons v6 does not work with antd v5, and two dayjs or cssinjs copies break locales and SSR styles (`cli doctor` detects both).
 - Custom CSS that targets internal `.ant-*` DOM nodes is fragile across majors; prefer component tokens or the `classNames`/`styles` semantic props (`cli semantic Table` lists the slots).
 - Never fetch all rows and let `Table` sort/filter them client-side for large datasets; use `sorter: true`, controlled pagination and a paginated API.

@@ -3,16 +3,18 @@ title: Deploy Your App Through an AI Agent with Health Checks and Rollback
 slug: deploy-app-through-ai-agent
 description: Set up conversational deployment — tell your AI agent "deploy to production" and it handles build, deploy, health verification, and automatic rollback.
 skills:
-  - smart-deployer
-  - cicd-pipeline
+  - vercel
+  - railway-deploy
+  - kamal
+  - github-actions
   - test-generator
 category: devops
 tags:
   - deployment
   - ci-cd
   - vercel
-  - fly-io
-  - docker
+  - railway
+  - kamal
   - health-check
   - rollback
 ---
@@ -21,301 +23,220 @@ tags:
 
 Sami is a solo developer running three side projects. Each has a different deployment target — one on Vercel, one on Railway with a Postgres database, one on a $5 VPS with Docker. Deploying means switching between three different dashboards, remembering three different CLIs, and running slightly different sequences of commands. Last month, a bad deploy on the VPS took the site down for two hours because Sami forgot to health-check before switching traffic.
 
-The deploy process for each project is about 8 steps: pull latest code, run tests, build, deploy to staging, check health, promote to production, verify, notify the team. Miss a step — especially the health check — and users see errors. Sami wants to say "deploy my-app to production" to the AI agent and have it handle every step, including rolling back if something breaks.
+The deploy process for each project is about 8 steps: pull latest code, run tests, build, deploy, check health, promote to production, verify, notify. Miss a step — especially the health check — and users see errors. Sami wants to say "deploy my-app to production" to the AI agent and have it handle every step, including rolling back if something breaks.
 
 ## The Solution
 
-Use smart-deployer to build deploy scripts for each platform — Vercel, Railway, and Docker on VPS. Each script follows the same pattern: build → deploy → health check → promote or rollback. Use cicd-pipeline for the GitHub Actions integration that triggers deploys on push. Use test-generator for pre-deploy test verification.
+Each platform already has a mechanism that decides when traffic switches, and the agent should use it rather than fight it:
+
+- **vercel**: `vercel deploy --prod --skip-domain` builds a production deployment without pointing the domains at it. The agent health-checks the new URL, then runs `vercel promote`. If the live domain turns out bad, `vercel rollback` returns to the previous production deployment.
+- **railway-deploy**: Railway polls the service's `healthcheckPath` and keeps the previous deployment live if it never returns 2xx. The CLI has no rollback command, so the agent verifies after `railway up` and reports; reverting means redeploying the last good deployment.
+- **kamal**: Docker on a VPS. kamal-proxy switches traffic only after the new container answers `/up` with 200, and `kamal rollback <version>` restarts an older retained container.
+
+Use **github-actions** to trigger the deploy on push, and **test-generator** to make sure the code under change has tests before the pre-deploy gate runs them.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Define the Deploy Configuration
+### Step 1: Make sure there is a gate worth passing
 
-Each project gets a deploy config file that the agent reads to know which platform, which health check URL, and what the rollback strategy is.
+A deploy gate is only as good as the tests behind it. Ask the agent to cover the risky code first:
 
-```typescript
-// deploy.config.ts — Deployment configuration per project
-/**
- * Central config that tells the agent how to deploy each project.
- * The agent reads this to determine platform, health checks, and
- * rollback behavior. Keep it in the repo root.
- */
-
-export interface DeployConfig {
-  name: string;
-  platform: "vercel" | "railway" | "fly" | "docker-vps";
-  production: {
-    url: string;                    // Production URL
-    healthCheck: string;            // Path to health endpoint
-    healthTimeout: number;          // Seconds to wait for health
-  };
-  rollback: {
-    automatic: boolean;             // Auto-rollback on health failure
-    notifyOnRollback: string[];     // Channels to alert
-  };
-  preDeployChecks: string[];        // Commands to run before deploying
-  postDeployVerify: string[];       // Commands to run after deploying
-  secrets: string[];                // Required env vars (validation only)
-}
-
-export const config: DeployConfig = {
-  name: "my-saas-app",
-  platform: "vercel",
-  production: {
-    url: "https://my-saas-app.vercel.app",
-    healthCheck: "/api/health",
-    healthTimeout: 60,
-  },
-  rollback: {
-    automatic: true,
-    notifyOnRollback: ["slack:#deployments"],
-  },
-  preDeployChecks: [
-    "pnpm typecheck",              // TypeScript compilation
-    "pnpm test --run",             // All tests must pass
-    "pnpm build",                  // Build must succeed locally
-  ],
-  postDeployVerify: [
-    "curl -sf ${DEPLOY_URL}/api/health",
-    "curl -sf ${DEPLOY_URL}/api/health/db",  // Database connectivity
-  ],
-  secrets: [
-    "DATABASE_URL",
-    "NEXTAUTH_SECRET",
-    "STRIPE_SECRET_KEY",
-  ],
-};
+```text
+Use the test-generator skill to add Vitest tests for the checkout and webhook handlers in src/, plus an integration test that GET /api/health returns 200 and checks the database. Then run pnpm test --run and report coverage.
 ```
 
-### Step 2: Build the Universal Deploy Script
+Add the health endpoint itself (`/api/health` on Vercel and Railway, `/up` for Kamal) and, on Railway, set `healthcheckPath` in `railway.json` or the service settings so the platform checks it too.
 
-The deploy script is platform-aware but follows the same flow everywhere. The agent calls it with a target environment and it handles the rest.
+### Step 2: One deploy script, three platforms
+
+The script runs the same flow everywhere: pre-deploy checks, platform deploy, health check, and rollback only when something was actually switched. A failed pre-deploy check never triggers a rollback, because nothing was deployed. Platform commands run with `execFileSync` and an argument list, so no shell interprets them; only the repo-controlled commands in `preDeployChecks` use `execSync`.
 
 ```typescript
-// deploy.ts — Universal deployment script with health checks and rollback
-/**
- * Orchestrates the full deployment pipeline:
- * 1. Pre-deploy checks (types, tests, build)
- * 2. Platform-specific deploy
- * 3. Health verification
- * 4. Auto-rollback on failure
- * 5. Post-deploy notifications
- */
-import { execSync } from "child_process";
-import { config, DeployConfig } from "./deploy.config.js";
+// deploy.ts
+import { execFileSync, execSync } from "node:child_process";
 
-interface DeployResult {
-  status: "success" | "failed" | "rolled-back";
-  url: string;
-  duration: number;
-  steps: Array<{ name: string; status: "pass" | "fail"; duration: number }>;
+type Platform = "vercel" | "railway" | "kamal";
+
+interface DeployConfig {
+  name: string;
+  platform: Platform;
+  productionUrl: string;
+  healthPath: string;
+  healthTimeoutSeconds: number;
+  preDeployChecks: string[];
+  secrets: string[];
 }
 
-export async function deploy(env: "production" | "preview" = "production"): Promise<DeployResult> {
-  const steps: DeployResult["steps"] = [];
-  const start = Date.now();
-  let deployUrl = "";
+const config: DeployConfig = {
+  name: "my-saas-app",
+  platform: "vercel",
+  productionUrl: "https://my-saas-app.example.com",
+  healthPath: "/api/health",
+  healthTimeoutSeconds: 60,
+  preDeployChecks: ["pnpm typecheck", "pnpm test --run", "pnpm build"],
+  secrets: ["VERCEL_TOKEN"],
+};
 
-  try {
-    // Phase 1: Pre-deploy checks
-    console.log("🔍 Running pre-deploy checks...");
-    for (const check of config.preDeployChecks) {
-      const stepStart = Date.now();
-      try {
-        execSync(check, { stdio: "pipe", encoding: "utf-8" });
-        steps.push({ name: check, status: "pass", duration: Date.now() - stepStart });
-        console.log(`  ✅ ${check}`);
-      } catch (error: any) {
-        steps.push({ name: check, status: "fail", duration: Date.now() - stepStart });
-        console.log(`  ❌ ${check}`);
-        throw new Error(`Pre-deploy check failed: ${check}\n${error.stdout || error.message}`);
-      }
-    }
+const run = (cmd: string, args: string[]): string =>
+  execFileSync(cmd, args, { encoding: "utf-8" }).trim();
 
-    // Phase 2: Validate secrets
-    console.log("🔑 Checking required secrets...");
-    for (const secret of config.secrets) {
-      if (!process.env[secret]) {
-        throw new Error(`Missing required secret: ${secret}`);
-      }
-    }
-
-    // Phase 3: Deploy
-    console.log(`🚀 Deploying to ${config.platform} (${env})...`);
-    const deployStart = Date.now();
-    deployUrl = await platformDeploy(config, env);
-    steps.push({ name: "deploy", status: "pass", duration: Date.now() - deployStart });
-    console.log(`  📦 Deployed: ${deployUrl}`);
-
-    // Phase 4: Health check
-    console.log("🏥 Verifying health...");
-    const healthStart = Date.now();
-    const healthy = await healthCheck(
-      `${deployUrl}${config.production.healthCheck}`,
-      config.production.healthTimeout
-    );
-    steps.push({
-      name: "health-check",
-      status: healthy ? "pass" : "fail",
-      duration: Date.now() - healthStart,
-    });
-
-    if (!healthy) {
-      throw new Error("Health check failed after deployment");
-    }
-
-    console.log("✅ Health check passed!");
-
-    // Phase 5: Post-deploy verification
-    for (const verify of config.postDeployVerify) {
-      const cmd = verify.replace("${DEPLOY_URL}", deployUrl);
-      try {
-        execSync(cmd, { stdio: "pipe", timeout: 10000 });
-        console.log(`  ✅ ${verify}`);
-      } catch {
-        console.log(`  ⚠️ ${verify} (non-critical)`);
-      }
-    }
-
-    return {
-      status: "success",
-      url: deployUrl,
-      duration: (Date.now() - start) / 1000,
-      steps,
-    };
-
-  } catch (error: any) {
-    console.log(`\n❌ Deploy failed: ${error.message}`);
-
-    // Auto-rollback
-    if (config.rollback.automatic && env === "production") {
-      console.log("⏪ Auto-rolling back...");
-      try {
-        await platformRollback(config);
-        console.log("✅ Rollback complete");
-
-        await notify(config, `⏪ Rollback triggered for ${config.name}: ${error.message}`);
-
-        return {
-          status: "rolled-back",
-          url: deployUrl,
-          duration: (Date.now() - start) / 1000,
-          steps,
-        };
-      } catch (rollbackError) {
-        console.log("❌ Rollback also failed! Manual intervention needed.");
-        await notify(config, `🚨 CRITICAL: Deploy AND rollback failed for ${config.name}`);
-      }
-    }
-
-    return {
-      status: "failed",
-      url: deployUrl,
-      duration: (Date.now() - start) / 1000,
-      steps,
-    };
-  }
-}
-
-async function platformDeploy(config: DeployConfig, env: string): Promise<string> {
-  switch (config.platform) {
-    case "vercel": {
-      const flag = env === "production" ? "--prod" : "";
-      const output = execSync(`vercel deploy ${flag} --yes`, { encoding: "utf-8" });
-      const match = output.match(/https:\/\/[^\s]+/);
-      return match?.[0] || config.production.url;
-    }
-    case "railway": {
-      execSync("railway up --detach", { encoding: "utf-8" });
-      return config.production.url;
-    }
-    case "fly": {
-      execSync(`fly deploy --strategy canary --wait-timeout 120`, { encoding: "utf-8" });
-      return config.production.url;
-    }
-    case "docker-vps": {
-      execSync("docker compose up -d --build", { encoding: "utf-8" });
-      return config.production.url;
-    }
-    default:
-      throw new Error(`Unknown platform: ${config.platform}`);
-  }
-}
-
-async function platformRollback(config: DeployConfig): Promise<void> {
-  switch (config.platform) {
-    case "vercel":
-      execSync("vercel rollback --yes", { encoding: "utf-8" });
-      break;
-    case "railway":
-      execSync("railway rollback", { encoding: "utf-8" });
-      break;
-    case "fly":
-      execSync("fly releases rollback", { encoding: "utf-8" });
-      break;
-    case "docker-vps":
-      execSync("docker compose down && docker compose -f docker-helper.previous.yml up -d", {
-        encoding: "utf-8",
-      });
-      break;
-  }
-}
-
-async function healthCheck(url: string, timeoutSeconds: number): Promise<boolean> {
+async function healthy(
+  url: string,
+  timeoutSeconds: number,
+  headers: Record<string, string> = {},
+): Promise<boolean> {
   const deadline = Date.now() + timeoutSeconds * 1000;
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
       if (res.ok) return true;
-    } catch {}
+    } catch {
+      // not up yet, retry
+    }
     await new Promise((r) => setTimeout(r, 3000));
   }
   return false;
 }
 
-async function notify(config: DeployConfig, message: string): Promise<void> {
-  for (const channel of config.rollback.notifyOnRollback) {
-    console.log(`📢 Notification → ${channel}: ${message}`);
-    // Integrate with Slack, Discord, etc.
+async function notify(message: string): Promise<void> {
+  console.log(message);
+  const hook = process.env.SLACK_WEBHOOK_URL;
+  if (!hook) return;
+  await fetch(hook, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: message }),
+  });
+}
+
+export async function deploy(): Promise<"success" | "failed" | "rolled-back"> {
+  for (const check of config.preDeployChecks) {
+    try {
+      execSync(check, { stdio: "inherit" });
+    } catch {
+      await notify(`Deploy of ${config.name} stopped: "${check}" failed. Nothing was deployed.`);
+      return "failed";
+    }
+  }
+  for (const name of config.secrets) {
+    if (!process.env[name]) throw new Error(`Missing required env var: ${name}`);
+  }
+
+  const health = (base: string, headers: Record<string, string> = {}) =>
+    healthy(`${base}${config.healthPath}`, config.healthTimeoutSeconds, headers);
+
+  switch (config.platform) {
+    case "vercel": {
+      // Build the production deployment but do not switch domains yet.
+      const url = run("vercel", ["deploy", "--prod", "--skip-domain", "--yes"]);
+      // The generated deployment URL is behind Deployment Protection (401 without a token).
+      const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+      const probeHeaders: Record<string, string> = bypass ? { "x-vercel-protection-bypass": bypass } : {};
+      if (!(await health(url, probeHeaders))) {
+        await notify(`${config.name}: new build ${url} is unhealthy, production was never switched.`);
+        return "failed";
+      }
+      run("vercel", ["promote", url, "--yes"]);
+      if (await health(config.productionUrl)) return "success";
+      run("vercel", ["rollback"]); // back to the previous production deployment
+      await notify(`${config.name}: promoted build failed on the live domain, rolled back.`);
+      return "rolled-back";
+    }
+    case "railway": {
+      // Railway only switches traffic once healthcheckPath returns 2xx; on failure the old deployment stays live.
+      // In --ci mode the exit code is the verdict: non-zero when the build or the new deployment fails.
+      try {
+        run("railway", ["up", "--ci", "--service", config.name]);
+      } catch {
+        await notify(`${config.name}: Railway deployment failed, the previous deployment is still live.`);
+        return "failed";
+      }
+      if (await health(config.productionUrl)) return "success";
+      await notify(`${config.name}: unhealthy after deploy. Redeploy the last good deployment in the Railway dashboard.`);
+      return "failed";
+    }
+    case "kamal": {
+      // --quiet prints only the version (without it the output has "App Host:" lines); assumes one server.
+      let previous = "";
+      try {
+        previous = run("kamal", ["app", "version", "--quiet"]);
+      } catch {
+        // first deploy: nothing running yet
+      }
+      try {
+        run("kamal", ["deploy"]); // kamal-proxy switches only after /up answers 200
+      } catch {
+        await notify(`${config.name}: kamal deploy aborted, the old container is still serving.`);
+        return "failed";
+      }
+      if (await health(config.productionUrl)) return "success";
+      if (!previous) {
+        await notify(`${config.name}: unhealthy after the first deploy, nothing to roll back to.`);
+        return "failed";
+      }
+      run("kamal", ["rollback", previous]);
+      await notify(`${config.name}: unhealthy after deploy, rolled back to ${previous}.`);
+      return "rolled-back";
+    }
   }
 }
+
+deploy().then((status) => process.exit(status === "success" ? 0 : 1));
 ```
 
-### Step 3: Wire Into GitHub Actions
+Keep the platform choice and URLs in the config object at the top (one copy per project; for Kamal use `/up` as `healthPath`). The script type-checks with `typescript` and `@types/node`; run it with `tsx` (`pnpm add -D tsx typescript @types/node`). On Vercel, the new deployment's generated URL is protected by default (Standard Protection), so create a Protection Bypass for Automation secret in the project settings and export it as `VERCEL_AUTOMATION_BYPASS_SECRET` (the script sends it in the `x-vercel-protection-bypass` header, only to the unpromoted URL). Set `SLACK_WEBHOOK_URL` as a CI secret to get notifications.
+
+### Step 3: Wire into GitHub Actions
 
 ```yaml
-# .github/workflows/deploy.yml — Triggered on push to main
+# .github/workflows/deploy.yml
 name: Deploy
 on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - run: corepack enable
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
-
       - run: pnpm install --frozen-lockfile
-
       - name: Deploy to production
-        run: npx tsx deploy.ts
+        run: pnpm exec tsx deploy.ts
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
+
+`corepack enable` picks the pnpm version from the `packageManager` field in `package.json`. The Vercel project is identified by `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. For Railway the job needs `RAILWAY_TOKEN` (a project token); for Kamal it needs the registry password and an SSH key for the server. Keep runtime secrets such as `DATABASE_URL` in the platform's own settings, not in CI.
 
 ## The Outcome
 
-Sami tells the agent "deploy my-saas-app to production." The agent reads deploy.config.ts, runs type checks and tests, deploys to Vercel, health-checks the endpoint, and reports back with the URL and timing. If the health check fails, it rolls back automatically and sends a Slack notification. The entire flow takes 90 seconds and Sami doesn't touch a dashboard.
+Sami tells the agent "deploy my-saas-app to production." The agent runs type checks and tests, builds an unpromoted Vercel deployment, health-checks it, promotes it, re-checks the live domain and reports the URL and timings. If the new build is unhealthy it is never promoted; if the live domain fails after promotion, it rolls back and posts to Slack.
 
-For the Railway project, the same command runs with a different config. For the VPS project, Docker blue-green kicks in. One command, three platforms, zero manual steps. The two-hour outage from a missed health check can't happen anymore — the script won't promote a deployment that doesn't respond healthy.
+For the Railway project the same command runs with a different config, and Railway's own health gate keeps the old deployment serving if the new one never becomes healthy. For the VPS project, `kamal deploy` aborts the same way and the script rolls back to the previous version when a post-deploy check fails. The two-hour outage from a missed health check can't happen again: no platform here switches traffic to a deployment that doesn't answer its health check.
+
+## Related Skills
+
+- **vercel**: unpromoted production deploys, `promote` and `rollback` for the Vercel project.
+- **railway-deploy**: deploys the Railway project and explains its health-gated switch and manual rollback.
+- **kamal**: deploys the Docker app to the VPS with proxy health checks and `kamal rollback`.
+- **github-actions**: triggers the deploy script on every push to main.
+- **test-generator**: writes the tests the pre-deploy gate runs.

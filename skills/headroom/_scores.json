@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:39734441e832c56fc8a804cb2c8ca0be73d3cdc9fea484636ba7c70a6b1f9a00",
-  "scoredAt": "2026-10-24T23:15:50.787Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8db952241bbb0bf765d0c61700d30e089553fe51502f364d47f8109bf181cab7",
+  "scoredAt": "2026-11-06T23:42:26.958Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling for network failures, missing dependencies, or invalid inputs, leaving edge cases unaddressed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains extensive explanatory text that could be condensed, potentially obscuring key steps."
+        "detail": "The instructions lack coverage of error handling and edge cases such as network failures or malformed input."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Installation and usage commands assume a Unix-like environment, lacking explicit guidance for Windows or other platforms."
+        "detail": "The installation paths and commands assume a Unix-like environment, limiting usability on Windows."
       }
     ]
   },
@@ -37,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.48,
-    "baselineAvg": 23,
-    "treatmentAvg": 80,
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "compress-large-json",
-        "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response A covers the compress call, token stats, and overall workflow but omits the id:250 check, while Response B lacks the required compress(messages, model=…) call and the id:250 confirmation."
+        "name": "compress-json-logs",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required compress call and result attributes but omits the transforms_applied mention; Response A fails to meet any rubric criteria."
       },
       {
-        "name": "proxy-stats-check",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A meets most rubric items but omits the total_tokens_removed field, while Response B fails to use the required command, environment variable, and JSON fields."
+        "name": "proxy-token-mode-third-party",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to match the required command syntax, health response, and stats JSON structure."
       },
       {
-        "name": "wrap-claude-mcp",
+        "name": "wrap-clone-without-mcp-learn",
         "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response B covers all required items except the undo command, while Response A misses the key command, tool names, and server registration."
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits key flags and details."
       }
     ]
   }

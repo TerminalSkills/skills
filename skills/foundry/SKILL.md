@@ -9,10 +9,10 @@ description: >-
   script, verify a contract on Etherscan, track gas with forge snapshot, or
   read and write chain state with cast.
 license: Apache-2.0
-compatibility: 'Linux, macOS, or Windows via WSL/Git Bash; git for dependencies. Checked against Foundry v1.8.3.'
+compatibility: 'Linux, macOS, or Windows via WSL/Git Bash; git for dependencies. Checked against Foundry v1.9.0.'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: "1.3.0"
   category: development
   repository: https://github.com/foundry-rs/foundry
   tags: "solidity, ethereum, smart-contracts, testing, forge"
@@ -33,7 +33,7 @@ Foundry is a Rust toolkit for Ethereum development made of four binaries: `forge
 brew install foundry
 
 # Or a release archive, verified against the published SHA-256 before extracting
-FOUNDRY_VERSION=v1.8.3
+FOUNDRY_VERSION=v1.9.0
 ARCHIVE="foundry_${FOUNDRY_VERSION}_linux_amd64.tar.gz"   # also linux_arm64, darwin_arm64, darwin_amd64, alpine_amd64
 curl -fsSLO "https://github.com/foundry-rs/foundry/releases/download/${FOUNDRY_VERSION}/${ARCHIVE}"
 curl -fsSLO "https://github.com/foundry-rs/foundry/releases/download/${FOUNDRY_VERSION}/${ARCHIVE%.tar.gz}.sha256"
@@ -41,10 +41,10 @@ sha256sum -c "${ARCHIVE%.tar.gz}.sha256" \
   && mkdir -p "$HOME/.local/bin" \
   && tar -xzf "$ARCHIVE" -C "$HOME/.local/bin"            # forge, cast, anvil, chisel, solar
 export PATH="$HOME/.local/bin:$PATH"                      # if it is not on PATH already
-forge --version                                           # forge Version: 1.8.3
+forge --version                                           # forge Version: 1.9.0
 
 # Or Docker / a source build
-docker pull ghcr.io/foundry-rs/foundry:v1.8.3
+docker pull ghcr.io/foundry-rs/foundry:v1.9.0
 cargo install --git https://github.com/foundry-rs/foundry --profile release --locked forge cast chisel anvil solar
 ```
 
@@ -221,6 +221,8 @@ forge script script/Deploy.s.sol --rpc-url sepolia --account deployer \
 # A broadcast interrupted halfway continues with the same command plus --resume
 ```
 
+Since v1.8.4 `forge script` keeps its authoritative resume state in a private `cache/` file (`.recovery.json`) next to `broadcast/`: keep both directories until the deployment is complete, and do not resume with an older Forge after 1.8.4+ has written recovery state. Since v1.9.0 `--resume` stops when a recorded transaction reverted and operations are still unsent; fix the cause, then run `--broadcast --start-fresh` to archive the old run and broadcast again.
+
 Without `--broadcast` nothing is sent. Receipts are written to `broadcast/Deploy.s.sol/11155111/run-latest.json` (the directory is the chain id).
 
 ## Examples
@@ -236,12 +238,14 @@ forge test --match-contract VaultTest        # plain `forge test` also runs the 
 
 ```text
 Ran 4 tests for test/Vault.t.sol:VaultTest
-[PASS] testFuzz_Deposit(uint256) (runs: 256, μ: 200059, ~: 199478)
+[PASS] testFuzz_Deposit(uint256) (runs: 256, μ: 199961, ~: 199748)
 [PASS] test_Deposit() (gas: 207745)
 [PASS] test_ForkMainnetUsdc() (gas: 16165)
 [PASS] test_RevertWhen_CallerIsNotOwner() (gas: 36107)
 Suite result: ok. 4 passed; 0 failed; 0 skipped
 ```
+
+Gas figures depend on the compiler settings and Forge version, so yours will differ. After upgrading Forge, regenerate `.gas-snapshot` (v1.9.0 charges `vm.deployCode` its creation gas, which moves tests that deploy with `new`).
 
 With `MAINNET_RPC_URL` unset the fork test fails with "vm.createSelectFork: environment variable `MAINNET_RPC_URL` not found"; `forge test --rerun` then retries only the failed tests.
 

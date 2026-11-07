@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6689f56b305d76304c1b6a1ed407e282633c5f70460bb776d8b9c06d3b1a02a7",
-  "scoredAt": "2026-05-13T10:24:53.307Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:32a480d1f4ee96b380539f567d12075c067e40fb158479334870aa920a22682a",
+  "scoredAt": "2026-11-07T12:19:03.203Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 0.74,
+    "baselineAvg": 38,
+    "treatmentAvg": 28,
     "scenarios": [
       {
-        "name": "Import existing VPC and EC2 to a clean plan",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline uses only the terraform import CLI loop; treatment combines 1.5+ import blocks with terraform plan -generate-config-out for config generation."
+        "name": "multi-environment-terraform-setup",
+        "baseline": 35,
+        "treatment": 65,
+        "rationale": "Response B provides a more complete directory layout, backend configuration, and module references, whereas Response A lacks environment-specific backends, validation blocks, and a root main.tf."
       },
       {
-        "name": "Variable validation and consistent tagging",
+        "name": "import-existing-ec2-instance",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline lacks a validation block and a shared locals/common_tags pattern; treatment uses can(regex(...)) validation plus merge(var.common_tags, ...) on resources."
+        "treatment": 20,
+        "rationale": "Response A includes the import and plan output but fails to meet the required resource block details; Response B is incomplete and does not provide the necessary resource block or plan output."
+      },
+      {
+        "name": "github-actions-terraform-ci-cd",
+        "baseline": 50,
+        "treatment": 0,
+        "rationale": "Response A partially meets the rubric but misses key details (setup-terraform@v4, exact Infracost command, and tfplan usage); Response B is empty."
       }
     ]
   }

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5697ae54244cf4309220ecf0296b085dd122d2cc585c37b19406183e9a2f0e45",
-  "scoredAt": "2026-10-13T17:04:50.219Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:eef25b0e117ecd7ee608bb87c3ba695260a5555b390a3cac42b00acf3046cd3e",
+  "scoredAt": "2026-11-07T12:00:12.125Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases such as missing API keys or network failures."
+        "detail": "The skill does not explicitly handle error scenarios such as missing API keys or network failures, limiting completeness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on specific vendor APIs (OpenAI, Anthropic) and does not support arbitrary AI agents, reducing cross-platform compatibility."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.41,
-    "baselineAvg": 17,
-    "treatmentAvg": 75,
+    "multiplier": 5.47,
+    "baselineAvg": 15,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "add-evals-to-ci",
+        "name": "add-rag-eval-quality-gate",
         "baseline": 20,
-        "treatment": 80,
-        "rationale": "Response A includes a GitHub Actions workflow, promptfoo config, and PR comment posting, but omits the exact `npx eval run --ci` command and a numeric threshold; Response B lacks all rubric requirements."
-      },
-      {
-        "name": "compare-models",
-        "baseline": 20,
-        "treatment": 85,
-        "rationale": "Response B meets the rubric requirements by using promptfoo, LLM‑as‑judge scoring, latency, cost, and Markdown output, whereas Response A lacks promptfoo integration, proper scoring, and the required table."
-      },
-      {
-        "name": "catch-prompt-regressions",
-        "baseline": 10,
         "treatment": 60,
-        "rationale": "Response B provides a promptfoo config, llm-rubric assertions, and a GitHub Actions workflow, whereas Response A uses a different framework and lacks the required elements."
+        "rationale": "Response A covers most of the required Promptfoo config and workflow setup but misses triggers on prompts/**, posting PR comments, and exit code 100; Response B does not provide a Promptfoo YAML or the specified GitHub Actions workflow at all."
+      },
+      {
+        "name": "compare-models-eval",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide the required Promptfoo config, eval command, or comparison matrix."
+      },
+      {
+        "name": "custom-eval-github-actions",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response A is Python and misses many TypeScript and workflow requirements, while Response B largely satisfies the rubric with minor omissions."
       }
     ]
   }

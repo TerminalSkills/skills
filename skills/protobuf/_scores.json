@@ -1,24 +1,29 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:fb093d9625732aaa739a265ec0fc99becf118496440a51b65f540e36cb26e2f6",
-  "scoredAt": "2026-10-03T12:07:29.024Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.1.1",
+  "skillHash": "sha256:95882608ca6be635a9f0a0def84ecf2107d0bb8b7686b8c216919705b683848d",
+  "scoredAt": "2026-11-06T23:55:04.905Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Covers install, schema, codegen and evolution well but gives little troubleshooting for common errors such as protoc plugin not found, import path resolution failures, or buf lint failures, and edge cases such as unknown-field handling or JSON name collisions are not addressed."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation instructions assume specific package managers and OS, limiting portability."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.16,
-    "baselineAvg": 76,
-    "treatmentAvg": 88,
+    "multiplier": 1.48,
+    "baselineAvg": 63,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "safe-schema-evolution-with-reserved",
-        "baseline": 62,
+        "name": "generate-ts-client-for-chat-service",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits lint/breaking rules and the required protoc-gen-es plugin."
+      },
+      {
+        "name": "add-safe-field-to-user-message",
+        "baseline": 30,
         "treatment": 80,
-        "rationale": "A gives a fresh number 8, keeps both reserved number and name lines, explains that the wire format uses numbers, and runs `buf breaking --against '.git#branch=main'` with a WIRE_JSON variant. B also uses 8 and reserves 4, 7 and the names, but its message sketch is muddled (a placeholder field and an assumed number for email), and it centres on protoc round-trips instead of buf, although it does include the correct `buf breaking` command."
+        "rationale": "Response B includes the required field number, reservations, and demonstrates a non‑breaking check, whereas Response A mis‑numbers the field, omits the old field names, and does not meet the exact breaking‑check command."
       },
       {
-        "name": "buf-typescript-codegen-setup",
-        "baseline": 88,
-        "treatment": 90,
-        "rationale": "Both give the v2 buf.yaml and a protoc-gen-es buf.gen.yaml with out dir, plus create/toBinary/fromBinary with a {case,value} oneof. A uses an explicit node_modules/.bin path and runs `npx buf generate` as the rubric asks. B uses `local: protoc-gen-es` and `npm run gen`, which is not the literal `npx buf generate`. B also adds `inputs`, scripts and an assumed proto, which is extra, and it shows `user.contact = {...}` assignment, which is still plain-object style."
-      },
-      {
-        "name": "design-order-service-schema-pitfalls",
-        "baseline": 78,
-        "treatment": 95,
-        "rationale": "Both use optional, integer minor-unit Money with a currency code, a prefixed UNSPECIFIED=0 enum, and dedicated request/response messages per RPC, but A's package `ecommerce.order.v1` is versioned yet not the `shop.v1` example while B's `shop.v1` matches and B adds clearer design notes, so B edges ahead."
+        "name": "generate-go-server-for-order-service",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing a .proto file with required options, a protoc command, and a minimal Go server on port 50051."
       }
     ]
   }

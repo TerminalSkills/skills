@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a0b890f01eb9062010b8b815215404fff0a6e2207d35aeb1dc9b6f93671ec36e",
-  "scoredAt": "2026-09-30T22:07:39.217Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5cc073d2cd52ee41de7010fef4e1360cc79d117e5fe86d8fb87e73d8229d2afb",
+  "scoredAt": "2026-11-06T23:47:39.972Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains excessive background and verbose explanations that may be considered padded."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 9,
-    "baselineAvg": 7,
-    "treatmentAvg": 90,
+    "multiplier": 5.8,
+    "baselineAvg": 0,
+    "treatmentAvg": 58,
     "scenarios": [
       {
         "name": "batch-scan-to-markdown",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B satisfies all rubric requirements, while Response A does not mention mineru-kit or the required command."
+        "treatment": 55,
+        "rationale": "Response A includes the required mineru-kit commands and mentions zip format, but omits the exact zip command and ZIP contents; Response B does not use mineru-kit at all."
       },
       {
-        "name": "long-pdf-search-with-locators",
-        "baseline": 20,
-        "treatment": 70,
-        "rationale": "Response B covers most rubric items while Response A omits key server and parsing steps."
-      },
-      {
-        "name": "office-to-markdown-with-tables",
+        "name": "read-long-document-with-citations",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully meets the rubric, while Response B provides no content."
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items but omits the required --limit flag and uses tier:basic instead of tier:standard, whereas Response A lacks all MinerU commands."
+      },
+      {
+        "name": "convert-office-to-markdown",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B lists the required mineru-kit commands and mentions tables, but fails to explicitly state that no --tier or --pages flags are used; Response A uses pandoc instead of mineru-kit."
       }
     ]
   }

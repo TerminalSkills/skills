@@ -7,8 +7,10 @@ description: >-
   DataLoader for N+1 prevention, subscriptions, and caching.
 skills:
   - graphql
+  - graphql-yoga
   - redis
   - drizzle-orm
+  - stripe-billing
 category: development
 tags:
   - graphql
@@ -22,6 +24,8 @@ tags:
 
 Ada's frontend needs data from 5 sources: the user database, a REST billing API, a CMS, an analytics service, and a third-party enrichment API. Each request requires 3-5 fetch calls with manual data stitching. GraphQL gives her one endpoint where the frontend declares exactly what it needs, and the server resolves data from all sources in parallel — with automatic batching to prevent N+1 queries.
 
+Here the sources are stitched by hand into one schema: Postgres through Drizzle ORM, Stripe for billing, and an internal analytics REST service (cached in Redis). The server is GraphQL Yoga. Install with `npm i graphql graphql-yoga dataloader drizzle-orm pg stripe ioredis`.
+
 ## Step 1: Schema Definition
 
 ```typescript
@@ -29,288 +33,267 @@ Ada's frontend needs data from 5 sources: the user database, a REST billing API,
 export const typeDefs = /* GraphQL */ `
   type Query {
     user(id: ID!): User
-    users(filter: UserFilter, pagination: PaginationInput): UserConnection!
     project(id: ID!): Project
-    projects(userId: ID!): [Project!]!
   }
-
   type Mutation {
     createProject(input: CreateProjectInput!): Project!
-    updateProject(id: ID!, input: UpdateProjectInput!): Project!
-    deleteProject(id: ID!): Boolean!
   }
-
   type Subscription {
-    projectUpdated(projectId: ID!): Project!
+    projectCreated: Project!
   }
-
   type User {
     id: ID!
     email: String!
     name: String!
-    avatar: String
     plan: Plan!
     projects: [Project!]!
-    billing: BillingInfo
-    analytics: UserAnalytics
+    billing: BillingInfo     # Stripe REST API, only visible to the user themselves
+    analytics: UserAnalytics # internal analytics service
   }
-
   type Project {
     id: ID!
     name: String!
     description: String
     owner: User!
-    tasks: [Task!]!
+    tasks(limit: Int = 20): [Task!]!
     taskCount: Int!
     createdAt: DateTime!
   }
-
   type Task {
     id: ID!
     title: String!
     status: TaskStatus!
-    assignee: User
-    project: Project!
   }
-
-  # Data from Stripe REST API
   type BillingInfo {
     plan: String!
     status: String!
     currentPeriodEnd: DateTime
     monthlySpend: Float!
   }
-
-  # Data from analytics service
   type UserAnalytics {
     lastActiveAt: DateTime
     sessionsThisWeek: Int!
     topFeatures: [String!]!
   }
-
-  type UserConnection {
-    nodes: [User!]!
-    totalCount: Int!
-    pageInfo: PageInfo!
-  }
-
-  type PageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-  }
-
-  input UserFilter {
-    search: String
-    plan: Plan
-    role: String
-  }
-
-  input PaginationInput {
-    page: Int = 1
-    limit: Int = 20
-  }
-
-  input CreateProjectInput {
-    name: String!
-    description: String
-  }
-
-  input UpdateProjectInput {
-    name: String
-    description: String
-  }
-
+  input CreateProjectInput { name: String!, description: String }
   enum Plan { FREE PRO ENTERPRISE }
   enum TaskStatus { TODO IN_PROGRESS DONE }
-
   scalar DateTime
 `;
 ```
 
-## Step 2: Resolvers with DataLoader
+## Step 2: Drizzle Tables
+
+```typescript
+// src/db/schema.ts
+import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+import { drizzle } from "drizzle-orm/node-postgres";
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  plan: text("plan", { enum: ["FREE", "PRO", "ENTERPRISE"] }).notNull().default("FREE"),
+  stripeCustomerId: text("stripe_customer_id"),
+});
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  ownerId: uuid("owner_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+export const tasks = pgTable("tasks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull().references(() => projects.id),
+  title: text("title").notNull(),
+  status: text("status", { enum: ["TODO", "IN_PROGRESS", "DONE"] }).notNull().default("TODO"),
+});
+
+export const db = drizzle(process.env.DATABASE_URL!);
+```
+
+## Step 3: Resolvers with DataLoader
 
 ```typescript
 // src/schema/resolvers.ts
 import DataLoader from "dataloader";
-import { db } from "../db";
-import { users, projects, tasks } from "../db/schema";
-import { eq, sql, ilike } from "drizzle-orm";
+import { GraphQLError, GraphQLScalarType } from "graphql";
+import { createPubSub } from "graphql-yoga";
+import { Redis } from "ioredis";
+import Stripe from "stripe";
+import { and, eq, inArray, count } from "drizzle-orm";
+import { db, users, projects, tasks } from "../db/schema";
 
-// DataLoader prevents N+1 queries by batching
-function createLoaders() {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const redis = new Redis(process.env.REDIS_URL!);
+// topic id = owner id, so a subscriber only receives their own projects
+const pubsub = createPubSub<{ projectCreated: [ownerId: string, project: typeof projects.$inferSelect] }>();
+
+type User = typeof users.$inferSelect;
+type Project = typeof projects.$inferSelect;
+export type Context = { user: { id: string } | null; loaders: ReturnType<typeof createLoaders> };
+
+// Group rows by a key, in the order DataLoader asked for the keys
+function groupBy<T>(keys: readonly string[], rows: T[], key: (r: T) => string): T[][] {
+  const map = new Map<string, T[]>();
+  for (const r of rows) map.set(key(r), [...(map.get(key(r)) ?? []), r]);
+  return keys.map((k) => map.get(k) ?? []);
+}
+
+// One set of loaders PER REQUEST: DataLoader caches by key, so sharing one across users leaks data
+export function createLoaders() {
   return {
     userById: new DataLoader<string, User>(async (ids) => {
-      const result = await db.query.users.findMany({
-        where: sql`${users.id} IN ${ids}`,
-      });
-      const map = new Map(result.map((u) => [u.id, u]));
-      return ids.map((id) => map.get(id) || new Error(`User ${id} not found`));
+      const rows = await db.select().from(users).where(inArray(users.id, [...ids]));
+      const byId = new Map(rows.map((u) => [u.id, u]));
+      return ids.map((id) => byId.get(id) ?? new Error(`User ${id} not found`));
     }),
-
-    projectsByUserId: new DataLoader<string, Project[]>(async (userIds) => {
-      const result = await db.query.projects.findMany({
-        where: sql`${projects.ownerId} IN ${userIds}`,
-      });
-      const grouped = new Map<string, Project[]>();
-      for (const p of result) {
-        if (!grouped.has(p.ownerId)) grouped.set(p.ownerId, []);
-        grouped.get(p.ownerId)!.push(p);
-      }
-      return userIds.map((id) => grouped.get(id) || []);
+    projectsByUserId: new DataLoader<string, Project[]>(async (ids) =>
+      groupBy(ids, await db.select().from(projects).where(inArray(projects.ownerId, [...ids])), (p) => p.ownerId)),
+    tasksByProjectId: new DataLoader<string, (typeof tasks.$inferSelect)[]>(async (ids) =>
+      groupBy(ids, await db.select().from(tasks).where(inArray(tasks.projectId, [...ids])), (t) => t.projectId)),
+    taskCountByProjectId: new DataLoader<string, number>(async (ids) => {
+      const rows = await db.select({ projectId: tasks.projectId, n: count() })
+        .from(tasks).where(inArray(tasks.projectId, [...ids])).groupBy(tasks.projectId);
+      const byId = new Map(rows.map((r) => [r.projectId, r.n]));
+      return ids.map((id) => byId.get(id) ?? 0);
     }),
-
-    tasksByProjectId: new DataLoader<string, Task[]>(async (projectIds) => {
-      const result = await db.query.tasks.findMany({
-        where: sql`${tasks.projectId} IN ${projectIds}`,
-      });
-      const grouped = new Map<string, Task[]>();
-      for (const t of result) {
-        if (!grouped.has(t.projectId)) grouped.set(t.projectId, []);
-        grouped.get(t.projectId)!.push(t);
-      }
-      return projectIds.map((id) => grouped.get(id) || []);
-    }),
+    // Stripe has no batch lookup by customer, so this only de-duplicates repeated lookups in one request
+    subscriptionByCustomer: new DataLoader<string, Stripe.Subscription | null>(async (customers) =>
+      Promise.all(customers.map(async (customer) =>
+        (await stripe.subscriptions.list({ customer, limit: 1 })).data[0] ?? null))),
   };
 }
 
+function requireUser(ctx: Context) {
+  if (!ctx.user) throw new GraphQLError("Not authenticated", { extensions: { code: "UNAUTHENTICATED" } });
+  return ctx.user;
+}
+
 export const resolvers = {
+  DateTime: new GraphQLScalarType({
+    name: "DateTime",
+    serialize: (v) => new Date(v as string | number | Date).toISOString(),
+  }),
   Query: {
-    user: async (_: any, { id }: { id: string }, ctx: Context) => {
-      return ctx.loaders.userById.load(id);
+    // Users see only themselves and their own projects (email and billing are private)
+    user: (_: unknown, { id }: { id: string }, ctx: Context) =>
+      requireUser(ctx).id === id ? ctx.loaders.userById.load(id) : null,
+    project: async (_: unknown, { id }: { id: string }, ctx: Context) => {
+      const me = requireUser(ctx).id;
+      return (await db.select().from(projects).where(and(eq(projects.id, id), eq(projects.ownerId, me))))[0] ?? null;
     },
-
-    users: async (_: any, { filter, pagination }: any) => {
-      const { page = 1, limit = 20 } = pagination || {};
-      const offset = (page - 1) * limit;
-
-      const where = filter?.search ? ilike(users.name, `%${filter.search}%`) : undefined;
-
-      const [data, [{ count }]] = await Promise.all([
-        db.query.users.findMany({ where, limit, offset }),
-        db.select({ count: sql`count(*)` }).from(users).where(where),
-      ]);
-
-      return {
-        nodes: data,
-        totalCount: Number(count),
-        pageInfo: {
-          hasNextPage: offset + limit < Number(count),
-          hasPreviousPage: page > 1,
-        },
-      };
+  },
+  Mutation: {
+    createProject: async (_: unknown, { input }: { input: { name: string; description?: string } }, ctx: Context) => {
+      const [project] = await db.insert(projects).values({ ...input, ownerId: requireUser(ctx).id }).returning();
+      pubsub.publish("projectCreated", project.ownerId, project);
+      return project;
+    },
+  },
+  Subscription: {
+    projectCreated: {
+      subscribe: (_: unknown, __: unknown, ctx: Context) => pubsub.subscribe("projectCreated", requireUser(ctx).id),
+      resolve: (p: Project) => p,
     },
   },
 
-  // Field resolvers — called per-user, batched by DataLoader
+  // Field resolvers run once per parent row; DataLoader batches the database work
   User: {
-    projects: (user: User, _: any, ctx: Context) => {
-      return ctx.loaders.projectsByUserId.load(user.id);
-    },
-
-    billing: async (user: User) => {
-      // Fetch from Stripe REST API
-      if (!user.stripeCustomerId) return null;
-      const subscriptions = await stripe.subscriptions.list({
-        customer: user.stripeCustomerId,
-        limit: 1,
-      });
-      const sub = subscriptions.data[0];
-      if (!sub) return null;
+    projects: (user: User, _: unknown, ctx: Context) => ctx.loaders.projectsByUserId.load(user.id),
+    billing: async (user: User, _: unknown, ctx: Context) => {
+      if (requireUser(ctx).id !== user.id || !user.stripeCustomerId) return null; // billing is private
+      const sub = await ctx.loaders.subscriptionByCustomer.load(user.stripeCustomerId);
+      const item = sub?.items.data[0];
+      if (!sub || !item) return null;
+      const unit = ((item.price.unit_amount ?? 0) * (item.quantity ?? 1)) / 100; // flat pricing only; tiered prices have no unit_amount
       return {
-        plan: sub.items.data[0].price.lookup_key,
+        plan: item.price.lookup_key ?? item.price.id,
         status: sub.status,
-        currentPeriodEnd: new Date(sub.current_period_end * 1000),
-        monthlySpend: sub.items.data[0].price.unit_amount! / 100,
+        currentPeriodEnd: new Date(item.current_period_end * 1000), // moved from the subscription to its items in API 2025-03-31
+        monthlySpend: item.price.recurring?.interval === "year" ? unit / 12 : unit,
       };
     },
-
     analytics: async (user: User) => {
-      // Fetch from analytics service
-      const res = await fetch(`${ANALYTICS_URL}/users/${user.id}/summary`);
-      return res.json();
+      const key = `analytics:${user.id}`;
+      const cached = await redis.get(key);
+      if (cached) return JSON.parse(cached);
+      const res = await fetch(`${process.env.ANALYTICS_URL}/users/${encodeURIComponent(user.id)}/summary`, {
+        signal: AbortSignal.timeout(2000), // a slow analytics service must not stall the whole query
+      });
+      if (!res.ok) return null;
+      const summary = await res.json();
+      await redis.set(key, JSON.stringify(summary), "EX", 60);
+      return summary;
     },
   },
-
   Project: {
-    owner: (project: Project, _: any, ctx: Context) => {
-      return ctx.loaders.userById.load(project.ownerId);
-    },
-    tasks: (project: Project, _: any, ctx: Context) => {
-      return ctx.loaders.tasksByProjectId.load(project.id);
-    },
-    taskCount: async (project: Project) => {
-      const [{ count }] = await db.select({ count: sql`count(*)` })
-        .from(tasks)
-        .where(eq(tasks.projectId, project.id));
-      return Number(count);
-    },
+    owner: (p: Project, _: unknown, ctx: Context) => ctx.loaders.userById.load(p.ownerId),
+    tasks: async (p: Project, { limit }: { limit: number }, ctx: Context) =>
+      (await ctx.loaders.tasksByProjectId.load(p.id)).slice(0, Math.max(0, Math.min(limit, 100))),
+    taskCount: (p: Project, _: unknown, ctx: Context) => ctx.loaders.taskCountByProjectId.load(p.id),
   },
 };
 ```
 
-## Step 3: Server Setup with Context
+## Step 4: Server Setup with Context
 
 ```typescript
 // src/server.ts
-import { createYoga } from "graphql-yoga";
-import { createSchema } from "graphql-yoga";
-import { createServer } from "http";
+import { createServer } from "node:http";
+import { createSchema, createYoga } from "graphql-yoga";
 import { typeDefs } from "./schema/typeDefs";
-import { resolvers } from "./schema/resolvers";
+import { resolvers, createLoaders, type Context } from "./schema/resolvers";
+import { verifyToken } from "./auth"; // your JWT check; returns { id } or null
 
-const yoga = createYoga({
+const yoga = createYoga<{}, Context>({
   schema: createSchema({ typeDefs, resolvers }),
   context: async ({ request }) => {
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
-    const user = token ? await verifyToken(token) : null;
-
-    return {
-      user,
-      loaders: createLoaders(),
-    };
+    const token = request.headers.get("authorization")?.replace(/^Bearer /, "");
+    return { user: token ? await verifyToken(token) : null, loaders: createLoaders() };
   },
 });
 
-const server = createServer(yoga);
-server.listen(4000, () => console.log("GraphQL server at http://localhost:4000/graphql"));
+// Bind to loopback in development; put a reverse proxy in front for anything public
+createServer(yoga).listen(4000, "127.0.0.1", () =>
+  console.log("GraphQL at http://127.0.0.1:4000/graphql (GraphiQL in the browser)"));
 ```
 
-## Step 4: Frontend Query
+Subscriptions use Server-Sent Events (Yoga's default), so no WebSocket setup is needed. The in-memory `createPubSub` only reaches clients of the same process; with several instances use a Redis-backed event target.
+
+## Step 5: Frontend Query
 
 ```typescript
 // The frontend gets exactly what it needs in one request
-const USER_DASHBOARD = gql`
+const USER_DASHBOARD = /* GraphQL */ `
   query UserDashboard($userId: ID!) {
     user(id: $userId) {
       name
       email
       plan
-      billing {
-        status
-        currentPeriodEnd
-        monthlySpend
-      }
-      analytics {
-        sessionsThisWeek
-        topFeatures
-      }
+      billing { status currentPeriodEnd monthlySpend }
+      analytics { sessionsThisWeek topFeatures }
       projects {
         id
         name
         taskCount
-        tasks(limit: 5) {
-          title
-          status
-        }
+        tasks(limit: 5) { title status }
       }
     }
   }
 `;
-// One request fetches user + billing (Stripe) + analytics + projects + tasks
-// DataLoader batches: 1 users query, 1 projects query, 1 tasks query
-// Instead of: 1 user + N projects + N*M tasks = potentially hundreds of queries
+// One request: user + billing (Stripe) + analytics + projects + tasks, batched by DataLoader.
 ```
 
 ## Summary
 
-Ada's frontend makes one GraphQL request that fetches data from the database (users, projects, tasks), Stripe (billing info), and the analytics service — all resolved in parallel on the server. DataLoader batches prevent N+1 queries: requesting 20 users' projects results in 2 SQL queries (one for users, one for all their projects) instead of 21. The schema is the API documentation — frontend developers explore it in GraphQL Playground. New fields are added without breaking existing queries. The typed schema catches errors at build time, not at runtime.
+Ada's frontend makes one GraphQL request that fetches data from the database (users, projects, tasks), Stripe (billing), and the analytics service, resolved in parallel on the server. DataLoader batches the nested lookups: resolving 20 users with their projects costs 2 SQL queries instead of 21. Redis keeps the analytics call to one per user per minute. The schema documents the API, and Yoga's GraphiQL page lets frontend developers explore it. New fields can be added without breaking existing queries.
+
+## Related Skills
+
+- **graphql**: schema design, resolver and DataLoader patterns used throughout
+- **graphql-yoga**: the `createSchema` / `createYoga` server, context and SSE subscriptions
+- **drizzle-orm**: typed tables and `inArray` queries behind the loaders
+- **redis**: 60-second cache for the analytics REST call
+- **stripe-billing**: the subscription lookup behind the `billing` field

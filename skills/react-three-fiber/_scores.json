@@ -1,29 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:e2f0f518cd29d27aed9f10e3deac646b0106c426cb8c8c4303f094d52d8f5898",
-  "scoredAt": "2026-10-03T13:10:33.439Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:89355c35317d3fe7a33b64cd61be692450cfaed2920638adc9bb0837598886bd",
+  "scoredAt": "2026-11-07T00:00:17.119Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Covers the happy path and some pitfalls but gives little on error handling, such as failed model loads (no error boundary), WebGL context loss, or SSR hydration problems."
+        "detail": "The instructions do not cover error handling or edge cases such as missing GLTF files or network failures."
       },
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The two examples are prose descriptions of steps with no runnable code or sample output, and the result claims such as '70-90% smaller' are unsupported."
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections and multiple code examples that could be trimmed for brevity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to React and Next.js, limiting its applicability to other AI agent platforms."
       }
     ]
   },
@@ -32,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.21,
-    "baselineAvg": 67,
-    "treatmentAvg": 81,
+    "multiplier": 4.6,
+    "baselineAvg": 20,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "sneaker-viewer-nextjs-optimized",
+        "name": "interactive-rotating-box",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B lacks the required React components and hooks."
+      },
+      {
+        "name": "animated-gltf-model",
         "baseline": 50,
-        "treatment": 80,
-        "rationale": "B hits most rubric items (use client, Canvas frameloop=demand, OrbitControls, Suspense, Stage lighting, gltfjsx --transform producing sneaker-transformed.glb, though it omits --types), while A uses gltf-transform instead of gltfjsx, loads sneaker.opt.glb, and so misses the key compression recommendation despite having good component structure and Environment lighting."
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements, while Response B omits preload, Suspense, and reset/fadeIn steps."
       },
       {
-        "name": "fix-star-field-fps",
-        "baseline": 62,
-        "treatment": 92,
-        "rationale": "B uses drei's `<Instances limit>` with `<Instance>` children and a raw `instancedMesh` updated in `useFrame`, and says the geometry and material are shared so the field is one draw call. A leads with `<points>`, which isn't the rubric's approach. A's `instancedMesh` option does the setup once in `useLayoutEffect` and never uses `<Instances>` or `useFrame` updates, and it creates Vector3s and Quaternions inside the loop. A also recommends against per-frame updates."
-      },
-      {
-        "name": "hover-click-box-with-animation",
-        "baseline": 90,
-        "treatment": 70,
-        "rationale": "A mutates rotation, scale and colour via a ref in useFrame with delta and no setState, and uses onPointerOver/Out state, onClick stopPropagation and a scale toggle, but drives colour from the useFrame lerp, a slight departure from the rubric's state-based hover colour. B meets the rubric structurally (ref and delta rotation, hover state driving colour, stopPropagation toggle), but its scale lerp uses a fixed 0.1 factor that isn't frame-rate independent, which it admits in its own notes, and it omits the pointer cursor."
+        "name": "optimized-star-field",
+        "baseline": 10,
+        "treatment": 75,
+        "rationale": "Response A implements the required instancing logic but omits the <Canvas frameloop=\"demand\"> wrapper, whereas Response B uses plain Three.js and lacks the React-specific Canvas and Instances components entirely."
       }
     ]
   }

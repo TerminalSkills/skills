@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Requires Node.js 20+ (stripe-node 23 dropped Node 18), Stripe account with Connect enabled"
 metadata:
   author: terminal-skills
-  version: "1.3.0"
+  version: "1.4.0"
   category: business
   tags: "stripe, stripe-connect, marketplace, payments, platform"
   use-cases: "Onboard freelancers to accept payments on a service marketplace, Charge buyers and split payment between platform and seller, Create Express connected accounts with Stripe's hosted onboarding, Handle automatic payouts to sellers after service completion, Listen for Connect webhooks to track account and payment status"
@@ -59,7 +59,7 @@ npm install stripe
 // lib/stripe.ts
 import Stripe from "stripe";
 
-// stripe-node 23.x pins API version 2026-09-30.endive; omit apiVersion to use the pinned one.
+// stripe-node 23.1 pins API version 2026-10-28.endive; omit apiVersion to use the pinned one.
 // Pass apiVersion only when you must stay on an older version.
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -125,14 +125,13 @@ export async function createOnboardingLink(accountId: string, userId: string) {
     use_case: {
       type: "account_onboarding",
       account_onboarding: {
-        configurations: ["merchant", "recipient"],
         refresh_url: `${process.env.BASE_URL}/sellers/onboard/refresh?userId=${userId}`,
         return_url: `${process.env.BASE_URL}/sellers/onboard/complete?userId=${userId}`,
       },
     },
   });
 
-  return accountLink.url; // Redirect seller here (link expires in ~10 min)
+  return accountLink.url; // Redirect seller here (link expires in ~10 min); Stripe collects what the account's configurations need
 }
 ```
 

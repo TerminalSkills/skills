@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ for the CLI (@mockoon/cli 9); desktop app on Windows, macOS and Linux"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   repository: https://github.com/mockoon/mockoon
   tags: "api-mocking, mock-server, openapi, development"
@@ -111,7 +111,7 @@ The desktop app is optional: `brew install --cask mockoon` (macOS), `winget inst
 }
 ```
 
-This file is trimmed for reading. `mockoon-cli start` loads a copy, fills every omitted key with its default and leaves the file on disk untouched; `mockoon-cli validate --data mocks/storefront.json` is strict and lists each omitted key. Files saved by the desktop app or produced by `mockoon-cli import` are complete. Keep `lastMigration` (33 for version 9.9) — without it the CLI stops to ask whether to repair the file unless `--repair` is passed. Every `uuid` must be a real, unique UUID (`node -e "console.log(crypto.randomUUID())"`).
+This file is trimmed for reading. `mockoon-cli start` loads a copy, fills every omitted key with its default and leaves the file on disk untouched; `mockoon-cli validate --data mocks/storefront.json` is strict and lists each omitted key. Files saved by the desktop app or produced by `mockoon-cli import` are complete. Keep `lastMigration` (33 for version 9.10) — without it the CLI stops to ask whether to repair the file unless `--repair` is passed. Every `uuid` must be a real, unique UUID (`node -e "console.log(crypto.randomUUID())"`).
 
 A CRUD route serves `GET`, `POST`, `PUT`, `PATCH` and `DELETE` on `/products` and `/products/:id` from the bucket. Changes live in memory until the server restarts. The list endpoint accepts `page`, `limit`, `sort`, `order`, `search` and filters such as `priceCents_gt=2000` or `name_like=Tote`, and returns `X-Total-Count` and `X-Filtered-Count` headers.
 
@@ -179,7 +179,7 @@ docker run -d --name mockoon \
 npx mockoon-cli dockerize --data ./mocks/storefront.json --port 3001 --output ./docker-build/Dockerfile
 ```
 
-Check the generated Dockerfile before `docker build`: 9.9.0 still writes `FROM node:16-alpine`, on which CLI 9 fails to start (`No such built-in module: node:readline/promises`) — change that line to a current image such as `node:24-alpine`. Its entrypoint passes no `--hostname`, so the bundled file must say `"hostname": "0.0.0.0"` to be reachable through the published port.
+Check the generated Dockerfile before `docker build`: 9.10.0 still writes `FROM node:16-alpine`, on which CLI 9 fails to start (`No such built-in module: node:readline/promises`) — change that line to a current image such as `node:24-alpine`. Its entrypoint passes no `--hostname`, so the bundled file must say `"hostname": "0.0.0.0"` to be reachable through the published port.
 
 ### CI Integration
 
@@ -199,7 +199,7 @@ jobs:
       - name: Start mock server
         uses: mockoon/cli-action@v3
         with:
-          version: "9.9.0"
+          version: "9.10.0"
           data-file: "./mocks/storefront.json"
           port: 3001
       - run: npm test
@@ -258,6 +258,7 @@ curl -s -H "Authorization: Bearer $ORDERS_API_TOKEN" http://127.0.0.1:3001/api/o
 - **Set `Content-Type` on every response**; without the header Mockoon answers `text/html`.
 - **Bind to localhost.** An empty `hostname` listens on all interfaces. Use `127.0.0.1` on a workstation (or `--hostname 127.0.0.1`) and `0.0.0.0` only inside a container.
 - **Admin API.** Every running mock exposes `/mockoon-admin/` (logs, state, environment variables) protected by a bearer token that is auto-generated and printed at startup. Pass `--admin-api-token "$MOCKOON_ADMIN_API_TOKEN"` to fix it, or `--disable-admin-api` when it is not needed.
+- **Proxy mode.** TLS certificates of an HTTPS proxy target are not validated by default; add `--proxy-verify-tls` (CLI 9.10+) when the proxied traffic is sensitive.
 - **Logs.** The CLI also writes `~/.mockoon-cli/logs/{mock-name}.log`; use `--disable-log-to-file` in CI and `--log-transaction` to log full requests and responses (credential headers are redacted).
 - **Reproducible data.** `--faker-seed 42` makes Faker output a predictable sequence; `--faker-locale en_GB` changes the locale.
 - **Keep the CLI as new as the app.** A file saved by a newer desktop version than the installed CLI is refused; upgrade `@mockoon/cli`. Older files are migrated in memory.

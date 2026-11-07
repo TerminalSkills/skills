@@ -9,10 +9,10 @@ description: >-
   document page by page with citable locators. Runs locally on CPU or GPU;
   cloud parsing only when explicitly requested.
 license: Apache-2.0
-compatibility: "Python 3.10-3.14; MinerU 4.x; CPU works (8 GB RAM for standard tier), NVIDIA GPU with 8 GB+ VRAM or Apple Silicon for speed"
+compatibility: "Python 3.11-3.14; MinerU 4.1+; CPU works (8 GB RAM for standard tier), NVIDIA GPU with 8 GB+ VRAM or Apple Silicon for speed"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
   tags: "pdf-to-markdown, ocr, document-parsing, table-extraction, rag-ingestion"
   repository: https://github.com/opendatalab/MinerU
@@ -41,24 +41,24 @@ Parsing is local by default. Documents go to the official cloud service only whe
 
 ### Installation
 
-Install into an isolated environment. Python 3.12 is the documented starting point.
+Install into an isolated environment. Python 3.12 is the documented starting point; MinerU 4.1 dropped Python 3.10.
 
 ```bash
 uv venv --python 3.12 .venv
 source .venv/bin/activate
-uv pip install -U "mineru>=4.0,<5"
+uv pip install -U "mineru>=4.1,<5"
 mineru version --json
 ```
 
-As a global CLI instead: `uv tool install --python 3.12 "mineru>=4.0,<5"` or `pipx install "mineru>=4.0,<5"`.
+As a global CLI instead: `uv tool install --python 3.12 "mineru>=4.1,<5"` or `pipx install "mineru>=4.1,<5"`.
 
-The base package runs small models on ONNX/CPU and the VLM on llama.cpp. Extras change the engines:
+The base package runs small models on ONNX and the VLM on llama.cpp; since 4.1 it picks a compatible GPU (Intel, AMD, NVIDIA, Apple Silicon) automatically and falls back to CPU. `mineru-kit hardware detect --json` shows the device and the highest tier it recommends. Extras change the engines:
 
 ```bash
 # Torch small models (GPU/MPS); Apple Silicon already gets this in the base package
-uv pip install -U "mineru[torch]>=4.0,<5"
+uv pip install -U "mineru[torch]>=4.1,<5"
 # NVIDIA GPU with 8 GB+ VRAM and 16 GB+ RAM: adds vLLM on Linux, LMDeploy on Windows
-uv pip install -U "mineru[full]>=4.0,<5"
+uv pip install -U "mineru[full]>=4.1,<5"
 ```
 
 The 3.x extras (`mineru[core]`, `mineru[pipeline]`) and the `mineru -p input.pdf -o out` syntax no longer exist in 4.x.
@@ -105,7 +105,7 @@ Batch a directory (one level, not recursive). With several inputs `-o` must be a
 mineru-kit parse ./vendor-reports -o ./parsed --format zip
 ```
 
-`--format` accepts `markdown` (default), `middle_json` and `zip`. Each ZIP holds `markdown.md`, `middle_json.json`, `structured_content.json`, `model_output.json` and an `images/` folder when the document has figures. `--ocr-mode` is `auto`, `txt` or `ocr`; `--disable-image-analysis` skips image analysis.
+`--format` accepts `markdown` (default), `middle_json` and `zip`. Each ZIP holds `markdown.md`, `middle_json.json` and `structured_content.json` (the raw `model_output.json` of 4.0 is gone in 4.1) and an `images/` folder when the document has figures. `--ocr-mode` is `auto`, `txt` or `ocr`; `--disable-image-analysis` skips image analysis.
 
 ### Read long documents with the mineru document library
 
@@ -170,7 +170,7 @@ mineru-kit api-server --host 127.0.0.1 --port 8000 --tier standard   # OpenAPI d
 mineru-kit webui --server-name 127.0.0.1 --server-port 7860
 ```
 
-The API surface is `/v1/*` (uploads, parse jobs, files); the 3.x `/file_parse` and `/tasks` routes are gone. Without `--api-url`, the WebUI starts and manages its own local API server.
+`--tier` is a ceiling (`auto` by default, which follows `hardware detect`); it includes the lower tiers. Parsing goes through the asynchronous Tasks API: `POST /v1/tasks` with a JSON manifest (`{"files": [{"file_name": "report.pdf", "bytes": 12345}]}`), `PUT` the bytes to the returned `files[].upload.url`, poll `GET /v1/tasks/{task_id}` and download each `files[].result_url`; `POST /v1/tasks/{task_id}/cancel` cancels. The 4.0 `/v1/uploads` and `/v1/parse/jobs` routes return 404, and `/v1/file_parse` exists only in the separate `mineru-kit file-parse-server --api-url http://127.0.0.1:8000`, a synchronous single-file wrapper. Without `--api-url`, the WebUI starts and manages its own local API server.
 
 ## Examples
 
@@ -180,7 +180,7 @@ The API surface is `/v1/*` (uploads, parse jobs, files); the 3.x `/file_parse` a
 
 ```bash
 uv venv --python 3.12 .venv && source .venv/bin/activate
-uv pip install -U "mineru>=4.0,<5"
+uv pip install -U "mineru>=4.1,<5"
 mineru-kit models download --tier basic && mineru-kit models verify --tier basic
 mineru-kit parse ./maintenance-reports -o ./parsed --tier basic --format zip
 ```
@@ -233,8 +233,8 @@ mineru-kit parse sales-kickoff-2026.pptx -o wiki/sales-kickoff-2026.md
 - **Two page defaults.** `mineru parse` starts with the first 10 PDF pages; `mineru-kit parse` and `parse()` take all pages. `mineru parse -o` exports only the requested pages, so add `--pages all` for a full export.
 - **Privacy.** Everything runs locally unless `--remote` is given; never add it for contracts, medical, financial or personal documents without the user's consent. Remote parsing reads `MINERU_API_KEY` (issued by the mineru.net service); keep it in the environment, not in scripts.
 - **Telemetry.** MinerU may send anonymous usage statistics (no content or file names). Turn it off with `mineru telemetry disable` (the command needs the `mineru` server running).
-- **Servers.** `mineru server start` runs a background process. Stop it at the end only if this session started it; the user may keep a persistent library with watches, so ask before stopping or restarting a server that was already running, and before any `mineru config set`. It binds a Unix socket inside `MINERU_HOME`, so a very long `MINERU_HOME` path fails with `AF_UNIX path too long`; use a shorter `MINERU_HOME`, or export `MINERU_DOCLIB_UDS_ENABLED=false` and `MINERU_DOCLIB_TCP_ENABLED=true` for every `mineru` call so the server listens on 127.0.0.1:15980 instead.
+- **Servers.** `mineru server start` runs a background process. Stop it at the end only if this session started it; the user may keep a persistent library with watches, so ask before stopping or restarting a server that was already running, and before any `mineru config set`. `MINERU_HOME` must not be writable by other users (`chmod 700`), or the server fails with `Credential configuration directory must not be writable by other users`. It binds a Unix socket inside `MINERU_HOME`, so a very long `MINERU_HOME` path fails with `AF_UNIX path too long`; use a shorter `MINERU_HOME`, or export `MINERU_DOCLIB_UDS_ENABLED=false` and `MINERU_DOCLIB_TCP_ENABLED=true` for every `mineru` call so the server listens on 127.0.0.1:15980 instead.
 - **Timeouts are not failures.** A `mineru parse` wait timeout exits with code 1 while the parse continues; check `mineru list parses --status parsing` or rerun the same command. Give first runs a longer `--wait`.
-- **Hardware.** Standard needs about 8 GB RAM on CPU (a Vulkan-capable GPU is recommended for llama.cpp); NVIDIA users get best throughput from `mineru[full]`. AMD and other vendor accelerators, and the old Docker images for them, stay on `mineru<4`. The 4.x Dockerfile targets NVIDIA only.
+- **Hardware.** Standard needs about 8 GB RAM on CPU (a Vulkan-capable GPU is recommended for llama.cpp). With `--tier auto` on a CPU, the server enables only `flash` below 4 logical cores, up to `basic` with 4-11 and up to `standard` with 12 or more; a GPU enables all four; NVIDIA users get best throughput from `mineru[full]`. AMD and other vendor accelerators, and the old Docker images for them, stay on `mineru<4`. The 4.x Dockerfile targets NVIDIA only.
 - **License.** The MinerU Open Source License is Apache 2.0 plus conditions: a separate commercial license above 100M monthly active users or USD 20M monthly revenue, and online services built on MinerU must credit it.
 - **When not to use it.** Plain `.txt`/`.md` files need no parsing. For simple digital DOCX or HTML where layout does not matter, a lighter converter such as markitdown installs faster. MinerU is a parser, not a RAG framework or vector store — hand its Markdown to your chunker and embedder.

@@ -1,29 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:1eefaeed742271ab614ba8079ab40f3cdf28a9506d05eb19896d4fedaacf0995",
-  "scoredAt": "2026-10-03T13:05:58.535Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.1.1",
+  "skillHash": "sha256:90452592fbacf4de660fb41920128c5d245674452857e36e5a4256931ae8ef1c",
+  "scoredAt": "2026-11-06T23:46:47.587Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Coverage is mostly happy-path: there is no guidance on handling rate limits, API errors, empty retrieval results, or malformed structured output, and the fallbacks and cache snippets lack failure-mode discussion."
+        "detail": "The skill does not cover error handling or edge cases such as missing API keys or network failures."
       },
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Both examples are prose descriptions of what the agent will build rather than concrete runnable input/output demonstrations, and the Example 2 SQL tool is described without any code or read-only enforcement beyond a mention."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and repeated code blocks that could be condensed."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tightly coupled to LangChain and does not support other AI frameworks."
       }
     ]
   },
@@ -32,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.37,
-    "baselineAvg": 65,
-    "treatmentAvg": 89,
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "rag-with-persisted-chroma-mmr",
-        "baseline": 15,
-        "treatment": 88,
-        "rationale": "Response A covers nearly every rubric item (DirectoryLoader+PyPDFLoader, RecursiveCharacterTextSplitter 1000/200, Chroma persist_directory, MMR retriever with k and fetch_k, a cite-sources prompt, a Sources list from metadata, and an LCEL-style chain), while Response B uses none of the LangChain components, has no MMR retriever and no LCEL chain, and only matches the rubric on persistence, cited prompts and a Sources list."
+        "name": "rag-pipeline-with-citations",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items, while Response A lacks mmr search and LCEL chain."
       },
       {
-        "name": "agent-with-tools-and-thread-memory",
-        "baseline": 92,
-        "treatment": 90,
-        "rationale": "Both use create_agent, @tool functions with docstrings, a provider:model string, InMemorySaver, thread_id config, and a {\"messages\": [...]} input, so both cover the rubric; A adds per-user access control through runtime context and Decimal refund math, which gives it a slight edge on detail."
+        "name": "tool-calling-agent-database-slack",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified tool decorator, agent creation, checkpointer, or invocation criteria."
       },
       {
-        "name": "structured-extraction-with-fallback-and-batch",
-        "baseline": 88,
-        "treatment": 90,
-        "rationale": "Both define a Pydantic model with Field descriptions, use with_structured_output with a prompt via pipe, add a ChatAnthropic fallback, and set max_concurrency=5; A uses the sync chain.batch the rubric names and B uses abatch (sync only in a note), and A's Field descriptions are slightly less complete since sentiment has none."
+        "name": "structured-output-extraction-chain",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "A meets all rubric points; B omits the required with_structured_output usage."
       }
     ]
   }

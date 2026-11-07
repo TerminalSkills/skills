@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'Python 3.10+ (pytest 9); pytest-asyncio, pytest-cov, pytest-mock and pytest-xdist are optional plugins'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: development
   repository: https://github.com/pytest-dev/pytest
   tags: "pytest, testing, python, tdd, fixtures"
@@ -20,7 +20,7 @@ metadata:
 
 ## Overview
 
-pytest collects functions named `test_*` in files named `test_*.py` (or `*_test.py`), runs them, and rewrites plain `assert` statements so a failure shows both sides of the comparison. Fixtures provide setup and teardown, `parametrize` runs one test over many inputs, and plugins add async support, coverage, mocking and parallel runs. This skill targets pytest 9.x (checked against 9.1) with pytest-asyncio 1.x.
+pytest collects functions named `test_*` in files named `test_*.py` (or `*_test.py`), runs them, and rewrites plain `assert` statements so a failure shows both sides of the comparison. Fixtures provide setup and teardown, `parametrize` runs one test over many inputs, and plugins add async support, coverage, mocking and parallel runs. This skill targets pytest 9.x (checked against 9.2) with pytest-asyncio 1.x.
 
 ## Instructions
 
@@ -39,8 +39,9 @@ Put configuration in `pyproject.toml` (`[tool.pytest.ini_options]`) or, since py
 pythonpath = ["."]            # lets tests import top-level modules such as `app`
 testpaths = ["tests"]
 asyncio_mode = "auto"         # pytest-asyncio: no @pytest.mark.asyncio on every test
+asyncio_default_fixture_loop_scope = "function"   # silences the pytest-asyncio unset-scope warning
 markers = ["slow: tests that take more than a second"]
-strict = true                 # unknown markers and options become errors
+strict = true                 # unknown markers and options become errors, also in -m expressions (9.2)
 ```
 
 Without `pythonpath` (or an installed package), `from app import ...` fails with `ModuleNotFoundError` when pytest is run from the project root.
@@ -106,7 +107,7 @@ def api_client(db):
     app.dependency_overrides.clear()
 ```
 
-That example needs `pip install "sqlalchemy[asyncio]" aiosqlite`. Built-in fixtures worth knowing: `tmp_path` (a fresh directory per test), `monkeypatch` (set env vars and attributes, undone automatically), `capsys` and `caplog` (captured output and log records). A fixture's `scope` can be `function` (default), `class`, `module`, `package` or `session`; widen it only for expensive, read-only resources.
+That example needs `pip install "sqlalchemy[asyncio]" aiosqlite`. Built-in fixtures worth knowing: `tmp_path` (a fresh directory per test), `monkeypatch` (set env vars and attributes, undone automatically), `capsys` and `caplog` (captured output and log records). Fixtures with `module`, `package` or `session` scope defined as methods of a test class are deprecated in 9.2 (as `class` scope already was in 9.1); define them at module level or in `conftest.py`. A fixture's `scope` can be `function` (default), `class`, `module`, `package` or `session`; widen it only for expensive, read-only resources.
 
 ### Step 4: Parametrize
 
@@ -199,7 +200,8 @@ Add `asyncio_mode = "auto"` to `pytest.toml`, or keep the default strict mode an
 - In strict asyncio mode (the default), an async fixture declared with plain `@pytest.fixture` errors with "requested an async fixture ... no plugin or hook that handled it"; use `@pytest_asyncio.fixture` or switch to `asyncio_mode = "auto"`.
 - Fixtures with `yield` clean up even when the test fails; no try/finally needed.
 - Keep tests independent: no reliance on order, shared mutable module state or a leftover database. In-memory SQLite suits unit tests; use the real database engine for integration tests.
-- Register custom markers in configuration; with `strict = true` (or `--strict-markers`) a typo fails at collection instead of silently deselecting tests.
+- Register custom markers in configuration; with `strict = true` (or `--strict-markers`) a typo fails at collection, and since 9.2 a typo in `-m "..."` is an error instead of silently selecting nothing.
+- Since 9.2 the `indirect`, `ids` and `scope` arguments of `parametrize` are keyword-only: write `parametrize("a,b", values, ids=[...])`, never pass them positionally.
 - Parallel runs (`-n auto`) need tests that do not share files, ports or database rows.
 - Do not mock what you own and can run cheaply; mock network calls, clocks and paid APIs.
 - `unittest.TestCase` classes also run under pytest, but fixtures and parametrize do not apply to their methods.

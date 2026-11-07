@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:5771909da5323e03761bb0042bd9aa888afb80439bce46a234e65b9d4352ef2e",
-  "scoredAt": "2026-10-01T11:26:55.852Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:fbf4aec2bbf5cfe16862b90ee6dbc8399a152e5bca0780d74dc30ebae09182ed",
+  "scoredAt": "2026-11-06T23:36:31.978Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all possible error scenarios and edge cases."
+        "detail": "The skill does not explicitly cover error handling or edge cases such as missing configuration files or plugin installation failures."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+        "detail": "The skill contains extensive explanatory text that may be considered verbose for users seeking quick commands."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.82,
-    "baselineAvg": 33,
-    "treatmentAvg": 93,
+    "multiplier": 3.21,
+    "baselineAvg": 28,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "convert-react-app-to-mobile",
-        "baseline": 100,
+        "name": "convert-vite-react-to-native",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric."
+        "rationale": "Response B includes every required command and step, while Response A is empty."
       },
       {
-        "name": "add-camera-file-upload",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items but omits Filesystem.writeFile, whereas Response A misses all items."
+        "name": "add-camera-plugin",
+        "baseline": 35,
+        "treatment": 70,
+        "rationale": "Response B covers the install, sync, correct takePhoto function and parameters, while Response A uses getPhoto and lacks the gallery example, making B more complete."
       },
       {
         "name": "setup-push-notifications",
-        "baseline": 0,
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric items, while Response B fails to meet the required plugin, permission check, and listener specifications."
+        "rationale": "Response A fully meets the rubric, while Response B omits the required checkPermissions logic and error handling."
       }
     ]
   }

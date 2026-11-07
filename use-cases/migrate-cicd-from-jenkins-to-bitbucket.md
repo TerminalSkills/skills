@@ -45,10 +45,10 @@ The Node.js service template covers the most common pattern across the team's re
 
 ```yaml
 # bitbucket-pipelines.yml — Node.js service template
-image: node:20
+image: node:24
 definitions:
   caches:
-    npm: $HOME/.npm
+    npm: ~/.npm   # custom cache; npm ci deletes node_modules, so cache npm's download folder
   steps:
     - step: &build
         name: Build
@@ -69,6 +69,7 @@ pipelines:
           name: Deploy Staging
           deployment: staging
           script:
+            # uses the SSH key and known_hosts configured under Repository settings > Pipelines > SSH keys
             - pipe: atlassian/ssh-run:0.8.1
               variables: { SSH_USER: deploy, SERVER: staging.example.com,
                 COMMAND: "cd /app && ./deploy.sh $BITBUCKET_COMMIT" }
@@ -82,7 +83,7 @@ pipelines:
                 COMMAND: "cd /app && ./deploy.sh $BITBUCKET_COMMIT" }
 ```
 
-Each template fits in under 80 lines of YAML compared to the 200+ line Jenkinsfiles. Parallel test steps cut pipeline duration by 40%.
+The template is far shorter than a 200-line Jenkinsfile. Artifacts from the parallel `build` step are passed on to the later deploy steps, and the deploy steps run only if everything before them passed. In Bitbucket the `deployment:` name must match an environment configured under Repository settings > Pipelines > Deployments, and a manual `trigger` is only allowed on a step after the first one.
 
 ### 3. Migrate pipelines incrementally
 
@@ -96,10 +97,16 @@ The parallel-run approach catches two discrepancies in the first week: a Jenkins
 
 Shut down the Jenkins server and archive its configuration for reference.
 
-> Export the final Jenkins configuration as XML for archival. Migrate the 6 scheduled maintenance tasks to Bitbucket Pipelines scheduled triggers. Verify all 28 pipelines are running successfully on Bitbucket, then decommission the Jenkins server. Set up Bitbucket pipeline status badges in each repository README.
+> Archive each Jenkins job's `config.xml` (available at `<jenkins-url>/job/<name>/config.xml`) for reference. Migrate the 6 scheduled maintenance tasks to Bitbucket Pipelines schedules: define each as a `custom` pipeline in `bitbucket-pipelines.yml`, then create the schedule under Pipelines > Schedules > New schedule (hourly, daily or weekly). Verify all 28 pipelines are running successfully on Bitbucket, then decommission the Jenkins server.
 
-The Jenkins server is decommissioned, saving $85/month in hosting costs. Pipeline maintenance drops from 4-6 hours per month to near zero with the managed Bitbucket service.
+Once the Jenkins server is gone, so are its hosting bill and its OS and plugin upkeep. Bitbucket Pipelines is billed in build minutes on the workspace plan, so check the included minutes against the team's volume before the cutover.
 
 ## Real-World Example
 
-Derek inherits a Jenkins server that crashes every month and has a 200-line Groovy pipeline nobody understands. Over four weeks, he migrates all 28 active jobs to Bitbucket Pipelines using standardized YAML templates. Build times drop 40% from parallel test steps and built-in caching. The team no longer needs to maintain a CI server, freeing up 6 hours per month of operations work. When a new engineer joins, she submits her first pipeline change on day two -- a simple YAML edit instead of navigating Jenkins's plugin-heavy UI.
+Derek inherits a Jenkins server that crashes every month and has a 200-line Groovy pipeline nobody understands. Over four weeks, he migrates all 28 active jobs to Bitbucket Pipelines using standardized YAML templates. Parallel steps and caching shorten the pipeline, and the team no longer maintains a CI server. When a new engineer joins, she submits her first pipeline change on day two -- a simple YAML edit instead of navigating Jenkins's plugin-heavy UI.
+
+## Related Skills
+
+- **jenkins-pipelines** — read the existing Jenkinsfiles (stages, credentials, parallel blocks, approval gates) so each one maps to a Bitbucket step.
+- **bitbucket** — write `bitbucket-pipelines.yml`, deployment environments, secured variables and the API calls that trigger and monitor pipelines.
+- **cicd-pipeline** — design the shared pipeline shape: parallel build/test, caching, staged deploys with a manual production gate.

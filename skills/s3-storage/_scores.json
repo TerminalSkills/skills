@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:029d1e32b55ea3a8e43c85f9e19319addc51450c9e5cf656fa0bfc1089d8198f",
-  "scoredAt": "2026-10-13T16:04:02.645Z",
+  "version": "1.2.1",
+  "skillHash": "sha256:1a4a8b15c8b3e27edbeb6a5820365a139482b49f005cecdb50e6c71e09825b96",
+  "scoredAt": "2026-11-07T12:17:33.242Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling for many operations and lacks examples for replication, access policies, and event notifications."
+        "detail": "The skill does not provide explicit error handling examples for edge cases."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.35,
-    "baselineAvg": 37,
-    "treatmentAvg": 87,
+    "multiplier": 4.35,
+    "baselineAvg": 23,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "create-versioned-bucket-with-lifecycle",
-        "baseline": 50,
-        "treatment": 60,
-        "rationale": "Both responses use the required PutBucketVersioningCommand and PutBucketLifecycleConfigurationCommand, but each also includes an additional command (CreateBucketCommand in A, create-bucket in B) and B adds an extra lifecycle rule, so A is closer to the rubric."
-      },
-      {
-        "name": "generate-presigned-upload-url-with-cors",
-        "baseline": 60,
+        "name": "create-bucket-with-lifecycle",
+        "baseline": 70,
         "treatment": 100,
-        "rationale": "B meets all rubric requirements while A misses MaxAgeSeconds and uses a different signing method."
+        "rationale": "Response A meets all rubric requirements exactly, while Response B fails to use the specified rule ID, missing a key rubric element."
       },
       {
-        "name": "multipart-upload-large-file-with-progress",
+        "name": "generate-presigned-put-url",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use @aws-sdk/lib-storage and thus fails to meet the requirements."
+        "rationale": "Response A satisfies every rubric requirement, while Response B does not use getSignedUrl with PutObjectCommand and thus fails the rubric."
+      },
+      {
+        "name": "multipart-upload-large-file",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A uses the AWS CLI and omits every SDK-specific detail."
       }
     ]
   }

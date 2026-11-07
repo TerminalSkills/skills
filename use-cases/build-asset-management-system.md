@@ -24,260 +24,275 @@ tags:
 
 Lena leads marketing at a 30-person company. Brand assets (logos, photos, videos, PDFs) live across Google Drive, Dropbox, Slack threads, and email attachments. Nobody can find the latest version of the logo. Designers upload 50MB PNGs to Slack, developers need SVGs, social media needs 1080×1080 crops. Someone used the old logo on a campaign last month. They tried Dropbox but it has no metadata, no auto-resizing, no version control. They need a central asset library with search, auto-transformations, and access control.
 
-## Step 1: Build the DAM Engine
+## Step 1: Schema
+
+PostgreSQL holds the metadata (**postgresql** skill): JSONB for title, tags and colors; one row per version; and a partial unique index on the content hash, so two people uploading the same file at the same moment cannot both succeed. Files themselves live in a private S3 bucket (**s3-storage** skill), not in the database.
+
+```sql
+CREATE TABLE assets (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  original_filename text        NOT NULL,
+  mime_type         text        NOT NULL,
+  size              bigint      NOT NULL,
+  width             int,
+  height            int,
+  hash              text        NOT NULL,                 -- sha256 of the current version
+  metadata          jsonb       NOT NULL DEFAULT '{}',    -- title, tags, colors
+  current_version   int         NOT NULL DEFAULT 1,
+  folder            text        NOT NULL DEFAULT '/',
+  uploaded_by       text        NOT NULL,
+  status            text        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX assets_active_hash ON assets (hash) WHERE status = 'active';
+CREATE INDEX assets_tags ON assets USING gin ((metadata -> 'tags'));
+
+CREATE TABLE asset_versions (
+  asset_id    uuid        NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+  version     int         NOT NULL,
+  s3_key      text        NOT NULL,
+  size        bigint      NOT NULL,
+  hash        text        NOT NULL,
+  uploaded_by text        NOT NULL,
+  comment     text        NOT NULL DEFAULT '',
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (asset_id, version)
+);
+```
+
+## Step 2: The DAM Engine
+
+Install: `npm i hono @hono/node-server @hono/zod-validator zod pg ioredis sharp @aws-sdk/client-s3 @aws-sdk/s3-request-presigner` plus `typescript`, `@types/node`, `@types/pg` (**typescript** skill; the code type-checks with `tsc --noEmit` under `"module": "nodenext"`). Set `DATABASE_URL`, `REDIS_URL`, `AWS_REGION`, `ASSETS_BUCKET` and `DAM_TOKEN`.
+
+Choices that differ from the first draft most teams write:
+
+- **The file decides its type, not the client.** `sharp` identifies raster images and throws on anything else; PDFs and SVGs are sniffed from their first bytes. SVG and PDF objects get `Content-Disposition: attachment`, so a script inside an uploaded SVG never runs on your domain.
+- **Dedup is a database constraint**, inside a transaction that also writes the S3 objects. A failed upload rolls back the row (an orphaned S3 object is possible and harmless; a lifecycle rule can clean it up).
+- **Transform parameters are validated with Zod** (**zod** skill): width and height capped at 4096, `limitInputPixels` set, and the Redis cache key includes the asset version (**redis** skill), so uploading a new logo cannot serve the old one from cache.
 
 ```typescript
-// src/dam/manager.ts — Digital asset management with metadata, transforms, and versioning
-import { pool } from "../db";
-import { Redis } from "ioredis";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import sharp from "sharp";
+// src/dam.ts - asset engine: metadata, dedup, versions, thumbnails, transforms, search
 import { createHash } from "node:crypto";
-
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Redis } from "ioredis";
+import pg from "pg";
+import sharp from "sharp";
+import { z } from "zod";
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const redis = new Redis(process.env.REDIS_URL!);
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET = process.env.ASSETS_BUCKET!;
 
-interface Asset {
-  id: string;
-  filename: string;
-  originalFilename: string;
-  mimeType: string;
-  size: number;
-  width: number | null;
-  height: number | null;
-  duration: number | null;     // seconds for video/audio
-  hash: string;                // content hash for dedup
-  metadata: {
-    title: string;
-    description: string;
-    tags: string[];
-    category: string;
-    copyright: string;
-    exif: Record<string, any>;
-    colors: string[];          // dominant colors
-  };
-  versions: AssetVersion[];
-  currentVersion: number;
-  folder: string;
-  uploadedBy: string;
-  status: "active" | "archived" | "deleted";
-  cdnUrl: string;
-  createdAt: string;
-  updatedAt: string;
+// Whitelisted by content, never by the client's Content-Type header.
+const RASTER = new Set(["jpeg", "png", "webp", "gif", "avif"]);
+const THUMBS = [["thumb", 200], ["small", 400], ["medium", 800], ["large", 1600]] as const;
+export const transformSchema = z.object({
+  width: z.coerce.number().int().min(1).max(4096).optional(),
+  height: z.coerce.number().int().min(1).max(4096).optional(),
+  format: z.enum(["webp", "jpeg", "png"]).default("webp"),
+  quality: z.coerce.number().int().min(1).max(100).default(80),
+  fit: z.enum(["cover", "contain", "fill"]).default("cover"),
+});
+export type Transform = z.infer<typeof transformSchema>;
+
+export interface UploadOptions {
+  folder: string; title?: string; tags: string[]; uploadedBy: string; comment?: string;
 }
-
-interface AssetVersion {
-  version: number;
-  s3Key: string;
-  size: number;
-  hash: string;
-  uploadedBy: string;
-  uploadedAt: string;
-  comment: string;
+function sniff(file: Buffer): { mime: string; ext: string; raster: boolean } | null {
+  if (file.subarray(0, 5).toString("latin1") === "%PDF-") return { mime: "application/pdf", ext: "pdf", raster: false };
+  const head = file.subarray(0, 512).toString("utf8").trimStart();
+  if (head.startsWith("<svg") || (head.startsWith("<?xml") && head.includes("<svg"))) {
+    return { mime: "image/svg+xml", ext: "svg", raster: false };
+  }
+  return null; // raster formats are identified by sharp below
 }
-
-// Upload asset with automatic processing
-export async function uploadAsset(
-  file: Buffer,
-  filename: string,
-  mimeType: string,
-  opts: {
-    folder?: string;
-    title?: string;
-    tags?: string[];
-    category?: string;
-    uploadedBy: string;
-  }
-): Promise<Asset> {
-  const id = `ast-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  const hash = createHash("sha256").update(file).digest("hex");
-
-  // Check for duplicate
-  const { rows: [dupe] } = await pool.query("SELECT id, filename FROM assets WHERE hash = $1 AND status = 'active'", [hash]);
-  if (dupe) {
-    throw new Error(`Duplicate file: already exists as "${dupe.filename}" (${dupe.id})`);
-  }
-
-  // Extract metadata
-  let width: number | null = null;
-  let height: number | null = null;
-  let colors: string[] = [];
-  let exif: Record<string, any> = {};
-
-  if (mimeType.startsWith("image/")) {
-    const meta = await sharp(file).metadata();
-    width = meta.width || null;
-    height = meta.height || null;
-
-    // Extract dominant colors
-    const { dominant } = await sharp(file).stats();
-    colors = [`rgb(${dominant.r},${dominant.g},${dominant.b})`];
-
-    // Extract EXIF
-    if (meta.exif) {
-      try {
-        const ExifReader = require("exifreader");
-        const tags = ExifReader.load(file);
-        exif = {
-          camera: tags.Model?.description,
-          lens: tags.LensModel?.description,
-          iso: tags.ISOSpeedRatings?.value,
-          aperture: tags.FNumber?.description,
-          shutterSpeed: tags.ExposureTime?.description,
-          dateTaken: tags.DateTimeOriginal?.description,
-        };
-      } catch {}
-    }
-
-    // Generate thumbnails
-    await generateThumbnails(id, file);
-  }
-
-  // Upload original to S3
-  const ext = filename.split(".").pop() || "bin";
-  const s3Key = `assets/${id}/original.${ext}`;
-
+async function describe(file: Buffer) {
+  const known = sniff(file);
+  if (known) return { ...known, width: null, height: null, colors: [] as string[] };
+  const meta = await sharp(file, { limitInputPixels: 50_000_000 }).metadata(); // throws on non-images
+  const format = meta.format === "heif" && meta.compression === "av1" ? "avif" : meta.format; // sharp reports AVIF as "heif"
+  if (!format || !RASTER.has(format)) throw new Error(`Unsupported file type: ${format}`);
+  const { dominant } = await sharp(file).stats();
+  return { mime: `image/${format}`, ext: format === "jpeg" ? "jpg" : format, raster: true,
+           width: meta.width ?? null, height: meta.height ?? null,
+           colors: [`rgb(${dominant.r},${dominant.g},${dominant.b})`] };
+}
+async function putVersionFiles(id: string, version: number, file: Buffer, d: Awaited<ReturnType<typeof describe>>) {
+  const key = `assets/${id}/v${version}/original.${d.ext}`;
   await s3.send(new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: s3Key,
-    Body: file,
-    ContentType: mimeType,
-    CacheControl: "public, max-age=31536000",
+    Bucket: BUCKET, Key: key, Body: file, ContentType: d.mime,
+    // SVG and PDF are downloaded, never rendered on our domain, so embedded scripts cannot run.
+    ...(d.raster ? {} : { ContentDisposition: "attachment" }),
+    CacheControl: "private, max-age=31536000, immutable",
   }));
-
-  const cdnUrl = `${process.env.CDN_URL}/${s3Key}`;
-
-  const asset: Asset = {
-    id, filename: `${id}.${ext}`, originalFilename: filename,
-    mimeType, size: file.length, width, height, duration: null, hash,
-    metadata: {
-      title: opts.title || filename.replace(/\.[^.]+$/, ""),
-      description: "",
-      tags: opts.tags || [],
-      category: opts.category || "uncategorized",
-      copyright: "",
-      exif,
-      colors,
-    },
-    versions: [{ version: 1, s3Key, size: file.length, hash, uploadedBy: opts.uploadedBy, uploadedAt: new Date().toISOString(), comment: "Initial upload" }],
-    currentVersion: 1,
-    folder: opts.folder || "/",
-    uploadedBy: opts.uploadedBy,
-    status: "active",
-    cdnUrl,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  await pool.query(
-    `INSERT INTO assets (id, filename, original_filename, mime_type, size, width, height, hash, metadata, versions, current_version, folder, uploaded_by, status, cdn_url, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, 'active', $13, NOW())`,
-    [id, asset.filename, filename, mimeType, file.length, width, height, hash,
-     JSON.stringify(asset.metadata), JSON.stringify(asset.versions), opts.folder || "/",
-     opts.uploadedBy, cdnUrl]
-  );
-
-  return asset;
-}
-
-// Generate responsive thumbnails
-async function generateThumbnails(assetId: string, buffer: Buffer): Promise<void> {
-  const sizes = [
-    { name: "thumb", width: 200 },
-    { name: "small", width: 400 },
-    { name: "medium", width: 800 },
-    { name: "large", width: 1600 },
-  ];
-
-  for (const size of sizes) {
-    const resized = await sharp(buffer)
-      .resize(size.width, null, { withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-
-    await s3.send(new PutObjectCommand({
-      Bucket: BUCKET,
-      Key: `assets/${assetId}/${size.name}.webp`,
-      Body: resized,
-      ContentType: "image/webp",
-      CacheControl: "public, max-age=31536000",
-    }));
+  if (d.raster) {
+    for (const [name, width] of THUMBS) {
+      const body = await sharp(file).resize({ width, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+      await s3.send(new PutObjectCommand({ Bucket: BUCKET, Key: `assets/${id}/v${version}/${name}.webp`,
+        Body: body, ContentType: "image/webp", CacheControl: "private, max-age=31536000, immutable" }));
+    }
   }
+  return key;
+}
+export async function uploadAsset(file: Buffer, filename: string, o: UploadOptions) {
+  const d = await describe(file);
+  const hash = createHash("sha256").update(file).digest("hex");
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    // The partial unique index on hash makes the duplicate check race-free.
+    const { rows: [asset] } = await db.query(
+      `INSERT INTO assets (original_filename, mime_type, size, width, height, hash, metadata, folder, uploaded_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (hash) WHERE status = 'active' DO NOTHING RETURNING id`,
+      [filename, d.mime, file.length, d.width, d.height, hash,
+       { title: o.title ?? filename.replace(/\.[^.]+$/, ""), tags: o.tags, colors: d.colors },
+       o.folder, o.uploadedBy]);
+    if (!asset) throw new Error("Duplicate file: this content is already in the library");
+    const key = await putVersionFiles(asset.id, 1, file, d);
+    await db.query(
+      `INSERT INTO asset_versions (asset_id, version, s3_key, size, hash, uploaded_by, comment)
+       VALUES ($1,1,$2,$3,$4,$5,$6)`, [asset.id, key, file.length, hash, o.uploadedBy, o.comment ?? "Initial upload"]);
+    await db.query("COMMIT");
+    return { id: asset.id as string, key };
+  } catch (e) { await db.query("ROLLBACK"); throw e; } finally { db.release(); }
+}
+export async function addVersion(id: string, file: Buffer, uploadedBy: string, comment: string) {
+  const d = await describe(file);
+  const hash = createHash("sha256").update(file).digest("hex");
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    const { rows: [a] } = await db.query("SELECT current_version FROM assets WHERE id=$1 AND status='active' FOR UPDATE", [id]);
+    if (!a) throw new Error("Asset not found");
+    const version = a.current_version + 1;
+    const key = await putVersionFiles(id, version, file, d);
+    await db.query(`INSERT INTO asset_versions (asset_id, version, s3_key, size, hash, uploaded_by, comment)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7)`, [id, version, key, file.length, hash, uploadedBy, comment]);
+    await db.query(`UPDATE assets SET current_version=$2, hash=$3, size=$4, width=$5, height=$6, updated_at=now() WHERE id=$1`,
+      [id, version, hash, file.length, d.width, d.height]);
+    await db.query("COMMIT");
+    return version;
+  } catch (e) { await db.query("ROLLBACK"); throw e; } finally { db.release(); }
+}
+async function currentKey(id: string): Promise<{ key: string; version: number; raster: boolean }> {
+  const { rows: [r] } = await pool.query(
+    `SELECT v.s3_key, v.version, a.mime_type FROM assets a
+     JOIN asset_versions v ON v.asset_id = a.id AND v.version = a.current_version
+     WHERE a.id = $1 AND a.status = 'active'`, [id]);
+  if (!r) throw new Error("Asset not found");
+  return { key: r.s3_key, version: r.version, raster: r.mime_type.startsWith("image/") && r.mime_type !== "image/svg+xml" };
 }
 
-// On-the-fly image transformation
-export async function transformImage(
-  assetId: string,
-  transforms: { width?: number; height?: number; format?: "webp" | "jpeg" | "png"; quality?: number; crop?: "cover" | "contain" | "fill" }
-): Promise<Buffer> {
-  const cacheKey = `transform:${assetId}:${JSON.stringify(transforms)}`;
-  const cached = await redis.getBuffer(cacheKey);
-  if (cached) return cached;
+// Short-lived signed link: the bucket stays private, so access control stays in the API.
+export async function downloadUrl(id: string): Promise<string> {
+  const { key } = await currentKey(id);
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn: 300 });
+}
+export async function transformImage(id: string, t: Transform): Promise<Buffer> {
+  const { key, version, raster } = await currentKey(id);
+  if (!raster) throw new Error("Only raster images can be transformed");
+  const cacheKey = `dam:t:${id}:v${version}:${JSON.stringify(t)}`; // version in the key: new upload, new cache
+  const hit = await redis.getBuffer(cacheKey);
+  if (hit) return hit;
 
-  const { rows: [asset] } = await pool.query("SELECT * FROM assets WHERE id = $1", [assetId]);
-  if (!asset) throw new Error("Asset not found");
-
-  const s3Key = JSON.parse(asset.versions)[asset.current_version - 1].s3Key;
-  const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }));
+  const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
   const original = Buffer.from(await obj.Body!.transformToByteArray());
-
-  let image = sharp(original);
-
-  if (transforms.width || transforms.height) {
-    image = image.resize(transforms.width, transforms.height, { fit: transforms.crop || "cover" });
-  }
-
-  const format = transforms.format || "webp";
-  const quality = transforms.quality || 80;
-
-  switch (format) {
-    case "webp": image = image.webp({ quality }); break;
-    case "jpeg": image = image.jpeg({ quality }); break;
-    case "png": image = image.png(); break;
-  }
-
-  const result = await image.toBuffer();
-
-  await redis.setex(cacheKey, 86400, result);
-  return result;
+  let img = sharp(original, { limitInputPixels: 50_000_000 });
+  if (t.width || t.height) img = img.resize(t.width, t.height, { fit: t.fit });
+  img = t.format === "png" ? img.png() : t.format === "jpeg" ? img.jpeg({ quality: t.quality }) : img.webp({ quality: t.quality });
+  const out = await img.toBuffer();
+  await redis.set(cacheKey, out, "EX", 86400);
+  return out;
 }
-
-// Search assets
-export async function searchAssets(query: string, filters?: {
-  folder?: string; mimeType?: string; tags?: string[]; uploadedBy?: string;
-}, limit: number = 50): Promise<Asset[]> {
-  let sql = `SELECT * FROM assets WHERE status = 'active'`;
-  const params: any[] = [];
-  let idx = 1;
-
-  if (query) {
-    sql += ` AND (metadata->>'title' ILIKE $${idx} OR metadata->>'description' ILIKE $${idx} OR metadata->'tags' @> $${idx + 1}::jsonb)`;
-    params.push(`%${query}%`, JSON.stringify([query]));
-    idx += 2;
-  }
-
-  if (filters?.folder) { sql += ` AND folder = $${idx}`; params.push(filters.folder); idx++; }
-  if (filters?.mimeType) { sql += ` AND mime_type LIKE $${idx}`; params.push(`${filters.mimeType}%`); idx++; }
-  if (filters?.uploadedBy) { sql += ` AND uploaded_by = $${idx}`; params.push(filters.uploadedBy); idx++; }
-
-  sql += ` ORDER BY created_at DESC LIMIT $${idx}`;
-  params.push(limit);
-
-  const { rows } = await pool.query(sql, params);
-  return rows.map(parseAsset);
-}
-
-function parseAsset(row: any): Asset {
-  return { ...row, metadata: JSON.parse(row.metadata), versions: JSON.parse(row.versions), currentVersion: row.current_version };
+const escapeLike = (s: string) => s.replace(/[\\%_]/g, "\\$&");
+export async function searchAssets(q: string | undefined, f: { folder?: string; tag?: string; mime?: string }, limit: number) {
+  const where = ["status = 'active'"];
+  const p: unknown[] = [];
+  if (q) { p.push(`%${escapeLike(q)}%`); where.push(`(metadata->>'title' ILIKE $${p.length} OR original_filename ILIKE $${p.length})`); }
+  if (f.tag) { p.push(f.tag); where.push(`metadata->'tags' ? $${p.length}`); }
+  if (f.folder) { p.push(f.folder); where.push(`folder = $${p.length}`); }
+  if (f.mime) { p.push(`${escapeLike(f.mime)}%`); where.push(`mime_type LIKE $${p.length}`); }
+  p.push(limit);
+  const { rows } = await pool.query(
+    `SELECT id, original_filename, mime_type, width, height, folder, metadata, current_version, created_at
+     FROM assets WHERE ${where.join(" AND ")} ORDER BY created_at DESC LIMIT $${p.length}`, p);
+  return rows; // jsonb columns arrive already parsed
 }
 ```
 
-## Results
+## Step 3: The API
 
-- **"Which logo?" eliminated** — single source of truth for all brand assets; version history shows who uploaded what and when; latest version always on top
-- **Auto-resizing saves 2 hours/day** — upload once, get 4 responsive sizes automatically; social media team grabs 1080×1080 via transform API; no Photoshop needed
-- **Deduplication** — content hash prevents uploading the same 50MB photo twice; storage costs reduced 30%
-- **EXIF extraction** — camera model, lens, ISO automatically tagged; photographers search by equipment; marketing finds "professional-quality" photos instantly
-- **CDN delivery** — assets served from edge locations; page load with 20 images: 4s → 800ms; WebP format reduces bandwidth 60% vs PNG
+Hono (**hono** skill) validates every input with Zod, limits upload size to 50 MB, and binds to `127.0.0.1`; put a reverse proxy with TLS in front of it. The bearer token is one shared team secret, enough for a pilot; replace it with `hono/jwt` and per-user identities (and per-folder permissions) before wider rollout. Downloads are 5-minute presigned URLs, so the bucket never has to be public.
+
+```typescript
+// src/server.ts - HTTP API on Hono
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { bearerAuth } from "hono/bearer-auth";
+import { bodyLimit } from "hono/body-limit";
+import { z } from "zod";
+import { downloadUrl, searchAssets, transformImage, transformSchema, uploadAsset } from "./dam.js";
+
+const app = new Hono();
+app.use("*", bearerAuth({ token: process.env.DAM_TOKEN! })); // constant-time compare; swap for hono/jwt with real users
+app.onError((err, c) => c.json({ error: err.message }, err.message.startsWith("Duplicate") ? 409 : 400));
+
+const upload = z.object({
+  title: z.string().max(200).optional(),
+  tags: z.string().max(500).default("").transform((s) => s.split(",").map((t) => t.trim()).filter(Boolean)),
+  folder: z.string().regex(/^\/([\w-]+\/?)*$/).default("/"),
+});
+
+app.post("/assets", bodyLimit({ maxSize: 50 * 1024 * 1024, onError: (c) => c.json({ error: "File too large" }, 413) }), async (c) => {
+  const form = await c.req.parseBody();
+  const file = form["file"];
+  if (!(file instanceof File)) return c.json({ error: "multipart field 'file' is required" }, 400);
+  const meta = upload.parse(form);
+  const res = await uploadAsset(Buffer.from(await file.arrayBuffer()), file.name, { ...meta, uploadedBy: "marketing" });
+  return c.json(res, 201);
+});
+
+const search = z.object({ q: z.string().max(100).optional(), tag: z.string().max(50).optional(),
+  folder: z.string().optional(), mime: z.string().max(50).optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
+
+app.get("/assets", zValidator("query", search), async (c) => {
+  const { limit, q, ...filters } = c.req.valid("query");
+  return c.json(await searchAssets(q, filters, limit));
+});
+
+app.get("/assets/:id/download", async (c) => c.redirect(await downloadUrl(c.req.param("id")), 302));
+
+app.get("/assets/:id/transform", zValidator("query", transformSchema), async (c) => {
+  const t = c.req.valid("query");
+  const img = await transformImage(c.req.param("id"), t);
+  return c.body(new Uint8Array(img), 200, { "Content-Type": `image/${t.format}`, "Cache-Control": "private, max-age=3600" });
+});
+
+serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000), hostname: "127.0.0.1" });
+```
+
+```console
+$ curl -H "Authorization: Bearer $DAM_TOKEN" -F file=@logo-2026.png -F tags=logo,brand -F folder=/brand http://127.0.0.1:3000/assets
+$ curl -H "Authorization: Bearer $DAM_TOKEN" "http://127.0.0.1:3000/assets/<id>/transform?width=1080&height=1080" -o social.webp
+```
+
+The `thumb`, `small`, `medium` and `large` WebP files sit next to each original; a CDN in front of the private bucket can serve them, with signed URLs or cookies keeping them private.
+
+## What Lena's Team Gets
+
+- **One library, one latest logo.** Each file keeps a version row (who, when, why) and a content hash; `addVersion` adds the next one. Search by title, filename, tag, folder or type.
+- **Upload once, get sizes automatically.** Four WebP thumbnails are generated on upload, and the social team asks the transform endpoint for 1080x1080 crops instead of opening an image editor.
+- **No duplicate uploads.** The same bytes are rejected with a 409.
+
+## Related Skills
+
+- [typescript](/skills/typescript) — compiler settings and type-checking for the engine and API
+- [postgresql](/skills/postgresql) — JSONB metadata, the partial unique index and version table in Step 1
+- [redis](/skills/redis) — caches transformed images for a day, keyed by asset version
+- [hono](/skills/hono) — the HTTP API, body limit and bearer auth in Step 3
+- [zod](/skills/zod) — validates upload fields, search filters and transform parameters
+- [s3-storage](/skills/s3-storage) — private bucket, uploads and presigned download links

@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Requires Node.js 18+ and npm/npx (for the CLI). REST and MCP access work without any local install."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "meta, discovery, cli, skills, registry"
   repository: https://github.com/TerminalSkills/skills
@@ -56,14 +56,14 @@ Available commands:
 |---------|---------|
 | `terminal-skills search pdf` | Full-text search across name, description, tags |
 | `terminal-skills list [-c <category>]` | List all skills, optionally filtered by category |
-| `terminal-skills info coolify` | Show description, version, category and tags before installing |
-| `terminal-skills install coolify [-a <agent>] [-g]` | Install for the current agent (auto-detected) or a specified one. `-g` installs globally (home directory) instead of into the project |
+| `terminal-skills info coolify` | Show description, slug, version and (when the skill declares them) author and tags before installing |
+| `terminal-skills install coolify [-a <agent>] [-g]` | Install for the current agent (auto-detected) or a specified one (`claude-code`, `openai-codex`, `gemini-cli`, `cursor`; aliases `claude`, `codex`, `gemini`). `-g` installs globally (home directory) instead of into the project |
 | `terminal-skills agents` | Detect which agents are installed in the current project |
 
 **Install paths the CLI writes to:**
 
 - Claude Code → `.claude/skills/<name>/SKILL.md` (global: `~/.claude/skills/`)
-- OpenAI Codex → `.codex/skills/<name>/SKILL.md` (global: `~/.codex/skills/`). Published CLI 1.0.2 writes here, but Codex itself loads skills from `.agents/skills/`, so move or copy the folder there after installing
+- OpenAI Codex → `.agents/skills/<name>/SKILL.md` (global: `~/.agents/skills/`). CLI 1.1.0 and later write here, where Codex loads skills from; CLI 1.0.x wrote to `.codex/skills/`, so on an old version move the folder to `.agents/skills/` (`.codex/` is still how the CLI detects Codex)
 - Gemini CLI → `.gemini/skills/<name>/SKILL.md` (global: `~/.gemini/skills/`)
 - Cursor → `.cursor/rules/<name>.mdc` (global: `~/.cursor/rules/`)
 
@@ -116,7 +116,7 @@ Every skill belongs to exactly one of: `automation`, `business`, `content`, `dat
 
 ### Before installing
 
-Always run `info` first if the skill name isn't already familiar. It prints the description, slug, version, category and tags so you can confirm fit before writing files.
+Always run `info` first if the skill name isn't already familiar. It prints the description, slug and version (plus author and tags when present) so you can confirm fit before writing files; the category is not always shown, use `list -c` or the REST `category` field for that.
 
 ## Examples
 
@@ -141,7 +141,8 @@ $ npx terminal-skills info coolify
 
   Slug         coolify
   Version      1.0.0
-  Category     devops
+
+  Install: terminal-skills install coolify
 
 # 3. Install for the current project (auto-detects Claude Code)
 $ npx terminal-skills install coolify
@@ -176,7 +177,7 @@ This avoids a CLI dependency and works the same in CI, scripts, or non-Node envi
 ## Guidelines
 
 - **Search first, install second.** Run `search` or call `search_skills` / `/api/v1/skills?q=` before installing — installing the wrong skill clutters the agent's context.
-- **Use `info` before `install`** to read the description and confirm the skill fits (`info` prints name, description, slug, version, category, author and tags).
+- **Use `info` before `install`** to read the description and confirm the skill fits (`info` prints name, description, slug, version and, when present, author and tags).
 - **Prefer per-project install** over `--global` unless the user explicitly wants a skill available across every project. Per-project keeps `.claude/`, `.codex/`, etc. self-contained.
 - **Restart or reload the agent** after installing so the new SKILL.md is loaded. Some agents pick up changes only on cold start.
 - **Don't shadow built-in behavior.** If a skill name collides with a directory you already have, either rename or skip — don't silently overwrite.

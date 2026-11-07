@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Requires Python 3.10+ with praw installed and a Reddit script-app client ID and secret (free to register; API access is subject to Reddit approval)."
 metadata:
   author: terminal-skills
-  version: "1.3.0"
+  version: "1.4.0"
   repository: https://github.com/praw-dev/praw
   category: research
   tags: "reddit, research, sentiment, market-research, validation"
@@ -215,10 +215,11 @@ Validation Signal: MODERATE-STRONG
 ## Guidelines
 
 - Authenticate with OAuth and send a descriptive User-Agent in Reddit's format (`script:<app>:<version> (by u/<username>)`). Generic or browser-like agents are throttled or blocked.
-- The limit is 60 requests per minute for OAuth clients; PRAW waits automatically. Avoid repeated single-item calls when a listing returns many.
+- Reddit's help-center Data API wiki states the free-access limit as 100 queries per minute per OAuth client id, averaged over a 10-minute window (the older archived wiki said 60). The `X-Ratelimit-Used`, `X-Ratelimit-Remaining` and `X-Ratelimit-Reset` response headers are the live source; PRAW reads them and waits automatically. Avoid repeated single-item calls when a listing returns many.
 - One listing returns at most about 1,000 items, so split big research into several queries, subreddits and time filters.
 - Keep client ID, secret and password in environment variables; never commit them or print them.
-- Check Reddit's Data API Terms before commercial use or before feeding content into model training; they restrict both.
+- Free access is for eligible, non-commercial use. Under the Data API Terms (https://redditinc.com/policies/data-api-terms, sections 3.1 and 3.2): commercial use needs a separate agreement with Reddit; deriving revenue from the Data APIs needs Reddit's express written approval; using User Content to train a machine-learning or AI model needs the express permission of the rightsholders; and data must not be kept beyond your approved use case, with anything not required for it deleted immediately. If the user's project is commercial or feeds a model, tell them to get Reddit's approval first.
+- Content that was deleted on Reddit must also be removed from your stored copies (Reddit's Data API wiki); re-check saved data before reusing it.
 - Do not collect personal profiles or personally identifiable information; quote usernames only when necessary.
 - Present findings with context: one upvoted complaint is not a validated market need. Look for patterns across discussions and weigh upvotes (a 500-upvote post counts more than a 3-upvote one).
 - Note the subreddit context: complaints in r/technology mean something different from those in r/startups.

@@ -21,50 +21,116 @@ A Series B startup's AWS bill climbed from $8,000 to $23,000 per month over six 
 
 ## The Solution
 
-Use the **cloud-resource-analyzer** skill to audit every running resource for utilization, waste, and savings opportunities, then use the **terraform-iac** skill to codify the right-sized configuration so the optimizations stick and cost drift cannot recur. The analyzer provides the data; Terraform provides the enforcement.
+Use the **cloud-resource-analyzer** skill to audit running resources for waste with read-only AWS CLI queries, then use the **terraform-iac** skill to codify the right-sized configuration so the optimizations stick and cost drift cannot recur. The analyzer provides the data; Terraform provides the enforcement.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Audit current resource utilization
 
-Start by scanning all active cloud resources to identify underutilized instances, unattached volumes, and idle load balancers. The audit should cover compute, storage, networking, and database resources across all regions.
+Scan every region that has resources (`aws ec2 describe-regions`), with credentials that have read-only access:
 
-> Analyze our AWS account for cost optimization opportunities. Check EC2 instance CPU and memory utilization over the past 30 days, find unattached EBS volumes, identify idle RDS instances, and flag any Elastic IPs not associated with running instances. Also check for unused load balancers with zero healthy targets, NAT gateways in regions with no active instances, and S3 buckets with no access in 90 days. Output a ranked list of savings opportunities with estimated monthly savings for each.
+> Analyze our AWS account for cost optimization opportunities, region by region. Find unattached EBS volumes, snapshots older than 90 days that no AMI depends on, Elastic IPs with no association, load balancers whose target groups have no healthy targets, NAT gateways with almost no traffic, and RDS instances with low CPU and connection counts over 14 days. Price each finding with a 720-hour month and rank by monthly savings. Do not delete anything.
 
-The audit typically reveals three categories: resources that can be deleted immediately (orphaned volumes, forgotten dev environments), resources that can be downsized (oversized instances), and resources that need lifecycle policies (old snapshots, infrequently accessed storage).
+The skill's queries return three kinds of findings: resources to delete (orphaned volumes, forgotten dev environments), resources to downsize, and resources that need lifecycle policies (old snapshots). Two things the CLI cannot tell you on its own: EC2 memory utilization (CloudWatch has none unless the CloudWatch agent is installed) and S3 access patterns (use S3 Storage Lens or server access logs before archiving a bucket). Treat both as open questions in the report, not as findings.
 
 ### 2. Identify right-sizing targets
 
-With the utilization report in hand, determine the correct instance types and storage tiers for each workload based on actual usage patterns. The key is using peak utilization, not average -- sizing for 12% average CPU ignores the 3 AM batch job that spikes to 45%.
+Use peak utilization, not the average. A server averaging 12% CPU with a 38% peak on an 8 vCPU `m5.2xlarge` peaks at about 3 vCPUs, so an `m5.large` (2 vCPUs) would be saturated. The smallest size that fits is `m5.xlarge` (4 vCPUs, peak near 76%).
 
-> Based on the utilization analysis, recommend specific right-sizing changes. Our API servers are on m5.2xlarge but average 12% CPU with a peak of 38%. The staging database is db.r6g.xlarge with 3% connection utilization. The batch processing cluster uses m5.4xlarge but only runs for 2 hours daily. Map each resource to the smallest instance type that maintains a 40% headroom buffer above peak usage. For the batch cluster, recommend a schedule-based scaling approach.
+> Recommend right-sizing changes from the 30-day CloudWatch data. The API servers are on m5.2xlarge with 12% average and 38% peak CPU. The staging database is db.r6g.xlarge with 3% connection utilization. The batch cluster uses m5.4xlarge but runs 2 hours a day. For each, name the smallest instance type that keeps peak CPU under 80%, check memory before shrinking (an `m5.xlarge` has 16 GiB against 32 GiB), and for the batch cluster recommend scheduled scaling.
 
-Right-sizing is not just about picking smaller instances. Some workloads benefit more from switching instance families (compute-optimized versus memory-optimized) or moving to ARM-based Graviton instances for a 20% cost reduction at equivalent performance.
+Moving to a Graviton (ARM) family such as `m6g` or `m7g` is priced about 20% below the comparable x86 instance, but the AMI and every container image must be built for arm64. Test one instance before moving the group. For the staging database, a burstable `db.t4g.medium` (2 vCPUs, 4 GiB) is only safe if `FreeableMemory` and the working set fit in 4 GiB.
 
 ### 3. Import existing resources into Terraform
 
-Before making changes, bring any console-created resources under Terraform management so everything is tracked in code. This prevents the "worked in console, broke in Terraform" problem where manual changes conflict with managed infrastructure.
+Bring the console-created resources you intend to keep under Terraform before changing them. Orphaned volumes and the forgotten NAT gateway do not need importing: snapshot the volumes, then delete them with the CLI or remove them in the console.
 
-> Generate Terraform import blocks for the 14 resources identified in the audit that are not currently in our Terraform state. Include the three orphaned EBS volumes, the dev environment load balancer, and the forgotten NAT gateway in us-west-2. Generate the corresponding resource blocks with all current attributes so the import does not trigger any changes on the first plan.
+> Write `import` blocks for the resources we are keeping that are not in Terraform state: the dev environment load balancer, its target groups, and the staging RDS instance. Then run `terraform plan -generate-config-out=generated.tf` and review the generated resource blocks.
+
+```hcl
+import {
+  to = aws_db_instance.staging
+  id = "staging-orders-db"
+}
+```
+
+```console
+$ terraform plan -generate-config-out=generated.tf
+```
+
+`-generate-config-out` (Terraform 1.5 and later) refuses to overwrite an existing file and its output is a starting template: remove conflicting arguments, replace literals with variables, and run `terraform plan` again until it reports no changes before you apply the import.
 
 ### 4. Apply right-sizing changes through Terraform
 
-Codify the recommended instance type changes, storage tier adjustments, and resource deletions in Terraform so they go through plan and review before applying. The Terraform plan output shows exactly what will change before anything is modified, giving the team confidence to act.
+Make the instance changes in code so they go through plan and review:
 
-> Update our Terraform configuration to right-size the API server ASG from m5.2xlarge to m5.large, change the staging RDS instance from db.r6g.xlarge to db.t4g.medium, delete the three unattached EBS volumes, and remove the unused NAT gateway. Add cost tags to every resource so we can track spend by team. For the batch cluster, add a scheduled scaling policy that scales to zero outside the 2 AM-4 AM processing window.
+> Change the API server launch template from m5.2xlarge to m5.xlarge and the staging RDS instance to db.t4g.medium. Add a scheduled action for the batch Auto Scaling group that scales it to zero outside the 02:00-04:00 window. Show me the plan before anything is applied.
+
+```hcl
+resource "aws_autoscaling_schedule" "batch_up" {
+  scheduled_action_name  = "batch-up"
+  autoscaling_group_name = aws_autoscaling_group.batch.name
+  recurrence             = "0 2 * * *"
+  time_zone              = "UTC"
+  min_size               = 0
+  max_size               = 4
+  desired_capacity       = 4
+}
+
+resource "aws_autoscaling_schedule" "batch_down" {
+  scheduled_action_name  = "batch-down"
+  autoscaling_group_name = aws_autoscaling_group.batch.name
+  recurrence             = "0 4 * * *"
+  time_zone              = "UTC"
+  min_size               = 0
+  max_size               = 0
+  desired_capacity       = 0
+}
+```
+
+Read the plan for any `must be replaced` marker on a database before applying; a class change on RDS causes a reboot, so apply it in a maintenance window.
 
 ### 5. Set up ongoing cost governance
 
-Prevent future drift by adding budget alerts and tagging policies to the Terraform configuration. Without governance, costs creep back within a quarter as developers spin up resources through the console.
+> Add an `aws_budgets_budget` with a monthly cost limit and two notifications, at 75% and 100% of the limit, sent to an SNS topic that Amazon Q Developer in chat applications (formerly AWS Chatbot) posts to our Slack channel. Add `default_tags` to the AWS provider block with team, environment, and cost-center. Add an AWS Config managed rule `required-tags` that reports resources missing those tags.
 
-> Add AWS Budget alerts to our Terraform that notify the engineering Slack channel when monthly spend exceeds $15,000 and $20,000. Create a tagging policy that requires every resource to have team, environment, and cost-center tags. Add a scheduled Lambda that reports untagged resources weekly. Include a Terraform module that automatically applies tags to all resources created by the team.
+```hcl
+resource "aws_budgets_budget" "monthly" {
+  name         = "monthly-total"
+  budget_type  = "COST"
+  limit_amount = "20000"
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
 
-The governance layer is what separates a one-time cleanup from a sustainable cost practice. Without it, the same $15,000 in waste will accumulate again within two quarters.
+  notification {
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 75
+    threshold_type            = "PERCENTAGE"
+    notification_type         = "ACTUAL"
+    subscriber_sns_topic_arns = [aws_sns_topic.cost_alerts.arn]
+  }
+
+  notification {
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 100
+    threshold_type            = "PERCENTAGE"
+    notification_type         = "ACTUAL"
+    subscriber_sns_topic_arns = [aws_sns_topic.cost_alerts.arn]
+  }
+}
+```
+
+The SNS topic must be in the same account, unencrypted (or use a KMS key that allows Budgets), and carry an access policy that lets the `budgets.amazonaws.com` service principal `SNS:Publish`, with `aws:SourceAccount` and `aws:SourceArn` conditions; otherwise the budget fails with "Invalid SNS topic". The `required-tags` rule (`REQUIRED_TAGS`, up to six tag keys) covers only supported resource types and does not block untagged resources, it only reports them.
+
+`default_tags` applies tags to every resource the provider creates, so the team does not need a separate tagging module. The tags only appear in Cost Explorer after you activate them as cost allocation tags in the Billing console. Budgets data refreshes a few times a day, so an alert is hours behind, not minutes.
 
 ## Real-World Example
 
-The platform team at a fintech startup ran the cloud resource analyzer against their 140-resource AWS account on a Monday morning. The audit surfaced $6,200 in monthly waste: four m5.4xlarge instances running a batch job that peaked at 8% CPU, 900 GB of unattached EBS snapshots from a migration completed four months prior, and a redundant NAT gateway in a region they no longer used.
+The platform team at a fintech startup (an example, with its own numbers) ran the analysis against a 140-resource AWS account on a Monday. The audit found about $6,200 a month in waste: four `m5.4xlarge` instances running a batch job that peaked at 8% CPU, 900 GB of snapshots left from a migration four months earlier, and a NAT gateway in a region they no longer used.
 
-They imported the 14 unmanaged resources into Terraform on Tuesday, verified the import with `terraform plan` showing zero changes, then codified the right-sizing recommendations into the configuration. The plan showed 11 resources would be modified and 6 destroyed. They applied compute changes during a maintenance window on Wednesday night and deleted the orphaned resources on Thursday morning.
+They imported the unmanaged resources they kept on Tuesday and checked that `terraform plan` showed no changes. The right-sizing plan then showed 11 resources modified and 6 destroyed. They applied compute changes during a maintenance window on Wednesday night and deleted the orphaned resources on Thursday morning after taking snapshots. The next month's bill fell from $23,000 to $16,400. The budget alert later flagged a forgotten `g5.2xlarge` GPU instance within two days instead of at the next monthly bill, and the next quarterly cost review took 30 minutes.
 
-The following month's AWS bill dropped to $16,400 -- a 29% reduction. Because every change lives in Terraform, the next quarter's cost review took 30 minutes instead of a full day of console archaeology. The budget alerts caught a developer who spun up a g5.2xlarge GPU instance for an ML experiment and forgot about it -- the team was notified within 48 hours instead of discovering it on the next monthly bill. Six months later, the governance system has kept the bill within 5% of the target, and every new resource is automatically tagged at creation time through the Terraform module.
+## Related Skills
+
+- **cloud-resource-analyzer**: read-only AWS CLI queries for orphaned, idle and oversized resources, with list prices for the savings estimate (steps 1-2).
+- **terraform-iac**: plan/apply workflow and `import` blocks with `-generate-config-out` (step 3), reused for the scaling and governance changes in steps 4-5.

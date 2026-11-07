@@ -1,53 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:5863ba6f41718998f23dd959ca522e6e4ac48cf89dbd54f082029600bee7c987",
-  "scoredAt": "2026-10-20T20:25:45.657Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:cfc81d65dada06677b8cd5512d5cf3795c23c0b5613d68c8fd8552d37b4a7521",
+  "scoredAt": "2026-11-07T00:02:56.391Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack handling for error scenarios such as missing agent detection or API failures."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 0,
-    "treatmentAvg": 50,
+    "multiplier": 5.47,
+    "baselineAvg": 17,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "deploy-to-coolify",
+        "name": "deploy-nextjs-to-coolify",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response B covers almost all rubric items, missing only the explicit agent name display, while Response A lacks nearly all required elements."
+      },
+      {
+        "name": "wcag-skills-rest-fetch",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not mention any terminal-skills commands or auto‑detection details."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no relevant commands or steps."
       },
       {
-        "name": "fetch-wcag-skill-md",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B includes the raw SKILL.md but omits the required search call, whereas Response A provides no relevant content."
-      },
-      {
-        "name": "plan-stripe-vercel",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses lack the required MCP registration, plan_task call, skill slugs, and API key note."
+        "name": "mcp-data-ai-csv-clean",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with JSON config, search_skills call, and a matching slug; Response B lacks the required JSON config, uses CLI commands instead, and does not provide a data‑ai skill slug."
       }
     ]
   }

@@ -9,10 +9,10 @@ description: >-
   mess", "find the worst modules", "untangle these dependencies", "too many tiny files",
   "make this easier to test", or asks for a refactoring roadmap.
 license: Apache-2.0
-compatibility: "Any git repository. Commands are given for JavaScript/TypeScript on Node.js 22.12+ (madge 8, dependency-cruiser 18, knip 6) and Python 3.10+ (grimp, radon 6, import-linter 2); the method carries over to other languages with their own dependency tools."
+compatibility: "Any git repository. Commands are given for JavaScript/TypeScript on Node.js 22.12+ (madge 8, dependency-cruiser 18, knip 6) and Python 3.11+ (grimp 3.19, radon 6, import-linter 2); the method carries over to other languages with their own dependency tools."
 metadata:
   author: terminal-skills
-  version: "2.0.0"
+  version: "2.1.0"
   category: development
   tags: "architecture, refactoring, dependency-analysis, technical-debt, modularity"
 ---
@@ -248,7 +248,7 @@ layers =
 
 - Thresholds are starting points. In a repository of 60 files a fan-out of 15 is everything; in one of 6,000 it is ordinary. Compare modules with their neighbours, not with the table.
 - madge counts `import type` edges, so type-only loops appear as cycles. Add `{"detectiveOptions":{"ts":{"skipTypeImports":true}}}` to `.madgerc` to see runtime cycles only; dependency-cruiser ignores type-only imports by default.
-- dependency-cruiser reads TypeScript only through a `typescript` package installed beside it, versions 2 to 6 as of 18.5. Run as `npx -p dependency-cruiser depcruise`, or in a project on TypeScript 7, it finds none, reports `0 modules, 0 dependencies cruised` and exits 0, so a guard set up that way never fails. Check the cruised count, and where the project's TypeScript is too new use the `$ARCH` install from step 2. A bare `npx depcruise` with no local install fetches an unrelated placeholder package.
+- dependency-cruiser reads TypeScript only through a `typescript` package installed beside it, versions 2 to 6 as of 18.7. Run as `npx -p dependency-cruiser depcruise`, or in a project on TypeScript 7, it finds none, reports `0 modules, 0 dependencies cruised` and exits 0, so a guard set up that way never fails. Check the cruised count, and where the project's TypeScript is too new use the `$ARCH` install from step 2. A bare `npx depcruise` with no local install fetches an unrelated placeholder package.
 - knip loads the project's own config files, so run it after the dependencies are installed; otherwise it fails to read them and reports far too much as unused. Treat its list as leads, never as a delete list.
 - History-based signals need history: after a squash import or in a young repository, rely on the dependency graph and on reading.
 - Co-change inside one folder is normal and is filtered out. A pair across folders is only a finding when the commits were about one concern; check a few commit messages.

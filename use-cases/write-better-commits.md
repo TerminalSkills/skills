@@ -2,7 +2,7 @@
 title: "Generate Precise Commit Messages and Accelerate Code Reviews by 60%"
 slug: write-better-commits
 description: "Automatically analyze code changes to create meaningful commit messages and improve team collaboration through better git history."
-skills: [git-commit-pro, code-reviewer, cicd-pipeline]
+skills: [git-commit-pro, code-reviewer, commitlint, husky, github-actions]
 category: development
 tags: [git, commits, code-review, workflow, automation, collaboration]
 ---
@@ -19,7 +19,7 @@ Code reviews compound the problem. Reviewers spend more time asking "what does t
 
 ## The Solution
 
-Using the **git-commit-pro**, **code-reviewer**, and **cicd-pipeline** skills, Dani overhauls the team's commit workflow: semantic analysis of staged changes to generate conventional commit messages, automated pre-commit quality checks, CI/CD integration for changelog generation, and a team adoption plan that gets buy-in without slowing anyone down.
+Using the **git-commit-pro**, **code-reviewer**, **commitlint**, **husky** and **github-actions** skills, Dani overhauls the team's commit workflow: the agent reads staged changes and writes conventional commit messages, reviews them before the commit, a husky `commit-msg` hook runs commitlint locally, a GitHub Actions job runs the same check on every pull request, and a phased adoption plan gets buy-in without slowing anyone down.
 
 ## Step-by-Step Walkthrough
 
@@ -88,11 +88,7 @@ The review comes back with a structured assessment:
 - `auth/middleware.ts:34` -- Role permissions are looked up on every request. For high-traffic apps, consider caching the permission map. Not blocking, but worth a follow-up PR.
 - `auth/types.ts:12` -- `UserRole` enum could be a string union type for better TypeScript inference. Stylistic, not functional.
 
-**Impact analysis:**
-- 4 files affected, all within the auth module (isolated scope)
-- 3 new exports, 0 breaking changes to public API
-- +2.3KB bundle size (acceptable for a security feature)
-- Less than 1ms overhead per authenticated request
+**Scope:** 4 files, all inside the auth module; 3 new exports, no change to existing public signatures.
 
 **Verdict:** Safe to commit. The caching optimization is a good idea but belongs in a separate PR.
 
@@ -115,49 +111,67 @@ An audit of the last 50 commits tells the story:
 | No body text | 78% (zero context or rationale) |
 | No issue references | 89% (can't link changes to requirements) |
 
-The fix is a combination of tooling and team process. Git hooks enforce the standard without requiring willpower:
+The fix is tooling plus process. A `commit-msg` hook, installed with husky v9, runs commitlint on every message, so the "fix stuff" commits are rejected before they enter the repo (the commitlint config needs Node.js 22.12 or newer):
 
-```yaml
-# .husky/commit-msg
-commitlint --edit $1
-
-# commitlint.config.js rules:
-# - Type required: feat|fix|docs|style|refactor|perf|test|chore
-# - Scope required: component/module (auth, api, ui, db)
-# - Subject: imperative mood, under 50 chars, no trailing period
-# - Body: wrap at 72 chars, explain the "why"
-# - Footer: issue references, breaking change notes
+```console
+$ npm install -D @commitlint/cli @commitlint/config-conventional husky
+$ npx husky init
+$ echo 'npx --no -- commitlint --edit "$1"' > .husky/commit-msg
 ```
 
-The pre-commit hook validates the message format and runs linting. The commit-msg hook suggests improvements for messages that technically pass but could be clearer. The pre-push hook blocks pushes with non-conventional commits unless explicitly overridden. None of these slow down a developer who's already writing good messages -- they only catch the "fix stuff" commits before they enter the repo.
+`npx husky init` also writes `npm test` into `.husky/pre-commit` and adds `"prepare": "husky"` to `package.json`, which activates the hooks for each teammate on `npm install`. Edit the pre-commit file if the repo has no tests. The rules go in `commitlint.config.mjs`:
 
-### Step 4: Wire It Into CI/CD
+```javascript
+export default {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'scope-empty': [2, 'never'],
+    'scope-enum': [2, 'always', ['auth', 'api', 'ui', 'db']],
+    'header-max-length': [2, 'always', 72],
+  },
+}
+```
 
-With conventional commits enforced locally, the CI/CD pipeline can now do things that were impossible before:
+The preset requires a type from `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, a non-empty lowercase subject without a trailing period, and body lines of 100 characters or fewer; the three rules above add a mandatory scope from the team's list and a 72-character header. Trying it:
+
+```console
+$ echo "fix stuff" | npx commitlint
+✖   subject may not be empty [subject-empty]
+✖   type may not be empty [type-empty]
+✖   scope may not be empty [scope-empty]
+$ echo "feat(auth): implement role-based access control middleware" | npx commitlint && echo ok
+ok
+```
+
+Nothing here slows down a developer who already writes good messages. Hooks can be skipped with `git commit --no-verify`, so the pull request check in the next step is the real enforcement.
+
+### Step 4: Wire It Into CI
+
+The same check runs on every pull request, using the pattern from the **github-actions** skill:
 
 ```yaml
-# .github/workflows/commit-quality.yml
-name: Commit Quality Check
+# .github/workflows/commitlint.yml
+name: commitlint
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
-  validate-commits:
+  commitlint:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Commit Messages
-        run: commitlint --from ${{ github.event.pull_request.base.sha }}
-
-      - name: Analyze Change Impact
-        run: git-commit-pro analyze --pr ${{ github.event.number }}
-
-      - name: Generate Preview Changelog
-        run: conventional-changelog --preset angular --unreleased-only
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 ```
 
-**Automated quality gates:** PRs with non-conventional commits get blocked at the CI level. PRs are auto-labeled based on commit types (`feat` = "enhancement", `fix` = "bug", `docs` = "documentation"), which means the project board updates itself.
+Mark the job as a required status check in the branch protection rules and a pull request with non-conventional commits cannot merge. If the team squash-merges, lint the pull request title instead of the individual commits.
 
-**Release automation:** Semantic versioning happens automatically. `feat` commits bump the minor version, `fix` commits bump the patch version, `feat!` (breaking change) bumps the major version. Changelogs generate themselves from commit messages. Release notes pull from commit bodies and link to the relevant issues and PRs.
-
-No more manually maintaining a CHANGELOG.md. No more arguing about version numbers. No more release notes that say "various bug fixes and improvements."
+Once every message follows the format, release tooling can use it: `feat` maps to a minor version, `fix` to a patch, and `feat!` or a `BREAKING CHANGE:` footer to a major one. Tools such as release-please, semantic-release or changesets read that history to propose versions and write the changelog, so nobody maintains `CHANGELOG.md` by hand. commitlint itself only checks messages.
 
 ### Step 5: Team Adoption Without the Revolt
 
@@ -165,13 +179,13 @@ Tooling enforcement without team buy-in creates resentment. Dani rolls out the c
 
 **Week 1:** Share the audit results with the team. The numbers do the convincing -- 22 hours/week lost, $47,000 incident, 6.7-hour review times. No one argues with the data.
 
-**Week 2:** Install git hooks and provide a conventional commits cheat sheet. The agent generates example messages from actual recent PRs so engineers see what their own changes would look like with proper messages.
+**Week 2:** Install the husky hook and provide a conventional commits cheat sheet. The agent generates example messages from actual recent PRs so engineers see what their own changes would look like with proper messages.
 
-**Week 3:** Enable CI enforcement. By now most engineers are already writing conventional commits because the hooks have been training them for a week.
+**Week 3:** Make the CI check required. By now most engineers are already writing conventional commits because the hooks have been training them for a week.
 
-**Week 4:** Turn on automated changelogs and release notes. The team sees the payoff -- release day goes from a 2-hour manual process to a single merge.
+**Week 4:** Add release tooling that builds the changelog from the commit history, so release notes stop being a manual job.
 
-Progress tracking keeps the momentum going:
+Dani's team tracks four numbers from its own history and review tool; these are the example team's figures:
 
 | Metric | Before | After 4 Weeks |
 |---|---|---|
@@ -182,12 +196,12 @@ Progress tracking keeps the momentum going:
 
 ## Real-World Example
 
-Dani's company isn't an outlier. A 40-person SaaS company inherited a codebase with 14,000+ commits, 90% of which were incomprehensible. Production incidents routinely took hours to diagnose because `git blame` pointed to commits like "updates" and "misc fixes." Code reviews stalled because reviewers had no context. The team was evaluating $18,000/year change management tools to solve the problem.
+Dani's team ran the audit on Monday and showed the engineers what their own recent changes would have looked like with proper messages. The hook went in that week. Within a month the `git log` and `git blame` output pointed at commits that said what they did, reviewers stopped opening pull requests with "what does this do?", and the incident two weeks later was traced to its commit in minutes rather than an hour. The figures in this page are the example team's own; yours will differ, so run the audit on your history first.
 
-On Monday, they ran git-commit-pro's audit against their recent history. Seeing concrete examples of what good messages would look like for their actual changes -- not hypothetical ones -- made the case better than any presentation could.
+## Related Skills
 
-By Tuesday, conventional commit hooks were catching bad messages before they entered the repo. CI/CD integration auto-generated changelogs and labeled PRs by change type. The code-reviewer skill started analyzing changes before commits, catching issues that previously surfaced hours into review cycles.
-
-By Wednesday, reviewers could understand changes from the commit message alone. PRs that previously needed 3 rounds of "what does this do?" clarification were getting approved in a single pass.
-
-Two months later: review velocity improved 73%. Production debugging time dropped 80% because `git log` and `git blame` actually told useful stories. The $18,000 change management tool was never purchased. And the thing engineers mention most in retros isn't the time savings -- it's that git stopped being a source of daily frustration and became something that actually helps them work.
+- [git-commit-pro](/skills/git-commit-pro): writes the conventional commit message from the staged diff
+- [code-reviewer](/skills/code-reviewer): reviews the change before it is committed
+- [commitlint](/skills/commitlint): the rules that reject non-conventional messages
+- [husky](/skills/husky): installs the `commit-msg` hook for every teammate
+- [github-actions](/skills/github-actions): runs the commit check on every pull request

@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Python 3.11 to 3.13 for the SDK (3.12 recommended), a container engine (Docker, Podman or Colima) for Linux sandboxes; QEMU for VMs, Lume on Apple silicon for macOS guests"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: "computer-use, sandbox, desktop-automation, vm, python-sdk"
   repository: https://github.com/trycua/cua
@@ -57,10 +57,10 @@ cua sb exec research --timeout 60 'ls /tmp | wc -l'
 cua sb screenshot research -o desktop.png    # default file name is screenshot.png
 cua sb view research                         # open the desktop in your browser
 cua sb cp ./invoice.pdf research:/tmp/invoice.pdf
-cua sb rm research -f
+cua sb rm research -f                       # -f is required when there is no terminal to confirm on
 ```
 
-Aliases for `create`: `linux`, `ubuntu`, `windows`, `macos[:tahoe|sequoia]`, `omarchy`, or any registry reference. Useful flags: `--kind auto|container|vm`, `--runtime gvisor|runc|qemu|lume`, `--cpu`, `--memory 8GB`, `--tier slim|full`, `--service NAME=PORT`, `--json`. The first create of an image pulls it, which can take minutes and several GB for VM images. A CLI sandbox stays until you remove it with `cua sb rm`; `cua cache du` shows the disk it uses.
+Aliases for `create`: `linux`, `ubuntu`, `windows`, `macos[:tahoe|sequoia]`, `omarchy`, or any registry reference. Useful flags: `--kind auto|container|vm`, `--runtime gvisor|runc|qemu|lume`, `--cpu`, `--memory 8GB`, `--tier slim|full`, `--service NAME=PORT` (alias of `--port`), `--headless` (no desktop, only exec and files; starts faster), `--json`. The first create of an image pulls it, which can take minutes and several GB for VM images. A CLI sandbox stays until you remove it with `cua sb rm`; `cua cache du` shows the disk it uses.
 
 For a plain container running your own service:
 
@@ -139,7 +139,7 @@ async with Sandbox.ephemeral(
 
 ### Connecting a model
 
-Cua does not ship an agent loop in the SDK. A typical loop: take `sb.screen.screenshot()`, send it to your model together with the task, translate the model's action (click, type, key) into the matching `sb.mouse` / `sb.keyboard` call, repeat until done, with a step limit. Use your model vendor's computer-use tool definition for the action schema. For an agent that drives a desktop through MCP instead, the CLI offers `cua mcp` (a stdio MCP server) and `cua agents` (installs cua skills and the MCP entry into coding agents). Both edit or expose agent configuration, so run them only when the user asks and say what they change.
+Cua does not ship an agent loop in the SDK. A typical loop: take `sb.screen.screenshot()`, send it to your model together with the task, translate the model's action (click, type, key) into the matching `sb.mouse` / `sb.keyboard` call, repeat until done, with a step limit. Use your model vendor's computer-use tool definition for the action schema. For an agent that drives a desktop through MCP instead, the CLI offers `cua mcp` (a stdio MCP server) and `cua connect` (`cua connect detect` lists supported coding agents read-only; `cua connect setup` installs the cua skills and the MCP entry; `cua connect remove` undoes it; `cua agents` is a deprecated alias). Both edit or expose agent configuration, so run them only when the user asks and say what they change.
 
 ## Examples
 
@@ -186,5 +186,5 @@ Result: the line count and `returncode 0` print, `sandbox-after.png` holds the d
 - Always cap the number of steps and delete sandboxes you create from the CLI (`cua sb ls`, `cua sb rm NAME -f`). Check `cua cache du` for disk use.
 - Windows guests are Windows Server 2022 and include no license; macOS guests run only on Apple silicon. Linux containers use gVisor when installed, otherwise runc, which isolates less.
 - Sidecar containers need `runtime="runc"` locally; VM sandboxes refuse sidecars.
-- The project releases quickly (0.9.x at the time of writing). When a flag is rejected, run the command with `--help` rather than relying on this page.
+- The project releases quickly (`cua` 0.11.x, `cua-sandbox` 0.9.x at the time of writing). When a flag is rejected, run the command with `--help` rather than relying on this page.
 - Not for controlling the machine you are sitting at: that is the separate Cua Driver, which this skill does not cover.

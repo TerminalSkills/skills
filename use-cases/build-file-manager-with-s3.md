@@ -24,237 +24,276 @@ tags:
 
 Dani leads engineering at a 25-person company. Files are scattered across Google Drive, Slack attachments, email threads, and local machines. Employees can't find the latest version of documents. Client files have no access control — anyone with the link can see everything. Large file uploads fail because the API has a 10MB body limit. They're paying $500/month for a file management SaaS that doesn't integrate with their app. They need an in-app file manager with folders, secure uploads, access control, and preview.
 
-## Step 1: Build the File Manager Backend
+The browser uploads straight to S3 with a presigned URL, so the API never carries file bytes. Postgres holds metadata, Redis caches quota usage and queues thumbnail jobs, Hono serves the API, and zod validates request bodies.
+
+## Step 1: Schema
+
+```sql
+-- assumes workspace_members(workspace_id, user_id) exists
+CREATE TABLE folders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), workspace_id text NOT NULL,
+  parent_id uuid REFERENCES folders(id), name text NOT NULL
+);
+
+CREATE TABLE files (
+  id           uuid PRIMARY KEY,
+  workspace_id text NOT NULL,
+  folder_id    uuid REFERENCES folders(id),
+  name text NOT NULL, mime_type text NOT NULL, size bigint NOT NULL,
+  s3_key text NOT NULL UNIQUE, uploaded_by text NOT NULL,
+  status       text NOT NULL DEFAULT 'uploading',  -- uploading | active | trashed
+  deleted_at   timestamptz,
+  deleted_by   text,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE file_shares (
+  id text PRIMARY KEY,                             -- random token, see createShareLink
+  file_id uuid NOT NULL REFERENCES files(id) ON DELETE CASCADE, created_by text NOT NULL,
+  password_hash text,                              -- "salt:hash", scrypt
+  expires_at timestamptz, max_downloads int, download_count int NOT NULL DEFAULT 0
+);
+```
+
+## Step 2: File Manager Backend
 
 ```typescript
-// src/files/manager.ts — File manager with S3, folders, sharing, and quotas
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand } from "@aws-sdk/client-s3";
+// src/files/manager.ts — S3 uploads, sharing, quotas and trash
+import { randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { pool } from "../db";
 import { Redis } from "ioredis";
-
+import { pool } from "../db"; // a pg Pool
+const scrypt = promisify(scryptCb);
 const redis = new Redis(process.env.REDIS_URL!);
 
+// Credentials: default chain. For MinIO/R2 set S3_ENDPOINT (R2: S3_REGION=auto).
 const s3 = new S3Client({
   region: process.env.S3_REGION!,
-  endpoint: process.env.S3_ENDPOINT,     // for MinIO/R2 compatibility
-  forcePathStyle: true,
+  endpoint: process.env.S3_ENDPOINT,
+  forcePathStyle: !!process.env.S3_ENDPOINT,
+  // Default: the SDK puts the empty-body x-amz-checksum-crc32 into presigned PUT URLs, so uploads fail
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 const BUCKET = process.env.S3_BUCKET!;
-const MAX_FILE_SIZE = 500 * 1024 * 1024;  // 500MB
-const QUOTA_BYTES = 10 * 1024 * 1024 * 1024; // 10GB per workspace
+export const MAX_FILE_SIZE = 500 * 1024 * 1024;          // 500MB
+const QUOTA_BYTES = 10 * 1024 * 1024 * 1024;             // 10GB per workspace
 
-interface FileRecord {
-  id: string;
-  name: string;
-  mimeType: string;
-  size: number;
-  s3Key: string;
-  folderId: string | null;
-  workspaceId: string;
-  uploadedBy: string;
-  thumbnailKey: string | null;
-  isDeleted: boolean;
-  deletedAt: string | null;
-  createdAt: string;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-  parentId: string | null;
-  workspaceId: string;
-  path: string;               // materialized path: "/docs/contracts/"
-}
-
-// Generate presigned upload URL (client uploads directly to S3)
-export async function createUploadUrl(
-  workspaceId: string,
-  userId: string,
-  fileName: string,
-  mimeType: string,
-  fileSize: number,
-  folderId?: string
-): Promise<{ uploadUrl: string; fileId: string; s3Key: string }> {
-  // Check quota
-  const usage = await getStorageUsage(workspaceId);
-  if (usage + fileSize > QUOTA_BYTES) {
-    const usedGB = (usage / (1024 ** 3)).toFixed(1);
-    const limitGB = (QUOTA_BYTES / (1024 ** 3)).toFixed(0);
-    throw new Error(`Storage quota exceeded: ${usedGB}GB of ${limitGB}GB used`);
-  }
-
-  if (fileSize > MAX_FILE_SIZE) {
-    throw new Error(`File too large. Maximum: ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
-  }
-
-  const fileId = `file-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const ext = fileName.split(".").pop() || "";
-  const s3Key = `${workspaceId}/${fileId}.${ext}`;
-
-  // Create presigned PUT URL (expires in 15 min)
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: s3Key,
-    ContentType: mimeType,
-    ContentLength: fileSize,
-  });
-  const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
-
-  // Record file metadata (status: uploading)
-  await pool.query(
-    `INSERT INTO files (id, name, mime_type, size, s3_key, folder_id, workspace_id, uploaded_by, status, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'uploading', NOW())`,
-    [fileId, fileName, mimeType, fileSize, s3Key, folderId || null, workspaceId, userId]
+export async function verifyAccess(workspaceId: string, userId: string) {
+  const { rowCount } = await pool.query(
+    "SELECT 1 FROM workspace_members WHERE workspace_id = $1 AND user_id = $2",
+    [workspaceId, userId]
   );
-
-  return { uploadUrl, fileId, s3Key };
+  if (!rowCount) throw new Error("Access denied");
 }
 
-// Confirm upload completed (called after client finishes S3 upload)
-export async function confirmUpload(fileId: string): Promise<FileRecord> {
+export async function createUploadUrl(
+  workspaceId: string, userId: string,
+  fileName: string, mimeType: string, fileSize: number, folderId?: string | null
+) {
+  await verifyAccess(workspaceId, userId);
+  if (fileSize > MAX_FILE_SIZE) throw new Error(`File too large. Maximum: ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+  const usage = await getStorageUsage(workspaceId);
+  if (usage + fileSize > QUOTA_BYTES) throw new Error(`Storage quota exceeded (${(usage / 1024 ** 3).toFixed(1)}GB used)`);
+  const fileId = randomUUID();
+  const s3Key = `${workspaceId}/${fileId}`;   // never build keys from user-supplied names
+
+  // ContentLength is signed (content-length;host): S3 rejects a PUT of another size. ContentType is not signed.
+  const uploadUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({ Bucket: BUCKET, Key: s3Key, ContentType: mimeType, ContentLength: fileSize }),
+    { expiresIn: 900 }
+  );
+  await pool.query(
+    `INSERT INTO files (id, name, mime_type, size, s3_key, folder_id, workspace_id, uploaded_by, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'uploading')`,
+    [fileId, fileName, mimeType, fileSize, s3Key, folderId ?? null, workspaceId, userId]
+  );
+  await redis.del(`storage:usage:${workspaceId}`);
+  return { uploadUrl, fileId };
+}
+export async function confirmUpload(fileId: string, userId: string) {
+  const { rows: [file] } = await pool.query("SELECT * FROM files WHERE id = $1 AND status = 'uploading'", [fileId]);
+  if (!file) throw new Error("File not found");
+  await verifyAccess(file.workspace_id, userId);
+  const head = await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: file.s3_key }));
+  if (Number(head.ContentLength) !== Number(file.size)) throw new Error("Uploaded size does not match");
   await pool.query("UPDATE files SET status = 'active' WHERE id = $1", [fileId]);
-
-  // Generate thumbnail for images
-  const { rows: [file] } = await pool.query("SELECT * FROM files WHERE id = $1", [fileId]);
   if (file.mime_type.startsWith("image/")) {
-    await redis.rpush("thumbnail:queue", JSON.stringify({ fileId, s3Key: file.s3_key }));
+    await redis.rpush("thumbnail:queue", JSON.stringify({ fileId, s3Key: file.s3_key })); // worker resizes with sharp
   }
-
-  // Update storage usage cache
-  await redis.del(`storage:usage:${file.workspace_id}`);
-
   return file;
 }
 
-// Generate presigned download URL
-export async function getDownloadUrl(fileId: string, userId: string): Promise<string> {
+export async function getDownloadUrl(fileId: string, userId: string) {
   const { rows: [file] } = await pool.query(
-    "SELECT s3_key, name, workspace_id FROM files WHERE id = $1 AND status = 'active'",
-    [fileId]
-  );
+    "SELECT s3_key, name, workspace_id FROM files WHERE id = $1 AND status = 'active'", [fileId]);
   if (!file) throw new Error("File not found");
-
-  // Check access
   await verifyAccess(file.workspace_id, userId);
-
-  const command = new GetObjectCommand({
-    Bucket: BUCKET,
-    Key: file.s3_key,
-    ResponseContentDisposition: `attachment; filename="${file.name}"`,
-  });
-
-  return getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+  return signDownload(file.s3_key, file.name, 3600);
 }
 
-// List files in folder
-export async function listFiles(
-  workspaceId: string,
-  folderId: string | null,
-  options?: { sort?: "name" | "date" | "size"; order?: "asc" | "desc" }
-): Promise<{ folders: Folder[]; files: FileRecord[] }> {
-  const sortCol = options?.sort === "name" ? "name" : options?.sort === "size" ? "size" : "created_at";
-  const sortDir = options?.order === "asc" ? "ASC" : "DESC";
-
-  const [folders, files] = await Promise.all([
-    pool.query(
-      `SELECT * FROM folders WHERE workspace_id = $1 AND parent_id ${folderId ? `= $2` : "IS NULL"} ORDER BY name`,
-      folderId ? [workspaceId, folderId] : [workspaceId]
-    ),
-    pool.query(
-      `SELECT * FROM files WHERE workspace_id = $1 AND folder_id ${folderId ? `= $2` : "IS NULL"} AND status = 'active'
-       ORDER BY ${sortCol} ${sortDir}`,
-      folderId ? [workspaceId, folderId] : [workspaceId]
-    ),
-  ]);
-
-  return { folders: folders.rows, files: files.rows };
+function signDownload(s3Key: string, name: string, expiresIn: number) {
+  return getSignedUrl(s3, new GetObjectCommand({
+    Bucket: BUCKET, Key: s3Key,
+    // RFC 5987 encoding: a file name with quotes or CRLF cannot break out of the header
+    ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
+  }), { expiresIn });
 }
 
-// Create share link (public or password-protected)
+// --- Share links
+async function hashPassword(pw: string): Promise<string> {
+  const salt = randomBytes(16);
+  const hash = (await scrypt(pw, salt, 64)) as Buffer;
+  return `${salt.toString("hex")}:${hash.toString("hex")}`;
+}
+
+async function checkPassword(pw: string, stored: string): Promise<boolean> {
+  const [salt, hash] = stored.split(":");
+  const candidate = (await scrypt(pw, Buffer.from(salt, "hex"), 64)) as Buffer;
+  return timingSafeEqual(candidate, Buffer.from(hash, "hex"));   // constant-time compare
+}
+
 export async function createShareLink(
-  fileId: string,
-  userId: string,
+  fileId: string, userId: string,
   options?: { password?: string; expiresInHours?: number; maxDownloads?: number }
-): Promise<{ shareUrl: string; shareId: string }> {
-  const shareId = `share-${Math.random().toString(36).slice(2, 10)}`;
-
+) {
+  const { rows: [file] } = await pool.query("SELECT workspace_id FROM files WHERE id = $1 AND status = 'active'", [fileId]);
+  if (!file) throw new Error("File not found");
+  await verifyAccess(file.workspace_id, userId);
+  const shareId = randomBytes(24).toString("base64url");   // unguessable, unlike Math.random()
   await pool.query(
-    `INSERT INTO file_shares (id, file_id, created_by, password_hash, expires_at, max_downloads, download_count, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, 0, NOW())`,
+    `INSERT INTO file_shares (id, file_id, created_by, password_hash, expires_at, max_downloads)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [shareId, fileId, userId,
-     options?.password ? hashPassword(options.password) : null,
-     options?.expiresInHours ? new Date(Date.now() + options.expiresInHours * 3600000) : null,
-     options?.maxDownloads || null]
+     options?.password ? await hashPassword(options.password) : null,
+     options?.expiresInHours ? new Date(Date.now() + options.expiresInHours * 3600_000) : null,
+     options?.maxDownloads ?? null]
   );
-
-  return {
-    shareId,
-    shareUrl: `${process.env.APP_URL}/files/shared/${shareId}`,
-  };
+  return { shareId, shareUrl: `${process.env.APP_URL}/files/shared/${shareId}` };
 }
 
-// Move to trash (soft delete with 30-day retention)
-export async function moveToTrash(fileId: string, userId: string): Promise<void> {
-  await pool.query(
-    "UPDATE files SET status = 'trashed', deleted_at = NOW(), deleted_by = $2 WHERE id = $1",
-    [fileId, userId]
-  );
+// Public endpoint: every limit is enforced here
+export async function openShare(shareId: string, password?: string): Promise<string> {
+  const { rows: [share] } = await pool.query(
+    `SELECT s.password_hash, f.s3_key, f.name FROM file_shares s JOIN files f ON f.id = s.file_id
+     WHERE s.id = $1 AND f.status = 'active'`, [shareId]);
+  if (!share) throw new Error("Link not found");
+  if (share.password_hash) {
+    const key = `share:fail:${shareId}`;
+    if (Number(await redis.get(key)) >= 10) throw new Error("Too many attempts, try later");
+    if (!(password && await checkPassword(password, share.password_hash))) {
+      if (await redis.incr(key) === 1) await redis.expire(key, 900); // 10 wrong guesses per 15 min
+      throw new Error("Wrong password");
+    }
+  }
+  // One atomic UPDATE checks expiry and the download limit and counts the download,
+  // so two parallel requests cannot both take the last download.
+  const { rowCount } = await pool.query(
+    `UPDATE file_shares SET download_count = download_count + 1
+     WHERE id = $1 AND (expires_at IS NULL OR expires_at > now())
+       AND (max_downloads IS NULL OR download_count < max_downloads)`, [shareId]);
+  if (!rowCount) throw new Error("Link expired or download limit reached");
+  return signDownload(share.s3_key, share.name, 300);
+}
+
+// --- Trash
+async function setStatus(fileId: string, userId: string, from: string, to: string): Promise<void> {
   const { rows: [file] } = await pool.query("SELECT workspace_id FROM files WHERE id = $1", [fileId]);
+  if (!file) throw new Error("File not found");
+  await verifyAccess(file.workspace_id, userId);
+  await pool.query(
+    `UPDATE files SET status = $3, deleted_at = CASE WHEN $3 = 'trashed' THEN now() END,
+       deleted_by = CASE WHEN $3 = 'trashed' THEN $2 END WHERE id = $1 AND status = $4`,
+    [fileId, userId, to, from]);
   await redis.del(`storage:usage:${file.workspace_id}`);
 }
+export const moveToTrash = (id: string, userId: string) => setStatus(id, userId, "active", "trashed");
+export const restoreFromTrash = (id: string, userId: string) => setStatus(id, userId, "trashed", "active");
 
-// Restore from trash
-export async function restoreFromTrash(fileId: string): Promise<void> {
-  await pool.query(
-    "UPDATE files SET status = 'active', deleted_at = NULL, deleted_by = NULL WHERE id = $1 AND status = 'trashed'",
-    [fileId]
-  );
-}
-
-// Permanently delete trashed files older than 30 days
+// Daily job: purge files trashed over 30 days ago and uploads abandoned for over a day
 export async function cleanupTrash(): Promise<number> {
-  const { rows: files } = await pool.query(
-    "SELECT id, s3_key FROM files WHERE status = 'trashed' AND deleted_at < NOW() - interval '30 days'"
-  );
-
-  for (const file of files) {
-    await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: file.s3_key }));
+  const { rows } = await pool.query(
+    `SELECT id, s3_key FROM files
+     WHERE (status = 'trashed' AND deleted_at < now() - interval '30 days')
+        OR (status = 'uploading' AND created_at < now() - interval '1 day')`);
+  for (const file of rows) {
+    await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: file.s3_key })); // no error if the key is absent
     await pool.query("DELETE FROM files WHERE id = $1", [file.id]);
   }
-
-  return files.length;
+  return rows.length;
 }
 
 async function getStorageUsage(workspaceId: string): Promise<number> {
   const cached = await redis.get(`storage:usage:${workspaceId}`);
-  if (cached) return parseInt(cached);
-
+  if (cached) return parseInt(cached, 10);
   const { rows: [{ total }] } = await pool.query(
-    "SELECT COALESCE(SUM(size), 0) as total FROM files WHERE workspace_id = $1 AND status = 'active'",
-    [workspaceId]
-  );
-
-  const usage = parseInt(total);
-  await redis.setex(`storage:usage:${workspaceId}`, 3600, String(usage));
-  return usage;
+    "SELECT COALESCE(SUM(size), 0) AS total FROM files WHERE workspace_id = $1 AND status IN ('active', 'uploading')", [workspaceId]);
+  await redis.setex(`storage:usage:${workspaceId}`, 3600, String(total));
+  return parseInt(total, 10);
 }
-
-async function verifyAccess(workspaceId: string, userId: string) {
-  const { rows } = await pool.query(
-    "SELECT 1 FROM workspace_members WHERE workspace_id = $1 AND user_id = $2",
-    [workspaceId, userId]
-  );
-  if (rows.length === 0) throw new Error("Access denied");
-}
-
-function hashPassword(pw: string): string { return pw; /* bcrypt in production */ }
 ```
+
+The bucket needs a CORS rule allowing `PUT` from your app's origin (see `s3-storage`).
+
+## Step 3: HTTP API with Hono and zod
+
+```typescript
+// src/files/routes.ts
+import { Hono } from "hono";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { createUploadUrl, confirmUpload, getDownloadUrl, createShareLink, openShare, MAX_FILE_SIZE } from "./manager";
+
+const app = new Hono<{ Variables: { userId: string } }>();
+// an auth middleware (not shown) sets c.set("userId", ...) from the session
+
+const uploadBody = z.object({
+  workspaceId: z.string().min(1),
+  name: z.string().min(1).max(255),
+  mimeType: z.string().regex(/^[\w.+-]+\/[\w.+-]+$/),
+  size: z.number().int().positive().max(MAX_FILE_SIZE),
+  folderId: z.uuid().nullish(),
+});
+
+app.post("/files/uploads", zValidator("json", uploadBody), async (c) => {
+  const b = c.req.valid("json");
+  return c.json(await createUploadUrl(b.workspaceId, c.get("userId"), b.name, b.mimeType, b.size, b.folderId));
+});
+
+app.post("/files/:id/confirm", async (c) => c.json(await confirmUpload(c.req.param("id"), c.get("userId"))));
+app.get("/files/:id/download", async (c) => c.redirect(await getDownloadUrl(c.req.param("id"), c.get("userId"))));
+
+app.post("/files/:id/share",
+  zValidator("json", z.object({ password: z.string().min(8).optional(),
+    expiresInHours: z.number().int().max(24 * 90).optional(), maxDownloads: z.number().int().positive().optional() })),
+  async (c) => c.json(await createShareLink(c.req.param("id"), c.get("userId"), c.req.valid("json"))));
+
+// Public: the share link itself is the credential
+app.post("/shared/:shareId", zValidator("json", z.object({ password: z.string().optional() })),
+  async (c) => c.redirect(await openShare(c.req.param("shareId"), c.req.valid("json").password)));
+
+export default app;
+```
+
+Browser flow: `POST /files/uploads`, then `fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": mimeType }, body: file })`, then `POST /files/:id/confirm`.
 
 ## Results
 
-- **500MB file uploads work reliably** — presigned URLs let clients upload directly to S3; no server memory or body size limits; upload progress bar works natively
-- **Storage costs: $500/month → $23/month** — S3 Standard costs $0.023/GB; 1TB of files costs $23; even with R2 it's $15/month
-- **Access control enforced** — workspace membership checked on every file access; shared links can be password-protected and expire automatically
-- **Trash protects against mistakes** — deleted files sit in trash for 30 days; "I accidentally deleted the contract" is a 1-click restore instead of a backup recovery
-- **Storage quotas prevent abuse** — 10GB per workspace with clear usage reporting; users upgrade before they hit limits
+For Dani's team (their own figures, not benchmarks):
+
+- **500MB uploads work** — the PUT goes directly to S3, so no API memory or body limit is involved; `XMLHttpRequest` gives native upload progress. Anything bigger than 5GB needs multipart upload (`Upload` from `@aws-sdk/lib-storage`), because a single presigned PUT is capped at 5GB.
+- **Storage bill falls from $500/month to about $25** — roughly 1TB at S3 Standard's $0.023/GB-month is about $23 before request and egress charges. Cloudflare R2 charges $0.015/GB-month with no egress fees.
+- **Access control on every path** — workspace membership is checked for each upload, download, listing and trash action; share links can carry a password, an expiry and a download cap.
+- **Trash and quotas** — deleted files stay recoverable for 30 days, then the daily job removes them from S3; each workspace is capped at 10GB, counting uploads still in flight.
+
+## Related Skills
+
+- **s3-storage**: presigned PUT/GET URLs, checksum settings for S3-compatible endpoints, CORS and multipart uploads
+- **hono**: the HTTP API that issues upload URLs and serves shares
+- **zod**: validates upload sizes, MIME types and share options at the edge
+- **postgresql**: file, folder and share metadata, plus the atomic download counter
+- **redis**: quota usage cache and the thumbnail job queue
+- **typescript**: typed backend code shared between routes and manager

@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: 'Any HTTP client (REST APIs), Deluge for serverless scripting'
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: business
   tags: "zoho, crm, zoho-crm, zoho-books, automation"
 ---
@@ -74,7 +74,7 @@ await zoho("POST", `${CRM}/Leads`, token, {
   trigger: ["workflow"], // omit to run all automations; [] runs none
 });
 
-// COQL query (SQL-like; needs the ZohoCRM.coql.READ scope; LIMIT max 200 per call)
+// COQL query (SQL-like; needs the ZohoCRM.coql.READ scope; LIMIT defaults to 200, max 2000 per call)
 const results = await zoho("POST", `${CRM}/coql`, token, {
   select_query: `SELECT Last_Name, Email, Company FROM Leads
     WHERE Lead_Source = 'Web Form' AND Created_Time > '2026-01-01T00:00:00+00:00'
@@ -226,6 +226,6 @@ The agent will write a Deluge scheduled function that runs daily, queries Zoho D
 - **Pin the CRM API version in the URL** (`/crm/v8/`); older versions such as v2 are superseded, and request fields by API name.
 - **Refresh tokens before they expire** — Zoho access tokens last 1 hour; implement automatic refresh using the stored refresh token and handle 401 responses as a trigger to re-authenticate.
 - **Limit bulk inserts to 100 records** — the CRM API caps batch creates/updates at 100 records per request; split larger datasets into chunks and add a short delay between batches. A batch can return HTTP 207 (partial success), so read the per-record `status` in the response.
-- **Use COQL over search for complex queries** — COQL supports aggregation, GROUP BY, joins through lookups and multi-field filtering that the basic search API cannot handle; it returns up to 200 rows per call (`LIMIT offset, count`; pagination reaches 100,000 rows), and larger exports belong to the Bulk Read API.
+- **Use COQL over search for complex queries** — COQL supports aggregation, GROUP BY, joins through lookups and multi-field filtering that the basic search API cannot handle; it returns 200 rows per call by default and at most 2000 (`LIMIT offset, count`; API credits grow with the limit: 1 up to 200, 2 up to 1000, 3 up to 2000; offset pagination reaches 100,000 rows per criteria, then add `id > last_id`), and larger exports belong to the Bulk Read API.
 - **Test Deluge scripts in sandbox first** — Deluge errors in production workflows can silently break automations; use the Zoho Developer Console sandbox to test before deploying to live.
 - **Know what `trigger` does** — if you omit it, the automations tied to the API call run; `trigger: []` skips workflows, so pass `[]` for bulk imports that should not fire emails.

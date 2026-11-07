@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:8b43a823cc3b3582675f7b177cf4fc6c50de7ec14b3341f9ccc2da74b08097ee",
-  "scoredAt": "2026-10-13T12:59:00.986Z",
-  "backend": "claude-code",
-  "model": "claude-haiku-4-5-20251001",
+  "version": "1.2.0",
+  "skillHash": "sha256:f7d093f7d7d2e98cc8ceb6dc4c79a0dc20e12c9c2d790a85332e452c83ae649f",
+  "scoredAt": "2026-11-07T12:14:03.819Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Lacks comprehensive troubleshooting, resource requirements, monitoring setup, and error-handling guidance beyond backup/rollback scenarios."
+        "detail": "The skill does not cover all possible error scenarios and edge cases, such as handling missing environment variables or Docker Compose failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that may be considered padded, reducing overall conciseness."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 87,
-    "multiplier": 2.72,
+    "multiplier": 3.26,
+    "baselineAvg": 27,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Scale n8n to queue mode with Redis workers",
+        "name": "deploy-production-docker-compose",
         "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment sets EXECUTIONS_MODE=queue, QUEUE_BULL_REDIS_HOST, shares N8N_ENCRYPTION_KEY across services using YAML anchors, and scales workers with docker compose up -d --scale n8n-worker=N exactly as documented; baseline guesses generic Redis env vars and misses encryption key sharing requirement."
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits key services, environment variables, and required configuration details."
       },
       {
-        "name": "Restore encrypted credentials onto a fresh n8n host with new encryption key",
-        "baseline": 35,
-        "treatment": 86,
-        "rationale": "Treatment runs n8n export:credentials --all --decrypted on source then n8n import:credentials --input=creds.json on target as documented; baseline tries to copy the SQLite/Postgres data directly and fails to address the encryption key mismatch."
+        "name": "scale-n8n-queue-redis",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B covers the required docker‑compose snippet, scaling command, and sidecar service, but omits the explicit note that each worker needs its own task‑runners sidecar; Response A lacks the key EXECUTIONS_MODE, queue host, health check, and sidecar details."
+      },
+      {
+        "name": "backup-workflows-credentials-cli",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A includes the required docker exec and docker cp commands and almost all rubric items, while Response B omits the docker exec/CP steps and fails to mention the .n8n volume encryption key."
       }
     ]
   }

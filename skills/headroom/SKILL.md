@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Python 3.10+ (CLI and library), Node.js 18+ for the TypeScript SDK"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: "headroom, token-compression, llm-proxy, context, cost-reduction"
   repository: https://github.com/headroomlabs-ai/headroom
@@ -79,7 +79,7 @@ Check it with `headroom doctor --port 8787` (exit code 0 healthy, 1 warnings, 2 
 
 Modes: `--mode cache` (default) freezes earlier turns so the provider prompt cache keeps hitting; `--mode token` rewrites earlier turns for maximum savings. `--no-optimize` makes the proxy a plain passthrough, which is useful for comparing.
 
-For a third-party OpenAI-compatible provider, pass its URL (`--openai-api-url https://api.deepseek.com/v1` on `wrap`, or set `OPENAI_TARGET_API_URL`), otherwise your key goes to api.openai.com and fails with 401.
+For a third-party OpenAI-compatible provider, pass its URL (`headroom proxy --openai-api-url https://api.deepseek.com/v1`, or set `OPENAI_TARGET_API_URL`), otherwise your key goes to api.openai.com and fails with 401.
 
 ### Wrap a coding agent
 
@@ -95,7 +95,7 @@ headroom unwrap claude            # undo durable changes
 ### MCP server and output reduction
 
 ```bash
-headroom mcp install              # registers the MCP server for Claude Code
+headroom mcp install --agent claude   # Claude Code only; without --agent it installs into every detected agent
 HEADROOM_OUTPUT_SHAPER=1 headroom proxy --port 8787   # also ask the model to be terse
 headroom output-savings           # estimated, with a confidence interval
 ```
@@ -123,7 +123,7 @@ python3 -m venv ~/.venvs/headroom
 HEADROOM_TELEMETRY=off ~/.venvs/headroom/bin/python compress_checks.py
 ```
 
-where `compress_checks.py` holds the script from the library section. Result on that synthetic data (verified with headroom-ai 0.41.0): `10543 3959 62%`, and the single `FATAL` row is still present in `result.messages`. Real savings differ; run it on a captured payload from your own agent before deciding.
+where `compress_checks.py` holds the script from the library section. Result on that synthetic data (verified with headroom-ai 0.43.1): `10544 3960 62%`, and the single `FATAL` row is still present in `result.messages`. Real savings differ; run it on a captured payload from your own agent before deciding.
 
 ### Example 2: Put the proxy in front of Claude Code and read the stats
 
@@ -151,5 +151,5 @@ The `summary.compression` block lists `requests_compressed`, `total_tokens_befor
 - The first proxy start loads the Kompress text model (about 20 seconds in testing); wait for `/health` to return `"ready": true`.
 - Compression is lossy to the model's view. Keep `headroom_retrieve` available (do not use `--no-mcp` for agents that rely on it) and test answer quality on your own tasks.
 - Skip Headroom for short conversations, prose-heavy prompts and workloads where one provider's native compaction is enough.
-- `headroom wrap` and `headroom mcp install` change agent configuration. Know how to undo it (`headroom unwrap <tool>`).
+- `headroom wrap` and `headroom mcp install` change agent configuration. Know how to undo it (`headroom unwrap <tool>`, `headroom mcp uninstall`).
 - Pin the version in production and re-check CLI flags after upgrades; `headroom update` upgrades in place and `headroom update --check` only reports.

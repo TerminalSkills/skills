@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: 'Paddle Billing API v1 over HTTPS from any backend; official SDKs for Node.js 20+, Python, Go and PHP; Paddle.js v2 in the browser'
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.1.1"
   category: business
   tags: "paddle, payments, subscriptions, billing, saas"
 ---
@@ -219,7 +219,7 @@ The response is a link such as `https://customer-portal.paddle.com/cpl_01j7zbyqs
 - Paddle Billing handles both subscriptions and one-time purchases: a price without a billing cycle is a one-time item.
 - Best for indie devs and small teams who don't want to deal with global tax registration.
 - **Verify every webhook** with `unmarshal()` or `isSignatureValid()` on the raw request body. Parsing and re-serializing the JSON changes the signed payload and verification fails. The SDK rejects events whose timestamp is more than five seconds old.
-- **Answer webhooks with 200 within five seconds** and do slow work afterwards. Paddle retries failed deliveries (3 times in 15 minutes in sandbox, 60 times over 3 days in live), so handlers must be idempotent.
+- **Answer webhooks with 200 within five seconds** and do slow work afterwards. Paddle retries failed deliveries (3 attempts within about two minutes in sandbox, up to 60 attempts over about two days in live), so handlers must be idempotent.
 - **Delivery order is not guaranteed.** Compare `occurredAt` with the stored value before overwriting a row.
 - **Never put an API key in frontend code.** The browser gets the client-side token only; the API also blocks direct browser calls. Paddle scans public GitHub repositories and revokes exposed keys.
 - **Default payment link and going live:** every account needs a default payment link before a checkout or transaction can be created. Sandbox accepts any URL; the live account needs website approval first, and the link must be a page on an approved domain that loads Paddle.js. Sandbox credentials against the live API, or the reverse, return `forbidden`.

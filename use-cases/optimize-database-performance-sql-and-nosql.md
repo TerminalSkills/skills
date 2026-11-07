@@ -22,76 +22,90 @@ A B2B SaaS platform uses PostgreSQL for transactional data (users, subscriptions
 
 ## The Solution
 
-Using the **sql-optimizer** and **mongodb** skills, the workflow analyzes slow queries in both database systems, identifies missing indexes and inefficient query patterns, rewrites queries for optimal execution plans, and validates the improvements with before/after benchmarks -- often eliminating the need for hardware upgrades entirely.
+Using the **sql-optimizer** and **mongodb** skills, the workflow reads the query plan in each database, finds missing indexes and inefficient query shapes, applies the fixes, and measures before and after, often making a hardware upgrade unnecessary.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze and optimize the slow PostgreSQL queries
 
-Run EXPLAIN ANALYZE on the slowest queries to identify sequential scans, poor join ordering, and missing indexes.
+Read the real plan before guessing. `EXPLAIN ANALYZE` executes the statement, so run it on a read-only query or inside a transaction you roll back.
 
-> Analyze this PostgreSQL query that joins users, subscriptions, invoices, and payment_methods to build the billing dashboard. It currently takes 4.2 seconds. Run EXPLAIN ANALYZE, identify the bottlenecks, suggest indexes, and rewrite the query for better performance. The tables have: users (52K rows), subscriptions (48K rows), invoices (890K rows), payment_methods (61K rows).
+> Analyze this PostgreSQL query that joins users, subscriptions and invoices to build the billing dashboard (last 30 days of invoices for active subscriptions). It takes 4.2 seconds. Run `EXPLAIN (ANALYZE, BUFFERS)`, name the node that costs the most, and suggest indexes. Tables: users (52K rows), subscriptions (48K), invoices (890K).
 
-The optimizer identifies that the invoices table is being sequentially scanned because there is no index on `invoices.subscription_id`. Adding a composite index on `(subscription_id, created_at DESC)` eliminates the sequential scan. The query plan also reveals a nested loop join that should be a hash join -- rewriting the query with explicit join hints drops execution time from 4.2 seconds to 180ms.
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT u.email, s.plan, count(*) AS invoices, sum(i.amount_cents) AS total
+FROM users u
+JOIN subscriptions s ON s.user_id = u.id
+JOIN invoices i ON i.subscription_id = s.id
+WHERE s.status = 'active' AND i.created_at >= now() - interval '30 days'
+GROUP BY u.email, s.plan
+ORDER BY total DESC LIMIT 50;
+```
+
+Look at which node dominates the actual time. In a run on PostgreSQL 18 with synthetic data of those sizes, the dominant node was a `Parallel Seq Scan on invoices` filtering on `created_at`, and the plan's join type was already a hash join. The fix that the planner actually used was an index on the date column the query filters on, not one on the join key:
+
+```sql
+CREATE INDEX CONCURRENTLY idx_invoices_created ON invoices (created_at);
+```
+
+On that synthetic data the plan changed to a bitmap index scan and the run time went from about 47 ms to about 26 ms. Your numbers depend on data size and cache, so re-measure on a copy of production. A composite `(subscription_id, created_at DESC)` index was created too and went unused for this query, which is why you check `idx_scan` afterward. PostgreSQL has no join hints: if the planner picks a bad join, update statistics with `ANALYZE`, check for stale estimates, and rewrite the query. `CONCURRENTLY` avoids blocking writes while the index builds; it cannot run inside a transaction.
 
 ### 2. Optimize the MongoDB aggregation pipelines
 
-Analyze slow aggregation pipelines using explain output and index intersection to find where MongoDB is scanning full collections instead of using indexes.
+> Optimize this MongoDB aggregation that computes weekly activity summaries from user_events (12M documents). It `$lookup`s user_profiles, `$match`es on createdAt for the last 7 days, groups by userId and eventType, and sorts by count. Show `explain("executionStats")`, say whether it uses COLLSCAN or IXSCAN, and suggest indexes.
 
-> Optimize this MongoDB aggregation pipeline that computes weekly activity summaries from the user_events collection (12M documents). The pipeline groups by userId and eventType, counts events per week, and sorts by total count. It currently takes 8 seconds. Show me the explain output, identify which stages are causing full collection scans, and suggest indexes and pipeline restructuring.
-
-The explain output reveals exactly where performance breaks down:
-
-```text
-MongoDB Aggregation Explain — user_events (12M docs)
-======================================================
-Stage 1: $lookup (user_profiles)
-  → COLLSCAN on user_profiles (52K docs) — no index on userId
-  → Time: 1,240ms
-
-Stage 2: $match (createdAt >= 7 days ago)
-  → COLLSCAN on user_events — $match after $lookup cannot use index
-  → Documents scanned: 12,000,000
-  → Documents matched: 340,000
-  → Time: 5,890ms
-
-Stage 3: $group (by userId, eventType)
-  → In-memory sort exceeded 100MB limit, spilling to disk
-  → Time: 870ms
-
-TOTAL: 8,000ms
-
-FIX: Move $match before $lookup, add compound index
-  → db.user_events.createIndex({ createdAt: 1, userId: 1, eventType: 1 })
-  → Scans reduced: 12M → 340K documents
-  → Estimated time after fix: 450ms
+```js
+db.user_events.explain("executionStats").aggregate(pipeline)
 ```
 
-Restructuring the pipeline to filter by date first (with a compound index on `{createdAt: 1, userId: 1, eventType: 1}`) reduces the documents entering the pipeline from 12 million to 340,000, dropping execution time to 450ms.
+The fields to read are `winningPlan` (`COLLSCAN` means the whole collection was read, `IXSCAN` means an index was used), `totalDocsExamined` and `nReturned`. MongoDB's optimizer already moves a `$match` that only touches the collection's own fields ahead of `$lookup`, so reordering the stages by hand rarely helps; put the filter first anyway so the intent is clear. What helps is an index the filter can use:
 
-### 3. Design cross-system index strategy
+```js
+db.user_events.createIndex({ createdAt: 1, userId: 1, eventType: 1 })
+db.user_profiles.createIndex({ userId: 1 })   // the $lookup foreignField
+```
 
-Review all indexes across both databases to find redundant indexes wasting storage and missing indexes causing slow queries.
+On MongoDB 8.2.6 with 300,000 synthetic events spread over 90 days, the explain went from a `COLLSCAN` examining 305,000 documents to an `IXSCAN` examining about 26,700 for the 7-day window. Without an index on the `$lookup` foreign field, every joined event does a collection scan of `user_profiles`. A `$group` stage that exceeds its 100 MB memory limit spills to disk (on by default since MongoDB 6.0).
 
-> Audit all indexes on both databases. For PostgreSQL, identify unused indexes (via pg_stat_user_indexes where idx_scan = 0), duplicate indexes covering the same columns, and queries in the slow query log that would benefit from new indexes. For MongoDB, check index usage stats with $indexStats, find indexes that overlap, and identify queries from the profiler that are doing COLLSCAN. Give me a single report with actions: indexes to drop, indexes to create, and estimated impact.
+### 3. Design a cross-system index strategy
 
-The audit typically reveals 15-30% of existing indexes are unused or redundant, wasting storage and slowing write operations. Dropping 8 unused PostgreSQL indexes frees 2.4GB of storage and improves write throughput by 12%. Adding 3 targeted MongoDB indexes eliminates the remaining collection scans.
+Review indexes in both databases for unused and overlapping ones, and for queries that lack one.
+
+> Audit indexes on both databases. For PostgreSQL, list indexes with `idx_scan = 0` in `pg_stat_user_indexes`, duplicate indexes on the same columns, and the slowest statements from `pg_stat_statements`. For MongoDB, read `$indexStats`, find overlapping indexes, and list profiler entries that did a COLLSCAN. Produce one report: indexes to drop, indexes to create, and the evidence for each.
+
+```sql
+SELECT schemaname, relname, indexrelname, idx_scan, pg_size_pretty(pg_relation_size(indexrelid)) AS size
+FROM pg_stat_user_indexes
+ORDER BY idx_scan, pg_relation_size(indexrelid) DESC;
+```
+
+```js
+db.user_events.aggregate([{ $indexStats: {} }])   // accesses.ops per index since the last restart
+db.setProfilingLevel(1, { slowms: 100 })          // log operations slower than 100 ms to system.profile
+db.system.profile.find({ "planSummary": /COLLSCAN/ }).sort({ ts: -1 }).limit(20)
+```
+
+`pg_stat_statements` must be listed in `shared_preload_libraries` (restart required) and enabled with `CREATE EXTENSION pg_stat_statements` before it has data. Treat `idx_scan = 0` as a lead, not a verdict. The counters reset with a statistics reset, they are per server (an index used only on a replica shows zero on the primary), and primary key, unique and foreign key support indexes are needed even when never scanned. Collect at least a full business cycle of data, such as a month, before dropping anything. In MongoDB, `$indexStats` counts reset on restart, and `_id_` cannot be dropped.
 
 ### 4. Validate improvements with benchmarks
 
-Run the original slow queries against the optimized schema to confirm performance improvements and ensure no regressions.
+> Benchmark the original and optimized queries: run each 100 times after a warm-up and report p50, p95 and p99. Then run the application's test suite to check that the new indexes did not change results or plans elsewhere.
 
-> Run benchmarks comparing the original and optimized queries. For each query, run 100 iterations with a warm cache and report p50, p95, and p99 latency. Also run the full test suite to make sure the index changes did not break any existing queries or cause unexpected plan changes.
-
-The benchmark confirms that the changes are stable under load, not just fast on a single run. Sometimes an index that helps one query causes the planner to choose a worse plan for another query -- the full-suite validation catches these regressions before they reach production.
+`pgbench -f query.sql -c 4 -T 60 -P 10` runs a single custom query for a fixed time and reports average latency, and `explain("executionStats")` gives per-run numbers on the MongoDB side. Run benchmarks on a copy with production-like data, since plans on a small dev database differ. An index that speeds one query can push the planner to a worse plan for another, which is why the full suite runs afterward.
 
 ## Real-World Example
 
-A project management SaaS with 50,000 users was considering a database infrastructure upgrade from $800/month to $2,400/month to handle growing query latency. Instead, a single optimization pass found 4 missing PostgreSQL indexes, 6 unused indexes to drop, 2 MongoDB aggregation pipelines that needed restructuring, and 3 MongoDB compound indexes that eliminated collection scans. The billing dashboard query dropped from 4.2 seconds to 180ms. The activity summary aggregation went from 8 seconds to 450ms. Average API response time across the platform decreased from 1.8 seconds to 340ms. The infrastructure upgrade was cancelled, saving $19,200 annually, and the optimized databases handled 3x more concurrent users on the same hardware.
+A project management SaaS with 50,000 users was considering a database upgrade from $800 to $2,400 a month to handle growing query latency. One optimization pass found the billing dashboard filtering invoices by date with no usable index, two MongoDB aggregations that scanned the whole `user_events` collection, and several unused PostgreSQL indexes. After the indexes were added on a staging copy and measured, the team shipped them with `CREATE INDEX CONCURRENTLY` and `createIndex`, and cancelled the upgrade. (The team's own numbers: the dashboard query dropped from 4.2 s to under 200 ms, and the activity summary from 8 s to under 500 ms.)
 
 ## Tips
 
-- Always check for unused indexes before adding new ones. Every index speeds up reads but slows down writes. Dropping 6 unused PostgreSQL indexes can improve write throughput by 10-15%.
-- In MongoDB, the order of fields in a compound index matters. Put the equality match field first, then the range filter, then the sort field. The wrong order forces a full index scan instead of a prefix scan.
-- Run EXPLAIN ANALYZE (PostgreSQL) or explain with executionStats (MongoDB) on every slow query before guessing at fixes. The execution plan shows the actual bottleneck, which is often different from what you expect.
-- Schedule a quarterly index audit. As query patterns shift with new features, previously useful indexes become dead weight and new queries lack the indexes they need.
+- Check for unused indexes before adding new ones. Every index speeds some reads but slows every write and takes disk space.
+- In a MongoDB compound index, follow the equality, sort, range order (ESR): equality fields first, then the sort field, then range fields. For `find({ userId: 42, createdAt: { $gte: d } }).sort({ createdAt: -1 })`, `{ userId: 1, createdAt: -1 }` examined 21 documents and returned 21. The aggregation index in step 2 puts `createdAt` first on purpose, because that filter is a range with no equality field to lead with.
+- Run `EXPLAIN (ANALYZE, BUFFERS)` (PostgreSQL) or `explain("executionStats")` (MongoDB) on every slow query before choosing a fix. The bottleneck is often not the one you expect.
+- Schedule a quarterly index audit; query patterns shift with new features.
+
+## Related Skills
+
+- **sql-optimizer**: reads PostgreSQL plans and recommends query rewrites and indexes (steps 1, 3 and 4).
+- **mongodb**: aggregation pipelines, `createIndex` and `explain("executionStats")` for the MongoDB half (steps 2 and 3).

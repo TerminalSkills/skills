@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: 'Python 3.10+ or Node.js 20+ (langchain 1.x, langchain-core, provider packages)'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.1.1
   category: data-ai
   repository: https://github.com/langchain-ai/langchain
   tags: "langchain, llm, rag, agents, ai-chains"
@@ -46,6 +46,8 @@ npm install langchain @langchain/core @langchain/openai zod
 # For RAG:
 npm install @langchain/community @langchain/textsplitters
 # Agents in JS: import { createAgent, tool } from "langchain"
+# JS createAgent with an "openai:..." model string uses the Responses API (since langchain 1.5.13);
+# pass new ChatOpenAI({ model, useResponsesApi: false }) to keep Chat Completions
 ```
 
 Verify the LLM provider API key is set:

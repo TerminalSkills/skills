@@ -1,24 +1,24 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:e51ec2ede43a841c746349d146cad6487e8091a90b99b32671032296e92e6620",
-  "scoredAt": "2026-10-03T13:12:04.713Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.1.1",
+  "skillHash": "sha256:49a94d0e0916cdf0f09653edabf894a5adae343c6bab9d99eb9d3be7db1ea0a7",
+  "scoredAt": "2026-11-07T00:06:06.900Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling is covered only for model load failures; it omits GPU out-of-memory, request timeouts, shape or datatype mismatches at inference time, and client-side retry behavior."
+        "category": "crossPlatform",
+        "detail": "The instructions assume Linux, Docker, and NVIDIA GPU, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.04,
-    "baselineAvg": 74,
-    "treatmentAvg": 77,
+    "multiplier": 7.67,
+    "baselineAvg": 12,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "serve-torchscript-model-cpu",
-        "baseline": 80,
-        "treatment": 86,
-        "rationale": "Both cover layout, KIND_CPU, dims excluding the batch dimension, no --gpus, and readiness checks. B states that TorchScript needs a config because Triton can't auto-generate one, which the rubric asks for, and pins a concrete tag (26.09-py3). A leaves the tag as the placeholder <yy.mm> and only implies that a config is needed, though it adds useful extras."
+        "name": "deploy-tensorrt-dynamic-batching",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the instance_group count, while Response B fails to meet several key requirements."
       },
       {
-        "name": "tokenizer-classifier-ensemble",
-        "baseline": 80,
-        "treatment": 62,
-        "rationale": "B covers more of the rubric: it has the ensemble config with correct input_map/output_map and an empty version dir, and it includes a Python backend model config plus the model.py tokenizer snippet, but not a full TritonPythonModel class. A has the ensemble config and empty version dir but includes no Python backend model or TritonPythonModel class at all."
+        "name": "create-python-preprocess-ensemble",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required Triton config files and Python backend structure."
       },
       {
-        "name": "tune-batching-and-fix-unavailable-model",
-        "baseline": 62,
-        "treatment": 82,
-        "rationale": "A covers the curl config check, dynamic_batching with max_queue_delay_microseconds, instance_group count 2/KIND_GPU/gpus [0], positive max_batch_size, Perf Analyzer, and explicitly avoids preferred_batch_size for non-TensorRT models, while B uses preferred_batch_size on an ONNX model (contrary to the rubric), relies on an onnx script and the deprecated strict-model-config flag as the primary diagnosis, and never mentions the startup status table, though it does include the curl command and perf_analyzer."
+        "name": "grpc-client-batch-inference",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use tritonclient.grpc or the required API calls."
       }
     ]
   }

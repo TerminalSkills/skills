@@ -1,47 +1,53 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:df0f5a84bd2cb02d6e612c3cde09da4cae1720230c4243dc92f1d044f9ad32da",
-  "scoredAt": "2026-10-01T13:01:11.162Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:daf92fd44d7f221c51ed7c764e35993dbc791971c8225e6c3a6476ec3a17cb07",
+  "scoredAt": "2026-11-07T11:57:07.386Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Instructions are Linux-centric and may not work on non-Unix platforms."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.92,
-    "baselineAvg": 25,
-    "treatmentAvg": 48,
+    "multiplier": 3.61,
+    "baselineAvg": 23,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "docker-proxy-with-users-and-stdout-logs",
-        "baseline": 40,
-        "treatment": 60,
-        "rationale": "Response A includes a nearly complete docker run command and a largely correct config snippet, whereas Response B provides an incorrect config and no docker run command."
+        "name": "docker-local-proxy",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but mounts the wrong path; Response B fails on tag, read‑only flag, mount path, and config directives."
       },
       {
-        "name": "rotate-upstream-proxies-with-bandwidth-limit",
+        "name": "user-quota-setup",
         "baseline": 0,
-        "treatment": 60,
-        "rationale": "Response B covers most of the required configuration but fails to meet the exact weight distribution and bandlimout value specified in the rubric, whereas Response A provides no content."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is missing."
       },
       {
-        "name": "fix-allow-parse-error-and-create-passwd",
-        "baseline": 35,
-        "treatment": 25,
-        "rationale": "Response A gives a corrected allow line and a minimal config example, while Response B focuses on syntax details but omits all required lines; A covers more rubric items."
+        "name": "parent-proxy-rotation",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but misses the allow scraper line, whereas Response A is incomplete."
       }
     ]
   }

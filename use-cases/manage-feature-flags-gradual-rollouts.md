@@ -11,288 +11,273 @@ tags: [feature-flags, rollouts, canary, kill-switch, experimentation, deployment
 
 ## The Problem
 
-Ravi is the engineering lead at a 25-person B2B SaaS company selling an invoicing platform. They ship weekly, and every release is a coin flip. Last month, a new PDF export engine went live to all 12,000 accounts simultaneously. It worked perfectly in staging. In production, it choked on invoices with more than 200 line items — something only 3% of customers had, but those customers were enterprise accounts paying $2,400/month each.
+Ravi is the engineering lead at a 25-person B2B SaaS company selling an invoicing platform. They ship weekly, and every release is a coin flip. Last month, a new PDF export engine went live to all 12,000 accounts simultaneously. It worked perfectly in staging. In production, it choked on invoices with more than 200 line items, something only 3% of customers had, but those customers were enterprise accounts paying $2,400/month each.
 
-The rollback took 47 minutes. During that window, 340 invoices failed to generate. 14 enterprise customers opened urgent tickets. The VP of Sales spent the next two days on apology calls. Revenue at risk: $280,000 in annual contracts from frustrated accounts.
+The rollback took 47 minutes. During that window, 340 invoices failed to generate and 14 enterprise customers opened urgent tickets. The VP of Sales spent the next two days on apology calls.
 
-This wasn't the first time. Three months earlier, a redesigned dashboard confused users so badly that support tickets tripled for a week. The team had no way to show the new UI to a small group first, measure the impact, and expand gradually. It was all-or-nothing.
+This wasn't the first time. Three months earlier, a redesigned dashboard confused users so badly that support tickets tripled for a week. The team had no way to show the new UI to a small group first, measure the impact, and expand gradually. The deploy process is merge, build, deploy to all servers, and hope. No percentage rollouts, no user targeting, no kill switch that doesn't need a redeploy. The team avoids Friday releases and avoids touching core flows.
 
-The deploy process: merge to main, CI builds, deploy to all servers, pray. No percentage rollouts. No user targeting. No kill switch that doesn't require a full redeploy. The team avoids shipping on Fridays, avoids shipping before holidays, and increasingly avoids shipping anything that touches core flows. Feature velocity has dropped 40% in six months because everyone is afraid of the blast radius.
-
-Meanwhile, the product team wants to run experiments — test a new pricing page, try a different onboarding flow, show a chatbot to free-tier users only. Without feature flags, every experiment requires a branch, a deploy, and a way to segment users that doesn't exist.
+Meanwhile, the product team wants to run experiments: a new onboarding flow, a chatbot for free-tier users only. Without flags, every experiment needs a branch, a deploy, and a way to segment users that doesn't exist.
 
 ## The Solution
 
-Using the **feature-flag-manager**, **ab-test-setup**, and **analytics-tracking** skills, the system builds a self-hosted feature flag engine with percentage-based rollouts, user targeting rules, real-time kill switches, and analytics integration — so features ship to 1% first, then 10%, then 50%, then everyone, with data at every stage and an instant off-switch that doesn't require a deploy.
+Three skills divide the work. **feature-flag-manager** designs the flag engine: deterministic bucketing, ordered targeting rules, a kill switch and a lifecycle. **ab-test-setup** turns the dashboard redesign into a proper experiment (sample size, exposure logging, sample-ratio check, readout). **analytics-tracking** records flag exposure in GA4 so results can be compared by variant. Features ship to 5% first, then 25%, 50% and everyone, with an off switch that needs no deploy.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Design the Flag Data Model and Evaluation Engine
+### Step 1: Design the Flag Model and Evaluation Engine
 
-The core of any feature flag system is deterministic evaluation — the same user must see the same variant across sessions, devices, and servers, without storing assignments. MurmurHash on `userId + flagName` gives a stable number between 0 and 100 that determines bucketing:
+Evaluation must be deterministic: the same unit sees the same variant across sessions, devices and servers, without storing assignments. Hash `flagKey:unitId` with SHA-256 from `node:crypto` (no dependency to maintain) and take the first 32 bits modulo 10,000 for 0.01% granularity. A flag buckets either users or accounts: the PDF engine buckets accounts, so everyone in one company gets the same export behaviour.
 
 ```typescript
 // lib/flags/evaluator.ts
-import murmurhash from "murmurhash";
+import { createHash } from "node:crypto";
 
-interface FlagRule {
-  type: "boolean" | "percentage" | "user_list" | "attribute";
-  enabled: boolean;
-  percentage?: number;
-  userIds?: string[];
-  accountIds?: string[];
-  attribute?: { key: string; operator: "eq" | "in" | "gt" | "lt"; value: any };
+export interface UserContext {
+  userId: string;
+  accountId: string;
+  plan: string;
+  country: string;
 }
 
-interface FlagDefinition {
-  name: string;
-  rules: FlagRule[];     // Evaluated in order — first match wins
-  defaultValue: boolean;
-  killSwitch: boolean;   // When true, overrides everything → returns false
+export interface TargetingRule {
+  attribute: keyof UserContext;
+  operator: "eq" | "neq" | "in" | "gt" | "lt";
+  values: string[];
+  allocation: number[]; // percent per variant, overrides the default for matching users
 }
 
-function evaluateFlag(flag: FlagDefinition, context: UserContext): boolean {
-  // Kill switch is the nuclear option — overrides all rules
-  if (flag.killSwitch) return false;
+export interface FeatureFlag {
+  key: string;
+  enabled: boolean;          // kill switch: false returns variants[0] for everyone
+  unit: "user" | "account";  // what gets bucketed
+  variants: string[];        // variants[0] is the control / "off" experience
+  allocation: number[];      // default percent per variant, sums to 100
+  targeting: TargetingRule[]; // evaluated in order, first match wins
+}
 
-  for (const rule of flag.rules) {
-    if (!rule.enabled) continue;
-
-    switch (rule.type) {
-      case "boolean":
-        return rule.enabled;
-
-      case "percentage":
-        // Deterministic: same user + flag always produces same bucket
-        const hash = murmurhash.v3(`${context.userId}:${flag.name}`);
-        const bucket = hash % 100;
-        return bucket < (rule.percentage ?? 0);
-
-      case "user_list":
-        if (rule.userIds?.includes(context.userId)) return true;
-        if (rule.accountIds?.includes(context.accountId)) return true;
-        continue;  // No match — try next rule
-
-      case "attribute":
-        if (matchesAttribute(rule.attribute, context)) return true;
-        continue;
-    }
+function matches(rule: TargetingRule, ctx: UserContext): boolean {
+  const actual = ctx[rule.attribute];
+  switch (rule.operator) {
+    case "eq": return actual === rule.values[0];
+    case "neq": return actual !== rule.values[0];
+    case "in": return rule.values.includes(actual);
+    case "gt": return actual > rule.values[0];
+    case "lt": return actual < rule.values[0];
   }
-  return flag.defaultValue;
+}
+
+export function bucket(flagKey: string, unitId: string): number {
+  const hash = createHash("sha256").update(`${flagKey}:${unitId}`).digest().readUInt32BE(0);
+  return hash % 10000;
+}
+
+export function evaluate(flag: FeatureFlag, ctx: UserContext): string {
+  if (!flag.enabled) return flag.variants[0];
+
+  const rule = flag.targeting.find((r) => matches(r, ctx));
+  const allocation = rule ? rule.allocation : flag.allocation;
+
+  const unitId = flag.unit === "account" ? ctx.accountId : ctx.userId;
+  const b = bucket(flag.key, unitId);
+
+  let cumulative = 0;
+  for (let i = 0; i < flag.variants.length; i++) {
+    cumulative += allocation[i] * 100;
+    if (b < cumulative) return flag.variants[i];
+  }
+  return flag.variants[0];
 }
 ```
 
-The `killSwitch` field is separate from the rules — it's a single boolean that trumps everything. When an incident happens, toggling it to `true` disables the flag in under 3 seconds via Redis pub/sub, no deploy needed. No more 47-minute rollbacks.
+Rules are ordered and the first match wins, so "free-tier users in the US and UK" is two rules: non-free plans get 0% first, then those countries get 100%, and everyone else falls through to the default allocation of 0%. The `enabled` field is separate from the allocation: when an incident happens, flipping it to `false` returns the control variant for everyone, whatever the rules say. Before shipping, run the evaluator over 10,000+ simulated units and check the split. A 5% allocation over 100,000 simulated accounts came out at 5.08%.
 
-### Step 2: Build the Server-Side SDK with Local Caching
+### Step 2: Serve Flags from a Local Cache, Pushed by Redis
 
-Flag checks happen in API handlers on every request. A network call per check would add unacceptable latency. Instead, rules are cached locally and kept in sync via Redis pub/sub — evaluation happens in-process in under 1ms:
+Flag checks happen in API handlers on every request, so a database query per check is out. Each server keeps all flag definitions in memory (evaluation is a hash and a few comparisons), subscribes to a Redis channel for changes, and reloads everything every 30 seconds as a safety net if a message is lost:
 
 ```typescript
 // lib/flags/client.ts
-import Redis from "ioredis";
+import { Redis } from "ioredis";
+import { evaluate, type FeatureFlag, type UserContext } from "./evaluator.ts";
 
-class FlagClient {
-  private rules: Map<string, FlagDefinition> = new Map();
-  private redis: Redis;
+const CHANNEL = "flag-updates";
+
+export class FlagClient {
+  private flags = new Map<string, FeatureFlag>();
+  private subscriber = new Redis(process.env.REDIS_URL!);
+
+  constructor(private loadAll: () => Promise<FeatureFlag[]>) {}
 
   async initialize() {
-    // Load all flag definitions on startup
-    const flags = await db.query("SELECT * FROM feature_flags WHERE archived = false");
-    for (const flag of flags) {
-      this.rules.set(flag.name, flag);
-    }
-
-    // Subscribe to real-time updates — no polling, no stale cache
-    this.redis = new Redis(process.env.REDIS_URL);
-    this.redis.subscribe("flag-updates");
-    this.redis.on("message", (channel, message) => {
-      const updated = JSON.parse(message);
-      this.rules.set(updated.name, updated);
-      console.log(`[flags] Updated ${updated.name}: ${JSON.stringify(updated.rules)}`);
+    // Subscribe first so an update that lands during the initial load is not missed.
+    this.subscriber.on("message", (_channel, message) => {
+      const updated: FeatureFlag = JSON.parse(message);
+      this.flags.set(updated.key, updated);
     });
+    await this.subscriber.subscribe(CHANNEL);
+    await this.refresh();
+    setInterval(() => this.refresh().catch(console.error), 30_000).unref();
   }
 
-  isEnabled(flagName: string, context: UserContext): boolean {
-    const flag = this.rules.get(flagName);
-    if (!flag) return false;  // Unknown flags default to off — safe
-    return evaluateFlag(flag, context);
+  private async refresh() {
+    this.flags = new Map((await this.loadAll()).map((f) => [f.key, f]));
+  }
+
+  variant(key: string, ctx: UserContext): string {
+    const flag = this.flags.get(key);
+    return flag ? evaluate(flag, ctx) : "control"; // unknown flag: the old behaviour
+  }
+
+  evaluateAll(ctx: UserContext): Record<string, string> {
+    return Object.fromEntries([...this.flags.keys()].map((k) => [k, this.variant(k, ctx)]));
   }
 }
-
-// Singleton — initialized once at app startup
-export const flags = new FlagClient();
 ```
 
-Usage in an API handler looks like this:
+The admin API writes the flag to PostgreSQL and then publishes the full flag JSON on `flag-updates` from a separate Redis connection (a connection in subscriber mode cannot publish). Usage in a handler:
 
 ```typescript
 // routes/invoices.ts
 router.post("/:id/export-pdf", async (req, res) => {
-  const context = { userId: req.user.id, accountId: req.user.accountId, plan: req.user.plan };
+  const ctx = { userId: req.user.id, accountId: req.user.accountId, plan: req.user.plan, country: req.user.country };
 
-  if (flags.isEnabled("new-pdf-engine", context)) {
+  if (flags.variant("new-pdf-engine", ctx) === "new") {
+    await logExposure("new-pdf-engine", "new", { ...ctx, gaClientId: req.user.gaClientId });
     return newPdfEngine.export(req.params.id, res);
   }
   return legacyPdfEngine.export(req.params.id, res);
 });
 ```
 
-When the admin UI changes a flag, it writes to PostgreSQL and publishes to Redis. Every server picks up the change within 2 seconds. No redeploy, no restart, no CI pipeline.
+### Step 3: Evaluate on the Server, Hand the Result to the Browser
 
-### Step 3: Create the React Hook for Client-Side Flags
-
-The frontend needs flags too — showing or hiding UI elements, rendering different components for A/B tests. A React hook bootstraps flag assignments on page load and updates in real time via Server-Sent Events:
+Evaluate flags on the server only. Shipping the rules to the browser leaks experiment details and makes the page flicker from control to variant. The UI gets finished answers: one endpoint returns the signed-in user's variants, and the front end reads them before rendering the affected component.
 
 ```typescript
-// hooks/useFeatureFlag.ts
-import { createContext, useContext, useEffect, useState } from "react";
-
-const FlagContext = createContext<Record<string, boolean>>({});
-
-export function FlagProvider({ children }: { children: React.ReactNode }) {
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    fetch("/api/flags/evaluate").then(r => r.json()).then(setFlags);
-
-    // Real-time updates via SSE — kill switches take effect immediately
-    const sse = new EventSource("/api/flags/stream");
-    sse.onmessage = (event) => {
-      const { name, value } = JSON.parse(event.data);
-      setFlags(prev => ({ ...prev, [name]: value }));
-    };
-    return () => sse.close();
-  }, []);
-
-  return <FlagContext.Provider value={flags}>{children}</FlagContext.Provider>;
-}
-
-export function useFeatureFlag(name: string): boolean {
-  return useContext(FlagContext)[name] ?? false;
-}
+// routes/flags.ts
+router.get("/api/flags/evaluate", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json(flags.evaluateAll({
+    userId: req.user.id, accountId: req.user.accountId, plan: req.user.plan, country: req.user.country,
+  }));
+});
 ```
 
-Usage is straightforward — `useFeatureFlag("redesigned-dashboard")` returns a boolean, and the SSE connection means a kill switch toggled in the admin UI propagates to the browser within seconds. No page refresh required.
+A single-page app fetches this on load and again when the tab regains focus, so a kill switch reaches open sessions on the next refresh of that response. Server-rendered pages pass the same object into the page props.
 
-### Step 4: Configure the Five Initial Flags
+### Step 4: Configure the Initial Flags
 
-With the engine in place, set up the five flags that address Ravi's immediate pain points. Each uses a different targeting strategy:
+Each flag uses a different targeting strategy:
 
-| Flag | Type | Targeting |
-|------|------|-----------|
-| `new-pdf-engine` | Percentage | 5% of accounts (600 of 12,000) |
-| `redesigned-dashboard` | Percentage | 50/50 A/B test |
-| `ai-chatbot` | Attribute | Free-tier accounts in US and UK (2,100) |
-| `bulk-invoice-api` | User list | 3 specific enterprise account IDs |
-| `maintenance-mode` | Boolean | Global kill switch, off by default |
+| Flag | Unit | Setup |
+|------|------|-------|
+| `new-pdf-engine` | account | `legacy` 95 / `new` 5 (about 600 of 12,000 accounts) |
+| `redesigned-dashboard` | user | `control` 50 / `redesign` 50, run as an experiment (Step 6) |
+| `ai-chatbot` | user | Default 0%. Rule 1: plan `neq` free gets 0%. Rule 2: country `in` US, UK gets 100% |
+| `bulk-invoice-api` | account | Default 0%. One rule: accountId `in` the three enterprise IDs gets 100% |
 
 ```typescript
-// scripts/seed-flags.ts — abbreviated
-const initialFlags: FlagDefinition[] = [
-  { name: "new-pdf-engine",
-    rules: [{ type: "percentage", enabled: true, percentage: 5 }],
-    defaultValue: false, killSwitch: false },
-  { name: "redesigned-dashboard",
-    rules: [{ type: "percentage", enabled: true, percentage: 50 }],
-    defaultValue: false, killSwitch: false },
-  { name: "ai-chatbot",
-    rules: [
-      { type: "attribute", enabled: true, attribute: { key: "plan", operator: "eq", value: "free" } },
-      { type: "attribute", enabled: true, attribute: { key: "country", operator: "in", value: ["US", "UK"] } },
-    ],
-    defaultValue: false, killSwitch: false },
-  { name: "bulk-invoice-api",
-    rules: [{ type: "user_list", enabled: true, accountIds: ["acct_3kF8j", "acct_9mN2p", "acct_7xQ4r"] }],
-    defaultValue: false, killSwitch: false },
-  { name: "maintenance-mode",
-    rules: [{ type: "boolean", enabled: false }],
-    defaultValue: false, killSwitch: false },
+// scripts/seed-flags.ts (abbreviated)
+const initialFlags: FeatureFlag[] = [
+  { key: "new-pdf-engine", enabled: true, unit: "account",
+    variants: ["legacy", "new"], allocation: [95, 5], targeting: [] },
+  { key: "redesigned-dashboard", enabled: true, unit: "user",
+    variants: ["control", "redesign"], allocation: [50, 50], targeting: [] },
+  { key: "ai-chatbot", enabled: true, unit: "user",
+    variants: ["off", "on"], allocation: [100, 0],
+    targeting: [
+      { attribute: "plan", operator: "neq", values: ["free"], allocation: [100, 0] },
+      { attribute: "country", operator: "in", values: ["US", "UK"], allocation: [0, 100] },
+    ] },
+  { key: "bulk-invoice-api", enabled: true, unit: "account",
+    variants: ["off", "on"], allocation: [100, 0],
+    targeting: [{ attribute: "accountId", operator: "in",
+                  values: ["acct_3kF8j", "acct_9mN2p", "acct_7xQ4r"], allocation: [0, 100] }] },
 ];
 ```
 
-The PDF engine at 5% means if the 200+ line item bug still exists, it affects 600 accounts instead of 12,000 — and the kill switch can stop it in 3 seconds instead of 47 minutes.
+The PDF engine at 5% means that if the 200+ line item bug still exists, it hits about 600 accounts instead of 12,000, and the kill switch turns it off for all of them without a deploy.
 
-### Step 5: Wire Analytics and Build Rollout Automation
+### Step 5: Record Exposure in GA4 and Guard the Rollout
 
-Flags without data are just guesses. Every flag evaluation gets sent to Mixpanel as a user property, so conversion rates and error rates can be compared between flag-on and flag-off groups:
+Flags without data are guesses. Log an exposure event the moment a unit reaches the changed behaviour, not when the flag is evaluated, so that analysis only counts units that actually saw it. The **analytics-tracking** skill sends server-side events through the GA4 Measurement Protocol, with the browser's `client_id` stored on the user record:
 
 ```typescript
-// lib/flags/analytics.ts
-import mixpanel from "mixpanel";
+// lib/flags/exposure.ts
+import type { UserContext } from "./evaluator.ts";
 
-function trackFlagAssignment(flagName: string, value: boolean, context: UserContext) {
-  mixpanel.people.set(context.userId, {
-    [`flag_${flagName}`]: value ? "treatment" : "control",
-  });
-  mixpanel.track("flag_evaluated", {
-    distinct_id: context.userId,
-    flag: flagName,
-    variant: value ? "treatment" : "control",
-    account_id: context.accountId,
-    plan: context.plan,
+const seen = new Set<string>();
+
+export async function logExposure(flagKey: string, variant: string, ctx: UserContext & { gaClientId: string }) {
+  const dedupe = `${flagKey}:${ctx.userId}:${variant}`;
+  if (seen.has(dedupe)) return;
+  seen.add(dedupe);
+
+  const url = new URL("https://www.google-analytics.com/mp/collect");
+  url.searchParams.set("measurement_id", process.env.GA_MEASUREMENT_ID!);
+  url.searchParams.set("api_secret", process.env.GA_API_SECRET!);
+
+  await fetch(url, {
+    method: "POST",
+    body: JSON.stringify({
+      client_id: ctx.gaClientId,
+      user_id: ctx.userId,
+      events: [{ name: "flag_exposure",
+                 params: { flag_key: flagKey, variant, engagement_time_msec: 1 } }],
+    }),
   });
 }
 ```
 
-The rollout automation monitors these metrics and auto-progresses or auto-rolls-back:
+The secret and measurement ID stay in environment variables. Add `session_id` to `params` (read it in the browser next to `client_id`) if exposure events should also count in session and engagement reports; the **analytics-tracking** skill covers both. Register `flag_key` and `variant` as event-scoped custom dimensions in GA4 Admin before building reports on them. The live Measurement Protocol endpoint returns success even for malformed events, so test the payload against the `/debug/mp/collect` validation endpoint first. The in-memory `seen` set only deduplicates within one process; GA4 reports should count unique users.
+
+For a staged rollout of the PDF engine, compare the new variant against control on your own error and latency metrics (tag each request's metrics with the variant) and automate only the safe direction. Switching off is automatic; moving up the 5% -> 25% -> 50% -> 100% ladder stays a human decision after 24 hours of clean metrics:
 
 ```typescript
-// jobs/rollout-monitor.ts — runs every hour via cron
-async function checkRolloutHealth(flagName: string) {
-  const flag = await db.featureFlags.findOne({ name: flagName });
-  const metrics = await getMetricsForFlag(flagName);
-
-  const treatmentErrorRate = metrics.treatment.errorRate;
-  const controlErrorRate = metrics.control.errorRate;
-  const p95Treatment = metrics.treatment.p95Latency;
-  const p95Control = metrics.control.p95Latency;
-
-  // Auto-rollback: error rate 2x higher than control group
-  if (treatmentErrorRate > controlErrorRate * 2) {
-    await updateFlagPercentage(flagName, 0);
-    await notify(`ROLLBACK: ${flagName} — error rate ${treatmentErrorRate}% vs control ${controlErrorRate}%`);
-    return;
-  }
-
-  // Auto-progress: metrics within threshold for 24h
-  if (metrics.hoursAtCurrentPercentage >= 24 && treatmentErrorRate <= controlErrorRate * 1.1) {
-    const nextStep = { 5: 25, 25: 50, 50: 100 };
-    const current = flag.rules[0].percentage;
-    const next = nextStep[current];
-    if (next) {
-      await updateFlagPercentage(flagName, next);
-      await notify(`PROGRESS: ${flagName} — ${current}% → ${next}%`);
-    }
+// jobs/rollout-monitor.ts: runs every 15 minutes
+async function checkRollout(flagKey: string) {
+  const m = await getVariantMetrics(flagKey); // from your metrics store, per variant
+  const enough = m.treatment.requests >= 500;
+  if (enough && m.treatment.errorRate > Math.max(m.control.errorRate * 2, 0.01)) {
+    await setFlagEnabled(flagKey, false); // writes to the database and publishes to Redis
+    await notify(`ROLLBACK ${flagKey}: errors ${m.treatment.errorRate} vs control ${m.control.errorRate}`);
   }
 }
 ```
 
-The progression ladder — 5% to 25% to 50% to 100% — takes a minimum of 72 hours to reach full rollout. Each step requires 24 hours of clean metrics. If error rate doubles at any step, the flag drops to 0% immediately and a Slack alert fires.
+The minimum request count stops one early failure from tripping the switch on a tiny sample; the error floor stops a 2x jump from 0.01% to 0.02% from counting.
 
-To prevent flags from becoming permanent tech debt, a daily hygiene job scans for flags at 100% for more than 14 days and sends reminders with the exact code references that need cleanup:
+Flags left at 100% become permanent tech debt. A flag follows a lifecycle (created, testing, ramping, decided, archived), and a daily job warns about flags that have sat in the decided state for 14 days, with the code references to remove.
 
-```typescript
-// jobs/flag-hygiene.ts — daily at 9am
-async function checkStaleFlags() {
-  const staleFlags = await db.featureFlags.find({
-    "rules.percentage": 100,
-    updatedAt: { $lt: daysAgo(14) },
-    archived: false,
-  });
-  for (const flag of staleFlags) {
-    const refs = await searchCodebase(`flags.isEnabled\\(["']${flag.name}`);
-    await notify(`FLAG HYGIENE: \`${flag.name}\` at 100% for ${daysSince(flag.updatedAt)} days. ${refs.length} code references to remove.`);
-  }
-}
+### Step 6: Run the Dashboard Redesign as a Real Experiment
+
+The percentage rollout protects against breakage. Whether the redesign is better is a separate question, and **ab-test-setup** answers it before the first user is exposed. The agent writes `experiments/2026-11-dashboard-redesign.md`:
+
+```markdown
+Hypothesis: the redesigned dashboard raises the share of accounts that create an invoice
+  within 7 days of first exposure (support tickets tripled after the last redesign).
+Primary metric: accounts with >= 1 invoice created within 7 days of first exposure.
+  Baseline 55% over the last 4 full weeks.
+Guardrails: PDF exports per account, dashboard error rate, support contacts per account.
+Smallest lift worth shipping: 10% relative (55% -> 60.5%).
+Sample size: 1,265 accounts per arm (alpha 0.05, power 0.80), 2,530 in total. Unit: account.
+Run time: 3 full weeks. Stopping rule: read the primary metric once, at the end.
+Daily check: sample-ratio mismatch on exposed counts, guardrails only.
 ```
+
+With `unit: "account"` set on the flag, a whole company sees one design. During the run, the daily sample-ratio check catches broken assignment (a p-value below 0.001 means units are being lost in one arm). At the end, the readout reports the difference with its confidence interval: ship only if the interval is entirely above zero and the guardrails held. Peeking at the primary metric daily and stopping at the first p < 0.05 produces false winners.
 
 ## Real-World Example
 
-Six weeks after rolling out the flag system, Ravi ships the PDF engine again — this time to 5% of accounts. On day two, the monitoring catches it: accounts with 200+ line items are hitting a memory limit, and the error rate in the treatment group is 4x higher than control. The automation drops the flag to 0% and fires a Slack alert. Total blast radius: 600 accounts. Total customer-facing impact: 23 failed PDFs, caught and retried automatically. Zero escalations to the VP of Sales.
+Six weeks after rolling out the flag system, Ravi ships the PDF engine again, this time to 5% of accounts. On day two the rollout monitor catches it: accounts with 200+ line items hit a memory limit, and the treatment error rate is several times control. The job switches the flag off and posts to Slack. The blast radius is the 600 bucketed accounts, not 12,000, and failed exports are retried on the legacy engine.
 
-The fix takes two days. The flag goes back to 5%, clean for 24 hours, auto-progresses to 25%, then 50%, then 100% over the next week. The entire rollout happens without a single support ticket.
+The fix takes two days. The flag goes back to 5%, stays clean for 24 hours, and Ravi moves it to 25%, 50% and 100% over the following week. The dashboard experiment runs for three full weeks with the plan above. The readout shows whether invoice creation moved and whether PDF exports dropped, and the product team decides from the interval rather than from the point estimate.
 
-The dashboard redesign runs as a 50/50 A/B test for three weeks. Mixpanel data shows the new design increases invoice creation by 12% but decreases PDF exports by 8%. The product team uses this data to iterate on the export flow before shipping to everyone — a decision that would have been impossible with the old deploy-and-pray approach.
+Kill-switch time goes from a 47-minute redeploy to one admin toggle that reaches every server through Redis. The Friday deploy freeze is over.
 
-Feature velocity rebounds. Teams ship 3x more frequently because small rollouts with instant rollback remove the fear. Kill switch response time went from 47 minutes (full redeploy) to under 3 seconds (toggle in admin UI). In the three months after adoption, zero full-blast-radius incidents — compared to two in the three months before. The Friday deploy freeze is officially over.
+## Related Skills
+
+- **feature-flag-manager**: deterministic bucketing, ordered targeting rules, kill switch and flag lifecycle
+- **ab-test-setup**: sample size, exposure logging, sample-ratio check and readout for the dashboard experiment
+- **analytics-tracking**: server-side GA4 Measurement Protocol events for flag exposure

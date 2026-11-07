@@ -11,24 +11,26 @@ tags: [migration, legacy-code, testing, security, modernization]
 
 ## The Problem
 
-Your team maintains a 65,000-line Express.js 4 API from 2018 -- callback-based, CommonJS, an unmaintained ORM, Node 14 with no security support. Three key dependencies have no maintainers and CVEs pile up quarterly. The last npm audit showed 47 vulnerabilities, 12 of them high severity, and the fixes require upgrading to packages that dropped callback support entirely.
+Your team maintains a 65,000-line Express.js 4 API from 2018 -- callback-based, CommonJS, an unmaintained ORM, Node 14 (end of life since April 2023). Three key dependencies have no maintainers and CVEs pile up quarterly. The last npm audit showed 47 vulnerabilities, 12 of them high severity, and the fixes require upgrading to packages that dropped callback support entirely.
 
 The obvious answer is "just rewrite it," but this API processes $2.3M in monthly transactions. A rewrite takes 6 months, and in 6 months the team ships zero features while competitors iterate weekly. Incremental migration is the only realistic path -- but without tests, you won't know what breaks until customers report it. And migrating without a security review just moves old vulnerabilities into new code, or worse, introduces new ones that the old code didn't have.
 
 ## The Solution
 
-The **code-migration** skill converts legacy patterns -- callbacks to async/await, CommonJS to ESM, outdated ORMs to Prisma. The **test-generator** skill creates baseline tests before migration to catch regressions. The **security-audit** skill reviews migrated code for vulnerabilities introduced during conversion. Together, they make it safe to modernize one module at a time.
+The **code-migration** skill converts legacy patterns -- callbacks to async/await, CommonJS to ESM, outdated ORMs to Prisma -- one module and one kind of change at a time, with behavior preserved. The **test-generator** skill writes baseline tests before migration to catch regressions. The **security-audit** skill reviews migrated code for vulnerabilities introduced during conversion and scans the dependencies. Together, they make it safe to modernize one module at a time, targeting a current Node LTS (24).
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Generate Baseline Tests Before Touching Anything
 
 ```text
-Generate snapshot tests for the payment, auth, and order modules. Capture
-current input/output behavior for regression detection during migration.
+Generate characterization tests for the payment, auth, and order modules.
+Assert on the observable behavior (HTTP responses, database rows written,
+calls to Stripe) of the current code, not on its internals and not with
+snapshot files. Run them against the unmodified code.
 ```
 
-Before changing a single line of code, baseline tests lock down the existing behavior. These tests verify what the code does, not how it does it -- so they'll still pass after callbacks become async/await and Waterline becomes Prisma:
+Before changing a single line of code, baseline tests lock down the existing behavior. The test-generator skill avoids snapshot files because they are brittle, so these are explicit assertions. They verify what the code does, not how it does it -- so they'll still pass after callbacks become async/await and Waterline becomes Prisma:
 
 | Test Suite | Tests | Coverage |
 |-----------|-------|----------|
@@ -41,12 +43,12 @@ Before changing a single line of code, baseline tests lock down the existing beh
 ### Step 2: Migrate the First Module
 
 ```text
-Migrate src/services/payment.js from callbacks to async/await. Convert
-require() to ESM. Replace Waterline queries with Prisma. Keep the same
-API contracts.
+Migrate src/services/payment.js in three passes, running the baseline tests
+after each: first callbacks to async/await, then require() to ESM, then
+Waterline queries to Prisma. Keep the same API contracts.
 ```
 
-The payment module goes first because it has the best test coverage and the most callback nesting -- 8 levels deep in some charge-creation flows.
+The payment module goes first because it has the best test coverage and the most callback nesting -- 8 levels deep in some charge-creation flows. Doing one kind of change per pass means a failing baseline test points at exactly one cause.
 
 The migration touches every line but preserves every behavior:
 
@@ -63,7 +65,7 @@ Here's what the transformation looks like in practice -- a charge creation flow 
 // Before: callback hell with error-first pattern
 db.Payment.create(chargeData, function(err, payment) {
   if (err) return callback(err);
-  stripe.charges.create({ amount: payment.amount }, function(err, charge) {
+  stripe.paymentIntents.create({ amount: payment.amount, currency: 'usd' }, function(err, charge) {
     if (err) return callback(err);
     db.Payment.update(payment.id, { stripeId: charge.id }, function(err) {
       if (err) return callback(err);
@@ -74,7 +76,10 @@ db.Payment.create(chargeData, function(err, payment) {
 
 // After: linear async/await with typed errors
 const payment = await prisma.payment.create({ data: chargeData });
-const charge = await stripe.charges.create({ amount: payment.amount });
+const charge = await stripe.paymentIntents.create(
+  { amount: payment.amount, currency: 'usd' },
+  { idempotencyKey: `payment-${payment.id}` }, // a retried request cannot charge twice
+);
 await prisma.payment.update({ where: { id: payment.id }, data: { stripeId: charge.id } });
 return charge;
 ```
@@ -90,9 +95,9 @@ after each module.
 
 Each module follows the same pattern: convert, then verify.
 
-**auth.js** -- 21 callbacks become async/await. JWT handling modernizes from the aging `jsonwebtoken` library to `jose` (better algorithm support, ESM-native). Waterline User, Session, and Token models become Prisma calls. Baseline: 22/22 passing.
+**auth.js** -- 21 callbacks become async/await. JWT handling moves from `jsonwebtoken` to `jose` (ESM-native, built on Web Crypto, works on every runtime). Waterline User, Session, and Token models become Prisma calls. Baseline: 22/22 passing.
 
-**orders.js** -- 26 callbacks become async/await. The trickiest conversion is inventory locking, which relied on Waterline's `.native()` escape hatch for MongoDB atomic operations. Prisma interactive transactions with proper isolation levels replace it cleanly. Baseline: 19/19 passing.
+**orders.js** -- 26 callbacks become async/await. The trickiest conversion is inventory locking, which relied on a raw `sendNativeQuery` with `SELECT ... FOR UPDATE` against PostgreSQL. A Prisma interactive transaction (`prisma.$transaction(async (tx) => ...)`) replaces it, with an explicit isolation level (Prisma ORM 7, `@prisma/client@7`; the Prisma ORM 8 release candidate replaces `$transaction` with `db.transaction(...)` and has no `isolationLevel` option, so the fix in Step 4 is written for 7). Isolation levels need PostgreSQL, MySQL, SQL Server, CockroachDB or SQLite; Prisma does not offer them on MongoDB. Baseline: 19/19 passing.
 
 All 69 baseline tests passing. Zero regressions across three modules.
 
@@ -105,15 +110,15 @@ during migration — new ORM queries, async error handling, updated JWT library.
 
 This is where the migration would normally introduce silent vulnerabilities. Swapping one library for another changes the defaults, and defaults are where security bugs hide.
 
-The audit finds 7 issues, all introduced by the migration itself:
+The audit also runs `npm audit --omit=dev` on the new lockfile (the dependency findings that motivated the migration should be gone) and finds 7 issues in the code, all introduced by the migration itself:
 
 **Critical (1):**
 - `auth.js:67` -- JWT audience claim not validated after jose migration. The old Waterline version checked `aud` manually; the migration dropped the check. Fixed.
 
 **High (3):**
-- `orders.js:112` -- Prisma transaction missing isolation level, enabling double-reserve on concurrent requests. Added `Serializable` isolation. Fixed.
-- `payment.js:89` -- Webhook signature verification uses timing-unsafe string comparison after migration. Restored `crypto.timingSafeEqual`. Fixed.
-- `auth.js:145` -- Password reset token stored plaintext in the new schema. The old code hashed it; the migration missed that detail. Added bcrypt hash. Fixed.
+- `orders.js:112` -- Prisma transaction ran at the database default isolation level, enabling double-reserve on concurrent requests. Added `isolationLevel: Prisma.TransactionIsolationLevel.Serializable` and a retry on error code `P2034` (write conflict). Fixed.
+- `payment.js:89` -- Webhook signature was compared with `===` on a parsed body after migration. Replaced with `stripe.webhooks.constructEvent(rawBody, signature, secret)` on the raw request body, which verifies the `Stripe-Signature` HMAC and rejects stale timestamps. Fixed.
+- `auth.js:145` -- Password reset token stored plaintext in the new schema. The old code hashed it; the migration missed that detail. Now stores a SHA-256 hash of the random token and compares hashes. Fixed.
 
 **Medium (3):** Two error handlers expose stack traces in production responses (the old callback error handlers caught everything; the new try/catch blocks let some errors propagate with full details). One Prisma query on the user profile endpoint returns the full user object including the password hash -- the old Waterline query had a `.select()` that excluded it, but the Prisma migration didn't carry that projection forward.
 
@@ -140,10 +145,14 @@ Total: 94 tests (69 baseline + 25 new), all passing. Statement coverage on migra
 
 ## Real-World Example
 
-A lead engineer at a 20-person logistics startup needed to migrate a 50,000-line Express 4 API off Node 14 before AWS Lambda dropped runtime support in 8 weeks. The API processed 400,000 shipment events daily -- downtime meant lost package visibility for enterprise clients.
+A lead engineer at a 20-person logistics startup needed to migrate a 50,000-line Express 4 API off Node 14 before AWS Lambda blocked updates to functions on the deprecated Node 14 runtime in 8 weeks. The API processed 400,000 shipment events daily -- downtime meant lost package visibility for enterprise clients.
 
 Monday, the test-generator captured 82 baseline tests across 6 modules. That afternoon, code-migration converted the shipment tracking module from callbacks to async/await. By Wednesday, 4 modules were migrated with zero regressions. Thursday, the security-audit caught a critical issue: the migration accidentally removed rate limiting on webhook ingestion, enabling event flooding. Two-minute fix.
 
-The migrated API deployed Friday with 112 tests providing confidence. Post-deployment monitoring showed a 23% reduction in p99 latency -- async/await eliminates the callback overhead and allows the event loop to schedule I/O more efficiently. Memory usage dropped 15% because callback chains were holding references longer than necessary.
+The migrated API deployed Friday with 112 tests providing confidence, 5 weeks ahead of the Lambda deadline. More importantly, the test suite became the team's most valuable asset going forward -- it caught 4 regressions in subsequent PRs that would have reached production without it. The security audit pattern stuck too: every significant refactor now gets a post-migration security review as a matter of course.
 
-The migration completed 5 weeks ahead of the Lambda deadline. More importantly, the test suite became the team's most valuable asset going forward -- it caught 4 regressions in subsequent PRs that would have reached production without it. The security audit pattern stuck too: every significant refactor now gets a post-migration security review as a matter of course.
+## Related Skills
+
+- **test-generator** -- writes the characterization tests that lock down behavior before each pass and covers the new async, transaction and JWT code afterward.
+- **code-migration** -- performs the callback, ESM and ORM conversions one module and one change type at a time.
+- **security-audit** -- audits dependencies and reviews the migrated modules for issues the library swap introduced.

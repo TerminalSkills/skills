@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: 'VS Code, GitHub Codespaces'
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "devcontainers, docker, vscode, codespaces, reproducible"
   repository: https://github.com/devcontainers/spec
@@ -24,12 +24,12 @@ Dev Containers define reproducible development environments in Docker. Open a re
 // .devcontainer/devcontainer.json — Dev environment definition
 {
   "name": "My Project",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:4": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "forwardPorts": [3000, 5432],
+  "forwardPorts": [3000],
   "postCreateCommand": "npm install",
   "customizations": {
     "vscode": {
@@ -48,7 +48,7 @@ Dev Containers define reproducible development environments in Docker. Open a re
 # .devcontainer/docker-compose.yml
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/typescript-node:20
+    image: mcr.microsoft.com/devcontainers/typescript-node:24
     volumes: [../:/workspace:cached]
     command: sleep infinity
   db:
@@ -73,15 +73,31 @@ You can also build and run the same definition from the command line (CI, or wit
 npm install -g @devcontainers/cli
 devcontainer up --workspace-folder .
 devcontainer exec --workspace-folder . npm test
+devcontainer read-configuration --workspace-folder .   # print the resolved config without starting anything
 ```
 
 ### Example 2: "Our app needs Postgres running alongside it for local development, not just the app container"
 
-Use the Docker Compose variant in Step 2: a `.devcontainer/docker-compose.yml` with an `app` service (the dev container, kept alive with `command: sleep infinity` so VS Code can attach) and a `db` service (`postgres:16`) sharing a Docker network, plus a `.devcontainer/devcontainer.json` that points `dockerComposeFile` at it and sets `service: "app"` and `workspaceFolder: "/workspace"`. Opening the folder in VS Code starts both containers; the app connects to Postgres at host `db`, port `5432`.
+Use the Docker Compose variant in Step 2: a `.devcontainer/docker-compose.yml` with an `app` service (the dev container, kept alive with `command: sleep infinity` so VS Code can attach) and a `db` service (`postgres:16`) sharing a Docker network, plus a `.devcontainer/devcontainer.json` that points `dockerComposeFile` at it:
+
+```jsonc
+// .devcontainer/devcontainer.json (Compose variant)
+{
+  "name": "My Project",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000, "db:5432"],
+  "postCreateCommand": "npm install"
+}
+```
+
+`db:5432` is the `host:port` form (host = the Compose service name) that forwards a port of another Compose service (a bare `5432` would forward the app container's own port). Opening the folder in VS Code starts both containers; the app connects to Postgres at host `db`, port `5432`.
 
 ## Guidelines
 - New developer: clone → open in VS Code → "Reopen in Container" → ready.
 - Features marketplace (`ghcr.io/devcontainers/features/*`) adds tools without custom Dockerfiles; pin a major version (e.g. `:4`) rather than `:latest` so builds stay reproducible.
 - Works with GitHub Codespaces — same config, cloud-hosted; also supported by JetBrains IDEs and the standalone `devcontainer` CLI (`@devcontainers/cli`), not just VS Code.
 - `postCreateCommand` runs once after the container is created; use `postStartCommand` for logic that should run every time the container starts (e.g. after a rebuild or restart).
+- Base images follow the Node release schedule: the current `typescript-node` variants are `22`, `24` and `26`; Node 20 is end-of-life, so do not start a new project on it.
 - Keep the image/Dockerfile layer caching-friendly — install dependencies before copying source so rebuilds stay fast.

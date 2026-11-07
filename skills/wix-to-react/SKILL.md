@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: "Node.js 20.11+. React 18+ / Next.js 14+. Optional: @wix/sdk for headless data, Playwright for extraction."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "wix, react, nextjs, migration, web-scraping"
 ---
@@ -120,7 +120,7 @@ export default async function Team() {
 
 **Stores catalog version:** a site runs either Catalog V1 (`products` in `@wix/stores`) or Catalog V3 (`productsV3`), never both, and calling the wrong one fails. Check with the `catalogVersioning` module (or the Catalog Versioning API) before writing product code.
 
-**Without Headless** — export each Wix CMS collection to CSV from the dashboard (Content Manager → collection → Export), or scrape the dynamic pages from step 2, and import into your chosen CMS or local JSON/MDX.
+**Without Headless** — export each Wix CMS collection to CSV from the dashboard (CMS → Your Collections → <collection> → More Actions → Export to CSV), or scrape the dynamic pages from step 2, and import into your chosen CMS or local JSON/MDX.
 
 ### 4. Scaffold the React/Next.js app
 ```bash
@@ -151,7 +151,7 @@ Carry over per-page `<title>`, meta description, Open Graph tags (use Next's `me
 **Prompt:** "Migrate our Wix business site to Next.js. It's 8 static pages plus a /team page that's a Wix dynamic page bound to a Team collection. We want off Wix completely."
 
 **Agent output:**
-- Pulls the page list from `sitemap.xml`, runs the Playwright extractor over all 8 pages plus the dynamic `/team/{slug}` entries, and downloads ~40 images from `static.wixstatic.com` into `public/`.
+- Pulls the page list from the child sitemaps listed in `sitemap.xml`, runs the Playwright extractor over all 8 pages plus the dynamic `/team/{slug}` entries, and downloads ~40 images from `static.wixstatic.com` into `public/`.
 - Exports the Team collection to CSV from the Wix dashboard and converts it to `content/team/*.mdx`.
 - Scaffolds Next.js + Tailwind, writes the Tailwind theme from `_tokens.json` (5 brand colors, 2 fonts), builds shared `Header`/`Footer` in `layout.tsx`, and rebuilds each page as section components.
 - Maps `/team` to `app/team/[slug]/page.tsx` reading the MDX, adds `metadata` exports per page with original titles/descriptions, and generates a 301 redirect map. Cancels the Wix plan after a Lighthouse + visual-diff parity check.

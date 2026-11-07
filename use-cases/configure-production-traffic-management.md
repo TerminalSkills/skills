@@ -18,56 +18,170 @@ tags:
 
 ## The Problem
 
-A SaaS company runs three API servers behind a single Nginx reverse proxy with no rate limiting. During a product launch, one enterprise customer's integration script hammered the API with 2,000 requests per second, saturating all three backends and causing 504 timeouts for every other customer. The Nginx config is 400 lines of copy-pasted directives nobody fully understands, SSL certificates require manual renewal, and there is no way to gradually shift traffic to a new deployment without editing the config and reloading. The last SSL expiry took the API offline for 90 minutes on a Saturday because nobody was monitoring the certificate renewal cron job. When the post-mortem asked why the certificate was not auto-renewed, the answer was that the certbot cron had silently failed three weeks earlier.
+A SaaS company runs three API servers behind a single Nginx reverse proxy with no rate limiting. During a product launch, one enterprise customer's integration script hammered the API with 2,000 requests per second, saturating all three backends and causing 504 timeouts for every other customer. The Nginx config is hundreds of lines of copy-pasted directives nobody fully understands, SSL certificates require manual renewal, and there is no way to gradually shift traffic to a new deployment without editing the config and reloading. The last SSL expiry took the API offline for 90 minutes on a Saturday because nobody was monitoring the certificate renewal cron job. When the post-mortem asked why the certificate was not auto-renewed, the answer was that the certbot cron had silently failed three weeks earlier.
 
 ## The Solution
 
-Replace the brittle Nginx setup with **Caddy** for automatic HTTPS and clean reverse proxy configuration, use the **load-balancer** skill to distribute traffic across backends with health checks and weighted routing, and add the **rate-limiter** skill to protect endpoints from abuse with tiered per-client limits. Together, these three layers handle everything from SSL termination to abuse prevention in a single, readable configuration.
+Replace the brittle Nginx setup with **Caddy** for automatic HTTPS and clean reverse proxy configuration, use the **load-balancer** skill to choose the balancing approach (it covers Nginx and HAProxy, so Caddy's own policies are checked against the Caddy docs), and add the **rate-limiter** skill to design tiered per-client limits and abuse protection, which Caddy enforces with the third-party `caddy-ratelimit` module. Together, these three layers handle everything from SSL termination to abuse prevention in a single, readable configuration.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Set up Caddy as the reverse proxy with automatic HTTPS
 
-Replace Nginx with Caddy to get automatic certificate provisioning and a readable configuration file. Caddy handles HTTPS by default -- there is no separate certbot setup, renewal cron, or manual configuration required.
+Caddy obtains and renews certificates by itself once DNS points at the server and ports 80 and 443 are reachable, so there is no certbot cron to fail silently.
 
-> Create a Caddyfile that reverse-proxies api.example.com to three backend servers on ports 8001, 8002, and 8003. Enable automatic HTTPS with Let's Encrypt. Add health checks that probe /health every 10 seconds and remove unhealthy backends from rotation. Enable access logging in JSON format to /var/log/caddy/access.log.
+> Create a Caddyfile that reverse-proxies api.example.com to three backends on ports 8001, 8002 and 8003. Add active health checks on /health every 10 seconds, enable JSON access logs, and turn on Prometheus metrics. Treat X-Forwarded-For as the client IP only when it comes from a private-range proxy.
 
-The health checks are critical: when a backend goes down during a deployment, Caddy automatically removes it from rotation within 10 seconds and redistributes traffic to the healthy backends.
+```caddyfile
+{
+	metrics
+	servers {
+		trusted_proxies static private_ranges
+		client_ip_headers X-Forwarded-For
+	}
+}
 
-### 2. Configure weighted load balancing for blue-green deployments
+api.example.com {
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+	# routes from steps 2-4 go here
+}
+```
 
-Set up weighted traffic distribution so new deployments can receive a small percentage of traffic before going fully live. This eliminates the current practice of deploying directly to all backends and hoping nothing breaks.
+Do not list your CDN's public ranges as `private_ranges`; if a CDN sits in front, list its published ranges in `trusted_proxies` so `{client_ip}` is the real visitor.
 
-> Configure Caddy's load balancing to use weighted round-robin. Assign 80% of traffic to the two stable backends on ports 8001 and 8002, and 20% to the canary backend on port 8003. Add sticky sessions using a cookie so individual users stay on the same backend for their session. Include a header-based override so the team can force traffic to a specific backend by setting X-Backend-Target for debugging.
+### 2. Weighted canary with sticky sessions
 
-The weight configuration can be changed and reloaded without downtime, so shifting from 20% canary to 100% is a one-line change that takes effect in under a second.
+Caddy has a `weighted_round_robin` policy (one integer weight per upstream, in order) and a `cookie` policy that pins a client to an upstream. Combine them: `cookie` picks the pinned backend, and its `fallback` handles first requests.
 
-### 3. Implement tiered rate limiting per API key
+> Send 80% of new clients to 8001 and 8002 and 20% to the canary on 8003, keep each client on its backend with a cookie, and let engineers on the internal network force the canary with an X-Backend-Target header.
 
-Add rate limiting that differentiates between free-tier and enterprise customers based on their API key. Without tiered limits, a single free-tier user can consume as many resources as your largest paying customer.
+```caddyfile
+	@debug {
+		header X-Backend-Target canary
+		client_ip private_ranges
+	}
+	handle @debug {
+		reverse_proxy localhost:8003
+	}
 
-> Add rate limiting to the API with three tiers. Free-tier API keys get 60 requests per minute and 1,000 per hour. Pro-tier keys get 300 per minute and 10,000 per hour. Enterprise keys get 1,000 per minute and 50,000 per hour. Rate limit by API key extracted from the Authorization header. Return standard 429 responses with Retry-After and X-RateLimit-Remaining headers. Exempt the /health and /status endpoints from all limits.
+	handle {
+		reverse_proxy localhost:8001 localhost:8002 localhost:8003 {
+			lb_policy cookie api_session {$LB_COOKIE_SECRET} {
+				fallback weighted_round_robin 4 4 2
+			}
+			health_uri /health
+			health_interval 10s
+			health_timeout 2s
+			health_fails 2
+			health_passes 2
+			fail_duration 30s
+			lb_retries 2
+			lb_try_duration 3s
+		}
+	}
+```
 
-The X-RateLimit-Remaining header is important for well-behaved clients: it lets integration scripts throttle themselves before hitting the limit, avoiding the retry-after-429 dance entirely.
+Set `LB_COOKIE_SECRET` in the environment, not in the file. The weights are per new client, not per request, because the cookie pins returning clients. Run `caddy validate --config Caddyfile` and `caddy reload --config Caddyfile` to change a weight without dropping connections. An unhealthy backend leaves rotation after two failed probes (about 20 seconds with a 10-second interval); `fail_duration` and `lb_retries` cover the gap by retrying a request on another backend.
 
-### 4. Add abuse protection for authentication endpoints
+### 3. Tiered rate limiting per API key
 
-Apply strict rate limits to sensitive endpoints that are common targets for brute-force attacks. These limits are separate from the API tier limits because authentication abuse is a security concern, not a usage concern.
+Rate limiting is not in the standard Caddy binary. The `rate_limit` directive comes from the third-party `github.com/mholt/caddy-ratelimit` module, added to a custom build with `xcaddy build --with github.com/mholt/caddy-ratelimit` (a `caddy:builder` Docker image has xcaddy; see the caddy skill). It sets `Retry-After` on its 429 responses. It does not set `X-RateLimit-*` headers, so do not promise clients a remaining-requests header unless your backend sends it.
 
-> Add aggressive rate limiting to POST /auth/login and POST /auth/register. Limit to 5 login attempts per IP per minute with a 15-minute block after 20 failed attempts in an hour. Limit registration to 3 accounts per IP per hour. Log every blocked request with the source IP and the rule that triggered the block. Add the X-Forwarded-For header parsing so rate limits apply to the real client IP, not the CDN edge IP.
+Caddy cannot look an API key up in a database, so this setup reads the tier from a key prefix your key service issues (`free_`, `pro_`, `ent_`). The backend must still reject forged keys; the IP zone below bounds what a forger can cost you.
 
-### 5. Set up traffic monitoring and alerting
+> Add rate limits: free keys 60/min and 1,000/hour, pro keys 300/min and 10,000/hour, enterprise keys 1,000/min and 50,000/hour, counted per Authorization header. Add a 600/min per-IP zone for everything. Exempt /health and /status.
 
-Configure logging and metrics so the team can see traffic patterns and rate-limit events in real time. Without visibility, rate limits and load balancing configuration are just guesses -- metrics tell you whether they are working.
+```caddyfile
+	rate_limit {
+		zone ip_all {
+			match {
+				not path /health /status
+			}
+			key    {client_ip}
+			events 600
+			window 1m
+		}
+		zone free_min {
+			match {
+				header_regexp Authorization ^Bearer\s+free_
+				not path /health /status
+			}
+			key    {http.request.header.Authorization}
+			events 60
+			window 1m
+		}
+		zone free_hour {
+			match {
+				header_regexp Authorization ^Bearer\s+free_
+				not path /health /status
+			}
+			key    {http.request.header.Authorization}
+			events 1000
+			window 1h
+		}
+		# pro_ (300/min, 10000/hour) and ent_ (1000/min, 50000/hour): same shape
+	}
+```
 
-> Add a /metrics endpoint to Caddy that exposes Prometheus-compatible metrics for request count by status code, backend health status, active connections per backend, and rate-limit events by tier. Create a Grafana dashboard JSON that visualizes requests per second, error rate, p95 latency, and rate-limited requests over time.
+Put this block before the `reverse_proxy` routes inside the site block (use a `route { ... }` wrapper to fix the order), and use `caddy validate` on the custom binary before reloading.
 
-The dashboard should be the first thing the on-call engineer checks during an incident: it shows immediately whether the problem is traffic volume, backend failures, or rate-limit saturation.
+### 4. Abuse protection for authentication endpoints
+
+`caddy-ratelimit` counts requests in a sliding window; it cannot count only failed logins or hold a 15-minute block. Limit attempts per client IP, and keep failure-based lockout in the application or a log-driven tool.
+
+> Limit POST /auth/login to 5 requests per IP per minute and POST /auth/register to 3 per IP per hour. Log the key when a request is limited.
+
+```caddyfile
+	rate_limit {
+		zone login {
+			match {
+				method POST
+				path /auth/login
+			}
+			key    {client_ip}
+			events 5
+			window 1m
+		}
+		zone register {
+			match {
+				method POST
+				path /auth/register
+			}
+			key    {client_ip}
+			events 3
+			window 1h
+		}
+		log_key
+	}
+```
+
+Credential stuffing spread over thousands of IPs stays under per-IP limits, so also count attempts per username in the application, as the rate-limiter skill describes.
+
+### 5. Traffic monitoring
+
+With the global `metrics` option on, Prometheus metrics are served at `http://localhost:2019/metrics` on the admin API (keep the admin API on localhost). The useful series are `caddy_http_request_duration_seconds` (labelled by `code` and `method`, so its `_count` is the per-status request counter), `caddy_http_requests_total` (no `code` label, so do not filter it by status) and `caddy_reverse_proxy_upstreams_healthy` (one series per upstream, 1 or 0).
+
+> Write Prometheus queries and alert rules for requests per second, 5xx ratio, p95 latency, rate-limited (429) responses and unhealthy upstreams.
+
+```promql
+sum(rate(caddy_http_request_duration_seconds_count[5m]))
+sum(rate(caddy_http_request_duration_seconds_count{code=~"5.."}[5m])) / sum(rate(caddy_http_request_duration_seconds_count[5m]))
+histogram_quantile(0.95, sum by (le) (rate(caddy_http_request_duration_seconds_bucket[5m])))
+sum(rate(caddy_http_request_duration_seconds_count{code="429"}[5m]))
+caddy_reverse_proxy_upstreams_healthy == 0
+```
 
 ## Real-World Example
 
-A developer tools company migrated from their patched Nginx setup to Caddy on a Friday afternoon. The Caddyfile was 45 lines compared to the old 400-line Nginx config. SSL certificates provisioned automatically within seconds -- the Let's Encrypt integration handled both the initial provisioning and automatic renewal, eliminating the certificate expiry risk entirely.
+A developer tools company moved from a patched Nginx setup to Caddy on a Friday. The Caddyfile was a few dozen lines instead of the old multi-hundred-line config, and certificate renewal became Caddy's job. On Monday they deployed a new API version to the canary backend with weight 2 of 10, watched the 5xx ratio for two hours, then raised the canary weight in steps with `caddy reload`. Because the cookie pins returning clients, each shift took effect as sessions turned over.
 
-On Monday, they deployed a new API version to the canary backend at 10% traffic weight, monitored error rates for two hours, then shifted to 50% and finally 100% by end of day -- all by changing one weight value and reloading Caddy. The health checks caught a configuration bug on the canary backend within 30 seconds and automatically removed it from rotation before any user-facing errors occurred.
+The following week a bot network hit the login endpoint. The per-IP login zone returned 429 to each source after five attempts a minute, the 429 query showed the start and end of the spike, and the team added a per-username counter in the application for the part of the attack that spread across many addresses.
 
-The following week, a bot network hit the login endpoint with credential-stuffing attacks at 800 requests per second. The rate limiter blocked 99.6% of the attempts, legitimate users saw no degradation, and the security log captured every blocked IP for the incident report. The Grafana dashboard showed the attack as a clean spike in the rate-limited requests graph, making it obvious in the weekly operations review exactly when the attack started, how long it lasted, and that it had zero impact on real users.
+## Related Skills
+
+- **caddy**: Caddyfile, automatic HTTPS, health checks, load-balancing policies, and adding the rate-limit module.
+- **load-balancer**: balancing and health-check concepts, and the Nginx or HAProxy fallback if Caddy is not an option.
+- **rate-limiter**: algorithm choice, layered limits, response headers and abuse patterns behind the limits in steps 3 and 4.

@@ -1,47 +1,53 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:deb2417cb00d9811b400c11c0757b95f861021f8e606e239160db2fe4a6e01db",
-  "scoredAt": "2026-10-02T22:54:12.270Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:fe1c03d354b4c4fea160697fc0af63481a6c209c7582924c8ce1dd46b6d45a5d",
+  "scoredAt": "2026-11-07T12:11:07.963Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill only supports Linux/macOS and Docker, lacking Windows compatibility."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.02,
-    "baselineAvg": 81,
-    "treatmentAvg": 83,
+    "multiplier": 6.92,
+    "baselineAvg": 13,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "secure-docker-deploy-with-master-key",
-        "baseline": 90,
-        "treatment": 72,
-        "rationale": "A covers nearly all rubric items (pinned tag, production env, localhost bind, volume, health check, master key via openssl, dump backup before upgrade, search key for frontend) with detailed runnable commands, though it uses `openssl rand -hex 32` rather than `-hex 16`; B hits the core setup items precisely (including `-hex 16`) but gives only vague upgrade/backup advice with no dump or snapshot commands and says to check the docs for them."
+        "name": "deploy-and-index-ecommerce-catalog",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except key generation, while Response B lacks Docker env flag, Node.js code, and key creation."
       },
       {
-        "name": "ecommerce-filters-and-async-settings",
-        "baseline": 72,
+        "name": "build-documentation-search",
+        "baseline": 30,
         "treatment": 90,
-        "rationale": "B matches the rubric closely: it uses `.waitTask()`, the separate updateFilterableAttributes/updateSortableAttributes calls, `brand IN [\"Apple\", ...]` with quoted values, and the `Meilisearch` import, and it names `invalid_search_filter`. A configures settings through updateSettings and waits with client.tasks.waitForTask, which is acceptable, but it never names the `invalid_search_filter` error and uses unquoted IN values."
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the required Meilisearch SDK/REST API usage, searchable attributes, highlighting, cropping, and React InstantSearch component."
       },
       {
-        "name": "multi-tenant-search-tokens",
-        "baseline": 80,
-        "treatment": 88,
-        "rationale": "Both cover the main points, but A matches the rubric's imports and API more exactly (generateTenantToken from 'meilisearch/token', apiKeyUid from client.getKeys()), while B uses a created key and a client method, which is acceptable but a looser match, and neither explicitly says the token is used as the browser's API key as clearly as B does."
+        "name": "multi-tenant-search-with-tenant-tokens",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required Meilisearch API calls or token generation."
       }
     ]
   }
