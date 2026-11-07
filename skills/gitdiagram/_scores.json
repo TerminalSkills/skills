@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:faba39eaf279e6c3ac680b842d80f6b3382c5d414697019aa3c1271f960ac55d",
+  "scoredAt": "2026-11-04T23:45:03.594Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.71,
+    "baselineAvg": 17,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "fastapi-architecture-overview",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A includes more required elements such as Mermaid source, explanation, component list, and interactive link, whereas Response B lacks many of these."
+      },
+      {
+        "name": "download-pallets-flask-mermaid",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits the required grep count, while Response B provides no content."
+      },
+      {
+        "name": "find-langchain-diagrams",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B provides some steps and a sample list but omits the required diagram explanation and Mermaid source, whereas Response A is empty."
+      }
+    ]
+  }
+}

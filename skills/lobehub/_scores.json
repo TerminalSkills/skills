@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8abc3455ca8163df86b3cccbdc6b456aa125299aec957554420e568ac6f1f3b4",
+  "scoredAt": "2026-11-05T00:06:42.081Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.43,
+    "baselineAvg": 35,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "deploy-domain-mode-with-email-restriction",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Response B covers most rubric items but omits log confirmation, while Response A misses many key steps."
+      },
+      {
+        "name": "minimal-one-container-setup-with-postgres-and-minio",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the required env file, network, and PostgreSQL image specifications."
+      },
+      {
+        "name": "backup-and-update-lobehub-stack",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A follows the required commands and is nearly complete, while Response B deviates from the specified backup command and omits log verification."
+      }
+    ]
+  }
+}

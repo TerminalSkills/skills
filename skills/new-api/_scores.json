@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8940c976708edfd713282393301c46451c84eea889f4dba63597d3999aa953f0",
+  "scoredAt": "2026-11-04T23:46:19.459Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux amd64 or arm64 platforms, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.4,
+    "baselineAvg": 25,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "deploy-local-gateway-with-openai-anthropic",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items except TZ, while Response B does not provide the required Docker setup at all."
+      },
+      {
+        "name": "production-docker-compose-with-postgres-redis",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response B covers almost all rubric items, while Response A lacks the required compose edits and steps."
+      },
+      {
+        "name": "configure-failover-and-team-quotas",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items with concrete steps, while Response B omits key details like channel priority, RetryTimes, and per-key usage verification."
+      }
+    ]
+  }
+}

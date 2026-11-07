@@ -7,6 +7,7 @@ skills:
   - worktrunk
   - paperclip
   - orca
+  - ruflo
 category: development
 tags:
   - multi-agent
@@ -217,3 +218,4 @@ The verify stage runs all tests against the merged codebase:
 
 - [paperclip](/skills/paperclip) — Choose paperclip when parallel Claude Code agents need persistent ticket ownership (atomic checkout), spend caps and a shared dashboard instead of terminals you juggle by hand.
 - [orca](/skills/orca) — Choose orca when you want a desktop app that keeps each agent (Claude Code, Codex and others) in its own git worktree with one place to read their terminals, race agents on the same task and pick the winning diff.
+- [ruflo](/skills/ruflo) — Choose ruflo when the agents should share one task ledger and a searchable project memory through an MCP server, with agent definitions and hooks written into the repository by `ruflo init`.

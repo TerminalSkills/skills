@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:43b579351486df4d00cb3a16f2bf4a19bc247b016a3746e072f39a80e9a1eafa",
+  "scoredAt": "2026-11-04T23:49:15.218Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill specifies platform assumptions (Linux, macOS, WSL) which limits cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.89,
+    "baselineAvg": 53,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "upgrade-lts-keep-packages",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required command or alias and thus fails to meet the rubric."
+      },
+      {
+        "name": "run-script-with-node-22",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly use `nvm exec 22 npm test`, avoid `nvm use`, and explain that the current shell remains unchanged."
+      },
+      {
+        "name": "fix-ci-nvm-command-not-found",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required `nvm install --no-progress` command and does not explicitly avoid relying on shell profiles."
+      }
+    ]
+  }
+}
