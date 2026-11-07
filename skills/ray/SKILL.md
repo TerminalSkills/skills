@@ -5,10 +5,10 @@ description: |
   for distributed computing, Ray Serve for model serving, Ray Tune for hyperparameter
   optimization, and Ray Data for distributed data processing.
 license: Apache-2.0
-compatibility: 'Python 3.10+, Ray 2.59, Linux/macOS (Windows is beta)'
+compatibility: 'Python 3.10+, Ray 2.60, Linux/macOS (Windows is beta)'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   repository: https://github.com/ray-project/ray
   category: data-ai
   tags: "distributed-computing, model-serving, hyperparameter-tuning, scaling, parallel-processing"
@@ -18,7 +18,7 @@ metadata:
 
 ## Overview
 
-Ray scales Python code from a laptop to a cluster. Ray Core turns functions and classes into distributed tasks and actors; Serve, Tune and Data build model serving, hyperparameter search and dataset processing on top. Examples below were run against Ray 2.59 (Python 3.12).
+Ray scales Python code from a laptop to a cluster. Ray Core turns functions and classes into distributed tasks and actors; Serve, Tune and Data build model serving, hyperparameter search and dataset processing on top. The Ray Core, Tune and Serve composition examples below were run against Ray 2.60 (Python 3.12).
 
 ## Instructions
 
@@ -119,7 +119,7 @@ serve.start(http_options={"host": "127.0.0.1", "port": 8000})
 serve.run(app, route_prefix="/")
 ```
 
-`ray_actor_options={"num_gpus": 0.5}` needs a GPU; drop it on a CPU-only machine. In production prefer a config file: `serve run serve_model:app` for development and `serve deploy config.yaml` for a cluster.
+`ray_actor_options={"num_gpus": 0.5}` needs a GPU; drop it on a CPU-only machine. During a rolling update, `max_surge_percent` on `@serve.deployment` (new in 2.60, default 0) starts replacement replicas before stopping old ones. In production prefer a config file: `serve run serve_model:app` for development and `serve deploy config.yaml` for a cluster.
 
 ```bash
 # Test the endpoint
@@ -246,12 +246,13 @@ On Kubernetes, use the KubeRay operator and its Helm charts (the old `provider: 
 ```bash
 helm repo add kuberay https://ray-project.github.io/kuberay-helm/
 helm repo update
-helm install kuberay-operator kuberay/kuberay-operator --version 1.7.0
-helm install raycluster kuberay/ray-cluster --version 1.7.0
+helm install kuberay-operator kuberay/kuberay-operator --version 1.7.2
+# The chart's default image is rayproject/ray:2.52.0; set the tag to your Ray version
+helm install raycluster kuberay/ray-cluster --version 1.7.2 --set image.tag=2.60.0
 kubectl get rayclusters
 ```
 
-Check the KubeRay docs for the chart version that matches your Ray release. On plain VMs use `ray start --head` on the first machine and `ray start --address=10.0.0.5:6379` on workers.
+`1.7.2` is the latest stable chart (`1.8.0` is still a release candidate). On plain VMs use `ray start --head` on the first machine and `ray start --address=10.0.0.5:6379` on workers.
 
 ## Examples
 
