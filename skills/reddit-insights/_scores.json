@@ -1,63 +1,47 @@
 {
-  "version": "1.3.0",
-  "skillHash": "sha256:c07c680d2f337a47a909ca575f9262675fedec8b901708e7c0daa241994bf107",
-  "scoredAt": "2026-10-13T15:57:56.090Z",
+  "version": "1.4.0",
+  "skillHash": "sha256:36c632d72dc4cf7d923832cae211ac8f09f6ed13eb14ef049337a3214da5f129",
+  "scoredAt": "2026-11-07T12:15:20.055Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully address all potential error scenarios, such as network failures or missing environment variables."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment with PRAW, limiting its applicability to agents that can execute Python code."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.31,
-    "baselineAvg": 32,
-    "treatmentAvg": 42,
+    "multiplier": 1.92,
+    "baselineAvg": 13,
+    "treatmentAvg": 25,
     "scenarios": [
       {
-        "name": "validate-startup-idea-pain-points",
+        "name": "validate-freelancer-budgeting-app",
         "baseline": 30,
-        "treatment": 50,
-        "rationale": "Response A is closer to the rubric, using PRAW, extracting pain points, and producing a markdown report, whereas Response B lacks the required search parameters, sentiment analysis, and structured report sections."
+        "treatment": 20,
+        "rationale": "Response A contains more of the required content (pain points and opportunities) than the purely code-focused Response B, but both lack the mandatory sections and metrics."
       },
       {
-        "name": "analyze-product-sentiment",
+        "name": "analyze-tesla-cybertruck-sentiment",
         "baseline": 0,
-        "treatment": 30,
-        "rationale": "Response B attempts to provide a script but fails to meet many rubric requirements, whereas Response A simply states it cannot provide the information."
+        "treatment": 50,
+        "rationale": "Response B covers more rubric items but still lacks top positive aspects and notable discussions, whereas Response A provides none."
       },
       {
-        "name": "discover-underserved-niches",
-        "baseline": 65,
-        "treatment": 45,
-        "rationale": "Response B covers more rubric items, including data collection, grouping, ranking, and partial gap analysis, whereas Response A is largely incomplete."
+        "name": "discover-e-learning-niche-opportunities",
+        "baseline": 10,
+        "treatment": 5,
+        "rationale": "Both responses lack the required markdown report sections, but Response B provides more detailed code and steps, making it slightly better."
       }
     ]
   }
