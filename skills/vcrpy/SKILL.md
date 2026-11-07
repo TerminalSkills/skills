@@ -3,10 +3,10 @@ name: vcrpy
 description: >-
   VCR.py records the HTTP calls a Python test makes into a cassette file and replays them on later runs, so tests that depend on third-party APIs become fast, offline and deterministic. Use when the user asks to stop tests hitting a real API, record or replay HTTP in pytest, fix flaky network tests, keep API keys out of recorded fixtures, re-record stale cassettes, or says "vcr", "vcrpy", "cassette", "pytest-recording".
 license: Apache-2.0
-compatibility: "Python 3.9+, pip; works with requests, urllib3, httpx, aiohttp, boto3 and tornado; pytest-recording for the pytest integration"
+compatibility: "Python 3.11+ (VCR.py 9.x), pip; works with requests, urllib3, httpx, aiohttp, boto3 and tornado; pytest-recording for the pytest integration"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: "python, testing, http, pytest, mocking"
   repository: https://github.com/kevin1024/vcrpy
@@ -101,7 +101,8 @@ Marker arguments override the fixture for one test: `@pytest.mark.vcr(filter_que
 Cassettes are committed, so scrub them at record time. Filters are applied before the file is written and also before matching.
 
 - `filter_headers=["authorization", "x-api-key"]` removes the header; `[("authorization", "DUMMY")]` replaces its value; a callable `(key, value, request)` computes one.
-- `filter_query_parameters=["api_key"]` and `filter_post_data_parameters=["client_secret"]` do the same for the query string and form bodies.
+- `filter_query_parameters=["api_key"]` and `filter_post_data_parameters=["client_secret"]` do the same for the query string and form bodies. Since 9.0 the post-data filter applies to any method (PUT, PATCH, DELETE too), and since 9.4 to `multipart/form-data` bodies. If you match on `body`, re-record cassettes that stored these bodies unfiltered.
+- `filter_sensitive_data={"<API_KEY>": os.environ.get("API_KEY", "fake-api-key")}` (VCR.py 9.2+) replaces a secret with a placeholder everywhere in the interaction (URL, headers, request and response bodies) and puts the real value back when the cassette loads, so matching still works. Give code and filter the same fallback value in CI, where the real secret is not set. A value that is encoded differently in part of the interaction (URL-encoded, JSON-escaped) needs its own entry.
 - `before_record_request=fn` and `before_record_response=fn` take a request or response, may mutate it, and return `None` to drop the interaction entirely (for example a login call).
 - Response bodies are not filtered by the option lists above. If a response contains tokens or personal data, scrub it in `before_record_response`.
 
@@ -176,7 +177,7 @@ When the fixture starts a server on a random port (as in a local mock), pass `ma
 ## Guidelines
 
 - Commit cassettes, but review them like code: they contain real response bodies. Never record with production credentials; use sandbox keys.
-- Use `none` (the pytest-recording default) in CI and `once` locally. A failing "Can't overwrite existing cassette" error means the code made a request the cassette lacks: compare the printed request against the recorded ones before re-recording.
+- Use `none` (the pytest-recording default) in CI and `once` locally. A `CannotOverwriteExistingCassetteException` means the code made a request the cassette lacks (or the matching recorded one was already played back). Since 9.0 its message states the reason and shows the closest recorded requests with how they differ; read that before re-recording.
 - Re-record on a schedule or when the vendor changes, otherwise tests keep passing against an API that no longer exists. Cassettes cannot detect upstream drift by themselves.
 - Time-dependent values (dates, nonces, signed URLs, request IDs in the body) break matching; remove them from `match_on` or freeze time in the test.
 - Streaming and WebSocket traffic is not a good fit; VCR.py records plain request and response pairs.
