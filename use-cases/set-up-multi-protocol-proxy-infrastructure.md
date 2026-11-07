@@ -3,7 +3,7 @@ title: Set Up Multi-Protocol Proxy Infrastructure
 slug: set-up-multi-protocol-proxy-infrastructure
 description: "Deploy a 3-server proxy infrastructure across US, EU, and Asia with WireGuard mesh networking, 3proxy for HTTP/SOCKS5 access, IP rotation, and centralized traffic monitoring."
 category: devops
-skills: [wireguard, 3proxy]
+skills: [wireguard, 3proxy, 3x-ui]
 tags: [wireguard, 3proxy, proxy, vpn, networking, security]
 ---
 
@@ -337,3 +337,9 @@ Kai runs the provisioning script 30 times to onboard every employee. Each person
 The SEO team configures their browsers with proxy credentials. For standard research, they use their nearest server's port 3128. When they need a US IP for geo-targeted search results from Europe, they switch to port 4128 on the EU server, which chains through the US server over the encrypted mesh. The 50 GB monthly cap keeps bandwidth costs predictable, and daily-rotated logs satisfy compliance requirements.
 
 Every 5 minutes, the monitoring cron job SSHes into the EU and Asia boxes over the mesh, collects WireGuard peer counts, 3proxy stats, and system health, and appends everything to a log. When a VPN connection drops or 3proxy hits its connection limit, the issue shows up within minutes.
+
+## Related Skills
+
+- [wireguard](/skills/wireguard) — the encrypted mesh between the three servers
+- [3proxy](/skills/3proxy) — the HTTP and SOCKS5 proxy layer with per-user limits
+- [3x-ui](/skills/3x-ui) — choose it when the proxy layer should be Xray (VLESS, Trojan, Shadowsocks) with per-user traffic quotas, expiry and IP limits managed through a panel and API

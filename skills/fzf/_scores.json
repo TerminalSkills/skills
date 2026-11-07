@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:cef3f61190979bf72a20be785a0deb6163679cb82cae2c46d0add9b57db88b1a",
+  "scoredAt": "2026-10-28T18:53:35.766Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-zsh-fzf-with-preview",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes every required export and source line; Response B omits the key source and export statements specified in the rubric."
+      },
+      {
+        "name": "noninteractive-tfvars-selection",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B deviates by searching the wrong directory and not echoing the required format."
+      },
+      {
+        "name": "git-branch-multi-delete",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A exactly matches the required pipeline, while Response B uses different grep and fzf options and does not meet the rubric."
+      }
+    ]
+  }
+}

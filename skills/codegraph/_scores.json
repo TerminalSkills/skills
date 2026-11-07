@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b759ebd14d1da645cebcc7f99b937df60319668ca92a8b0b205fd5543c24605a",
+  "scoredAt": "2026-10-28T18:51:08.803Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly cover error handling or edge cases such as permission errors or invalid arguments."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.3,
+    "baselineAvg": 2,
+    "treatmentAvg": 43,
+    "scenarios": [
+      {
+        "name": "setup-local-project",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required 'codegraph install' commands or the specified status output, so both score zero."
+      },
+      {
+        "name": "impact-query-json",
+        "baseline": 5,
+        "treatment": 30,
+        "rationale": "Response A at least shows the required command and a JSON example, whereas Response B fails to provide any command or JSON output."
+      },
+      {
+        "name": "ci-run-affected-tests",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use codegraph or vitest as required."
+      }
+    ]
+  }
+}

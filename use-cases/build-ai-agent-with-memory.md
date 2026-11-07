@@ -2,7 +2,7 @@
 title: "Build an AI Agent with Persistent Memory"
 slug: build-ai-agent-with-memory
 description: "Create a long-running AI agent that remembers you across sessions using episodic, semantic, and procedural memory stores."
-skills: [anthropic-sdk, langchain, agent-memory]
+skills: [anthropic-sdk, langchain, agent-memory, hindsight]
 difficulty: advanced
 time_estimate: "6 hours"
 tags: [ai, agents, memory, vector-db, postgres, langchain, anthropic]
@@ -298,3 +298,4 @@ A solo founder runs this for her logistics SaaS. It stores "prefers TypeScript" 
 - [anthropic-sdk](/skills/anthropic-sdk) — the Messages API calls and structured outputs
 - [langchain](/skills/langchain) — the pgvector store and embeddings interface
 - [agent-memory](/skills/agent-memory) — file-based, SQLite and Chroma memory patterns, consolidation
+- [hindsight](/skills/hindsight) — a standalone memory server (retain, recall, reflect over per-user banks) to use instead of building the stores yourself

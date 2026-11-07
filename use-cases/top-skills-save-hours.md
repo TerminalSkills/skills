@@ -11,19 +11,21 @@ tags: [productivity, automation, best-skills, claude-code, ai-agent]
 
 ## The Problem
 
-You're using AI coding assistants like Claude Code, Codex, or Cursor — but you're only scratching the surface. Without specialized skills, you're doing repetitive tasks manually: reviewing contracts, processing spreadsheets, drafting emails, transcribing audio. Each task takes 30 minutes to 2 hours that could be automated.
+You're using AI coding assistants like Claude Code, Codex, or Cursor — but you're only scratching the surface. Without specialized skills, you're doing repetitive tasks manually: reviewing contracts, processing spreadsheets, drafting emails, extracting tables from PDFs. Each task takes 30 minutes to 2 hours that a purpose-built skill can speed up.
 
 ## The Solution
 
-Install **Terminal Skills** — purpose-built capabilities that extend what your AI agent can do. Each skill is designed for a specific workflow and saves real time on real tasks.
+Install **Terminal Skills** — purpose-built capabilities that extend what your AI agent can do. Each skill is a SKILL.md file with step-by-step instructions that your agent follows for a specific workflow. The "time saved" figures below are rough estimates for a typical task, not benchmarks; the agent drafts, you review.
 
 ## Top 10 Skills by Category
+
+Install the CLI once with `npm i -g terminal-skills` (or prefix each command with `npx`), then run the install command shown under each skill. It detects Claude Code, Codex, Gemini CLI or Cursor and puts the skill in the right folder.
 
 ### Documents (Saves ~3 hours/week)
 
 #### 1. contract-review
 
-Analyze contracts for risks, missing clauses, and red flags. Supports NDAs, employment contracts, service agreements.
+Analyze contracts for risks, missing clauses, and red flags. Supports NDAs, employment contracts, service agreements and vendor contracts. It prepares your review; it is not legal advice, so have a lawyer check anything that matters.
 
 ```bash
 terminal-skills install contract-review
@@ -34,7 +36,7 @@ terminal-skills install contract-review
 
 #### 2. pdf-analyzer
 
-Ask questions about any PDF document. Extract key information from 100-page reports in seconds.
+Extract text, tables, metadata and structured data from PDFs, including password-protected ones, and flag scanned pages that need OCR. Then ask your agent questions about the extracted content.
 
 ```bash
 terminal-skills install pdf-analyzer
@@ -45,14 +47,14 @@ terminal-skills install pdf-analyzer
 
 #### 3. doc-parser
 
-Parse complex documents with tables, figures, and multi-column layouts. Handles academic papers and technical specs.
+Parse complex documents with tables, figures, and multi-column layouts into Markdown or JSON using the open-source Docling library. Handles PDFs and Office files such as academic papers and technical specs.
 
 ```bash
 terminal-skills install doc-parser
 ```
 
 **Use case:** Extract tables from a PDF into CSV
-**Time saved:** 30 minutes → instant
+**Time saved:** 30 minutes → a few minutes (the first run downloads Docling's models)
 
 ---
 
@@ -82,7 +84,7 @@ terminal-skills install email-drafter
 
 #### 6. cv-builder
 
-Generate professional CVs/resumes from YAML data. Multiple templates, PDF output.
+Generate professional CVs/resumes from YAML data with RenderCV. Several built-in themes, PDF output.
 
 ```bash
 terminal-skills install cv-builder
@@ -104,7 +106,7 @@ terminal-skills install code-reviewer
 ```
 
 **Use case:** Review a pull request before merge
-**Time saved:** Catches bugs that would cost hours to debug later
+**Time saved:** Varies; the value is catching bugs before they ship
 
 #### 8. frontend-design
 
@@ -123,7 +125,7 @@ terminal-skills install frontend-design
 
 #### 9. content-writer
 
-Research topics and write blog posts, articles, marketing copy. Includes SEO optimization.
+Research topics and write blog posts, articles, and marketing copy from a brief covering audience, tone, length and target keywords.
 
 ```bash
 terminal-skills install content-writer
@@ -134,7 +136,7 @@ terminal-skills install content-writer
 
 #### 10. data-analysis
 
-Analyze spreadsheet data, find trends, generate visualizations. Answer questions about datasets.
+Analyze spreadsheet data with Python (pandas, matplotlib), find trends, generate visualizations, and answer questions about datasets.
 
 ```bash
 terminal-skills install data-analysis
@@ -145,9 +147,9 @@ terminal-skills install data-analysis
 
 ---
 
-## Total Time Saved
+## Estimated Time Saved
 
-| Category | Weekly Savings |
+| Category | Estimated weekly savings |
 |----------|----------------|
 | Documents | ~3 hours |
 | Business | ~4 hours |
@@ -177,4 +179,4 @@ terminal-skills install data-analysis
 
 ## Browse All Skills
 
-These 10 skills are just the beginning. Browse 85+ skills at [terminalskills.io](https://terminalskills.io).
+These 10 skills are just the beginning. Browse the full catalog of 1,000+ skills at [terminalskills.io](https://terminalskills.io).

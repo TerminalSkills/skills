@@ -12,7 +12,7 @@ compatibility: >-
   Blender 2.8-4.2 was removed). Run: blender --background --python script.py
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: design
   tags: "blender, grease-pencil, 2d-animation, drawing, strokes"
   repository: https://projects.blender.org/blender/blender
@@ -79,7 +79,7 @@ def add_stroke(drawing, points, radius=0.02, material_index=0, cyclic=False):
     drawing.add_strokes([len(points)])
 
     pos = attrs["position"].data
-    rad = attrs["radius"].data
+    rad = (attrs.get("radius") or attrs.new("radius", 'FLOAT', 'POINT')).data   # absent until first set
     for i, co in enumerate(points):
         pos[first_point + i].vector = co
         rad[first_point + i].value = radius      # radius, not width: line width is about 2 * radius
@@ -270,4 +270,4 @@ Result: scrubbing frames 1-60 shows the four strokes appearing one after another
 - `layer.frames.new()` fails if the frame number is taken; use `layer.get_frame_at()` or `layer.frames.remove()` first.
 - Never hardcode enum names from memory: read them, for example `[i.identifier for i in bpy.types.Modifier.bl_rna.properties["type"].enum_items]`.
 - Build modifier is the cheapest way to animate stroke reveal without per-frame scripting.
-- Scripts here were checked against the API reference, not executed in Blender: run them once in `blender --background --python script.py` and watch the console before relying on them.
+- Every script here was run in Blender 5.0.1 (`blender -b --factory-startup --python`). The `radius` point attribute does not exist on a fresh drawing: create it with `attrs.new("radius", 'FLOAT', 'POINT')` before indexing it, as `add_stroke()` does.

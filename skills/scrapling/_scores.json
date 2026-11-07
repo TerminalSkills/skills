@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2ca5302a8892f15337cb8c09bc3520e98e0f277b4b6c49ecc51d9be97d1be5d8",
-  "scoredAt": "2026-09-30T11:40:51.240Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:764b1a03c1dbc8257745f630d21a1733a88a5ce431a95bc9262c879448b571da",
+  "scoredAt": "2026-11-05T20:43:00.364Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains extensive explanatory text that may be considered verbose."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions assume a Unix-like shell, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 30,
-    "treatmentAvg": 75,
+    "multiplier": 6.31,
+    "baselineAvg": 13,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "http-fetch-and-extract",
-        "baseline": 20,
-        "treatment": 75,
-        "rationale": "Response A meets most rubric items but omits the required Fetcher.get settings, while Response B lacks all specified requirements."
+        "name": "adaptive-selector-after-redesign",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention adaptive selectors or the required configuration."
       },
       {
-        "name": "js-rendered-page-scrape",
+        "name": "resume-crawl-with-crawldir",
         "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A meets the DynamicFetcher requirements and performs the click and extraction, but omits the quote count; Response B uses Playwright instead of DynamicFetcher and lacks the required fetcher settings."
+        "treatment": 90,
+        "rationale": "Response B covers the required Spider subclass, start(crawldir=\"crawl-state\"), resume logic, checkpoint removal, and export to JSON‑lines, while Response A only shows command‑line usage without the subclass or checkpoint details."
       },
       {
-        "name": "full-crawl-with-spider",
-        "baseline": 40,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but misses the exact 100-item count and uses a set for allowed_domains; Response B fails to meet several key requirements such as concurrency, delay, and the CrawlResult contract."
+        "name": "scrape-cloudflare-page-with-stealthyfetcher",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response A partially meets the rubric but omits the required wait_selector and markdown/css methods, while Response B does not use StealthyFetcher.fetch at all."
       }
     ]
   }

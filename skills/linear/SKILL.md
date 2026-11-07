@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: Node.js 18+ or any HTTP client (GraphQL API)
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: productivity
   repository: https://github.com/linear/linear
   tags: "linear, project-management, issue-tracker, graphql, automation"
@@ -37,6 +37,10 @@ export LINEAR_API_KEY="lin_api_xxxxxxxxxxxxxxxxxxxx"
 ```bash
 npm install @linear/sdk
 ```
+
+The SDK ships a new major on every GraphQL schema change (100.x as of late October 2026), mostly removing fields on admin/integration inputs that this skill does not use. Pin the version in `package.json` and read the release notes at github.com/linear/linear/releases before upgrading.
+
+SDK mutation methods are named verb-first (`createIssue`, `updateIssue`, `createProject`); the GraphQL mutations are noun-first (`issueCreate`, `projectCreate`). Do not mix them.
 
 ```typescript
 import { LinearClient } from "@linear/sdk";
@@ -73,7 +77,7 @@ const teams = await linear.teams();
 teams.nodes.forEach((t) => console.log(`${t.key}: ${t.name} (${t.id})`));
 
 // Create label
-await linear.issueLabelCreate({ teamId: "TEAM_ID", name: "bug", color: "#ef4444" });
+await linear.createIssueLabel({ teamId: "TEAM_ID", name: "bug", color: "#ef4444" });
 ```
 
 **Custom workflow states** (GraphQL):
@@ -89,7 +93,7 @@ State types: `backlog`, `unstarted`, `started`, `completed`, `cancelled`.
 
 ```typescript
 // Create an issue
-const issue = await linear.issueCreate({
+const issue = await linear.createIssue({
   teamId: "TEAM_ID", title: "Implement user authentication",
   description: "Add OAuth2 login flow with Google and GitHub providers.",
   priority: 2, assigneeId: "USER_ID", labelIds: ["LABEL_ID"],
@@ -107,22 +111,22 @@ const issues = await linear.issues({
 
 // Bulk cancel stale backlog issues
 const stale = await linear.issues({
-  filter: { state: { type: { eq: "backlog" } }, label: { name: { eq: "stale" } } },
+  filter: { state: { type: { eq: "backlog" } }, labels: { name: { eq: "stale" } } },
 });
 for (const issue of stale.nodes) {
   await issue.update({ stateId: "CANCELLED_STATE_ID" });
 }
 
 // Sub-issues and relations
-await linear.issueCreate({ teamId: "TEAM_ID", title: "Write auth tests", parentId: "PARENT_ID" });
-await linear.issueRelationCreate({ issueId: "A", relatedIssueId: "B", type: "blocks" });
+await linear.createIssue({ teamId: "TEAM_ID", title: "Write auth tests", parentId: "PARENT_ID" });
+await linear.createIssueRelation({ issueId: "A", relatedIssueId: "B", type: "blocks" });
 ```
 
 ### Step 4: Projects & Cycles
 
 ```typescript
 // Create a project
-const project = await linear.projectCreate({
+const project = await linear.createProject({
   teamIds: ["TEAM_ID"], name: "Q1 Auth Overhaul",
   description: "Replace legacy auth with OAuth2 + MFA",
   targetDate: "2026-03-31", startDate: "2026-01-15",
@@ -132,12 +136,12 @@ const project = await linear.projectCreate({
 // Link issue to project and check progress
 await issue.update({ projectId: "PROJECT_ID" });
 const proj = await linear.project("PROJECT_ID");
-console.log(`Scope done: ${proj.completedScopeCount}/${proj.scopeCount}`); // proj.progress is a 0-1 fraction
+console.log(`Progress: ${Math.round(proj.progress * 100)}% of ${proj.scope} points`); // progress is a 0-1 fraction
 
 // Create a cycle (sprint)
-await linear.cycleCreate({
+await linear.createCycle({
   teamId: "TEAM_ID", name: "Sprint 14",
-  startsAt: "2026-02-17T00:00:00Z", endsAt: "2026-03-02T00:00:00Z",
+  startsAt: new Date("2026-02-17T00:00:00Z"), endsAt: new Date("2026-03-02T00:00:00Z"),
 });
 
 // Roll unfinished issues to next cycle
@@ -189,13 +193,13 @@ app.post("/linear/webhook", express.raw({ type: "application/json" }), (req, res
     const labels = data.labels?.map((l: any) => l.name) || [];
     const map: Record<string, string> = { frontend: "LEAD_A", backend: "LEAD_B" };
     for (const [label, id] of Object.entries(map)) {
-      if (labels.includes(label)) { linear.issueUpdate(data.id, { assigneeId: id }); break; }
+      if (labels.includes(label)) { linear.updateIssue(data.id, { assigneeId: id }); break; }
     }
   }
   // Auto-triage urgent issues into active cycle
   if (type === "Issue" && data.priority <= 1) {
     linear.cycles({ filter: { team: { id: { eq: data.teamId } }, isActive: { eq: true } } })
-      .then(c => { if (c.nodes[0]) linear.issueUpdate(data.id, { cycleId: c.nodes[0].id }); });
+      .then(c => { if (c.nodes[0]) linear.updateIssue(data.id, { cycleId: c.nodes[0].id }); });
   }
   res.sendStatus(200);
 });
@@ -211,10 +215,12 @@ Merged PRs auto-move linked issues to "Done".
 
 **Query team velocity:**
 ```graphql
-query { cycles(filter: { team: { key: { eq: "ENG" } }, isCompleted: { eq: true } }, last: 6) {
-  nodes { name completedScopeCount scopeCount startsAt endsAt }
+query { cycles(filter: { team: { key: { eq: "ENG" } }, isPast: { eq: true } }, last: 6) {
+  nodes { name progress scopeHistory completedScopeHistory startsAt endsAt }
 } }
 ```
+
+`scopeHistory` and `completedScopeHistory` hold one value per day (estimate points); the last element is the final total and the points completed. There are no `scopeCount` / `completedScopeCount` fields.
 
 **Export issues to CSV:**
 ```typescript
@@ -230,7 +236,7 @@ while (hasMore) {
     writer.write(`${issue.identifier},"${issue.title}",${state},${issue.priority},${assignee},${issue.createdAt}\n`);
   }
   hasMore = page.pageInfo.hasNextPage;
-  cursor = page.pageInfo.endCursor;
+  cursor = page.pageInfo.endCursor ?? undefined;
 }
 writer.end();
 ```
@@ -241,7 +247,7 @@ writer.end();
 
 **User prompt:** "Our current sprint ends today. Roll any unfinished issues into Sprint 15 and show me a velocity report for the last 4 completed sprints on the ENG team."
 
-The agent will query the active cycle for the ENG team and find all issues with unstarted or started states. It will then look up the next cycle by start date, update each unfinished issue to the new cycle ID, and report how many issues were moved. For the velocity report, it will query the last 4 completed cycles via GraphQL, extract `completedScopeCount` and `scopeCount` for each, and display a table with sprint name, total scope, completed count, and completion percentage.
+The agent will query the active cycle for the ENG team and find all issues with unstarted or started states. It will then look up the next cycle by start date, update each unfinished issue to the new cycle ID, and report how many issues were moved. For the velocity report, it will query the last 4 completed cycles via GraphQL, take the last value of `scopeHistory` and `completedScopeHistory` for each, and display a table with sprint name, total scope, completed count, and completion percentage.
 
 ### Example 2: Auto-triage pipeline with Slack notifications
 
@@ -252,8 +258,8 @@ The agent will create a Linear webhook subscribed to Issue resource types for th
 ## Guidelines
 
 - **Use the SDK for type safety** — the `@linear/sdk` package provides typed methods and pagination helpers; prefer it over raw GraphQL for most operations.
-- **Paginate all list queries** — Linear caps results at 250 per page; always check `pageInfo.hasNextPage` and pass `after: endCursor` to avoid silently truncating results.
+- **Paginate all list queries** — results are paginated (50 per page by default); always check `pageInfo.hasNextPage` and pass `after: endCursor` to avoid silently truncating results.
 - **Verify webhook signatures** — validate the `Linear-Signature` header (HMAC-SHA256 over the raw body) and the `webhookTimestamp` before processing any payload, to prevent forged or replayed events. Parsing the body before verifying breaks the signature.
 - **Scope webhooks to specific teams** — use the `teamId` parameter when creating webhooks to avoid receiving events from unrelated teams in large workspaces.
 - **Use branch naming conventions for GitHub sync** — format branches as `username/TEAM-123-description` so Linear auto-links PRs and moves issues on merge.
-- **Batch updates carefully** — Linear has rate limits (varies by plan); add small delays in loops that update many issues and handle rate-limit errors with backoff. Limits: 2,500 requests/hour per user with a personal API key, 5,000 with OAuth, plus a complexity budget and a 10,000-point cap per query. Exceeding them returns HTTP 400 with a `RATELIMITED` error code (not 429); watch the `X-RateLimit-Requests-Remaining` header.
+- **Batch updates carefully** — Linear has rate limits (varies by plan); add small delays in loops that update many issues and handle rate-limit errors with backoff. Limits: 2,500 requests/hour per user with a personal API key, 5,000 with OAuth, plus a complexity budget and a 10,000-point cap per query. Exceeding them returns HTTP 429 with a `RATELIMITED` error code and a `Retry-After` header (seconds); watch `X-RateLimit-Requests-Remaining`.

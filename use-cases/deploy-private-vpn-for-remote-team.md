@@ -3,7 +3,7 @@ title: Deploy a Private VPN for a Remote Team
 slug: deploy-private-vpn-for-remote-team
 description: "Set up OpenVPN for corporate network access and Xray VLESS+Reality as a censorship-resistant proxy on the same server, with automated client provisioning and monitoring."
 category: devops
-skills: [openvpn, xray]
+skills: [openvpn, xray, 3x-ui]
 tags: [openvpn, xray, vpn, security, remote-work]
 ---
 
@@ -332,3 +332,9 @@ Leo provisions the dual-stack server on a Friday afternoon. By Monday, all 25 em
 When an intern's contract ends on their last day, one `revoke-user.sh` command kills access in seconds. No waiting for IT tickets, no "can someone remove their access?" messages in Slack a week later.
 
 The five team members in restricted countries import subscription links into v2rayNG. Reality protocol makes their traffic indistinguishable from normal HTTPS visits to microsoft.com, so DPI systems let it through. Over three months, the proxy stays unblocked while other VPN solutions in the same countries get detected and blocked within days. The weekly auto-update keeps Xray current, and monitoring scripts give Leo visibility into usage across both services.
+
+## Related Skills
+
+- [openvpn](/skills/openvpn) — the corporate-network VPN half of the setup
+- [xray](/skills/xray) — the VLESS+Reality proxy configured by hand in this guide
+- [3x-ui](/skills/3x-ui) — choose it instead of hand-written Xray configs when you want a web panel and an HTTP API for adding, limiting and revoking proxy users

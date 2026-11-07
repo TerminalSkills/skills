@@ -11,136 +11,131 @@ tags: [excel, spreadsheet, data-cleaning, automation, reporting]
 
 ## The Problem
 
-Every Monday, Ana at a 67-person manufacturing company faces the same nightmare: 23 Excel files from different departments, each with its own formatting conventions, merged cells, and data quality issues. Sales uses mm/dd/yyyy dates. Operations uses dd-mm-yyyy. Finance embeds subtotals randomly throughout data tables. She needs to combine all of it into a unified executive dashboard.
+Every Monday, Ana at a 67-person manufacturing company faces the same job: 23 Excel files from different departments, each with its own conventions, merged header cells and subtotal rows pasted into the data. Sales writes dates as mm/dd/yyyy, Operations as dd-mm-yyyy. Product codes appear as "SKU-001", "SKU_001" and "SKU 001". The same customer shows up as "ACME Corp", "Acme Corporation" and "ACME Corp.", and phone numbers come as "(555) 123-4567", "555.123.4567" and "5551234567".
 
-The manual process takes 20 hours every week. Product codes like "SKU-001" in one sheet become "SKU_001" in another and "SKU 001" in a third. Customer names have spelling variations — "ACME Corp", "Acme Corporation", "ACME Corp." are the same company appearing as three different entities. Phone numbers come in every imaginable format: "(555) 123-4567", "555.123.4567", "5551234567". Duplicate detection is entirely manual and consistently error-prone.
-
-The business cost goes beyond Ana's time. At $45/hour, the manual processing costs $46,800 annually. But the bigger problem is the 3-day delay between data collection and executive reporting. Leadership makes strategic decisions on stale information. Last quarter, they missed a 15% uptick in product returns because the data was 4 days old by the time anyone analyzed it. By then, another 200 units had shipped with the same defect.
+Combining it all by hand takes about 20 hours a week, and the result is a few days old by the time leadership sees it. Duplicate customers also inflate every per-customer number she reports. Those 20 hours are the example team's own estimate; the point is that the work is mechanical, repeatable and error-prone, which is what a script is for.
 
 ## The Solution
 
-Using the **excel-processor**, **data-analysis**, and **report-generator** skills, the approach is to ingest all 23 files, intelligently normalize formats, detect and merge duplicates using fuzzy matching, run data quality checks, generate business insights through statistical analysis, and build automated dashboards that refresh without manual intervention.
+Three skills split the work:
+
+- **excel-processor** loads every workbook with pandas, standardizes columns, dates, phones and codes, drops duplicates and writes clean `.xlsx` output.
+- **data-analysis** profiles the merged table, finds outliers, and computes the trends and customer concentration.
+- **report-generator** turns the results into a self-contained HTML (or PDF) report that is rebuilt on a schedule.
+
+Everything runs as Python with `pandas` and `openpyxl` (pandas 3.x, Python 3.11+). The agent works on copies and never overwrites the original files.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Multi-File Ingestion and Standardization
+### Step 1: Load and profile every file
 
 ```text
-Process all 23 department Excel files. Detect data types, normalize formats,
-and combine into a unified dataset.
+Load every .xlsx in ./inbox. Print shape, columns, dtypes, missing values and
+duplicate counts per file before changing anything. Do not overwrite the originals.
 ```
 
-Each file gets parsed, profiled, and normalized. The files range from simple (HR's 156-row headcount sheet) to chaotic (Finance's reconciliation file with embedded formulas, merged header cells, and subtotal rows mixed into the data):
+The agent follows the excel-processor pattern: `pd.read_excel(path, sheet_name=0)` per file, lower-cases and underscores the headers so "Order Date" and "order_date" line up, adds a `source_file` column, and concatenates. Before transforming it prints the shape, column names and first rows of each file, so a merged-header file that loaded wrongly is caught at once. Columns that do not match across files are reported, not silently dropped.
 
-- **Sales_Q4_2024.xlsx** — 3,247 rows of product sales and customer info with inconsistent dates
-- **Operations_Weekly.xlsx** — 1,891 rows of inventory data with multiple SKU format variations
-- **Finance_Reconciliation.xlsx** — 892 rows with revenue, costs, and embedded calculations that reference other sheets
-- **HR_Headcount.xlsx** — 156 rows of employee data across departments
-- Plus 19 more files with similar issues
+Files that carry subtotal rows or formulas pointing at other sheets need a decision: `read_excel` returns the cached formula results, and subtotal rows are filtered out by a rule you confirm (for example, rows where `sku` is empty).
 
-The format normalization handles the messy reality of multi-department data:
-
-| Issue | Scope | Resolution |
-|---|---|---|
-| Date formats | 7 different patterns across files | Standardized to YYYY-MM-DD |
-| Phone numbers | 12 format variations | Normalized to (XXX) XXX-XXXX |
-| Currency | Mixed "$1,234.56" and bare "1234.56" | Consistent $X,XXX.XX |
-| Product codes | 23 naming variations | Unified SKU-XXXXX format |
-| Company names | 89 spelling variations | Deduplicated to 34 unique entities |
-
-The combined dataset: **47,832 rows across 31 columns** with 99.7% data integrity. The 0.3% that can't be auto-resolved gets flagged for human review rather than silently guessed — a critical distinction. A phone number with 11 digits could be a typo or an international number. That's Ana's call, not an algorithm's.
-
-### Step 2: Duplicate Detection and Cleaning
+### Step 2: Normalize formats and merge duplicates
 
 ```text
-Identify duplicate records across files using fuzzy matching and business logic
-rules. Clean inconsistent data entries.
+Normalize dates, SKUs and phone numbers. Group company names that differ only in
+suffix or punctuation. Put anything uncertain in a needs_review column instead of guessing.
 ```
 
-Simple exact-match deduplication misses most of the real duplicates because the same entity is spelled differently across files. Fuzzy matching catches what exact matching can't:
+The core of the cleaning script, tested against pandas 3.1:
 
-**Customer matching:** "ACME Corp" = "Acme Corporation" = "ACME Corp." get merged using a combination of name similarity scoring and email/phone confirmation. "Smith, John" vs "John Smith" vs "J. Smith" get matched through their shared phone number. The matching is conservative — a name-only match flags for review, but a name + phone match merges automatically.
+```python
+import re
+from difflib import SequenceMatcher
+import pandas as pd
 
-**Product deduplication:** SKU-001, SKU_001, and SKU 001 consolidate to a canonical SKU-001. Description variations like "Widget (Red)" vs "Red Widget" normalize to a consistent format. Same-SKU records with different prices get flagged for manual review — that's a business decision, not a data cleaning decision. The price discrepancy might be a regional difference, a bulk discount, or a data entry error.
+SUFFIXES = {"corp", "corporation", "inc", "incorporated", "co", "company", "llc", "ltd"}
 
-**Cleaning results:**
-- 2,847 duplicate customer records merged (most recent data retained)
-- 834 product variations consolidated
-- 156 address standardizations applied
-- 23 pricing inconsistencies flagged for manual review
-- 4,891 phone number format fixes
+def company_key(name):
+    words = re.sub(r"[^a-z0-9 ]", " ", str(name).lower()).split()
+    return " ".join(w for w in words if w not in SUFFIXES)
 
-**Final dataset: 44,985 unique records** — a 6% duplicate removal rate. That 6% was silently inflating every report Ana produced. Revenue per customer, order frequency, average order value — all of these metrics were wrong because the same customer appeared multiple times under different names.
+def sku_key(code):
+    m = re.search(r"(\d+)", str(code))
+    return f"SKU-{int(m.group(1)):05d}" if m else ""
 
-### Step 3: Data Quality Analysis
+def phone_key(raw):
+    digits = re.sub(r"\D", "", str(raw))
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}" if len(digits) == 10 else ""
+
+# Name the format for each source; pandas 3 warns and guesses per value otherwise.
+us = pd.to_datetime(df["order_date"], format="%m/%d/%Y", errors="coerce")
+eu = pd.to_datetime(df["order_date"], format="%d-%m-%Y", errors="coerce")
+df["order_date"] = us.fillna(eu)
+df["sku"] = df["sku"].map(sku_key)
+df["phone_clean"] = df["phone"].map(phone_key)
+df["needs_review"] = (df["phone_clean"] == "") | df["order_date"].isna()
+
+df["company_key"] = df["company"].map(company_key)
+canon = {}
+for key in df["company_key"].unique():
+    match = next((c for c in canon if SequenceMatcher(None, key, c).ratio() >= 0.92), None)
+    canon[key] = canon[match] if match else key
+df["company_id"] = df["company_key"].map(canon)
+```
+
+On a small test set, "ACME Corp", "ACME Corp." and "Acme Corporation" collapse into one `company_id`, `SKU 001` and `SKU_001` become `SKU-00001`, and a phone with 5 digits or a date like "bad" lands in `needs_review`. Two caveats the agent states in its summary:
+
+- A date such as 03/04/2026 matches both formats. Assign the format per source file (Sales is month-first, Operations is day-first) rather than per value.
+- Name similarity alone only proposes a merge. A name-only match goes to review; a name plus the same phone or email merges. For thousands of names, a dedicated matcher such as `rapidfuzz` is faster than `difflib`, but the review rule stays the same.
+
+Then `df.drop_duplicates(subset=["company_id", "order_id"])` removes exact repeats, and the agent reports how many rows each rule removed. Same-SKU rows with different prices are flagged, not merged: the cause may be a regional price or a typo.
+
+### Step 3: Check data quality and find outliers
 
 ```text
-Analyze data quality issues, detect outliers, and generate data health reports
-with recommendations.
+Profile the merged table: completeness per column, negative stock, margins above 90%,
+and order values outside 1.5 IQR. List the rows, do not delete them.
 ```
 
-With clean, deduplicated data, the quality analysis reveals what's missing and what looks wrong:
+The data-analysis outlier recipe applies directly:
 
-**Completeness gaps:**
-- Customer Email: 89.4% populated (4,782 missing) — worth running through an email append service
-- Product Cost: 94.2% populated (2,601 missing) — can inherit from category averages
-- Region: 78.3% populated (9,847 missing) — recoverable via ZIP code geo-lookup
+```python
+q1, q3 = df["order_value"].quantile([0.25, 0.75])
+iqr = q3 - q1
+outliers = df[(df["order_value"] < q1 - 1.5 * iqr) | (df["order_value"] > q3 + 1.5 * iqr)]
+negative_stock = df[df["stock"] < 0]
+print(df.isnull().sum() / len(df))
+```
 
-**Outliers that need investigation:**
-- 23 orders valued over $50K (legitimate large orders or data entry errors?)
-- 12 products showing negative stock (definitely data errors — someone entered returns wrong)
-- 156 products with margins exceeding 90% (pricing review needed)
-- 4 customers placing over 100 orders per day (bot activity or bulk purchasing program?)
+Negative stock is almost always a data-entry error (a return keyed as a sale) and goes to the owner of that file. A very large order may be legitimate, so it is listed for a human, not removed.
 
-**Statistical validation:** Revenue follows a normal distribution. Order frequency shows a clear seasonal pattern with a December peak and February trough. Customer lifetime value follows a power law — the top 12% of customers drive 67% of revenue. Geographic spread covers 47 states with concentration in Texas, California, and New York.
-
-### Step 4: Business Insight Generation
+### Step 4: Compute the business metrics
 
 ```text
-Generate business insights through statistical analysis, trend detection, and
-predictive modeling.
+Monthly revenue and year-over-year change by category, and the share of revenue
+from the top 10% of customers. Chart the monthly trend.
 ```
 
-This is where the cleaned data starts paying for itself. Patterns that were invisible in 23 separate spreadsheets become obvious in the unified dataset:
+```python
+monthly = df.resample("ME", on="order_date").agg(revenue=("order_value", "sum"), orders=("order_id", "count"))
+by_customer = df.groupby("company_id")["order_value"].sum().sort_values(ascending=False)
+top_share = by_customer.head(max(1, len(by_customer) // 10)).sum() / by_customer.sum()
+```
 
-**Revenue insights:**
-- Year-over-year growth is 23.4% overall, but 8 product categories are declining — the aggregate number masks a diversification problem
-- The Southwest region is outperforming by 31%, suggesting an expansion opportunity
-- Top 12% of customers drive 67% of revenue — a concentration risk worth monitoring
+Because duplicates are merged first, customer counts, average order value and the top-customer share are computed on real customers. In pandas 3 the month-end alias is `"ME"`; the old `"M"` raises an error. The agent saves charts as PNG at 150 DPI with `matplotlib.use("Agg")` so it works on a server without a display. Forecasts and "growth opportunity" claims are labelled as extrapolation from the numbers shown, not as predictions.
 
-**Product performance:**
-- Two products are growing fast: SKU-1847 (+89%) and SKU-2103 (+76%)
-- The Accessories category is down 23% and needs intervention
-- $1.2M in slow-moving inventory identified across 340 SKUs — capital tied up in products that aren't selling
-
-**Customer intelligence:**
-- 234 customers are showing a purchase decline pattern — early churn signals that sales can act on now, not after the customer leaves
-- Customers who buy from 3+ product categories have 67% higher lifetime value — a cross-sell opportunity
-- Untapped potential in the Pacific Northwest represents roughly $2.1M in addressable opportunity
-
-**Forecast:** Q1 revenue projected at $3.8M with a 12% confidence interval. Inventory recommendations: increase SKU-1847 stock by 45%, reduce Accessories by 30%.
-
-### Step 5: Automated Dashboard and Reporting
+### Step 5: Build a report that regenerates itself
 
 ```text
-Create executive dashboards with automated data refresh, alert systems, and
-drill-down capabilities.
+Generate weekly_report.html with KPI cards, the monthly chart and the review list,
+including the data source, generation date and reporting period.
 ```
 
-The final piece replaces Ana's manual reporting entirely. The system watches a shared folder for new Excel files and processes them automatically:
-
-**Executive dashboard** — KPI summary with traffic-light status indicators, 13-week rolling averages, year-over-year comparisons, and revenue forecasts. Updated within 2 hours of new data arriving, not 3 days.
-
-**Department views** — Sales gets pipeline and territory performance. Operations gets inventory turns and capacity utilization. Finance gets P&L trends and budget variance. Marketing gets campaign ROI and acquisition costs. Each view pulls from the same unified dataset, so the numbers always agree.
-
-**Alert system** — significant changes trigger stakeholder notifications within 1 hour. A 15% spike in returns doesn't wait 4 days to surface — it appears in Slack the same day. Inventory dropping below safety stock triggers an immediate procurement alert.
-
-**Scheduled reports** — weekly summaries auto-generate and distribute every Monday morning. By the time the executive team opens their email, the latest numbers are waiting.
+report-generator renders a single HTML file with the charts embedded as base64 through Jinja2, and a PDF through WeasyPrint if the Pango library is installed. The cleaning script and the report script are saved as plain `.py` files, so a scheduler (cron, a systemd timer or a CI job) can run them each Monday morning and write the result next to the cleaned workbook. The `needs_review` rows go into their own sheet of `inbox_clean.xlsx`, so the human decisions are visible and nothing is guessed silently.
 
 ## Real-World Example
 
-The transformation happens in stages. Week one: the 23 files are ingested, cleaned, and unified for the first time. The duplicate removal alone changes the numbers — 6% of records were inflating every metric. Customer counts, average order values, revenue per account — all slightly wrong, for years. Week two: the outlier detection catches 12 negative-stock products that had been causing fulfillment errors for months.
+In Ana's first run, the agent loads 23 files, flags 14 rows with unparseable dates and 9 phone numbers that are not 10 digits, merges the obvious company-name variants, and lists 6 same-SKU price conflicts. These figures are the example team's illustration, not a benchmark. Ana spends her first hour on the review sheet instead of copying columns, and decides each flagged item once; her rules (the date format per file, the SKU pattern, which name variants are the same company) are kept in the script, so the next Monday only new problems need her eyes.
 
-But the real payoff is the insight that falls out of clean data. The discovery that the Accessories category is down 23% — invisible when the data lived in separate spreadsheets — leads to a pricing adjustment that recovers $180K in annual revenue. The identification of $1.2M in slow-moving inventory triggers a clearance campaign that frees up warehouse space and working capital. Route optimization based on the geographic analysis saves $67,000 in logistics costs.
-
-Ana's Monday morning shifts from 20 hours of copy-paste to 45 minutes of reviewing dashboards and flagged anomalies. The 3-day reporting delay drops to 2 hours. And the executive team stops making decisions on stale data — which turns out to be worth far more than the $46,800 in saved labor.
+From then on the Monday work is: run the script, open the report, check the review list. Customer counts and revenue per customer change slightly because the duplicate customers are merged, and the outlier list is what surfaces a row like a return keyed as a sale. The saving comes from the repetitive parts being code rather than from any single insight.

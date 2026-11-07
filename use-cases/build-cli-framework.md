@@ -4,6 +4,7 @@ slug: build-cli-framework
 description: Build a CLI framework with command parsing, argument validation, interactive prompts, progress indicators, colorized output, and plugin system for building developer tools.
 skills:
   - zod
+  - ink-cli
 category: development
 tags:
   - cli
@@ -248,3 +249,7 @@ export function table(headers: string[], rows: string[][]): void {
 - **Automatic help** — `--help` generates formatted help from command definitions; always in sync; no manual help text
 - **Zod validation** — `--port` validated as number, `--email` as email; type errors caught before action runs; no manual checks
 - **Plugin system** — analytics plugin hooks into beforeRun/afterRun; tracks command usage; no changes to existing commands
+
+## Related Skills
+
+- [ink-cli](/skills/ink-cli) — when the framework needs live, interactive screens (progress lists, menus, keyboard input) built from React components

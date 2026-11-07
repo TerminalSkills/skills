@@ -3,7 +3,7 @@ title: Build an Internal Admin Panel Without Coding from Scratch
 slug: build-internal-admin-panel-without-coding-from-scratch
 description: >-
   Build a production admin panel for managing users, orders, and refunds using Retool or Refine connected to PostgreSQL.
-skills: [retool, refine, ant-design]
+skills: [retool, refine, ant-design, budibase]
 category: development
 tags: [admin-panel, internal-tools, crud, low-code, dashboard]
 ---
@@ -126,3 +126,4 @@ Dana, head of ops at ShopStream (a 25-person e-commerce company), follows this p
 - [retool](/skills/retool) — builds the panel visually when no one wants to write React
 - [refine](/skills/refine) — generates the CRUD pages and data provider in code
 - [ant-design](/skills/ant-design) — the component library behind Refine's default UI (@refinedev/antd); use it to theme the panel, build the refund form with validation and customize tables beyond what Refine generates
+- [budibase](/skills/budibase) — an open-source visual builder you host yourself with Docker; the agent deploys it and seeds tables through its public API

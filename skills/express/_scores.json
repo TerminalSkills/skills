@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dcaf2eb24b791582f0377a32ffd0222bc9ff8fe142d75454fc73cc139412d272",
+  "scoredAt": "2026-11-05T20:45:34.000Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment, which is a minor platform assumption."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.41,
+    "baselineAvg": 32,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "build-inventory-api",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B better meets the rubric, providing a Location header, correct 404 handler, and async error handling, while Response A lacks the required title validation and Location header."
+      },
+      {
+        "name": "upgrade-wildcard-route",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no content."
+      },
+      {
+        "name": "serve-static-with-cache",
+        "baseline": 45,
+        "treatment": 50,
+        "rationale": "Both responses omit the required '/assets' mount point; A uses the correct error string while B uses a capitalized variant, giving A a slight edge."
+      }
+    ]
+  }
+}

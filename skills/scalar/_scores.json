@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:67de05db05d155bdeadff1bc980aad109c21e1f91adb9384d2e38686140088b9",
+  "scoredAt": "2026-10-28T18:57:58.719Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases for invalid specs or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Node.js and npm, limiting its applicability to other AI agent platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.2,
+    "baselineAvg": 2,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "preview-spec-cli",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the exact command and explanation required by the rubric, while Response A is empty and does not meet any of the rubric criteria."
+      },
+      {
+        "name": "mount-express-docs",
+        "baseline": 5,
+        "treatment": 45,
+        "rationale": "Response B covers most of the rubric but misses the bundling step and serving from public/openapi.json, whereas Response A fails to meet any of the rubric requirements."
+      },
+      {
+        "name": "mock-api-server",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not provide the required scalar command."
+      }
+    ]
+  }
+}

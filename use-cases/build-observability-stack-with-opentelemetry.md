@@ -25,220 +25,192 @@ Piotr leads SRE at a 45-person company with 15 microservices. When a request is 
 
 ## Step 1: Build the OpenTelemetry Instrumentation
 
+Current OpenTelemetry JS (SDK 2.x, `@opentelemetry/sdk-node` 0.3xx) needs Node.js 22.15 or newer. Install the packages:
+
+```bash
+npm install @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/sdk-metrics \
+  @opentelemetry/resources @opentelemetry/semantic-conventions \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http \
+  @opentelemetry/auto-instrumentations-node
+```
+
 ```typescript
-// src/telemetry/setup.ts — OpenTelemetry auto-instrumentation for Node.js
+// src/instrumentation.ts — loaded BEFORE the app (see "Run it" below)
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import { W3CTraceContextPropagator } from "@opentelemetry/core";
 
-const SERVICE_NAME = process.env.SERVICE_NAME || "unknown-service";
-const OTEL_ENDPOINT = process.env.OTEL_ENDPOINT || "http://localhost:4318";
-
-export function initTelemetry(): NodeSDK {
-  const sdk = new NodeSDK({
-    resource: new Resource({
-      [ATTR_SERVICE_NAME]: SERVICE_NAME,
-      [ATTR_SERVICE_VERSION]: process.env.SERVICE_VERSION || "0.0.0",
-      "deployment.environment": process.env.NODE_ENV || "development",
+// Endpoint comes from OTEL_EXPORTER_OTLP_ENDPOINT (default http://localhost:4318);
+// the exporters append /v1/traces and /v1/metrics themselves.
+const sdk = new NodeSDK({
+  resource: resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME ?? "unknown-service",
+    [ATTR_SERVICE_VERSION]: process.env.SERVICE_VERSION ?? "0.0.0",
+    "deployment.environment.name": process.env.NODE_ENV ?? "development",
+  }),
+  traceExporter: new OTLPTraceExporter(),
+  metricReaders: [
+    new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter(),
+      exportIntervalMillis: 15000,
     }),
-
-    // Distributed tracing
-    traceExporter: new OTLPTraceExporter({
-      url: `${OTEL_ENDPOINT}/v1/traces`,
+  ],
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      "@opentelemetry/instrumentation-http": {
+        requestHook: (span, request) => {
+          const id = "headers" in request ? request.headers["x-request-id"] : undefined;
+          if (typeof id === "string") span.setAttribute("app.request_id", id);
+        },
+      },
+      "@opentelemetry/instrumentation-pg": { enhancedDatabaseReporting: false },
+      "@opentelemetry/instrumentation-redis": {
+        dbStatementSerializer: (cmdName, cmdArgs) => `${cmdName} ${cmdArgs[0] ?? ""}`,
+      },
     }),
+  ],
+});
 
-    // Metrics
-    metricReader: new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter({
-        url: `${OTEL_ENDPOINT}/v1/metrics`,
-      }),
-      exportIntervalMillis: 15000, // export every 15s
-    }),
-
-    // Auto-instrument everything: HTTP, pg, Redis, Express/Hono
-    instrumentations: [
-      getNodeAutoInstrumentations({
-        "@opentelemetry/instrumentation-http": {
-          requestHook: (span, request) => {
-            span.setAttribute("http.request_id", request.headers?.["x-request-id"] || "");
-          },
-        },
-        "@opentelemetry/instrumentation-pg": {
-          enhancedDatabaseReporting: true,
-        },
-        "@opentelemetry/instrumentation-redis": {
-          dbStatementSerializer: (cmdName, cmdArgs) => `${cmdName} ${cmdArgs[0] || ""}`,
-        },
-      }),
-    ],
-
-    textMapPropagator: new W3CTraceContextPropagator(),
-  });
-
-  sdk.start();
-  console.log(`[Telemetry] OpenTelemetry initialized for ${SERVICE_NAME}`);
-
-  // Graceful shutdown
-  process.on("SIGTERM", () => sdk.shutdown());
-
-  return sdk;
-}
+sdk.start();
+process.on("SIGTERM", () => sdk.shutdown().finally(() => process.exit(0)));
 ```
 
+The SDK reads `OTEL_SERVICE_NAME` and `OTEL_EXPORTER_OTLP_ENDPOINT` itself, so every service uses the same file and only the environment differs. Auto-instrumentation covers HTTP, `pg` and `redis`; it does not know about Hono, so the server span comes from the Node HTTP layer and Step 2 enriches it.
+
 ```typescript
-// src/telemetry/custom-spans.ts — Custom spans for business logic
-import { trace, SpanStatusCode, metrics } from "@opentelemetry/api";
+// src/telemetry/custom-spans.ts — custom spans and metrics for business logic
+import { trace, SpanStatusCode, metrics, type Span } from "@opentelemetry/api";
 
 const tracer = trace.getTracer("app");
 const meter = metrics.getMeter("app");
 
-// Custom metrics
-const orderCounter = meter.createCounter("orders.created", {
-  description: "Number of orders created",
-});
-
-const orderDuration = meter.createHistogram("orders.processing_duration_ms", {
-  description: "Order processing time in milliseconds",
+const orderCounter = meter.createCounter("orders.created", { description: "Orders created" });
+const orderDuration = meter.createHistogram("orders.processing_duration", {
+  description: "Order processing time",
   unit: "ms",
 });
 
-const activeUsers = meter.createUpDownCounter("users.active", {
-  description: "Currently active users",
-});
-
-// Wrap business logic in custom spans
-export async function processOrder(orderId: string, userId: string): Promise<any> {
-  return tracer.startActiveSpan("process_order", async (span) => {
-    span.setAttribute("order.id", orderId);
-    span.setAttribute("user.id", userId);
-
-    const startTime = Date.now();
-
+// One helper owns the span lifecycle: the span always ends, errors are always recorded.
+async function withSpan<T>(name: string, fn: (span: Span) => Promise<T>): Promise<T> {
+  return tracer.startActiveSpan(name, async (span) => {
     try {
-      // Step 1: Validate inventory
-      const inventory = await tracer.startActiveSpan("validate_inventory", async (inventorySpan) => {
-        const result = await checkInventory(orderId);
-        inventorySpan.setAttribute("inventory.available", result.available);
-        inventorySpan.setAttribute("inventory.quantity", result.quantity);
-        inventorySpan.end();
-        return result;
-      });
-
-      if (!inventory.available) {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: "Out of stock" });
-        span.setAttribute("order.status", "rejected");
-        span.end();
-        throw new Error("Out of stock");
-      }
-
-      // Step 2: Charge payment
-      const payment = await tracer.startActiveSpan("charge_payment", async (paymentSpan) => {
-        paymentSpan.setAttribute("payment.amount", inventory.total);
-        paymentSpan.setAttribute("payment.currency", "USD");
-        const result = await chargePayment(userId, inventory.total);
-        paymentSpan.setAttribute("payment.id", result.paymentId);
-        paymentSpan.end();
-        return result;
-      });
-
-      // Step 3: Create order record
-      await tracer.startActiveSpan("create_order_record", async (dbSpan) => {
-        await saveOrder(orderId, userId, payment.paymentId);
-        dbSpan.end();
-      });
-
-      // Metrics
-      orderCounter.add(1, { status: "success", payment_method: "card" });
-      orderDuration.record(Date.now() - startTime, { status: "success" });
-
-      span.setAttribute("order.status", "completed");
-      span.setStatus({ code: SpanStatusCode.OK });
-      span.end();
-
-      return { orderId, status: "completed", paymentId: payment.paymentId };
-    } catch (err: any) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
-      span.recordException(err);
-      orderCounter.add(1, { status: "failed" });
-      orderDuration.record(Date.now() - startTime, { status: "failed" });
-      span.end();
+      return await fn(span);
+    } catch (err) {
+      span.recordException(err as Error);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (err as Error).message });
       throw err;
+    } finally {
+      span.end();
     }
   });
 }
 
-// Structured logging with trace correlation
-export function log(level: string, message: string, attributes: Record<string, any> = {}): void {
-  const activeSpan = trace.getActiveSpan();
-  const traceId = activeSpan?.spanContext().traceId || "";
-  const spanId = activeSpan?.spanContext().spanId || "";
-
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    level,
-    message,
-    traceId,
-    spanId,
-    service: process.env.SERVICE_NAME,
-    ...attributes,
-  };
-
-  console.log(JSON.stringify(logEntry));
+export async function processOrder(orderId: string, userId: string) {
+  const start = performance.now();
+  try {
+    const result = await withSpan("process_order", async (span) => {
+      span.setAttribute("order.id", orderId);
+      const inventory = await withSpan("validate_inventory", async (s) => {
+        const r = await checkInventory(orderId);
+        s.setAttribute("inventory.available", r.available);
+        return r;
+      });
+      if (!inventory.available) throw new Error("Out of stock");
+      const payment = await withSpan("charge_payment", async (s) => {
+        s.setAttribute("payment.currency", "USD");
+        return chargePayment(userId, inventory.total);
+      });
+      await withSpan("create_order_record", () => saveOrder(orderId, userId, payment.paymentId));
+      return { orderId, status: "completed", paymentId: payment.paymentId };
+    });
+    orderCounter.add(1, { status: "success" });
+    return result;
+  } catch (err) {
+    orderCounter.add(1, { status: "failed" });
+    throw err;
+  } finally {
+    orderDuration.record(performance.now() - start);
+  }
 }
 
-async function checkInventory(orderId: string) { return { available: true, quantity: 1, total: 99.99 }; }
-async function chargePayment(userId: string, amount: number) { return { paymentId: `pay_${Date.now()}` }; }
-async function saveOrder(orderId: string, userId: string, paymentId: string) { /* db insert */ }
+// Structured log line with trace correlation (Loki derived fields can link trace_id to Tempo)
+export function log(level: string, message: string, attributes: Record<string, unknown> = {}): void {
+  const ctx = trace.getActiveSpan()?.spanContext();
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      trace_id: ctx?.traceId ?? "",
+      span_id: ctx?.spanId ?? "",
+      service: process.env.OTEL_SERVICE_NAME,
+      ...attributes,
+    }),
+  );
+}
+
+// Stubs standing in for your inventory, payment and database calls
+async function checkInventory(_orderId: string) { return { available: true, total: 99.99 }; }
+async function chargePayment(_userId: string, _amount: number) { return { paymentId: `pay_${Date.now()}` }; }
+async function saveOrder(_orderId: string, _userId: string, _paymentId: string) {}
 ```
 
-## Step 2: Middleware for Automatic Request Tracing
+## Step 2: Middleware for Request Enrichment
 
 ```typescript
-// src/middleware/tracing.ts — Request tracing middleware
-import { Context, Next } from "hono";
+// src/middleware/tracing.ts — enrich the HTTP server span that auto-instrumentation already created
+import type { Context, Next } from "hono";
+import { routePath } from "hono/route";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-
-const tracer = trace.getTracer("http");
 
 export function tracingMiddleware() {
   return async (c: Context, next: Next) => {
     const span = trace.getActiveSpan();
-
     if (span) {
-      // Add request attributes
-      span.setAttribute("http.user_id", c.get("userId") || "anonymous");
-      span.setAttribute("http.route", c.req.routePath || c.req.path);
-
-      // Add trace ID to response headers (for debugging)
-      c.header("X-Trace-ID", span.spanContext().traceId);
+      span.setAttribute("app.user_id", c.get("userId") ?? "anonymous");
+      c.header("X-Trace-ID", span.spanContext().traceId); // handy when a user reports a slow request
     }
-
-    try {
-      await next();
-
-      if (span && c.res.status >= 400) {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${c.res.status}` });
-      }
-    } catch (err: any) {
-      if (span) {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
-        span.recordException(err);
-      }
-      throw err;
+    await next(); // Hono turns thrown errors into c.res, so inspect the response afterwards
+    if (span) {
+      span.updateName(`${c.req.method} ${routePath(c)}`);
+      if (c.error) span.recordException(c.error);
+      if (c.res.status >= 500) span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${c.res.status}` });
     }
   };
 }
 ```
 
+## Step 3: Run It Against a Local Backend
+
+The instrumentation file must load before the application. For an ESM app such as Hono on Node, add the module-hook loader too, then run the app with the environment set:
+
+```bash
+docker run -d --name otel-lgtm -p 127.0.0.1:3000:3000 -p 127.0.0.1:4317:4317 -p 127.0.0.1:4318:4318 grafana/otel-lgtm:0.39.0
+
+OTEL_SERVICE_NAME=orders-api OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
+OTEL_SEMCONV_STABILITY_OPT_IN=http \
+  node --experimental-loader=@opentelemetry/instrumentation/hook.mjs --import ./dist/instrumentation.js dist/index.js
+```
+
+`grafana/otel-lgtm` is Grafana's all-in-one development image (collector, Prometheus, Tempo, Loki, Pyroscope and Grafana; not for production). Open http://localhost:3000 (login admin/admin) and find traces in Explore with the Tempo data source. In production run Tempo, Loki and Mimir or Prometheus separately behind your own OpenTelemetry Collector, as in the observability-setup skill, and pin image tags.
+
 ## Results
 
-- **p99 debugging time: 4 hours → 10 minutes** — distributed traces show exactly which service and which database query is the bottleneck; one click from slow request to root cause
-- **Logs correlated across 15 services** — every log entry includes traceId; searching for one request ID shows logs from all services it touched, in order
-- **Custom business metrics** — order processing rate, payment success rate, and duration histograms visible in Grafana; product team monitors without asking engineering
-- **Auto-instrumentation covers 90% of spans** — HTTP, PostgreSQL, Redis, and inter-service calls traced automatically; only business logic needs manual spans
-- **Vendor-neutral** — OpenTelemetry standard means switching from Jaeger to Tempo or from Prometheus to Datadog requires changing only the exporter config, not instrumentation code
+Piotr's team rolled this out across the 15 services. These are the team's own results, not benchmarks:
+
+- **p99 debugging time: 4 hours to about 10 minutes**: a trace shows which service and which database query is the bottleneck.
+- **Logs correlated across services**: every log line carries `trace_id`, so one trace ID finds the logs from every service the request touched.
+- **Custom business metrics**: order rate and processing-duration histograms are visible in Grafana without asking engineering.
+- **Vendor-neutral**: switching the backend (Tempo, Jaeger, a hosted vendor) means changing the exporter endpoint, not the instrumentation code.
+
+## Related Skills
+
+- [observability-setup](/skills/observability-setup): OpenTelemetry instrumentation, collector configuration and the Grafana LGTM stack
+- [typescript](/skills/typescript): typed instrumentation and helpers
+- [redis](/skills/redis): traced Redis commands
+- [postgresql](/skills/postgresql): traced `pg` queries
+- [hono](/skills/hono): the HTTP framework being traced

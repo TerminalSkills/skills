@@ -3,7 +3,7 @@ title: Build a React Dashboard with Recharts, Plotly, and Mermaid Diagrams
 slug: build-interactive-analytics-dashboard-from-scratch
 description: >-
   Create a fintech analytics dashboard using Recharts for live metrics, Plotly for deep-dive charts, and Mermaid for architecture documentation.
-skills: [recharts, plotly, mermaid, mkdocs]
+skills: [recharts, plotly, mermaid, mkdocs, chartjs]
 category: data-ai
 tags: [dashboard, analytics, charts, data-visualization, react]
 ---
@@ -194,3 +194,4 @@ Priya, engineering lead at FinFlow (an invented payment processing startup), shi
 - [plotly](../skills/plotly/SKILL.md) -- the error-rate heatmap
 - [mermaid](../skills/mermaid/SKILL.md) -- architecture diagrams
 - [mkdocs](../skills/mkdocs/SKILL.md) -- publishing the internal docs site
+- [chartjs](/skills/chartjs) — canvas charts with a small tree-shaken bundle when the dashboard needs a few standard charts rather than Recharts components

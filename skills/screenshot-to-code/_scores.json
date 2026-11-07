@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2c4b82977846824da699d26999a14c13652194e348a9e7d655c3c8416b7dfdf8",
+  "scoredAt": "2026-11-06T22:52:25.546Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as missing dependencies or network failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.18,
+    "baselineAvg": 17,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "setup-local-anthropic",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the missing-key error note, while Response B omits key steps such as the correct repo path, backend/.env, poetry install, and the specified start command and curl check."
+      },
+      {
+        "name": "generate-react-tailwind-from-image",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides a React component instead of the required Python script."
+      },
+      {
+        "name": "docker-compose-with-openai",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items and includes the required commands and verification steps, while Response B omits the key port details and verification steps."
+      }
+    ]
+  }
+}

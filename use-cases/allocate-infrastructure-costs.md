@@ -11,121 +11,106 @@ tags: [cost-allocation, cloud-costs, finops, budgeting, chargeback]
 
 ## The Problem
 
-Your cloud bill is $47,000 per month and growing 15% quarter over quarter, but nobody can explain which team or service is driving the increase. Engineering says it is the data team's Spark jobs. The data team blames staging environments that never get torn down. Finance wants per-team cost breakdowns for budget planning, but your tagging strategy is inconsistent — only 60% of resources have proper cost-allocation tags. The CFO is asking hard questions, and the one person who understood the billing dashboard left the company three months ago.
+The cloud bill is $47,000 a month and growing, and nobody can say which team is driving the increase. Engineering blames the data team's batch jobs, the data team blames staging environments that never get torn down, and Finance wants per-team numbers for next quarter's budget. Only some resources carry a cost-allocation tag, and the one person who understood the billing console has left.
 
-Without per-team cost allocation, every budget conversation devolves into finger-pointing. The VP of Engineering cannot defend the cloud budget to the board without knowing what the money buys. And "we need to reduce cloud spend" becomes an impossible mandate because nobody knows where to cut.
-
-The AWS Cost Explorer does not help. It shows spend by service — $8,400 on EC2, $6,200 on RDS, $3,100 on S3 — but that tells you nothing about *who* is responsible. The EKS cluster runs workloads for three teams. The RDS instance serves both the product and the data team. Shared infrastructure like VPCs, NAT Gateways, and CloudWatch costs $4,800 per month with no obvious owner.
+A service-level view ("$8,400 on EC2, $6,200 on RDS") does not say who is responsible: one cluster runs workloads for three teams, one database serves two, and shared networking and monitoring have no owner. Without an owner per dollar, "reduce cloud spend" is an impossible mandate.
 
 ## The Solution
 
-Use **data-analysis** to parse and categorize cloud billing exports, **excel-processor** to merge billing data with team ownership mappings, and **report-generator** to produce monthly cost allocation reports with trend analysis. The workflow takes a raw billing CSV and a team ownership spreadsheet, cross-references them, fills in gaps using resource tags and metadata, and produces a ready-to-present breakdown with optimization recommendations.
+- **excel-processor** loads the billing export and the team-ownership spreadsheet and joins them with pandas.
+- **data-analysis** finds unallocated spend, month-over-month changes by team, and outliers in line items.
+- **report-generator** writes the monthly summary (HTML or PDF for Finance) and the Excel workbook with line-item detail for engineering.
+
+The input is an AWS Data Exports table. AWS documents CUR 2.0 as the current Cost and Usage Report table, with a fixed set of columns; the columns used here are `bill_billing_period_start_date`, `line_item_usage_account_id`, `line_item_product_code`, `line_item_resource_id` and `line_item_unblended_cost` ([CUR 2.0 table dictionary](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2.html)). Tags arrive in the `resource_tags` map column. A tag key appears in that map only if you enabled it as a cost allocation tag in the Billing console, and only on line items where it has a value ([resource_tags](https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-resource-tags.html)). Activate the `team` tag first (it can take up to 48 hours to become active, per the [activation page](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/activating-tags.html)), then check which months of the export actually carry it.
 
 ## Step-by-Step Walkthrough
 
-The workflow starts with two inputs: a billing export and a team ownership mapping. From there, every dollar gets traced to a team, anomalies get surfaced, optimization opportunities get quantified, and the whole thing gets packaged into a report that Finance and Engineering can both use.
-
-### Step 1: Export Your Billing Data and Team Mappings
+### Step 1: Gather the inputs
 
 ```text
-Here's our AWS Cost and Usage Report for January (cost-usage-2026-01.csv.gz),
-our team-service ownership spreadsheet (service-owners.xlsx), and our tagging
-policy document. Break down costs by team, identify untagged spend, and show
-month-over-month trends for the last 3 months.
+Here is our CUR 2.0 export for January (bill.csv, exported from Data Exports) and
+service-owners.xlsx with columns match_type (resource|account), match_value, team.
+Show row counts, total cost, and cost by product before changing anything.
 ```
 
-The billing export contains 340,000 line items across 47 AWS services. Each line item is a usage record — one hour of an EC2 instance, one GB of S3 storage, one million Lambda invocations. The raw data is overwhelming, which is why most teams never look at it directly. The AWS Cost Explorer aggregates it into service-level summaries, but that hides the per-resource detail needed for team allocation.
+Export as CSV or Parquet to your own S3 bucket and download it. For a Parquet export `resource_tags` is a map column; for CSV it arrives as a string, so parse it first. Large exports (hundreds of thousands of rows) are aggregated with `groupby` instead of being opened in Excel. The agent prints the shape, columns and the total `line_item_unblended_cost` first; this total is what every later step must add up to. Decide up front whether credits, refunds and tax belong in the allocation (`line_item_line_item_type` tells them apart) and say which you chose.
 
-The ownership spreadsheet maps each service to a team, but it was last updated two months ago and is missing the new data pipeline resources that the Data Team spun up in December. This is where the cross-referencing starts — and where the gaps in your tagging strategy become painfully visible.
+### Step 2: Map every line item to a team in layers
 
-### Step 2: Map Services to Teams
+```text
+Allocate in this order: exact resource match from the spreadsheet, then the team tag,
+then the linked account. Everything else is "unallocated", not guessed.
+```
 
-The mapping process works in layers. First pass: match billing line items to the ownership spreadsheet by resource name and AWS account. Second pass: for resources not in the spreadsheet, check resource tags for `team`, `project`, or `owner`. Third pass: for anything still unmatched, infer from VPC placement, IAM creator, and naming conventions. Everything that cannot be matched goes into an "untagged" bucket for review.
+```python
+import pandas as pd
 
-The results after all three passes:
+HEADCOUNT = {"platform": 8, "product": 12, "data": 5}
+SHARED_PRODUCTS = {"AmazonVPC", "AmazonRoute53", "AmazonCloudWatch"}
 
-| Team | Resources Owned | Mapping Method |
+by_resource = owners[owners.match_type == "resource"].set_index("match_value")["team"]
+by_account = owners[owners.match_type == "account"].set_index("match_value")["team"]
+
+bill["team"] = bill["line_item_resource_id"].map(by_resource)
+bill["team"] = bill["team"].fillna(bill["tag_team"])            # tag_team: parsed from resource_tags
+bill["team"] = bill["team"].fillna(bill["line_item_usage_account_id"].astype(str).map(by_account))
+bill["team"] = bill["team"].fillna("unallocated")
+bill.loc[bill["line_item_product_code"].isin(SHARED_PRODUCTS), "team"] = "shared"
+```
+
+Use the tag key exactly as it appears in your export. The order matters: an explicit entry in the spreadsheet beats a tag, which beats the account default. Keep a `method` column recording which layer matched each row, so Finance can see how much of the bill rests on weaker evidence. Orphaned resources are found in this step: an unallocated EC2 instance with spend all month and no owner is a candidate to ask about, not to delete. Billing data does not show who logged in or whether traffic exists; use CloudTrail and the resource's own utilization metrics for that.
+
+### Step 3: Allocate shared costs and verify the total
+
+```python
+direct = bill.groupby("team")["line_item_unblended_cost"].sum()
+pool = direct.get("shared", 0.0)
+heads = sum(HEADCOUNT.values())
+summary = pd.DataFrame(
+    [{"team": t, "direct": direct.get(t, 0.0), "shared": pool * n / heads} for t, n in HEADCOUNT.items()]
+    + [{"team": "unallocated", "direct": direct.get("unallocated", 0.0), "shared": 0.0}]
+)
+summary["total"] = summary["direct"] + summary["shared"]
+assert abs(summary["total"].sum() - bill["line_item_unblended_cost"].sum()) < 0.01
+```
+
+Splitting shared networking and monitoring by headcount is a policy choice, not a measurement. It is simple and explainable; where data exists, a split by usage (request counts, bytes, CPU hours) is fairer, and the model can switch to it by replacing `HEADCOUNT`. For EKS, AWS publishes split cost allocation data that attributes cluster cost down to pod and namespace level ([Split cost allocation data](https://docs.aws.amazon.com/cur/latest/userguide/split-cost-allocation-data.html)), which is the better source for a cluster shared by several teams than a headcount split. The `assert` is the important line: if the allocated total does not equal the bill, the report is not published. Tested on a small synthetic bill, the script reconciles to the cent.
+
+### Step 4: Compare months and look for step changes
+
+```text
+Do the same for the previous two months. Show cost per team per month, the change in
+percent, and the line items that explain any team that moved more than 15%.
+```
+
+With data-analysis, `groupby(["bill_billing_period_start_date", "team"])` gives a team-by-month pivot, and `pct_change()` the movement. For a team that jumped, list its top line items by cost difference between the two months. A step on one date (a new resource that appears mid-month and stays on) reads differently from gradual growth, and the resource id in the top difference line tells you which it is.
+
+### Step 5: Turn findings into reviewed recommendations
+
+Each recommendation needs an owner, an estimated saving taken from the bill, and a check before action:
+
+| Finding | Check before acting | Typical action |
 |---|---|---|
-| Platform | EKS cluster, RDS primary, ElastiCache, CloudFront | Spreadsheet + confirmed tags |
-| Product | 3 ECS services (api, web, worker), S3 media bucket | Spreadsheet + confirmed tags |
-| Data | EMR cluster, Redshift, Glue jobs, S3 data-lake bucket | Spreadsheet + confirmed tags |
-| Shared | VPC, Route53, CloudWatch, IAM | Allocated proportionally by team headcount |
+| Large unallocated EC2 instances | Utilization metrics and CloudTrail; ask the likely owner | Tag, or stop then terminate after a grace period |
+| Old manual RDS snapshots | Source instance gone, retention policy | Delete; or export to S3 (RDS supports snapshot export to S3 in Parquet) if the data must be kept |
+| NAT Gateway in a region with no workloads | Route tables that point to it | Delete the gateway |
+| Idle batch cluster (EMR) | Job history | Terminate when jobs finish; use auto-termination or managed scaling |
+| Low-utilization containers | Peak load test | Right-size, then watch for throttling |
 
-But 23% of the spend does not match anything in the spreadsheet or tags. That is $10,810 per month with no owner:
+Savings numbers come from the billed amounts of the specific resources, not from percentages; the agent never terminates anything itself.
 
-- **4 EC2 instances** (i-0a3f..., i-0b7c...) — $1,840/mo, likely staging leftovers from the Q3 project. The instance names contain "staging-test" but no team tag. Creation date: 4 months ago, last SSH login: 3 months ago.
-- **2 RDS snapshots** older than 90 days — $320/mo, forgotten after the database migration to Aurora last quarter. The source instances no longer exist.
-- **1 NAT Gateway** in ap-southeast-1 — $180/mo. There are no services running in that region. Someone probably created it during a disaster recovery test and forgot to tear it down.
+### Step 6: Produce the monthly deliverables
 
-These orphaned resources are the kind of waste that only surfaces when someone actually maps every dollar to an owner. Nobody notices $180/month on a $47,000 bill — but $2,340/month in orphaned resources adds up to $28,080 per year burning quietly in the background.
+```text
+Write cost-allocation-2026-01.xlsx (By team, Unallocated, Service detail, Method coverage)
+and a one-page cost-allocation-2026-01.pdf with the team table, month-over-month chart and
+the top three findings.
+```
 
-The mapping process also reveals cost concentration risks. The Platform Team's RDS primary instance accounts for $4,800/month — a single resource representing 10% of the total bill. If that instance needs to be upgraded for the next growth phase, the cost jump will be significant and should be budgeted for in advance rather than appearing as a surprise on next quarter's bill.
-
-The shared cost allocation is transparent: Finance gets a worksheet showing exactly how VPC, Route53, CloudWatch, and IAM costs ($4,800 total) get split across the three teams based on headcount. If the teams prefer a different allocation method (CPU hours, request counts), the model can be adjusted — the important thing is that shared costs are allocated *somewhere* instead of sitting in an unaccountable bucket.
-
-### Step 3: Calculate Per-Team Cost Allocation
-
-Shared costs get distributed proportionally by team headcount (Platform: 8, Product: 12, Data: 5). This is a common FinOps allocation method — not perfect, but far better than ignoring shared costs entirely. An alternative approach uses resource consumption metrics (CPU hours, network egress), but headcount-based allocation gets you 90% of the accuracy with 10% of the effort. With services mapped, the January breakdown tells a clear story:
-
-| Team | Direct Cost | Shared Cost | Total | % of Bill | MoM Change |
-|---|---|---|---|---|---|
-| Platform | $14,200 | $3,100 | $17,300 | 36.8% | +4.2% |
-| Product | $11,800 | $2,900 | $14,700 | 31.3% | +8.1% |
-| Data | $9,600 | $2,400 | $12,000 | 25.5% | **+31.2%** |
-| Untagged | $3,000 | -- | $3,000 | 6.4% | -12.0% |
-| **Total** | | | **$47,000** | 100% | +11.3% |
-
-The Data Team's 31.2% spike jumps out immediately. Digging into the line items reveals the cause: an EMR cluster named `emr-etl-migration` was spun up on January 12 and left running 24/7 with 8 `m5.xlarge` instances. It was meant for a one-time data migration job that finished in 3 days. Nobody turned it off, and it has been burning $2,800/month since.
-
-The month-over-month trends tell different stories for each team. Platform is growing at a steady 4.2% — healthy for a scaling product, and roughly in line with customer growth. Product's 8.1% growth correlates with the new enterprise features they shipped in December (additional ECS tasks for the new reporting API). These are explainable, expected increases. The Data Team's 31.2% spike is neither — it is a forgotten resource masquerading as organic growth.
-
-Without the allocation breakdown, the $47,000 bill just looks like "infrastructure costs went up 11.3%." With it, the story becomes: "Platform and Product grew as expected, the Data Team has a $2,800 waste problem, and there is $3,000 in orphaned resources nobody owns."
-
-### Step 4: Identify Optimization Opportunities
-
-With every dollar mapped, the low-hanging fruit becomes obvious:
-
-| Recommendation | Monthly Savings | Effort | Risk |
-|---|---|---|---|
-| Convert EMR cluster to spot instances + auto-scaling | $2,800 | Medium | Low — batch jobs tolerate interruption |
-| Delete 4 untagged EC2 instances (no traffic in 30 days) | $1,840 | Low | Low — verified no inbound connections |
-| Right-size Product Team ECS tasks (avg CPU at 12%) | $1,500 | Medium | Medium — needs load testing first |
-| Move old RDS snapshots to S3 Glacier | $290 | Low | None — snapshots are read-only backups |
-| Delete unused NAT Gateway in ap-southeast-1 | $180 | Low | None — no resources in the region |
-
-**Total potential savings: $6,610/month** — 14% of the current bill, or $79,320 annually. The EMR fix alone recovers $2,800/month and can be done in an afternoon by switching to auto-scaling with spot instances for the batch ETL jobs. The EC2 and NAT Gateway deletions are even simpler — verify they are truly unused and terminate them.
-
-There is also a longer-term recommendation: the Product Team's ECS tasks are running at 12% average CPU utilization, meaning they are provisioned for roughly 8x the load they actually handle. Right-sizing those tasks from `2 vCPU / 4GB` to `0.5 vCPU / 1GB` would save $1,500/month, but needs load testing under peak traffic to confirm the smaller tasks can handle spikes without throttling.
-
-The distinction between quick wins and longer-term optimizations matters for sprint planning. The quick wins (EMR fix, EC2 deletions, snapshot archival, NAT Gateway removal) total $5,110/month and can be done this week. The medium-effort item (ECS right-sizing) adds another $1,500/month but requires a load test sprint first. Presenting both categories lets engineering leadership choose how aggressively to optimize. Most teams start with the quick wins to demonstrate value, then tackle the medium-effort items in a follow-up sprint once the initial savings are visible in the next month's bill.
-
-### Step 5: Generate the Monthly Report
-
-The final deliverable is an Excel workbook and a PDF for the CFO:
-
-**cost-allocation-january-2026.xlsx** contains 6 sheets:
-
-1. **Executive Summary** — one-page overview with charts, traffic-light status per team, and a "key finding" callout box highlighting the EMR cluster issue
-2. **Team Breakdown** — per-team costs with month-over-month trend lines going back 3 months
-3. **Service Detail** — line-item costs by AWS service, sortable and filterable, with each line mapped to its owning team
-4. **Untagged Resources** — every orphaned resource with suggested owner based on VPC placement, IAM creator, and resource naming patterns
-5. **Optimization Actions** — prioritized savings with effort estimates and risk ratings
-6. **Tagging Compliance** — 77% tagged this month, up from 60% last month, trending toward the 95% target
-
-The PDF version strips the raw data and keeps the executive summary, team breakdown charts, and optimization actions — exactly what Finance needs for the board deck without the overwhelming detail. Two deliverables for two audiences: the engineering team gets the Excel with full line-item detail for follow-up, and Finance gets the PDF with the story and the charts.
-
-The report becomes a repeatable process. Next month, drop in the February billing export and the agent produces the same breakdown with updated trends, automatically flagging any team whose costs jumped more than 15% or any new untagged resources that appeared. Over time, the monthly reports build a cost history that reveals patterns invisible in any single snapshot — seasonal spikes from holiday traffic, step-function increases from new feature launches, and gradual drift from resources that slowly accumulate without cleanup.
-
-The historical data also transforms budget conversations. Instead of guessing next quarter's cloud spend, the team extrapolates from actual per-team growth rates. Platform costs are growing 4% per month, Product at 8% — next quarter's budget can be set with confidence instead of finger-in-the-air estimates.
+excel-processor writes the workbook with `pd.ExcelWriter(..., engine="openpyxl")`; report-generator renders the HTML with embedded charts and exports a PDF through WeasyPrint (which needs the Pango library). The PDF shows the data source, billing period and generation date. Next month the same script runs on the new export and flags teams whose cost moved more than 15% and any new unallocated resources.
 
 ## Real-World Example
 
-Marco is the VP of Engineering at a 40-person SaaS startup heading into Series B. The investor pitch deck claims "capital-efficient infrastructure" but the due diligence team is going to ask hard questions about unit economics. The $47,000 monthly cloud bill is a black box. Marco cannot answer "what does it cost to serve one customer?" because nobody knows which resources belong to which product. He cannot answer "how does infrastructure cost scale with revenue?" because there is no per-team breakdown to correlate with business metrics.
+Marco, VP of Engineering at a 40-person SaaS company heading into a funding round, cannot answer "what does each team's infrastructure cost?" He activates the `team` cost allocation tag, downloads three months of CUR 2.0 data and the ownership spreadsheet, and runs the layered mapping. The first run leaves a visible share of spend under "unallocated", and the Method coverage sheet shows how much of the rest depends on the account default rather than on a tag.
 
-He exports three months of AWS Cost and Usage Reports alongside the service-ownership spreadsheet and feeds them to the agent. Within an hour, he has his answer: 94% of costs mapped to specific teams, $3,000 in orphaned resources flagged, and the Data Team's 31% spike traced to a single forgotten EMR cluster. The three-month trend data is particularly revealing: the cost increase is not organic growth — it is a step function that started on exactly one date in January when the EMR cluster was created. This distinction matters for investor conversations. Organic growth tied to customer acquisition is healthy. Forgotten infrastructure is waste.
-
-The optimization report identifies $6,600/month in easy savings. Marco's team implements the changes in one sprint: the EMR cluster gets auto-scaling with spot instances, the orphaned EC2 instances get terminated after confirming zero traffic, and the ECS tasks get right-sized after a load test confirms they can handle 3x current peak traffic at the smaller size. The February bill drops to $41,200 — a $5,800 reduction that drops straight to the bottom line.
-
-The monthly process is now repeatable. Marco's ops lead runs the allocation on the first business day of each month — drop in the new billing export, get the updated breakdown, review the anomalies, and publish the report. The February report catches a new untagged resource immediately (a developer spun up an EC2 instance for testing and forgot to tag it), and the trend data shows the optimization savings landing exactly as projected.
-
-For the investor meeting, Marco presents something no previous cloud bill could show: per-team spend with trend lines, cost-per-customer metrics derived from the product team's allocation divided by active accounts, and a downward cost trajectory. The due diligence team asks about infrastructure scalability, and Marco shows the ECS headroom analysis — current spend supports 3x growth before the next cost step. The investors see a team that understands its infrastructure economics, not one that throws money at AWS and hopes for the best.
+The month-over-month table shows one team's cost stepping up on a single date. The top line items point to a batch cluster started for a one-off migration and never stopped. He asks the data team to confirm, and the cluster is terminated. The unallocated list becomes a tagging to-do for the owners, and the next month's run shows that bucket shrinking. What he takes to the investors is the method: every dollar mapped to an owner by a stated rule, a total that reconciles to the invoice, and shared costs split in a way anyone can read.

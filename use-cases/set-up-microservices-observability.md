@@ -17,54 +17,139 @@ Last week, checkout was slow for 20 minutes. The team spent 3 hours across Slack
 
 ## The Solution
 
-Instrument all services with OpenTelemetry for unified traces, metrics, and structured logs. Ship telemetry to Grafana's LGTM stack (Loki for logs, Grafana for dashboards, Tempo for traces, Mimir for metrics) running in Docker. Build dashboards that answer the three critical questions: What failed? Where? Why?
+Instrument all services with OpenTelemetry for unified traces, metrics, and structured logs. Send telemetry to an OpenTelemetry Collector, which routes it to Grafana's backends: Tempo for traces, Mimir (or any Prometheus-compatible store) for metrics, Loki for logs, with Grafana for dashboards. Build dashboards that answer the three critical questions: What failed? Where? Why?
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Instrument Services with OpenTelemetry
 
 ```text
-I have 4 Node.js services (api-gateway, user-service, order-service, payment-service) and 1 Python service (notification-service). Add OpenTelemetry auto-instrumentation to each. Configure trace propagation using W3C TraceContext. Set up metric collection for: HTTP request duration, request count by status code, and active database connections. Add structured JSON logging with trace_id and span_id in every log line.
+I have 4 Node.js services (api-gateway, user-service, order-service, payment-service) and 1 Python service (notification-service). Add OpenTelemetry auto-instrumentation to each. Configure trace propagation using W3C TraceContext. Collect HTTP request duration and request count by status code. Add structured JSON logging with trace_id and span_id in every log line.
 ```
 
-Auto-instrumentation handles most of the work. Each Node.js service gets the same pattern — a single file loaded before anything else:
+Auto-instrumentation handles most of the work. Each Node.js service gets the same file, loaded before anything else. Endpoint and service name come from environment variables, so the file is identical in every service:
 
 ```javascript
-// tracing.js — loaded before anything else via node --require ./tracing.js
+// tracing.js: node --require ./tracing.js server.js
 const { NodeSDK } = require('@opentelemetry/sdk-node');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
+const { OTLPMetricExporter } = require('@opentelemetry/exporter-metrics-otlp-http');
+const { PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
 
+// OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_SERVICE_NAME come from the environment;
+// the exporters append /v1/traces and /v1/metrics themselves.
 const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({ url: 'http://otel-collector:4318/v1/traces' }),
+  traceExporter: new OTLPTraceExporter(),
+  metricReader: new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter(),
+    exportIntervalMillis: 15000,
+  }),
   instrumentations: [getNodeAutoInstrumentations()],
-  serviceName: process.env.SERVICE_NAME,
 });
 sdk.start();
+process.on('SIGTERM', () => sdk.shutdown().finally(() => process.exit(0)));
 ```
 
-This single file auto-instruments HTTP, Express, PostgreSQL, and Redis calls without touching any application code. Every outgoing request carries a W3C TraceContext header, so downstream services automatically join the same trace. A request that starts at the API gateway and flows through user-service, order-service, and payment-service becomes one continuous trace with spans for each hop.
+Install `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-metrics-otlp-http` and `@opentelemetry/sdk-metrics`. Set `OTEL_SERVICE_NAME=payment-service` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318` per service, and `OTEL_SEMCONV_STABILITY_OPT_IN=http` to get the stable `http.server.request.duration` metric used by the dashboards. ESM apps additionally need `--experimental-loader=@opentelemetry/instrumentation/hook.mjs`.
 
-The Python notification service uses `opentelemetry-distro` with auto-instrumentation and structlog with a trace_id processor — same concept, different language. The payment service gets one extra touch: a custom span wrapping the payment gateway call, because that's the most latency-sensitive operation in the system and needs dedicated visibility.
+The auto-instrumentation covers HTTP, Express, PostgreSQL and Redis calls without touching application code. Every outgoing request carries a W3C TraceContext header (the default propagator), so downstream services join the same trace: a request from the API gateway through user-service, order-service and payment-service becomes one trace with a span per hop.
 
-Every service's logger injects `trace_id` and `span_id` into every log line. This is what makes the magic happen later — any log line becomes a doorway into the full distributed trace.
+The Python notification service uses `opentelemetry-distro` and `opentelemetry-exporter-otlp`: run `opentelemetry-bootstrap -a install` once, then start the app with `opentelemetry-instrument --service_name notification-service python app.py`. The payment service gets one custom span (`tracer.startActiveSpan('process-payment', ...)` from `@opentelemetry/api`) around the payment gateway call, because that is the most latency-sensitive operation.
 
-### Step 2: Deploy the Observability Stack
+Logs carry the trace context. For Node, a pino `mixin` adds the IDs to every line, and `pino-opentelemetry-transport` ships the logs over OTLP with the same environment variables:
+
+```javascript
+const pino = require('pino');
+const { trace } = require('@opentelemetry/api');
+
+const logger = pino({
+  mixin() {
+    const span = trace.getActiveSpan();
+    if (!span) return {};
+    const { traceId, spanId } = span.spanContext();
+    return { trace_id: traceId, span_id: spanId };
+  },
+  transport: { target: 'pino-opentelemetry-transport' },
+});
+```
+
+In Python, a structlog processor reads `trace.get_current_span().get_span_context()` and formats `trace_id` with `format(ctx.trace_id, '032x')`, and `OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true` exports the logs. Any log line becomes a doorway into the full distributed trace.
+
+### Step 2: Deploy the Collector and Backends
 
 ```text
-Write a docker-helper.yml for the observability backend: OpenTelemetry Collector receiving OTLP, Tempo for traces, Loki for logs, Mimir for metrics, and Grafana with pre-provisioned data sources. Pin all versions. Add a collector config that routes traces to Tempo, metrics to Mimir, and logs to Loki. Include health checks and resource limits.
+Write a compose.yaml for the OpenTelemetry Collector (contrib image, pinned) with an otel-collector-config.yaml that receives OTLP and routes traces to Tempo, metrics to Mimir and logs to Loki. Add memory_limiter and batch processors. Publish ports on 127.0.0.1 only.
 ```
 
-The OpenTelemetry Collector sits at the center of the architecture. Every service sends all telemetry to one endpoint, and the Collector routes it to the right backend:
+The Collector sits at the center. Every service sends all telemetry to one endpoint and the Collector routes it:
 
-- **Traces** go to Tempo — distributed tracing storage designed for high-volume trace data
-- **Metrics** go to Mimir — Prometheus-compatible long-term storage with global query support
-- **Logs** go to Loki — label-indexed log aggregation that keeps costs down by not indexing full text
-- **Grafana** connects to all three as data sources, pre-provisioned via YAML config files
+- **Traces** go to Tempo over OTLP.
+- **Metrics** go to Mimir (Prometheus-compatible, long-term storage) through `prometheusremotewrite`.
+- **Logs** go to Loki's native OTLP endpoint. The old `loki` exporter was removed from the contrib distribution, so use `otlphttp` with the `/otlp` path.
 
-The Collector config defines receivers (OTLP over gRPC and HTTP), processors (batch processing to reduce write pressure, memory limiter to prevent OOM), and exporters (one per backend). All images are pinned to specific versions — no `latest` tags that break on Tuesday morning. Health checks ensure Grafana waits for the backends to be ready before serving dashboards. Resource limits prevent any single component from consuming the entire host.
+```yaml
+# otel-collector-config.yaml
+receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: "0.0.0.0:4317" }
+      http: { endpoint: "0.0.0.0:4318" }
 
-The entire stack comes up with `docker compose up -d` and is ready to receive telemetry in under a minute.
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 5s
+    send_batch_size: 1000
+
+exporters:
+  otlphttp/tempo:
+    endpoint: http://tempo:4318
+  prometheusremotewrite:
+    endpoint: http://mimir:9009/api/v1/push
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+
+service:
+  pipelines:
+    traces:  { receivers: [otlp], processors: [memory_limiter, batch], exporters: [otlphttp/tempo] }
+    metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheusremotewrite] }
+    logs:    { receivers: [otlp], processors: [memory_limiter, batch], exporters: [otlphttp/loki] }
+```
+
+`memory_limiter` comes first in every pipeline so a traffic spike cannot OOM the Collector. Check the file with `docker run --rm -v "$PWD/otel-collector-config.yaml:/c.yaml:ro" otel/opentelemetry-collector-contrib:0.164.0 validate --config=/c.yaml` (this config validates cleanly on that release). The contrib image is required, because the core image lacks `prometheusremotewrite`.
+
+```yaml
+# compose.yaml (Collector; Tempo, Loki, Mimir and Grafana join the same network)
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.164.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro"]
+    ports: ["127.0.0.1:4317:4317", "127.0.0.1:4318:4318"]
+    restart: unless-stopped
+```
+
+Pin every backend image to a release tag from its project's releases page; never use `latest`. Tempo, Loki and Mimir each need their own storage config from the Grafana docs, and Grafana's data sources are provisioned from YAML files. For a laptop or a throwaway environment, `grafana/otel-lgtm` bundles a collector, Tempo, Loki, Prometheus and Grafana in one image (`docker run --rm -p 127.0.0.1:3000:3000 -p 127.0.0.1:4318:4318 grafana/otel-lgtm`) and is not meant for production. Services running outside the Compose network send to the published `127.0.0.1:4318`.
+
+Following **cicd-pipeline**, a GitLab CI job keeps the Collector config honest, so a typo in a pipeline does not silently drop production telemetry:
+
+```yaml
+validate-otel-config:
+  stage: test
+  image:
+    name: otel/opentelemetry-collector-contrib:0.164.0
+    entrypoint: [""]
+  script:
+    - /otelcol-contrib validate --config=otel-collector-config.yaml
+  rules:
+    - changes: [otel-collector-config.yaml]
+```
+
+The deploy job from the same skill (manual, protected variables, SSH host key pinned) then runs `docker compose up -d` on the host.
 
 ### Step 3: Build the Dashboards
 
@@ -73,7 +158,7 @@ Create three Grafana dashboards as JSON provisioning files:
 
 1. Service Overview — panels: request rate per service, p50/p95/p99 latency, error rate, top 5 slowest endpoints
 2. Trace Explorer — panel linking to Tempo trace search, filtered by service, minimum duration, and error status
-3. Infrastructure — panels: CPU and memory per service container, active DB connections, message queue depth
+3. Dependencies — panels: latency and error rate of outgoing HTTP and database calls per service
 
 Use variables for service name and time range. Add alert rules: error rate > 5% for 5 minutes, p99 latency > 2s for 5 minutes.
 ```
@@ -84,23 +169,24 @@ The dashboards are provisioned as JSON files in `grafana/dashboards/`, which mea
 
 2. **Trace Explorer** answers "what happened to this specific request?" — search by service name, minimum duration (to find slow requests), or error status. Click a trace and see the full waterfall: every service hop, database query, and external API call with exact timing.
 
-3. **Infrastructure** answers "is it the code or the machine?" — CPU and memory per service container, active database connections (to catch connection pool exhaustion), and message queue depth (to spot backlog buildup).
+3. **Dependencies** answers "is it this service or something it calls?" — latency and error rate of each service's outgoing HTTP and database calls, taken from the client spans and metrics the auto-instrumentation already emits.
 
 Template variables for service name and time range make every panel reusable across all 8 services. Two alert rules fire when things cross thresholds: error rate above 5% for 5 minutes, or p99 latency above 2 seconds for 5 minutes.
 
 ### Step 4: Add Correlation Between Signals
 
 ```text
-Configure Grafana so that: clicking a spike in the error rate metric jumps to Loki logs filtered by that time range and service, and log lines with trace_ids link directly to the full trace in Tempo. Set up derived fields in the Loki data source to parse trace_id and create a Tempo link.
+Configure Grafana so that: a spike in the error rate panel links to Loki logs for that time range and service, log lines with a trace_id link to the full trace in Tempo, and a trace links back to its logs. Provision all of it in the data source YAML.
 ```
 
-This is the step that turns three separate tools into one coherent debugging system. Without correlation, you have metrics in one tab, logs in another, and traces in a third — essentially three separate tools you have to mentally stitch together. With correlation, each signal links to the next.
+This is the step that turns three separate tools into one debugging system. Without correlation you have metrics in one tab, logs in another, and traces in a third. With it, each signal links to the next:
 
-**Metric to Logs:** Click a spike in the error rate panel, and Grafana opens Loki pre-filtered to that exact time range and service. No more guessing when the error happened or manually adjusting time ranges.
+- **Metric to logs:** a data link on the error-rate panel opens Explore on the Loki data source with `{service_name="$service"}` and the panel's time range. No more guessing when the error happened.
+- **Logs to trace:** a derived field on the Loki data source extracts `trace_id` and links to the Tempo data source. With the pino mixin above the ID is in the JSON body, so the matcher is `"trace_id":"(\w+)"`; logs ingested over OTLP also carry it as structured metadata.
+- **Trace to logs:** enable "Trace to logs" on the Tempo data source, pointing at Loki with the filter `{service_name="$service"} | trace_id="$traceId"`.
+- **Metric to trace:** exemplars link individual metric data points to trace IDs.
 
-**Logs to Traces:** Loki's derived fields parse the `trace_id` from each JSON log line and render it as a clickable link to Tempo. One click shows the full distributed trace — every service the request touched, how long each hop took, and where it failed.
-
-The investigation flow becomes: see a spike on the Service Overview dashboard, click to see the error logs, find a trace_id, click through to the full trace showing the payment service waited 8 seconds for a third-party API. From "something is wrong" to "here's exactly what happened and why" in two clicks.
+The investigation flow becomes: see a spike on the Service Overview dashboard, jump to the error logs, click the `trace_id`, and see that the payment service waited 8 seconds for a third-party API.
 
 ### Step 5: Create a Runbook for Common Incidents
 
@@ -117,7 +203,7 @@ The runbook documents the three most common incident types with exact steps, Gra
 For example, "high error rate on a single service" starts with the Service Overview dashboard, clicks through to the error logs, finds a trace ID, and follows the trace to the root span. The runbook includes the exact LogQL query:
 
 ```
-{service="payment-service"} |= "error" | json | trace_id != ""
+{service_name="payment-service"} |= "error" | trace_id != ""
 ```
 
 Copy, paste, find the trace. The on-call engineer doesn't need to be a distributed tracing expert — the steps are already written down with the exact commands. "Latency spike across all services" walks through checking database connection pool usage, network latency between services, and recent deployment timestamps. "Service completely down" starts with health check verification and ends with a rollback procedure.
@@ -126,6 +212,12 @@ Copy, paste, find the trace. The on-call engineer doesn't need to be a distribut
 
 Kai joins as platform engineer on a team running 8 microservices on Kubernetes. Last week, checkout was slow for 20 minutes — the team spent 3 hours across Slack threads and SSH sessions before finding that the payment service was retrying a failing downstream call.
 
-He instruments all 5 core services with OpenTelemetry in under 30 minutes — auto-instrumentation handles HTTP, database, and Redis calls without touching application code. The observability stack goes up via Docker Compose: Collector, Tempo, Loki, Mimir, Grafana. Three dashboards are provisioned automatically on first boot. Signal correlation is wired up: metric spike, to relevant logs, to full distributed trace in two clicks.
+He instruments all 5 core services with OpenTelemetry — auto-instrumentation handles HTTP, database, and Redis calls without touching application code. The observability stack goes up via Docker Compose: Collector, Tempo, Loki, Mimir, Grafana. Three dashboards are provisioned automatically on first boot. Signal correlation is wired up: metric spike, to relevant logs, to full distributed trace in a couple of clicks.
 
 The next latency incident is identified in 4 minutes instead of 3 hours. A trace shows the payment service waiting 8 seconds for a third-party API that usually responds in 200ms. The team adds a circuit breaker with a 2-second timeout before users even start complaining. The runbook means the on-call engineer — who wasn't even on the team when the observability stack was set up — can diagnose the incident independently. The steps are already written.
+
+## Related Skills
+
+- [observability-setup](/skills/observability-setup) — Provides the OpenTelemetry Node and Python setup, the Collector pipelines, the dashboard queries and the signal-correlation steps used above.
+- [docker-helper](/skills/docker-helper) — Writes the Compose file for the Collector and backends, with pinned images, loopback-only ports and health checks.
+- [cicd-pipeline](/skills/cicd-pipeline) — Adds the GitLab CI job that validates the Collector config before it is deployed.

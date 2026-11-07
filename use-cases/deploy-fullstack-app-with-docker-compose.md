@@ -1,7 +1,7 @@
 ---
 title: Deploy a Full-Stack App with Docker Compose and Nginx
 slug: deploy-fullstack-app-with-docker-helper
-description: Containerize a Node.js API, PostgreSQL database, and React frontend behind Nginx reverse proxy — with health checks, SSL, backups, and zero-downtime deployments on a single $20/month VPS.
+description: Containerize a Node.js API, PostgreSQL database and React frontend behind an Nginx reverse proxy with health checks, Let's Encrypt SSL, backups and CI deployments on a single small VPS.
 skills:
   - docker-helper
   - nginx
@@ -18,156 +18,101 @@ tags:
 
 # Deploy a Full-Stack App with Docker Compose and Nginx
 
-Rina built a project management SaaS on a $20/month Hetzner VPS. She's been deploying by SSH-ing in, pulling code, and restarting pm2 — a process that causes 30-60 seconds of downtime each time and broke twice when a Node.js version mismatch between her laptop and the server caused cryptic errors. She wants containerized, reproducible deployments with SSL, automated backups, and zero-downtime updates.
+Rina built a project management SaaS and runs it on a $20/month VPS. She deploys by SSH-ing in, pulling code and restarting pm2. Each deploy means a minute of downtime, and twice a Node.js version mismatch between her laptop and the server caused cryptic errors. She wants reproducible deployments, SSL, automated backups and updates that need no manual steps on the server.
 
-## Step 1 — Define the Service Stack
+## Step 1: Define the service stack
 
-The compose file defines four services: the Node.js API, PostgreSQL with persistent storage, Redis for session caching, and Nginx as a reverse proxy with SSL termination.
+Ask the **docker-helper** skill for a `compose.yaml` with an API, PostgreSQL, Redis and Nginx. Only Nginx publishes ports, and every dependency has a health check.
 
 ```yaml
-# compose.yml — Production service stack.
-# Each service has health checks so dependents wait for readiness.
-# Named volumes persist data across container restarts and updates.
-
+# compose.yaml in /opt/app on the VPS
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production            # Multi-stage: only production artifacts
+    image: ${API_IMAGE:?set API_IMAGE, the deploy job exports it}
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/projectmgr
+      DATABASE_URL: postgresql://app:${DB_PASSWORD:?set it in .env}@db:5432/projectmgr
       REDIS_URL: redis://cache:6379
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: "3000"
+      JWT_SECRET: ${JWT_SECRET:?set it in .env}
     depends_on:
       db:
-        condition: service_healthy   # Wait for PostgreSQL to accept connections
+        condition: service_healthy
       cache:
         condition: service_healthy
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "1.0"
-        reservations:
-          memory: 256M
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
       interval: 15s
-      timeout: 5s
-      retries: 3
       start_period: 10s
-    networks:
-      - backend
-    # No ports exposed — only accessible through Nginx
 
   db:
-    image: postgres:16.2-alpine     # Pinned version for reproducibility
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: projectmgr
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set it in .env}
     volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - db-data:/var/lib/postgresql        # Postgres 18+ keeps data in a versioned subfolder
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d projectmgr"]
       interval: 10s
-      timeout: 5s
       retries: 5
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-    networks:
-      - backend
-    # Port NOT exposed to host — only accessible from backend network
 
   cache:
-    image: redis:7.2-alpine
+    image: redis:8-alpine
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
-    volumes:
-      - cache-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 192M
-    networks:
-      - backend
 
   nginx:
-    image: nginx:1.25-alpine
+    image: nginx:1.30-alpine
+    # The image's default nginx.conf already includes /etc/nginx/conf.d/*.conf
+    command: >-
+      /bin/sh -c "while :; do sleep 6h; nginx -s reload; done & exec nginx -g 'daemon off;'"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro     # Pre-built React app
+      - ./frontend/dist:/usr/share/nginx/html:ro   # built React app, copied by CI
       - certbot-conf:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
     depends_on:
       api:
         condition: service_healthy
     restart: unless-stopped
-    networks:
-      - backend
-      - frontend
 
-  # Certbot for automatic SSL certificate renewal
   certbot:
     image: certbot/certbot
     volumes:
       - certbot-conf:/etc/letsencrypt
       - certbot-www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'
+    restart: unless-stopped
 
 volumes:
-  db-data:         # PostgreSQL data — survives container restarts
-  cache-data:      # Redis persistence
-  certbot-conf:    # SSL certificates
-  certbot-www:     # ACME challenge files
-
-networks:
-  backend:         # API, database, cache — internal only
-  frontend:        # Nginx — exposed to internet
+  db-data:
+  certbot-conf:
+  certbot-www:
 ```
 
-## Step 2 — Configure Nginx as Reverse Proxy
+Compose substitutes `${DB_PASSWORD}` and `${JWT_SECRET}` from a `.env` file in `/opt/app` (`chmod 600 .env`, never committed). The `:?` form makes `docker compose` refuse to start when one is missing. Check the result with `docker compose config`. The Nginx command reloads every 6 hours so renewed certificates are picked up.
 
-Nginx serves the React frontend as static files and proxies `/api/*` requests to the Node.js backend. This setup handles 10,000+ concurrent connections on a 2-core VPS — far more than Node.js could handle as a direct-facing web server.
+## Step 2: Configure Nginx as a reverse proxy
+
+The **nginx** skill writes the proxy configuration. Nginx serves the React build as static files and proxies `/api/` to the API. Issue the certificate first, so start with the HTTP-only file.
 
 ```nginx
-# nginx/conf.d/app.conf — Main server configuration.
-# Static frontend served from /usr/share/nginx/html.
-# API requests proxied to the Node.js container.
-# SSL termination with Let's Encrypt certificates.
-
-# Rate limiting zone: 10 requests/second per IP for API endpoints
-limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
-
-# Upstream for the API — Docker DNS resolves "api" to the container IP
+# nginx/conf.d/00-http.conf
 upstream api_backend {
-    server api:3000;
-    keepalive 32;     # Reuse connections to reduce TCP handshake overhead
+    server api:3000;      # Docker DNS resolves the service name
 }
 
-# Redirect HTTP to HTTPS
 server {
     listen 80;
     server_name app.rina.dev;
 
-    # Let's Encrypt ACME challenge
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
@@ -176,129 +121,79 @@ server {
         return 301 https://$host$request_uri;
     }
 }
+```
 
-# Main HTTPS server
+Issue the certificate with the webroot method, which is also what `certbot renew` will reuse. Use your real domain and e-mail:
+
+```console
+$ docker compose up -d nginx api db cache
+$ docker compose run --rm --entrypoint certbot certbot certonly --webroot \
+    -w /var/www/certbot -d app.rina.dev --email you@example.com --agree-tos --no-eff-email
+```
+
+Then add the HTTPS server as a second file and reload:
+
+```nginx
+# nginx/conf.d/10-https.conf
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;                      # the "listen ... http2" parameter is deprecated since nginx 1.25.1
     server_name app.rina.dev;
-
-    # SSL configuration
-    ssl_certificate /etc/letsencrypt/live/app.rina.dev/fullchain.pem;
+    ssl_certificate     /etc/letsencrypt/live/app.rina.dev/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/app.rina.dev/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 1d;
-    ssl_stapling on;
-    ssl_stapling_verify on;
 
-    # Security headers
-    add_header X-Frame-Options DENY always;
     add_header X-Content-Type-Options nosniff always;
-    add_header X-XSS-Protection "1; mode=block" always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-    # API proxy — all /api/* requests go to Node.js
     location /api/ {
-        limit_req zone=api burst=20 nodelay;
-
         proxy_pass http://api_backend;
-        proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Connection "";     # Enable keepalive to upstream
-
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 30s;
-        proxy_send_timeout 10s;
     }
 
-    # WebSocket support for real-time features
-    location /ws {
-        proxy_pass http://api_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_read_timeout 86400s;     # Keep WebSocket alive for 24h
-    }
-
-    # Static frontend — React SPA
     location / {
         root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;    # SPA fallback routing
-
-        # Cache hashed assets aggressively (filenames include content hash)
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
+        try_files $uri $uri/ /index.html;        # SPA fallback
     }
-
-    # Block access to hidden files
-    location ~ /\. {
-        deny all;
-        return 404;
-    }
-
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1000;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript image/svg+xml;
 }
 ```
 
-## Step 3 — Multi-Stage Dockerfile
+```console
+$ docker compose exec nginx sh -c 'nginx -t && nginx -s reload'
+```
+
+`ssl_stapling` is left out on purpose: Let's Encrypt stopped including OCSP URLs in its certificates in 2025, so there is nothing to staple.
+
+## Step 3: Multi-stage Dockerfile for the API
 
 ```dockerfile
-# Dockerfile — Multi-stage build.
-# Stage 1 (deps): install dependencies.
-# Stage 2 (build): compile TypeScript.
-# Stage 3 (production): minimal runtime image with only compiled code.
-
-# --- Dependencies ---
-FROM node:22-alpine AS deps
+# Dockerfile
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
-
-# --- Build ---
-FROM deps AS build
 COPY . .
-RUN pnpm build
-# Prune dev dependencies after build
-RUN pnpm prune --prod
+RUN pnpm build && pnpm prune --prod
 
-# --- Production ---
-FROM node:22-alpine AS production
-WORKDIR /app
-
-# Security: run as non-root user
-RUN addgroup -S app && adduser -S app -G app
-USER app
-
-# Copy only what's needed to run
-COPY --from=build --chown=app:app /app/dist ./dist
-COPY --from=build --chown=app:app /app/node_modules ./node_modules
-COPY --from=build --chown=app:app /app/package.json ./
-
+FROM node:24-alpine AS production
 ENV NODE_ENV=production
-EXPOSE 3000
-
+WORKDIR /app
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/package.json ./
+# the official image ships a non-root "node" user
+USER node
 CMD ["node", "dist/server.js"]
 ```
+Add a `.dockerignore` with `node_modules`, `.git` and `.env` so secrets never enter the build context.
 
-## Step 4 — Automated Deployment with GitHub Actions
+## Step 4: Deploy from GitHub Actions
+
+The **github-actions** skill builds the API image, pushes it to GitHub Container Registry and runs the update on the VPS over SSH. The frontend is built in CI and copied to the server, because Nginx serves it from a bind mount.
 
 ```yaml
-# .github/workflows/deploy.yml — Zero-downtime deployment.
-# Builds the Docker image, pushes to GitHub Container Registry,
-# then SSHs into the VPS to pull the new image and restart with rolling update.
-
+# .github/workflows/deploy.yml
 name: Deploy
 on:
   push:
@@ -308,115 +203,97 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
+      contents: read     # listing "permissions" drops the defaults, and checkout needs this
       packages: write
-
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}/api
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      # Build frontend
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+      - uses: pnpm/action-setup@v6          # pnpm version comes from "packageManager" in package.json
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter frontend build
 
-      # Build and push API image
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v7
         with:
           push: true
-          tags: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ env.IMAGE }}:${{ github.sha }}
 
-      # Deploy to VPS
-      - name: Deploy
-        uses: appleboy/ssh-action@v1
+      - name: Copy frontend build
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: deploy
           key: ${{ secrets.VPS_SSH_KEY }}
+          source: frontend/dist/*
+          target: /opt/app/frontend/dist
+          strip_components: 2
+          rm: true
+
+      - name: Update the API
+        uses: appleboy/ssh-action@v1
+        env:
+          API_IMAGE: ${{ env.IMAGE }}:${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: API_IMAGE,GHCR_USER,GHCR_TOKEN
           script: |
+            set -e
             cd /opt/app
-
-            # Pull new image
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-
-            # Update compose to use new image tag
-            export API_IMAGE=ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-
-            # Copy updated frontend build
-            rsync -a --delete frontend/dist/ /opt/app/frontend/dist/
-
-            # Rolling restart: new container starts, old stops after health check passes
-            docker compose up -d --no-deps api
-            docker compose exec nginx nginx -s reload
-
-            # Cleanup old images
-            docker image prune -f
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker compose pull api
+            docker compose up -d --wait api
+            docker compose exec -T nginx nginx -s reload
 ```
 
-## Step 5 — Automated Backups
+`docker compose up -d --wait api` recreates the container and waits for its health check. The API is unavailable for the few seconds the swap takes, so this is a short restart rather than zero downtime. True zero-downtime needs two API replicas behind Nginx or a rollout tool, which is more machinery than one VPS needs. For `docker compose` commands run by hand, keep the current `API_IMAGE` in `.env` too.
+
+## Step 5: Back up PostgreSQL
+
+The **postgresql** skill covers dumps and restores. This script writes a custom-format dump from the running container and uploads it to S3-compatible storage. Expiry is better handled by a lifecycle rule on the bucket than by a shell loop.
 
 ```bash
-#!/bin/bash
-# scripts/backup.sh — Daily PostgreSQL backup with retention.
-# Dumps the database, compresses it, uploads to S3-compatible storage,
-# and removes backups older than 30 days.
-
+#!/usr/bin/env bash
+# /opt/app/scripts/backup.sh, run daily from cron
 set -euo pipefail
+cd /opt/app
+: "${S3_ENDPOINT:?}" "${S3_BUCKET:?}"          # for example S3_BUCKET=s3://rina-backups/db
 
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/opt/backups"
-BACKUP_FILE="${BACKUP_DIR}/projectmgr_${TIMESTAMP}.sql.gz"
-S3_BUCKET="s3://rina-backups/db"
+FILE="/opt/backups/projectmgr_$(date +%Y%m%d_%H%M%S).dump"
+mkdir -p /opt/backups
+docker compose exec -T db pg_dump -U app -d projectmgr --format=custom > "$FILE"
+aws s3 cp "$FILE" "$S3_BUCKET/" --endpoint-url "$S3_ENDPOINT"
+find /opt/backups -name '*.dump' -mtime +7 -delete
+```
 
-mkdir -p "${BACKUP_DIR}"
+Custom-format dumps are already compressed. To restore into a fresh server after `docker compose up -d db`:
 
-# Dump database from the running container
-docker compose exec -T db pg_dump \
-  -U app \
-  -d projectmgr \
-  --format=custom \
-  --compress=9 \
-  > "${BACKUP_FILE}"
-
-# Upload to S3-compatible storage (Backblaze B2, MinIO, AWS S3)
-aws s3 cp "${BACKUP_FILE}" "${S3_BUCKET}/${TIMESTAMP}.sql.gz" \
-  --endpoint-url "${S3_ENDPOINT}"
-
-# Remove local backups older than 7 days
-find "${BACKUP_DIR}" -name "*.sql.gz" -mtime +7 -delete
-
-# Remove remote backups older than 30 days
-aws s3 ls "${S3_BUCKET}/" --endpoint-url "${S3_ENDPOINT}" | \
-  awk '{print $4}' | while read -r file; do
-    file_date=$(echo "$file" | grep -oP '\d{8}')
-    cutoff=$(date -d "30 days ago" +%Y%m%d)
-    if [[ "$file_date" < "$cutoff" ]]; then
-      aws s3 rm "${S3_BUCKET}/${file}" --endpoint-url "${S3_ENDPOINT}"
-    fi
-  done
-
-echo "Backup completed: ${BACKUP_FILE}"
+```console
+$ docker compose exec -T db pg_restore -U app -d projectmgr --clean --if-exists < projectmgr_20261106_030000.dump
 ```
 
 ## Results
 
-Rina migrated the entire stack in one weekend. After a month of running containerized:
+Rina migrated the stack in one weekend. After a month:
 
-- **Deployment time: 5 minutes → 90 seconds** — GitHub Actions builds the image in CI, pushes it, and the VPS pulls the pre-built image. No more compiling on the server.
-- **Downtime per deploy: 30-60s → 0** — Docker Compose starts the new container, Nginx health-checks it, and only then stops the old one. Users don't notice deployments.
-- **"Works on my machine" bugs: eliminated** — the same Docker image runs locally, in CI, and in production. No more Node.js version mismatches.
-- **Resource usage: ~800MB total** — API container (180MB), PostgreSQL (250MB), Redis (45MB), Nginx (15MB). The $20/month 4GB VPS runs the entire stack comfortably with room for growth.
-- **Backup recovery tested** — Rina restored a backup to a fresh VPS in 12 minutes. The compose file and a single `docker compose up -d` brought everything back. No manual configuration.
-- **SSL auto-renewal** — Certbot renews certificates every 60 days automatically. Zero manual intervention since initial setup.
-- **Response time: 120ms → 45ms** — Nginx serves cached static assets directly and keeps persistent connections to the API. The API only handles dynamic requests.
+- A deploy runs unattended in about two minutes, and the API is down for a few seconds instead of a minute.
+- The same image runs locally, in CI and in production, so the Node.js version mismatches stopped.
+- She restored a backup onto a fresh VPS in about 12 minutes from the repository, the `.env` file and one dump.
+
+## Related Skills
+
+- [docker-helper](/skills/docker-helper) — writes and reviews the Dockerfile and the Compose file
+- [nginx](/skills/nginx) — reverse proxy, SSL and static file configuration
+- [postgresql](/skills/postgresql) — dumps, restores and database setup
+- [github-actions](/skills/github-actions) — build, push and deploy workflow

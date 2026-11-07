@@ -11,108 +11,136 @@ tags: [customer-support, classification, automation, tickets, routing]
 
 ## The Problem
 
-Your support team receives 200+ tickets per day. Each one needs to be read, categorized (billing, bug, feature request, how-to), assigned a priority, and routed to the right team. A support lead spends the first hour of every morning triaging the overnight queue manually. Misrouted tickets bounce between teams, high-priority issues get buried under low-priority noise, and customers wait longer than they should -- because humans are doing a job that pattern matching handles better.
+Your support team receives 200 or more tickets a day. Each one has to be read, categorized (billing, bug, how-to, feature request, account access), given a priority and routed to the right team. A support lead spends the first hour of every morning triaging the overnight queue by hand. Misrouted tickets bounce between teams, and a ticket reporting data loss can sit in the general queue next to thirty "how do I reset my password?" questions until someone happens to read it.
 
-The real cost is not the triage time itself. It is the 4-hour average first-response time that drives customers to competitors, and the critical production bugs that sit in a general queue for hours because nobody flagged them as urgent. Last month, a ticket reporting data loss sat in the queue for 6 hours next to 30 "how do I reset my password?" questions. The customer escalated to the CEO before anyone on the engineering team even saw it.
+The cost is not the triage time itself. It is the slow first response, and the urgent ticket that nobody flagged.
 
 ## The Solution
 
-Using the **data-analysis**, **coding-agent**, and **batch-processor** skills, the agent analyzes 6 months of historical tickets to learn classification patterns, builds a scoring pipeline that categorizes and routes new tickets automatically, and processes the daily backlog in seconds instead of an hour.
+Using the **data-analysis**, **coding-agent** and **batch-processor** skills, the agent profiles your historical tickets, trains a text classifier on them, measures it on tickets it has never seen, and builds a routing script that sends confident predictions to the right queue and everything else to a human. The model suggests; people stay in the loop for low-confidence and urgent tickets.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Analyze Historical Ticket Patterns
-
-Start by exporting your existing categorized tickets:
+### Step 1: Profile the historical tickets
 
 ```text
-Analyze the last 3 months of support tickets from tickets-export.csv. Columns are: id, subject, body, category, priority, assigned_team. Find the patterns that predict category and priority.
+Analyze tickets-export.csv (columns: id, subject, body, category, priority,
+assigned_team). Show the category distribution, how many tickets have empty
+bodies, the most common words per category, and which pairs of categories
+get confused with each other in the labels.
 ```
 
-### Step 2: Map Classification Signals
+Using data-analysis, the agent loads the CSV with pandas and reports the class balance, missing fields and duplicates. This step decides how far you can trust the labels. If the "category" column was filled in by hand over several years, expect inconsistent labels, and fix or drop them before training. Check that every category has at least a few hundred examples; rare categories (account access is often 5% of volume) need `class_weight="balanced"` or more data. Customer tickets contain names, emails and sometimes card fragments, so work on a copy, redact obvious personal data, and keep the file out of any third-party service.
 
-The analysis covers 18,432 tickets and surfaces clear keyword patterns for each category:
-
-**Category distribution and top signals:**
-
-| Category | Share | Strong Signals |
-|----------|-------|---------------|
-| Billing | 31% | "invoice", "charge", "subscription", "refund", "payment" |
-| Bug Report | 28% | "error", "broken", "crash", "doesn't work", "500" |
-| How-To | 24% | "how do I", "where is", "can I", "tutorial", "setup" |
-| Feature Request | 12% | "would be nice", "please add", "suggestion", "wish" |
-| Account Access | 5% | "locked out", "password", "can't login", "2FA" |
-
-**Priority signals:**
-
-- **Urgent:** "production down", "data loss", "security", "all users affected"
-- **High:** "blocking", "can't use", "paying customer", "deadline"
-- **Normal:** most tickets default here when no strong signals are present
-- **Low:** "suggestion", "someday", "minor", "cosmetic"
-
-Classification accuracy against historical data: **91.3%**. That means roughly 1 in 11 tickets would need human correction -- a manageable rate, especially since the remaining 10 get routed instantly instead of waiting in a queue.
-
-The analysis also reveals something useful about misclassification patterns: the most common confusion is between "bug report" and "how-to" -- users often describe expected behavior as "broken" when they actually need help using a feature correctly. The classifier handles this by looking for the combination of error language plus question marks and help-seeking phrases.
-
-### Step 3: Build the Classification Pipeline
+### Step 2: Train a baseline and measure it on held-out tickets
 
 ```text
-Create a ticket classification script that takes a new ticket (subject + body) and returns: category, priority, suggested team, and confidence score. Use the patterns from the analysis.
+Build ticket_classifier.py: TF-IDF features with logistic regression on
+subject + body. Hold out 20% of the tickets for evaluation and print
+per-category precision and recall.
 ```
 
-### Step 4: Implement the Classifier
-
-The pipeline scores each ticket against the learned patterns and returns a structured result with a confidence score:
+A hand-written keyword list is a fine first guess, but a TF-IDF model learns the words and phrases from your own data and gives a probability you can threshold. The agent writes this with scikit-learn:
 
 ```python
-# ticket_classifier.py
+# ticket_classifier.py  (pip install pandas scikit-learn joblib)
+import re
+import sys
 
-def classify_ticket(subject: str, body: str) -> dict:
-    text = f"{subject} {body}".lower()
+import joblib
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
 
-    categories = {
-        "billing": ["invoice", "charge", "subscription", "refund",
-                     "payment", "plan", "upgrade"],
-        "bug": ["error", "broken", "crash", "doesn't work",
-                "500", "fail", "exception"],
-        "how-to": ["how do i", "where is", "can i", "setup",
-                   "configure", "tutorial"],
-        "feature-request": ["would be nice", "please add",
-                           "suggestion", "wish", "feature"],
-        "account-access": ["locked out", "password", "can't login",
-                          "2fa", "reset"],
-    }
-    # ... scoring logic with weighted keyword matching,
-    # team routing rules, and priority detection
+MODEL_PATH = "ticket_model.joblib"
+AUTO_ROUTE = 0.90   # at or above: route straight to the team queue
+SUGGEST = 0.70      # between SUGGEST and AUTO_ROUTE: route with a "suggested" flag
+# Hard rules for priority. A model score never lowers these.
+URGENT = re.compile(r"production (is )?down|data loss|lost (all )?(my )?data|security|breach|all users", re.I)
+TEAM = {"billing": "billing", "bug": "engineering-support", "how-to": "support",
+        "feature-request": "product", "account-access": "support"}
+
+
+def read_tickets(path):
+    df = pd.read_csv(path)
+    df["text"] = df["subject"].fillna("") + " " + df["body"].fillna("")
+    return df
+
+
+def train(path):
+    df = read_tickets(path)
+    # Hold out tickets the model never sees, so the numbers below are honest.
+    x_tr, x_te, y_tr, y_te = train_test_split(
+        df["text"], df["category"], test_size=0.2, stratify=df["category"], random_state=42)
+    model = make_pipeline(
+        TfidfVectorizer(ngram_range=(1, 2), min_df=2, sublinear_tf=True),
+        LogisticRegression(max_iter=1000, class_weight="balanced"))
+    model.fit(x_tr, y_tr)
+    print(classification_report(y_te, model.predict(x_te)))
+    joblib.dump(model, MODEL_PATH)
+
+
+def classify(model, subject, body):
+    text = f"{subject} {body}"
+    probs = model.predict_proba([text])[0]
+    best = probs.argmax()
+    category, confidence = model.classes_[best], float(probs[best])
+    urgent = bool(URGENT.search(text))
+    route = "auto" if confidence >= AUTO_ROUTE else "suggested" if confidence >= SUGGEST else "manual-triage"
+    return {"category": category, "confidence": round(confidence, 3),
+            "priority": "urgent" if urgent else "normal",
+            "team": TEAM.get(category, "support"),
+            # An urgent ticket always reaches a human, whatever the confidence.
+            "route": "manual-triage" if urgent else route}
+
+
+def route(path):
+    model = joblib.load(MODEL_PATH)  # only load model files you trained yourself
+    df = read_tickets(path)
+    out = pd.DataFrame([classify(model, s, b) for s, b in zip(df["subject"].fillna(""), df["body"].fillna(""))])
+    out.insert(0, "id", df["id"])
+    print(out.sort_values(["priority", "confidence"], ascending=[False, True]).to_string(index=False))
+
+
+if __name__ == "__main__":
+    {"train": train, "route": route}[sys.argv[1]](sys.argv[2])
 ```
 
-The routing logic works in three tiers based on confidence:
+Run `python ticket_classifier.py train tickets-export.csv`, then `python ticket_classifier.py route new-tickets.csv`. On a small synthetic file the script trains, prints the per-category report and routes a ticket reading "Production down, all users affected, data loss" to manual triage as urgent, with a billing ticket marked `suggested`. The scores on a toy file mean nothing, so run it on your own export and read the report: a category with high recall but low precision is stealing tickets from its neighbours, and the classic pair is bug versus how-to, where users describe expected behaviour as "broken".
 
-- **Above 90% confidence:** auto-routed immediately. No human touches it unless the assignee disagrees.
-- **80-90% confidence:** routed with a "suggested classification" flag. The agent reviews within the normal workflow but does not need to read the ticket from scratch.
-- **Below 80% confidence:** lands in the manual triage queue. But this is only about 15% of total volume, turning an hour of triage into 10 minutes.
-
-Team routing maps categories to specialists: billing tickets go to the billing specialist, bug reports go to the engineering support queue with severity tagging, how-to questions get auto-suggested knowledge base articles alongside the routing.
-
-### Step 5: Process the Backlog
+### Step 3: Set the thresholds from the data
 
 ```text
-Run the classifier on all 47 unprocessed tickets in today's queue and show me the results sorted by priority.
+Using the held-out predictions, for confidence cutoffs from 0.5 to 0.95 show
+how many tickets would be auto-routed and what share of those were correct.
+Pick the lowest cutoff where auto-routed tickets are at least 95% correct.
 ```
 
-All 47 tickets are classified in seconds. The results tell a story that would have taken the support lead an hour to piece together manually:
+This is where data-analysis earns its place. The 0.90 and 0.70 values in the script are starting points, not facts. Plot coverage against accuracy on the held-out set and choose the cutoff your team can live with. The three tiers then mean what they say: above the auto-route cutoff the ticket goes straight to the team queue; in the middle band it is routed with a "suggested" flag so the agent confirms rather than re-reads; below it the ticket lands in manual triage. Priority comes from the hard rules, and an urgent match always goes to a person. Review a sample of auto-routed tickets every week, because wording drifts as the product changes, and retrain when accuracy on the sample drops.
 
-- **3 urgent bug reports** surface immediately -- including one reporting data export failures that affects 12 enterprise accounts. These would have sat in the general queue until morning triage.
-- **12 billing questions** route directly to the billing specialist, all high-confidence matches.
-- **8 how-to questions** get routed with suggested knowledge base article links, cutting expected response time for each one.
-- **4 tickets** flag below 80% confidence for manual review -- two are edge cases mixing billing complaints with bug reports, and two are in languages the classifier was not trained on.
+### Step 4: Wire it up and backfill
 
-The support lead's morning routine changes from "read every ticket, think about it, route it" to "review 4 flagged tickets and confirm the rest look right."
+```text
+Add a small HTTP service that receives a ticket webhook, calls classify(), and
+writes category, priority and team back to the helpdesk through its API. Then
+classify the last year's exports in the exports/ folder.
+```
+
+Two jobs run in parallel. A coding-agent sub-agent builds and tests the webhook service (verify the helpdesk's webhook signature with an HMAC and a constant-time compare, bind to 127.0.0.1 behind your reverse proxy, and make the write-back idempotent on ticket id so a retried webhook does not duplicate work). Meanwhile batch-processor's pattern covers the backfill: process each export file with a fixed number of workers, record a result per file, and keep going when one file is malformed instead of aborting the run.
 
 ## Real-World Example
 
-Lena manages support at a 20-person SaaS startup. The team handles 150 tickets daily with three agents, but tickets sit in the general queue for hours before someone reads and routes them. Urgent bugs get the same treatment as "how do I export a CSV?" questions. Last quarter, the team's NPS dropped 8 points, and exit surveys cited slow response times as the number one frustration.
+Lena manages support at a 20-person SaaS startup. Three agents handle about 150 tickets a day, and tickets sit in the general queue until someone reads and routes them. Urgent bugs get the same treatment as "how do I export a CSV?" questions.
 
-She exports 6 months of categorized tickets and feeds them to the analysis. The patterns are stark: 89% of billing tickets contain one of 15 keywords and can be auto-routed to the billing specialist without human triage. Urgent bug reports have distinctive language -- "production", "down", "all users", "data loss" -- that the classifier catches with 95% accuracy.
+She exports 18 months of categorized tickets and runs the profile. The labels turn out to be messy: "bug" and "how-to" were used interchangeably by two former agents, so she relabels a few hundred tickets before training. The held-out report shows billing and account-access tickets classified reliably and feature requests much less so, which matches her intuition, so she sets a high auto-route cutoff and leaves feature requests in the suggested band.
 
-The classification script runs on each new ticket via webhook. Within the first week, urgent bug reports get flagged and routed to engineering within minutes instead of hours. The billing specialist starts her day with a pre-sorted queue instead of fishing through the general inbox. The support team's average first-response time drops from 4.2 hours to 45 minutes, and misrouted tickets fall by 70%. The support lead gets her morning hour back -- and spends it actually helping customers instead of sorting a queue. By the end of the quarter, NPS recovers the 8 points it lost and climbs another 3.
+The script runs on each new ticket via webhook. Urgent phrases such as "production down" and "data loss" flag a ticket for a human immediately, whatever the model thinks. The billing specialist starts the day with a pre-sorted queue, and the morning triage shrinks from reading everything to reviewing the manual-triage list. Lena keeps measuring: every Friday she reads thirty auto-routed tickets, and she retrains when she finds more than a couple routed wrongly.
+
+## Related Skills
+
+- [data-analysis](../skills/data-analysis/SKILL.md) -- profile the ticket history and choose thresholds from held-out results
+- [coding-agent](../skills/coding-agent/SKILL.md) -- delegate the webhook service to a background coding agent
+- [batch-processor](../skills/batch-processor/SKILL.md) -- backfill historical exports with bounded concurrency and per-file error handling

@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c83a192ac7a27e3a4bfa2e4949515df5f92b88e5c991191920de3323297d0077",
+  "scoredAt": "2026-10-28T18:58:47.597Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.8,
+    "baselineAvg": 8,
+    "treatmentAvg": 68,
+    "scenarios": [
+      {
+        "name": "install-scrcpy-linux",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B includes the curl download, checksum verification, and extraction steps, whereas Response A only provides a package manager install and a version check, making B more aligned with the rubric."
+      },
+      {
+        "name": "wireless-record-demo",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B lacks the required scrcpy command with record and time-limit flags."
+      },
+      {
+        "name": "camera-headless-record",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response B includes most of the required scrcpy flags but omits --no-audio, whereas Response A does not use scrcpy at all."
+      }
+    ]
+  }
+}

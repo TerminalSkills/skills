@@ -2,7 +2,7 @@
 title: "Automate Invoice Generation and Billing Workflows with AI"
 slug: automate-invoice-generation-and-billing
 description: "Build automated billing pipelines with usage-based invoicing, PDF generation, payment tracking, and dunning workflows."
-skills: [billing-automation, invoice-generator, template-engine]
+skills: [billing-automation, template-engine]
 category: business
 tags: [billing, invoicing, payments, automation, saas]
 ---
@@ -19,7 +19,7 @@ The company is growing, and 200 customers will be 400 by year-end. The manual pr
 
 ## The Solution
 
-Using the **billing-automation** skill to build the invoicing pipeline and dunning workflows, the **invoice-generator** skill to render professional PDF invoices, and the **template-engine** skill to create email templates for delivery and payment reminders, the agent replaces five days of manual spreadsheet work with a single automated pipeline that runs in 34 seconds.
+Using the **billing-automation** skill to build the invoicing pipeline and dunning workflows, which also covers invoice PDF rendering, and the **template-engine** skill to create email templates for delivery and payment reminders, the agent replaces five days of manual spreadsheet work with a single automated pipeline. The tax rates are not decided by the agent: the finance team maintains the rates table (from the tax authority's published rates, or the accountant) and the pipeline only looks them up.
 
 ## Step-by-Step Walkthrough
 
@@ -46,14 +46,14 @@ The schema has eight tables:
 
 Indexes are tuned for three access patterns: aggregating usage events by customer and billing period (the hot path during invoice generation — this query runs 200 times during a billing cycle), finding overdue invoices for the dunning workflow (filtered by status and due date), and revenue reporting by period and customer segment.
 
-The `billing_events` table is partitioned by month so that usage aggregation queries only scan the current billing period, not the entire history. At scale, this is the difference between a 30-second billing run and a 30-minute one.
+The `billing_events` table is partitioned by month so that usage aggregation queries only scan the current billing period, not the entire history. At scale this keeps the aggregation queries from scanning the whole history.
 
 ### Step 2: Build the Invoice Generation Pipeline
 
-This is where tiered pricing meets real-world messiness: mid-cycle signups need proration, EU customers need VAT at the correct country rate, US customers may need state sales tax, and the pipeline needs to handle 200 customers without taking an hour.
+This is where tiered pricing meets real-world messiness: mid-cycle signups need proration, each customer's tax treatment (EU VAT, US state sales tax) comes from a rates table the finance team maintains, and the pipeline needs to handle 200 customers without taking an hour.
 
 ```text
-Implement a monthly invoice generation service in Node.js. It should: query all active customers, aggregate their API usage for the billing period, apply tiered pricing, add any flat subscription charges with proration for mid-cycle signups, calculate tax based on customer country (EU VAT, US sales tax — use a tax rates lookup table for now), generate an invoice record with line items, and render a PDF. Process all 200 customers in parallel with concurrency limit of 10.
+Implement a monthly invoice generation service in Node.js. It should: query all active customers, aggregate their API usage for the billing period, apply tiered pricing, add any flat subscription charges with proration for mid-cycle signups, calculate tax from a `tax_rates` lookup table keyed by customer country or state (I will fill it in; an empty rate means no tax line), generate an invoice record with line items, and render a PDF. Process all 200 customers in parallel with concurrency limit of 10.
 ```
 
 A sample invoice shows the tiered calculation in action:
@@ -67,10 +67,10 @@ A sample invoice shows the tiered calculation in action:
 | API calls — Volume tier | 147,891 | $0.0005 | $73.95 |
 | Premium support (monthly) | 1 | $99.00 | $99.00 |
 | **Subtotal** | | | **$262.95** |
-| VAT (19% — Germany) | | | $49.96 |
+| VAT (19%, rate from the tax_rates table) | | | $49.96 |
 | **Total** | | | **$312.91** |
 
-The full run processes 200 customers in 34 seconds with a concurrency limit of 10. Results: 187 invoices generated (13 skipped — zero usage and no active subscriptions), total revenue of $47,829.14. The breakdown: $31,204.50 in usage charges, $14,892.00 in flat subscriptions, -$412.36 in proration adjustments (for customers who signed up mid-cycle), and $2,145.00 in tax collected across 14 EU countries and 3 US states.
+The run processes the 200 customers with a concurrency limit of 10. Example results: 187 invoices generated (13 skipped — zero usage and no active subscriptions), total revenue of $47,829.14. The breakdown: $31,204.50 in usage charges, $14,892.00 in flat subscriptions, -$412.36 in proration adjustments (for customers who signed up mid-cycle), and $2,145.00 in tax collected across 14 EU countries and 3 US states.
 
 ### Step 3: Create Professional Invoice PDFs
 
@@ -80,9 +80,9 @@ A PDF invoice needs to look like it came from a real finance department. Custome
 Design a PDF invoice template with our branding. Include: company logo area, invoice number, date, and due date in the header. Customer billing details on the left, our company details on the right. A line items table with description, quantity, unit price, and amount. Subtotal, tax breakdown, and total in bold. Payment instructions at the bottom with bank transfer details and a link to pay online. Footer with payment terms (Net 30) and our tax registration number.
 ```
 
-The template uses a headless rendering approach (Puppeteer rendering an HTML template to PDF) that produces clean, print-ready documents. The layout handles variable-length line items gracefully — an invoice with 2 line items and one with 20 both look correct, with page breaks falling between line items rather than cutting through them.
+The skill recommends reportlab (Python) or PDFKit (Node.js) for rendering; the service above is Node.js, so PDFKit draws a clean, print-ready document. The layout handles variable-length line items gracefully — an invoice with 2 line items and one with 20 both look correct, with page breaks falling between line items rather than cutting through them.
 
-Each invoice gets a unique payment link embedded in both a QR code and a clickable URL alongside the bank transfer details. Customers can pay by card online (which Kenji prefers because it settles instantly) or by wire transfer (which enterprise accounting departments prefer because it fits their existing AP workflow). The reference number in the wire transfer instructions matches the invoice number, enabling automatic reconciliation.
+Each invoice carries a unique payment link (for example a Stripe-hosted payment page) next to the bank transfer details. Customers can pay by card online or by wire transfer (which enterprise accounting departments prefer because it fits their existing AP workflow). The reference number in the wire transfer instructions matches the invoice number, enabling automatic reconciliation.
 
 ### Step 4: Automate Payment Collection and Dunning
 
@@ -102,7 +102,7 @@ The first monthly run tells the whole story:
 - Invoices sent with payment instructions and unique reference numbers
 - A matching engine watches for incoming wire transfers by reference number and auto-reconciles them against open invoices
 
-The dunning workflow is a state machine: `issued` to `payment_attempted` to `retry_scheduled` to `reminder_sent` to `urgent_notice` to `manual_review`. Every transition gets logged to an audit table. Day 3 reminders are polite and assume the best. Day 7 notices are direct and include a one-click payment link. Day 14 escalation goes to Kenji's queue for a personal follow-up — by this point, the automated messages have resolved 80% of cases.
+The dunning workflow is a state machine: `issued` to `payment_attempted` to `retry_scheduled` to `reminder_sent` to `urgent_notice` to `manual_review`. Every transition gets logged to an audit table. Day 3 reminders are polite and assume the best. Day 7 notices are direct and include a one-click payment link. Day 14 escalation goes to Kenji's queue for a personal follow-up — by this point, the automated messages should have resolved most cases.
 
 ### Step 5: Build Financial Reporting
 
@@ -120,8 +120,13 @@ All endpoints support CSV export so the finance team can pull data into their ex
 
 ## Real-World Example
 
-Kenji runs the first automated billing cycle on March 1st. The pipeline processes all 200 customers in 34 seconds, generates 187 invoices with correct tiered calculations, and sends them before he finishes his morning coffee. The 142 card-on-file customers are charged automatically; 136 succeed on the first try.
+Kenji (an invented finance manager) runs the first automated billing cycle on March 1st. The pipeline processes all 200 customers, generates 187 invoices with tiered calculations he spot-checks against a hand-calculated sample, and sends them after his review. The 142 card-on-file customers are charged automatically; 136 succeed on the first try.
 
 The dunning workflow handles the 6 failed payments without manual intervention. By day 7, 4 of the 6 have updated their payment methods and been charged successfully. The remaining 2 hit Kenji's manual review queue on day 14 — both turn out to be customers who changed banks and need updated payment details.
 
-The dashboard shows real-time MRR of $47,829 with a 4.2% month-over-month growth trend, $8,200 in outstanding receivables (85% current, 12% under 30 days, 3% over 30 days), and 3 customers flagged for churn risk based on declining usage. Monthly billing goes from 5 days of manual work to a single button press, with zero calculation errors and 15% faster payment collection from the automated reminders. Kenji gets those five days back every month — and the $3,400 undercharging error from last quarter becomes impossible because the tiered pricing math runs in code, not in a spreadsheet formula.
+The dashboard shows $47,829 billed for the month (the MRR endpoint separates the $14,892 of flat subscriptions from usage), $8,200 in outstanding receivables (85% current, 12% under 30 days, 3% over 30 days), and 3 customers flagged for churn risk based on declining usage. Monthly billing goes from five days of manual work to a review and a button press, and the tiered pricing math runs in code with tests rather than in a spreadsheet formula, so the $3,400 undercharging error from last quarter cannot recur unnoticed.
+
+## Related Skills
+
+- [billing-automation](/skills/billing-automation)
+- [template-engine](/skills/template-engine)

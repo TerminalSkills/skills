@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:da9b6bf3c6f4ef1f8692261902086446e07d1d60bb9995c2a8970b3745625399",
-  "scoredAt": "2026-10-24T14:26:56.624Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:ae73ff35fcd617dcae89589bd700d6a8e39a7d3b5bd2308f3b8f3a30d0a6f708",
+  "scoredAt": "2026-11-05T00:03:29.076Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
-    "baselineAvg": 25,
-    "treatmentAvg": 100,
+    "multiplier": 8.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "self-host-n8n-docker-compose",
-        "baseline": 15,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key elements such as PostgreSQL, correct image, environment variables, and .env content."
-      },
-      {
-        "name": "webhook-order-to-slack-and-sheets",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response A fully meets all rubric items, while Response B lacks the required Webhook node, header auth, IF node, and explicit mapping of orderId."
-      },
-      {
-        "name": "export-import-workflows-cli",
+        "name": "self-host-with-docker-compose",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric, while Response B provides no relevant content."
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A is missing or incomplete."
+      },
+      {
+        "name": "order-webhook-slack-and-sheets",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B covers most rubric items but misses Google Sheets and production URL, while Response A lacks almost all required elements."
+      },
+      {
+        "name": "export-import-workflows",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required docker compose exec commands, flags, and file path, while Response B fails to meet the specifications."
       }
     ]
   }

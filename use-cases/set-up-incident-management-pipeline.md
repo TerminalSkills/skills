@@ -2,7 +2,7 @@
 title: "Set Up an Incident Management Pipeline from Alerts to Status Page"
 slug: set-up-incident-management-pipeline
 description: "Configure an alerting pipeline from Prometheus through PagerDuty with escalation policies, Opsgenie routing, and automatic status page updates."
-skills: [pagerduty, prometheus-alertmanager, statuspage, opsgenie]
+skills: [pagerduty, prometheus-alertmanager, statuspage, opsgenie, prometheus]
 category: devops
 tags: [incident-management, alerting, pagerduty, statuspage, opsgenie, on-call, escalation]
 ---
@@ -324,3 +324,7 @@ Within seconds: PagerDuty pages the on-call engineer, Opsgenie creates an alert 
 ## The Result
 
 The next time the payment service has an outage at 2 AM, the on-call engineer gets a phone call within 30 seconds. The status page updates automatically, so customers see "We are investigating an issue affecting payments" instead of wondering whether the service is down. When the engineer resolves the issue, the status page clears automatically. Support ticket volume during incidents drops by 70% because customers can self-serve the status page. The entire pipeline from detection to customer communication takes under a minute with no manual intervention.
+
+## Related Skills
+
+- [prometheus](/skills/prometheus) — write and unit-test the alerting rules (`promtool check rules`, `promtool test rules`) that feed Alertmanager

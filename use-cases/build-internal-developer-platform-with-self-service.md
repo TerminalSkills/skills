@@ -9,265 +9,266 @@ tags: [platform-engineering, developer-experience, self-service, deployment, inf
 
 # Build an Internal Developer Platform with Self-Service Deployment
 
-Yuki leads platform engineering at a company with 8 product teams (50 engineers total). Every team deploys differently: Team A uses manual SSH, Team B has custom bash scripts, Team C uses a half-configured ArgoCD. New hires take 2 weeks to make their first deploy. "How do I deploy?" is the #1 question in #help-engineering. Yuki's mission: any engineer can deploy any service in under 5 minutes, with zero platform team involvement.
+Yuki leads platform engineering at a company with 8 product teams (50 engineers total). Every team deploys differently: Team A uses manual SSH, Team B has custom bash scripts, Team C uses a half-configured ArgoCD. New hires take 2 weeks to make their first deploy, and "How do I deploy?" is the top question in #help-engineering. Yuki's goal: any engineer can create and deploy a service in minutes, with no platform-team ticket.
 
 ## The Problem: Platform Team as Bottleneck
 
-The current state:
+- **New service**: 3-5 days to provision (database, DNS, CI/CD, secrets, monitoring), all done by hand by the platform team
+- **Deployment**: different for every team, some with no rollback at all
+- **Cost attribution**: nobody knows which team costs how much
+- **Preview environments**: staging is shared, so changes queue behind each other
 
-- **New service**: 3-5 days to provision (databases, DNS, CI/CD, secrets, monitoring) — all done by platform team
-- **Environment creation**: 1-2 days — platform team manually creates staging environments
-- **Deployment**: Different for every team; no standard process; some teams deploy by SSH-ing to servers
-- **Cost attribution**: Nobody knows which team costs how much; CFO keeps asking
-- **Incidents**: No standard rollback process; some teams have no rollback at all
+The goal is a small platform API (and a portal in front of it) where developers create services, get a database, deploy to preview, staging and production, and see their costs.
 
-The goal: a self-service portal where developers create services, provision databases, deploy to preview/staging/production, and see their costs — all without filing a Jira ticket.
+## Step 1: Golden-Path Templates with Docker
 
-## Step 1: Service Templates (Golden Paths)
+Every template repository (marked "Template repository" in GitHub) ships a multi-stage `Dockerfile`, a local `compose.yaml`, a Helm values file and a deploy workflow, so every service is built, run and deployed the same way. Use the `docker-helper` skill to produce the Dockerfile and compose file once per template, and review them like any other code.
 
-Instead of letting every team invent their own setup, the platform team provides opinionated templates. Developers choose a template, answer a few questions, and get a fully configured service:
+```yaml
+# compose.yaml in every template: same local setup for everyone
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"          # local only
+    environment:
+      DATABASE_URL: postgresql://app:${DB_PASSWORD:?set DB_PASSWORD in .env}@db:5432/app
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+```
+
+```console
+$ docker compose up -d --wait
+$ docker compose ps
+```
+
+## Step 2: Self-Service API for New Services
+
+The platform API is a [Hono](https://hono.dev) app. It validates the request and hands provisioning to a durable [Trigger.dev](https://trigger.dev) task, because creating a repository, a database and a namespace takes minutes and may fail halfway; the task retries without losing its place.
 
 ```typescript
-// platform-api/src/routes/services.ts — Self-service API
-import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+// src/schema.ts
 import { z } from "zod";
-
-const app = new Hono();
-
-const createServiceSchema = z.object({
+export const createServiceSchema = z.object({
   name: z.string().regex(/^[a-z][a-z0-9-]{2,30}$/),
   template: z.enum(["api-node", "api-python", "frontend-react", "worker-node"]),
   team: z.string(),
-  owner: z.string().email(),
+  owner: z.email(),
   database: z.enum(["postgres", "none"]).default("none"),
   resources: z.enum(["small", "medium", "large"]).default("small"),
 });
+export type CreateServiceInput = z.infer<typeof createServiceSchema>;
+```
 
-app.post("/api/services", zValidator("json", createServiceSchema), async (c) => {
+```typescript
+// src/services.ts
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { tasks } from "@trigger.dev/sdk";
+import { createServiceSchema } from "./schema";
+import type { provisionService } from "../trigger/provision-service";
+
+export const services = new Hono();
+
+services.post("/api/services", zValidator("json", createServiceSchema), async (c) => {
   const input = c.req.valid("json");
-  const service = await createService(input);
-  return c.json(service, 201);
+  // Provisioning takes minutes and must survive restarts: hand it to a durable task
+  const handle = await tasks.trigger<typeof provisionService>("provision-service", input);
+  return c.json({ name: input.name, runId: handle.id, status: "provisioning" }, 202);
 });
-
-async function createService(input: z.infer<typeof createServiceSchema>) {
-  // 1. Create GitHub repository from template
-  const repo = await github.createFromTemplate({
-    templateRepo: `platform-templates/${input.template}`,
-    name: input.name,
-    org: "ourcompany",
-    private: true,
-  });
-
-  // 2. Provision database (if requested)
-  let databaseUrl: string | undefined;
-  if (input.database === "postgres") {
-    const db = await neon.createProject({
-      name: input.name,
-      region: "aws-us-east-2",
-    });
-    databaseUrl = db.connectionUri;
-
-    // Store in secrets manager
-    await infisical.createSecret({
-      projectId: PLATFORM_PROJECT_ID,
-      environment: "prod",
-      name: `${input.name.toUpperCase()}_DATABASE_URL`,
-      value: databaseUrl,
-    });
-  }
-
-  // 3. Configure CI/CD
-  await writeGitHubActionsWorkflow(repo, input);
-
-  // 4. Create Kubernetes namespace and resources
-  await kubectl.apply({
-    namespace: input.name,
-    resources: generateK8sManifests(input),
-  });
-
-  // 5. Configure DNS
-  await cloudflare.createDNSRecord({
-    name: `${input.name}.internal.ourcompany.com`,
-    type: "CNAME",
-    content: "k8s-ingress.ourcompany.com",
-  });
-
-  // 6. Set up monitoring
-  await datadog.createMonitor({
-    name: `${input.name} - Error Rate`,
-    query: `avg(last_5m):sum:http.requests.errors{service:${input.name}} / sum:http.requests.total{service:${input.name}} > 0.05`,
-    tags: [`team:${input.team}`, `service:${input.name}`],
-  });
-
-  // 7. Register in service catalog
-  await db.services.create({
-    data: {
-      name: input.name,
-      template: input.template,
-      team: input.team,
-      owner: input.owner,
-      repoUrl: repo.html_url,
-      database: input.database,
-      status: "active",
-      createdAt: new Date(),
-    },
-  });
-
-  return {
-    name: input.name,
-    repoUrl: repo.html_url,
-    url: `https://${input.name}.internal.ourcompany.com`,
-    databaseProvisioned: !!databaseUrl,
-    estimatedReady: "2 minutes",
-  };
-}
 ```
 
-What used to take 3-5 days now takes 2 minutes. The developer picks a template, gets a repo, database, CI/CD, DNS, and monitoring — all configured and ready.
-
-## Step 2: Preview Environments Per PR
-
-Every pull request gets its own isolated environment with its own database branch. Reviewers click a link and see the change running:
-
 ```typescript
-// platform-api/src/routes/previews.ts
-async function createPreviewEnvironment(prNumber: number, service: Service) {
-  // Branch the database (instant via Neon — copy-on-write)
-  let previewDbUrl: string | undefined;
-  if (service.database === "postgres") {
-    const branch = await neon.createBranch({
-      projectId: service.neonProjectId!,
-      name: `preview-pr-${prNumber}`,
-      parentBranch: "main",
+// trigger/provision-service.ts
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { schemaTask, logger } from "@trigger.dev/sdk";
+import { Octokit } from "@octokit/rest";
+import { createApiClient } from "@neondatabase/api-client";
+import { createServiceSchema } from "../src/schema";
+
+const run = promisify(execFile);
+const github = new Octokit({ auth: process.env.GITHUB_TOKEN });
+const neon = createApiClient({ apiKey: process.env.NEON_API_KEY! });
+
+export const provisionService = schemaTask({
+  id: "provision-service",
+  schema: createServiceSchema,
+  retry: { maxAttempts: 3 },
+  run: async (input) => {
+    // 1. Repository from the golden-path template (the template repo is marked "Template repository")
+    const { data: repo } = await github.rest.repos.createUsingTemplate({
+      template_owner: "ourcompany",
+      template_repo: `template-${input.template}`,
+      owner: "ourcompany",
+      name: input.name,
+      private: true,
     });
-    previewDbUrl = branch.connectionUri;
-  }
 
-  // Deploy preview to Kubernetes
-  const previewName = `${service.name}-pr-${prNumber}`;
-  await helm.install(previewName, "./charts/service", {
-    set: {
-      "image.tag": `pr-${prNumber}`,
-      "env.DATABASE_URL": previewDbUrl || "",
-      "ingress.host": `${previewName}.preview.ourcompany.com`,
-      "resources.limits.cpu": "500m",      // Smaller resources for previews
-      "resources.limits.memory": "512Mi",
-      "autoscaling.enabled": "false",
-      "replicas": "1",                     // Single replica for cost
-    },
-    namespace: "previews",
-  });
+    // 2. Namespace labelled for cost attribution
+    await run("kubectl", ["create", "namespace", input.name]);
+    await run("kubectl", ["label", "namespace", input.name, `team=${input.team}`, `service=${input.name}`]);
 
-  // Comment on PR
-  await github.createComment(service.repoOrg, service.repoName, prNumber, [
-    `🚀 **Preview Environment Ready**`,
-    ``,
-    `| | |`,
-    `|---|---|`,
-    `| **URL** | https://${previewName}.preview.ourcompany.com |`,
-    `| **Database** | Branched from production (safe to test with real schema) |`,
-    `| **Auto-cleanup** | When PR closes |`,
-  ].join("\n"));
-
-  return { url: `https://${previewName}.preview.ourcompany.com` };
-}
-```
-
-## Step 3: Production Deployment with Approval Gates
-
-Production deployments go through a standardized pipeline with required approvals for critical services:
-
-```typescript
-// platform-api/src/routes/deploys.ts
-app.post("/api/services/:name/deploy", async (c) => {
-  const serviceName = c.req.param("name");
-  const { version, environment } = await c.req.json();
-  const deployer = c.get("user");
-
-  const service = await db.services.findUnique({ where: { name: serviceName } });
-
-  if (environment === "production") {
-    // Check approval requirements
-    if (service.tier === "critical") {
-      const approval = await requestApproval({
-        service: serviceName,
-        version,
-        requestedBy: deployer.email,
-        approvers: [service.owner, ...service.team.leads],
-        channel: `#deploy-${service.team.slug}`,
+    // 3. Database project; the connection string goes straight into a Kubernetes Secret
+    if (input.database === "postgres") {
+      const { data } = await neon.createProject({
+        project: { name: input.name, region_id: "aws-us-east-2" },
       });
-
-      if (!approval.approved) {
-        return c.json({ error: "Deployment requires approval", approvalId: approval.id }, 403);
-      }
+      const kubectl = run("kubectl", [
+        "create", "secret", "generic", "database", "-n", input.name, "--from-env-file=/dev/stdin",
+      ]);
+      kubectl.child.stdin?.end(`DATABASE_URL=${data.connection_uris[0].connection_uri}\n`);
+      await kubectl;
+      logger.info("database ready", { project: data.project.id });
     }
 
-    // Run pre-deployment checks
-    const checks = await runPreDeployChecks(service, version);
-    if (checks.some(ch => ch.status === "failed")) {
-      return c.json({ error: "Pre-deployment checks failed", checks }, 400);
-    }
-  }
-
-  // Deploy via Helm
-  const deployment = await deployService(service, version, environment);
-
-  // Record in audit log
-  await db.deployments.create({
-    data: {
-      serviceId: service.id,
-      version,
-      environment,
-      deployedBy: deployer.email,
-      status: "in_progress",
-      startedAt: new Date(),
-    },
-  });
-
-  return c.json(deployment);
+    // 4. Record in the service catalog (the platform's own database) and return
+    return { name: input.name, repoUrl: repo.html_url };
+  },
 });
 ```
 
-## Step 4: Cost Attribution Dashboard
+The platform's service account holds the GitHub, Neon and cluster credentials; developers never see them. The database connection string is written into a Kubernetes Secret inside the new namespace, so it never reaches a repository or a log. A wildcard DNS record such as `*.internal.ourcompany.com` pointing at the ingress means no per-service DNS call is needed, and the `team` and `service` namespace labels are what monitoring and cost tools group by.
 
-Every team sees what they're spending. No more surprise AWS bills:
+## Step 3: Preview Environments per PR
+
+Every pull request gets its own Helm release and its own copy-on-write database branch, so reviewers can open a link and test against a realistic schema. Neon branches copy the parent's schema and data; use a schema-only branch if production data must not reach previews.
 
 ```typescript
-// platform-api/src/routes/costs.ts
+// src/previews.ts
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { createApiClient, EndpointType } from "@neondatabase/api-client";
+
+const run = promisify(execFile);
+const neon = createApiClient({ apiKey: process.env.NEON_API_KEY! });
+
+export async function createPreview(service: { name: string; neonProjectId?: string }, pr: number) {
+  const release = `${service.name}-pr-${pr}`;
+  const host = `${release}.preview.ourcompany.com`;
+
+  const values: Record<string, unknown> = {
+    image: { tag: `pr-${pr}` },
+    ingress: { host },
+    replicaCount: 1,
+    autoscaling: { enabled: false },
+  };
+
+  if (service.neonProjectId) {
+    // Copy-on-write branch of the project's default branch
+    const { data } = await neon.createProjectBranch(service.neonProjectId, {
+      branch: { name: `pr-${pr}` },
+      endpoints: [{ type: EndpointType.ReadWrite }],
+    });
+    values.env = { DATABASE_URL: data.connection_uris?.[0]?.connection_uri };
+  }
+
+  // Values go in on stdin (JSON is valid YAML), so the connection string never appears in `ps`
+  const helm = run("helm", [
+    "upgrade", "--install", release, "./charts/service",
+    "-n", "previews", "--create-namespace", "--wait", "--timeout", "5m", "-f", "-",
+  ]);
+  helm.child.stdin?.end(JSON.stringify(values));
+  await helm;
+  return { url: `https://${host}` };
+}
+```
+
+A workflow on the pull-request `closed` event runs `helm uninstall <service>-pr-<n> -n previews` and deletes the Neon branch (`neonctl branches delete pr-<n>` or `neon.deleteProjectBranch`). Set an expiry on branches so forgotten previews clean themselves up.
+
+## Step 4: Production Deploys with Approval Gates
+
+Approvals do not need custom code. The platform API dispatches the service's own `deploy.yml` workflow, and the workflow's `environment: production` job is protected by required reviewers in GitHub (Settings, Environments). GitHub records who approved and when, which is the audit log. Every platform route sits behind the company's SSO middleware; the sketches omit it, and the deploy route must also check that the caller belongs to the service's team.
+
+```typescript
+// src/deploys.ts
+import { Hono } from "hono";
+import { Octokit } from "@octokit/rest";
+
+const github = new Octokit({ auth: process.env.GITHUB_TOKEN });
+export const deploys = new Hono();
+
+deploys.post("/api/services/:name/deploy", async (c) => {
+  const name = c.req.param("name");
+  const { version, environment } = await c.req.json<{ version: string; environment: "staging" | "production" }>();
+  if (!/^[a-z][a-z0-9-]{2,30}$/.test(name) || !/^[\w.-]+$/.test(version) || !["staging", "production"].includes(environment)) {
+    return c.json({ error: "invalid input" }, 400);
+  }
+  await github.rest.actions.createWorkflowDispatch({
+    owner: "ourcompany",
+    repo: name,
+    workflow_id: "deploy.yml",
+    ref: "main",
+    inputs: { version, environment },
+  });
+  return c.json({ status: "dispatched", environment, version }, 202);
+});
+```
+
+```yaml
+# deploy.yml in every template (excerpt)
+on:
+  workflow_dispatch:
+    inputs:
+      version: { required: true, type: string }
+      environment: { required: true, type: choice, options: [staging, production] }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}     # production has required reviewers
+    steps:
+      - uses: actions/checkout@v7
+      - run: helm upgrade --install "$APP" ./chart -n "$APP" --set image.tag="$VERSION" --atomic --timeout 5m
+        env:
+          APP: ${{ github.event.repository.name }}
+          VERSION: ${{ inputs.version }}      # via env, never interpolated into the script
+```
+
+`--atomic` rolls the release back if it does not become ready, and `helm rollback <release> <revision>` is the manual path. See the `kubernetes-helm` skill for chart structure and `helm diff`.
+
+## Step 5: Cost Attribution
+
+Cost records come from the cloud bill and the cluster (grouped by the namespace labels from Step 2), loaded on a schedule into the platform's database. The platform only serves the aggregation, always computed in SQL:
+
+```typescript
+// src/costs.ts: sketch; `db` is the platform's Prisma client
 app.get("/api/costs", async (c) => {
   const { team, period } = c.req.query();
-
+  if (!/^\d{4}-\d{2}$/.test(period ?? "")) return c.json({ error: "period must be YYYY-MM" }, 400);
   const costs = await db.$queryRaw`
-    SELECT
-      s.team,
-      s.name as service,
-      SUM(c.compute_cost) as compute,
-      SUM(c.database_cost) as database,
-      SUM(c.network_cost) as network,
-      SUM(c.compute_cost + c.database_cost + c.network_cost) as total
-    FROM services s
-    JOIN cost_records c ON c.service_id = s.id
-    WHERE c.period = ${period}
-    ${team ? Prisma.sql`AND s.team = ${team}` : Prisma.empty}
-    GROUP BY s.team, s.name
-    ORDER BY total DESC
-  `;
-
+    SELECT s.team, s.name AS service,
+           SUM(c.compute_cost) AS compute, SUM(c.database_cost) AS database,
+           SUM(c.compute_cost + c.database_cost) AS total
+    FROM services s JOIN cost_records c ON c.service_id = s.id
+    WHERE c.period = ${period} ${team ? Prisma.sql`AND s.team = ${team}` : Prisma.empty}
+    GROUP BY s.team, s.name ORDER BY total DESC`;
   return c.json({ costs, period });
 });
 ```
 
 ## Results
 
-After 6 months:
+In the example team's numbers after six months: a new service takes minutes instead of 3-5 days, new hires deploy on day one, every pull request gets a preview, platform-team tickets dropped by most of the old volume, and each team can see its own monthly spend. The platform team now spends its time on templates and tooling instead of provisioning by hand.
 
-- **Service creation**: 2 minutes self-service (was 3-5 days with Jira tickets)
-- **First deploy for new hires**: Day 1 (was week 2); onboarding docs just say "pick a template"
-- **Preview environments**: 100% of PRs get preview environments; reviewers click and test; QA catches 40% more bugs pre-merge
-- **Platform team tickets**: Down 80%; platform team now builds tools instead of provisioning services
-- **Deployment frequency**: 12 deploys/day across all teams (was 3/day); teams deploy independently
-- **Standardization**: All 8 teams use the same templates, same CI/CD, same monitoring; incidents are easier to debug
-- **Cost visibility**: Each team sees their monthly spend; total infrastructure costs down 15% through awareness
-- **MTTR**: 8 minutes average (was 45 minutes); standardized rollback via `deploy rollback` command
-- **Developer satisfaction**: Internal NPS for platform tools went from -20 to +45
+## Related Skills
+
+- `docker-helper` - Dockerfiles and compose files for the templates
+- `kubernetes-helm` - charts, releases, rollbacks and preview namespaces
+- `neon` - database projects and copy-on-write branches per PR
+- `trigger-dev` - durable, retried provisioning tasks
+- `hono` - the platform API

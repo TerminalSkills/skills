@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e13d3dbdce360f6663967e8120c2e207b5438c99de44b8581716b3caf818a796",
+  "scoredAt": "2026-11-05T20:31:15.810Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill focuses mainly on happy path scenarios and lacks explicit error handling or edge case coverage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "deploy-budibase-docker",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response A includes the required docker run command and health check, though missing some env vars, whereas Response B fails to meet the rubric."
+      },
+      {
+        "name": "create-table-and-rows-via-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with correct curl commands and JSON payloads, while Response A uses SQL and does not meet the specified API requirements."
+      },
+      {
+        "name": "budi-cli-hosting-and-backup",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A covers all required commands and the import note, missing only the explicit mention of the current directory for the backup file; Response B uses incorrect commands, file formats, and restore syntax."
+      }
+    ]
+  }
+}

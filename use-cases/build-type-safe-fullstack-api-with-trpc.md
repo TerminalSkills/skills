@@ -3,6 +3,7 @@ title: Build a Type-Safe Full-Stack API with tRPC
 slug: build-type-safe-fullstack-api-with-trpc
 description: Create a fully type-safe API layer using tRPC, Zod, and Prisma where backend changes instantly propagate to the frontend — no code generation, no REST boilerplate, no runtime surprises.
 skills:
+  - orpc
   - trpc
   - zod
   - prisma
@@ -367,3 +368,7 @@ Marta's team deployed the tRPC migration incrementally over two weeks, convertin
 - **API response time dropped 18%** thanks to HTTP batching — pages that fired 6 parallel requests now send a single batched call.
 - **Developer onboarding time cut from 2 weeks to 4 days** — new engineers navigate the codebase by following types from the UI component all the way to the database query with Cmd+Click.
 - **Form validation code reduced by 60%** — shared Zod schemas between server and client eliminated duplicate validation logic.
+
+## Related Skills
+
+- [orpc](/skills/orpc) — choose it instead of tRPC when the same typed procedures must also be exposed as REST endpoints with an OpenAPI document, or defined contract-first

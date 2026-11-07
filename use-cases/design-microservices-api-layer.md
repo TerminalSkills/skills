@@ -11,283 +11,288 @@ tags: [rest, grpc, microservices, api-gateway, protobuf, performance]
 
 ## The Problem
 
-Sami is the platform engineer at a 30-person fintech startup. They started as a monolith, and after splitting into 6 microservices last year, the architecture works — but communication between services is a mess.
+Sami is the platform engineer at a 30-person fintech startup. After splitting a monolith into 6 microservices, communication between them is a mess.
 
-All inter-service calls go through REST over HTTP/1.1. The payment service calls the user service to verify accounts, which calls the compliance service for KYC checks, which calls the document service for ID verification. A single payment request triggers a chain of 4 REST calls. Each call serializes to JSON, crosses the network, deserializes, processes, serializes the response, and sends it back. Total overhead per hop: 12-18ms just in serialization and HTTP connection setup.
+All inter-service calls are REST over HTTP/1.1. A single payment request triggers a chain of calls: payment to user, user to compliance (KYC), compliance to documents. Every hop serializes JSON, crosses the network and deserializes again; the p95 for the payment flow is 840ms and compliance requires under 500ms.
 
-The p95 latency for the payment flow is 840ms. Compliance requires it under 500ms. The JSON payloads between services average 4.2KB when the actual data needed is under 800 bytes — field names, null values, and nested objects that the receiving service ignores.
-
-Authentication is duplicated: each service validates JWTs independently, making 6 Redis lookups per payment flow. Error handling is inconsistent — the user service returns `{ "error": "not found" }`, the compliance service returns `{ "code": 404, "msg": "Not found" }`, and the document service returns `{ "status": "error", "reason": "missing" }`. Every service has its own client library for every other service, totaling 30 hand-maintained HTTP clients.
-
-External clients (web app, mobile) need REST — they can't speak gRPC. But internal services have no such constraint. The team wastes 8 hours per week debugging serialization mismatches, maintaining client libraries, and dealing with undocumented endpoint changes.
+Authentication is duplicated: each service validates JWTs on its own. Error handling is inconsistent: one service returns `{ "error": "not found" }`, another `{ "code": 404, "msg": "Not found" }`, a third `{ "status": "error", "reason": "missing" }`. Every service hand-maintains an HTTP client for every other service, and retried POSTs have created duplicate payments. External clients (web, mobile) need REST; internal services do not.
 
 ## The Solution
 
-Using the **rest-api**, **grpc**, and **docker-helper** skills, the architecture keeps REST for external-facing APIs (mobile, web, third-party integrations) and switches internal service-to-service communication to gRPC with Protocol Buffers. An API gateway sits at the boundary, translating between the two worlds — so external clients see clean REST while internal services get type-safe, high-performance gRPC.
+Keep REST for external clients and move service-to-service calls to gRPC. A gateway sits at the boundary: it authenticates the JWT once, validates the JSON, calls internal services over gRPC with the user identity in metadata, and maps gRPC status codes to HTTP in one place. The **rest-api** skill shapes the public API (status codes, error format, idempotency), **grpc** the internal contracts, and **docker-helper** the packaging. The code below was run end to end with `@grpc/grpc-js` 1.14, `@grpc/proto-loader` 0.8, Express 5 and `jsonwebtoken` 9.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Define the Proto Contracts
+### Step 1: Set up the project and the proto contracts
 
-The root of the problem is 30 hand-maintained HTTP clients with no shared contract. Protocol Buffers fix this by defining every message and service in `.proto` files that generate type-safe clients for Node.js, Python, and Go simultaneously.
-
-Start with common types that every service shares:
-
-```protobuf
-// proto/common/v1/common.proto — shared types used across all services
-syntax = "proto3";
-package common.v1;
-
-message Money {
-  int64 amount_cents = 1;
-  string currency = 2;     // ISO 4217: "USD", "EUR", "GBP"
-}
-// Also: Address, PaginationRequest, Timestamp wrappers
+```bash
+npm init -y && npm install @grpc/grpc-js @grpc/proto-loader express jsonwebtoken zod
+npm install -D typescript tsx @types/node @types/express @types/jsonwebtoken
 ```
 
-Then the payment service proto — this is the contract that the gateway and other services call:
+Every message and service lives in one shared `proto/` directory, versioned by package name (`payment.v1`):
 
 ```protobuf
 // proto/payment/v1/payment.proto
 syntax = "proto3";
 package payment.v1;
 
-import "common/v1/common.proto";
-
 service PaymentService {
-  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
-  rpc GetPayment(GetPaymentRequest) returns (Payment);
-  // Server streaming — client receives status updates in real time
-  rpc WatchPayment(WatchPaymentRequest) returns (stream PaymentStatusEvent);
+  rpc CreatePayment(CreatePaymentRequest) returns (Payment);
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PROCESSING = 1;
+  PAYMENT_STATUS_COMPLETED = 2;
 }
 
 message CreatePaymentRequest {
-  string user_id = 1;
-  common.v1.Money amount = 2;
-  string description = 3;
-  string idempotency_key = 4;   // Prevents duplicate charges
+  int64 amount_cents = 1;
+  string currency = 2;        // ISO 4217: "USD", "EUR"
+  string idempotency_key = 3; // a retried request returns the same payment
 }
 
 message Payment {
   string id = 1;
   string user_id = 2;
-  common.v1.Money amount = 3;
-  PaymentStatus status = 4;   // PENDING, PROCESSING, COMPLETED, FAILED
-  string created_at = 5;
+  int64 amount_cents = 3;
+  string currency = 4;
+  PaymentStatus status = 5;
+}
+
+// proto/compliance/v1/compliance.proto
+syntax = "proto3";
+package compliance.v1;
+
+service ComplianceService {
+  rpc CheckKyc(CheckKycRequest) returns (CheckKycResponse);
+}
+
+message CheckKycRequest { string user_id = 1; int64 amount_cents = 2; }
+message CheckKycResponse { bool approved = 1; string reason = 2; }
+```
+
+`idempotency_key` is part of the contract, not an optional header that half the services forget to check. `int64` values reach JavaScript as strings (`longs: String` in the loader) to avoid precision loss.
+
+### Step 2: A shared gRPC helper
+
+`@grpc/proto-loader` reads the `.proto` files at runtime, so there is no `protoc` step (`npx proto-loader-gen-types` adds TypeScript interfaces if you want them). The helper loads a contract, wraps calls in promises with a mandatory deadline, and reads the identity metadata:
+
+```typescript
+// src/grpc.ts
+import path from "node:path";
+import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
+export function load(file: string): any {
+  const def = protoLoader.loadSync(file, {
+    includeDirs: [path.join(__dirname, "../proto")],
+    keepCase: false, longs: String, enums: String, defaults: true, oneofs: true,
+  });
+  return grpc.loadPackageDefinition(def);
+}
+export function call<T = any>(client: any, method: string, req: object, md = new grpc.Metadata()): Promise<T> {
+  return new Promise((resolve, reject) =>
+    client[method](req, md, { deadline: Date.now() + 3000 }, (err: grpc.ServiceError | null, res: T) =>
+      err ? reject(err) : resolve(res)));
+}
+export function userFrom(md: grpc.Metadata) {
+  const id = md.get("x-user-id")[0]?.toString();
+  return id ? { id, role: md.get("x-user-role")[0]?.toString() } : null;
 }
 ```
 
-Notice the `idempotency_key` — a lesson learned from REST, where retried POST requests created duplicate payments. With protobuf, the field is part of the contract, not an optional header that half the services forget to check.
+### Step 3: The internal services
 
-### Step 2: Build the API Gateway Translation Layer
-
-The gateway is where REST meets gRPC. External clients send JSON over HTTPS; the gateway validates, translates to protobuf, calls internal gRPC services, and translates back. Authentication happens once, at this boundary.
+The compliance service is a single handler:
 
 ```typescript
-// api-gateway/src/routes/payments.ts
-import express from "express";
-import { PaymentServiceClient } from "../generated/payment/v1/payment_grpc_pb";
-import { CreatePaymentRequest } from "../generated/payment/v1/payment_pb";
-import { Money } from "../generated/common/v1/common_pb";
-import { grpcToHttpError } from "../middleware/error-mapper";
-import { credentials, Metadata } from "@grpc/grpc-js";
-
-const router = express.Router();
-const paymentClient = new PaymentServiceClient(
-  process.env.PAYMENT_SERVICE_URL || "payment-service:50051",
-  credentials.createInsecure()   // Internal network — TLS terminated at ingress
-);
-
-// POST /api/v1/payments → PaymentService.CreatePayment
-router.post("/", async (req, res, next) => {
-  try {
-    const grpcRequest = new CreatePaymentRequest();
-    grpcRequest.setUserId(req.user.id);         // From JWT, validated at gateway
-    grpcRequest.setDescription(req.body.description);
-    grpcRequest.setIdempotencyKey(req.body.idempotency_key);
-
-    const money = new Money();
-    money.setAmountCents(req.body.amount_cents);
-    money.setCurrency(req.body.currency || "USD");
-    grpcRequest.setAmount(money);
-
-    // Forward user context as gRPC metadata — no JWT re-validation downstream
-    const metadata = new Metadata();
-    metadata.set("x-user-id", req.user.id);
-    metadata.set("x-user-role", req.user.role);
-    metadata.set("x-request-id", req.requestId);
-
-    const response = await callGrpc(paymentClient, "createPayment", grpcRequest, metadata);
-    res.status(201).json(paymentToJson(response));
-  } catch (err) {
-    next(grpcToHttpError(err));   // gRPC INVALID_ARGUMENT → 400, NOT_FOUND → 404, etc.
-  }
+// src/compliance.ts
+import * as grpc from "@grpc/grpc-js";
+import { load } from "./grpc";
+const pkg = load("compliance/v1/compliance.proto");
+const server = new grpc.Server();
+server.addService(pkg.compliance.v1.ComplianceService.service, {
+  CheckKyc(c: any, cb: any) {
+    const { amountCents } = c.request;
+    cb(null, Number(amountCents) > 1_000_000
+      ? { approved: false, reason: "amount above manual-review limit" }
+      : { approved: true, reason: "" });
+  },
 });
+server.bindAsync(process.env.GRPC_ADDR ?? "127.0.0.1:50052", grpc.ServerCredentials.createInsecure(),
+  (err, port) => { if (err) throw err; console.log(`compliance on ${port}`); });
 ```
 
-The `grpcToHttpError` middleware maps gRPC status codes to HTTP status codes consistently. No more guessing whether `{ "error": "not found" }` means 404 or 500 — every service uses the same gRPC codes, and the gateway translates them uniformly.
-
-### Step 3: Implement Auth Propagation with gRPC Metadata
-
-This is where the 6-Redis-lookups-per-request problem gets solved. The gateway validates the JWT once and passes user context as trusted gRPC metadata. Internal services read it from the metadata — no Redis, no token validation, no cryptographic verification:
+The payment service calls compliance over gRPC, rejects missing identity with `UNAUTHENTICATED`, and stores the in-flight promise per idempotency key before awaiting, so two concurrent retries cannot both charge:
 
 ```typescript
-// api-gateway/src/middleware/auth.ts
-import { verify } from "jsonwebtoken";
+// src/payment.ts
+import { randomUUID } from "node:crypto";
+import * as grpc from "@grpc/grpc-js";
+import { call, load, userFrom } from "./grpc";
+const payments = load("payment/v1/payment.proto").payment.v1;
+const compliance = new (load("compliance/v1/compliance.proto").compliance.v1.ComplianceService)(
+  process.env.COMPLIANCE_ADDR ?? "127.0.0.1:50052", grpc.credentials.createInsecure());
+const byKey = new Map<string, Promise<any>>(); // user:key -> in-flight or finished payment
+async function charge(user: { id: string }, req: any) {
+  const kyc = await call(compliance, "CheckKyc", { userId: user.id, amountCents: req.amountCents });
+  if (!kyc.approved) {
+    throw { code: grpc.status.FAILED_PRECONDITION, message: `KYC failed: ${kyc.reason}` };
+  }
+  const p = { id: randomUUID(), userId: user.id, amountCents: req.amountCents, currency: req.currency, status: "PAYMENT_STATUS_PROCESSING" };
+  return p;
+}
+const handlers = {
+  CreatePayment(c: any, cb: any) {
+    const user = userFrom(c.metadata);
+    if (!user) return cb({ code: grpc.status.UNAUTHENTICATED, message: "missing user context" });
+    const req = c.request;
+    if (!req.idempotencyKey) return cb({ code: grpc.status.INVALID_ARGUMENT, message: "idempotency_key required" });
+    const key = `${user.id}:${req.idempotencyKey}`;
+    if (!byKey.has(key)) {
+      const run = charge(user, req);
+      byKey.set(key, run);
+      run.catch(() => byKey.delete(key)); // a failed attempt may be retried
+    }
+    byKey.get(key)!.then((p) => cb(null, p), (e) => cb(e));
+  },
+};
+const server = new grpc.Server();
+server.addService(payments.PaymentService.service, handlers);
+server.bindAsync(process.env.GRPC_ADDR ?? "127.0.0.1:50051", grpc.ServerCredentials.createInsecure(),
+  (err, port) => { if (err) throw err; console.log(`payment on ${port}`); });
+```
 
-export function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.replace("Bearer ", "");
-  if (!token) return res.status(401).json({ error: "Missing token" });
+### Step 4: The gateway
 
+External clients send JSON over HTTPS. The gateway verifies the JWT once (algorithm pinned to HS256, secret from the environment), validates the body with zod, and forwards `x-user-id` and `x-user-role` as gRPC metadata. Internal services trust that metadata, so they must only be reachable from the gateway (Step 6).
+
+```typescript
+// src/gateway.ts
+import express, { type NextFunction, type Request, type Response } from "express";
+import jwt from "jsonwebtoken";
+import * as grpc from "@grpc/grpc-js";
+import { z } from "zod";
+import { call, load } from "./grpc";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error("JWT_SECRET is required");
+const payments = new (load("payment/v1/payment.proto").payment.v1.PaymentService)(
+  process.env.PAYMENT_ADDR ?? "127.0.0.1:50051", grpc.credentials.createInsecure());
+const HTTP: Record<number, number> = {
+  [grpc.status.INVALID_ARGUMENT]: 400, [grpc.status.UNAUTHENTICATED]: 401, [grpc.status.PERMISSION_DENIED]: 403,
+  [grpc.status.NOT_FOUND]: 404, [grpc.status.ALREADY_EXISTS]: 409, [grpc.status.FAILED_PRECONDITION]: 422,
+  [grpc.status.RESOURCE_EXHAUSTED]: 429, [grpc.status.UNAVAILABLE]: 503, [grpc.status.DEADLINE_EXCEEDED]: 504,
+};
+function auth(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7) : "";
   try {
-    req.user = verify(token, process.env.JWT_SECRET);
-    req.requestId = crypto.randomUUID();
+    const claims = jwt.verify(token, JWT_SECRET!, { algorithms: ["HS256"] }) as jwt.JwtPayload;
+    if (!claims.sub) throw new Error("no subject");
+    res.locals.user = { id: claims.sub, role: String(claims.role ?? "user") };
     next();
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Invalid or missing token" } });
   }
 }
-```
-
-On the receiving end, a gRPC interceptor extracts user context from metadata on every request:
-
-```typescript
-// payment-service/src/interceptors/auth.ts
-import { ServerUnaryCall, Metadata } from "@grpc/grpc-js";
-
-export function authInterceptor(call: ServerUnaryCall<any, any>, callback, next) {
-  const userId = call.metadata.get("x-user-id")[0]?.toString();
-  const userRole = call.metadata.get("x-user-role")[0]?.toString();
-  const requestId = call.metadata.get("x-request-id")[0]?.toString();
-
-  if (!userId) {
-    return callback({ code: 16, message: "Unauthenticated: missing user context" });
-  }
-
-  // Attach to call context — available in all handlers
-  call.user = { id: userId, role: userRole };
-  call.requestId = requestId;
-  next();
-}
-```
-
-One JWT validation per request instead of six. The Redis lookups disappear entirely for the internal hops.
-
-### Step 4: Build the Payment Service with Internal gRPC Calls
-
-The payment service itself makes gRPC calls to the user and compliance services. With HTTP/2 multiplexing, these calls share a single connection per service — no connection pool management, no keep-alive tuning:
-
-```typescript
-// payment-service/src/handlers/create-payment.ts
-import { UserServiceClient } from "../generated/user/v1/user_grpc_pb";
-import { ComplianceServiceClient } from "../generated/compliance/v1/compliance_grpc_pb";
-
-const userClient = new UserServiceClient("user-service:50051", insecureCreds);
-const complianceClient = new ComplianceServiceClient("compliance-service:50051", insecureCreds);
-
-async function createPayment(call, callback) {
-  const { userId, amount, idempotencyKey } = call.request.toObject();
-
-  // Internal gRPC calls — user context propagated via metadata
-  const metadata = propagateMetadata(call);
-
-  // Parallel calls where possible — HTTP/2 multiplexing makes this efficient
-  const [user, kycResult] = await Promise.all([
-    callGrpc(userClient, "getUser", { userId }, metadata),
-    callGrpc(complianceClient, "checkKyc", { userId, amount }, metadata),
-  ]);
-
-  if (kycResult.status === "BLOCKED") {
-    return callback({
-      code: 9,  // FAILED_PRECONDITION
-      message: `KYC check failed: ${kycResult.reason}`,
-    });
-  }
-
-  const payment = await db.payments.create({
-    userId, amount, idempotencyKey,
-    status: "PROCESSING",
-  });
-
-  callback(null, toPaymentProto(payment));
-}
-```
-
-The `Promise.all` on lines where user verification and KYC run in parallel shaves another 80-120ms off the payment flow. With REST over HTTP/1.1, parallel requests to the same host required separate TCP connections. HTTP/2 multiplexes them over one.
-
-### Step 5: Add Streaming for Real-Time Payment Status
-
-Server streaming replaces the old polling pattern. Instead of the mobile app hitting `GET /payments/:id/status` every 2 seconds, the gateway opens a Server-Sent Events stream backed by a gRPC server stream:
-
-```typescript
-// api-gateway/src/routes/payments.ts — SSE endpoint
-router.get("/:id/status", async (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-
-  const metadata = new Metadata();
-  metadata.set("x-user-id", req.user.id);
-
-  // gRPC server stream → SSE events
-  const stream = paymentClient.watchPayment({ paymentId: req.params.id }, metadata);
-
-  stream.on("data", (event) => {
-    res.write(`data: ${JSON.stringify({
-      status: event.getStatus(),
-      timestamp: event.getTimestamp(),
-      message: event.getMessage(),
-    })}\n\n`);
-  });
-
-  stream.on("end", () => res.end());
-  stream.on("error", (err) => {
-    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
-    res.end();
-  });
-
-  req.on("close", () => stream.cancel());
+const identity = (res: Response) => {
+  const md = new grpc.Metadata();
+  md.set("x-user-id", res.locals.user.id);
+  md.set("x-user-role", res.locals.user.role);
+  return md;
+};
+const CreatePayment = z.object({
+  amount_cents: z.number().int().positive().max(100_000_000),
+  currency: z.enum(["USD", "EUR", "GBP"]).default("USD"),
 });
+const app = express();
+app.use(express.json({ limit: "10kb" }));
+app.use("/api/v1", auth);
+app.post("/api/v1/payments", async (req, res, next) => {
+  const key = req.header("Idempotency-Key");
+  const body = CreatePayment.safeParse(req.body);
+  if (!key) return void res.status(400).json({ error: { code: "INVALID_ARGUMENT", message: "Idempotency-Key header required" } });
+  if (!body.success) return void res.status(400).json({ error: { code: "INVALID_ARGUMENT", message: z.prettifyError(body.error) } });
+  try {
+    const p = await call(payments, "CreatePayment", {
+      amountCents: body.data.amount_cents, currency: body.data.currency, idempotencyKey: key,
+    }, identity(res));
+    res.status(201).json(p);
+  } catch (e) { next(e); }
+});
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = HTTP[err.code] ?? 500;
+  res.status(status).json({ error: { code: grpc.status[err.code] ?? "INTERNAL", message: status === 500 ? "Internal error" : err.details ?? err.message } });
+});
+app.listen(Number(process.env.PORT ?? 3000), process.env.HOST ?? "127.0.0.1");
 ```
 
-External clients get clean SSE — standard browser APIs work. Internally, gRPC server streaming handles the multiplexing and backpressure. No WebSocket libraries, no socket.io, no sticky sessions.
+Use a `tsconfig.json` with `"module": "node16"`, `"strict": true`, `"outDir": "dist"`, `"rootDir": "src"`.
 
-### Step 6: Docker Compose with Shared Proto Generation
+### Step 5: Try it
 
-All six services share the same proto directory, mounted read-only. A `proto-gen` service runs `protoc` at build time, generating type-safe clients for Node.js, Python, and Go from the same source files:
+Start the three processes (each in its own terminal, `JWT_SECRET` exported; everything binds to 127.0.0.1) and call the gateway with an HS256 token whose `sub` is `user_42`:
+
+```console
+$ npx tsx src/compliance.ts   # compliance on 50052
+$ npx tsx src/payment.ts      # payment on 50051
+$ npx tsx src/gateway.ts      # REST on 127.0.0.1:3000
+$ curl -s -X POST localhost:3000/api/v1/payments -H "Authorization: Bearer $TOKEN" \
+    -H 'Idempotency-Key: order-1001' -H 'content-type: application/json' -d '{"amount_cents":4900}'
+{"id":"e644b5a9-...","userId":"user_42","amountCents":"4900","currency":"USD","status":"PAYMENT_STATUS_PROCESSING"}
+```
+
+Repeating the request with the same `Idempotency-Key` returns the same payment id. An amount of 5000000 returns `422` (`FAILED_PRECONDITION`), a missing token `401`, a missing key `400`.
+
+### Step 6: Package with Docker Compose
+
+One image holds all three services; only the gateway publishes a port, and only on loopback. The gRPC services have no `ports:` entry, so they are reachable only on the Compose network:
+
+```dockerfile
+# Dockerfile
+FROM node:24-slim
+WORKDIR /app
+COPY package*.json tsconfig.json ./
+RUN npm ci --include=dev
+COPY proto ./proto
+COPY src ./src
+RUN npx tsc && npm prune --omit=dev
+USER node
+```
 
 ```yaml
-# docker-helper.yml
+# compose.yaml
 services:
-  api-gateway:
-    build: { context: ., dockerfile: api-gateway/Dockerfile }
-    ports: ["3000:3000"]
-    depends_on: [user-service, payment-service, compliance-service]
-    volumes: ["./proto:/app/proto:ro"]
-
-  payment-service:
-    build: { context: ., dockerfile: payment-service/Dockerfile }
-    ports: ["50051:50051"]
-    volumes: ["./proto:/app/proto:ro"]
-
-  proto-gen:
-    image: namely/protoc-all:1.51
-    volumes:
-      - ./proto:/proto
-      - ./api-gateway/src/generated:/output/node
-      - ./compliance-service/generated:/output/python
-      - ./document-service/generated:/output/go
-    command: -f proto/**/*.proto -l node -l python -l go -o /output
+  gateway:
+    build: .
+    command: ["node", "dist/gateway.js"]
+    environment: { HOST: 0.0.0.0, PAYMENT_ADDR: "payment:50051", JWT_SECRET: "${JWT_SECRET:?set JWT_SECRET}" }
+    ports: ["127.0.0.1:3000:3000"]
+  payment:
+    build: .
+    command: ["node", "dist/payment.js"]
+    environment: { GRPC_ADDR: "0.0.0.0:50051", COMPLIANCE_ADDR: "compliance:50052" }
+  compliance:
+    build: .
+    command: ["node", "dist/compliance.js"]
+    environment: { GRPC_ADDR: "0.0.0.0:50052" }
 ```
 
-A proto change gets caught at compile time across all languages. No more discovering at 2 AM that the compliance service added a required field that the payment service doesn't send.
+```bash
+export JWT_SECRET=$(openssl rand -base64 32)
+docker compose up -d --build
+```
+
+For hosts that do not share a private network, use `grpc.ServerCredentials.createSsl(...)` or mutual TLS from a service mesh instead of `createInsecure()`.
 
 ## Real-World Example
 
-Three weeks after the migration, Sami's latency dashboard tells the story. The p95 for the payment flow dropped from 840ms to 320ms — well under the 500ms compliance requirement. Protobuf serialization and HTTP/2 multiplexing account for most of the improvement, but the parallel user+KYC calls (impossible with HTTP/1.1 without connection pool gymnastics) contributed another 100ms.
+On their own staging data, the p95 fell from 840ms to under the 500ms compliance limit once the chain of JSON hops became binary gRPC calls over persistent HTTP/2 connections. Your numbers will differ, so measure your own p95 before and after.
 
-Internal payloads average 780 bytes, down from 4.2KB of JSON. The 30 hand-maintained HTTP clients are gone — replaced by auto-generated gRPC stubs that compile against the proto definitions. When the compliance team adds a `risk_score` field to the KYC response, every consuming service knows about it at build time.
+The 30 hand-maintained HTTP clients are gone: each service loads the same `.proto` files. When compliance adds a `risk_score` field, every consumer sees it at the next load. The error-format inconsistency disappeared because internal services only use gRPC status codes, and the gateway's single table turns them into HTTP codes. Retried payment requests with the same `Idempotency-Key` return the first payment instead of charging twice. The in-memory key map is a teaching stand-in: in production store keys in a database with a unique constraint and compare the payload, so a reused key with a different amount is rejected.
 
-The team's weekly debugging hours dropped from 8 to 2. The error format inconsistency disappeared overnight — gRPC status codes map cleanly to HTTP codes at the gateway, and internal services never invent their own error shapes. The one JWT validation per request eliminated 5 Redis roundtrips from every payment flow.
+## Related Skills
 
-Sami's favorite part: a new engineer onboarded last week and had a working gRPC service talking to the existing mesh within a day. She read the proto files, ran the code generator, and implemented the interface. No Slack messages asking "what does the user service return when the account is suspended?" — it's in the proto, enforced by the compiler.
+- [rest-api](/skills/rest-api) - public API design: status codes, error shape, validation, auth middleware
+- [grpc](/skills/grpc) - protobuf design, streaming, deadlines, metadata and interceptors
+- [docker-helper](/skills/docker-helper) - Dockerfile and Compose practices used in Step 6

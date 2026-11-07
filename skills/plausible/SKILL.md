@@ -8,10 +8,10 @@ description: >-
   website analytics without cookie banners, a Google Analytics replacement, or
   traffic data pulled through an API.
 license: Apache-2.0
-compatibility: 'platform: linux, platform: macos, platform: windows'
+compatibility: "Plausible Cloud, or self-hosted Community Edition v3.2.1 (Docker with Compose v2, Linux host with 2 GB RAM and a CPU with SSE 4.2 or NEON); Python 3 with requests for the API example"
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: "1.2.1"
   category: data-ai
   tags: "plausible, analytics, privacy, web-analytics, gdpr"
   repository: https://github.com/plausible/analytics
@@ -23,7 +23,7 @@ metadata:
 
 Plausible is an open-source, cookie-free web analytics tool. It collects no personal data, so most sites need no consent banner. It runs as a hosted service (Plausible Cloud, plausible.io) or as the self-hosted Community Edition (CE, backed by ClickHouse and PostgreSQL).
 
-Two things changed since older tutorials. The tracking snippet is now a per-site script `pa-XXXXX.js` initialised with `plausible.init()`; the old `data-domain` scripts with extension filenames such as `script.hash.outbound-links.js` are legacy. The Stats API is `POST /api/v2/query`; the `GET /api/v1/stats/*` endpoints in old guides belong to the previous generation. On Cloud, custom properties, revenue tracking and the Stats API need the Business plan; CE includes them.
+Two things changed since older tutorials. The tracking snippet is now a per-site script `pa-XXXXX.js` initialised with `plausible.init()`; the old `data-domain` scripts with extension filenames such as `script.hash.outbound-links.js` are legacy. The Stats API is `POST /api/v2/query`; the `GET /api/v1/stats/*` endpoints in old guides belong to the previous generation. On Cloud, custom properties, revenue tracking, funnels and the Stats API need the Business plan. The self-hosted CE has custom properties, the Stats API and the Events API, but not marketing funnels, user journeys, ecommerce revenue goals, SSO or the Sites API (Plausible's CE comparison page lists these as unavailable); revenue tracking is therefore Plausible Cloud only.
 
 ## Instructions
 
@@ -71,11 +71,23 @@ From JavaScript, with the snippet installed:
 ```javascript
 plausible('Purchase', {
   props: { plan: 'pro' },                          // custom properties
-  revenue: { amount: 49.0, currency: 'USD' },      // needs a revenue goal
+  revenue: { amount: 49.0, currency: 'USD' },      // Cloud only: needs a revenue goal, not in CE
 })
 ```
 
 Never put personal data (emails, names, user ids) into properties; individual values cannot be deleted later.
+
+For server-side events, call the Events API directly. Forward the visitor's `User-Agent` and IP, because they decide unique-visitor counting:
+
+```bash
+curl -i -X POST "$PLAUSIBLE_HOST/api/event" \
+  -H "User-Agent: $VISITOR_USER_AGENT" \
+  -H "X-Forwarded-For: $VISITOR_IP" \
+  -H "Content-Type: application/json" \
+  --data '{"name":"Newsletter Signup","url":"https://bluefinbikes.com/blog","domain":"bluefinbikes.com"}'
+```
+
+A `202` means the event was accepted; it still appears only if a goal with that name exists. If bot filtering dropped the event (for example you forwarded a server or CDN IP instead of the visitor's), the API still answers `202` but adds the response header `x-plausible-dropped: 1`. The optional `revenue` field is ignored on CE, which has no revenue goals.
 
 ### 3. Next.js
 
@@ -115,7 +127,7 @@ The provider renders the script only in production builds. To proxy through your
 
 ### 4. Stats API v2
 
-Create a Stats API key in account settings, API Keys. A key is scoped to one team and limited to 600 requests per hour. Send a JSON query; `site_id` is the domain as added in Plausible, and the host is plausible.io or your CE `BASE_URL`.
+Create a Stats API key in account settings, API Keys (on CE the same screen of your own instance). A key is scoped to one team and limited to 600 requests per hour. Send a JSON query; `site_id` is the domain as added in Plausible, and the host is plausible.io or your CE `BASE_URL`.
 
 ```python
 # plausible_api.py
@@ -173,7 +185,7 @@ Then change the snippet to `src="/js/script.js"` and `plausible.init({ endpoint:
 
 ### 6. Self-hosting (Community Edition v3)
 
-Use the official repository, which ships the matching PostgreSQL, ClickHouse and config files, instead of a hand-written compose file. Needs 2 GB of RAM and a CPU with SSE 4.2 or NEON. Check the latest tag at github.com/plausible/community-edition (v3.2.1 when this was written).
+Use the official repository, which ships the matching PostgreSQL, ClickHouse and config files, instead of a hand-written compose file. Needs 2 GB of RAM and a CPU with SSE 4.2 or NEON. Check the latest tag at github.com/plausible/community-edition (v3.2.1, the tag the repository README pins, when this was written).
 
 ```bash
 git clone -b v3.2.1 --single-branch https://github.com/plausible/community-edition plausible-ce
@@ -208,5 +220,6 @@ With both ports set, Plausible obtains a Let's Encrypt certificate for the `BASE
 - Events with no matching goal are stored but not shown in Goals; goal names are case-sensitive.
 - Keep the Stats API key in an environment variable or secret store, never in browser code; it can read every site of its team.
 - A proxy must forward the visitor IP in `X-Forwarded-For`; otherwise the bot filter silently drops events while the API still answers 202.
+- CE does not include funnels, user journeys, ecommerce revenue goals, SSO or the Sites API, and has simpler bot filtering than Cloud. Do not promise them on a self-hosted install.
 - Plausible deliberately has no per-user tracking or session replay. For identified-user funnels use a product analytics tool.
 - When self-hosting, back up both the PostgreSQL and ClickHouse volumes.

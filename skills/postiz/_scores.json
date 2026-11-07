@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:5235fc56ed462363d7ce17d95c28e380082c57729fcbf6c23970730719ac29ba",
+  "scoredAt": "2026-10-29T22:51:31.927Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.17,
+    "baselineAvg": 12,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "deploy-postiz-self-hosted",
+        "baseline": 15,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A deviates by not cloning the repo, using wrong env names, and lacking the required verification step."
+      },
+      {
+        "name": "schedule-youtube-post-via-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B does not."
+      },
+      {
+        "name": "upload-media-and-post-via-cli",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A misses key steps and uses incorrect commands."
+      }
+    ]
+  }
+}

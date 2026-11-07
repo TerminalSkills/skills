@@ -76,7 +76,7 @@ const PRICING: Record<string, { currency: string; multiplier: number; symbol: st
 };
 
 // Geo-restricted content
-const BLOCKED_COUNTRIES = ["KP", "IR", "SY", "CU"]; // sanctions compliance
+const BLOCKED_COUNTRIES = ["KP", "IR", "CU"]; // sanctions compliance
 
 // Get geo info from IP
 export async function getGeoInfo(ip: string): Promise<GeoInfo> {

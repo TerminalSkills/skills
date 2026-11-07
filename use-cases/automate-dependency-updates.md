@@ -2,7 +2,7 @@
 title: "Automate Dependency Updates and Catch Breaking Changes with AI"
 slug: automate-dependency-updates
 description: "Scan your project for outdated dependencies, detect breaking changes before they hit production, and generate safe upgrade plans."
-skills: [dependency-updater, code-migration]
+skills: [dependency-updater, code-migration, axios]
 category: development
 tags: [dependencies, npm, security, upgrades, breaking-changes]
 ---
@@ -144,3 +144,7 @@ The CVE patches go in first: three version bumps and one one-line code change fo
 The Prisma upgrade is next. The breaking change scan shows 14 affected files, but the migration script handles 12 of them automatically — it is the same `rejectOnNotFound` to `findUniqueOrThrow` swap repeated across the codebase. Priya manually adjusts the remaining 2 files where the query pattern is slightly different. The Next.js upgrade needs 2 manual fixes for the middleware rewrite pattern. Stripe takes 20 minutes for the type renames.
 
 Total time: 3 hours instead of the 2 weeks the team had budgeted. Zero production incidents from the upgrade. And the Monday morning Slack alert means the next CVE gets caught within a week instead of sitting in a backlog for 8 months.
+
+## Related Skills
+
+- [axios](/skills/axios) — when the audit flags axios: which versions fix the advisories (1.20.0 or newer), the two npm releases that were published with malicious code, and how to check every copy in the tree

@@ -11,6 +11,7 @@ skills:
   - webhook-security
   - cors
   - rate-limiter
+  - express
 category: development
 tags:
   - api-design
@@ -378,3 +379,12 @@ export function errorHandler(err, req, res, next) {
 ## Results
 
 The API launches with documentation auto-generated from the OpenAPI spec, hosted at docs.taskflow.dev. Third-party developers integrate using generated TypeScript SDKs — zero support tickets about response formats or authentication. Rate limiting catches a misbehaving integration early (infinite retry loop) before it impacts other clients. The deprecation headers on V1 give existing users 6 months to migrate, with clear logs showing who still needs to move. Within the first month, 12 companies integrate via the API, and the webhook system delivers 50,000 events with a 99.7% success rate.
+
+## Related Skills
+
+- [openapi-spec](/skills/openapi-spec) — Write the OpenAPI document the API is designed from and validated against.
+- [api-versioning](/skills/api-versioning) — Plan `/v1` and `/v2` and deprecate old versions without breaking clients.
+- [webhook-security](/skills/webhook-security) — Sign outgoing webhooks and verify, de-duplicate and reject replayed incoming ones.
+- [cors](/skills/cors) — Allow only the browser origins that should call the API.
+- [rate-limiter](/skills/rate-limiter) — Limit requests per client and return proper 429 responses.
+- [express](/skills/express) — Choose express when the API runs on Node.js: it covers the Router-based `/v1` and `/v2` layout, `express.json()` limits, and an error-handling middleware that returns consistent JSON errors (async handlers reach it automatically in Express 5).

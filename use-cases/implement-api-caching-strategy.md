@@ -48,87 +48,111 @@ Current infrastructure: $1,635/month total ($1,250 database + $340 application s
 ### Step 2: Implement Redis-Based Application Caching
 
 ```text
-Set up Redis caching for our top 3 API endpoints. Use different cache strategies: dashboard analytics with 15-minute TTL and user-specific keys, engagement reports with 1-hour TTL, and social metrics with 5-minute TTL. Include cache warming, compression for large payloads, and graceful degradation when Redis is unavailable.
+Set up Redis caching for our top 3 API endpoints with the cache-aside pattern. Dashboard analytics: 15-minute TTL and user-specific keys. Engagement reports: 1 hour. Social metrics: 5 minutes. Compress large payloads, jitter the TTLs, and fall back to the database when Redis is unavailable.
 ```
 
-The Redis infrastructure uses a primary-replica setup for read availability:
+Redis runs from a Compose file (**docker-helper**). The port is published on the loopback interface only, because an open Redis on `0.0.0.0` is an open invitation, and a password is required:
 
 ```yaml
-# docker-helper.yml
+# compose.yaml
 services:
-  redis-primary:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-    command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--maxmemory", "2gb", "--maxmemory-policy", "allkeys-lru", "--requirepass", "${REDIS_PASSWORD:?set it in .env}"]
+    ports: ["127.0.0.1:6379:6379"]
     volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set it in .env}
+    restart: unless-stopped
 
-  redis-replica:
-    image: redis:7-alpine
-    command: redis-server --slaveof redis-primary 6379 --readonly
+volumes:
+  redis_data:
 ```
 
-Each endpoint gets a cache strategy tailored to its data characteristics:
-
-**Dashboard analytics** -- the biggest win. User-specific keys with 15-minute TTLs balance freshness against performance. Responses over 10KB get gzip compressed (saves 67% memory). The top 50 users' dashboards are pre-warmed every 15 minutes so their first load of the day is instant:
+Each endpoint gets a strategy that fits its data. **Dashboard analytics** is the biggest win: user-specific keys, a 15-minute TTL, gzip for the payload, and a fallback to the database on any Redis error. Following **cache-strategy**, the code uses `ioredis` and is cache-aside (jitter and gzip are additions on top of the skill's pattern):
 
 ```typescript
 // src/cache/dashboard.ts
-const DASHBOARD_TTL = 900; // 15 minutes
+import { Redis } from "ioredis";
+import { gzip, gunzip } from "node:zlib";
+import { promisify } from "node:util";
 
-async function getDashboard(userId: string, dateRange: string) {
-  const key = `dashboard:analytics:${userId}:${dateRange}`;
-  const cached = await redis.get(key);
-  if (cached) return decompress(cached);
+const gzipAsync = promisify(gzip);
+const gunzipAsync = promisify(gunzip);
 
-  const data = await computeDashboard(userId, dateRange);
-  const compressed = data.length > 10240 ? compress(data) : data;
-  await redis.setex(key, DASHBOARD_TTL, compressed);
+const redis = new Redis(process.env.REDIS_URL!, {
+  maxRetriesPerRequest: 1, // fail fast so an outage falls through to the database
+  commandTimeout: 100,     // ms; slower than this counts as a miss
+});
+redis.on("error", () => {}); // record a metric here; a cache error must never crash the process
+
+const BASE_TTL = 900; // 15 minutes
+const jitter = (ttl: number) => Math.round(ttl * (0.8 + Math.random() * 0.4)); // +/-20%
+
+export async function getDashboard(userId: string, range: string) {
+  const key = `dashboard:v1:${userId}:${range}`;
+  try {
+    const hit = await redis.getBuffer(key);
+    if (hit) return JSON.parse((await gunzipAsync(hit)).toString());
+  } catch {
+    // Redis down or slow: go to the database
+  }
+
+  const data = await computeDashboard(userId, range);
+  try {
+    await redis.set(key, await gzipAsync(JSON.stringify(data)), "EX", jitter(BASE_TTL));
+  } catch {
+    // a failed write only means the next request misses again
+  }
   return data;
 }
 ```
 
-**Engagement reports** -- 1-hour TTL because data updates hourly from social APIs. Background refresh kicks in 5 minutes before expiry (stale-while-revalidate pattern), so users never see a cache miss during business hours.
+`REDIS_URL` carries the password (`redis://:$REDIS_PASSWORD@127.0.0.1:6379`) and comes from the environment, never from the repository. The `v1` in the key lets you invalidate everything at once by bumping it. The user ID in the key keeps one customer's data from ever being served to another.
 
-**Social metrics** -- 5-minute TTL with probabilistic expiry. Each key's TTL varies by plus or minus 20% to prevent cache stampedes, where thousands of keys expire simultaneously and all hit the database at once.
-
-Graceful degradation is built in: if Redis latency exceeds 100ms, the circuit breaker trips and the API falls back to direct database queries. The API never goes down because of a cache problem -- it just gets slower.
+**Engagement reports** get a 1-hour TTL because the data refreshes hourly from the social APIs; a background job rebuilds them shortly before expiry, so users see a miss only after a cold start. **Social metrics** get a 5-minute TTL with the same jitter, which spreads expiry so thousands of keys do not lapse together. For hot keys that do expire, use the lock pattern from cache-strategy (`SET lock:<key> 1 EX 10 NX`) so one request recomputes while the others wait, instead of all of them hitting the database. On writes, delete the affected keys with `SCAN` (never `KEYS`, which blocks Redis).
 
 ### Step 3: Add HTTP-Level Caching and CDN Integration
 
 ```text
-Implement HTTP caching headers, set up Cloudflare caching for static and semi-static API responses, and add client-side caching strategies. Include conditional requests (ETag/If-None-Match) and vary headers for personalized content.
+Add Cache-Control and ETag headers per endpoint class, and set up Cloudflare caching only for responses that are identical for every user. Personalized responses must never reach a shared cache.
 ```
 
-Three tiers of HTTP caching cover different data freshness needs:
+Three tiers cover different freshness needs.
 
-**Static API responses** (user settings, app config):
+**Shared, non-personalized responses** (app config, public reference data), safe for a CDN:
 
 ```
 Cache-Control: public, max-age=3600, s-maxage=7200
-ETag: W/"abc123-version-hash"
-Vary: Accept-Encoding, Authorization
+ETag: W/"config-v42"
 ```
 
-CDN caches for 2 hours, browsers cache for 1 hour. These responses change rarely and can tolerate staleness.
+Browsers cache for 1 hour and a shared cache for 2 hours.
 
-**Dynamic API responses** (dashboard, metrics):
+**Personalized responses** (dashboard, metrics, user settings):
 
 ```
 Cache-Control: private, max-age=300, must-revalidate
-ETag: W/"dashboard-{user-id}-{timestamp}"
+ETag: W/"dashboard-8f3a1c"
+Vary: Accept-Encoding
 ```
 
-Browser caches for 5 minutes, must validate before reuse. The `private` directive keeps personalized data off shared CDN caches.
+`private` keeps these out of any CDN. Do not mark a response that depends on the `Authorization` header as `public`.
 
-**Time-sensitive data** (real-time notifications):
+**Time-sensitive data** (notifications):
 
 ```
-Cache-Control: no-cache, no-store, must-revalidate
+Cache-Control: no-store
 ```
 
-Always fresh, never cached. Some data genuinely needs to be real-time.
+Conditional requests help repeat visitors: when the client sends `If-None-Match` with the current ETag, the server answers `304 Not Modified` with no body, saving the whole response size. Express adds weak ETags to `res.json()` responses by default, so this works without extra code; for expensive endpoints, compare the ETag before computing the body.
 
-Conditional requests make the biggest difference for repeat visitors. When a dashboard hasn't changed, the server returns a `304 Not Modified` with zero body -- saving 847KB per response. During peak hours, 23% of API calls resolve as 304s.
+Cloudflare does not cache JSON by default. It decides by file extension, not content type, so API responses need a Cache Rule marking them as eligible for cache (with the edge TTL taken from the origin's `Cache-Control`). Create that rule only for the shared endpoints above.
 
 ### Step 4: Monitor Cache Performance and Optimize
 
@@ -136,7 +160,7 @@ Conditional requests make the biggest difference for repeat visitors. When a das
 Set up comprehensive cache monitoring with key metrics like hit rates, response time improvements, memory usage, and cost savings. Create alerting for cache failures and automated optimization recommendations.
 ```
 
-After deployment, the numbers tell the story:
+After deployment, Carlos's team measured:
 
 **Cache hit rates:**
 
@@ -168,7 +192,7 @@ After deployment, the numbers tell the story:
 |---|---|---|---|
 | Database | $1,250 | $480 | -$770 |
 | Application servers | $340 | $180 | -$160 |
-| Redis cluster | $0 | $89 | +$89 |
+| Redis | $0 | $89 | +$89 |
 | CDN | $45 | $67 | +$22 |
 | **Total** | **$1,635** | **$816** | **-$819/month (50% savings)** |
 
@@ -182,4 +206,9 @@ The CTO was spending $2,100/month on database resources to handle repetitive que
 
 Phase 1 (week 1) deployed application-level Redis caching with 15-minute TTLs for course progress. Cache hit rate reached 91% within 3 days, and database query volume dropped 89% immediately. Phase 2 (week 2) added Cloudflare edge caching for static course content, ETag headers for conditional requests, and browser-level caching for user preferences.
 
-After 30 days: response times dropped from 3.2 seconds to 127ms (96% faster). Database costs fell from $2,100 to $340/month (84% reduction). Student "slow loading" tickets dropped 94%. During the next exam period, the system handled 3x the normal traffic with zero slowdowns -- the kind of load spike that would have crashed the system a month earlier. The caching infrastructure paid for itself in 8 days and saves $17,472 annually.
+After 30 days: response times dropped from 3.2 seconds to 127ms (96% faster). Database costs fell from $2,100 to $340/month (84% reduction). Student "slow loading" tickets dropped 94%. During the next exam period, the system handled 3x the normal traffic with zero slowdowns -- the kind of load spike that would have crashed the system a month earlier.
+
+## Related Skills
+
+- [cache-strategy](/skills/cache-strategy) — Supplies the cache-aside pattern, stampede lock and SCAN-based invalidation used in Step 2 (the TTL jitter and gzip are added on top).
+- [docker-helper](/skills/docker-helper) — Writes the Redis Compose service with a loopback-only port, password, health check and persistent volume.

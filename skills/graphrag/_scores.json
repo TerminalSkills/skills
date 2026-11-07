@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b418ee58a42faa43ddad1be8b4b897fd8609a8ffacec32f3bc4edd1449edd6f8",
+  "scoredAt": "2026-11-05T20:33:38.897Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly cover error handling or edge cases such as missing API keys or invalid input files."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations and repeated information that could be streamlined."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tightly coupled to the GraphRAG Python package and specific OpenAI/Azure models, limiting portability across AI platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.04,
+    "baselineAvg": 23,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "init-project-with-custom-models",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits required flags, the .env edit, and confirmation of settings.yaml and prompts."
+      },
+      {
+        "name": "index-with-fast-method-and-verbose",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric, correctly using the graphrag command with the required flags, whereas Response A uses an incorrect command and omits the dry‑run and output folder details."
+      },
+      {
+        "name": "global-query-with-list-and-streaming",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A includes the required query command structure and response type, though the root path is incorrect, whereas Response B lacks the specified root, response type, and explanation."
+      }
+    ]
+  }
+}

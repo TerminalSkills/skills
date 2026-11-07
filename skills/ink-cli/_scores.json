@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dc0655de5b1979a00a58a25dde051c1cefaba0c40df8da43600041b2ab49d700",
+  "scoredAt": "2026-10-29T22:45:00.422Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.48,
+    "baselineAvg": 33,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "scaffold-ink-ts-counter",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items exactly, while Response A omits the exact command line format required."
+      },
+      {
+        "name": "ci-safe-menu",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not use useStdin/isRawModeSupported, useInput, or proper exit handling."
+      },
+      {
+        "name": "test-menu-selection",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "B includes most steps but uses wrong options, A is empty."
+      }
+    ]
+  }
+}

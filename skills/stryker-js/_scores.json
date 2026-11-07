@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fb195d41997c9700063aea0437cf5d9dc95398ca625ef21d375b1da6bde9ec22",
+  "scoredAt": "2026-10-28T19:06:25.309Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered padded, reducing overall conciseness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.33,
+    "baselineAvg": 30,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-vitest-incremental",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully matches the rubric with the correct JSON config, install commands, and CI failure logic, while Response B uses a JS config, omits required fields, and has incorrect thresholds."
+      }
+    ]
+  }
+}

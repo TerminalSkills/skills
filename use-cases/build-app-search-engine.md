@@ -11,32 +11,74 @@ tags: [search, elasticsearch, algolia, full-text-search, relevance-tuning]
 
 ## The Problem
 
-Your app's search is a SQL `LIKE '%query%'` on the product name column. It misses typos, ignores synonyms, returns results in arbitrary order, and takes 3 seconds on 500K rows. A user types "wirless keyboard" and gets zero results. Another types "laptop stand" and the first result is a laptop bag. Your support team fields "I can't find X" tickets daily, and the analytics show search-driven conversions are half what they should be — because the search bar is effectively broken for anyone who can't spell perfectly or doesn't use the exact product name.
+Your app's search is a SQL `LIKE '%query%'` on the product name column. It misses typos, ignores synonyms, returns results in arbitrary order, and gets slow on hundreds of thousands of rows. A user types "wirless keyboard" and gets zero results. Another types "laptop stand" and the first result is a laptop bag. Support fields "I can't find X" tickets daily, because the search bar is effectively broken for anyone who cannot spell perfectly or does not use the exact product name.
 
-Setting up Elasticsearch feels like deploying a second database. Algolia's pricing is opaque at scale. The gap between a `LIKE` query and production-grade search feels enormous, so the team keeps patching the SQL approach with more ILIKE conditions and regex hacks that make it slower without making it smarter.
+Setting up a search engine feels like deploying a second database, so the team keeps patching the SQL approach with more `ILIKE` conditions and regex hacks that make it slower without making it smarter.
 
 ## The Solution
 
-Using the **search-engine-setup**, **docker-helper**, and **data-analysis** skills, the workflow designs a search index tailored to your data with custom analyzers for typo tolerance, builds a sync pipeline from PostgreSQL that keeps the index fresh within 500ms, implements a search API with faceting and highlighting, adds autocomplete with "did you mean" suggestions, and tunes relevance using real user query logs. The whole stack goes from zero to sub-50ms search in an afternoon.
+Three skills split the work. **search-engine-setup** designs the index, sync, search API, autocomplete and tuning. **docker-helper** runs a local Elasticsearch for development. **data-analysis** (pandas) mines the search-query log for what to fix. Elasticsearch is the example below; the same skill also configures Algolia (JavaScript client v5) if you would rather not run a cluster.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Design the Search Index
-
-Start with your data shape and search requirements:
+### Step 1: Run Elasticsearch Locally
 
 ```text
-I have a products table with 500K rows. Columns: id, name, description, category, brand, price_cents, rating, in_stock, created_at. Design an Elasticsearch index mapping optimized for: full-text search on name and description with typo tolerance, exact filtering on category and brand, range filtering on price and rating, and boosting in-stock items. Include a custom analyzer for handling common misspellings.
+Add a local Elasticsearch for development to our compose file. Bind it to localhost only.
 ```
 
-The index mapping treats each field according to how users actually search:
+docker-helper writes a Compose v2 service (no top-level `version:` key). Security is switched off here for local development only, so the port must never be published beyond `127.0.0.1`:
+
+```yaml
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6   # pin the version you run in production
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false   # local development only
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      retries: 30
+volumes:
+  esdata:
+```
+
+`docker compose up -d --wait` returns when the healthcheck passes. In production, keep security enabled (the default) and use TLS and credentials.
+
+### Step 2: Design the Search Index
+
+```text
+I have a products table with 500K rows. Columns: id, name, description, category, brand, price_cents, rating, in_stock, created_at. Design an Elasticsearch index optimized for: full-text search on name and description with typo tolerance and prefix matching, exact filtering on category and brand, range filtering on price and rating, and autocomplete.
+```
 
 ```json
 {
+  "settings": {
+    "analysis": {
+      "filter": {
+        "product_synonyms": { "type": "synonym", "synonyms": ["laptop, notebook", "phone, mobile, cell"] },
+        "edge_ngram_filter": { "type": "edge_ngram", "min_gram": 2, "max_gram": 15 }
+      },
+      "analyzer": {
+        "name_index":  { "tokenizer": "standard", "filter": ["lowercase", "edge_ngram_filter"] },
+        "name_search": { "tokenizer": "standard", "filter": ["lowercase", "product_synonyms"] },
+        "text_search": { "tokenizer": "standard", "filter": ["lowercase", "product_synonyms"] }
+      }
+    }
+  },
   "mappings": {
     "properties": {
-      "name":        { "type": "text", "analyzer": "product_analyzer", "boost": 3.0 },
-      "description": { "type": "text", "analyzer": "product_analyzer" },
+      "name": {
+        "type": "text", "analyzer": "name_index", "search_analyzer": "name_search",
+        "fields": { "plain": { "type": "text", "analyzer": "standard" } }
+      },
+      "description": { "type": "text", "analyzer": "standard", "search_analyzer": "text_search" },
       "category":    { "type": "keyword" },
       "brand":       { "type": "keyword" },
       "price_cents": { "type": "integer" },
@@ -45,99 +87,99 @@ The index mapping treats each field according to how users actually search:
       "created_at":  { "type": "date" },
       "suggest":     { "type": "completion" }
     }
-  },
-  "settings": {
-    "analysis": {
-      "analyzer": {
-        "product_analyzer": {
-          "tokenizer": "standard",
-          "filter": ["lowercase", "product_synonyms", "edge_ngram_filter"]
-        }
-      },
-      "filter": {
-        "product_synonyms": {
-          "type": "synonym",
-          "synonyms": ["laptop, notebook", "phone, mobile, cell"]
-        },
-        "edge_ngram_filter": {
-          "type": "edge_ngram", "min_gram": 3, "max_gram": 15
-        }
-      }
-    }
   }
 }
 ```
 
-The `name` field gets a 3x boost because users searching "wireless keyboard" expect name matches to rank above products that merely mention "keyboard" in the description. The `product_analyzer` chains synonym expansion with edge n-grams, so "wirless" matches "wireless" and typing "key" already starts matching "keyboard." The `suggest` field powers autocomplete separately from full-text search — different use cases, different data structures, different performance characteristics.
+I created this index on Elasticsearch 9.5.6 and queried it. Four design points:
 
-The `keyword` type on `category` and `brand` means exact-match filtering without text analysis overhead. Users don't fuzzy-search for a brand; they click a facet.
+- **Edge n-grams at index time only.** `name_index` splits "keyboard" into `ke`, `key`, `keyb` and so on, so typing "key" matches. The search analyzers have no n-grams; otherwise a short query would match every word that starts with those letters.
+- **Boosts live in the query, not the mapping.** The old per-field `"boost"` mapping parameter is rejected by current Elasticsearch (`Unknown parameter [boost] on mapper`). Use `name^3` in the query (Step 4).
+- **`name.plain`** is a standard-analyzed copy that the "did you mean" phrase suggester reads (Step 5).
+- **`keyword` fields** for `category` and `brand` give exact filters and facets without text analysis.
 
-### Step 2: Build the Sync Pipeline
+### Step 3: Build the Sync Pipeline
 
-The search index is only as good as its freshness. A product marked out-of-stock in PostgreSQL but still showing as available in search results is worse than no search at all:
-
-```text
-Create a sync service that keeps Elasticsearch in sync with PostgreSQL. On app boot, do a full re-index of all products. After that, listen to database change events (using pg_notify or polling updated_at) and update individual documents. Handle deletions by tracking soft-deleted records. Add a CLI command to trigger a full re-index manually.
-```
-
-The sync service handles three scenarios: full re-index on boot using the bulk API for speed (500K documents in about 90 seconds), incremental updates via `pg_notify` within 500ms of a database change, and soft-delete tracking so removed products don't linger in search results. A manual `reindex --full` command exists for emergencies or schema changes.
-
-The incremental sync is the critical piece. When a product goes out of stock, the search index reflects it in under a second — not on the next full re-index, which might be hours away. Without incremental sync, users find products through search, click through, and see "Out of Stock" — a frustrating experience that erodes trust in the search results.
-
-The `reindex --full` command serves as a safety net: if the incremental sync drifts (a missed `pg_notify`, a failed bulk update), a full re-index rebuilds everything from source. Running it weekly during off-hours provides peace of mind.
-
-### Step 3: Implement the Search API
+A product marked out of stock in PostgreSQL but still shown as available in search is worse than no search:
 
 ```text
-Build a search endpoint at GET /api/search?q=wireless+keyboard&category=electronics&min_price=2000&max_price=10000&sort=relevance. Support: full-text query with fuzziness auto, faceted filters (category, brand, price range, rating, in_stock), pagination with cursor-based approach, and highlight matching terms in results. Return total count, facet counts, and highlighted snippets.
+Create a sync service that keeps Elasticsearch in sync with PostgreSQL. Full re-index with the bulk API on demand, then incremental updates. Handle deletions. Add a CLI command for a full re-index.
 ```
 
-The endpoint combines full-text relevance scoring with structured filters in a single query. Facet counts update dynamically — selecting "Electronics" shows how many results exist per brand within that category, so users can drill down without hitting dead ends. Highlighted snippets show users exactly why a result matched, with matching terms wrapped in `<mark>` tags. Cursor-based pagination means consistent results even when the index is being updated mid-browse.
+The service combines three mechanisms:
 
-An in-stock boost ensures available products rank above out-of-stock ones, but out-of-stock products still appear (with a label) rather than disappearing entirely — because a user searching for a specific item wants to know it exists even if it's temporarily unavailable. Hiding out-of-stock products makes search results feel broken: "I know you sell this, why can't I find it?"
+- **Full re-index** in batches of about 1,000 rows through the `_bulk` API, using the product ID as the document `_id` so it is an idempotent upsert. Build into a new index and switch an alias for zero-downtime rebuilds.
+- **Incremental updates** by polling `updated_at > last_sync` every few seconds, or by `LISTEN`/`NOTIFY`. A `NOTIFY` payload is limited to a few KB and is lost if the listener is down, so send only the row ID, re-read the row, and keep the `updated_at` poll as the backstop.
+- **Deletions**: soft-deleted rows are removed from the index when detected.
 
-The response includes facet counts that dynamically update: after selecting "Electronics," the brand facet shows `Apple (142)`, `Samsung (98)`, `Sony (67)` — only counting products within the selected category. This lets users drill down without hitting dead ends.
+A change becomes searchable after the next index refresh (one second by default), not instantly. If the incremental sync drifts, a scheduled full re-index rebuilds from the source of truth.
 
-### Step 4: Add Autocomplete and "Did You Mean"
+### Step 4: Implement the Search API
 
 ```text
-Add a typeahead endpoint at GET /api/search/suggest?q=wir that returns the top 5 completion suggestions from product names as the user types. Use Elasticsearch's completion suggester. Also add a "did you mean" feature using the phrase suggester for queries that return few results.
+Build GET /api/search?q=wireless+keyboard&category=electronics&min_price=2000&max_price=10000. Support fuzzy full-text search, filters, facet counts, highlighting, and cursor-based pagination.
 ```
 
-Autocomplete fires after 2 characters with sub-50ms response time, using the `completion` field that was designed for exactly this purpose. The suggestions come from actual product names, weighted by popularity, so "wir" suggests "Wireless Keyboard" before "Wire Stripper" if keyboards sell more.
+```json
+{
+  "query": { "bool": {
+    "must": [{ "multi_match": { "query": "wirless keybord", "fields": ["name^3", "description"], "fuzziness": "AUTO" } }],
+    "filter": [{ "range": { "price_cents": { "gte": 2000, "lte": 10000 } } }],
+    "should": [{ "term": { "in_stock": { "value": true, "boost": 2 } } }]
+  } },
+  "highlight": { "fields": { "name": {}, "description": {} } },
+  "aggs": { "brands": { "terms": { "field": "brand", "size": 20 } } }
+}
+```
 
-When a full search returns fewer than 3 results, the phrase suggester kicks in — "wirless keybord" triggers a "Did you mean: wireless keyboard?" banner with a one-click correction link. This catches the queries that edge n-grams alone can't fix: severe misspellings, word transpositions, and queries in a different language.
+Run against the index above, the misspelled "wirless keybord" returns the "Logitech Wireless Keyboard" product with the matching terms wrapped in `<em>` tags. `fuzziness: AUTO` handles ordinary typos with no synonym list. The `should` clause ranks in-stock products higher while out-of-stock ones still appear. Filters sit in `filter` (not scored, cacheable), and the `brands` aggregation returns facet counts that respect the active filters.
 
-### Step 5: Tune Relevance with Real Query Data
+For cursor-based pagination, open a point in time (`POST /products/_pit?keep_alive=1m`) and page with `search_after` on a sort that ends in `_shard_doc`; results stay consistent while the index is being updated. Never build the SQL string or the Elasticsearch query by concatenating user input: pass `q` only as the `query` value and whitelist the filter and sort fields.
 
-This is where search goes from functional to good. Building the index gets you 80% of the way; tuning relevance gets the last 20% that users actually feel:
+### Step 5: Add Autocomplete and "Did You Mean"
 
 ```text
-I have a log of the 200 most common search queries and their click-through rates in search_queries.csv (columns: query, result_count, ctr, avg_position_clicked). Analyze which queries perform poorly (low CTR or zero results). Suggest specific tuning actions: synonym additions, boost adjustments, or missing data fixes. Output a priority-ranked list of improvements.
+Add GET /api/search/suggest?q=wir returning the top 5 completions from product names. Also add a "did you mean" for queries with few results.
 ```
 
-The analysis breaks down into actionable categories:
+Autocomplete uses the `completion` suggester on the `suggest` field. Index each product with `"suggest": {"input": ["Wireless Keyboard"], "weight": 10}`, and a prefix query for `wir` returns "Wireless Keyboard" before "Wire Stripper". "Did you mean" uses the phrase suggester:
 
-**Zero-result queries (17 queries):**
-- "wirless keyboard" — add synonym pair: wireless, wirless
-- "usb-c dongle" — hyphenated terms split incorrectly, add `char_filter`
-- "gift under 50" — needs price-aware query parsing, not just text matching
+```json
+{ "size": 0, "suggest": { "dym": { "text": "wirless keybord",
+  "phrase": { "field": "name.plain", "size": 1, "max_errors": 2 } } } }
+```
 
-**Low CTR queries (below 5%, 23 queries):**
-- "laptop stand" (CTR 2.1%) — top result is a laptop bag because "laptop" matches; boost exact name matches over partial matches
-- "blue headphones" (CTR 3.4%) — color isn't a structured field, so "blue" only matches if it appears in the description; extract color into its own field
+On the sample data it answers `wireless keyboard`. Show it as a banner when a search returns fewer than 3 hits.
 
-**Priority fixes ranked by impact:**
-1. Add 12 synonym pairs for common misspellings — fixes 14 zero-result queries
-2. Add `char_filter` for hyphens and special characters — fixes 3 zero-result queries
-3. Increase name field boost from 3.0 to 5.0 — improves 8 low-CTR queries where description matches outrank name matches
+### Step 6: Tune Relevance with Real Query Data
 
-Each fix has a measurable expected impact. Twelve synonym pairs alone eliminate 14 dead-end searches — queries where users were ready to buy but the search bar told them the product doesn't exist.
+Building the index gets you most of the way; the query log shows what users actually feel:
+
+```text
+search_queries.csv has columns: query, result_count, ctr, avg_position_clicked. Find the zero-result queries, the queries with a click-through rate below 5%, and the ones where users click below position 3. Suggest tuning actions ranked by how many queries each would fix.
+```
+
+data-analysis answers it with a few pandas filters:
+
+```python
+import pandas as pd
+
+q = pd.read_csv("search_queries.csv")
+zero = q[q["result_count"] == 0].sort_values("query")
+weak = q[(q["result_count"] > 0) & (q["ctr"] < 0.05)].sort_values("ctr")
+late = q[q["avg_position_clicked"] >= 3]
+```
+
+Each bucket maps to a fix: zero-result queries mean missing synonyms, missing data, or a query shape the index does not model ("gift under 50" needs price parsing); low-CTR queries mean the wrong product ranks first, so adjust field boosts or add the missing structured field (for instance a `color` field for "blue headphones"); late clicks mean the ranking formula needs tuning. Change one thing at a time, synonyms first, then boosts, and re-run the same queries to see the effect.
 
 ## Real-World Example
 
-A senior developer at an online marketplace with 500K product listings is drowning in "I can't find X" support tickets. The current search is a PostgreSQL `ILIKE` query that averages 2.8 seconds and returns nothing for common misspellings. One developer tried adding `OR` clauses for common typos, which made the query 4 seconds and still missed most variations.
+A developer at an online marketplace with 500K product listings is drowning in "I can't find X" tickets. The search is a PostgreSQL `ILIKE` query that is slow and returns nothing for misspellings. A previous attempt to add `OR` clauses for common typos made it slower and still missed most variations.
 
-He starts with the index design — a custom analyzer with synonyms and edge n-grams handles typos and partial matches out of the box. The sync pipeline keeps Elasticsearch within 500ms of every database change. The search API handles full-text queries with faceted filters and returns highlighted results in 40ms — a 70x speedup over the SQL approach. Autocomplete suggestions appear after 2 characters with sub-50ms latency.
+She starts with a local Elasticsearch in Compose, bound to localhost, and the index design from Step 2. The sync service fills it with a bulk re-index and keeps it current by polling `updated_at`. The search API returns fuzzy, filtered, highlighted results with facet counts. She then runs the 200 most common queries from last month's log through the pandas filters, finds a short list of zero-result and low-CTR queries, and fixes them in order: synonyms, a name-boost change, and a missing color field. She compares the click-through rate on those queries before and after the change before dropping the old `ILIKE` path.
 
-Query analysis of the 200 most common searches reveals 17 zero-result queries and 23 low-CTR queries, each with a specific fix. After deploying, search-driven conversion rate increases 34% and "can't find product" support tickets drop 89%. The `LIKE` query is gone for good, and so are the regex hacks that were making it worse.
+## Related Skills
+
+- [search-engine-setup](/skills/search-engine-setup) — index design, sync, search API, autocomplete and relevance tuning for Elasticsearch and Algolia.
+- [docker-helper](/skills/docker-helper) — the local Elasticsearch service and its healthcheck in Compose.
+- [data-analysis](/skills/data-analysis) — pandas analysis of the search-query log.

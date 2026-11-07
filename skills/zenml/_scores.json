@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:a969b4b0e919af3d4e124d14e274cd716be2e70646c02b695710472461aa5d1f",
+  "scoredAt": "2026-11-05T20:40:18.331Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all potential error scenarios or edge cases, such as handling missing data files or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume a Python environment and do not support other programming languages or AI agent platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.84,
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "create-and-run-pipeline-with-config",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with all required steps, pipeline definition, config, run command, and model listing, whereas Response A appears incomplete or missing key elements."
+      },
+      {
+        "name": "register-and-run-on-remote-stack",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the exact pipeline run command and uses a different pipeline name."
+      },
+      {
+        "name": "load-model-and-score-new-data",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric requirements but omits roc_auc loading, while Response B fails to use the specified pipeline and artifact access patterns and also omits roc_auc."
+      }
+    ]
+  }
+}

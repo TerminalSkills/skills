@@ -1,7 +1,7 @@
 ---
 title: Deploy a Full-Stack App Globally with Fly.io
 slug: deploy-fullstack-app-globally-with-fly-io
-description: Deploy a Next.js application with PostgreSQL to multiple Fly.io regions, using LiteFS for edge-local reads and auto-scaling machines that stop when idle — achieving sub-30ms response times worldwide on a $15/month budget.
+description: Deploy a Next.js application with Neon PostgreSQL to multiple Fly.io regions, with TLS and static assets served near users, database-backed requests replayed to the primary region, and machines that suspend when idle.
 skills:
   - fly-io
   - neon
@@ -18,282 +18,246 @@ tags:
 
 # Deploy a Full-Stack App Globally with Fly.io
 
-Jonas built a habit tracking app as a side project. It's a simple Next.js app with PostgreSQL — 2,000 daily active users spread across the US, Europe, and Southeast Asia. It runs on a single Railway instance in `us-east-1`. Users in Singapore complain about 800ms page loads. He doesn't want to manage Kubernetes or pay Vercel Enterprise prices for multi-region deployment. He wants the app to run close to users with minimal operational complexity.
+Jonas built a habit tracking app as a side project. It's a Next.js app with PostgreSQL, with users spread across the US, Europe, and Southeast Asia. It runs on a single Railway instance in the US East. Users in Singapore complain about slow page loads. He doesn't want to manage Kubernetes or pay Vercel Enterprise prices for multi-region deployment. He wants the app to run close to users with minimal operational complexity.
 
-## Step 1 — Configure the Fly.io App
+One thing to settle first: a Postgres database lives in one region. Neon gives you one primary in the region you choose, so any request that queries it is only fast when it runs next to it. The plan is to terminate TLS and serve static assets in every region, and to send every request that touches the database to the primary region with `fly-replay`.
 
-Fly.io runs Docker containers as Firecracker microVMs. The `fly.toml` configuration defines machine sizing, health checks, auto-scaling, and multi-region deployment.
+## Step 1 — Package the app (docker-helper)
+
+Fly.io runs Docker images as Firecracker microVMs. Next.js needs `output: "standalone"` in `next.config.ts` so the build produces a self-contained `server.js`:
+
+```typescript
+// next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = { output: "standalone" };
+export default nextConfig;
+```
+
+```dockerfile
+# Dockerfile — multi-stage build; the runtime stage holds only the standalone output.
+# Node 20 reached end of life in April 2026, so use a current LTS.
+FROM node:24-alpine AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+
+FROM node:24-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable && pnpm build
+
+FROM node:24-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+# Fly Proxy reaches the app on its private network, so listen on all interfaces
+ENV HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+```text
+# .dockerignore
+node_modules
+.next
+.git
+.env*
+```
+
+The `HOSTNAME` variable is the documented way to choose the interface for the standalone server (`PORT` likewise). Without `.dockerignore`, `COPY . .` would also copy `.env` files into an image layer.
+
+## Step 2 — Configure the Fly.io app (fly-io)
+
+```bash
+fly launch --no-deploy --name habit-tracker --region iad
+```
+
+`fly launch` detects the Dockerfile and writes a `fly.toml`; edit it to look like this:
 
 ```toml
-# fly.toml — Application configuration.
-# Fly deploys this app as microVMs in the specified regions.
-# Machines auto-stop when idle and auto-start on incoming requests.
-
+# fly.toml
 app = "habit-tracker"
-primary_region = "iad"    # US East — primary for database writes
+primary_region = "iad"          # Ashburn; Fly sets PRIMARY_REGION in every machine from this
 
 [build]
   dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"
-  PORT = "3000"
-  # Database URL injected via `fly secrets`
 
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = "suspend"   # Suspend (not stop) for faster wake-up
-  auto_start_machines = true       # Wake on incoming request
-  min_machines_running = 1         # Keep at least 1 machine hot per region
-  processes = ["app"]
+  auto_stop_machines = "suspend"  # "off", "stop" or "suspend"
+  auto_start_machines = true
+  min_machines_running = 1        # applies to the primary region only
 
   [http_service.concurrency]
     type = "requests"
+    soft_limit = 200
     hard_limit = 250
-    soft_limit = 200               # Start new machine when hitting 200 concurrent requests
 
-[[http_service.checks]]
-  grace_period = "10s"
-  interval = "30s"
-  method = "GET"
-  path = "/api/health"
-  timeout = "5s"
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
 
-# Deploy to 3 regions: US, Europe, Asia
-# Fly's Anycast routing sends users to the nearest region automatically
 [[vm]]
   size = "shared-cpu-1x"
   memory = "512mb"
-  processes = ["app"]
 ```
 
-```dockerfile
-# Dockerfile — Multi-stage build for Next.js on Fly.io.
-# The standalone output mode produces a minimal server (~15MB)
-# instead of shipping the entire node_modules (~500MB).
+`"suspend"` snapshots a machine's memory instead of shutting it down; resuming takes a few hundred milliseconds, against about 2 seconds or more for a cold start. A stopped or suspended machine is not billed for CPU or RAM, only for its root filesystem. Suspend has limits: 2 GB of memory or less, and a deploy invalidates the old snapshots, so the next request after a deploy is a cold start. `min_machines_running` keeps a machine awake only in the primary region; in `fra` and `sin` the first request after an idle period pays the resume time.
 
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+## Step 3 — Connect to Neon from the primary region (neon)
 
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-# Next.js standalone mode: produces a self-contained server
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN corepack enable && pnpm build
-
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Copy only what's needed to run the app
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-
-EXPOSE 3000
-CMD ["node", "server.js"]
-```
-
-The `auto_stop_machines = "suspend"` setting is key for cost control. Fly suspends idle machines to memory instead of stopping them completely. Resume time is ~300ms (vs ~2s for a full start), and suspended machines cost nothing for compute — only memory.
-
-## Step 2 — Set Up Multi-Region PostgreSQL
-
-For a side project with 2,000 users, a managed PostgreSQL with read replicas is overkill. Instead, Jonas uses Neon with connection pooling — the serverless driver handles cold starts, and Fly's private networking keeps latency low.
+Create the Neon project in the AWS region closest to `iad` (US East), and use its pooled connection string (the host contains `-pooler`):
 
 ```typescript
-// src/lib/db.ts — Database client with region-aware routing.
-// Reads go to the nearest Neon endpoint (via connection pooling).
-// Writes go to the primary region using Fly-Replay header.
-
+// src/lib/db.ts
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
-// Neon pooled connection for read queries
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 5,                 // Low pool size — Fly machines are small
-  idleTimeoutMillis: 10000,
+  connectionString: process.env.DATABASE_URL, // Neon pooled string, set as a Fly secret
+  max: 5,                                     // small machines, and Neon pools server-side too
+  idleTimeoutMillis: 10_000,
 });
 
 export const db = drizzle(pool, { schema });
 
-// Graceful shutdown
-process.on("SIGTERM", () => pool.end());
+process.on("SIGTERM", () => void pool.end());
 ```
 
-```typescript
-// src/middleware.ts — Route write requests to the primary region.
-// Fly's Anycast routes users to the nearest region.
-// For GET requests (reads), the nearest region handles them.
-// For POST/PUT/DELETE (writes), we replay to the primary region
-// where the database primary lives.
+Next.js 16 renamed `middleware.ts` to `proxy.ts` (the old name still works but is deprecated). This one replays database-backed requests to the primary region:
 
+```typescript
+// src/proxy.ts — replay anything that needs the database to the primary region.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const method = request.method;
-  const region = process.env.FLY_REGION || "iad";
-  const primaryRegion = process.env.PRIMARY_REGION || "iad";
+export function proxy(request: NextRequest) {
+  // Fly's HTTP health check calls this path on each machine itself; it must answer 200 locally.
+  if (request.nextUrl.pathname === "/api/health") return NextResponse.next();
 
-  // If this is a write request and we're not in the primary region,
-  // tell Fly Proxy to replay it to the primary region
-  if (method !== "GET" && method !== "HEAD" && region !== primaryRegion) {
+  const region = process.env.FLY_REGION;
+  const primary = process.env.PRIMARY_REGION; // set by Fly from fly.toml
+
+  if (region && primary && region !== primary) {
     return new NextResponse(null, {
       status: 409,
-      headers: {
-        "fly-replay": `region=${primaryRegion}`,
-      },
+      headers: { "fly-replay": `region=${primary}` },
     });
   }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: "/api/:path*",   // Only apply to API routes
+  // Database-backed routes only; static assets and the marketing pages stay local.
+  matcher: ["/api/:path*", "/dashboard/:path*"],
 };
 ```
 
-The `fly-replay` header tells Fly's proxy layer to transparently replay the request to a machine in the specified region. The client never sees the 409 — Fly handles the replay internally. From the user's perspective, the write request just takes an extra ~80ms of cross-region latency.
+Fly Proxy sees the `fly-replay` response header and re-runs the original request on a machine in `iad`; the browser never sees the 409. Requests larger than 1 MB cannot be replayed, so upload files directly to object storage instead of through these routes.
 
-## Step 3 — Deploy to Multiple Regions
+## Step 4 — Deploy to three regions
 
 ```bash
-# Initial deployment
+fly secrets set --stage DATABASE_URL="$NEON_POOLED_URL" AUTH_SECRET="$(openssl rand -base64 32)"
 fly deploy
 
-# Scale to 3 regions: US East, Frankfurt, Tokyo
-fly scale count 1 --region iad    # US East (primary — database writes)
-fly scale count 1 --region fra    # Frankfurt (Europe)
-fly scale count 1 --region nrt    # Tokyo (Asia)
-
-# Set secrets (encrypted, injected as env vars)
-fly secrets set DATABASE_URL="postgres://user:pass@ep-xxx-pooler.us-east-2.aws.neon.tech/habits?sslmode=require"
-fly secrets set PRIMARY_REGION="iad"
-fly secrets set NEXTAUTH_SECRET="$(openssl rand -base64 32)"
-
-# Verify deployment
+# One command per region so each gets exactly one machine
+fly scale count 1 --region iad
+fly scale count 1 --region fra
+fly scale count 1 --region sin
 fly status
 ```
 
-```typescript
-// src/app/api/health/route.ts — Health check endpoint.
-// Returns the current region for debugging multi-region routing.
+`--stage` queues the secrets for the first deploy instead of triggering a separate one. `$NEON_POOLED_URL` comes from the Neon dashboard and stays in your shell, not in the repository. `AUTH_SECRET` is the variable Auth.js v5 reads.
 
+```typescript
+// src/app/api/health/route.ts — shows which region answered, to verify routing.
 import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
     status: "ok",
-    region: process.env.FLY_REGION || "unknown",
-    machine: process.env.FLY_MACHINE_ID || "unknown",
-    timestamp: new Date().toISOString(),
+    region: process.env.FLY_REGION ?? "unknown",
+    machine: process.env.FLY_MACHINE_ID ?? "unknown",
   });
 }
 ```
 
-## Step 4 — Add Caching for Read-Heavy Pages
+The proxy above lets `/api/health` through unreplayed. The Fly health check expects a 2xx answer from each machine itself, so a replay (a 409 from a `fra` or `sin` machine) would mark that machine unhealthy and can stall the deploy.
 
-The dashboard page loads habits and streaks — data that changes at most once per day (when the user checks off a habit). Caching this response at the edge eliminates database queries for 95% of page loads.
+To confirm the routing, call `/api/health` from different continents and compare the `region` field (each region answers for itself), or read `fly logs` while you click through the app.
+
+## Step 5 — Keep the dashboard to one query round trip
+
+The dashboard runs in `iad`, next to Neon, so the two queries are cheap there. Run them in parallel and compute streaks in code:
 
 ```typescript
-// src/app/dashboard/page.tsx — Server component with cache control.
-// Next.js revalidates this page at most once per 60 seconds.
-// Combined with Fly's edge proximity, users see cached data in <20ms.
-
+// src/app/dashboard/page.tsx — server component, runs in the primary region.
+import { redirect } from "next/navigation";
+import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { habits, entries } from "@/lib/schema";
-import { eq, and, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-
-// Revalidate at most every 60 seconds per user
-export const revalidate = 60;
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
-  const today = new Date().toISOString().split("T")[0];
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000)
-    .toISOString()
-    .split("T")[0];
+  const day = (d: Date) => d.toISOString().split("T")[0];
+  const today = day(new Date());
+  const since = day(new Date(Date.now() - 30 * 86_400_000));
 
-  const [userHabits, recentEntries] = await Promise.all([
+  const [userHabits, recent] = await Promise.all([
     db.select().from(habits).where(eq(habits.userId, session.user.id)),
-
-    db.select()
-      .from(entries)
-      .where(
-        and(
-          eq(entries.userId, session.user.id),
-          gte(entries.date, thirtyDaysAgo)
-        )
-      ),
+    db.select().from(entries).where(
+      and(eq(entries.userId, session.user.id), gte(entries.date, since)),
+    ),
   ]);
 
-  // Calculate streaks
-  const habitsWithStreaks = userHabits.map((habit) => {
-    const habitEntries = recentEntries
-      .filter((e) => e.habitId === habit.id)
-      .map((e) => e.date)
-      .sort()
-      .reverse();
-
+  const withStreaks = userHabits.map((habit) => {
+    const dates = new Set(recent.filter((e) => e.habitId === habit.id).map((e) => e.date));
     let streak = 0;
-    let checkDate = today;
-    for (const entryDate of habitEntries) {
-      if (entryDate === checkDate) {
-        streak++;
-        // Move to previous day
-        const d = new Date(checkDate);
-        d.setDate(d.getDate() - 1);
-        checkDate = d.toISOString().split("T")[0];
-      } else {
-        break;
-      }
-    }
-
-    return {
-      ...habit,
-      streak,
-      completedToday: habitEntries[0] === today,
-    };
+    for (let d = new Date(today); dates.has(day(d)); d.setDate(d.getDate() - 1)) streak++;
+    return { ...habit, streak, completedToday: dates.has(today) };
   });
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Today's Habits</h1>
-      <div className="space-y-3">
-        {habitsWithStreaks.map((habit) => (
-          <HabitCard key={habit.id} habit={habit} />
-        ))}
-      </div>
+      <h1 className="text-2xl font-bold">Today&apos;s Habits</h1>
+      {withStreaks.map((habit) => (
+        <HabitCard key={habit.id} habit={habit} />
+      ))}
     </div>
   );
 }
 ```
 
-## Results
+This page reads the session cookie, so Next.js renders it per request; a `revalidate` export would not cache it. If you later need local reads in `fra` and `sin`, that is a database decision (a database with regional replicas), not a caching flag.
 
-Jonas deployed the multi-region setup in one evening. The changes after switching from Railway:
+## What to expect
 
-- **Singapore P95 latency: 820ms → 28ms** — machines running in `nrt` (Tokyo) serve Southeast Asian users. The nearest region is ~50ms round-trip instead of ~300ms to `us-east-1`.
-- **Frankfurt P95 latency: 340ms → 22ms** — European users hit the `fra` region directly.
-- **US East latency unchanged at 25ms** — the primary region stays in `iad`, same as before.
-- **Monthly cost: $28 (Railway) → $14 (Fly.io)** — three machines at `shared-cpu-1x` with 512MB RAM, suspended when idle. The machines run ~8 hours per day (active usage window), costing nothing during overnight idle.
-- **Cold start: ~400ms** for suspended machines (memory snapshot resume). The `min_machines_running = 1` setting keeps one machine hot per region for the first request.
-- **Deploy time: 45 seconds** — Fly builds the Docker image remotely and rolls out machines with zero downtime. No CI/CD pipeline needed for a side project.
-- **Zero operational overhead** — no Kubernetes, no load balancer configuration, no health check routing. Fly's Anycast IP handles global routing, and `fly-replay` handles write routing to the primary region.
+- **Static assets, the landing page and TLS handshakes** are served from the nearest region, which is where Singapore and Frankfurt users gain most.
+- **Dashboard and API calls** pay one cross-region hop to `iad`. Measure it with the real app (`curl -w '%{time_total}'` from each region) before promising numbers; the saving is a fraction of the old round trip, not a drop to local latency.
+- **Cost:** a `shared-cpu-1x` machine with 512 MB is listed at $3.69 per month if it ran all month, so three machines come to about $11 at that price (less while suspended; check the pricing page for your regions), plus root filesystem storage at $0.15 per GB-month.
+- **Deploys:** Fly builds the image on a remote builder and rolls out machines one by one; the health check gates each step.
 
 ## Related Skills
 
+- [fly-io](/skills/fly-io) — machines, regions, autostop, `fly-replay` and secrets
+- [neon](/skills/neon) — the serverless Postgres primary and pooled connections
+- [docker-helper](/skills/docker-helper) — the multi-stage Dockerfile and `.dockerignore`
 - [vercel](/skills/vercel) — a managed alternative for the same deployment: preview URLs per commit, promote and rollback from the CLI, no containers to run

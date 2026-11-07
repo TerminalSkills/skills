@@ -40,6 +40,19 @@
       ]
     },
     {
+      "name": "3x-ui",
+      "slug": "3x-ui",
+      "description": "Deploys and operates 3x-ui, a web control panel for Xray-core proxy servers, and scripts it through its REST API: create inbounds, add clients with traffic quotas, expiry and IP limits, read usage, and restart Xray. Use when asked to \"install 3x-ui\", \"run an Xray panel in Docker\", \"add a proxy user with a 50 GB limit\", \"automate 3x-ui with its API\", \"reset 3x-ui credentials\", or \"back up the panel\". For hand-written Xray config files use the xray skill instead.",
+      "category": "devops",
+      "tags": [
+        "3x-ui",
+        "xray",
+        "proxy",
+        "vless",
+        "api"
+      ]
+    },
+    {
       "name": "a2a-protocol",
       "slug": "a2a-protocol",
       "description": "Builds Agent2Agent (A2A) servers and clients, the open protocol (originally from Google, now under the Linux Foundation) that lets AI agents from different frameworks call each other. Use when the user wants to create an A2A-compliant agent, build an Agent Card, implement task management, connect agents across frameworks, set up agent discovery, handle streaming responses, implement push notifications, or orchestrate multi-agent workflows. Trigger words: a2a, agent to agent, agent2agent, a2a protocol, a2a server, a2a client, agent card, agent interoperability, agent collaboration, multi-agent, agent discovery, a2a sdk, a2a task.",
@@ -623,6 +636,19 @@
       ]
     },
     {
+      "name": "anything-llm",
+      "slug": "anything-llm",
+      "description": "All-in-one private AI app that chats with your own documents in workspaces, using any local or hosted LLM, a built-in vector database and a developer REST API. Use when someone asks to \"run AnythingLLM in Docker\", \"chat with my PDFs privately\", \"create a workspace and upload documents through the API\", \"generate an AnythingLLM API key\", or \"connect AnythingLLM to Ollama\".",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "document-chat",
+        "self-hosted",
+        "local-llm",
+        "workspaces"
+      ]
+    },
+    {
       "name": "apache-arrow",
       "slug": "apache-arrow",
       "description": "Expert guidance for Apache Arrow, the cross-language columnar memory format for analytics workloads. Helps developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).",
@@ -777,6 +803,19 @@
       ]
     },
     {
+      "name": "apscheduler",
+      "slug": "apscheduler",
+      "description": "APScheduler is a Python library that runs functions on a schedule inside your own process, using cron expressions, fixed intervals or one-off dates, and can keep its jobs in a database so they survive restarts. Use when a user wants to \"run a Python function every night\", \"replace crontab scripts\", \"schedule background jobs in Flask or FastAPI\", \"persist scheduled jobs in SQLite\", or \"stop missed runs from piling up\". Covers the 3.x API that pip installs today.",
+      "category": "automation",
+      "tags": [
+        "apscheduler",
+        "python",
+        "cron",
+        "scheduler",
+        "background-jobs"
+      ]
+    },
+    {
       "name": "architectural-dimensions",
       "slug": "architectural-dimensions",
       "description": "Reference for architectural dimensions, proportions, and building codes for AI-generated 3D/2D models. Use when: generating floor plans, creating 3D buildings, validating architectural designs, ensuring correct human-scale proportions in models.",
@@ -890,6 +929,19 @@
         "speech-recognition",
         "audio-ai",
         "diarization"
+      ]
+    },
+    {
+      "name": "astrbot",
+      "slug": "astrbot",
+      "description": "AstrBot is a self-hosted AI chatbot platform that connects one LLM assistant to messaging apps such as Discord, Slack, Telegram, LINE and Mattermost, with a web panel for providers, platforms and plugins. Use this skill to install it with uv or Docker, keep the panel on localhost, set the admin password, reset it, script settings with `astrbot conf`, manage plugins, or point it at a local Ollama model. Trigger phrases: \"self-hosted chatbot for Discord and Slack\", \"deploy AstrBot\", \"AstrBot dashboard password\", \"run an LLM bot without writing code\".",
+      "category": "automation",
+      "tags": [
+        "chatbot",
+        "self-hosted",
+        "discord",
+        "slack",
+        "llm"
       ]
     },
     {
@@ -1163,6 +1215,19 @@
       ]
     },
     {
+      "name": "axios",
+      "slug": "axios",
+      "description": "Axios is a promise-based HTTP client for Node.js and browsers that sends requests, parses JSON, and rejects on error status codes. Use it when asked to \"call a REST API from Node\", \"add a base URL and auth header to every request\", \"retry on 503\", \"cancel a request\", \"set a timeout\", \"handle axios errors\", or \"upgrade axios because of a security advisory\". Covers instances, interceptors, AbortController cancellation, timeouts, error handling, the fetch adapter, size limits, and which versions to avoid.",
+      "category": "development",
+      "tags": [
+        "axios",
+        "http-client",
+        "rest-api",
+        "nodejs",
+        "javascript"
+      ]
+    },
+    {
       "name": "axum",
       "slug": "axum",
       "description": "Builds HTTP APIs and web services in Rust with Axum, the Tokio team's web framework on top of Tokio, Hyper and Tower. Use when a user asks to create a Rust REST API, add routes, extractors, JSON handlers, shared state, middleware, error handling, WebSockets, graceful shutdown or tests with Axum, or to migrate older Axum code (0.6/0.7 path syntax) to 0.8.",
@@ -1301,6 +1366,19 @@
         "incident-management",
         "status-page",
         "on-call"
+      ]
+    },
+    {
+      "name": "bevy",
+      "slug": "bevy",
+      "description": "Bevy is a data-driven game engine for Rust built on an Entity Component System (ECS), for 2D and 3D games on desktop and other platforms. Use when asked to \"make a game in Rust\", \"set up a Bevy project\", \"write a Bevy system\", \"fix a Bevy compile error after upgrading\", \"add keyboard input or states to a Bevy game\", or \"speed up Bevy compile times\". Written against Bevy 0.20, where Message and required components replace older Event and Bundle APIs.",
+      "category": "development",
+      "tags": [
+        "rust",
+        "game-engine",
+        "ecs",
+        "bevy",
+        "game-development"
       ]
     },
     {
@@ -1577,6 +1655,19 @@
       ]
     },
     {
+      "name": "budibase",
+      "slug": "budibase",
+      "description": "Budibase is an open-source platform for building internal tools, workflow automations and AI agents on top of your own databases, with a visual builder and a REST API. Use when a user asks to self-host Budibase with Docker, set its secrets, get an API key, create tables and rows through the public API, search or publish a workspace from a script, or back up a self-hosted install with the budi CLI.",
+      "category": "development",
+      "tags": [
+        "budibase",
+        "internal-tools",
+        "low-code",
+        "self-hosted",
+        "rest-api"
+      ]
+    },
+    {
       "name": "bug-hunt-swarm",
       "slug": "bug-hunt-swarm",
       "description": "Finds the cause of a hard bug by running several read-only subagents in parallel, each attacking it from a different angle (change history, code path, data and state, environment, reproduction), then checking their evidence, ranking the hypotheses and naming the one experiment that would confirm the leader. It diagnoses and does not fix. Use when someone says \"hunt this bug with multiple agents\", \"swarm on this regression\", \"investigate in parallel\", \"find the root cause\", or when a failure is intermittent, crosses components, or has resisted a first look.",
@@ -1733,7 +1824,7 @@
     {
       "name": "canva",
       "slug": "canva",
-      "description": "Automate Canva from an agent — via the AI Connector MCP server (generate, find, edit, export designs in natural language) or the Connect REST API (OAuth 2.0 + PKCE, brand template autofill, asset uploads, exports, folders, comments). Use when: connecting an agent to Canva, batch-producing social posts or decks from a brand template and a spreadsheet, exporting designs to PDF/PNG/PPTX/MP4, uploading assets into a Canva account, building a Canva integration, or when the user mentions \"Canva\", \"brand template\", \"autofill\", \"Connect API\", or \"mcp.canva.com\".",
+      "description": "Automate Canva from an agent — via the AI Connector MCP server (generate, find, edit, export designs in natural language) or the Connect REST API (OAuth 2.0 + PKCE, brand template autofill, asset uploads, exports, folders, comments). Use when: connecting an agent to Canva, batch-producing social posts or decks from a brand template and a spreadsheet, exporting designs to PDF/PNG/PPTX/MP4, uploading assets into a Canva account, building a Canva integration, or when the user mentions \"Canva\", \"brand template\", \"autofill\", \"Connect API\", or \"Canva MCP\".",
       "category": "design",
       "tags": [
         "canva",
@@ -1948,6 +2039,19 @@
         "changelog",
         "monorepo",
         "npm"
+      ]
+    },
+    {
+      "name": "chartjs",
+      "slug": "chartjs",
+      "description": "Chart.js draws bar, line, pie, doughnut, radar, scatter and bubble charts on an HTML canvas from a plain JavaScript config object. Use when a user asks to \"add a chart to the page\", \"plot this data with Chart.js\", \"update a chart live\", \"make the chart responsive\", \"register Chart.js components for a smaller bundle\", or \"use Chart.js in React\". Covers v4 ESM registration, config shape, updating data, plugins, responsive sizing, time scales and export to PNG.",
+      "category": "data-ai",
+      "tags": [
+        "chartjs",
+        "charts",
+        "canvas",
+        "data-visualization",
+        "javascript"
       ]
     },
     {
@@ -2171,6 +2275,19 @@
       ]
     },
     {
+      "name": "click",
+      "slug": "click",
+      "description": "Click is the Python library for building command-line tools from decorated functions: it parses options and arguments, validates types, prompts for missing values, and writes the --help pages. Use when a user asks to \"build a Python CLI\", \"add a subcommand\", \"add an option with an environment variable fallback\", \"prompt for a password\", \"test a click command with CliRunner\", \"package a CLI with pyproject.toml scripts\", or \"add shell completion\". Covers Click 8.2 to 8.5.",
+      "category": "development",
+      "tags": [
+        "python",
+        "cli",
+        "click",
+        "command-line",
+        "argument-parsing"
+      ]
+    },
+    {
       "name": "clickhouse",
       "slug": "clickhouse",
       "description": "ClickHouse is a columnar OLAP database for real-time analytical queries over billions of rows. It speaks SQL, stores data in MergeTree tables, and rolls up data at insert time with materialized views. Use when the user wants to run ClickHouse in Docker, design MergeTree tables, load events or logs, write aggregation or retention queries, build rollups, or connect from Node.js. Trigger words: clickhouse, olap, mergetree, columnar database, analytics database.",
@@ -2364,6 +2481,19 @@
       ]
     },
     {
+      "name": "code-server",
+      "slug": "code-server",
+      "description": "code-server runs VS Code on a remote machine and serves it to any web browser, so you can code from a laptop, tablet or thin client while the files, terminal and compute stay on a server. Use this skill to install code-server from a release archive or package, configure ~/.config/code-server/config.yaml with password auth, keep it on localhost behind an SSH tunnel or a TLS reverse proxy, install extensions from Open VSX and run it as a service. Trigger phrases: \"VS Code in the browser\", \"remote dev server\", \"install code-server\", \"code from my iPad\".",
+      "category": "development",
+      "tags": [
+        "code-server",
+        "vscode",
+        "remote-development",
+        "browser-ide",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "code-simplification",
       "slug": "code-simplification",
       "description": "Makes working code easier to read and change without altering what it does, and proves the behaviour stayed the same. Use when someone says \"simplify this\", \"clean up this function\", \"this file is a mess\", \"reduce the complexity\", \"refactor for readability\", \"tidy my diff before the PR\", or when a linter reports high cyclomatic complexity or deep nesting. Covers pinning current behaviour with characterization tests, measuring complexity, choosing a named refactoring, applying it in small verified steps, and reporting suspected bugs found on the way instead of fixing them silently.",
@@ -2374,6 +2504,19 @@
         "complexity",
         "readability",
         "testing"
+      ]
+    },
+    {
+      "name": "codegraph",
+      "slug": "codegraph",
+      "description": "CodeGraph indexes a source tree into a local SQLite knowledge graph of symbols, calls and imports, and serves it to coding agents over MCP and a CLI. Use it when an agent burns tool calls on grep and file reads to understand a codebase, or when you need callers, callees, blast radius or affected tests for a symbol. Covers install, `codegraph init`, query/explore/impact/affected commands, MCP registration, exclusions and troubleshooting. Triggers: \"index my repo for the agent\", \"who calls this function\", \"what breaks if I change this\", \"codegraph\".",
+      "category": "development",
+      "tags": [
+        "code-graph",
+        "mcp",
+        "code-intelligence",
+        "impact-analysis",
+        "agents"
       ]
     },
     {
@@ -2866,6 +3009,19 @@
         "streaming",
         "data-import",
         "export"
+      ]
+    },
+    {
+      "name": "cua",
+      "slug": "cua",
+      "description": "Cua gives AI agents a computer of their own: disposable Linux, Windows or macOS sandboxes on your machine that an agent can run commands in, take screenshots of, and drive with mouse and keyboard, from a `cua` command line or a Python SDK. Use when someone asks to \"give my agent a sandboxed desktop\", \"run a command in an isolated container or VM\", \"take a screenshot of the sandbox\", \"automate a GUI app safely\", or \"script a computer-use agent environment\". Local sandboxes only; no account needed.",
+      "category": "automation",
+      "tags": [
+        "computer-use",
+        "sandbox",
+        "desktop-automation",
+        "vm",
+        "python-sdk"
       ]
     },
     {
@@ -3407,6 +3563,19 @@
       ]
     },
     {
+      "name": "dockurr-windows",
+      "slug": "dockurr-windows",
+      "description": "Runs a real Windows desktop or server inside a Docker container on a Linux host with KVM, using a QEMU virtual machine that installs itself and is viewed in a browser or over RDP. Use when someone asks to \"run Windows in Docker\", \"spin up a disposable Windows 11 test machine\", \"test a Windows installer from Linux\", \"get a Windows VM with RDP\", \"dockur windows\", or \"unattended Windows install with a compose file\". Covers image setup, VERSION values, resources, shared folders, first-boot scripts, RDP access and licensing.",
+      "category": "devops",
+      "tags": [
+        "windows",
+        "docker",
+        "qemu",
+        "kvm",
+        "rdp"
+      ]
+    },
+    {
       "name": "documentation-and-adrs",
       "slug": "documentation-and-adrs",
       "description": "Writes architecture decision records (ADRs) and keeps the rest of a project's documentation true after a change: README, reference comments on public interfaces and the changelog. Use when a user says \"write an ADR\", \"record this decision\", \"document why we chose X\", \"set up a decision log\", \"supersede the old decision\", \"update the README\", \"add a changelog entry\" or \"document this API\". Produces records in the Nygard or MADR format, a Keep a Changelog entry, and a script that checks the log for gaps and broken supersession links.",
@@ -3938,6 +4107,19 @@
       ]
     },
     {
+      "name": "express",
+      "slug": "express",
+      "description": "Express is the minimal web framework for Node.js: routes, middleware, a Router for grouping endpoints, and helpers like res.json. Use when a user asks to \"build a REST API with Express\", \"add a route or middleware\", \"parse JSON bodies\", \"handle errors in Express\", \"serve static files\", \"write a catch-all route\", or \"upgrade from Express 4 to 5\". Targets Express 5, where async handler errors reach the error middleware and route patterns changed.",
+      "category": "development",
+      "tags": [
+        "nodejs",
+        "express",
+        "rest-api",
+        "middleware",
+        "http-server"
+      ]
+    },
+    {
       "name": "external-dns",
       "slug": "external-dns",
       "description": "ExternalDNS automatically creates and updates DNS records for Kubernetes Services, Ingresses, Gateway API routes and Istio resources in providers such as Route 53, Cloud DNS and Cloudflare. Use when someone asks to \"point a hostname at my Kubernetes service automatically\", \"install external-dns with Helm\", \"sync Ingress hosts to Route 53 or Cloudflare\", or \"fix external-dns deleting or not creating records\".",
@@ -4025,6 +4207,32 @@
         "containers",
         "threat-detection",
         "ebpf"
+      ]
+    },
+    {
+      "name": "falkordb",
+      "slug": "falkordb",
+      "description": "FalkorDB is a graph database that runs as a Redis module and answers openCypher queries. Use it to store knowledge graphs, agent memory or connected data and to run vector similarity search next to graph traversal. Trigger phrases - \"run FalkorDB\", \"GRAPH.QUERY\", \"store a knowledge graph in FalkorDB\", \"falkordb Python client\", \"vector index on graph nodes\", \"graph database on Redis\", \"Cypher in Docker\".",
+      "category": "data-ai",
+      "tags": [
+        "falkordb",
+        "graph-database",
+        "cypher",
+        "redis",
+        "knowledge-graph"
+      ]
+    },
+    {
+      "name": "fallow",
+      "slug": "fallow",
+      "description": "Fallow is a fast static analyzer for TypeScript and JavaScript repositories that finds unused files, exports and dependencies, circular imports, copy-pasted code and overly complex functions, and gates pull requests on only the problems a change introduces. Use it when asked to \"find dead code\", \"clean up unused dependencies\", \"check code health before merging\", \"find complexity hotspots\", \"audit this PR\", or \"migrate from knip\". Needs no TypeScript compiler and no config to start.",
+      "category": "development",
+      "tags": [
+        "dead-code",
+        "code-health",
+        "complexity",
+        "typescript",
+        "static-analysis"
       ]
     },
     {
@@ -4442,6 +4650,19 @@
       ]
     },
     {
+      "name": "freqtrade",
+      "slug": "freqtrade",
+      "description": "Freqtrade is a free, open-source crypto trading bot written in Python: you write a strategy class, download exchange candles, backtest it, then run it in dry-run mode (simulated orders) before risking money. Use when a user says \"backtest a crypto strategy\", \"download historical candles for freqtrade\", \"write a freqtrade strategy\", \"run a trading bot in dry-run\", or \"set up FreqUI\". Not financial advice: strategies usually lose money, and live trading can lose all of it. This skill defaults to dry-run and never handles exchange keys.",
+      "category": "data-ai",
+      "tags": [
+        "freqtrade",
+        "crypto",
+        "trading-bot",
+        "backtesting",
+        "python"
+      ]
+    },
+    {
       "name": "frontend-design",
       "slug": "frontend-design",
       "description": "Expert frontend design guidelines for creating beautiful, modern UIs. Use when a user asks to design a landing page, create a dashboard layout, build a modern UI, style a web application, design a hero section, create a responsive layout, implement frontend design patterns, or improve AI-generated UI quality with design-system-level controls.",
@@ -4455,6 +4676,19 @@
       ]
     },
     {
+      "name": "frp",
+      "slug": "frp",
+      "description": "frp is a reverse proxy that lets you publish services running behind NAT or a firewall through a server that has a public IP. A server (frps) and a client (frpc) are configured in TOML. Use this skill to expose a local web app, SSH or any TCP/UDP port from your own machines, protect the tunnel with a token and TLS, and check proxy status on the dashboard. Trigger phrases: \"expose my local server\", \"self-hosted tunnel\", \"frp config\", \"frps frpc\", \"reach my home machine over SSH\", \"alternative to ngrok\".",
+      "category": "devops",
+      "tags": [
+        "frp",
+        "reverse-proxy",
+        "tunnel",
+        "nat-traversal",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "function-calling",
       "slug": "function-calling",
       "description": "Function calling (tool use) lets an LLM request calls to your own functions while your code runs them and returns the results in a loop. Covers the OpenAI Responses API, the Anthropic Messages API, parallel calls, tool_choice, strict schemas and error handling. Use when building AI agents with tools, letting LLMs query APIs or databases, or creating agentic workflows.",
@@ -4465,6 +4699,19 @@
         "llm",
         "agents",
         "anthropic"
+      ]
+    },
+    {
+      "name": "fzf",
+      "slug": "fzf",
+      "description": "fzf is a command-line fuzzy finder that filters any list of lines, such as files, git branches, processes or command history, as you type and prints the selection. Use it when the user asks to \"pick a file with fuzzy search\", \"add Ctrl-R fuzzy history\", \"preview files while searching\", \"choose a git branch interactively\", \"set up fzf key bindings\", or when a script needs non-interactive fuzzy matching with `fzf --filter`. Covers install, shell integration, FZF_DEFAULT_COMMAND and FZF_DEFAULT_OPTS, preview windows, key bindings and scripting flags.",
+      "category": "productivity",
+      "tags": [
+        "fzf",
+        "fuzzy-finder",
+        "shell",
+        "terminal",
+        "cli"
       ]
     },
     {
@@ -4775,6 +5022,19 @@
       ]
     },
     {
+      "name": "gitdiagram",
+      "slug": "gitdiagram",
+      "description": "Shows how a public GitHub repository is built: an AI-made architecture diagram with a written explanation, the main components and their source paths, and Mermaid source. Use when the user asks \"how is owner/repo structured?\", wants an architecture overview of an open-source project before reading its code, needs Mermaid source for a repository, or wants to add the GitDiagram MCP server to Claude Code, Codex, Gemini CLI or Copilot CLI. Covers the hosted site, the .md endpoint, the MCP tools and self-hosting.",
+      "category": "development",
+      "tags": [
+        "architecture-diagram",
+        "github",
+        "mermaid",
+        "mcp",
+        "code-visualization"
+      ]
+    },
+    {
       "name": "github",
       "slug": "github",
       "description": "Interact with GitHub using the gh CLI. Create issues, open pull requests, check CI status, review PRs, manage releases, and run advanced queries. Use when a user asks to create a GitHub issue, open a PR, check CI runs, list pull requests, review a PR, search GitHub issues, or manage releases.",
@@ -4824,6 +5084,19 @@
         "graph-rag",
         "mcp",
         "ai-agents"
+      ]
+    },
+    {
+      "name": "glance",
+      "slug": "glance",
+      "description": "Glance is a lightweight self-hosted dashboard that shows RSS feeds, Hacker News, Reddit, release trackers, service uptime and more on one page, configured entirely in YAML. Use this skill to install the single Go binary or Docker image, write and validate glance.yml, add password authentication, wire widgets such as rss, monitor and releases, and keep secrets in environment variables. Triggers: \"self-hosted start page\", \"RSS dashboard\", \"glance.yml\", \"homelab dashboard\", \"show all my feeds on one page\".",
+      "category": "productivity",
+      "tags": [
+        "glance",
+        "dashboard",
+        "rss",
+        "self-hosted",
+        "yaml"
       ]
     },
     {
@@ -5030,6 +5303,19 @@
         "api",
         "typescript",
         "envelop"
+      ]
+    },
+    {
+      "name": "graphrag",
+      "slug": "graphrag",
+      "description": "GraphRAG is Microsoft's pipeline that turns a folder of text into a knowledge graph with community summaries, then answers questions over it. Use it for corpus-wide questions that plain vector RAG misses, such as \"what are the main themes across these 500 documents\". Trigger phrases - \"graphrag index\", \"graphrag query\", \"global search vs local search\", \"build a knowledge graph from documents with an LLM\", \"Microsoft GraphRAG\", \"prompt tuning for GraphRAG\".",
+      "category": "data-ai",
+      "tags": [
+        "graphrag",
+        "knowledge-graph",
+        "rag",
+        "microsoft",
+        "llm"
       ]
     },
     {
@@ -5319,6 +5605,19 @@
       ]
     },
     {
+      "name": "hindsight",
+      "slug": "hindsight",
+      "description": "Hindsight is a self-hosted agent memory server: an agent stores facts with retain, searches them with recall, and asks for reasoned answers over them with reflect, per isolated memory bank. Use when an agent or chatbot must remember users and projects across sessions, or when asked to \"set up Hindsight\", \"retain and recall memories\", \"add per-user memory banks\", \"run a memory server for my agent\", or \"connect an MCP client to Hindsight memory\".",
+      "category": "data-ai",
+      "tags": [
+        "agent-memory",
+        "hindsight",
+        "llm-agents",
+        "retain-recall",
+        "mcp"
+      ]
+    },
+    {
       "name": "hipaa-compliance",
       "slug": "hipaa-compliance",
       "description": "HIPAA compliance for software that handles protected health information (PHI): which data counts as PHI, what the Security Rule requires of encryption, access control, audit controls and logoff, how business associate agreements work, and the Breach Notification Rule deadlines. Use when someone asks to \"make this app HIPAA compliant\", \"encrypt PHI\", \"add audit logging for patient records\", \"check what a BAA needs\", or \"prepare for a hospital security review\". Not legal advice.",
@@ -5539,6 +5838,19 @@
       ]
     },
     {
+      "name": "hyperswitch",
+      "slug": "hyperswitch",
+      "description": "Hyperswitch is an open-source payments switch written in Rust that puts one API in front of many payment processors such as Stripe, Adyen and PayPal, with routing, retries and a dashboard. Use when a user asks to run Hyperswitch locally with Docker Compose, connect a test processor, create and confirm a test payment through the REST API, split traffic between two processors, set routing rules, or refund a payment. Test mode and dummy processors only.",
+      "category": "business",
+      "tags": [
+        "payments",
+        "hyperswitch",
+        "payment-orchestration",
+        "routing",
+        "rust"
+      ]
+    },
+    {
       "name": "hypothesis",
       "slug": "hypothesis",
       "description": "Hypothesis is a Python library for property-based testing: a test states a rule that must hold for all inputs, and Hypothesis generates hundreds of inputs, including edge cases, then reports the simplest one that breaks the rule. Use when a user asks to write property-based tests, fuzz a Python function, find edge cases, test a round trip such as encode and decode, write stateful tests, reproduce a failing Hypothesis example, or tune Hypothesis settings and profiles for pytest and CI.",
@@ -5682,6 +5994,32 @@
       ]
     },
     {
+      "name": "imgui",
+      "slug": "imgui",
+      "description": "Dear ImGui is a C++ immediate-mode GUI library for building debug panels, tools and editors inside games, simulations and other real-time apps. Use when asked to \"add a debug UI to my C++ app\", \"integrate Dear ImGui with GLFW and OpenGL\", \"add sliders and a live graph to my renderer\", \"fix ImGui widget ID conflicts\", or \"use ImGui fonts in version 1.92 or later\". Covers setup with the bundled backends, the per-frame loop, common widgets and the pitfalls of immediate mode.",
+      "category": "development",
+      "tags": [
+        "cpp",
+        "imgui",
+        "gui",
+        "debug-tools",
+        "game-development"
+      ]
+    },
+    {
+      "name": "immich",
+      "slug": "immich",
+      "description": "Immich is a self-hosted photo and video library with a web app, mobile backup, face and object search, and a REST API. Use this skill to deploy Immich with Docker Compose, bulk-import an existing photo archive with the immich CLI, create scoped API keys, call the API from scripts, and back up the database and media. Triggers: \"self-host Google Photos\", \"immich docker compose\", \"immich upload folder\", \"immich API key\", \"immich backup and restore\", \"photo library on my own server\".",
+      "category": "devops",
+      "tags": [
+        "immich",
+        "photos",
+        "self-hosted",
+        "docker-compose",
+        "backup"
+      ]
+    },
+    {
       "name": "impeccable",
       "slug": "impeccable",
       "description": "Impeccable is a design skill pack for AI coding agents: one /impeccable skill with 24 commands (init, audit, critique, polish, typeset, layout and more) plus a CLI that scans HTML, CSS, JSX and live URLs for 61 deterministic anti-patterns of AI-generated UI. Use when a user says \"my AI-generated UI looks generic\", \"install impeccable\", \"run /impeccable audit\", \"polish this page before launch\", \"stop the purple gradients and Inter everywhere\", or wants a design lint for UI files in CI or as an agent hook in Claude Code, Cursor, Codex, GitHub Copilot or Grok Build.",
@@ -5744,6 +6082,19 @@
         "flux",
         "metrics",
         "monitoring"
+      ]
+    },
+    {
+      "name": "ink-cli",
+      "slug": "ink-cli",
+      "description": "Ink is a library for building interactive command-line interfaces with React components, Flexbox layout and hooks, rendered into the terminal. Use it when asked to \"build a CLI with React\", \"make a terminal UI with progress and keyboard input\", \"use Ink\", \"scaffold an Ink app\", \"handle keypresses in a CLI\", \"exit an Ink app cleanly\", or \"test an Ink component\". Covers Ink 8 requirements (ESM, Node 22, React 19.3), render, Box and Text, useInput, useApp, non-TTY behaviour, create-ink-app and ink-testing-library.",
+      "category": "development",
+      "tags": [
+        "ink",
+        "react",
+        "cli",
+        "terminal-ui",
+        "javascript"
       ]
     },
     {
@@ -5900,6 +6251,32 @@
         "distributed-tracing",
         "opentelemetry",
         "observability"
+      ]
+    },
+    {
+      "name": "jan",
+      "slug": "jan",
+      "description": "Jan is an open-source desktop app that runs LLMs on your own computer and serves them through an OpenAI- and Anthropic-compatible local API. Use this skill to install Jan, start and secure its Local API Server (127.0.0.1:1337), call it from curl or the OpenAI SDK, and inspect its model and thread files in the data folder. It also marks which steps are GUI-only. Trigger phrases: \"run a local model with Jan\", \"Jan local API server\", \"ChatGPT alternative that runs offline\", \"point my app at Jan\".",
+      "category": "data-ai",
+      "tags": [
+        "local-llm",
+        "desktop-app",
+        "openai-compatible",
+        "privacy",
+        "gguf"
+      ]
+    },
+    {
+      "name": "jellyfin",
+      "slug": "jellyfin",
+      "description": "Jellyfin is a free, open-source media server that streams a personal library of movies, shows, music and books to browsers, TVs and phones, with a REST API for automation. Use this skill to deploy Jellyfin with Docker Compose, finish the startup wizard through the API, create API keys, add libraries, trigger scans and list or search items from scripts. Triggers: \"self-host a media server\", \"Plex alternative\", \"jellyfin docker compose\", \"jellyfin API key\", \"scan jellyfin library\", \"stream my movie collection at home\".",
+      "category": "devops",
+      "tags": [
+        "jellyfin",
+        "media-server",
+        "self-hosted",
+        "docker-compose",
+        "rest-api"
       ]
     },
     {
@@ -6127,6 +6504,19 @@
         "vps",
         "kamal",
         "zero-downtime"
+      ]
+    },
+    {
+      "name": "kestra",
+      "slug": "kestra",
+      "description": "Kestra is an open-source workflow orchestrator where pipelines are declarative YAML flows with tasks, schedules, webhooks, retries and a web UI. Use when asked to \"orchestrate a data pipeline with Kestra\", \"write a Kestra flow\", \"schedule a job with cron in Kestra\", \"run a Python script on a schedule\", \"trigger a flow from a webhook\", or \"deploy flows with kestractl\".",
+      "category": "devops",
+      "tags": [
+        "kestra",
+        "orchestration",
+        "workflow",
+        "yaml",
+        "data-pipelines"
       ]
     },
     {
@@ -6623,6 +7013,19 @@
       ]
     },
     {
+      "name": "lightrag",
+      "slug": "lightrag",
+      "description": "Graph-based RAG library and server that extracts entities and relationships from documents into a knowledge graph and answers questions with local, global, hybrid or mix retrieval. Use when someone asks to \"build a graph RAG over my documents\", \"run lightrag-server\", \"insert text and query with LightRAG\", \"pick a QueryParam mode\", or \"expose a RAG API with a web UI\".",
+      "category": "data-ai",
+      "tags": [
+        "graph-rag",
+        "knowledge-graph",
+        "rag",
+        "python",
+        "retrieval"
+      ]
+    },
+    {
       "name": "linear",
       "slug": "linear",
       "description": "Manage projects and issues with Linear. Use when a user asks to set up Linear workspaces, create issues and projects, automate workflows, build Linear integrations, sync issues with GitHub, manage sprints and cycles, set up triage processes, build custom views, use Linear's GraphQL API, create webhooks, automate issue transitions, or build tools on top of Linear. Covers workspace configuration, team workflows, API automation, and integration patterns.",
@@ -6714,6 +7117,19 @@
       ]
     },
     {
+      "name": "llamafactory",
+      "slug": "llamafactory",
+      "description": "Fine-tunes open large language and vision-language models from YAML config files, with LoRA, QLoRA or full training, through the llamafactory-cli command. Use when someone asks to \"fine-tune Qwen with LoRA\", \"train a model on my own instruction dataset\", \"merge a LoRA adapter\", \"chat with my fine-tuned model\", \"serve a tuned model over an OpenAI-compatible API\", or \"use LLaMA-Factory\". Covers dataset_info.json registration, the train/chat/export/api/webui commands, QLoRA quantization and multi-GPU launches.",
+      "category": "data-ai",
+      "tags": [
+        "fine-tuning",
+        "lora",
+        "qlora",
+        "llm",
+        "llamafactory"
+      ]
+    },
+    {
       "name": "llamafile",
       "slug": "llamafile",
       "description": "llamafile packages a large language model and the llama.cpp runtime into one executable that runs on Linux, macOS, Windows and BSD without installation. Use when running an LLM offline from a single file, serving a local OpenAI- or Anthropic-compatible API, scripting one-shot prompts with --cli, bundling a GGUF model with zipalign, or distributing a portable AI app.",
@@ -6776,6 +7192,19 @@
         "haproxy",
         "reverse-proxy",
         "ssl"
+      ]
+    },
+    {
+      "name": "lobehub",
+      "slug": "lobehub",
+      "description": "Deploys and configures LobeHub (formerly LobeChat), an open-source AI chat and agent workspace with accounts, saved conversations, agents, a knowledge base and many model providers. Use when a user asks to self-host LobeHub or LobeChat, run the lobehub/lobehub Docker image, set up Postgres, S3 and Better Auth for it, add OpenAI, Anthropic or OpenRouter keys through environment variables, restrict sign-ups, or update an existing instance.",
+      "category": "devops",
+      "tags": [
+        "lobehub",
+        "lobechat",
+        "self-hosted",
+        "ai-chat",
+        "docker"
       ]
     },
     {
@@ -7037,6 +7466,19 @@
       ]
     },
     {
+      "name": "marimo",
+      "slug": "marimo",
+      "description": "marimo is a reactive Python notebook that is stored as a plain .py file, so it diffs cleanly in git, runs as a script, and serves as a web app. Use when a user asks to \"create a marimo notebook\", \"convert my Jupyter notebook to marimo\", \"turn this notebook into an app\", \"run a notebook from the command line with arguments\", \"export a notebook to HTML\", or \"query a dataframe with SQL in a notebook\". Covers marimo edit, run, convert, export, check, mo.ui elements and SQL cells.",
+      "category": "data-ai",
+      "tags": [
+        "marimo",
+        "notebook",
+        "python",
+        "reactive",
+        "data-exploration"
+      ]
+    },
+    {
       "name": "markdown-new",
       "slug": "markdown-new",
       "description": "Convert any public URL into clean, LLM-ready Markdown using the markdown.new service. Use for content extraction, RAG ingestion, article summarization, research, archiving, and token-efficient web reading.",
@@ -7254,6 +7696,19 @@
         "personalization",
         "rag",
         "long-term-memory"
+      ]
+    },
+    {
+      "name": "memos",
+      "slug": "memos",
+      "description": "Memos is a self-hosted note-taking service: a private timeline of short Markdown notes with tags, search and a REST API, stored in one SQLite file. Use this skill to deploy Memos with Docker, create the first user, mint an access token and write or query notes from scripts and agents. Trigger phrases: \"self-host a notes app\", \"quick capture timeline\", \"memos api\", \"post notes to memos\", \"back up memos\", \"upgrade memos\".",
+      "category": "productivity",
+      "tags": [
+        "memos",
+        "note-taking",
+        "self-hosted",
+        "markdown",
+        "rest-api"
       ]
     },
     {
@@ -7541,6 +7996,19 @@
       ]
     },
     {
+      "name": "monaco-editor",
+      "slug": "monaco-editor",
+      "description": "Monaco Editor is the code editor that powers VS Code, packaged as a browser component with syntax highlighting, IntelliSense, diagnostics and a diff view. Use when a user asks to \"embed a code editor in the web app\", \"add Monaco to a React or Vite project\", \"show a JSON or YAML editor with validation\", \"build a diff viewer\", \"set up Monaco web workers\", or \"use @monaco-editor/react without the CDN\". Covers bundler setup, models, languages, markers and the diff editor.",
+      "category": "development",
+      "tags": [
+        "monaco-editor",
+        "code-editor",
+        "vscode",
+        "web-workers",
+        "react"
+      ]
+    },
+    {
       "name": "moneyprinterturbo",
       "slug": "moneyprinterturbo",
       "description": "MoneyPrinterTurbo turns a topic or keyword into a finished short video: it writes the script, picks stock footage, adds a voiceover, subtitles and background music, and renders an HD clip. Use when asked to \"generate a short video from a topic\", \"make faceless YouTube Shorts or TikToks\", \"batch-produce videos from a list of subjects\", \"run MoneyPrinterTurbo\", or \"call its API to create a video\". Covers pip and Docker install, config.toml, the mpt CLI with batch manifests, and the REST API.",
@@ -7761,6 +8229,19 @@
       ]
     },
     {
+      "name": "nango",
+      "slug": "nango",
+      "description": "Nango is an integration platform that handles OAuth, API-key storage, token refresh and authenticated API calls for 1,000+ third-party APIs, plus a TypeScript runtime for sync and action functions. Use it when a user asks to \"let my customers connect their HubSpot or GitHub account\", \"add OAuth to my product\", \"proxy requests to a customer's API\", \"sync records from an external API\", or \"give an AI agent access to a user's SaaS tools\" without writing per-provider auth code.",
+      "category": "development",
+      "tags": [
+        "nango",
+        "oauth",
+        "integrations",
+        "api-proxy",
+        "typescript"
+      ]
+    },
+    {
       "name": "nanostores",
       "slug": "nanostores",
       "description": "Nano Stores is a tiny, framework-agnostic state manager built from many small atomic stores (atoms, maps, computed stores) with lazy subscriptions. Use when the user wants shared state in React, Preact, Vue, Svelte, Solid, Lit, Angular or vanilla JS, needs derived or async data stores, wants to share state between islands in Astro, or asks how to migrate from Redux, Zustand or Context to nanostores.",
@@ -7878,6 +8359,32 @@
       ]
     },
     {
+      "name": "netdata",
+      "slug": "netdata",
+      "description": "Netdata is a real-time host and container monitoring agent that collects thousands of per-second metrics with no setup, ships hundreds of ready-made alerts, and serves a dashboard and REST API from one local process. Use it when asked to \"monitor this server\", \"install Netdata\", \"add a disk or RAM alert\", \"pull CPU numbers from Netdata\", \"export metrics to Prometheus\", or \"why is this box slow right now\".",
+      "category": "devops",
+      "tags": [
+        "netdata",
+        "monitoring",
+        "observability",
+        "alerts",
+        "metrics"
+      ]
+    },
+    {
+      "name": "new-api",
+      "slug": "new-api",
+      "description": "New API is a self-hosted AI gateway that puts many LLM providers behind one OpenAI-compatible endpoint, with a web console for channels, API keys, quotas and usage logs. Use when the user asks to \"self-host an LLM gateway\", \"give each team its own API key and budget\", \"route requests across several upstream providers with failover\", \"deploy new-api\", or \"point an OpenAI client at my own gateway\". Lawful use with your own upstream keys only.",
+      "category": "devops",
+      "tags": [
+        "llm-gateway",
+        "api-gateway",
+        "openai-compatible",
+        "self-hosted",
+        "usage-tracking"
+      ]
+    },
+    {
       "name": "new-relic",
       "slug": "new-relic",
       "description": "Set up and manage New Relic for full-stack observability including APM, browser monitoring, infrastructure monitoring, and alerting. Use when a user needs to instrument applications, write NRQL queries, create dashboards, configure alert policies, or integrate New Relic with their deployment pipeline.",
@@ -7888,6 +8395,19 @@
         "apm",
         "nrql",
         "alerts"
+      ]
+    },
+    {
+      "name": "next-ai-draw-io",
+      "slug": "next-ai-draw-io",
+      "description": "Lets an AI agent draw and edit draw.io diagrams on a live browser canvas that the person can also edit by hand, with versions, undo and export to .drawio, .png and .svg. Use when the user asks to \"draw the architecture of this repo\", \"make a draw.io diagram\", \"edit this .drawio file\", \"export a diagram as PNG or SVG\", or to add the drawio MCP server (@next-ai-drawio/mcp-server) to Claude Code, Codex, Cursor or VS Code. Also covers self-hosting the Next AI Draw.io web app.",
+      "category": "design",
+      "tags": [
+        "drawio",
+        "diagrams",
+        "mcp",
+        "architecture-diagram",
+        "flowchart"
       ]
     },
     {
@@ -8060,6 +8580,19 @@
       ]
     },
     {
+      "name": "node",
+      "slug": "node",
+      "description": "Node.js is the JavaScript runtime that runs servers, command-line tools and build scripts outside the browser. Use this skill when a user asks which Node.js version to run, how to test with `node --test`, restart on change with `--watch`, load a `.env` file, run TypeScript files without a build step, restrict a script with the permission model, mix ESM and CommonJS, or attach a debugger with `--inspect`. Covers the 2026 release lines (26 Active LTS, 24 and 22 maintenance) and the built-in modules that replace common npm packages.",
+      "category": "development",
+      "tags": [
+        "nodejs",
+        "javascript",
+        "typescript",
+        "test-runner",
+        "runtime"
+      ]
+    },
+    {
       "name": "nomad",
       "slug": "nomad",
       "description": "HashiCorp Nomad is a workload orchestrator that schedules containers, VMs and standalone binaries across a cluster using HCL job files. Use when writing Nomad job specifications, running nomad job run and plan, configuring canary deployments, batch and periodic jobs, system jobs, autoscaling, Consul service registration, or Vault secrets in templates.",
@@ -8146,6 +8679,19 @@
         "ssr",
         "fullstack",
         "nitro"
+      ]
+    },
+    {
+      "name": "nvm",
+      "slug": "nvm",
+      "description": "nvm (Node Version Manager) is a shell script that installs several Node.js versions side by side in your home directory and switches between them per terminal session or per project. Use this skill when a user asks to install or upgrade Node.js without sudo, run a project on a different Node version, pin a version with `.nvmrc`, move to the newest LTS, keep global npm packages when upgrading, or fix \"nvm: command not found\" in scripts, Docker and CI. Works on Linux, macOS and WSL with bash, zsh or other POSIX shells; not for native Windows.",
+      "category": "development",
+      "tags": [
+        "nvm",
+        "nodejs",
+        "version-manager",
+        "nvmrc",
+        "shell"
       ]
     },
     {
@@ -8693,6 +9239,19 @@
       ]
     },
     {
+      "name": "orpc",
+      "slug": "orpc",
+      "description": "oRPC is a TypeScript framework for building end-to-end type-safe APIs: you write server procedures with Zod schemas and get a typed client, an RPC endpoint, a REST endpoint and an OpenAPI document with no code generation. Use when asked to \"build a type-safe API\", \"tRPC alternative with OpenAPI\", \"contract-first TypeScript API\", \"generate an OpenAPI spec from my router\", or \"share types between server and client\".",
+      "category": "development",
+      "tags": [
+        "typescript",
+        "rpc",
+        "openapi",
+        "zod",
+        "type-safe-api"
+      ]
+    },
+    {
       "name": "otel-js",
       "slug": "otel-js",
       "description": "OpenTelemetry for Node.js adds distributed tracing and metrics to a service and exports them over OTLP to any backend. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices. Covers the current SDK (resourceFromAttributes, ESM loader hook, OTLP endpoint rules).",
@@ -8810,6 +9369,19 @@
       ]
     },
     {
+      "name": "pageindex",
+      "slug": "pageindex",
+      "description": "PageIndex answers questions about long PDFs without a vector database: it builds a table-of-contents tree for each document and lets an LLM walk the tree to the pages that matter, with page-level citations. Use when asked to build vectorless or reasoning-based RAG, \"index this 10-K and answer questions\", \"RAG without embeddings or chunking\", or to get a document's tree structure as JSON. Covers the open-source Python SDK in local mode and the run_pageindex.py script.",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "vectorless-rag",
+        "pdf",
+        "document-qa",
+        "llm"
+      ]
+    },
+    {
       "name": "pagerduty",
       "slug": "pagerduty",
       "description": "Configure PagerDuty for incident management, on-call scheduling, alert routing, and escalation policies. Use when a user needs to set up PagerDuty services, create escalation policies, configure integrations with monitoring tools, manage on-call rotations, or automate incident workflows.",
@@ -8833,6 +9405,19 @@
         "meta-ads",
         "advertising",
         "performance-marketing"
+      ]
+    },
+    {
+      "name": "pake",
+      "slug": "pake",
+      "description": "Pake packages a website or a static web build into a small native desktop app (typically under 10 MB) using Tauri and the system WebView instead of a bundled Chromium. Use when the user says \"turn this website into a desktop app\", \"wrap a web app as a Mac/Windows/Linux app\", \"package ./dist as an installer\", \"make an Electron alternative for a web tool\", or wants a dedicated window for a web service. Covers the pake-cli flags, JSON output for automation, declarative config files, and build targets.",
+      "category": "development",
+      "tags": [
+        "pake",
+        "tauri",
+        "desktop-app",
+        "webview",
+        "packaging"
       ]
     },
     {
@@ -8885,6 +9470,19 @@
         "claude-code",
         "budgets",
         "self-hosted"
+      ]
+    },
+    {
+      "name": "paperless-ngx",
+      "slug": "paperless-ngx",
+      "description": "Paperless-ngx is a self-hosted document archive that OCRs scanned paper and PDFs, indexes the text, and lets you search and organise everything with tags, correspondents and custom fields. Use it when the user asks to \"set up a paperless office\", \"digitise and archive my scanned documents\", \"self-host a document management system\", \"upload PDFs through an API\", \"search my archive by correspondent or tag\", or \"script Paperless-ngx\". Covers Docker Compose deployment, the consumption folder, token-authenticated REST API calls, bulk edits and export.",
+      "category": "documents",
+      "tags": [
+        "paperless-ngx",
+        "document-management",
+        "ocr",
+        "self-hosted",
+        "docker"
       ]
     },
     {
@@ -9224,6 +9822,19 @@
       ]
     },
     {
+      "name": "plane",
+      "slug": "plane",
+      "description": "Plane is an open-source project management tool (work items, cycles, modules, pages) that can run on your own server or in Plane Cloud, as an alternative to Jira or Linear. Use this skill to self-host the Community edition with Docker, call the REST API with a personal access token, create and update work items from scripts, or connect an agent through the official Plane MCP server. Triggers: \"self-host Plane\", \"makeplane\", \"Plane API key\", \"create Plane work items from a script\", \"Plane MCP server\", \"replace Jira with something self-hosted\".",
+      "category": "productivity",
+      "tags": [
+        "plane",
+        "project-management",
+        "self-hosted",
+        "issue-tracker",
+        "rest-api"
+      ]
+    },
+    {
       "name": "planetscale",
       "slug": "planetscale",
       "description": "PlanetScale is a managed database platform running Vitess (MySQL-compatible), Postgres and Neki (sharded Postgres), with Git-like database branches, deploy requests for non-blocking schema changes, and query insights. Use when asked to \"set up PlanetScale\", \"create a PlanetScale branch\", \"run a deploy request\", \"use the pscale CLI\", \"connect to PlanetScale from serverless or edge functions\", or \"check slow queries on PlanetScale\".",
@@ -9247,6 +9858,19 @@
         "react",
         "typescript",
         "manifest-v3"
+      ]
+    },
+    {
+      "name": "plate",
+      "slug": "plate",
+      "description": "Plate is a plugin-based rich-text editor framework for React, built on Slate, with optional shadcn/ui components, Markdown import/export and Yjs real-time collaboration. Use it when a user asks to \"add a rich text editor to a React app\", \"build a Notion-style editor with Plate\", \"serialize Plate content to Markdown\", \"add collaboration to a Plate editor\", or \"migrate from @udecode/plate-* to platejs\". Covers the current platejs and @platejs/* packages, not the pre-v49 @udecode/plate-* ones.",
+      "category": "development",
+      "tags": [
+        "rich-text",
+        "editor",
+        "slate",
+        "react",
+        "collaboration"
       ]
     },
     {
@@ -9406,6 +10030,19 @@
       ]
     },
     {
+      "name": "postgres-js",
+      "slug": "postgres-js",
+      "description": "Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to \"connect Node to Postgres\", \"run a SQL query from TypeScript\", \"insert rows with postgres.js\", \"use a transaction\", \"listen for Postgres notifications\", \"stream a big result set with a cursor\", or \"cancel a slow query\". Covers v4 connection options, dynamic inserts and filters, transactions, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.",
+      "category": "development",
+      "tags": [
+        "postgres",
+        "postgresql",
+        "nodejs",
+        "sql",
+        "database-client"
+      ]
+    },
+    {
       "name": "postgresql",
       "slug": "postgresql",
       "description": "Assists with designing schemas, writing performant queries, managing indexes, and operating PostgreSQL databases. Use when working with JSONB, full-text search, window functions, CTEs, row-level security, replication, or performance tuning. Trigger words: postgresql, postgres, sql, database, jsonb, rls, window functions, cte.",
@@ -9429,6 +10066,19 @@
         "product-analytics",
         "session-replay",
         "feature-flags"
+      ]
+    },
+    {
+      "name": "postiz",
+      "slug": "postiz",
+      "description": "Postiz is an open-source social media scheduler that publishes and schedules posts to dozens of networks (X, LinkedIn, Bluesky, Instagram, YouTube, Reddit and more) from one calendar, with a public REST API and a command-line client. Use this skill to self-host Postiz with Docker Compose, connect channels, and schedule posts from scripts or an agent. Triggers: \"self-host Postiz\", \"schedule social posts from the command line\", \"Postiz API\", \"postiz cli\", \"open-source Buffer alternative\".",
+      "category": "content",
+      "tags": [
+        "postiz",
+        "social-media",
+        "scheduler",
+        "self-hosted",
+        "automation"
       ]
     },
     {
@@ -9692,6 +10342,19 @@
       ]
     },
     {
+      "name": "prometheus",
+      "slug": "prometheus",
+      "description": "Prometheus is an open-source monitoring server that scrapes metrics from your services over HTTP, stores them as time series, and evaluates PromQL queries and alerting rules. Use this skill to write prometheus.yml scrape configs and service discovery, add recording and alerting rules, validate them with promtool, unit-test alerts, query the HTTP API, and set retention. Trigger phrases: \"set up Prometheus\", \"scrape this service\", \"write an alert rule\", \"PromQL query\", \"promtool check\", \"reload Prometheus config\". Alert routing lives in prometheus-alertmanager.",
+      "category": "devops",
+      "tags": [
+        "prometheus",
+        "promql",
+        "monitoring",
+        "alerting-rules",
+        "promtool"
+      ]
+    },
+    {
       "name": "prometheus-alertmanager",
       "slug": "prometheus-alertmanager",
       "description": "Configure Prometheus Alertmanager for alert routing, grouping, silencing, and notification delivery. Use when a user needs to set up alert receivers (Slack, PagerDuty, email), define routing trees, manage silences and inhibition rules, or troubleshoot alert delivery pipelines.",
@@ -9871,6 +10534,19 @@
       ]
     },
     {
+      "name": "pywinauto",
+      "slug": "pywinauto",
+      "description": "Drives Windows desktop applications from Python by finding windows and controls and clicking, typing and reading them through the Win32 or UI Automation backends. Use when someone asks to \"automate a Windows app that has no API\", \"click a button in a desktop program\", \"fill a legacy form from a script\", \"read text out of a dialog\", \"script Notepad or an old ERP client\", or \"use pywinauto\". Covers Application start and connect, window and child_window lookup, print_control_identifiers, type_keys, click_input, waits and Desktop.",
+      "category": "automation",
+      "tags": [
+        "windows",
+        "gui-automation",
+        "desktop",
+        "uia",
+        "python"
+      ]
+    },
+    {
       "name": "qdrant",
       "slug": "qdrant",
       "description": "Qdrant is an open-source vector database written in Rust for similarity search over embeddings, with payload filtering, named and sparse vectors, hybrid search and quantization. Use when someone asks to set up Qdrant, build semantic search or RAG retrieval, store embeddings, filter vector search by metadata, combine dense and keyword search, or move from the removed search() and recommend() calls to query().",
@@ -9949,6 +10625,19 @@
       ]
     },
     {
+      "name": "ragflow",
+      "slug": "ragflow",
+      "description": "Self-hosted RAG engine that parses complex documents (PDFs, Office files, scans, tables) into searchable chunks and serves them through a web UI, an HTTP API and a Python SDK. Use when someone asks to \"deploy RAGFlow\", \"build a knowledge base over our PDFs\", \"create a chat assistant over my documents\", \"upload and parse files through the RAGFlow API\", or \"retrieve chunks with ragflow-sdk\".",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "document-parsing",
+        "knowledge-base",
+        "docker",
+        "python-sdk"
+      ]
+    },
+    {
       "name": "rails",
       "slug": "rails",
       "description": "Ruby on Rails is a full-stack web framework with ActiveRecord ORM, controllers, views, Active Job, Action Cable and built-in authentication. Use when someone asks to \"create a Rails app\", \"add a model and migration\", \"build a Rails API endpoint\", \"add login to Rails\", \"run background jobs\", \"write Rails tests\" or \"upgrade to Rails 8\".",
@@ -10009,6 +10698,19 @@
         "macos",
         "extensions",
         "react"
+      ]
+    },
+    {
+      "name": "rclone",
+      "slug": "rclone",
+      "description": "Rclone is a command-line tool that copies, syncs, checks, encrypts, mounts and serves files across more than 70 storage backends, including S3-compatible object storage, Google Drive, Dropbox, SFTP, WebDAV and the local disk. Use it when asked to \"sync a folder to a bucket\", \"migrate files from one cloud to another\", \"back up to Backblaze or Cloudflare R2\", \"encrypt files before uploading\", \"verify that two storages match\", or \"serve a bucket over HTTP\".",
+      "category": "devops",
+      "tags": [
+        "rclone",
+        "cloud-storage",
+        "sync",
+        "backup",
+        "s3"
       ]
     },
     {
@@ -10425,6 +11127,19 @@
       ]
     },
     {
+      "name": "revealjs",
+      "slug": "revealjs",
+      "description": "reveal.js is an open-source framework that turns HTML or Markdown into a browser-based slide deck with nested slides, fragments, speaker notes, code highlighting and PDF export. Use it when a user asks to \"build a slide deck as a web page\", \"write my presentation in Markdown\", \"make slides with code walkthroughs\", \"add speaker notes\", or \"export reveal.js slides to PDF\". Covers npm install, plugins, config options and headless Chrome PDF export for reveal.js 6.",
+      "category": "content",
+      "tags": [
+        "reveal-js",
+        "presentations",
+        "slides",
+        "markdown",
+        "html"
+      ]
+    },
+    {
       "name": "review-swarm",
       "slug": "review-swarm",
       "description": "Reviews a diff with several independent read-only reviewer agents running at the same time, each looking through one lens (correctness, security, data, concurrency, compatibility, tests), then checks every claim against the code and merges the survivors into one prioritized report. Use when the user says \"review swarm\", \"review this branch with parallel agents\", \"multi-agent code review\", \"get several reviewers on my diff\", or wants a deeper pre-merge review than a single pass gives. It reports problems and does not change code.",
@@ -10542,6 +11257,19 @@
       ]
     },
     {
+      "name": "ruflo",
+      "slug": "ruflo",
+      "description": "Adds an agent-orchestration layer to Claude Code (and Codex) projects: a CLI plus an MCP server that track swarms, agents, tasks and a searchable project memory, and an init step that writes agent definitions, slash commands, skills and hooks into the repository. Use when a user asks to set up ruflo or claude-flow, run \"ruflo init\", register the claude-flow MCP server, create a swarm or task list for several Claude Code agents, store and search shared project memory, or diagnose a ruflo install with \"ruflo doctor\".",
+      "category": "data-ai",
+      "tags": [
+        "multi-agent",
+        "orchestration",
+        "claude-code",
+        "mcp",
+        "agent-memory"
+      ]
+    },
+    {
       "name": "runway-ml",
       "slug": "runway-ml",
       "description": "Runway ML API generates and edits AI video and images from text, images or video, with models such as Gen-4.5, Gen-4 Turbo and Aleph 2.0. Use when generating video from a prompt or a still image, editing a clip with video-to-video, automating B-roll or product-ad pipelines, or polling Runway tasks from Python or Node.js.",
@@ -10631,6 +11359,19 @@
       ]
     },
     {
+      "name": "scalar",
+      "slug": "scalar",
+      "description": "Scalar renders an OpenAPI document as interactive API documentation with a built-in request client, and ships a CLI to validate, lint, bundle, mock and preview specs. Use when asked to \"add API docs to my Express/Fastify/Hono app\", \"replace Swagger UI\", \"preview my openapi.yaml\", \"lint an OpenAPI file\", \"mock an API from a spec\", or \"serve a reference page from a spec\".",
+      "category": "development",
+      "tags": [
+        "openapi",
+        "api-documentation",
+        "express",
+        "fastify",
+        "hono"
+      ]
+    },
+    {
       "name": "schema-markup",
       "slug": "schema-markup",
       "description": "Adds, repairs and verifies schema.org structured data (JSON-LD) on a website, and says honestly which Google rich results the markup can still earn. Use when a user asks to \"add schema markup\", \"add structured data\", \"write JSON-LD for this page\", \"fix structured data errors in Search Console\", \"why are my star ratings / FAQ rich results gone\", or wants Product, Article, Organization, LocalBusiness, Breadcrumb, Event, Video or SoftwareApplication markup. Covers choosing types per page, required properties, wiring into Next.js, static sites and CMSs, and checking the result from the command line.",
@@ -10692,6 +11433,45 @@
         "python",
         "browser-automation",
         "data-extraction"
+      ]
+    },
+    {
+      "name": "scrapy",
+      "slug": "scrapy",
+      "description": "Scrapy is the standard Python framework for crawling websites and extracting structured data into items, files or databases. Use it when the user asks to \"write a Scrapy spider\", \"crawl a whole site\", \"follow pagination and export to JSON or CSV\", \"scrape with CSS selectors\", \"throttle or obey robots.txt\", or \"clean scraped items in a pipeline\". Covers project scaffolding, spiders, items, pipelines, feed exports, polite-crawl settings and debugging with scrapy shell.",
+      "category": "data-ai",
+      "tags": [
+        "scrapy",
+        "web-scraping",
+        "crawler",
+        "python",
+        "data-extraction"
+      ]
+    },
+    {
+      "name": "scrcpy",
+      "slug": "scrcpy",
+      "description": "scrcpy shows an Android phone or tablet screen on the computer and lets you control it with the keyboard and mouse over USB or Wi-Fi, with no app on the device and no root. Use it when the user asks to \"mirror my Android phone\", \"record the Android screen\", \"control the phone from my computer\", \"connect to the phone over Wi-Fi\", \"record a demo of my app\", \"use the phone camera as a video source\", or needs scrcpy flags. Covers install, adb connection, wireless mode, recording, audio, camera, headless runs and tuning. Only for devices the user owns or may use.",
+      "category": "development",
+      "tags": [
+        "scrcpy",
+        "android",
+        "adb",
+        "screen-recording",
+        "mirroring"
+      ]
+    },
+    {
+      "name": "screenshot-to-code",
+      "slug": "screenshot-to-code",
+      "description": "screenshot-to-code is a self-hosted web app that turns a screenshot, mockup or short screen recording into HTML, Tailwind, React, Vue, Bootstrap or Ionic code using a multimodal LLM. Use it when a user asks to \"turn this screenshot into code\", \"clone this UI from an image\", \"run screenshot-to-code locally\", \"self-host a screenshot to HTML tool\", or \"generate a React component from a mockup\". It needs an OpenAI, Anthropic or Gemini API key that the user supplies; the skill covers setup, configuration and scripting the backend.",
+      "category": "development",
+      "tags": [
+        "screenshot-to-code",
+        "design-to-code",
+        "tailwind",
+        "react",
+        "llm"
       ]
     },
     {
@@ -10872,6 +11652,19 @@
         "debugging",
         "cold-start",
         "cloudwatch"
+      ]
+    },
+    {
+      "name": "sglang",
+      "slug": "sglang",
+      "description": "SGLang is a high-throughput serving engine that runs open-weight language, vision-language and embedding models on your own GPU behind an OpenAI-compatible HTTP API. Use this skill when asked to serve a Hugging Face model with SGLang, run `sglang serve` or `python -m sglang.launch_server`, split a model across GPUs with tensor parallelism, tune GPU memory, enable tool calling, reasoning parsing or JSON-schema constrained output, or call a self-hosted model with the OpenAI SDK.",
+      "category": "data-ai",
+      "tags": [
+        "sglang",
+        "llm-serving",
+        "inference",
+        "openai-compatible",
+        "gpu"
       ]
     },
     {
@@ -11249,6 +12042,19 @@
       ]
     },
     {
+      "name": "sql-js",
+      "slug": "sql-js",
+      "description": "sql.js is SQLite compiled to WebAssembly, so a browser page or a Node.js script can create, load, query and export a real SQLite database with no server and no native module. Use when a user wants to \"open a .sqlite file in the browser\", \"run SQL on the client\", \"query SQLite in Node without native bindings\", \"export a database to a file\", or \"add custom SQL functions in JavaScript\". Covers initSqlJs, exec, prepared statements, export, and how persistence must be handled.",
+      "category": "development",
+      "tags": [
+        "sqlite",
+        "wasm",
+        "javascript",
+        "browser",
+        "sql"
+      ]
+    },
+    {
       "name": "sql-optimizer",
       "slug": "sql-optimizer",
       "description": "Analyze and optimize SQL queries for performance. Use when a user asks to optimize a query, speed up a slow query, analyze a query plan, add indexes, fix N+1 queries, reduce query time, tune database performance, or rewrite SQL for efficiency. Supports PostgreSQL, MySQL, and SQLite.",
@@ -11574,6 +12380,19 @@
       ]
     },
     {
+      "name": "stryker-js",
+      "slug": "stryker-js",
+      "description": "StrykerJS is a mutation testing tool for JavaScript and TypeScript: it makes small deliberate changes to your source code and checks whether your tests fail, which shows how well the tests really protect the code. Use it when asked to \"run mutation testing\", \"check test quality\", \"find weak tests\", \"improve the mutation score\", \"set up Stryker\", or to gate a CI build on a mutation score.",
+      "category": "development",
+      "tags": [
+        "mutation-testing",
+        "testing",
+        "javascript",
+        "typescript",
+        "test-quality"
+      ]
+    },
+    {
       "name": "subfinder",
       "slug": "subfinder",
       "description": "Discover subdomains of a target domain using passive and active enumeration techniques. Use when tasks involve subdomain enumeration, attack surface mapping, DNS reconnaissance, finding hidden services, identifying forgotten subdomains, or expanding the scope of a security assessment. Subfinder uses passive sources (certificate transparency logs, DNS datasets, search engines) to find subdomains without touching the target directly.",
@@ -11623,6 +12442,19 @@
         "business-intelligence",
         "dashboards",
         "docker"
+      ]
+    },
+    {
+      "name": "supervision",
+      "slug": "supervision",
+      "description": "Supervision is a Python library of reusable computer-vision utilities: it wraps detection results in one Detections object, draws boxes, labels, masks and heat maps on frames, counts objects in zones or across lines, runs video through a callback, and converts datasets between YOLO and COCO formats. Use when a user says \"annotate detections on a video\", \"count people crossing a line\", \"count objects in a polygon zone\", \"slice a large image for small-object detection\", or \"convert my COCO dataset to YOLO\". It does not ship a model or a tracker.",
+      "category": "data-ai",
+      "tags": [
+        "computer-vision",
+        "object-detection",
+        "video-analytics",
+        "annotation",
+        "datasets"
       ]
     },
     {
@@ -11701,6 +12533,19 @@
         "typescript",
         "babel-alternative",
         "minifier"
+      ]
+    },
+    {
+      "name": "swift",
+      "slug": "swift",
+      "description": "Swift is Apple's compiled, memory-safe programming language, and its toolchain (swift build, swift test, swift run, Swift Package Manager) builds command-line tools and servers on Linux and macOS as well as apps. Use when someone asks to \"install Swift on Linux\", \"create a Swift package\", \"add a dependency to Package.swift\", \"run Swift tests\", \"build a Swift CLI tool\", \"build a static Linux binary from Swift\", or \"pin a Swift version with swiftly\". Covers swiftly, Package.swift, Swift Testing and XCTest, and the Static Linux SDK.",
+      "category": "development",
+      "tags": [
+        "swift",
+        "swiftpm",
+        "swiftly",
+        "command-line",
+        "linux"
       ]
     },
     {
@@ -11792,6 +12637,19 @@
         "enterprise",
         "api",
         "doctrine"
+      ]
+    },
+    {
+      "name": "syncthing",
+      "slug": "syncthing",
+      "description": "Syncthing keeps folders identical across your own computers and servers over encrypted peer-to-peer connections, with no cloud account or central server. Use when a user wants to \"sync a folder between two machines\", \"replace Dropbox with something self-hosted\", \"back up a laptop folder to a server\", \"add a device or folder from the command line\", \"check whether a remote device is fully synced\", or \"ignore files in a synced folder\". Covers installation, headless setup, the syncthing cli and the REST API.",
+      "category": "productivity",
+      "tags": [
+        "syncthing",
+        "file-sync",
+        "peer-to-peer",
+        "self-hosted",
+        "backup"
       ]
     },
     {
@@ -12345,6 +13203,19 @@
         "llm",
         "tracing",
         "openllmetry"
+      ]
+    },
+    {
+      "name": "trademark-clearance",
+      "slug": "trademark-clearance",
+      "description": "Screens a proposed brand, product or company name for trademark conflicts before launch or filing: builds exact, phonetic and spelling-variant searches for the USPTO Trademark Search system, checks each hit in TSDR, covers foreign registers through TMview and the WIPO Global Brand Database, looks for unregistered (common law) use and domains, rates each conflict with the du Pont likelihood-of-confusion factors, and writes a clearance report with filing costs and next steps. Use when a user asks \"is this name trademarked\", \"can I use this brand name\", \"run a trademark search\", \"check a name before we launch\", \"trademark knockout search\", or \"will the USPTO refuse my mark\". Produces a screening report, not a legal opinion.",
+      "category": "business",
+      "tags": [
+        "trademark",
+        "uspto",
+        "brand-naming",
+        "clearance-search",
+        "legal-research"
       ]
     },
     {
@@ -13115,6 +13986,19 @@
       ]
     },
     {
+      "name": "vikunja",
+      "slug": "vikunja",
+      "description": "Vikunja is a self-hosted to-do and project management app with lists, kanban and gantt views, labels, assignees and a full REST API, shipped as one Go binary or Docker image. Use this skill to deploy Vikunja, register a user, create a scoped API token and manage projects and tasks from scripts or agents. Trigger phrases: \"self-host a todo app\", \"vikunja api\", \"create tasks in vikunja\", \"replace a hosted task tracker\", \"back up vikunja\", \"import tasks\".",
+      "category": "productivity",
+      "tags": [
+        "vikunja",
+        "todo",
+        "project-management",
+        "self-hosted",
+        "rest-api"
+      ]
+    },
+    {
       "name": "vinxi",
       "slug": "vinxi",
       "description": "Vinxi is a JavaScript SDK for composing full-stack apps and meta-frameworks from routers (static, http, spa, client) on top of Vite and Nitro. Use when maintaining an app or framework already built on Vinxi, or when a user asks how Vinxi routers, createApp and the vinxi CLI work. Note that SolidStart 2 and current TanStack Start no longer use it.",
@@ -13412,6 +14296,19 @@
       ]
     },
     {
+      "name": "webpack",
+      "slug": "webpack",
+      "description": "webpack is a module bundler that turns a JavaScript project and its CSS, images and dependencies into optimized static files for the browser. Use when someone asks to \"set up webpack\", \"write a webpack config\", \"split my bundle\", \"fix a huge bundle\", \"add content hashes for caching\", \"run the webpack dev server\", \"analyze bundle size\", or to debug a webpack build error. Covers webpack 5 with webpack-cli 7, loaders, asset modules, code splitting, filesystem caching and bundle analysis.",
+      "category": "development",
+      "tags": [
+        "webpack",
+        "bundler",
+        "javascript",
+        "code-splitting",
+        "build-tools"
+      ]
+    },
+    {
       "name": "websocket-builder",
       "slug": "websocket-builder",
       "description": "When the user wants to build real-time features using WebSockets. Use when the user mentions \"WebSocket,\" \"real-time,\" \"live updates,\" \"socket,\" \"ws,\" \"push notifications,\" \"live chat,\" \"streaming data,\" or \"bidirectional communication.\" Covers server setup, room management, authentication, reconnection handling, and scaling with Redis pub/sub. For data persistence, see realtime-database.",
@@ -13644,7 +14541,7 @@
     {
       "name": "xquik-twitter",
       "slug": "xquik-twitter",
-      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, listing followers, exporting followers, monitoring accounts or keywords, or Xquik Twitter research and social listening.",
+      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, listing followers, exporting followers, monitoring accounts or keywords, or Xquik Twitter research and social listening. Read-only: this plugin version does not post, reply, like or send DMs.",
       "category": "automation",
       "tags": [
         "xquik",
@@ -13691,6 +14588,32 @@
         "statechart",
         "react",
         "logic"
+      ]
+    },
+    {
+      "name": "xyflow",
+      "slug": "xyflow",
+      "description": "xyflow is the library family behind React Flow (@xyflow/react) and Svelte Flow (@xyflow/svelte) for building node-based editors: draggable nodes, connectable edges, zoom and pan. Use when a user asks to \"build a workflow editor\", \"add a node graph or flowchart to the app\", \"make a drag-and-drop pipeline builder\", \"create custom nodes with handles\", or \"save and restore a React Flow diagram\". Covers v12 setup, controlled state, custom nodes, handles, providers and persistence.",
+      "category": "development",
+      "tags": [
+        "react-flow",
+        "xyflow",
+        "node-editor",
+        "workflow",
+        "diagram"
+      ]
+    },
+    {
+      "name": "yazi",
+      "slug": "yazi",
+      "description": "Yazi is a fast terminal file manager written in Rust with asynchronous I/O, file previews, tabs, bulk selection and Lua plugins. Use it when the user asks to \"install yazi\", \"set up a terminal file manager\", \"make yazi change my shell directory on exit\", \"configure yazi keybindings\", \"add a yazi plugin\", \"show git status in yazi\", or \"preview images and PDFs in the terminal\". Covers installing the yazi and ya binaries, the optional helper tools, the `y` shell wrapper, yazi.toml, keymap.toml, init.lua and `ya pkg`.",
+      "category": "productivity",
+      "tags": [
+        "yazi",
+        "file-manager",
+        "tui",
+        "terminal",
+        "rust"
       ]
     },
     {
@@ -13811,6 +14734,19 @@
       ]
     },
     {
+      "name": "zenml",
+      "slug": "zenml",
+      "description": "ZenML is an open-source Python framework for writing machine learning pipelines as typed steps whose inputs and outputs are versioned automatically, and for running the same code locally or on Kubernetes, Airflow, SageMaker and other backends. Use when a user asks to \"build an ML pipeline\", \"track model training runs and artifacts\", \"make my training script reproducible\", \"version datasets and models\", or \"run a pipeline on a different stack\". Covers @step and @pipeline, zenml init, stacks, run configs, artifacts, the Model control plane and the CLI.",
+      "category": "data-ai",
+      "tags": [
+        "zenml",
+        "mlops",
+        "ml-pipelines",
+        "artifacts",
+        "model-registry"
+      ]
+    },
+    {
       "name": "zig",
       "slug": "zig",
       "description": "Zig is a systems programming language with compile-time evaluation, seamless C interop, no hidden control flow and no garbage collector. Use when writing, building, testing or cross-compiling Zig code, porting C projects, or fixing code that broke on a new Zig release (std.Io, Writergate, @cImport removal). Covers zig init, zig build, comptime generics, explicit allocators and an HTTP server on Zig 0.17.",
@@ -13888,5 +14824,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-10-25T11:36:58.083Z"
+  "updatedAt": "2026-11-07T11:50:13.597Z"
 }

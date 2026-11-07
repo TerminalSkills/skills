@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6c089f9daf7014109a5a8d6c74b3335d64e61b22a6af69c35106dba715198152",
+  "scoredAt": "2026-11-03T23:08:09.507Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Requires a specific browser automation tool, limiting compatibility with agents lacking such capability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.54,
+    "baselineAvg": 13,
+    "treatmentAvg": 33,
+    "scenarios": [
+      {
+        "name": "us-only-clearance",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A covers more rubric items (registrability assessment, query strings, conflict table) than Response B, which lacks most required details."
+      },
+      {
+        "name": "international-domain-clearance",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Both responses lack the required TMview/WIPO search data, RDAP domain check, unregistered use check, conflict table with risk ratings, and recommendation, but Response A provides more detailed registrability analysis and variant queries, giving it a slight edge."
+      },
+      {
+        "name": "multi-class-phonetic-clearance",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required trademark clearance details."
+      }
+    ]
+  }
+}

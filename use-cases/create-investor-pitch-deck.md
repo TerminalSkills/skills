@@ -11,133 +11,184 @@ tags: [pitch-deck, fundraising, investors, startup, presentations]
 
 ## The Problem
 
-You're raising a seed round. Investors expect a polished 12-15 slide deck that tells a compelling story backed by data. You have the data — MRR growth, user metrics, market research — scattered across Stripe dashboards, analytics tools, and spreadsheets. What you don't have is 40 hours to learn pitch deck design, or $5,000-15,000 for a deck agency.
+You're raising a seed round. Investors expect a focused deck of 12-15 slides that tells a story backed by data. You have the data — MRR growth, user metrics, market research — scattered across Stripe exports, analytics tools, and spreadsheets. What you don't have is the weeks it takes to learn pitch deck design.
 
-Most founder-made decks fail for the same reasons: too much text, no visual hierarchy, metrics presented without context, and a story that buries the lead. The traction slide sits at slide 9 behind five slides of "here's our vision" that investors skim through. The market slide says "$50B TAM" with no explanation of how you calculated it. The competition slide shows a 2x2 matrix where your company conveniently occupies the top-right quadrant.
+Most founder-made decks fail for the same reasons: too much text, no visual hierarchy, metrics presented without context, and a story that buries the lead. The traction slide sits at slide 9 behind five slides of "here's our vision". The market slide says "$50B TAM" with no explanation of how it was calculated. The competition slide shows a 2x2 matrix where your company conveniently occupies the top-right quadrant.
 
 You know your business — you just need help translating raw data into a narrative that makes investors lean forward.
 
 ## The Solution
 
-Using **data-analysis** to turn raw metrics into clean charts, **content-writer** to craft the narrative and key messaging, and **ai-slides** to assemble everything into a professional deck, scattered data becomes a cohesive fundraising story in an afternoon.
+Use **data-analysis** (pandas and matplotlib) to turn raw exports into verified numbers and clean charts, **content-writer** to craft the narrative and key messaging, and **ai-slides** to write the deck as slide-by-slide Markdown and export it to PowerPoint and PDF with Marp. Every number on a slide comes from a script you can re-run, not from a model's memory.
 
 ## Step-by-Step Walkthrough
 
-The process moves from raw data to finished deck in five steps: identify the strongest metrics, build the narrative, generate visualizations, assemble the deck, and create variants for different contexts. Each step feeds the next, so the final product is a cohesive story rather than slides stapled together.
+The process moves from raw data to finished deck in five steps: compute the strongest metrics, build the narrative, generate charts, assemble the deck, and create variants for different contexts.
 
-### Step 1: Identify the Strongest Data Points
+### Step 1: Compute the Strongest Data Points
 
-Start by dumping everything you have — Stripe exports, analytics CSVs, market research notes. The goal is to find the metrics that tell the strongest story, not to include everything:
+Put your exports in one folder (`mrr.csv`, `mrr_by_customer.csv`, `users.csv`, `market-research.md`) and ask:
 
 ```text
-Here's our key data: MRR from Stripe export (mrr.csv), user metrics from our analytics (users.csv), and market research notes (market-research.md). Analyze and identify the strongest data points for a seed-stage pitch.
+Using the CSVs in this folder, work out the strongest data points for a seed-stage pitch: MRR growth, compound monthly growth, net revenue retention, user retention. Show the code you used for each number.
 ```
 
-The analysis surfaces what actually matters to seed investors, separated from the noise:
+The agent follows the data-analysis skill: load with pandas, compute, print. Two scripts carry most of the weight. Growth from a monthly `mrr.csv` (`month,mrr_usd`), which also draws the traction chart:
 
-**Growth metrics:**
-- MRR: $18K to $47K in 8 months (161% growth)
-- Month-over-month growth rate: 12.8% average (top quartile for seed stage)
-- Net revenue retention: 118%
+```python
+import matplotlib
+matplotlib.use("Agg")                      # no display needed
+import matplotlib.pyplot as plt
+import pandas as pd
 
-**User metrics:**
-- 1,240 active users, 89% week-1 retention
-- DAU/MAU ratio: 0.42 (Slack-level engagement)
-- Organic signups: 67% (low CAC dependency)
+mrr = pd.read_csv("mrr.csv", parse_dates=["month"])
+first, last = mrr["mrr_usd"].iloc[0], mrr["mrr_usd"].iloc[-1]
+months = len(mrr) - 1
+cmgr = (last / first) ** (1 / months) - 1      # compound monthly growth rate
+print(f"MRR ${first:,.0f} -> ${last:,.0f}: {last / first - 1:.0%} in {months} months, {cmgr:.1%} per month")
 
-**Market opportunity:**
-- TAM: $8.2B (developer tools for mid-market)
-- Growing 23% YoY per industry reports
-- 3 incumbents, all enterprise-focused (mid-market gap)
+fig, ax = plt.subplots(figsize=(8, 4.5))
+colors = ["#94A3B8"] * (len(mrr) - 1) + ["#2563EB"]   # highlight the current month
+ax.bar(mrr["month"].dt.strftime("%b"), mrr["mrr_usd"] / 1000, color=colors)
+ax.set_title(f"MRR grew {last / first - 1:.0%} in {months} months", loc="left", fontsize=14)
+ax.set_ylabel("MRR, $K")
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+fig.savefig("chart_mrr_growth.png", dpi=150)
+```
 
-The 118% net revenue retention is the sleeper hit. It means existing customers expand faster than churn eats away at revenue — they're paying more each month, not less. Investors love this metric because it proves the product gets stickier over time and revenue compounds even without new customer acquisition.
+Net revenue retention from a per-customer export (`customer_id,month,mrr_usd`, month as the first of the month):
 
-The 67% organic signups matter for a different reason: it means growth isn't dependent on paid acquisition. If you turned off all marketing spend, the company would still grow. That's a fundamentally different risk profile than a company spending $1 to acquire every $1 of revenue.
+```python
+import pandas as pd
+
+df = pd.read_csv("mrr_by_customer.csv", parse_dates=["month"])
+latest = df["month"].max()
+year_ago = latest - pd.DateOffset(months=12)
+
+start = df[df["month"] == year_ago].set_index("customer_id")["mrr_usd"]
+now = df[df["month"] == latest].set_index("customer_id")["mrr_usd"]
+# today's MRR from the customers you had a year ago: expansion minus churn and contraction
+nrr = now.reindex(start.index).fillna(0).sum() / start.sum()
+print(f"Net revenue retention (12 months): {nrr:.0%}")
+```
+
+For Marta's example company the analysis surfaces:
+
+- **Growth:** MRR $18K to $47K in 8 months (161%), 12.7% compound monthly growth
+- **Retention:** 118% net revenue retention, 89% of new users still active after week 1
+- **Users:** 1,240 active users, 67% of signups organic
+- **Market:** $8.2B developer tools for mid-market (from her research notes, with the source cited), three incumbents, all enterprise-focused
+
+The 118% net revenue retention is the headline. It means existing customers expand faster than churn eats away revenue, so revenue compounds even without new customers. The 67% organic share matters for a different reason: growth is not dependent on paid acquisition.
+
+Check each figure before it goes on a slide. The market number in particular needs a source or a bottom-up calculation (customers times price) you can defend out loud.
 
 ### Step 2: Build the Narrative Arc
 
-Data without narrative is a spreadsheet. The classic pitch structure exists because it works — it mirrors how humans process information: problem, insight, proof, opportunity, ask.
+Data without narrative is a spreadsheet. The classic structure works because it mirrors how people process a pitch: problem, insight, proof, opportunity, ask.
 
 ```text
-Write the pitch narrative. Follow the classic structure: problem, insight, solution, traction, market, business model, team, ask. Make it compelling for seed investors.
+Write the pitch narrative with the content-writer approach: audience is seed investors, one message per slide, titles that state the takeaway. Order: problem, insight, solution, traction, market, business model, team, ask.
 ```
 
 | Slide | Content | Purpose |
 |-------|---------|---------|
 | 1 | Title — Developer tools that mid-market teams actually use | Hook |
-| 2 | Problem — Mid-market eng teams (50-500 people) waste 8 hrs/week/engineer on tooling gaps | Pain |
+| 2 | Problem — Mid-market eng teams (50-500 people) lose hours every week to tooling gaps | Pain |
 | 3 | Insight — They don't need simpler enterprise tools; they need tools built for their workflow | "Why now" |
-| 4 | Solution — One-line + screenshot + 3 key capabilities | The product |
-| 5 | Traction — $47K MRR, 161% growth, 1,240 users, 118% NRR | Proof |
-| 6 | How it works — Product demo flow, 3 steps | Clarity |
-| 7 | Market — $8.2B TAM, 23% growth, mid-market underserved | Opportunity |
-| 8 | Business model — Self-serve + sales-assisted, $200-2,000/mo | Economics |
+| 4 | Solution — One line, a screenshot, 3 key capabilities | The product |
+| 5 | Traction — $47K MRR, 161% growth, 118% NRR | Proof |
+| 6 | How it works — Product flow in 3 steps | Clarity |
+| 7 | Market — $8.2B, bottom-up calculation in the notes | Opportunity |
+| 8 | Business model — Self-serve plus sales-assisted, $200-2,000/mo | Economics |
 | 9 | Competition — Positioning matrix showing the mid-market gap | Differentiation |
-| 10 | Go-to-market — Product-led growth + community + partnerships | Distribution |
-| 11 | Team — Founders' relevant experience and unfair advantages | Credibility |
+| 10 | Go-to-market — Product-led growth, community, partnerships | Distribution |
+| 11 | Team — Relevant experience and unfair advantages | Credibility |
 | 12 | Financials — 18-month projection, path to $1M ARR | Vision |
-| 13 | Ask — $2.5M seed, 18 months runway, 3 key milestones | The close |
+| 13 | Ask — $2.5M seed, 18 months runway, 3 milestones | The close |
 
-The critical decision: traction moves to slide 5 instead of the usual slide 9. By the time an investor reaches slide 5, they've heard the problem and the insight. Then they see proof that it's actually working — $47K MRR with 12.8% month-over-month growth. They spend the rest of the deck thinking "this is already working" instead of "when are they going to show me numbers?"
+The critical decision: traction moves to slide 5 instead of the usual slide 9. By then the investor has heard the problem and the insight, and sees proof that it is working. The ask is specific: an amount, a runway, and concrete milestones. A vague "we need $2-4M for growth" signals that the math has not been done.
 
-The ask slide is specific: $2.5M buys 18 months of runway and funds 3 concrete milestones (hit $1M ARR, hire 5 engineers, launch self-serve enterprise tier). Vague asks like "we need $2-4M for growth" signal that the founder hasn't done the math. A specific number with specific milestones signals confidence and planning.
+### Step 3: Generate the Charts
 
-Investors want to know exactly what their money buys and what "success" looks like at the next round. If the milestones are hit, the Series A story writes itself.
-
-### Step 3: Generate Data Visualizations
-
-Charts do the heavy lifting in investor meetings. A clean retention curve says more than three slides of text. Investors have seen thousands of decks — they can read a chart in 2 seconds and decide if the shape looks right:
+Charts do the heavy lifting in investor meetings. A clean retention curve says more than three slides of text:
 
 ```text
-Create charts for the traction slide: MRR growth (bar chart), retention curve, and DAU/MAU trend. Use clean, minimal styling with our brand colors.
+Create PNG charts for the traction slide: MRR growth (bar chart, current month highlighted), weekly user retention curve, and DAU/MAU trend. Minimal styling, our colors #2563EB and #1E293B, titles that state the finding.
 ```
 
-Four charts get generated:
-
-- **mrr-growth.svg** — Bar chart, 8 months, clear upward trend with $47K current month highlighted. No 3D effects, no gradient fills — just bars that go up and to the right.
-- **retention-curve.svg** — Cohort retention showing 89% week-1, flattening at 61% by month-3. The flattening is the key insight: churn is front-loaded and then stops, meaning customers who survive the first month stick around.
-- **engagement-trend.svg** — DAU/MAU line chart holding steady at 0.42, with industry benchmarks (social media at 0.15, productivity tools at 0.30) overlaid for context.
-- **market-size.svg** — TAM/SAM/SOM concentric circles with 23% growth rate. The SAM calculation is included in the speaker notes so investors can challenge it during the meeting.
-
-All charts use minimal grid lines, brand colors (#2563EB, #1E293B), and no chartjunk. Exported as SVG for scalability in presentations and PNG for compatibility with older software.
+The data-analysis skill saves charts as 150 DPI PNG files with labeled axes, using the same pattern as the script above: `chart_mrr_growth.png`, `chart_retention.png`, `chart_engagement.png`. One chart per slide; if two charts compete, make two slides. Put the calculation behind any market figure in the speaker notes so you can defend it.
 
 ### Step 4: Assemble the Deck
 
+Ask for the deck as a Marp Markdown file, as the ai-slides skill describes:
+
 ```text
-Build the full pitch deck using our narrative and charts. 13 slides, clean design, consistent typography.
+Write pitch-deck.md for Marp using the 13-slide narrative and the charts. Max 6 lines per slide and 6 words per bullet, takeaway titles, speaker notes as HTML comments with likely investor questions.
 ```
 
-The finished deck follows strict design constraints:
+The file looks like this (slides are separated by `---`, notes are HTML comments):
 
-- **Typography:** Inter for headings, system sans for body — clean and universal
-- **Layout:** max 30 words per slide, heavy use of whitespace. If it needs more words, it needs fewer ideas per slide.
-- **Data slides:** one key metric per slide with a supporting chart. Never two charts competing for attention.
-- **Color:** brand blue (#2563EB) for emphasis, dark gray (#1E293B) for text, white backgrounds. Nothing flashy — the data is the show.
+```markdown
+---
+marp: true
+theme: default
+paginate: true
+style: |
+  section { font-family: Inter, Helvetica, Arial, sans-serif; color: #1E293B; }
+  h1 { color: #2563EB; }
+---
 
-Speaker notes for each slide include talking points, anticipated investor questions ("How do you calculate your TAM?", "What happens when enterprise players move downmarket?"), and transition language to the next slide.
+# $47K MRR, up 161% in 8 months
 
-Output: `pitch-deck-seed-2026.pptx` for presentations and `pitch-deck-seed-2026.pdf` for email sharing.
+![bg right:55% fit](chart_mrr_growth.png)
+
+- 1,240 active users
+- 118% net revenue retention
+
+<!-- Open with the number. Growth is 12.7% per month, compounded.
+Likely question: how much of this is organic? Answer: 67% of signups. -->
+
+---
+
+# The ask: $2.5M seed
+
+- 18 months of runway
+- Three milestones
+```
+
+Export with the Marp CLI (needs Node.js and a local Chrome, Edge or Firefox for PowerPoint and PDF output):
+
+```bash
+npx @marp-team/marp-cli@latest pitch-deck.md --pptx --allow-local-files -o pitch-deck-seed-2026.pptx
+npx @marp-team/marp-cli@latest pitch-deck.md --pdf --pdf-notes --allow-local-files -o pitch-deck-seed-2026.pdf
+```
+
+`--allow-local-files` lets the export read your chart images; run it only on decks you wrote. Open the result and check for overflow before you send it. A Marp-exported `.pptx` renders each slide as an image, so add `--pptx-editable` next to `--pptx` (experimental; it also needs LibreOffice Impress installed and can fail on themes with complex styles) if the team needs to edit text in PowerPoint, or keep the Markdown as the source of truth.
 
 ### Step 5: Create Variant Versions
 
-A full 13-slide deck is for partner meetings where you have 30 minutes. Cold emails need something shorter, and diligence meetings need something deeper:
+A full 13-slide deck is for partner meetings. Cold emails need something shorter, and diligence meetings need something deeper:
 
 ```text
-Make a 5-slide teaser version for cold emails and a detailed appendix with unit economics, cohort data, and competitive analysis.
+From pitch-deck.md make a 5-slide teaser (problem, solution, traction, market, ask) and a separate appendix deck with unit economics, cohort data, and competitive analysis.
 ```
 
-**Teaser deck (5 slides):** problem, solution, traction, market, ask. This is the hook — optimized for email attachment at under 3MB. Most investors decide whether to take a meeting in the first 3 slides, so the teaser front-loads the strongest data. No solution demo, no team slide, no financials — just enough to earn the meeting.
+**Teaser (5 slides):** the hook for an email attachment; keep the PDF small (a few MB) by exporting charts at 150 DPI. No product demo, team, or financials — just enough to earn the meeting.
 
-**Appendix (8 slides):** unit economics (LTV:CAC ratio, payback period, gross margins), cohort analysis (monthly cohorts with revenue expansion), competitive matrix with feature comparison, customer quotes, product roadmap, detailed 24-month financial model, team bios with relevant achievements, and current cap table.
-
-The appendix doesn't get sent proactively. It's ammunition for the follow-up meeting when an investor asks "walk me through your unit economics" or "show me the cohort data." Having it ready signals preparation without overwhelming the first interaction.
-
-The full package: teaser for intros, full deck for partner meetings, appendix for diligence. Having all three ready before the first meeting signals preparation that most seed-stage founders don't have — and it means the conversation never stalls because an investor asks for data you haven't prepared.
+**Appendix:** unit economics (LTV:CAC, payback period, gross margin), cohort analysis, a feature-level competitive matrix, customer quotes, roadmap, the detailed financial model, and the cap table. It is not sent proactively; it is ready when an investor asks "walk me through your unit economics". Re-run the Step 1 scripts so every appendix number matches the main deck.
 
 ## Real-World Example
 
-Marta, co-founder of a developer tools startup, had 3 weeks before her first investor meetings. Her metrics were strong — $47K MRR with 12.8% month-over-month growth — but her existing deck was 22 slides of bullet points on white backgrounds. Two angel investors had already passed after seeing it. One gave feedback: "I couldn't find the numbers."
+Marta, co-founder of a developer tools startup, had 3 weeks before her first investor meetings. Her metrics were strong, but her existing deck was 22 slides of bullet points on white backgrounds, and two angel investors had passed. One said: "I couldn't find the numbers."
 
-She exported Stripe data, pulled analytics CSVs, and gathered her market research notes. The data analysis surfaced the 118% NRR as the headline metric she'd been burying on slide 18. The narrative got restructured — traction moved from slide 9 to slide 5, and the problem statement sharpened from "developers need better tools" to "mid-market engineering teams waste 8 hours per week per engineer on tooling gaps." Everything came together into a cohesive 13-slide deck with consistent design, speaker notes, and a clear ask.
+She exported Stripe data and analytics CSVs and ran the Step 1 scripts. The analysis showed 118% net revenue retention, a number she had buried on slide 18. The narrative moved traction from slide 9 to slide 5, and the problem statement sharpened from "developers need better tools" to a specific claim about mid-market engineering teams that she could back with her own customer interviews. The agent wrote the deck as Marp Markdown, and she exported a PowerPoint and a PDF.
 
-She sent the 5-slide teaser to 12 investors. Seven took meetings — up from 2 out of 10 with her old deck. In the meetings, the data visualizations did the heavy lifting: investors could see the retention curve flattening at 61%, proving stickiness without Marta needing to explain it. When one partner asked about unit economics, she pulled up the appendix. She closed $2.5M in 6 weeks — the deck didn't build the company, but it stopped being the thing that lost deals.
+She sent the 5-slide teaser to 12 investors; 7 took meetings, up from 2 of 10 with her old deck. When one partner asked about unit economics, she opened the appendix. These are Marta's own numbers; the deck did not build the company, but it stopped being the thing that lost deals.
+
+## Related Skills
+
+- [ai-slides](/skills/ai-slides) — slide structure and Marp export
+- [data-analysis](/skills/data-analysis) — pandas metrics and matplotlib charts
+- [content-writer](/skills/content-writer) — narrative and key messaging

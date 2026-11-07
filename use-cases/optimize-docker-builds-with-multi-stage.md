@@ -2,7 +2,7 @@
 title: Optimize Docker Builds with Multi-Stage Dockerfiles
 slug: optimize-docker-builds-with-multi-stage
 description: >-
-  Reduce Docker image sizes by 90% using multi-stage builds — separate build
+  Shrink Docker images with multi-stage builds — separate build
   dependencies from runtime, cache layers efficiently, use distroless base
   images, and speed up CI/CD pipelines.
 skills:
@@ -19,186 +19,195 @@ tags:
 
 # Optimize Docker Builds with Multi-Stage Dockerfiles
 
-Rosa's Node.js API Docker image is 1.2GB. Deploys take 8 minutes because pushing and pulling that image is slow. The image includes build tools, dev dependencies, TypeScript compiler, and test files — none of which are needed at runtime. Multi-stage builds let her use a full Node image for building and copy only the production artifacts into a tiny runtime image.
+Rosa's Node.js API Docker image is well over a gigabyte. Deploys take 8 minutes because pushing and pulling that image is slow. The image includes build tools, dev dependencies, the TypeScript compiler and test files, none of which are needed at runtime. Multi-stage builds let her use a full Node image for building and copy only the production artifacts into a small runtime image. She measures every step with `docker images` and `docker history`.
 
-## Step 1: Before — The Bloated Dockerfile
+## Step 1: Before, the bloated Dockerfile
 
 ```dockerfile
-# ❌ BAD: 1.2GB image with everything included
-FROM node:20
+# Bad: the full Debian-based Node image plus every dev dependency and the source tree
+FROM node:24
 WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm run build
 CMD ["node", "dist/index.js"]
-# Includes: devDependencies, .git, tests, source code, build tools
 ```
 
-## Step 2: After — Multi-Stage Build
+Node 20 reached end of life in April 2026, so she also moves to Node 24 (an LTS line) at the same time. On a small test API (Express, TypeScript, a few dev dependencies) this Dockerfile produced an image of 1.73 GB on disk (427 MB compressed content).
+
+## Step 2: After, a multi-stage build
+
+Dependencies, production-only dependencies, the build and the runtime are separate stages. The dependency layers are reused as long as `package-lock.json` does not change, and the runtime stage starts from a clean base.
 
 ```dockerfile
-# Dockerfile — Optimized multi-stage build
+# syntax=docker/dockerfile:1
+# Dockerfile: the syntax line must be the first line of the file
 
-# Stage 1: Install dependencies
-FROM node:20-alpine AS deps
+# Stage 1: all dependencies (including dev) for the build
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
 
-# Stage 2: Build
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Stage 2: production dependencies only
+FROM deps AS prod-deps
+RUN --mount=type=cache,target=/root/.npm npm prune --omit=dev --ignore-scripts
+
+# Stage 3: compile
+FROM deps AS builder
 COPY . .
 RUN npm run build
-# Prune to production deps only
-RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-# Stage 3: Production runtime
-FROM node:20-alpine AS runner
+# Stage 4: runtime
+FROM node:24-alpine AS runner
+ENV NODE_ENV=production
 WORKDIR /app
-
-# Don't run as root
-RUN addgroup --system --gid 1001 app && \
-    adduser --system --uid 1001 app
-
-# Copy only what's needed to run
-COPY --from=builder --chown=app:app /app/dist ./dist
-COPY --from=builder --chown=app:app /app/node_modules ./node_modules
-COPY --from=builder --chown=app:app /app/package.json ./
-
-USER app
+# The official Node images ship a non-root "node" user
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --chown=node:node package.json ./
+USER node
 EXPOSE 3000
-
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -qO- http://localhost:3000/health || exit 1
-
+  CMD wget -qO- http://127.0.0.1:3000/health || exit 1
 CMD ["node", "dist/index.js"]
 ```
 
-```bash
-# Result:
-# Before: 1.2GB
-# After:  ~150MB (88% smaller)
+`--ignore-scripts` skips dependency install scripts; if a package needs a build step on install (native addons), allow that package explicitly or drop the flag. On the same test API the image is 249 MB on disk (63 MB compressed content), and the container reports `healthy` and runs as `node`:
+
+```console
+$ docker build -t api:multi .
+$ docker images api:multi
+$ docker run -d --name api -p 127.0.0.1:3000:3000 api:multi
+$ docker inspect -f '{{.State.Health.Status}}' api
+healthy
 ```
 
-## Step 3: Even Smaller with Distroless
+Most of what remains is the base image. Only `node_modules` (production), `dist` and `package.json` are in the final stage.
+
+## Step 3: Even smaller with distroless
+
+Distroless images have no shell and no package manager, which shrinks the attack surface. They are Debian (glibc) based, so build the dependencies on a glibc image such as `node:24-slim`, not Alpine (musl). Native modules compiled on Alpine will not load.
 
 ```dockerfile
-# For apps that don't need a shell (no npm, no bash)
-FROM gcr.io/distroless/nodejs20-debian12 AS runner
-WORKDIR /app
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-
-USER nonroot
-EXPOSE 3000
-CMD ["dist/index.js"]
-# ~90MB — no shell, no package manager, minimal attack surface
-```
-
-## Step 4: Next.js Standalone Build
-
-```dockerfile
-# Dockerfile for Next.js — uses standalone output mode
-FROM node:20-alpine AS deps
+# syntax=docker/dockerfile:1
+FROM node:24-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
 
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+FROM deps AS prod-deps
+RUN --mount=type=cache,target=/root/.npm npm prune --omit=dev --ignore-scripts
+
+FROM deps AS builder
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+FROM gcr.io/distroless/nodejs24-debian13:nonroot
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 app && adduser --system --uid 1001 app
-
-# Next.js standalone mode copies only required files
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=app:app /app/.next/standalone ./
-COPY --from=builder --chown=app:app /app/.next/static ./.next/static
-
-USER app
+WORKDIR /app
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package.json ./
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["node", "server.js"]
-# ~120MB instead of 800MB+
+# The image's entrypoint is already "node", so CMD is just the script
+CMD ["dist/index.js"]
 ```
 
+The same API built this way is 220 MB on disk (56 MB compressed) and answers on `/health`. There is no `wget` or `sh`, so `HEALTHCHECK` is left to the orchestrator (a Kubernetes probe or a Compose `healthcheck` that runs `node` itself). For debugging use the `:debug-nonroot` tag, which adds a busybox shell.
+
+## Step 4: Next.js standalone build
+
+Next.js can trace the files the server needs and write a self-contained `.next/standalone` folder. This follows the official `with-docker` example from the Next.js repository.
+
 ```javascript
-// next.config.js — Enable standalone output
+// next.config.js
 module.exports = {
   output: "standalone",
 };
 ```
 
-## Step 5: Cache Optimization for CI
-
 ```dockerfile
-# Use BuildKit cache mounts for faster rebuilds
 # syntax=docker/dockerfile:1
-
-FROM node:20-alpine AS deps
+FROM node:24-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --ignore-scripts
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
-FROM node:20-alpine AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN --mount=type=cache,target=/app/.next/cache \
-    npm run build
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN --mount=type=cache,target=/app/.next/cache npm run build
+
+FROM node:24-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+# Listen on all interfaces inside the container; publish the port on the host as needed
+ENV HOSTNAME="0.0.0.0"
+
+COPY --from=builder --chown=node:node /app/public ./public
+RUN mkdir .next && chown node:node .next
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]
 ```
+
+`public/` and `.next/static` are not part of the standalone output, so they are copied separately (a CDN can serve them instead). Run it with `docker run -p 127.0.0.1:3000:3000` unless the container is meant to be public.
+
+## Step 5: Cache optimization in CI
+
+BuildKit cache mounts (the `--mount=type=cache` lines above) keep the npm download cache between builds on one machine. CI runners start empty, so the workflow also stores the layer cache in the GitHub Actions cache:
 
 ```yaml
 # .github/workflows/build.yml
 name: Build
-on: push
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  packages: write        # lets GITHUB_TOKEN push to ghcr.io
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # GHA cache makes subsequent builds 3-5x faster
 ```
+
+`mode=max` also caches the intermediate stages (deps, build), which is where the time goes. Unchanged `package-lock.json` means the install layer is a cache hit. (Cache mounts are not exported by the `gha` layer cache, only layers are.) Container image names must be lowercase; `github.repository` is already lowercase for most repos, but add a lowercase step if yours has capitals.
 
 ## Step 6: .dockerignore
 
-```
-# .dockerignore — Don't copy these into the build context
+```text
+# .dockerignore: keep these out of the build context
 node_modules
 .next
 .git
 .gitignore
 *.md
-docker-compose*.yml
+compose*.y*ml
+docker-compose*.y*ml
 .env*
 coverage
 tests
@@ -207,8 +216,16 @@ __tests__
 .idea
 .turbo
 dist
+Dockerfile*
 ```
+
+Excluding `.env*` also keeps local secrets out of image layers. Excluding `dist` is safe because the build stage rebuilds it.
 
 ## Summary
 
-Rosa's image dropped from 1.2GB to 150MB (or 90MB with distroless). Deploy time went from 8 minutes to 2 minutes because the image pushes and pulls in seconds. The three-stage pattern (deps → build → runtime) ensures only production code runs in the container. BuildKit cache mounts make CI rebuilds 3-5x faster by caching npm packages and Next.js build artifacts across runs. The distroless variant has no shell — if an attacker gets in, there's nothing to exploit. The `.dockerignore` prevents the build context from including unnecessary files, making `docker build` itself faster.
+On the test API, the image went from 1.73 GB to 249 MB with Alpine and 220 MB with distroless, and the compressed size that actually moves over the network went from 427 MB to 63 MB and 56 MB. For Rosa's real service, the push and pull step fell from minutes to seconds and the deploy from 8 minutes to about 2 (her own timings). The deps, build and runtime split means only production code runs in the container, as a non-root user, and the GitHub Actions cache turns unchanged dependency layers into cache hits.
+
+## Related Skills
+
+- `docker-helper`: Dockerfile and Compose patterns, image-size checklist
+- `github-actions`: CI workflow that builds and pushes the image

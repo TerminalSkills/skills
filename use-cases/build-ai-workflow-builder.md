@@ -8,6 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
+  - xyflow
 category: data-ai
 tags:
   - ai-workflow
@@ -297,3 +298,4 @@ Marko's team keeps one definition per task in PostgreSQL, and operations staff e
 - **hono**: the authenticated HTTP API
 - **postgresql**: definitions and run history as `jsonb`
 - **redis**: idempotency keys for webhook triggers
+- [xyflow](/skills/xyflow) — the React Flow canvas for the front end: custom step nodes, handles, and saving the graph as JSON for this backend

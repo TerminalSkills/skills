@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:06f3893514f6fc8897aa9a5a716816d41bfb6a017a0ab7d9d3101919e61ab4db",
+  "scoredAt": "2026-11-05T00:07:40.992Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions mention some error scenarios but do not cover all possible edge cases, such as network failures or missing dependencies."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text, making it verbose and less concise."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tightly coupled to Claude Code and Node.js, limiting its applicability to other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.5,
+    "baselineAvg": 12,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "ruflo-init-no-global",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response A includes the required init and doctor commands with all flags and lists the expected files, but omits the explicit success output; Response B lacks the init command and relevant details entirely."
+      },
+      {
+        "name": "ruflo-swarm-task-memory",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B uses the correct ruflo commands and flags, while Response A uses unrelated syntax and fails to meet the rubric."
+      },
+      {
+        "name": "ruflo-doctor-cleanup",
+        "baseline": 25,
+        "treatment": 85,
+        "rationale": "Response A includes the required ruflo doctor and cleanup commands and lists artifacts, but omits an explicit warning output; Response B lacks the ruflo doctor and cleanup commands entirely."
+      }
+    ]
+  }
+}

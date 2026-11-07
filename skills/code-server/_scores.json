@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4d8f207ee1b25cac343fe81a2f0ddb3540e42eb6daed1b043c49bf43f3e503b1",
+  "scoredAt": "2026-10-29T23:02:58.677Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.34,
+    "baselineAvg": 65,
+    "treatmentAvg": 87,
+    "scenarios": [
+      {
+        "name": "install-code-server-release-archive",
+        "baseline": 50,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items, including GitHub API checksum verification, symlink creation, and health check, while Response A lacks checksum verification with sha256sum -c, symlink, and proper health check."
+      },
+      {
+        "name": "setup-systemd-service-with-caddy",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items, while Response B misses the user-specific systemd unit and healthz verification."
+      },
+      {
+        "name": "manage-extensions-with-custom-dir",
+        "baseline": 95,
+        "treatment": 85,
+        "rationale": "Response A provides more detailed, step‑by‑step instructions and covers all rubric items with additional optional guidance, while Response B is concise but still meets the core requirements."
+      }
+    ]
+  }
+}

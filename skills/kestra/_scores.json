@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:622cffe96ffce153447796d820ad9df92b0698319e0cc9e65b3c3d431255a2cd",
+  "scoredAt": "2026-10-28T19:07:22.858Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.52,
+    "baselineAvg": 23,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "python-script-with-retry-and-slack",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response A meets most rubric items but misses the exact retry interval and timeout, while Response B fails to meet several key requirements."
+      },
+      {
+        "name": "webhook-triggered-logging",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements, while Response A does not use the required secret key syntax, references the wrong variable, and uses a different list command."
+      },
+      {
+        "name": "docker-sequential-shell",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Both responses miss the required Commands tasks and Docker runner placement, but B correctly uses the executions run syntax with --wait --output json, giving it a slight edge."
+      }
+    ]
+  }
+}

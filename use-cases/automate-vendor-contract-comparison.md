@@ -11,45 +11,39 @@ tags: [contracts, vendor-management, procurement, compliance, automation]
 
 ## The Problem
 
-A 40-person e-commerce company uses 28 SaaS vendors — cloud hosting, email marketing, payment processing, monitoring, analytics, the works. Each contract has different renewal dates, auto-renewal clauses, price escalation terms, and cancellation windows. Last quarter, the team missed a 30-day cancellation window on a monitoring tool they had already replaced, costing them $14,000 for a year nobody needed.
+A 40-person e-commerce company uses 28 SaaS vendors: cloud hosting, email marketing, payment processing, monitoring, analytics. Each contract has different renewal dates, auto-renewal clauses, price escalation terms, and cancellation windows. Last quarter the team missed a 30-day cancellation window on a monitoring tool they had already replaced, and paid $14,000 for a year nobody needed.
 
-The worst part isn't the money — it's the blindness. Nobody has a consolidated view of what's renewing when, which contracts have predatory terms, or where there's room to negotiate. The contracts live in a shared Drive folder, a mix of PDFs, Word docs, and email confirmations. Some were signed by people who no longer work there. One contract was found only as a forwarded email chain with the subject line "Re: Re: Fwd: agreement."
+The worst part is the blindness. Nobody has a consolidated view of what renews when, which contracts have unfavorable terms, or where there is room to negotiate. The contracts live in a shared Drive folder as PDFs, Word files and a few email confirmations. Some were signed by people who no longer work there.
 
 ## The Solution
 
-Using the **contract-review**, **pdf-analyzer**, and **report-generator** skills, the workflow extracts structured terms from every vendor agreement regardless of format, builds side-by-side comparisons of competing vendors with specific recommendations, and generates a renewal calendar with escalating alerts — so cancellation windows never slip by unnoticed again.
+Three skills split the work:
 
-The entire process — from a folder of messy contract files to a structured renewal calendar with alerts — takes about an hour for the initial setup and runs automatically after that.
+- **pdf-analyzer** pulls text and tables out of PDFs (pdfplumber or PyMuPDF) and tells you when a file is encrypted or a scan.
+- **contract-review** reads each agreement (PDF, DOCX or text), finds the term, renewal, payment, liability and data clauses, and rates the risks.
+- **report-generator** turns the comparison into an HTML or PDF report for the decision makers.
+
+The agent produces one structured row per contract. A short script you keep in the repo turns those rows into a renewal calendar and the 90/60/30-day alerts. A scheduler runs that script, because an agent only works when it is started.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Extract Terms from Every Contract
 
-The first step is turning a messy folder of heterogeneous documents into structured, comparable data. Point the agent at the contracts folder:
+Point the agent at the contracts folder:
 
 ```text
-Analyze all vendor contracts in ./contracts/ — extract vendor name, contract value, start date, end date, auto-renewal clause, cancellation notice period, price escalation terms, and SLA guarantees from each document.
+Analyze all vendor contracts in ./contracts/. For each one extract: vendor name, annual value, start date, renewal date, auto-renewal clause, cancellation notice period in days, price escalation terms (check addenda too), and SLA guarantees. Quote the clause for every date and notice period. Write one row per contract to contracts.csv with the columns vendor, annual_value, renewal_date, cancel_notice_days, auto_renew. List files you could not read.
 ```
 
-The parser handles PDFs, Word documents, and email-based agreements regardless of format or structure, pulling each one into a structured row with consistent fields:
+The agent reads DOCX files with python-docx (including tables, where fee schedules often hide) and PDFs with pdfplumber. Three things need a human or extra tooling:
 
-- **22 PDFs** parsed successfully (including scanned contracts run through OCR)
-- **4 Word documents** parsed (two were actually .docx files with .doc extensions)
-- **2 email-based agreements** extracted (one was a forwarded chain three levels deep)
+- **Scanned PDFs** return no text. The agent falls back to OCR (PyMuPDF with the Tesseract system binary installed); check those rows by hand.
+- **Legacy `.doc` files** (and `.docx` files with the wrong extension, which are worth renaming) must be converted first.
+- **Email agreements** must be saved as PDF or text before they can be read.
 
-The immediate findings are telling:
+Treat the extraction as a draft. Spot-check the dates and notice periods against the quoted clauses for the contracts that matter, because a wrong cancellation window is exactly the failure you are trying to prevent. Price escalation clauses in addenda are the usual surprise: a main agreement that says "$2,800/month" may be followed by an addendum signed six months later with a 5% annual increase.
 
-- 19 of 28 contracts have auto-renewal clauses
-- 6 contracts renew in the next 90 days
-- 3 contracts include annual price escalation above 5%
-- 4 contracts have cancellation windows under 30 days
-- 2 contracts have price escalation clauses buried in addendum documents (not the main agreement)
-
-That means two-thirds of the vendor stack will silently renew unless someone actively cancels — and three of them get more expensive every year whether or not the company negotiates. The four contracts with sub-30-day cancellation windows are the most dangerous: by the time someone notices, the window has already closed.
-
-The hidden price escalation clauses are revealing. One vendor's main agreement says "$2,800/month" but an addendum signed six months later includes a 5% annual escalation. Without parsing every attachment and addendum, that escalation is invisible until the invoice arrives.
-
-Here's what the extracted data looks like for each contract — a single row of structured fields that can be compared, sorted, and alerted on:
+The extracted fields look like this for each vendor:
 
 | Field | Example Value |
 |-------|---------------|
@@ -59,86 +53,123 @@ Here's what the extracted data looks like for each contract — a single row of 
 | Cancel Window | 30 days before renewal |
 | Price Escalation | 5%/year (addendum) |
 | SLA Guarantee | 99.95% uptime |
-| Next Renewal | 2026-04-22 |
-| Cancel By | 2026-03-22 |
+| Next Renewal | 2027-04-22 |
+| Cancel By | 2027-03-23 |
 
 ### Step 2: Compare Competing Vendors Side by Side
 
-With structured data from every contract, comparisons that used to require opening three PDFs in separate tabs and manually building a spreadsheet become a single query:
-
-The company pays three different cloud hosting vendors because each team chose their own provider two years ago. Now the contracts are up for evaluation — should they consolidate?
+The company pays three cloud hosting vendors because each team chose its own two years ago. Ask whether to consolidate:
 
 ```text
-Create a side-by-side comparison of our three cloud hosting vendors: their pricing tiers, SLA uptime guarantees, support response times, and data residency terms. Highlight which vendor offers the best value for our usage level of 50TB bandwidth and 99.9% uptime requirement.
+Compare our three cloud hosting contracts side by side: pricing, SLA uptime, SLA credit terms, support response times, data residency, term and price escalation. Which one meets a 99.9% uptime requirement for the least money? Quote the contract section for each cell and mark any cell the contract does not state.
 ```
 
-The comparison lands clean:
+The comparison, for example:
 
-|                     | Vendor A       | Vendor B       | Vendor C        |
-|---------------------|----------------|----------------|-----------------|
-| Monthly cost (50TB) | $3,200         | $2,800         | $3,600          |
-| Uptime SLA          | 99.95%         | 99.9%          | 99.99%          |
-| SLA credit trigger  | 10% at 99.9%   | 25% at 99.5%   | 10% at 99.95%   |
+|                     | Vendor A       | Vendor B       | Vendor C         |
+|---------------------|----------------|----------------|------------------|
+| Monthly cost (50TB) | $3,200         | $2,800         | $3,600           |
+| Uptime SLA          | 99.95%         | 99.9%          | 99.99%           |
+| SLA credit trigger  | 10% below 99.9% | 25% below 99.5% | 10% below 99.95% |
 | Support response    | 4h (critical)  | 1h (critical)  | 30min (critical) |
-| Data residency      | US, EU         | US only        | US, EU, APAC    |
-| Contract term       | Annual         | Monthly        | Annual          |
-| Price escalation    | 3%/year        | None           | 5%/year         |
+| Data residency      | US, EU         | US only        | US, EU, APAC     |
+| Contract term       | Annual         | Monthly        | Annual           |
+| Price escalation    | 3%/year        | None           | 5%/year          |
 
-Vendor B meets the 99.9% uptime requirement at the lowest cost with no annual price escalation. But if EU data residency is non-negotiable, Vendor A is $400/month more and includes it. Vendor C is overpriced unless the team needs 99.99% SLA for compliance reasons — a $9,600/year premium for an extra nine of availability, plus a 5% annual escalation that compounds year over year. At that escalation rate, Vendor C will cost $4,600 more than Vendor A within three years.
+Vendor B meets the 99.9% requirement at the lowest cost with no escalation. If EU data residency is mandatory, Vendor A costs $400/month more and includes it. Vendor C is $9,600/year more than B, which only pays off if the company needs 99.99% for compliance.
 
-The SLA credit terms reveal something less obvious: Vendor B's 25% credit triggers at 99.5%, while Vendor A's 10% credit triggers at 99.9%. If both vendors hit 99.8% uptime in a bad month, Vendor B pays back $700 while Vendor A pays nothing — because 99.8% is above Vendor A's credit threshold. The headline SLA numbers don't tell the whole story.
+The credit terms matter as much as the headline numbers. In a month with 99.8% uptime, Vendor A owes a credit (10% of $3,200, or $320) because 99.8% is below its 99.9% trigger, while Vendor B owes nothing because its credit only starts below 99.5%. The "weaker" 99.9% SLA is not the worse deal in every month.
 
-This is the kind of analysis that normally takes half a day of reading contract PDFs and building comparison spreadsheets. With structured data already extracted, it takes seconds.
+Ask `report-generator` for the version the finance lead will read:
+
+```text
+Turn this comparison into a one-page HTML report with the table, the recommendation and the cost over three years including each vendor's escalation, and also export it as PDF.
+```
+
+The skill builds the HTML with Jinja2 and writes the PDF with WeasyPrint (which needs the Pango system library installed). The three-year cost is computed by the agent's code, not estimated by the model, so ask it to show the arithmetic.
 
 ### Step 3: Build the Renewal Calendar
 
-The comparison is useful for point-in-time decisions, but the real value is never missing a deadline again:
+Save this script as `renewals.py` next to `contracts.csv`. It computes the cancel-by date (renewal date minus notice days), writes the calendar sorted by urgency, and prints the 90, 60 and 30-day alerts:
 
-```text
-Create a renewal calendar for all 28 contracts. For each, show the renewal date, the last date to cancel without penalty, and the estimated annual cost. Sort by urgency — closest deadlines first. Export as a CSV I can import into our project management tool.
+```python
+import csv
+import sys
+from datetime import date, timedelta
+
+ALERT_DAYS = (90, 60, 30)
+
+
+def load(path):
+    with open(path, newline="") as f:
+        for row in csv.DictReader(f):
+            renewal = date.fromisoformat(row["renewal_date"])
+            notice = int(row["cancel_notice_days"])
+            yield {
+                "vendor": row["vendor"],
+                "annual_value": int(row["annual_value"]),
+                "renewal_date": renewal,
+                "cancel_by": renewal - timedelta(days=notice),
+                "auto_renew": row["auto_renew"].strip().lower() == "yes",
+            }
+
+
+def main(path, today):
+    rows = sorted(load(path), key=lambda r: r["cancel_by"])
+    with open("vendor_renewal_calendar.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["vendor", "renews", "cancel_by", "annual_value", "auto_renew"])
+        for r in rows:
+            w.writerow([r["vendor"], r["renewal_date"], r["cancel_by"],
+                        r["annual_value"], "yes" if r["auto_renew"] else "no"])
+    for r in rows:
+        if not r["auto_renew"]:
+            continue
+        left = (r["cancel_by"] - today).days
+        if left < 0:
+            print(f"MISSED  {r['vendor']}: cancel window closed {-left} days ago")
+        elif any(left <= d for d in ALERT_DAYS):
+            stage = min(d for d in ALERT_DAYS if left <= d)
+            print(f"{stage}-DAY  {r['vendor']}: cancel by {r['cancel_by']} "
+                  f"({left} days), ${r['annual_value']:,}/yr")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else date.today())
 ```
 
-The calendar surfaces deadlines that were previously invisible:
+Run it with an explicit date to see what is due:
 
-| Vendor                | Renews   | Cancel By | Annual Cost | Auto-Renew |
-|-----------------------|----------|-----------|-------------|------------|
-| DataDog alternative   | Mar 15   | Feb 13    | $8,400      | Yes, 12mo  |
-| Email platform        | Apr 1    | Mar 1     | $6,200      | Yes, 12mo  |
-| CI/CD tool            | Apr 22   | Mar 22    | $12,000     | Yes, 12mo  |
-| Analytics suite       | May 10   | Apr 10    | $4,800      | Yes, 12mo  |
-| Design tool licenses  | Jun 1    | May 1     | $3,600      | Yes, 12mo  |
-| ... 23 more contracts | ...      | ...       | ...         | ...        |
-
-Exported to `vendor_renewal_calendar.csv`, ready to import into Linear or Asana as tickets with deadlines. The DataDog alternative — the one they already replaced — has a cancel-by date just weeks away. Without this calendar, that's another $8,400 down the drain.
-
-The calendar also reveals a clustering problem: 8 contracts renew in April, creating a rush of decisions in a single month. Knowing this in advance lets the team stagger evaluations — start the April renewals in January instead of scrambling in March.
-
-### Step 4: Set Up Escalating Renewal Alerts
-
-A calendar in a CSV is only useful if someone opens it. The DataDog alternative has a cancel-by date in two weeks — if that CSV sits in Downloads for three weeks, the company pays another $8,400 for nothing. The final step creates a three-stage alert system that makes it impossible to miss a window:
-
-```text
-Create a recurring reminder system: 90 days before each renewal, generate a summary of the contract terms, current market alternatives, and a recommendation to renew, renegotiate, or cancel. Include the last date to act without penalty.
+```console
+$ python3 renewals.py contracts.csv 2026-11-05
+30-DAY  Email Platform: cancel by 2026-12-03 (28 days), $6,200/yr
+60-DAY  Acme Monitoring: cancel by 2026-12-16 (41 days), $8,400/yr
+60-DAY  CI/CD Suite: cancel by 2026-12-29 (54 days), $12,000/yr
 ```
 
-Each contract gets three alerts:
+`vendor_renewal_calendar.csv` imports into Linear, Asana or any tracker that accepts CSV, one ticket per cancel-by date. The calendar also shows clustering: if eight contracts renew in April, start those evaluations in January.
 
-- **90-day alert**: Full contract summary with current market comparison and a recommendation (renew / renegotiate / cancel). Includes competitive pricing data for negotiation leverage.
-- **60-day alert**: Reminder if no action taken, with updated market pricing and a note about the approaching deadline.
-- **30-day alert**: Final warning with the cancellation deadline highlighted. At this point, the recommendation becomes a decision that needs to happen this week.
+### Step 4: Run the Alerts on a Schedule
 
-Every alert includes current spend, alternative vendor pricing, and specific negotiation leverage points — like the fact that Vendor A's competitor just dropped prices 20%, or that the team's usage has grown beyond the current tier and the next tier is actually cheaper per-unit from a different vendor.
+A calendar nobody opens does not prevent a missed window. Run the script daily from cron or a CI schedule and send its output to the channel the team reads:
 
-The 90/60/30 cadence gives the team time to evaluate, negotiate, and act. At 90 days, there's time to run a competitive evaluation. At 60 days, there's time to negotiate with the current vendor using competitive quotes. At 30 days, the decision needs to be made. No more discovering a renewal three days before the cancellation window closes and panic-approving a contract nobody reviewed.
+```console
+$ crontab -l
+0 8 * * 1-5  cd /srv/vendor-renewals && python3 renewals.py contracts.csv | mail -s "Vendor renewals" ops@example.com
+```
+
+When a contract shows up at the 90-day mark, hand it back to the agent for the decision memo:
+
+```text
+Acme Monitoring renews 2027-01-15 and the cancel-by date is 2026-12-16. Summarize its terms from contracts/acme-monitoring.pdf, list what we have used it for in the last year (I will paste the usage numbers), and recommend renew, renegotiate or cancel. Give the last date to act without penalty.
+```
+
+The agent can only compare against alternatives you give it or can look up with a search tool; ask it to cite where each competing price came from, and verify it before you use it as leverage in a negotiation. The 90/60/30 cadence leaves time to evaluate at 90 days, negotiate at 60 and decide at 30.
 
 ## Real-World Example
 
-Soren, the operations lead at the 40-person e-commerce company, is tasked with cutting SaaS spend by 15% before next fiscal year. The CEO wants a plan in two weeks. Soren drops all 28 vendor contracts into a folder and kicks off the extraction.
+Soren, the operations lead at the company, has to cut SaaS spend by 15% before next fiscal year, with a plan due to the CEO in two weeks. He drops all 28 contracts into a folder and runs the extraction. The scanned ones take extra time and he corrects four wrong notice periods by hand.
 
-The extraction finishes in 20 minutes. The agent immediately surfaces two urgent problems: a $12,000 CI/CD contract auto-renews in three weeks (the team switched to GitHub Actions six months ago — the migration happened so smoothly that nobody remembered to cancel the old vendor), and a monitoring tool they already replaced is set to renew for $8,400. That's $20,400 in savings just from contracts that should have been cancelled months ago.
+The first calendar surfaces two urgent items: a $12,000 CI/CD contract that auto-renews in three weeks (the team moved to GitHub Actions six months ago and nobody cancelled the old one), and a monitoring tool they already replaced that renews for $8,400. That is $20,400 from contracts that should have been cancelled months ago.
 
-Then the comparison reveals three overlapping analytics tools — the company somehow ended up paying for all three after a trial period that nobody cancelled. One team uses Tool A, another uses Tool B, and Tool C was an experiment that became a line item nobody questioned. Consolidating to one saves $22,000 annually.
-
-Soren imports the renewal calendar into Linear, creating tickets with deadlines for each cancellation window. Over the next quarter, the team cancels 4 redundant tools and renegotiates 2 contracts using the market comparison data as leverage — showing the vendor that a competitor offers equivalent service for 25% less. Total savings: $41,000 annually, well above the 15% target. Soren presents the plan to the CEO in week one — three days ahead of the two-week deadline — with a projected savings timeline and a renewal calendar that extends 12 months out.
-
-And now every future renewal gets flagged 90 days in advance. The next operations lead who inherits this vendor stack won't discover a missed cancellation window after the fact — the alert system catches it three months before it happens.
+The comparison finds three overlapping analytics tools, one per team, and consolidating to one saves $22,000 a year. Soren imports the calendar into Linear with a ticket per cancellation window and puts `renewals.py` on a weekday schedule. The plan reaches the CEO with a savings timeline and a calendar that runs 12 months ahead, and the next person who inherits the vendor stack gets the warning 90 days before a window closes.

@@ -6,6 +6,7 @@ skills:
   - typescript
   - postgresql
   - hono
+  - postgres-js
 category: development
 tags:
   - database
@@ -202,3 +203,4 @@ Marcus's team deploys four API instances with `max: 20` each. After the change, 
 - [typescript](../skills/typescript/SKILL.md) — typing the pool helpers
 - [postgresql](../skills/postgresql/SKILL.md) — `max_connections`, timeouts and server-side settings
 - [hono](../skills/hono/SKILL.md) — the health and metrics endpoints
+- [postgres-js](../skills/postgres-js/SKILL.md) — an alternative to `pg` for the same pool: `max`, `idle_timeout`, `queue_timeout`, and `prepare: false` behind PgBouncer

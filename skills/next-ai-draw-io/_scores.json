@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2e2da7742aa525823899094d815a862edd330695bf0220f55c3af47e526b8f3e",
+  "scoredAt": "2026-11-04T23:47:06.645Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "draw-repo-architecture-export-svg",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A mentions start_session, create_new_diagram, and export_diagram but omits get_shape_library and XML cell details, whereas Response B does not meet any rubric requirements."
+      },
+      {
+        "name": "edit-diagram-add-queue",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B includes most required calls but omits get_selection, while Response A lacks all required API calls."
+      },
+      {
+        "name": "export-transparent-png",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by calling export_diagram with a .png path and transparent:true, while Response B fails to provide the required call."
+      }
+    ]
+  }
+}

@@ -21,447 +21,279 @@ tags:
 
 # Build an Internal Automation Platform with n8n Workflow SDK
 
-Lena's company runs 80+ n8n workflows — customer onboarding, invoice processing, Slack alerts, CRM syncs, support ticket routing, and weekly reports. They were all built by clicking in the n8n UI, exported as JSON blobs, and stored in a shared Google Drive folder. Nobody knows which workflow does what, changes break things silently, and deploying a workflow means copy-pasting JSON between browser tabs. When the lead automation engineer goes on vacation, nobody dares touch anything. Lena introduces the n8n Workflow SDK to turn their automation mess into a proper engineering practice.
+Lena's company runs 80+ n8n workflows — customer onboarding, invoice processing, Slack alerts, CRM syncs, support ticket routing, and weekly reports. They were all built by clicking in the n8n UI, exported as JSON blobs, and stored in a shared Google Drive folder. Nobody knows which workflow does what, changes break things silently, and deploying a workflow means copy-pasting JSON between browser tabs. When the lead automation engineer goes on vacation, nobody dares touch anything. Lena introduces `@n8n/workflow-sdk`, n8n's own TypeScript SDK, to turn their automation mess into a proper engineering practice. The package is pre-1.0 and changes often, so the team pins `0.39.5` exactly (the current `latest` tag on npm) and re-runs validation on every upgrade.
 
 ## Step 1: Workflow-as-Code Repository
 
-Instead of JSON files in Google Drive, workflows live in a Git repository as TypeScript modules. Each workflow is readable, reviewable, and version-controlled.
+Instead of JSON files in Google Drive, workflows live in a Git repository as TypeScript modules, so every change is reviewable. The SDK has no per-node helpers: every node is `node({ type, version, config })` (or `trigger(...)` for entry points), and `type` and `version` come from your n8n instance. Copy them from an exported workflow, or let `generateWorkflowCode` convert an existing export into SDK code.
 
-```text
-automations/
-├── src/
-│   ├── workflows/
-│   │   ├── onboarding/
-│   │   │   ├── customer-welcome.ts        # Send welcome sequence
-│   │   │   ├── trial-activation.ts        # Activate trial + notify sales
-│   │   │   └── crm-sync.ts               # Sync new signup to HubSpot
-│   │   ├── billing/
-│   │   │   ├── invoice-processing.ts      # Process incoming invoices
-│   │   │   ├── payment-reminders.ts       # Dunning email sequence
-│   │   │   └── revenue-report.ts          # Weekly revenue digest
-│   │   ├── support/
-│   │   │   ├── ticket-routing.ts          # Route tickets by category
-│   │   │   ├── sla-monitor.ts            # Alert on SLA breaches
-│   │   │   └── satisfaction-survey.ts     # Post-resolution CSAT
-│   │   └── internal/
-│   │       ├── daily-standup-summary.ts   # Summarize standup notes
-│   │       └── new-hire-setup.ts          # Provision accounts for new hires
-│   ├── templates/
-│   │   ├── webhook-to-slack.ts            # Reusable: webhook → process → Slack
-│   │   ├── scheduled-report.ts            # Reusable: cron → fetch → email
-│   │   └── api-sync.ts                    # Reusable: poll API → transform → upsert
-│   ├── middleware/
-│   │   ├── error-handler.ts               # Wrap workflows with error notifications
-│   │   └── rate-limiter.ts                # Add rate limiting to API-calling workflows
-│   ├── lib/
-│   │   ├── deploy.ts                      # Deploy workflows to n8n instance
-│   │   ├── validate.ts                    # Validate all workflows
-│   │   └── config.ts                      # Environment-specific config
-│   └── index.ts                           # Registry of all workflows
-├── tests/
-│   ├── onboarding.test.ts
-│   ├── billing.test.ts
-│   └── helpers.ts
-├── package.json
-└── tsconfig.json
+```console
+$ mkdir automations && cd automations && npm init -y
+$ npm install --save-exact @n8n/workflow-sdk@0.39.5 zod
+$ npm install --save-dev --save-exact typescript tsx vitest @types/node
 ```
+The layout is small: `src/workflows/` (one module per workflow), `src/templates/` (reusable patterns), `src/lib/validate.ts` and `src/lib/deploy.ts`, `src/index.ts` (the registry), and `tests/`. Set `"type": "module"` in `package.json`.
 
-## Step 2: Reusable Workflow Templates
+## Step 2: A Reusable Template
 
-The team builds composable templates that standardize common patterns — every webhook-to-Slack workflow has the same error handling, every scheduled report has the same formatting.
+A template is a plain function that returns a workflow. Every webhook-to-Slack workflow gets the same trigger, the same optional score filter and the same Slack node. `ifElse` gives `.onTrue()` / `.onFalse()` branches; the `conditions` object must contain `options`, `conditions` and `combinator`, otherwise validation fails.
 
 ```typescript
-// src/templates/webhook-to-slack.ts — Reusable webhook → process → notify template
-import { WorkflowBuilder, webhook, ifElse, code, node, sticky } from '@n8n/workflow-sdk'
+// src/templates/webhook-to-slack.ts
+import { workflow, node, trigger, ifElse, expr, sticky } from '@n8n/workflow-sdk'
 
-interface WebhookToSlackOptions {
+export interface WebhookToSlackOptions {
+  id: string
   name: string
   webhookPath: string
-  slackChannel: string
-  filterCondition?: {
-    field: string
-    operator: 'eq' | 'neq' | 'contains' | 'gte' | 'lte'
-    value: string | number
-  }
-  formatMessage: string       // n8n expression for Slack message
+  slackChannelId: string
+  minScore?: number
+  message: string
   description?: string
 }
 
 export function webhookToSlack(opts: WebhookToSlackOptions) {
-  const builder = new WorkflowBuilder()
-    .withName(opts.name)
-    .addTrigger(webhook({
-      path: opts.webhookPath,
-      method: 'POST',
-      responseMode: 'onReceived',
-    }))
+  const intake = trigger({
+    type: 'n8n-nodes-base.webhook',
+    version: 2.1,
+    config: {
+      name: 'Webhook',
+      parameters: { httpMethod: 'POST', path: opts.webhookPath, responseMode: 'onReceived' },
+    },
+  })
+  const post = node({
+    type: 'n8n-nodes-base.slack',
+    version: 2.4,
+    config: {
+      name: 'Post to Slack',
+      parameters: {
+        resource: 'message',
+        operation: 'post',
+        select: 'channel',
+        channelId: { __rl: true, mode: 'id', value: opts.slackChannelId },
+        text: expr(opts.message),
+      },
+    },
+  })
+  const wf = workflow(opts.id, opts.name).add(intake)
+  if (opts.minScore === undefined) return wf.to(post)
 
-  // Optional filtering step
-  if (opts.filterCondition) {
-    builder
-      .then(ifElse({
+  const passes = ifElse({
+    version: 2.2,
+    config: {
+      name: `Score >= ${opts.minScore}?`,
+      parameters: {
         conditions: {
+          options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+          conditions: [{ leftValue: expr('{{ $json.body.score }}'), operator: { type: 'number', operation: 'gte' }, rightValue: opts.minScore }],
           combinator: 'and',
-          conditions: [{
-            leftValue: `={{ $json.${opts.filterCondition.field} }}`,
-            operator: opts.filterCondition.operator,
-            rightValue: opts.filterCondition.value,
-          }],
         },
-      }))
-      .onTrue(
-        node('n8n-nodes-base.slack', {
-          channel: opts.slackChannel,
-          text: opts.formatMessage,
-        })
-      )
-      // False branch — silently discard
-      .onFalse(code({ language: 'typescript', code: 'return []' }))
-  } else {
-    builder.then(node('n8n-nodes-base.slack', {
-      channel: opts.slackChannel,
-      text: opts.formatMessage,
-    }))
-  }
-
-  if (opts.description) {
-    builder.addSticky(sticky({ content: `## ${opts.name}\n${opts.description}`, width: 300, height: 120 }))
-  }
-
-  return builder.build()
+      },
+    },
+  })
+  const discard = node({ type: 'n8n-nodes-base.noOp', version: 1, config: { name: 'Ignore' } })
+  return wf.to(passes.onTrue!(post).onFalse!(discard))
 }
 ```
+(`onTrue!` and `onFalse!` are only there because the SDK's TypeScript types mark them optional on the node instance; they exist at runtime.)
+
+## Step 3: Workflows Built From It
 
 ```typescript
-// src/templates/scheduled-report.ts — Reusable scheduled → fetch → format → email
-import { WorkflowBuilder, schedule, httpRequest, code, node } from '@n8n/workflow-sdk'
+// src/workflows/lead-alert.ts
+import { webhookToSlack } from '../templates/webhook-to-slack'
 
-interface ScheduledReportOptions {
-  name: string
-  cronExpression: string               // e.g. '0 9 * * 1' for Monday 9 AM
-  dataSourceUrl: string
-  dataSourceHeaders?: Record<string, string>
-  transformCode: string                // TypeScript code to format the data
-  emailTo: string
-  emailSubject: string
-}
-
-export function scheduledReport(opts: ScheduledReportOptions) {
-  return new WorkflowBuilder()
-    .withName(opts.name)
-    .addTrigger(schedule({
-      rule: { interval: [{ field: 'cronExpression', expression: opts.cronExpression }] },
-    }))
-    .then(httpRequest({
-      url: opts.dataSourceUrl,
-      method: 'GET',
-      headers: opts.dataSourceHeaders || {},
-    }))
-    .then(code({
-      language: 'typescript',
-      code: opts.transformCode,
-    }))
-    .then(node('n8n-nodes-base.emailSend', {
-      toEmail: opts.emailTo,
-      subject: opts.emailSubject,
-      html: '={{ $json.htmlBody }}',
-    }))
-    .build()
-}
-```
-
-## Step 3: Real Workflows Using Templates
-
-```typescript
-// src/workflows/support/ticket-routing.ts — Route support tickets to the right team
-import { WorkflowBuilder, webhook, switchCase, node, code, sticky } from '@n8n/workflow-sdk'
-
-const workflow = new WorkflowBuilder()
-  .withName('Support Ticket Router')
-
-  .addTrigger(webhook({
-    path: 'support-ticket',
-    method: 'POST',
-    responseMode: 'onReceived',
-  }))
-
-  // Classify the ticket using AI
-  .then(node('n8n-nodes-langchain.agent', {
-    text: '={{ $json.subject + ": " + $json.description }}',
-    systemMessage: `Classify this support ticket into exactly one category:
-      - billing (payment issues, invoices, refunds, subscription changes)
-      - technical (bugs, errors, API issues, integration problems)  
-      - account (login, permissions, team management, SSO)
-      - feature (feature requests, product feedback)
-      Respond with only the category name.`,
-  }))
-
-  // Route based on AI classification
-  .then(switchCase({
-    rules: [
-      { value: 'billing', output: 0 },
-      { value: 'technical', output: 1 },
-      { value: 'account', output: 2 },
-    ],
-    fallbackOutput: 3,     // feature requests and unclassified
-  }))
-
-  // Billing → Finance Slack channel + Stripe lookup
-  .onCase(0,
-    node('n8n-nodes-base.slack', {
-      channel: '#billing-support',
-      text: '🧾 *New billing ticket*\n*From:* {{ $json.email }}\n*Subject:* {{ $json.subject }}\n{{ $json.description }}',
-    })
-  )
-
-  // Technical → Engineering channel + PagerDuty if urgent
-  .onCase(1,
-    code({
-      language: 'typescript',
-      code: `
-        // Check if ticket mentions keywords indicating urgency
-        const urgentKeywords = ['down', 'outage', 'critical', 'production', '500 error', 'data loss']
-        const isUrgent = urgentKeywords.some(kw =>
-          items[0].json.description?.toLowerCase().includes(kw)
-        )
-        return items.map(item => ({ json: { ...item.json, isUrgent } }))
-      `,
-    })
-  )
-
-  // Account → Success team
-  .onCase(2,
-    node('n8n-nodes-base.slack', {
-      channel: '#customer-success',
-      text: '👤 *Account issue*\n*From:* {{ $json.email }}\n{{ $json.subject }}',
-    })
-  )
-
-  // Default → Product channel
-  .onDefault(
-    node('n8n-nodes-base.slack', {
-      channel: '#product-feedback',
-      text: '💡 *Feature request*\n*From:* {{ $json.email }}\n{{ $json.subject }}\n{{ $json.description }}',
-    })
-  )
-
-  .addSticky(sticky({
-    content: '## Ticket Router\nAI classifies tickets → routes to correct team channel.\nUrgent technical issues trigger PagerDuty.',
-    width: 350,
-    height: 100,
-  }))
-
-  .build()
-
-export default workflow
-```
-
-```typescript
-// src/workflows/billing/revenue-report.ts — Weekly revenue digest
-import { scheduledReport } from '../../templates/scheduled-report'
-
-export default scheduledReport({
-  name: 'Weekly Revenue Report',
-  cronExpression: '0 9 * * 1',         // Monday 9 AM
-  dataSourceUrl: '{{ $env.STRIPE_API_URL }}/v1/balance_transactions?created[gte]={{ $now.minus(7, "days").toSeconds() }}',
-  dataSourceHeaders: { Authorization: 'Bearer {{ $env.STRIPE_SECRET_KEY }}' },
-  transformCode: `
-    // Aggregate Stripe transactions into a weekly summary
-    const transactions = items[0].json.data || []
-    const revenue = transactions
-      .filter(t => t.type === 'charge' && t.status === 'available')
-      .reduce((sum, t) => sum + t.amount, 0) / 100
-
-    const refunds = transactions
-      .filter(t => t.type === 'refund')
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0) / 100
-
-    const net = revenue - refunds
-    const count = transactions.filter(t => t.type === 'charge').length
-
-    return [{
-      json: {
-        htmlBody: \`
-          <h2>Weekly Revenue Report</h2>
-          <p><strong>Period:</strong> Last 7 days</p>
-          <table border="1" cellpadding="8">
-            <tr><td>Gross Revenue</td><td><strong>$\${revenue.toLocaleString()}</strong></td></tr>
-            <tr><td>Refunds</td><td>-$\${refunds.toLocaleString()}</td></tr>
-            <tr><td>Net Revenue</td><td><strong>$\${net.toLocaleString()}</strong></td></tr>
-            <tr><td>Transactions</td><td>\${count}</td></tr>
-          </table>
-        \`
-      }
-    }]
-  `,
-  emailTo: 'finance-team@company.com',
-  emailSubject: 'Weekly Revenue Report — {{ $now.format("MMM D, YYYY") }}',
+export const leadAlert = webhookToSlack({
+  id: 'lead-alert',
+  name: 'Hot Lead Alert',
+  webhookPath: 'new-lead',
+  slackChannelId: 'C0123456789',
+  minScore: 80,
+  message: '{{ "New hot lead: " + $json.body.email + " (score " + $json.body.score + ")" }}',
 })
 ```
 
-## Step 4: Validation and Testing
+A branching workflow without a template uses `switchCase`, whose cases are wired by index. Sending unmatched tickets to the extra output (`fallbackOutput: 'extra'`) is case 2 here.
 
 ```typescript
-// src/lib/validate.ts — Validate all workflows before deployment
-import { validateWorkflow } from '@n8n/workflow-sdk'
-import { getAllWorkflows } from './registry'
+// src/workflows/support-router.ts
+import { workflow, node, trigger, switchCase, expr } from '@n8n/workflow-sdk'
 
-export async function validateAll() {
-  const workflows = await getAllWorkflows()
-  const results: { name: string; valid: boolean; errors: string[] }[] = []
-
-  for (const [name, workflow] of Object.entries(workflows)) {
-    const errors = validateWorkflow(workflow)
-    results.push({
+const intake = trigger({
+  type: 'n8n-nodes-base.webhook',
+  version: 2.1,
+  config: { name: 'Ticket', parameters: { httpMethod: 'POST', path: 'support-ticket', responseMode: 'onReceived' } },
+})
+const route = switchCase({
+  version: 3.2,
+  config: {
+    name: 'By category',
+    parameters: {
+      rules: {
+        values: ['billing', 'technical'].map((c) => ({
+          conditions: {
+            options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+            conditions: [{ leftValue: expr('{{ $json.body.category }}'), operator: { type: 'string', operation: 'equals' }, rightValue: c }],
+            combinator: 'and',
+          },
+          renameOutput: true,
+          outputKey: c,
+        })),
+      },
+      options: { fallbackOutput: 'extra' },
+    },
+  },
+})
+const channel = (name: string, id: string) =>
+  node({
+    type: 'n8n-nodes-base.slack',
+    version: 2.4,
+    config: {
       name,
-      valid: errors.length === 0,
-      errors: errors.map(e => e.message),
-    })
-  }
+      parameters: {
+        resource: 'message', operation: 'post', select: 'channel',
+        channelId: { __rl: true, mode: 'id', value: id },
+        text: expr('{{ $json.body.subject }} from {{ $json.body.email }}'),
+      },
+    },
+  })
 
-  const failed = results.filter(r => !r.valid)
-  if (failed.length > 0) {
-    console.error(`\n❌ ${failed.length} workflows failed validation:\n`)
-    failed.forEach(f => {
-      console.error(`  ${f.name}:`)
-      f.errors.forEach(e => console.error(`    - ${e}`))
-    })
-    process.exit(1)
-  }
-
-  console.log(`✅ All ${results.length} workflows valid`)
-}
+export const supportRouter = workflow('support-router', 'Support Ticket Router')
+  .add(intake)
+  .to(route.onCase!(0, channel('Billing', 'C0000000001')).onCase!(1, channel('Engineering', 'C0000000002')).onCase!(2, channel('Product', 'C0000000003')))
 ```
 
+Register both so validation and deployment see them:
+
 ```typescript
-// tests/onboarding.test.ts — Structural tests for workflows
+// src/index.ts
+import { leadAlert } from './workflows/lead-alert'
+import { supportRouter } from './workflows/support-router'
+
+export const registry = { 'lead-alert': leadAlert, 'support-router': supportRouter }
+```
+
+## Step 4: Validation and Tests
+
+`validateWorkflow` takes the workflow JSON and returns `{ valid, errors, warnings }`; each error has a `code` and a `message`.
+
+```typescript
+// src/lib/validate.ts
+import { validateWorkflow } from '@n8n/workflow-sdk'
+import { registry } from '../index'
+
+let failed = 0
+for (const [key, wf] of Object.entries(registry)) {
+  const result = validateWorkflow(wf.toJSON())
+  if (!result.valid) {
+    failed++
+    console.error(`${key}:`)
+    for (const e of result.errors) console.error(`  - ${e.code}: ${e.message}`)
+  }
+}
+if (failed) process.exit(1)
+console.log(`All ${Object.keys(registry).length} workflows valid`)
+```
+
+Tests inspect the generated JSON, so a reviewer sees that the webhook path and the Slack node did not change by accident:
+
+```typescript
+// tests/workflows.test.ts
 import { describe, it, expect } from 'vitest'
-import customerWelcome from '../src/workflows/onboarding/customer-welcome'
-import trialActivation from '../src/workflows/onboarding/trial-activation'
+import { leadAlert } from '../src/workflows/lead-alert'
 
-describe('onboarding workflows', () => {
-  it('customer-welcome has a webhook trigger', () => {
-    const trigger = customerWelcome.nodes.find(n => n.type.includes('webhook'))
-    expect(trigger).toBeDefined()
-    expect(trigger.parameters.path).toBe('customer-welcome')
+describe('lead-alert', () => {
+  const json = leadAlert.toJSON()
+  it('starts from a webhook on /new-lead', () => {
+    const hook = json.nodes.find((n) => n.type === 'n8n-nodes-base.webhook')
+    expect(hook?.parameters?.path).toBe('new-lead')
   })
-
-  it('trial-activation sends to both Slack and email', () => {
-    const slackNode = trialActivation.nodes.find(n => n.type.includes('slack'))
-    const emailNode = trialActivation.nodes.find(n => n.type.includes('email'))
-    expect(slackNode).toBeDefined()
-    expect(emailNode).toBeDefined()
-  })
-
-  it('all onboarding workflows have sticky notes with documentation', () => {
-    const workflows = [customerWelcome, trialActivation]
-    workflows.forEach(wf => {
-      const stickies = wf.nodes.filter(n => n.type === 'n8n-nodes-base.stickyNote')
-      expect(stickies.length).toBeGreaterThanOrEqual(1)
-    })
+  it('posts to Slack and validates', () => {
+    expect(json.nodes.some((n) => n.type === 'n8n-nodes-base.slack')).toBe(true)
+    expect(leadAlert.validate().valid).toBe(true)
   })
 })
+```
+
+```console
+$ npx tsx src/lib/validate.ts
+All 2 workflows valid
+$ npx vitest run
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
 ```
 
 ```yaml
-# .github/workflows/validate.yml — CI validation
+# .github/workflows/validate.yml
 name: Validate Workflows
 on: [pull_request]
-
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with: { node-version: 22 }
       - run: npm ci
-      - run: npm run validate        # runs validateAll()
-      - run: npm test                 # runs vitest
+      - run: npx tsx src/lib/validate.ts
+      - run: npx vitest run
 ```
 
-## Step 5: Environment-Based Deployment
+## Step 5: Deploy Through the n8n Public API
+
+Create an API key in n8n (Settings, n8n API) for each environment and keep it in CI secrets, never in the repository. The deploy script looks a workflow up by name (`GET /workflows?name=`), updates it with `PUT /workflows/{id}` or creates it with `POST /workflows`, and only publishes when asked. Send only `name`, `nodes`, `connections` and `settings`: the create endpoint rejects other fields. Publishing is `POST /workflows/{id}/publish`; the old `activate` endpoint is deprecated. `zod` checks the environment variables before anything is sent.
 
 ```typescript
-// src/lib/deploy.ts — Deploy workflows to n8n instances
-import { getAllWorkflows } from './registry'
+// src/lib/deploy.ts (Node 20+, ES module)
+import { z } from 'zod'
+import { registry } from '../index'
 
-interface DeployConfig {
-  n8nUrl: string
-  apiKey: string
-  activate: boolean
+const Env = z.object({
+  N8N_URL: z.url(),
+  N8N_API_KEY: z.string().min(1),
+  PUBLISH: z.enum(['true', 'false']).default('false'),
+})
+
+const env = Env.parse(process.env)
+const base = `${env.N8N_URL.replace(/\/$/, '')}/api/v1`
+const headers = { 'Content-Type': 'application/json', 'X-N8N-API-KEY': env.N8N_API_KEY }
+
+async function call(path: string, init: RequestInit = {}) {
+  const res = await fetch(`${base}${path}`, { ...init, headers })
+  if (!res.ok) throw new Error(`${init.method ?? 'GET'} ${path} -> ${res.status} ${await res.text()}`)
+  return res.json() as Promise<any>
 }
 
-const environments: Record<string, DeployConfig> = {
-  staging: {
-    n8nUrl: process.env.N8N_STAGING_URL!,
-    apiKey: process.env.N8N_STAGING_KEY!,
-    activate: true,
-  },
-  production: {
-    n8nUrl: process.env.N8N_PRODUCTION_URL!,
-    apiKey: process.env.N8N_PRODUCTION_KEY!,
-    activate: false,       // manual activation in production
-  },
-}
-
-async function deploy(env: string) {
-  const config = environments[env]
-  if (!config) throw new Error(`Unknown environment: ${env}`)
-
-  const workflows = await getAllWorkflows()
-  let deployed = 0, failed = 0
-
-  for (const [name, workflow] of Object.entries(workflows)) {
-    try {
-      // Check if workflow exists (by name)
-      const existing = await fetch(`${config.n8nUrl}/api/v1/workflows?name=${encodeURIComponent(name)}`, {
-        headers: { 'X-N8N-API-KEY': config.apiKey },
-      }).then(r => r.json())
-
-      let id: string
-      if (existing.data?.length > 0) {
-        // Update existing
-        id = existing.data[0].id
-        await fetch(`${config.n8nUrl}/api/v1/workflows/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'X-N8N-API-KEY': config.apiKey },
-          body: JSON.stringify(workflow),
-        })
-        console.log(`  ↻ Updated: ${name}`)
-      } else {
-        // Create new
-        const result = await fetch(`${config.n8nUrl}/api/v1/workflows`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-N8N-API-KEY': config.apiKey },
-          body: JSON.stringify(workflow),
-        }).then(r => r.json())
-        id = result.id
-        console.log(`  + Created: ${name}`)
-      }
-
-      // Activate if configured
-      if (config.activate) {
-        await fetch(`${config.n8nUrl}/api/v1/workflows/${id}/activate`, {
-          method: 'PATCH',
-          headers: { 'X-N8N-API-KEY': config.apiKey },
-        })
-      }
-
-      deployed++
-    } catch (err) {
-      console.error(`  ✗ Failed: ${name} — ${err.message}`)
-      failed++
-    }
+let failed = 0
+for (const wf of Object.values(registry)) {
+  const { name, nodes, connections, settings } = wf.toJSON()
+  const body = JSON.stringify({ name, nodes, connections, settings })
+  try {
+    const found = await call(`/workflows?name=${encodeURIComponent(name)}&limit=50`)
+    const existing = found.data?.find((w: { name: string }) => w.name === name)
+    const saved = existing
+      ? await call(`/workflows/${existing.id}`, { method: 'PUT', body })
+      : await call('/workflows', { method: 'POST', body })
+    if (env.PUBLISH === 'true') await call(`/workflows/${saved.id}/publish`, { method: 'POST', body: '{}' })
+    console.log(`${existing ? 'updated' : 'created'}: ${name} (${saved.id})`)
+  } catch (err) {
+    failed++
+    console.error(`failed: ${name}: ${(err as Error).message}`)
   }
-
-  console.log(`\n${env}: ${deployed} deployed, ${failed} failed`)
 }
-
-// CLI usage: npx tsx src/lib/deploy.ts staging
-deploy(process.argv[2] || 'staging')
+if (failed) process.exit(1)
 ```
+
+```console
+$ N8N_URL=https://n8n-staging.acme.dev N8N_API_KEY=$N8N_STAGING_KEY PUBLISH=true npx tsx src/lib/deploy.ts
+$ N8N_URL=https://n8n.acme.dev N8N_API_KEY=$N8N_PRODUCTION_KEY npx tsx src/lib/deploy.ts   # saved, not published
+```
+Credentials are never embedded in the workflow: use `newCredential('Slack account')` in a node's `credentials` and bind the real credential in n8n once. Webhook nodes should have an Authentication option (header or basic auth) set before they are published, because the production URL is public. If your n8n runs in Docker, pin the image (`docker.n8n.io/n8nio/n8n:2.46.6` is the current stable release; read the release notes before moving to a new major version) and keep `N8N_ENCRYPTION_KEY` backed up: the `n8n` skill covers the compose setup.
 
 ## Results
 
-The team goes from "nobody touch that workflow" to confident, reviewable changes. PR reviews catch issues that previously broke production workflows — a misconfigured Slack channel, a missing error handler, a wrong API endpoint. The reusable templates eliminate copy-paste errors: when the webhook-to-Slack pattern gets an error handling improvement, all 15 workflows using the template get it in one PR. Deployment time drops from 20 minutes of copy-pasting JSON to a single `npm run deploy production` command. The new hire provisions automation goes from "ask Dave, he knows how to click the right buttons" to a self-documenting TypeScript file that any engineer can read, modify, and deploy. After 3 months, the team manages 120 workflows across staging and production, with zero incidents from deployment errors (previously averaging 2 per month from JSON copy-paste mistakes).
+Workflow changes now arrive as pull requests: a wrong channel ID, a missing branch or an invalid condition fails `validate` before anyone clicks Publish. Fixing the template once updates every workflow built on it in one PR, and deployment is a single command per environment. The numbers below are the example team's own: after three months they manage 120 workflows across staging and production, and the deployment mistakes that used to come from copy-pasting JSON have stopped.
+
+## Related Skills
+
+`n8n-workflow-sdk` (the SDK API), `n8n` (running and pinning n8n), `zod` (environment checks), `vitest` (workflow tests).

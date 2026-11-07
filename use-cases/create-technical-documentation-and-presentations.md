@@ -5,6 +5,7 @@ description: "Extract documentation from an undocumented codebase and generate p
 skills:
   - code-documenter
   - dev-slides
+  - revealjs
 category: development
 tags:
   - documentation
@@ -74,3 +75,7 @@ An engineering manager at a 40-person company needed to onboard 5 new hires whil
 She ran the code-documenter on Monday morning and had 12 module documents by lunch. Tuesday, she used dev-slides to generate both the onboarding deck and the CTO review deck. The onboarding deck cut ramp-up time from 3 weeks to 8 days. The CTO review, previously requiring two days of preparation, was generated in 20 minutes and needed only minor edits.
 
 The ongoing cost was near zero because both docs and slides could be regenerated whenever the codebase changed significantly.
+
+## Related Skills
+
+- [revealjs](/skills/revealjs) — choose it instead of Slidev when the architecture deck must be plain HTML or Markdown that any browser opens, with a headless-Chrome PDF export

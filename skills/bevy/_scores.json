@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:26d49377ee340aaa55cec04ecc8cda51659df7384d529137e2d23c51440dfa9b",
+  "scoredAt": "2026-10-28T19:04:05.639Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios and edge cases, focusing mainly on migration and basic setup."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text and multiple code examples, which may be considered verbose for a concise skill file."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation instructions rely on Ubuntu-specific package names and root privileges, limiting portability to other operating systems."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "setup-basic-bevy-project",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A misses key elements such as pinned version, correct system signatures, and movement scaling."
+      },
+      {
+        "name": "migrate-events-to-messages",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric; A mentions the old types, B is empty."
+      },
+      {
+        "name": "implement-bevy-states",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B omits the required state derivation, init_state call, and time-based movement."
+      }
+    ]
+  }
+}

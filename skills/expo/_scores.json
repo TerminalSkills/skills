@@ -1,7 +1,7 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:fa1a098bf7054f524da823e9d921d0e11c6321db7bc9acf91d8bc116d03bdb69",
-  "scoredAt": "2026-10-24T20:43:35.532Z",
+  "version": "1.3.0",
+  "skillHash": "sha256:c49c3504625e937f16b3df4a0617b7ca039dcfe8036201cbfef9e84f0702d66a",
+  "scoredAt": "2026-10-28T18:46:09.929Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack coverage of error handling and edge cases."
+        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.19,
-    "baselineAvg": 70,
-    "treatmentAvg": 83,
+    "multiplier": 6.54,
+    "baselineAvg": 13,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "setup-social-app-navigation",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Response A covers the required file structure, Tabs component with Ionicons, root Stack with modal, dynamic post route using useLocalSearchParams, and is close to the rubric, missing only the deep link note; Response B uses a different navigation library and omits the specified file names and dynamic route."
+        "name": "file-based-routing-tabs-stack-modal",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits key elements such as dynamic routing, useLocalSearchParams, and modal presentation."
       },
       {
-        "name": "configure-deep-linking",
-        "baseline": 95,
-        "treatment": 80,
-        "rationale": "Response A is more comprehensive, covering Android Asset Links, detailed link handling code, and a full checklist, while Response B omits the Android assetlinks.json and is slightly less detailed."
+        "name": "ota-update-production",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B covers most rubric items but fails to explicitly state the runtimeVersion policy is \"appVersion\", whereas Response A misses all required details."
+      },
+      {
+        "name": "camera-permissions-photo",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric items, while Response A uses the wrong imports and component, missing key requirements."
       }
     ]
   }

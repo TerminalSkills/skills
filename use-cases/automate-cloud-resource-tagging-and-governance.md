@@ -11,140 +11,181 @@ tags: [cloud-governance, tagging, cost-allocation, infrastructure, compliance]
 
 ## The Problem
 
-A 40-person engineering organization runs 200+ cloud resources across multiple environments. Only 60% of resources have proper tags, making it impossible to accurately allocate costs to teams, identify which environment a resource belongs to, or determine if something is still in use. Last month, the finance team asked engineering to break down cloud costs by product — nobody could answer because half the resources have no team or project tags. Meanwhile, 15% of the bill goes to orphaned resources from projects that ended months ago, but nobody can tell which ones are safe to delete.
+A 40-person engineering organization runs 200+ cloud resources across several environments. Only about 60% have the tags that matter, so nobody can allocate costs to teams, tell which environment a resource belongs to, or decide whether it is still in use. Finance asked for a cost breakdown by product and nobody could answer. Meanwhile some of the bill goes to leftovers from projects that ended months ago, and nobody can tell which are safe to delete.
 
-The problem compounds over time. Every engineer who spins up a resource and forgets to tag it adds noise. Every project that wraps up without cleaning its resources adds cost. Six months from now, 200+ resources becomes 300+, and the untagged percentage creeps higher because new resources get created faster than old ones get tagged. Manual tagging sprints help temporarily — someone spent a full week in the console last quarter clicking through resource after resource — but compliance drifts back below 60% within two months as new untagged resources accumulate.
-
-The fundamental issue is that tagging is a creation-time problem being treated as a cleanup problem. No amount of quarterly audits will fix tagging compliance if the creation process does not require tags in the first place.
+It compounds: every untagged resource adds noise, every finished project leaves resources behind. A manual tagging sprint helps for a month or two and then compliance drifts back. The fundamental issue is that tagging is a creation-time problem being treated as a cleanup problem. Quarterly audits will not fix it if creating a resource does not require tags.
 
 ## The Solution
 
-Use the **coding-agent** to build tagging automation scripts that audit, fix, and enforce resource tags, **report-generator** to create governance dashboards, and **hetzner-cloud** for cloud infrastructure management patterns that apply across providers.
+This page uses Hetzner Cloud, where the equivalent of a tag is a **label** (key/value pairs on servers, volumes, load balancers, networks, firewalls, IPs, snapshots and more). Use **hetzner-cloud** for the `hcloud` CLI (read inventory with `-o json`, fix with `add-label`, filter with `-l`), **coding-agent** to build and extend the audit and fix scripts as headless `claude -p` runs you review, and **report-generator** to turn the inventory into a governance report. Enforcement happens at creation time, in the Terraform that creates resources.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Audit Current Tagging State
+### Step 1: Audit the Current Labelling State
 
-```text
-Audit all our cloud resources for tagging compliance. Required tags are: team, environment, project, and cost-center. Show me which resources are missing tags, which have inconsistent values, and what percentage are fully compliant.
+Set up a context once (`hcloud context create --token-from-env shop-prod`, with a read-only token for auditing), then have the agent write the audit:
+
+```bash
+timeout 900 claude -p "Write scripts/label_audit.py: for server, volume, load-balancer, network, \
+firewall, floating-ip and primary-ip run 'hcloud <kind> list -o json', check the required labels \
+team, environment, project, cost-center, normalize known aliases (production/prd -> prod, \
+back-end/BE -> backend), flag environment values outside prod|staging|dev, and write inventory.csv \
+and fixes.csv. Read-only: never call add-label. Python stdlib only." \
+  --permission-mode acceptEdits --allowedTools "Read" "Write" "Edit" "Bash(python3 -m py_compile *)" \
+  --max-budget-usd 2 --output-format text > /tmp/audit-agent.log 2>&1
 ```
 
-The audit scans 214 resources and the results explain why Finance cannot get answers:
+The version below compiles and was run against a stub of the Hetzner API with three servers (one correct, one with `Backend`/`production`, one with only `environment=PROD`), which produced `{"total": 3, "compliant": 1, "percent": 33.3}` and a `fixes.csv` listing the two. Treat any agent-written version the same way: run it against a small known set before trusting it.
 
-**Overall compliance: 58%** — only 124 out of 214 resources have all four required tags.
+```python
+#!/usr/bin/env python3
+"""Audit Hetzner Cloud resource labels. Read-only; writes inventory.csv and fixes.csv, prints a JSON summary."""
+import csv, json, subprocess
 
-Missing tags by category:
+REQUIRED = ["team", "environment", "project", "cost-center"]
+ALLOWED = {"environment": {"prod", "staging", "dev"}}
+ALIASES = {
+    "environment": {"production": "prod", "prd": "prod", "stage": "staging", "development": "dev"},
+    "team": {"back-end": "backend", "be": "backend"},
+}
+KINDS = ["server", "volume", "load-balancer", "network", "firewall", "floating-ip", "primary-ip"]
 
-| Required Tag | Resources Missing It | Why It Matters |
-|---|---|---|
-| `team` | 43 | Cannot allocate costs to teams |
-| `cost-center` | 37 | Cannot map to Finance's budget codes |
-| `project` | 28 | Cannot track project-level spend |
-| `environment` | 12 | Cannot separate prod from staging costs |
 
-But missing tags are only half the problem. The tags that *do* exist are inconsistent. The `environment` tag has four different spellings of production: `"prod"`, `"production"`, `"PROD"`, `"prd"`. The `team` tag has 8 variations for just 3 teams — `"backend"`, `"Backend"`, `"back-end"`, `"BE"`, and more. Any dashboard or query grouping by these tags produces fragmented results — you see "backend" as one line and "Backend" as another, splitting one team's costs into two rows.
+def hcloud(*args):
+    out = subprocess.run(["hcloud", *args, "-o", "json"], check=True, capture_output=True, text=True).stdout
+    return json.loads(out) or []
 
-The worst offenders by resource type: 15 untagged S3 buckets (many with generic names like `data-backup-2` that could belong to any team), 12 untagged Lambda functions (often created by developers experimenting and forgotten), and 9 untagged RDS snapshots (automated backups from instances that may or may not still exist).
 
-The inconsistency problem is arguably worse than the missing-tags problem. Missing tags are obviously broken — you know you need to fix them. Inconsistent tags *look* fine until you try to aggregate data. A cost report that groups by the `team` tag will show "backend" and "Backend" as two separate teams, each with incomplete numbers. The person reading the report has to know that these are the same team and mentally merge the numbers — if they even notice the split.
+def normalize(key, value):
+    v = str(value).strip().lower()
+    return ALIASES.get(key, {}).get(v, v)
 
-### Step 2: Auto-Fix Tagging Issues
 
-```text
-Fix the inconsistent tag values — normalize environment to prod/staging/dev and team names to their canonical forms. For resources missing tags, infer what you can from resource names, VPC placement, and creation metadata. Show me what you'd change before applying.
+def audit():
+    rows, compliant, total, inventory = [], 0, 0, []
+    for kind in KINDS:
+        for res in hcloud(kind, "list"):
+            total += 1
+            labels = res.get("labels") or {}
+            inventory.append({"kind": kind, "name": res.get("name") or res.get("id"),
+                              **{k: normalize(k, labels.get(k, "(missing)")) for k in REQUIRED}})
+            missing = [k for k in REQUIRED if k not in labels]
+            fixes = {k: normalize(k, v) for k, v in labels.items()
+                     if k in ALIASES and normalize(k, v) != v}
+            bad = [k for k, allowed in ALLOWED.items()
+                   if k in labels and normalize(k, labels[k]) not in allowed]
+            if not missing and not fixes and not bad:
+                compliant += 1
+                continue
+            rows.append({"kind": kind, "name": res.get("name") or res.get("id"),
+                         "missing": ",".join(missing), "normalize": json.dumps(fixes),
+                         "invalid": ",".join(bad), "created": res.get("created", "")})
+    return total, compliant, rows, inventory
+
+
+if __name__ == "__main__":
+    total, compliant, rows, inventory = audit()
+    with open("inventory.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["kind", "name", *REQUIRED])
+        w.writeheader()
+        w.writerows(inventory)
+    print(json.dumps({"total": total, "compliant": compliant,
+                      "percent": round(100 * compliant / total, 1) if total else 100.0}))
+    with open("fixes.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["kind", "name", "missing", "normalize", "invalid", "created"])
+        w.writeheader()
+        w.writerows(rows)
 ```
 
-Before changing anything, a dry-run shows exactly what will happen. No surprises, no accidental overwrites. Tags get fixed in two categories:
+Two kinds of problem show up. Missing labels are obvious. Inconsistent values (`prod`, `production`, `PROD`, `prd`; `backend`, `Backend`, `BE`) look fine until you group by them, when one team's costs split across several rows. For a quick look without the script, `hcloud server list -l '!team'` lists servers that have no `team` label.
 
-**Auto-inferred tags (high confidence):**
-- 31 resources get `environment` inferred from their VPC or subnet placement — resources in the `vpc-prod-us-east-1` VPC are clearly production, and `subnet-staging-private` leaves no ambiguity
-- 18 resources get `team` inferred from the IAM role that created them — if the `data-engineering-deploy-role` created a Lambda function, the team is `data`
-- 12 resources get `project` inferred from their name prefix — `etl-pipeline-worker-03` clearly belongs to the `etl-pipeline` project
+### Step 2: Fix What Can Be Fixed Safely
 
-**Normalization fixes:**
-- 23 resources with inconsistent `environment` values get standardized (`"production"` becomes `"prod"`, `"PROD"` becomes `"prod"`, `"prd"` becomes `"prod"`)
-- 14 resources with inconsistent `team` values get canonical names (`"Backend"`, `"back-end"`, and `"BE"` all become `"backend"`)
+Normalization is mechanical and reversible; inference is a guess. Apply the first, review the second:
 
-**Cannot infer (27 resources):** these need manual review. A CSV file — `untagged-resources-review.csv` — lists each resource with its creation date, creator IAM principal, VPC, and any partial tags to help identify ownership. These are the resources most likely to be orphans — if nobody recognizes them, they are probably safe to decommission.
-
-After applying the dry-run changes, compliance jumps from 58% to 87% without any manual console clicking. The remaining 13% are the 27 resources that need manual review — resources with no name patterns, no VPC context, and no identifiable creator. These are the ones most likely to be orphans, and the review CSV makes it easy to triage them in a 30-minute meeting with the team leads ("Does anyone recognize a Lambda function called `test-handler-3` created on August 14th?").
-
-### Step 3: Set Up Enforcement Policies
-
-```text
-Create policies that prevent untagged resources from being created and detect compliance drift over time.
+```bash
+# Normalize known aliases from fixes.csv (dry run first: print, then run)
+hcloud server add-label --overwrite web-1 environment=prod team=backend
 ```
 
-Four governance mechanisms prevent the tagging problem from recurring:
+For missing labels, infer from what you can verify: a name prefix (`etl-worker-3` suggests project `etl`), the private network a server is attached to, or the SSH key it was created with. Have the agent propose values into `fixes.csv` for a human to approve, and apply them with `hcloud <kind> add-label --overwrite <name> key=value`. Resources nobody recognises go to a review list with creation date and partial labels; they are the likeliest orphans. Always list before you change, and change one kind at a time.
 
-**Pre-deploy validation** — a Terraform plan validator that rejects any resource missing required tags before it can be created:
+### Step 3: Enforce Labels at Creation
+
+Make Terraform refuse unlabelled resources. Route every resource's `labels` through one validated variable:
 
 ```hcl
-# modules/tag-enforcement/main.tf
-variable "required_tags" {
-  default = ["team", "environment", "project", "cost-center"]
-}
-
-resource "null_resource" "tag_check" {
-  for_each = var.resources
-  lifecycle {
-    precondition {
-      condition = alltrue([
-        for tag in var.required_tags : contains(keys(each.value.tags), tag)
-      ])
-      error_message = "Resource ${each.key} is missing required tags: ${join(", ", var.required_tags)}"
-    }
+variable "labels" {
+  type = map(string)
+  validation {
+    condition = alltrue([
+      for k in ["team", "environment", "project", "cost-center"] : contains(keys(var.labels), k)
+    ]) && contains(["prod", "staging", "dev"], lookup(var.labels, "environment", ""))
+    error_message = "labels must include team, environment (prod|staging|dev), project and cost-center."
   }
 }
+
+resource "hcloud_server" "web" {
+  name        = "web-1"
+  server_type = "cx23"
+  image       = "ubuntu-24.04"
+  labels      = var.labels
+}
 ```
 
-This is the most important piece. It shifts tagging from a cleanup task to a creation requirement. Developers learn quickly when their `terraform apply` fails with a clear error message telling them exactly which tags are missing.
+Passing `labels={team="backend",environment="production"}` makes `terraform plan` stop with the error message; a complete, valid map passes. That shifts tagging from a cleanup task to a creation requirement. Resources created outside Terraform (console, CLI, scripts) slip past this, so run the audit nightly from CI with a read-only token, post the summary to the team channel, and page the platform lead if compliance drops below your threshold.
 
-**Nightly compliance audit** — a scheduled script scans all resources, compares against the required tag policy, and posts a report to Slack. If compliance drops below 90%, the message tags the platform team lead. This catches resources created outside of Terraform — through the console, CLI scripts, or third-party tools.
+Tag values need validation as well as presence: `environment: prodution` must fail like a missing label, which the `ALLOWED` check in the audit script and the `contains(...)` in the variable both do.
 
-**Orphan detection** — flags resources with no traffic, no connections, and no API calls for 30+ days. These go into a "review" queue rather than being deleted automatically — the last thing anyone wants is to auto-delete a disaster recovery snapshot that only gets used during actual disasters.
+### Step 4: Find Orphaned Resources
 
-**Weekly cost report** — breaks down spend by team and project using tag data, delivered to team leads every Monday. This creates accountability. When a team can see their own spend alongside other teams, they start caring about optimization without being told to. The report includes week-over-week changes, so a sudden $500 increase gets noticed the following Monday instead of hiding in the monthly bill.
+List candidates, never delete automatically. Unattached resources are the cheap, high-confidence ones:
 
-**Tag value validation** — in addition to requiring tags to exist, the nightly audit validates that tag values are from the allowed set. A resource tagged `environment: prodution` (note the typo) gets flagged just like a resource with no environment tag at all. This prevents the normalization problem from recurring with new creative misspellings.
-
-### Step 4: Identify Orphaned Resources for Cleanup
-
-```text
-Find all resources that appear to be orphaned — no traffic, no connections, created more than 90 days ago, and associated with completed or unknown projects.
+```bash
+hcloud volume list -o json | jq -r '.[] | select(.server == null) | [.name, .created, .size] | @csv'
+hcloud floating-ip list -o json | jq -r '.[] | select(.server == null) | [.name, .ip] | @csv'
+hcloud image list --type snapshot -o json | jq -r '.[] | [.id, .description, .created] | @csv'
 ```
 
-The orphan report separates high-confidence deletions from resources that need human review:
+(The field names follow the Hetzner Cloud API schema; check them against your own `-o json` output before relying on the filter.) Volumes and IPs that are unattached and old are likely orphans; snapshots need the owner's say-so, because a disaster-recovery snapshot looks unused until the disaster. A server with no traffic for weeks may be a standby. Put each candidate in a review queue with its labels, creation date and last known owner, and let a human delete. `hcloud server enable-protection <name> delete rebuild` marks anything that must survive a mistaken cleanup. Good governance automates detection, not destruction.
 
-**Safe to delete (high confidence):**
+### Step 5: Report to Finance and Team Leads
 
-| Resource | Age | Cost/Month | Why It's Orphaned |
-|---|---|---|---|
-| 4 EBS volumes | 90+ days | $210 | Unattached since parent instances were terminated |
-| 3 Elastic IPs | 120+ days | $10.95 | Not associated with any running resource |
-| 7 old snapshots | 150+ days | $45 | Created from instances that no longer exist |
+Hand `inventory.csv` to report-generator's data-report flow (pandas, Jinja2, self-contained HTML):
 
-**Review recommended:**
+```python
+import datetime
+import pandas as pd
+from jinja2 import Environment
 
-| Resource | Age | Cost/Month | Notes |
-|---|---|---|---|
-| 2 RDS instances | 60+ days | $340 | No connections in 60 days, but tagged as `disaster-recovery` — verify before deleting |
-| 5 Lambda functions | 90+ days | minimal | 0 invocations, but one is named `quarterly-tax-export` — it may run once per quarter |
+df = pd.read_csv("inventory.csv")
+df["compliant"] = ~df.isin(["(missing)"]).any(axis=1)
+by_team = df.groupby("team").agg(resources=("name", "count"), compliant=("compliant", "sum")).reset_index()
+by_env = df.groupby("environment")["name"].count().reset_index(name="resources")
 
-**Potential monthly savings: $605.95** from the high-confidence deletions alone, plus $340 if the RDS instances are confirmed as orphans after verifying the disaster recovery plan does not depend on them.
+html = Environment(autoescape=True).from_string("""
+<h1>Label governance report</h1>
+<p>Source: hcloud, generated {{ today }}. Required labels present on {{ pct }}% of resources ({{ ok }} of {{ n }}).</p>
+<h2>By team</h2>{{ team|safe }}<h2>By environment</h2>{{ env|safe }}
+<h2>Needs an owner</h2>{{ bad|safe }}
+""").render(today=datetime.date.today(), n=len(df), ok=int(df.compliant.sum()),
+            pct=round(100 * df.compliant.mean(), 1), team=by_team.to_html(index=False),
+            env=by_env.to_html(index=False), bad=df[~df.compliant].to_html(index=False))
+open("label_report.html", "w").write(html)
+```
 
-The Lambda function case is equally nuanced. A function named `quarterly-tax-export` with 0 invocations in 90 days looks unused — but if the last invocation was 91 days ago and the function runs on the first of every quarter, deleting it means the next tax export silently fails. The orphan report includes last-invocation timestamps and function triggers to help make the call.
+This ran with pandas and Jinja2 on the stub inventory above and wrote the HTML. For money, join the inventory with the price list yourself (server types and volumes have published prices, shown by `hcloud server-type describe <type>`) and label the figure an estimate; pull the final numbers for Finance from the invoice. Add week-over-week deltas by keeping last week's `inventory.csv`.
 
-The RDS case illustrates why automatic deletion is dangerous. A database with no connections for 60 days looks dead — but if it is the disaster recovery standby, deleting it means the next actual disaster has no failover. The orphan report flags it but requires a human to make the call. Good governance automates detection, not destruction.
+**On AWS or another provider**, the shape is identical but the commands differ: `aws resourcegroupstaggingapi tag-resources` applies tags in bulk, but `get-resources` returns resources that are tagged or were once tagged, so it will not find resources that never had a tag. Detect those through AWS Config's required-tags rule or per-service listings. Cost allocation tags must also be activated in the billing console before they appear in cost reports. These are documentation-checked only; the scripts on this page were run against Hetzner only.
 
 ## Real-World Example
 
-Dani is the platform engineer at a 40-person e-commerce company. Finance is asking for cost allocation by team, but 42% of cloud resources have no team tag. She has been asked this question before and spent a full week manually tagging resources in the console — clicking through each resource, looking up who created it, assigning the right team. By the time she finished, compliance hit 85%. Two months later, it was back below 60% as new resources got created without tags.
+Dani is the platform engineer at a 40-person e-commerce company. Finance wants cost by team, but a good share of resources have no team label. She once spent a week labelling resources by hand and watched compliance sag back within two months.
 
-She runs the full tagging workflow in a single afternoon. The audit reveals 58% compliance and 8 different spellings of team names across resources. Auto-inference tags 61 resources using VPC placement and IAM creator data, and normalization fixes another 37. Compliance jumps from 58% to 87% without any manual console clicking — the same result as her week-long manual effort, done in hours.
+This time she has the agent write the audit, runs it read-only, and reviews `fixes.csv`: normalization first, then inferred labels she approves one kind at a time. The Terraform validation goes into the shared module so new servers cannot be created without labels, and the nightly audit catches console-created strays. The orphan list is a short review queue: two old volumes get deleted, a standby that looked idle is labelled `environment=prod` and protected. Finance gets a team-by-team report built from the same inventory, and the labels, which looked like bureaucracy, become the basis for every cost question the company asks about its infrastructure.
 
-The critical difference this time is enforcement. The Terraform validation policy prevents the drift problem — no resource can be created without all four required tags. The nightly audit catches any resources that slip through (manually created via the console, for example) and flags them within 24 hours instead of letting them accumulate for months.
+## Related Skills
 
-Six weeks later, compliance sits at 96%. The orphan detection has identified $605 per month in wasted resources, which get cleaned up in a single PR after verifying the disaster recovery instances are accounted for in a separate DR plan. The two RDS instances turn out to be legitimate disaster recovery standbys — but they were never tagged as such, which is why they looked orphaned. They get proper tags and a note in the runbook.
-
-And for the first time, Dani delivers the cost allocation report Finance wanted — broken down by team and project, with trend lines showing which teams are optimizing and which are growing unchecked. The data team's spend is up 31%, and now there is a tag trail showing exactly which project drove the increase. Finance uses the breakdown for the quarterly board deck, and the CTO uses the team-level trends for headcount planning conversations. The tags that seemed like bureaucratic overhead to the engineering team turn out to be the foundation for every financial question the business needs to answer about infrastructure.
+- [coding-agent](/skills/coding-agent)
+- [report-generator](/skills/report-generator)
+- [hetzner-cloud](/skills/hetzner-cloud)

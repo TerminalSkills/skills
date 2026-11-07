@@ -74,7 +74,7 @@ $ ./check-ssl-certs.sh endpoints.txt
 {"host":"legacy.example.com","days_left":null,"chain":"no TLS answer"}
 ```
 
-A cron entry on a monitoring host runs it at 06:00 UTC and posts the lines to an n8n Webhook node. Give the node Header Auth (see the n8n skill) so strangers cannot trigger it, and keep the URL and key in the cron host's environment:
+A cron entry on a monitoring host runs it at 06:00 UTC and posts the lines to an n8n Webhook node. Give the node Header Auth (see the n8n skill) so strangers cannot trigger it, publish the workflow so the production URL (`https://n8n.example.com/webhook/ssl-report`, not the `webhook-test` one) is live, and keep the URL and key in the cron host's environment:
 
 ```bash
 0 6 * * * /opt/ssl/check-ssl-certs.sh /opt/ssl/endpoints.txt | jq -s '{results: .}' | curl -fsS -X POST -H "Content-Type: application/json" -H "X-Api-Key: $SSL_ALERT_KEY" --data-binary @- "$SSL_ALERT_URL"
@@ -94,7 +94,7 @@ The 60-day row suits the commercial certificates. A Let's Encrypt certificate is
 
 ### Step 3: Automate Let's Encrypt Renewals
 
-The 18 Let's Encrypt certificates can be fully automated with certbot (5.8.0 at the time of writing). Single-domain hosts use the HTTP-01 challenge. The wildcard needs the DNS-01 challenge, which requires a DNS plugin for the zone's provider; for Cloudflare:
+The 18 Let's Encrypt certificates can be fully automated with certbot (5.9.0 at the time of writing). Single-domain hosts use the HTTP-01 challenge. The wildcard (`*.api.example.com`, from Step 1) needs the DNS-01 challenge, which requires a DNS plugin for the zone's provider; for Cloudflare:
 
 ```bash
 # cloudflare.ini holds dns_cloudflare_api_token (Zone:DNS:Edit on this zone only); restrict it first,
@@ -102,10 +102,10 @@ The 18 Let's Encrypt certificates can be fully automated with certbot (5.8.0 at 
 sudo chmod 600 /etc/letsencrypt/cloudflare.ini
 sudo certbot certonly --dns-cloudflare \
   --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
-  -d example.com -d '*.example.com'
+  -d '*.api.example.com'
 ```
 
-Certbot packages install a scheduled task that runs `certbot renew`; since Certbot 4.0 it renews a certificate once less than a third of its lifetime remains (30 days for a 90-day certificate, about 21 for 64 days, 15 for 45 days) and does nothing otherwise. Confirm it exists and works instead of adding a second cron job:
+Certbot packages install a scheduled task that runs `certbot renew`; it checks ACME Renewal Information (ARI) with Let's Encrypt and renews at about two thirds of the certificate's lifetime (30 days left for a 90-day certificate, about 21 for 64 days, 15 for 45 days), and does nothing otherwise. Confirm it exists and works instead of adding a second cron job:
 
 ```bash
 systemctl list-timers | grep certbot

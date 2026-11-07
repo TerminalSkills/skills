@@ -50,10 +50,17 @@ services:
       TZ: Europe/Oslo
 ```
 
+The **docker-helper** skill reviews the file before it starts. `network_mode: host` is deliberate (Home Assistant needs it to discover devices on the LAN), which is why there is no `ports:` section and the web UI is reachable on port 8123 of the mini PC's address. Because that exposes it to the whole LAN, the agent opens the port only to the practice network:
+
 ```bash
-cd /opt/homeassistant && docker compose up -d
+cd /opt/homeassistant && docker compose config -q && echo "compose file valid"
+docker compose up -d
+docker compose ps
 docker compose logs --tail 20 homeassistant
+sudo ufw allow from 192.168.1.0/24 to any port 8123 proto tcp
 ```
+
+The container has no health check of its own, so `docker compose ps` showing `running` plus a clean log is the signal. To update later, run `docker compose pull homeassistant && docker compose up -d`; the configuration folder stays on the host.
 
 Ingrid opens `http://192.168.1.40:8123`, creates her account and adds the three device integrations in the browser.
 
@@ -154,6 +161,7 @@ resp = requests.get(
         "end_time": end.isoformat(),
         "minimal_response": "",
         "no_attributes": "",
+        "significant_changes_only": "0",   # default drops small changes, which would skew min and max
     },
     timeout=30,
 )
@@ -168,15 +176,15 @@ print(f"{len(values)} readings, min {min(values):.1f} °C, max {max(values):.1f}
 
 ## Real-World Example
 
-Ingrid gives the agent the mini PC on a Saturday morning. The container is running 10 minutes later, and she spends another 25 minutes in the browser adding her three device integrations. The agent finds 18 devices through the API, writes the two automations, and the configuration check passes on the second attempt. The first attempt failed because an entity ID in her notes was misspelled.
+Ingrid gives the agent the mini PC on a Saturday morning. The container is running 10 minutes later, and she spends another 25 minutes in the browser adding her three device integrations. The agent finds 18 devices through the API, writes the two automations, and the configuration check passes on the second attempt. The first attempt failed on a YAML indentation error in the new file.
 
 1. At 19:30 on Monday the waiting-room lights and the heater plug switch off on their own. Over the next four weeks they are never left on overnight, compared with roughly 12 nights in the month before.
 2. In week three the freezer door is left ajar after the last patient. The sensor crosses -12 °C at 18:52, the alert reaches her phone at 19:07, and she closes the door before anything thaws.
 3. The Monday report shows the freezer holding between -19.8 °C and -16.9 °C, which she keeps as a record for her equipment log.
 
-All rules live in one short YAML file on her own hardware, and no device data leaves the building.
+All rules live in one short YAML file on her own hardware and run without the internet. Devices that only work through their maker's cloud still talk to that cloud, so she prefers local-protocol devices when she buys new ones.
 
 ## Related Skills
 
 - [home-assistant](/skills/home-assistant) — runs the server, validates the YAML automations and calls the REST API
-- [docker-helper](/skills/docker-helper) — writes and reviews the Compose file that runs the Home Assistant container
+- [docker-helper](/skills/docker-helper) — writes and reviews the Compose file, validates it and troubleshoots the container

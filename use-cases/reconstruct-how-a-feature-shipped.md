@@ -1,7 +1,7 @@
 ---
 title: Reconstruct How a Feature Actually Shipped
 slug: reconstruct-how-a-feature-shipped
-description: "Recover the real recipe behind a shipped feature, fix, or incident from your local AI-agent session history — anchor on a commit, date, or topic, inspect the sessions and subagents that produced it, and turn the reconstruction into release notes, persistent agent memory, and a precise PR description."
+description: "Recover the real recipe behind a shipped feature, fix, or incident from your local AI-agent session history — anchor on a commit, date, or topic, inspect the sessions and subagents that produced it, and turn the reconstruction into release notes, persistent agent memory, and a precise commit message."
 skills:
   - ax-extract-workflow
   - changelog-generator
@@ -32,23 +32,23 @@ Use **ax-extract-workflow** to query the local [ax](https://github.com/Necmttn/a
 Then route that reconstruction into downstream skills so the work isn't thrown away:
 
 - **changelog-generator** turns the narrative into user-facing release notes.
-- **agent-memory** persists the recipe to `MEMORY.md` so the next session for the sibling feature starts warm instead of cold.
-- **git-commit-pro** writes a precise PR description when Dana repeats the workflow.
+- **agent-memory** persists the recipe to the file your agent loads at startup so the next session for the sibling feature starts warm instead of cold.
+- **git-commit-pro** writes a precise commit message (root cause and decision, not just the diff) when Dana repeats the workflow.
 
-Everything stays local and read-only — ax reads transcripts, git history, and tool calls from a local database; the skill never mutates anything.
+The reconstruction is local and read-only: ax reads transcripts, git history, and tool calls from a local database on your machine, and the skill only queries it. Writing the memory file and the commit are separate steps you ask for.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Confirm ax has the data
 
-The reconstruction is only as good as the local graph. Verify ax is installed and its daemon has ingested recent sessions before anything else.
+The reconstruction is only as good as the local graph. Verify ax is installed and has ingested recent sessions before anything else (ax is fully local; there is no daemon to run).
 
 ```bash
 command -v ax || command -v axctl
 ax doctor
 ```
 
-If `ax doctor` reports stale or missing ingest, run `ax ingest here --since=7` so the last week of transcripts and commits are in the graph. If neither `ax` nor `axctl` is on PATH, install it (`curl -fsSL ax.necmttn.com/install | sh`) — there is nothing to reconstruct from otherwise.
+If `ax doctor` reports problems, or `ax sessions here` returns nothing for a repository you have worked in, run `ax ingest` (the first full import can take a while) and retry. If neither `ax` nor `axctl` is on PATH, install ax by following https://ax.necmttn.com/docs — read the installer before you run it rather than piping it into a shell. There is nothing to reconstruct from otherwise.
 
 ### Step 2: Anchor on what shipped
 
@@ -66,7 +66,7 @@ ax sessions around 2026-06-14 --days=3 --json
 ax sessions here --days=14 --json
 ```
 
-`ax recall --sources=commit` ranks commits by BM25 over commit messages; `ax sessions near <sha>` is pwd-scoped and returns the sessions whose work landed around that commit. If several commits look plausible, show the short list and let Dana pick rather than guessing.
+`ax recall --sources=commit` ranks commits by BM25 over commit messages; `ax sessions near <sha>` returns the sessions overlapping that commit's window (from the previous commit's timestamp to this one's). If several commits look plausible, show the short list and let Dana pick rather than guessing.
 
 ### Step 3: Inspect the sessions that explain it
 
@@ -82,17 +82,21 @@ The reconstruction comes back as an ordered narrative — anchor, sessions inspe
 
 ### Step 4: Turn the reconstruction into release notes
 
-Hand the ordered workflow to **changelog-generator**. Because the input already carries decisions and evidence, the changelog can explain *why* the fix matters, not just that a file changed.
+Hand the ordered workflow to **changelog-generator**, together with the commit range it covers, so the entry matches the real history. The skill sorts commits into Added / Changed / Fixed and accepts a feature list in place of git history, so the narrative can go in as that list. Because the input already carries decisions and evidence, the entry can explain *why* the fix matters, not just that a file changed.
+
+```bash
+git log --format="%h %s (%an, %ad)" --date=short --no-merges 9f31c2a~5..9f31c2a
+```
 
 ```text
-Using the reconstruction above, draft release notes for the "live ingest dashboard"
+Using the reconstruction above and the commits listed, draft a Keep a Changelog entry and user-facing release notes for the "live ingest dashboard"
 fix: one-line summary, the user-visible behavior change, and a migration note for
 anyone who relied on the hosted mock studio.
 ```
 
 ### Step 5: Persist the recipe so you never re-derive it
 
-Before starting the sibling feature, use **agent-memory** to write the distilled recipe into `MEMORY.md`. The next session loads it at startup, so the agent begins with "same-origin serving was the fix, compiled binaries report `live_ingest: false`" already in context.
+Before starting the sibling feature, use **agent-memory** to write the distilled recipe where your agent loads it at startup: the project's `CLAUDE.md` or `AGENTS.md`, or a `MEMORY.md` the agent reads. The next session then begins with "same-origin serving was the fix, compiled binaries report `live_ingest: false`" already in context.
 
 ```markdown
 ## Recipes
@@ -102,7 +106,7 @@ Before starting the sibling feature, use **agent-memory** to write the distilled
   Evidence: commit 9f31c2a, session codex:2026-06-14T19-22-10.
 ```
 
-When Dana opens the PR for the sibling fix, **git-commit-pro** uses the same reconstruction to write a description that names the root cause and the decision — not just the diff.
+When Dana commits the sibling fix, **git-commit-pro** turns the staged diff plus the same reconstruction into a Conventional Commits message whose body names the root cause and the decision, and which closes the issue. She reuses that body in the PR description.
 
 ## Real-World Example
 
@@ -132,11 +136,11 @@ Gaps: no browser screenshots were captured for this session, so UI verification 
 inferred from command output and changed files.
 ```
 
-The hour of transcript-scrolling becomes a 90-second query. The "CORS patch tried first" dead end — the single most useful thing for the sibling feature — surfaces from the session graph even though Dana had forgotten it. She drops the recipe into `MEMORY.md`, generates the changelog, and starts the sibling fix with the agent already primed.
+The hour of transcript-scrolling becomes a 90-second query. The "CORS patch tried first" dead end — the single most useful thing for the sibling feature — surfaces from the session graph even though Dana had forgotten it. She saves the recipe to her instruction file, generates the changelog, and starts the sibling fix with the agent already primed.
 
 ## Related Skills
 
 - **ax-extract-workflow** — the core skill; reconstructs the ordered workflow behind an artifact from local ax sessions, recall, and commits, returning an evidence-backed narrative with decisions and gaps.
 - **changelog-generator** — turns the reconstructed narrative into user-facing release notes that explain *why* the change matters, not just what changed.
-- **agent-memory** — persists the recipe to `MEMORY.md` so future sessions start with the hard-won context already loaded instead of re-deriving it.
-- **git-commit-pro** — writes precise commit messages and PR descriptions from the reconstructed decisions when you repeat the workflow on a sibling feature.
+- **agent-memory** — persists the recipe to the file your agent loads at startup (`CLAUDE.md`, `AGENTS.md` or `MEMORY.md`) so future sessions start with the hard-won context already loaded instead of re-deriving it.
+- **git-commit-pro** — writes Conventional Commits messages from the staged diff and the reconstructed decisions when you repeat the workflow on a sibling feature.

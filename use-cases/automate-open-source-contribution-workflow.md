@@ -1,7 +1,7 @@
 ---
 title: "Automate Open Source Contribution Workflow with AI"
 slug: automate-open-source-contribution-workflow
-description: "Find good-first-issues, prepare PRs, and manage CLAs across open source projects using AI agents."
+description: "Find good-first-issues, read each project's contributing rules (sign-off, branch, tests), and prepare PRs across open source projects using AI agents."
 skills: [github, code-reviewer, coding-agent]
 category: development
 tags: [open-source, github, contributions, pull-requests, automation]
@@ -11,13 +11,13 @@ tags: [open-source, github, contributions, pull-requests, automation]
 
 ## The Problem
 
-Dani's engineering team wants to contribute to the open source projects they depend on — fix that Prisma edge case they keep hitting, improve the Next.js middleware docs, close the React type inference bug that has been bothering them for months. But nobody has time to trawl through issue trackers, read contribution guides, figure out CLA requirements, and prepare properly formatted PRs for three different repos with three different conventions.
+Dani's engineering team wants to contribute to the open source projects they depend on: the Next.js edge case they keep working around, a Prisma behavior that surprised them, a React issue that has been bothering them for months. But nobody has time to trawl through issue trackers, read three contribution guides, work out each project's sign-off rule, and prepare PRs for repos with different conventions.
 
-A senior developer might spend 3-4 hours just finding a suitable issue and understanding the contribution setup before writing a single line of code. The development environment for a project like Next.js is a monorepo with its own build system, custom test runner, and a changeset process that is not obvious from the README. Most contribution attempts stall not because the code is hard, but because the overhead of getting started is too high. The team has a Slack channel called `#upstream-fixes` with a dozen bookmarked issues that nobody has touched in months.
+Most contribution attempts stall not because the code is hard but because the overhead of getting started is high. The rules differ more than people expect, and they change. At the time of writing, `vercel/next.js` asks for GitHub-verified signed commits and branches from `canary`; `prisma/prisma` (whose current contributing guide covers Prisma 8) requires a Developer Certificate of Origin sign-off on every commit and works from `main`; React's contribution guide asks for a Contributor License Agreement and branches from `main`. A PR that misses one of these rules sits blocked. The team has a Slack channel called `#upstream-fixes` with a dozen bookmarked issues that nobody has touched in months.
 
 ## The Solution
 
-Using the **github** skill to search for issues and manage PRs, the **code-reviewer** to understand repository conventions, and the **coding-agent** to implement fixes, the agent handles the tedious parts — finding issues, reading CONTRIBUTING.md files, checking CLA requirements, locating the right files in an unfamiliar monorepo — so the developer can focus on writing the actual fix.
+Using the **github** skill (the `gh` CLI) to search issues, clone, and open PRs, the **coding-agent** skill to implement the fix in a background agent run, and the **code-reviewer** skill to check the diff against the project's own checklist, the agent handles the tedious parts: finding issues, reading CONTRIBUTING files, extracting the sign-off rules, locating the right files in an unfamiliar monorepo. The developer stays in charge of the judgment calls and of the PR text, which several projects now require to be human-written.
 
 ## Step-by-Step Walkthrough
 
@@ -26,106 +26,94 @@ Using the **github** skill to search for issues and manage PRs, the **code-revie
 Start by telling the agent which projects matter to the team:
 
 ```text
-Search for good-first-issue and help-wanted labels in these repos: facebook/react, vercel/next.js, and prisma/prisma. Filter for issues opened in the last 30 days that haven't been assigned yet.
+Search for open issues labelled "good first issue" with no assignee in vercel/next.js and facebook/react. For prisma/prisma, which has no such label, list recent open issues that mention the component I care about. Show number, title, age, and comment count.
 ```
 
-The key filter is "not yet assigned." Nothing is more frustrating than spending two hours on a fix only to discover someone else claimed the issue three days ago.
+The agent runs searches with `gh`. Run `gh auth login` once first; `gh search` needs an authenticated session:
+
+```bash
+gh search issues --repo vercel/next.js --label "good first issue" --no-assignee --state open \
+  --sort created --json number,title,createdAt,commentsCount,labels,url
+```
+
+`--no-assignee` is the filter that matters. Nothing is more frustrating than spending two hours on a fix and finding that someone claimed the issue last week. Check each repo's labels before relying on one: React uses `good first issue` and marks claimed ones `good first issue (taken)`, while `prisma/prisma` has no `good first issue` label at all, so search by keyword or component there instead.
 
 ### Step 2: Review the Prioritized Results
 
-The search queries GitHub's API, filters by labels and assignment status, and ranks by activity and estimated complexity:
+Expect fewer fresh results than you would hope for. When this page was last checked, `vercel/next.js` had only 10 open, unassigned `good first issue` items, and the ones returned first were years old with dozens of comments (for example #53473, opened in 2023, 80 comments). Rank what comes back yourself, or ask the agent to:
 
-| # | Issue | Labels | Age | Comments | Complexity |
-|---|---|---|---|---|---|
-| 1 | vercel/next.js #58234 — Fix middleware redirect loop with trailing slashes | good-first-issue, bug | 3 days | 2 | Low — isolated to one handler |
-| 2 | prisma/prisma #21847 — Add TypeScript example for nested create with relations | help-wanted, docs | 5 days | 0 | Low — documentation addition |
-| 3 | facebook/react #29182 — useReducer type inference breaks with discriminated unions | good-first-issue, type: bug | 12 days | 7 | Medium — TypeScript type changes |
-
-Issue #1 is the sweet spot: recent, low complexity, clearly scoped, and only 2 comments (so it has not turned into a design debate). Issues with 10+ comments often mean the maintainers are still discussing the approach, and a PR submitted before consensus is reached will sit in limbo.
-
-Issue #2 is the safest bet for a first-time contributor. Documentation PRs have the highest acceptance rate and help you learn the codebase without the pressure of a code change. They also build goodwill with maintainers, which makes your next code PR easier.
-
-Issue #3 is more technically interesting but riskier — 7 comments suggest active discussion about the right fix, and TypeScript type changes in React's core require deep familiarity with the type system.
+- **Prefer few comments and a clear reproduction.** A long thread usually means the maintainers have not agreed on the approach, and a PR sent before consensus sits in limbo.
+- **Prefer recent activity.** An issue untouched for two years may be stale, already fixed, or blocked on a design decision.
+- **Documentation fixes are the safest first PR.** They are small, easy to verify, and build goodwill. Next.js is more open to docs-only changes than to trivial code churn: its contributing guide says typo, formatting, and style PRs outside `docs/` are likely to be closed.
+- **Features need agreement first.** Next.js asks for a discussion in the `ideas` category before a feature PR; Prisma asks for an issue first for anything substantive.
 
 ### Step 3: Analyze the Contribution Requirements
 
-Dani picks the Next.js middleware issue. Before writing any code, she needs to understand what the project expects:
+Dani picks one issue. Before writing code, she needs to know what the project expects:
 
 ```text
-I want to work on vercel/next.js #58234. Read their CONTRIBUTING.md, check for CLA requirements, and tell me what I need to do before submitting a PR.
+I want to work on vercel/next.js issue <number>. Read contributing.md, contributing/core/developing.md, contributing/core/testing.md, and .github/pull_request_template.md on the canary branch, and list what I must do before submitting a PR.
 ```
 
-This is where most first-time contributors lose an hour. Every major project has its own conventions — branch naming, test framework, commit message format, changelog requirements — and missing any one of them means a PR that sits in review limbo or gets closed with a "please follow our contribution guide" comment.
+This is where most first-time contributors lose an hour. The agent reads the files with `gh api` or the raw GitHub URLs and returns a checklist.
 
 ### Step 4: Review the Contribution Checklist
 
-For vercel/next.js, the requirements are:
+For `vercel/next.js`, the files above say:
 
-- **CLA:** Contributor License Agreement required — sign at `https://cla.vercel.com` before the PR can be merged. The CLA bot will block the PR until this is done, so sign it first.
-- **Branch:** Fork and create branch from `canary`, not `main`. This catches many first-time contributors off guard.
-- **Tests:** Must include an integration test in `test/integration/`
-- **Linting:** Run `pnpm lint` before submitting — the CI check is strict and will fail on warnings
-- **Changeset:** Run `pnpm changeset` to generate a changelog entry. Choose "patch" for bug fixes.
-- **PR template:** Must reference the issue number and describe the fix
+- **Sign-off:** commits must carry a GitHub-verified signature (GPG, SSH, or S/MIME key). A `Signed-off-by` line is explicitly not enough. Configure signing before the first commit, for example for an SSH key: `git config gpg.format ssh`, `git config user.signingkey ~/.ssh/id_ed25519.pub`, `git config commit.gpgsign true`, and add the key to your GitHub account as a signing key. Unsigned commits must be re-signed and force-pushed.
+- **Branch:** the development branch is `canary`, and all pull requests target it.
+- **Setup:** `pnpm` through Corepack (`corepack enable pnpm`), `pnpm install`, then `pnpm dev`; run `pnpm types` in another terminal to compile declaration files.
+- **Tests:** a bug fix needs a test. Create it with `pnpm new-test`, which uses the `nextTestSetup` helper; new tests go under `test/e2e`, `test/development`, `test/production` or `test/unit`, in TypeScript, and the guide says not to add new suites under the historical `test/integration`. Run one with `pnpm test-dev <path>` or `pnpm test-start <path>`.
+- **Lint and format:** `pnpm lint`, and `pnpm lint-fix` to auto-fix (ESLint, Prettier, alex).
+- **PR description:** the PR template says descriptions from external contributors must be written by a human, so use the agent for research and code but write the description yourself, and link the issue with `fixes #number`.
 
-The relevant code is in `packages/next/src/server/web/spec-extension/response.ts`. The bug is in the `redirect()` function — it does not strip trailing slashes before checking the redirect target, causing an infinite loop when the incoming URL has a trailing slash and the redirect target does not. This is a 5-line fix, but finding it in a monorepo with 3,000+ files is the hard part.
+For the other two projects the differences are what the agent should flag:
 
-### Step 5: Implement and Submit the PR
+- **Prisma** (`prisma/prisma`, contributing guide for Prisma 8): sign off every commit with `git commit -s` (a DCO status check fails otherwise; this is not a CLA), use a conventional-commit PR title such as `fix(client): ...`, run `pnpm typecheck && pnpm lint && pnpm test:packages` before pushing, and open an issue first for anything substantive. Prisma 7 fixes go to the `v7` branch.
+- **React** (`facebook/react`): its contributing guide links to a legacy guide that says to branch from `main`, run `yarn test`, `yarn lint`, and `yarn flow`, and complete the Contributor License Agreement once. Confirm the CLA step in the PR checks, since this guide has moved.
 
-With the requirements clear and the bug located, Dani asks for the implementation:
+### Step 5: Implement the Fix
 
-```text
-Create the fix for issue #58234. Write the code change and the integration test, then prepare the PR description following their template.
-```
-
-The fix adds a URL normalization step to the redirect comparison. Before checking whether the redirect target matches the current URL (which is what prevents infinite loops), trailing slashes are stripped from both sides. The change is small — about 5 lines in the redirect handler:
-
-```typescript
-// packages/next/src/server/web/spec-extension/response.ts
-function normalizeUrl(url: string): string {
-  return url.endsWith('/') ? url.slice(0, -1) : url
-}
-
-// In the redirect method, compare normalized URLs
-if (normalizeUrl(destination) === normalizeUrl(request.url)) {
-  throw new Error('Redirect loop detected')
-}
-```
-
-The integration test covers three cases:
-
-1. Redirect where the source URL has a trailing slash and the target does not — this was the original bug
-2. Redirect where neither URL has a trailing slash — should work exactly as before (no regression)
-3. The infinite loop scenario from the original issue — the test that prevents this bug from coming back
-
-The PR description follows the Next.js template: references issue #58234, describes the root cause (URL comparison without slash normalization), explains the fix, links to the test, and notes that the changeset was generated with `pnpm changeset`. The git commands to push to Dani's fork and open the PR are ready to copy:
+With the requirements clear, hand the implementation to a background coding agent, as the **coding-agent** skill describes. Fork and clone first (`gh repo fork vercel/next.js --clone` creates your fork and sets up the remotes), create a branch, and give the agent a narrow task and narrow permissions:
 
 ```bash
-git remote add fork git@github.com:dani/next.js.git
-git push fork fix/middleware-trailing-slash-redirect
-gh pr create --repo vercel/next.js --base canary \
-  --title "fix: normalize trailing slashes in middleware redirect" \
-  --body-file pr-description.md
+git switch --create fix/issue-NNNNN canary
+LOG=$(mktemp /tmp/claude-agent.XXXXXX)
+claude -p "Fix the bug described in issue NNNNN (summary: <paste the reproduction>). Add a test with pnpm new-test following contributing/core/testing.md. Touch only the files needed. Do not commit." \
+  --permission-mode acceptEdits \
+  --allowedTools "Read" "Edit" "Write" "Bash(pnpm test-dev *)" "Bash(pnpm lint-fix)" \
+  --max-budget-usd 5 \
+  --output-format text > "$LOG" 2>&1 &
+AGENT_PID=$!
 ```
 
-### Step 6: Comment on the Issue Before Pushing
+In print mode nobody can answer permission prompts, so every tool the task needs must be on the allow list; commits, pushes, and installs stay with you. When the agent exits (`wait $AGENT_PID`), run the project's own checks yourself and read the diff. The agent's work is a draft, not a result, until the new test fails without the fix and passes with it.
 
-One last step that most first-time contributors skip: leave a comment on the issue before opening the PR. "I'd like to work on this. The bug is in the redirect handler's URL comparison — I have a fix and test ready." This serves three purposes:
+### Step 6: Review Before You Push
 
-- It prevents duplicate effort — someone else might be working on the same issue
-- It signals to maintainers that the issue is actively being worked on, so they do not close it as stale
-- It gives maintainers a chance to share context or redirect your approach before you invest more time
+Ask the **code-reviewer** skill to review the diff against the checklist from Step 4:
 
-Most maintainers appreciate this etiquette and will assign the issue to you within a few hours.
+```text
+Review `git diff canary` as a maintainer of vercel/next.js would. Check correctness, test coverage, unrelated changes, and the PR template items. Report by severity.
+```
+
+Then commit with signing enabled (`git commit -S -m "..."`, or `git commit -s` for Prisma), push to your fork, and open the PR yourself:
+
+```bash
+git push --set-upstream origin fix/issue-NNNNN
+gh pr create --repo vercel/next.js --base canary --title "<short title>" --body-file pr-description.md
+gh pr checks --watch
+```
+
+`pr-description.md` is the text you wrote against the template. `gh pr checks --watch` follows CI and the sign-off checks; if one fails, fix the cause and push again.
+
+### Step 7: Comment on the Issue Before Opening the PR
+
+Leave a comment on the issue before opening the PR, or earlier if the fix will take days: "I'd like to work on this. The bug is in X; I have a fix and a test in progress." Next.js says you do not need permission to work on an issue, and React asks you to read the thread to see whether someone is already on it (a claim with no follow-up for two weeks may be taken over, with a comment). The comment avoids duplicate work, tells maintainers the issue is alive, and gives them a chance to redirect you before you invest more time.
 
 ## Real-World Example
 
-Dani picks the Prisma edge case her team has been working around for weeks — a JSON field serialization bug in `prisma/prisma` issue #21650. The team has a 15-line workaround in their codebase that runs a `JSON.parse(JSON.stringify(...))` round-trip before every JSON write to avoid a serialization error with nested objects containing special characters. The workaround works, but it is ugly, it adds latency, and every new developer asks "why is this here?"
+Dani's team has a 15-line workaround in their codebase for a documented edge case that the Next.js docs get wrong. She asks the agent to search `vercel/next.js` for matching issues and to read the contributing files. The agent reports the signed-commit requirement, the `canary` base branch, and the human-written PR description rule. Dani sets up SSH commit signing, then has a background agent draft the docs correction and the code-reviewer skill check it against the docs contribution guide.
 
-She asks the agent to analyze the issue and the repo's contribution setup. The Prisma monorepo has 20+ packages, each with its own directory structure and test setup. Without guidance, finding the right file to edit would mean grepping through hundreds of source files. The agent reads CONTRIBUTING.md, identifies the CLA bot link (Prisma uses a bot that comments on the PR), locates the relevant package (`packages/client/src/runtime/core/jsonProtocol/serialize.ts`), and finds the existing test patterns in `packages/client/tests/functional/json-fields/`.
-
-Dani signs the CLA — a 30-second process through Prisma's GitHub bot — then asks the agent to implement the fix following the repo's testing conventions. The fix goes into the serialization module: a 12-line change to handle nested JSON objects with special characters by properly escaping them before serialization instead of letting them break the JSON protocol wire format. The test follows the exact pattern used by adjacent test files: same `_matrix.ts` setup for the test matrix, same `prisma/_schema.prisma` for the test schema, same assertion style.
-
-She reviews the code to make sure the fix makes sense, pushes to her fork, and opens the PR with the generated description. Total time from issue to PR: 45 minutes instead of the half-day it would have taken to navigate the monorepo, find the right test patterns, figure out the changeset process, and read enough of the serialization code to locate the bug.
-
-The PR gets reviewed within a week. The Prisma maintainer suggests one minor change — extracting the escape logic into a helper function for clarity — which Dani makes in 5 minutes. The PR merges, and Dani's team removes their 15-line workaround in the next Prisma upgrade. One less piece of tech debt, one fewer "why is this here?" question from new hires, and one more contribution to the open source projects the team relies on every day.
+She reads the diff, writes the description herself, and opens the PR with `gh pr create`. The setup that used to eat an afternoon (finding the guide, finding out about signing, finding the right branch) is now a checklist the agent produces in a few minutes. The team repeats the routine for the other dependencies, each time with that project's own rules instead of one assumed template.

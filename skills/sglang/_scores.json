@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:805ee2986fd426c2dfe894e065b6adbe4f66ae2142606ed00b438d668a71833f",
+  "scoredAt": "2026-10-28T19:00:00.163Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Linux with NVIDIA GPUs, not cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "serve-model-with-tool-calling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use sglang serve and misses all required flags."
+      },
+      {
+        "name": "serve-embedding-model",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not include the required sglang serve command or curl test."
+      },
+      {
+        "name": "tensor-parallel-deployment",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B includes the correct sglang serve command but omits the required log and health check notes, whereas Response A uses a different server command and also misses those details."
+      }
+    ]
+  }
+}

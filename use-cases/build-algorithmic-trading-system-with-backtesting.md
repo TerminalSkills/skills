@@ -6,6 +6,7 @@ skills:
   - algo-trading
   - prediction-markets
   - dspy
+  - freqtrade
 category: data-ai
 tags:
   - trading
@@ -107,3 +108,4 @@ Marta's backtest shows a Sharpe ratio of 1.4, max drawdown of 11.2%, and 52% win
 - **algo-trading** — Core trading system: backtesting, strategy development, risk management, and live execution
 - **prediction-markets** — Market sentiment overlay using Polymarket data for risk-adjusted position sizing
 - **dspy** — Self-optimizing news sentiment classifier for macro event detection
+- [freqtrade](/skills/freqtrade) — an off-the-shelf alternative to hand-rolled backtesting: strategy classes, exchange candle downloads, backtests and a dry-run mode (simulated orders only)

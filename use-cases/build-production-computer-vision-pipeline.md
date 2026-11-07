@@ -6,6 +6,7 @@ skills:
   - senior-computer-vision
   - pytorch
   - vertex-media-generation
+  - supervision
 category: data-ai
 tags:
   - computer-vision
@@ -83,3 +84,10 @@ The TensorRT export reduces model size by 60% and doubles inference speed. The a
 ## Real-World Example
 
 A third-party logistics company trained a package damage detector using 800 real labeled images supplemented with 4,200 Imagen-generated synthetic images. The synthetic data boosted mAP@0.5 from 0.71 (real-only) to 0.89 (combined). After TensorRT optimization, the model ran at 34 FPS on Jetson Orin Nano devices mounted above each conveyor line. In the first month, the system flagged 340 damaged packages that would have shipped to customers, reducing damage-related returns by 62%. The total cost was $180 in Vertex AI generation credits and 8 hours of A100 training time, compared to the $45,000 quarterly cost of damage-related returns they were experiencing before.
+
+## Related Skills
+
+- [senior-computer-vision](/skills/senior-computer-vision) — detection, segmentation and YOLO inference for the model itself
+- [pytorch](/skills/pytorch) — train and export the detection network
+- [vertex-media-generation](/skills/vertex-media-generation) — generate the synthetic training images
+- [supervision](/skills/supervision) — model-agnostic detection utilities for the inference script: annotate frames, count objects in zones, process video, and convert datasets between YOLO and COCO

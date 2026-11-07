@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3d3bd92391742fce2a064044aa4bb6ca927de3cb6fd1d23055d55d38e0644e24",
+  "scoredAt": "2026-11-05T20:34:54.188Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 8,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "convert-run-export-html",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully follows the rubric with correct commands and double-dash usage; Response B uses incorrect commands and omits required steps."
+      },
+      {
+        "name": "create-sql-slider-notebook",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets most rubric items (slider, SQL, cli_args, run example) while Response A lacks SQL, cli_args, and headless run command."
+      },
+      {
+        "name": "export-ipynb-md",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B includes the exact marimo export commands with required flags, while Response A uses different tools and does not meet the rubric."
+      }
+    ]
+  }
+}

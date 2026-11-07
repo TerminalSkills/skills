@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f06cd89aed5e7040a86cdb00d7e34cea57e3b4696a715c4e24bc967f37ab4acd",
+  "scoredAt": "2026-10-28T19:01:50.954Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover many error scenarios such as permission errors, network failures, or unexpected service crashes."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "one-way-backup-documents",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use the required CLI commands or verification steps."
+      },
+      {
+        "name": "ignore-node-modules",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A includes the required curl POST and GET with correct headers and JSON body, while Response B omits any API calls entirely."
+      },
+      {
+        "name": "secure-gui-tls",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements with the exact CLI commands and a clear CSRF test, while Response A uses alternative CLI flags and lacks the required command syntax and explicit CSRF demonstration."
+      }
+    ]
+  }
+}

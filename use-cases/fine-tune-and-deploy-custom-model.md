@@ -9,6 +9,7 @@ skills:
   - wandb
   - vllm
   - unsloth
+  - llamafactory
 category: data-ai
 tags:
   - fine-tuning
@@ -263,3 +264,4 @@ After two weeks of iteration tracked entirely in W&B:
 ## Related Skills
 
 - [unsloth](/skills/unsloth) — Choose unsloth when the LoRA/QLoRA run has to fit one GPU and the result must ship as GGUF for Ollama/llama.cpp or as merged 16-bit weights for `vllm serve`, with training and export in one library
+- [llamafactory](/skills/llamafactory) — Choose llamafactory when the LoRA/QLoRA run should be described in a YAML file and driven by `llamafactory-cli train`, `export` and `api` instead of a Python training script

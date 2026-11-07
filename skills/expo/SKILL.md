@@ -8,10 +8,10 @@ description: >-
   builds, or integrating native device APIs. Trigger words: expo, expo router,
   eas build, react native expo, file-based routing mobile, deep linking.
 license: Apache-2.0
-compatibility: "Expo SDK 57-58 (expo 58.0.x); Node.js 22.13+ or 24.3+; iOS, Android, Web. Cloud builds need an Expo account."
+compatibility: "Expo SDK 57-58 (expo 58.0.x); Node.js 22.13+, 24.3+ or 26; iOS, Android, Web. Cloud builds need an Expo account."
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   category: development
   tags: "expo, react-native, mobile, routing, eas"
   repository: https://github.com/expo/expo
@@ -28,11 +28,11 @@ Expo is a development platform for React Native providing file-based routing (Ex
 ### Setup
 
 ```bash
-npx create-expo-app@latest fieldnotes --template default@sdk-58
+npx create-expo-app@latest fieldnotes
 cd fieldnotes && npx expo start
 ```
 
-The `default` template already includes Expo Router and TypeScript (`tabs` and `blank` templates also exist). While SDK 58 is rolling out, `create-expo-app@latest` without `--template` creates an SDK 57 project, which is the one to pick if you test on a physical device with Expo Go. Install packages with `npx expo install <pkg>` so versions match the SDK, and run `npx expo-doctor` to find mismatches.
+The `default` template already includes Expo Router and TypeScript (`tabs` and `blank` templates also exist), and `create-expo-app@latest` now creates an SDK 58 project (`expo-template-default` `latest` is 58.0.x). To pin another SDK use `--template default@sdk-57`; Expo Go on a device must support the SDK you pick. Install packages with `npx expo install <pkg>` so versions match the SDK, and run `npx expo-doctor` to find mismatches.
 
 ### File-Based Routing (Expo Router)
 

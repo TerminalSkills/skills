@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d3cd96ab9f000fd44ba6775bd7e994371e19e3d6ab2c95715e0f56963615b533",
+  "scoredAt": "2026-11-04T23:44:06.887Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Linux host with KVM, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.5,
+    "baselineAvg": 3,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "minimal-windows-compose",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements; Response A does not."
+      },
+      {
+        "name": "unattended-install-script",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers many required elements but omits KEY, REGION, KEYBOARD, COMMAND, and MSI copy steps, whereas Response A is empty."
+      },
+      {
+        "name": "multi-disk-audio-macvlan",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response B meets almost all rubric items while Response A fails to provide any solution."
+      }
+    ]
+  }
+}

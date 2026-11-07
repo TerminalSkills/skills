@@ -21,64 +21,100 @@ An indie game studio needs to animate 30 combat moves for a fighting game charac
 
 ## The Solution
 
-Using **blender-motion-capture** to handle data import, bone mapping, and retargeting, combined with **blender-scripting** to batch-process all 30 clips and apply consistent cleanup, the studio reduces per-move animation time from 5 hours to 25 minutes.
+Using **blender-motion-capture** to handle data import, bone mapping, and retargeting, combined with **blender-scripting** to batch-process all 30 clips and apply consistent cleanup, the studio replaces hand-keying each move with one scripted pass plus a short manual review.
 
 ## Step-by-Step Walkthrough
 
-### 1. Import and clean raw motion capture data
+### 1. Import the BVH at the game's frame rate
 
-Load raw BVH files and fix common issues like noisy joint data, ground plane offset, and frame rate mismatches.
+BVH files carry their own frame rate. Set the scene to the target rate first, then let the importer rescale the keys.
 
-> Import the BVH file /mocap/roundhouse_kick.bvh into Blender. Clean up the data: apply a Butterworth low-pass filter to remove jitter from the wrist and ankle joints, fix the ground plane so feet do not clip through the floor, and convert from 120fps capture rate to 30fps for the game engine. Use blender-motion-capture.
+> Write a Blender script that sets the scene to 30 fps, imports /mocap/roundhouse_kick.bvh with `use_fps_scale=True`, `update_scene_fps=False`, `global_scale=0.01` (the suit exports centimeters) and `rotate_mode='QUATERNION'`, then sets the scene frame range to the imported action. Use blender-motion-capture.
+
+A 121-frame, 120 fps clip imported this way becomes a 30 fps action of about one second (31 frames). `update_scene_duration=True` only extends the range, so set `frame_start` and `frame_end` from `action.frame_range` yourself, rounding the ends (the end of that 121-frame clip comes out as 30.9988, and `int()` would cut it to 30). Run scripts with `blender --background --python script.py`.
 
 ### 2. Map mocap bones to the character rig
 
-Create a bone mapping configuration that translates the mocap skeleton hierarchy to the studio's custom armature.
+Keep the source-to-target names in one JSON file that your script loads.
 
-> Create a bone mapping from our Rokoko mocap skeleton to our custom game character rig. The mocap uses names like "Hips", "Spine1", "LeftUpLeg" while our rig uses "root_bone", "spine_01", "thigh_L". Save the mapping as a reusable JSON config at /config/bone_map.json so it works for all 8 characters.
-
-The resulting bone mapping configuration defines each source-target pair along with axis corrections:
+> Create a bone mapping from our Rokoko mocap skeleton to our game rig: "Hips" to "root_bone", "Spine1" to "spine_01", "LeftUpLeg" to "thigh_L", "LeftLeg" to "shin_L", and so on. Save it as /config/bone_map.json so the same file works for all 8 characters.
 
 ```json
 {
-  "version": "1.0",
   "source_rig": "Rokoko_Smartsuit",
   "target_rig": "fighter_custom_v2",
-  "bone_map": [
-    { "source": "Hips",       "target": "root_bone",  "axis_remap": "XZY" },
-    { "source": "Spine1",     "target": "spine_01",   "axis_remap": null },
-    { "source": "Spine2",     "target": "spine_02",   "axis_remap": null },
-    { "source": "Neck",       "target": "neck_01",    "axis_remap": null },
-    { "source": "Head",       "target": "head",        "axis_remap": null },
-    { "source": "LeftUpLeg",  "target": "thigh_L",    "axis_remap": "XZY" },
-    { "source": "LeftLeg",    "target": "shin_L",     "axis_remap": null },
-    { "source": "LeftFoot",   "target": "foot_L",     "axis_remap": null },
-    { "source": "RightUpLeg", "target": "thigh_R",    "axis_remap": "XZY" },
-    { "source": "RightLeg",   "target": "shin_R",     "axis_remap": null },
-    { "source": "RightFoot",  "target": "foot_R",     "axis_remap": null }
-  ],
-  "scale_factor": 0.01,
-  "root_offset": [0.0, 0.0, 0.92]
+  "bone_map": {
+    "root_bone": "Hips",
+    "spine_01": "Spine1",
+    "thigh_L": "LeftUpLeg",
+    "shin_L": "LeftLeg"
+  }
 }
 ```
 
-This mapping file is authored once and reused for every character in the project. The `axis_remap` field handles the common problem of hip and thigh bones having different axis conventions between the mocap suit and the game rig. The `scale_factor` converts from the centimeter units used by the mocap suit to the meter units in the game engine.
+This file is your own convention, not a Blender format: the script reads it and passes it to the retarget step. Blender does no retargeting by itself, so the mapping is only as good as your bone names.
 
-### 3. Batch retarget all 30 combat moves
+### 3. Retarget and bake
 
-Process every BVH file through the bone mapping and apply per-clip adjustments automatically.
+Constrain each target bone to its source bone with a local-space Copy Rotation, then bake the result to keyframes on the character rig.
 
-> Use blender-scripting to batch process all 30 BVH files in /mocap/combat/. For each file: import, apply the bone mapping from bone_map.json, retarget onto the character rig from /characters/fighter_01.blend, constrain the root bone to prevent sliding, and export the retargeted animation as an FBX action. Save outputs to /animations/fighter_01/.
+```python
+import bpy, json
 
-### 4. Apply post-processing cleanup passes
+bone_map = json.load(open("/config/bone_map.json"))["bone_map"]   # target -> source
+scene = bpy.context.scene
+src = bpy.context.active_object              # the armature the BVH import just created
+tgt = bpy.data.objects["fighter_rig"]         # the character armature from /characters/fighter_01.blend
 
-Fix common retargeting artifacts like foot sliding, interpenetration, and unnatural joint angles.
+for target_bone, source_bone in bone_map.items():
+    c = tgt.pose.bones[target_bone].constraints.new('COPY_ROTATION')
+    c.target, c.subtarget = src, source_bone
+    c.mix_mode = 'REPLACE'
+    c.target_space = c.owner_space = 'LOCAL'
 
-> Run a cleanup pass on all 30 retargeted animations: apply inverse kinematics foot locking to prevent foot sliding during grounded moves, clamp elbow and knee joint angles to anatomically valid ranges, smooth transitions in the first and last 5 frames for blending in the game engine, and flag any frames where hands intersect the body mesh.
+bpy.ops.object.select_all(action='DESELECT')
+tgt.select_set(True)
+bpy.context.view_layer.objects.active = tgt
+bpy.ops.nla.bake(frame_start=scene.frame_start, frame_end=scene.frame_end, step=1,
+                 only_selected=False, visual_keying=True, clear_constraints=True,
+                 use_current_action=False, bake_types={'POSE'})
+```
+
+Local-space copying assumes both rigs share the same rest pose and bone roll. If the root slides or limbs twist, fix the rest pose first or add a root-motion step; this recipe does not solve that for you. Take `src` right after the import: the BVH armature is named after the file.
+
+I ran this recipe on Blender 5.0.1 with a generated 4-bone BVH and rig, and the baked action covered the whole clip.
+
+### 4. Batch all 30 clips and smooth the curves
+
+> Use blender-scripting to loop over /mocap/combat/*.bvh. For each file: open /characters/fighter_01.blend fresh, import, retarget and bake as above, smooth the baked curves, and export /animations/fighter_01/<clip>.fbx with baked animation.
+
+Blender 5.0 stores F-Curves in the action's channelbag, not in `action.fcurves`:
+
+```python
+act = tgt.animation_data.action
+cb = act.layers[0].strips[0].channelbag(tgt.animation_data.action_slot)
+for fc in cb.fcurves:
+    kp = fc.keyframe_points
+    vals = [k.co[1] for k in kp]
+    for i in range(2, len(kp) - 2):
+        kp[i].co[1] = sum(vals[i - 2:i + 3]) / 5      # 5-key moving average
+    fc.update()
+
+bpy.data.objects.remove(src)
+bpy.ops.export_scene.fbx(filepath="/animations/fighter_01/roundhouse_kick.fbx",
+                         use_selection=True, bake_anim=True,
+                         bake_anim_use_all_bones=True, add_leaf_bones=False)
+```
+
+Select the character armature before exporting so `use_selection` keeps only that rig. The moving average blurs fast strikes, so keep the window small (5 keys at 30 fps) and compare against the raw clip. The interactive Graph Editor also has Butterworth Smooth (`bpy.ops.graph.butterworth_smooth`), but it needs a Graph Editor area and does not run under `--background`.
+
+### 5. Review what the script cannot fix
+
+Foot sliding, ground contact and hand-body intersections need a human look. Open each baked clip, scrub the strikes, and fix the frames that fail by hand, for example with IK constraints on the feet.
 
 ## Real-World Example
 
-The studio recorded all 30 combat moves in a single 4-hour mocap session with two performers. Using the automated pipeline, they retargeted and cleaned all 30 animations onto their first character in under 13 hours total. Repeating the process for the remaining 7 characters took 3 hours each since the bone mapping and cleanup presets were reusable. The entire 8-character animation set that was estimated at 1,440 hours of hand animation was completed in approximately 34 hours of pipeline-assisted work.
+An indie studio recorded 30 combat moves in one session with two performers. They batch-retargeted the clips onto the first character, then spent their time on the reviews in step 5 instead of on bone mapping. For the next seven characters only the target side of the setup changed: the mapping file, the settings and the batch script were reused, so each character cost a review pass rather than a fresh rebuild.
 
 ## Tips
 
@@ -86,3 +122,8 @@ The studio recorded all 30 combat moves in a single 4-hour mocap session with tw
 - Save bone mapping configs per mocap suit model, not per character. A Rokoko mapping works for any target rig; only the target side changes.
 - Run the cleanup pass on the retargeted animation, not the raw BVH. Fixing foot sliding before retargeting wastes effort because the retarget step introduces its own artifacts.
 - Keep raw BVH files archived separately from retargeted outputs. Directors frequently request re-retargeting months later with adjusted scale or root offsets.
+
+## Related Skills
+
+- [blender-motion-capture](../skills/blender-motion-capture/) -- BVH/FBX import, retargeting and layered-action cleanup in Blender 5.x
+- [blender-scripting](../skills/blender-scripting/) -- headless bpy scripting for the batch loop

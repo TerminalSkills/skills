@@ -176,7 +176,6 @@ type: bigquery
 name: warehouse
 connection:
   account_info_json_path: ${env.GOOGLE_APPLICATION_CREDENTIALS}
-  dataset: raw_stripe
   project_id: ${env.BQ_PROJECT_ID}
 ```
 
@@ -234,10 +233,10 @@ Oscar deploys Metabase connected to the warehouse's transformed layer (`mart_*` 
 docker run -d --name metabase -p 127.0.0.1:3000:3000 \
   -e MB_DB_TYPE=postgres -e MB_DB_HOST=db.internal -e MB_DB_PORT=5432 \
   -e MB_DB_DBNAME=metabase -e MB_DB_USER=metabase -e MB_DB_PASS="$METABASE_DB_PASSWORD" \
-  metabase/metabase:latest
+  metabase/metabase:v0.65.3.3
 ```
 
-Pin an explicit version tag in production. Non-technical users build their own questions with the query builder; Oscar saves the MRR waterfall as a SQL question (BigQuery syntax) and pins it to the Executive Dashboard. A dashboard subscription (needs SMTP configured) sends the CEO a weekly email.
+The tag is pinned on purpose: Metabase cannot downgrade its application-database schema, so upgrade deliberately and back up the Postgres database first (0.64.x is the long-term-support line if you prefer fewer upgrades). Non-technical users build their own questions with the query builder; Oscar saves the MRR waterfall as a SQL question (BigQuery syntax) and pins it to the Executive Dashboard. A dashboard subscription (needs SMTP configured) sends the CEO a weekly email.
 
 ```sql
 -- Metabase question: MRR Waterfall

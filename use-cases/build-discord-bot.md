@@ -6,6 +6,7 @@ skills:
   - typescript
   - discord
   - postgresql
+  - astrbot
 category: development
 tags:
   - discord
@@ -251,3 +252,4 @@ Mia's team adds the bot on a Friday and pins `/verify` in the rules channel. New
 - `typescript` - strict types for the interaction handlers and build setup
 - `postgresql` - tickets and warning history
 - `discord` - official-docs reference for intents, slash-command registration (guild vs global), ephemeral replies, rate limits, webhooks and plain REST calls; use it to check this bot against current Discord behavior.
+- [astrbot](/skills/astrbot) — choose it instead of writing a bot when the community only needs an LLM assistant (chat, memory, plugins) in the server, not custom slash-command logic: a self-hosted panel, one bot token, and the web panel bound to localhost.

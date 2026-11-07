@@ -11,118 +11,131 @@ tags: [api-mocking, frontend, openapi, development-workflow, testing]
 
 ## The Problem
 
-Priya leads a frontend team of three at a 20-person SaaS startup. They depend on a backend API that's half-built. Endpoints change weekly, new fields appear without warning, and the backend team is in a different timezone -- by the time the frontend team starts work in the morning, the backend team is wrapping up their day.
+Priya leads a frontend team of three at a 20-person SaaS startup. They depend on a backend API that is half-built. Endpoints change weekly, new fields appear without warning, and the backend team is in a different timezone, so by the time the frontend team starts work the backend team is wrapping up.
 
-The result: two hours every morning spent figuring out which endpoints work, which are broken, and what the response shapes look like today. Developers hardcode fake data directly in their components -- `const user = { name: "Test User", email: "test@test.com" }` -- which renders perfectly in development and breaks the moment it meets real API data. Integration bugs pile up at the end of every sprint because the frontend was built against imaginary data, not the actual contract. Last sprint: 14 integration bugs at merge time. The sprint before that: 11. The trend is getting worse, not better.
+The result: two hours every morning spent figuring out which endpoints work, which are broken, and what the response shapes look like today. Developers hardcode fake data in components (`const user = { name: "Test User" }`), which renders fine in development and breaks the moment it meets real API data. Integration bugs pile up at the end of every sprint because the frontend was built against imaginary data, not the actual contract: 14 at merge time last sprint, 11 the sprint before.
 
 ## The Solution
 
-Use the **api-tester** skill to validate the current OpenAPI spec against the live backend and identify discrepancies. Have the **coding-agent** generate a mock server from the spec with realistic seed data. Use the **test-generator** to create contract tests that alert when the backend spec changes, keeping mocks perpetually in sync.
+Use **api-tester** to compare the OpenAPI spec with what the live backend returns. Have the **coding-agent** generate typed mock handlers from the spec with realistic seed data. Use **test-generator** to write tests that fail when the mocks and the spec disagree, and re-run them whenever the spec changes.
+
+The stack: [MSW](https://mswjs.io) (Mock Service Worker) for the mocks, [openapi-typescript](https://openapi-ts.dev) to turn the spec into TypeScript types, and [openapi-msw](https://github.com/christoph-fricke/openapi-msw) to make MSW handlers type-checked against those types. Note that MSW 3 (current) requires Node.js 22 or newer and moved `http` and `HttpResponse` to `msw/http`.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Validate the OpenAPI Spec Against Reality
 
-The OpenAPI spec is supposed to be the single source of truth. In practice, it drifts. Fields get added to responses without updating the spec, endpoints that aren't built yet still appear as "available," and the spec occasionally contradicts itself.
+The spec is supposed to be the single source of truth. In practice it drifts: fields get added without updating it, and endpoints that are not built yet still appear as available.
 
 ```text
-Download the OpenAPI spec from https://api.internal.dev/docs/openapi.json. Validate it for completeness -- flag any endpoints missing response schemas, any fields without types, and any mismatches between the spec and actual API responses by hitting each GET endpoint once.
+Download the OpenAPI spec from https://api.internal.dev/docs/openapi.json. Flag any endpoint missing a response schema and any field without a type. Then call each GET endpoint once against the staging API with curl (--max-time 30, token from $API_TOKEN, never production) and compare the real response keys with the schema.
 ```
 
-The validation hits all 34 endpoints and finds the drift:
+The agent reports the drift:
 
 | Endpoint | Issue |
 |---|---|
 | `GET /api/projects` | Undocumented field: `archived_at` (string, nullable) |
 | `GET /api/users/:id` | Undocumented field: `avatar_url` (string) |
 | `GET /api/tasks` | Undocumented field: `priority` (integer) |
-| `POST /api/tasks` | Response missing `created_by` field that spec promises |
-| `GET /api/reports/burndown` | Returns 501 -- not implemented yet |
-| `POST /api/reports/export` | Returns 501 -- not implemented yet |
+| `GET /api/reports/burndown` | Returns 501, not implemented yet |
 
-28 endpoints match their spec. 4 have undocumented fields (the backend added them, the spec didn't follow). 2 are stubs that return 501. This discrepancy report alone saves hours of debugging -- now the frontend team knows exactly which fields exist in reality versus on paper.
+Now the frontend team knows which fields exist in reality and which only on paper. Fix the spec first (or ask the backend team to), because everything below is generated from it.
 
-### Step 2: Generate a Mock Server with Realistic Data
+### Step 2: Generate Types and Typed Mock Handlers
 
-Hardcoded fake data in components is a landmine. A proper mock server serves the same shapes as the real API, with realistic enough data to expose edge cases (long names, empty arrays, null fields, unicode characters).
+```bash
+npm install --save-dev msw openapi-typescript openapi-msw typescript@5
+npx openapi-typescript https://api.internal.dev/docs/openapi.json -o mocks/api.d.ts
+```
+
+`openapi-typescript` 7 requires TypeScript 5, so keep `typescript@5` in the project until its peer range allows 6 or 7. Then ask the **coding-agent**:
 
 ```text
-Generate a mock API server using MSW (Mock Service Worker) that serves all 34 endpoints from the OpenAPI spec. For each endpoint, generate 20 realistic seed records. Use proper names, dates, UUIDs, and domain-appropriate values (project names, task descriptions). Handle pagination, filtering, and error responses.
+Using mocks/api.d.ts, write MSW handlers in mocks/handlers/ for every endpoint in the spec with openapi-msw (createOpenApiHttp<paths>). Seed each collection with 20 realistic records (real-sounding project names, full-sentence task descriptions, UUIDs, ISO dates). Include edge cases: one user with a 47-character name, one project with zero tasks, nullable fields set to null. Support pagination and filtering query params. Stub the 501 endpoints with a 501 response.
 ```
 
-The mock server structure:
+The generated handler for one endpoint looks like this:
 
-```
-mocks/
-  handlers/
-    projects.ts    -- 6 handlers (CRUD + list + archive)
-    users.ts       -- 4 handlers (CRUD + list)
-    tasks.ts       -- 8 handlers (CRUD + list + assign + status transitions)
-    reports.ts     -- 2 handlers (stub 501 responses, matching reality)
-  seed/
-    projects.json  -- 20 projects: "Q1 Platform Redesign", "Mobile App v3.0", ...
-    users.json     -- 20 users with realistic names, emails, roles, avatar URLs
-    tasks.json     -- 60 tasks linked to projects and users with varied statuses
-  server.ts        -- MSW setup with all handlers registered
-  browser.ts       -- Browser worker for Storybook integration
+```typescript
+// mocks/handlers/tasks.ts
+import { createOpenApiHttp } from "openapi-msw";
+import type { paths } from "../api.d.ts";
+import { tasks } from "../seed/tasks.ts";
+
+const http = createOpenApiHttp<paths>({ baseUrl: "https://api.internal.dev" });
+
+export const taskHandlers = [
+  http.get("/api/tasks", ({ response }) =>
+    response(200).json({ items: tasks.slice(0, 20) }),
+  ),
+];
 ```
 
-The seed data isn't random gibberish -- project names sound like real projects, task descriptions contain actual sentences, dates span a realistic range, and some fields are intentionally null or empty to test edge cases. One user has a 47-character name to catch truncation bugs. One project has zero tasks to test empty states. This is the kind of testing surface that hardcoded `"Test User"` data never provides.
+Because the response type comes from the spec, a handler that returns a wrong shape is a compile error, not a runtime surprise. Run `npx tsc --noEmit` after every change.
 
 ### Step 3: Wire the Mock Server into Development
 
-The mock server needs to activate seamlessly -- no code changes to switch between mock and real API, and it needs to work in both the dev server and Storybook.
+Set up three entry points:
+
+- **Browser dev server:** `import { setupWorker } from "msw/browser"`, and run `npx msw init public/` once to put `mockServiceWorker.js` in your static directory. Start the worker before rendering, only when `NEXT_PUBLIC_API_MOCKING=true` (or your framework's equivalent), so switching between mock and real API is a one-line env change.
+- **Tests and server-side rendering:** `import { setupServer } from "msw/node"` and call `server.listen()`.
+- **Storybook:** `msw-storybook-addon` registers the same handlers per story.
 
 ```text
-Configure our Next.js app to use the MSW mock server in development and Storybook. The mock server should activate automatically when NEXT_PUBLIC_API_MOCKING=true. Add a toggle in the browser dev tools to switch between mock and real API.
+Configure the app to start the MSW worker in development when NEXT_PUBLIC_API_MOCKING=true, add the node server for the test setup file, and register the handlers in Storybook with msw-storybook-addon.
 ```
 
-With `NEXT_PUBLIC_API_MOCKING=true` in the `.env.development` file, MSW intercepts all fetch requests and returns mock data. In Storybook, the browser worker handles the same interception. The dev tools toggle lets a developer flip between mock and real API without restarting the server -- useful when they need to verify something against the actual backend.
+A quick check from the node side proves the wiring (this run returned the seeded task):
 
-The frontend team stops spending two hours every morning figuring out what works. The mock server always works, and it always returns the right shapes.
+```console
+$ node --experimental-strip-types run.ts
+200 {"items":[{"id":"t_1","title":"Write release notes","priority":2}]}
+```
+
+The mock server always works and always returns the right shapes. Developers flip the env var when they need to verify something against the real backend.
 
 ### Step 4: Generate Contract Tests
 
-Mocks drift from reality the same way specs do -- unless something enforces the contract. Contract tests compare mock responses against the OpenAPI spec and fail the moment they disagree.
+Mocks drift from reality the same way specs do, unless something enforces the contract. Two checks do the job:
 
-```text
-Create contract tests that compare the mock server responses against the OpenAPI spec. If the backend team updates the spec, these tests should fail immediately and show exactly which fields changed. Run them in CI on every PR.
-```
+1. **Type check (compile time).** When the spec changes, regenerate `mocks/api.d.ts` and run `tsc --noEmit`. If the backend renamed `priority` to `urgency`, the handler no longer compiles and the error names the field:
 
-Thirty-four contract tests in `tests/contracts/`, one per endpoint:
+   ```console
+   mocks/handlers.ts(8,77): error TS2353: Object literal may only specify known properties, and 'priority' does not exist in type '{ id: string; title: string; urgency: number; }'.
+   ```
 
-```typescript
-// tests/contracts/projects.test.ts
-test('GET /api/projects response matches schema', async () => {
-  const response = await mockServer.get('/api/projects');
-  // Validates: all 12 fields present, correct types, no extra fields
-  // Fails with: "Field 'archived_at' in response but not in schema"
-  expect(response).toMatchOpenAPISchema('GET /api/projects');
-});
-```
+2. **Runtime tests.** Ask **test-generator** for Vitest tests that exercise the mock server through `fetch`:
 
-CI integration: the GitHub Actions workflow downloads the latest OpenAPI spec from the backend team's repo, runs all 34 contract tests against the mock handlers, and fails the PR if any schema mismatch is detected. When the backend adds a new field, the test says exactly which field changed and in which endpoint -- the frontend developer updates the mock in minutes instead of discovering the mismatch at integration time.
+   ```text
+   Write Vitest tests in tests/contracts/ that start the msw/node server and, for every endpoint in the spec, check the status code, that the required fields exist with the right types, and that list endpoints honor page and limit. Use the spec as the source of truth, not the handler code.
+   ```
+
+Run both in CI on every PR, against the spec downloaded from the backend repo or the staging URL.
 
 ### Step 5: Auto-Update Mocks When the Spec Changes
 
-The final piece: when the backend team publishes a spec update, the mocks should update themselves for simple changes (added fields, type changes) and flag complex changes (removed fields, renamed endpoints) for manual review.
+A daily CI job regenerates the types from the latest spec and lets git and the compiler show what changed:
 
-```text
-Write a script that diffs the current OpenAPI spec against the last known version. When fields are added, auto-generate new seed data and update handlers. When fields are removed, flag them for manual review. Run this as a daily CI job.
+```bash
+npx openapi-typescript "$OPENAPI_URL" -o mocks/api.d.ts
+git diff --stat mocks/api.d.ts       # what changed in the contract
+npx tsc --noEmit                      # which handlers no longer match
 ```
 
-A daily job pulls the latest spec, compares it to the stored version, and handles the diff:
+- **Added fields:** the job asks the coding-agent to add them to handlers and seed data, choosing values by field name and type (an `avatar_url` gets image URLs, not random strings), and opens a PR.
+- **Removed or renamed fields, type changes:** the compiler fails and the job posts the error to the team's channel. A removed field may mean a component has to change, and that should not happen silently.
 
-- **Added fields**: Automatically generates appropriate seed data based on the field type and name (a field called `avatar_url` gets realistic image URLs, not random strings) and updates the handler to include it.
-- **Removed fields**: Flags for manual review with a Slack notification. Removing a field might mean the frontend needs to update a component, and that shouldn't happen silently.
-- **Type changes**: Flags for review -- a field changing from `string` to `number` probably means a breaking change.
-
-The spec version gets committed after each sync, so the diff always shows incremental changes rather than accumulating drift.
+Commit the regenerated `api.d.ts` with each sync so the next diff shows only incremental changes.
 
 ## Real-World Example
 
-Priya's team notices the difference within the first week. Monday morning: instead of spending two hours probing the API, everyone starts building immediately against the mock server. A developer finishes a project list component on Tuesday, confident the data shape is correct because the mock mirrors the validated spec.
+Priya's team notices the difference in the first week. On Monday everyone starts building immediately against the mock server. A developer finishes the project list component on Tuesday, confident about the data shape because the handler is type-checked against the validated spec.
 
-Thursday, the daily spec sync catches a change: the backend team added a `priority` field to the tasks endpoint (one of the undocumented fields from the initial audit, now formalized). The mock auto-updates with seed data, and the contract test for the frontend's task handler fails -- showing exactly which component needs to handle the new field.
+On Thursday the daily sync catches a change: the backend team formalized the `priority` field on tasks. The types regenerate, the compiler flags the task handler, and the agent opens a PR updating the handler and seed data. After a month, the team counts integration bugs at merge time again: the data-shape bugs are gone, and what is left is business logic that needs human judgment.
 
-After one month, sprint integration bugs drop from 14 to 2. The two remaining bugs are business logic issues, not data shape mismatches -- the kind of bugs that actually require human judgment to resolve. The team ships features three days faster per sprint because they stopped waiting for backend endpoints to stabilize. The mock server gave them stability to build against, and the contract tests gave them confidence that stability reflects reality.
+## Related Skills
+
+- [api-tester](../skills/api-tester/) -- compares the spec with real responses from the staging API
+- [coding-agent](../skills/coding-agent/) -- generates typed handlers and seed data from the spec
+- [test-generator](../skills/test-generator/) -- writes the Vitest contract tests

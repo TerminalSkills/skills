@@ -2,7 +2,7 @@
 title: "Generate Tests for Existing Code with AI"
 slug: generate-tests-for-existing-code
 description: "Add comprehensive test suites to untested codebases, review test quality, and set up CI to run them automatically."
-skills: [test-generator, code-reviewer, cicd-pipeline, hypothesis]
+skills: [test-generator, code-reviewer, cicd-pipeline, hypothesis, stryker-js]
 category: development
 tags: [testing, test-generation, coverage, code-review, ci-cd]
 ---
@@ -154,3 +154,4 @@ The SOC 2 auditors reviewed the setup two weeks later. Comprehensive test suites
 ## Related Skills
 
 - [hypothesis](/skills/hypothesis) — property-based tests for Python: state what must always hold and let it generate the inputs, which finds edge cases that example tests miss
+- [stryker-js](/skills/stryker-js) — mutation testing for JavaScript and TypeScript: it breaks your code on purpose and lists the changes that no test notices, which exposes generated tests that pass without checking anything

@@ -11,128 +11,140 @@ tags: [microservices, monolith, architecture, domain-driven-design, migration]
 
 ## The Problem
 
-A 4-year-old Rails monolith has grown to 380K lines of code. Deployments take 45 minutes, a bug in the billing module blocks the entire release train, and scaling the search feature means scaling the whole application — all 380K lines, all 142 database tables, all 67 controllers. The team of 18 developers steps on each other's toes in every sprint — merging to main is a daily adventure in conflict resolution, and a CSS change in the checkout flow once broke the admin dashboard because they share a layout partial.
+A 4-year-old Rails monolith has grown to 380K lines of code. Deployments take 45 minutes, a bug in the billing module blocks the entire release train, and scaling the search feature means scaling the whole application: every model, every controller, every database table. The team of 18 developers steps on each other's toes in every sprint — merging to main is a daily adventure in conflict resolution, and a CSS change in the checkout flow once broke the admin dashboard because they share a layout partial.
 
 Leadership approved a microservices migration, but nobody knows where to draw the service boundaries without breaking everything. The last attempt, six months ago, stalled at week 3 because the team couldn't agree on how to split the shared `User` model that's referenced from 47 different files. The architect drew service boundaries on a whiteboard based on organizational structure (billing team gets a billing service, etc.), but the boundaries didn't match the actual code dependencies. The first extraction attempt created a distributed monolith — all the downsides of microservices (network calls, deployment complexity, distributed debugging) with none of the benefits (independent scaling, isolated failures, team autonomy).
 
 ## The Solution
 
-Using **code-reviewer** to analyze the codebase for coupling patterns and module boundaries, **data-analysis** to map data flow and dependency graphs, **coding-agent** to generate extraction scaffolding, and **docker-helper** to containerize each new service, the monolith gets decomposed based on actual code dependencies rather than whiteboard diagrams.
+Use **coding-agent** to run the analysis and scaffolding as scoped background tasks, **data-analysis** (pandas) to turn the code's real references into a coupling table, **code-reviewer** to review each extraction diff for leaked internals and broken contracts, and **docker-helper** to containerize each new service. Boundaries come from measured code dependencies rather than whiteboard diagrams.
 
 ## Step-by-Step Walkthrough
 
-The decomposition follows a disciplined sequence: understand the current state, draw boundaries based on data, plan the extraction order, scaffold the first service, and verify with shadow traffic before cutting over. Every step is reversible — if the team decides a boundary is wrong, they haven't committed to anything irreversible yet.
+The decomposition follows a disciplined sequence: understand the current state, draw boundaries from data, plan the extraction order, scaffold the first service, and verify with shadow traffic before cutting over. Every step before the cutover is reversible.
 
 ### Step 1: Map the Monolith's Module Structure
 
-Before drawing any boundaries, understand what you actually have. Most teams skip this step and draw boundaries based on organizational structure or intuition. The code tells a different story:
+Before drawing any boundaries, measure what you have. Ask a coding agent for the inventory, and keep the result as data you can query (the `data-analysis` skill's load, inspect, aggregate routine) rather than as prose:
 
 ```text
-Analyze this Rails monolith codebase. Map every model, controller, and service object to a domain concept. Build a dependency graph showing which modules call each other, which models are shared across controllers, and where the highest coupling exists. I want to see: module clusters, shared database tables, and cross-cutting concerns. Focus on app/models/, app/controllers/, and app/services/.
+Inventory this Rails app: list every class in app/models, app/controllers and app/services and propose a domain cluster for each (user/auth, billing, catalog, search, notifications, shared). Write the result to clusters.csv with two columns, path and cluster, no header. Do not change any code.
 ```
 
-The scan covers 142 models, 67 controllers, and 93 service objects. Five natural clusters emerge from the dependency analysis:
+Review `clusters.csv` by hand, then count real references with a small script. It scans `app/**/*.rb` for constants named after your models, maps each file and model to a cluster, and reports models used by three or more clusters plus clusters that depend on each other in both directions:
 
-| Cluster | Models | Controllers | Service Objects | Key Responsibility |
-|---------|--------|-------------|-----------------|-------------------|
-| User/Auth | 23 | 8 | 12 | Registration, authentication, roles, permissions |
-| Billing/Subscription | 18 | 6 | 15 | Plans, invoices, payment processing, dunning |
-| Product/Catalog | 31 | 19 | 24 | Listings, categories, inventory, pricing |
-| Search/Discovery | 12 | 5 | 8 | Search indexing, filters, recommendations |
-| Notifications | 8 | 3 | 6 | Email, push, in-app, template rendering |
+```python
+# scripts/coupling.py   usage: python coupling.py <rails_root> clusters.csv
+import re
+import sys
+from pathlib import Path
 
-The remaining 50 models, 26 controllers, and 28 service objects don't cluster cleanly — they're shared infrastructure (logging, caching, configuration) or coupling hotspots that straddle multiple domains. This is normal. A clean decomposition doesn't mean every file maps to exactly one service — it means the ambiguous files are identified and consciously assigned rather than accidentally duplicated.
+import pandas as pd
 
-The dependency graph flags **14 models referenced from 3 or more clusters**. These are the coupling hotspots that make decomposition hard. The `User` model alone is imported in 47 files across every cluster. `Product` appears in 38. `Subscription` is referenced from both Billing (where it belongs) and 6 places in Catalog (where it shouldn't be). These shared models are why the previous extraction attempt failed — you can't cleanly extract a service when half the codebase reaches into its internals.
+root = Path(sys.argv[1]).resolve()
+clusters = pd.read_csv(sys.argv[2], header=None, names=["file", "cluster"]).set_index("file")["cluster"]
+
+files = list((root / "app").rglob("*.rb"))
+models = {p.stem.title().replace("_", ""): p.relative_to(root).as_posix() for p in (root / "app/models").rglob("*.rb")}
+pattern = re.compile(r"\b(" + "|".join(map(re.escape, models)) + r")\b")
+
+edges = []
+for f in files:
+    rel = f.relative_to(root).as_posix()
+    for name in set(pattern.findall(f.read_text())):
+        if models[name] != rel:
+            edges.append({"file": rel, "model": name})
+df = pd.DataFrame(edges)
+df["from_cluster"] = df["file"].map(clusters)
+df["to_cluster"] = df["model"].map(lambda m: clusters.get(models[m]))
+df = df.dropna(subset=["from_cluster", "to_cluster"])
+cross = df[df["from_cluster"] != df["to_cluster"]]
+
+print("models referenced from 3+ clusters:")
+hot = cross.groupby("model")["from_cluster"].nunique()
+print(hot[hot >= 3].sort_values(ascending=False).to_string())
+
+pairs = cross.groupby(["from_cluster", "to_cluster"]).size().rename("refs").reset_index()
+print("\ncross-cluster references:")
+print(pairs.sort_values("refs", ascending=False).to_string(index=False))
+
+rev = pairs.rename(columns={"from_cluster": "to_cluster", "to_cluster": "from_cluster"})
+both = pairs.merge(rev, on=["from_cluster", "to_cluster"], suffixes=("", "_back"))
+print("\nmutual dependencies (break these before extracting):")
+print(both[both["from_cluster"] < both["to_cluster"]].to_string(index=False))
+```
+
+This is a text scan: it sees `User.find(id)` but not `belongs_to :user`, `send(:const_get, ...)` or SQL joins, so treat the numbers as a lower bound and have the agent grep `db/schema.rb` and `joins(` calls for the rest. A typical monolith shows a handful of models, usually `User` and the main product model, referenced from almost every cluster. Those shared models are why extraction attempts fail: you cannot cleanly extract a service when half the codebase reaches into its internals.
 
 ### Step 2: Draw Service Boundaries Using Actual Dependencies
 
 ```text
-Based on the dependency graph, propose service boundaries following DDD principles. For each proposed service: list the models it owns, the API calls it would need to make to other services, the shared database tables that would need to be split, and the estimated extraction difficulty (easy/medium/hard). Flag any circular dependencies that would need to be broken first.
+Using the cross-cluster reference table, propose service boundaries following DDD principles. For each proposed service: the models it owns, the calls it would need to make to other services, the shared tables that would need splitting, and the extraction difficulty (easy/medium/hard). List every mutual dependency that has to be broken first.
 ```
 
-Six services emerge with clear ownership, but three circular dependencies need to be broken before any extraction can begin:
+Expect the usual three kinds of cycle, and break them with events before extracting anything, because if Billing depends on User and User depends on Billing, neither can go first:
 
-- **Billing <-> User:** Billing reads user data directly from the User table instead of through an API. Every billing query JOINs on users.
-- **Catalog <-> Search:** Search indexes are rebuilt inside ActiveRecord callbacks on Catalog models. The search system is deeply embedded in catalog write operations.
-- **Notifications -> everything:** Every other cluster triggers notifications by calling notification models and service objects directly. Notifications has no boundary — it's woven into every workflow.
+- **Billing <-> User:** Billing joins on the users table directly. Replace the join with an API call or a local copy of the few user fields billing needs, kept current by user-change events.
+- **Catalog <-> Search:** search indexes are rebuilt inside ActiveRecord callbacks. Publish a catalog event after the transaction commits (use a transactional outbox so a rolled-back write never emits an event) and let search consume it.
+- **Notifications <- everything:** other clusters call notification models directly. Make notifications an event consumer: the order service publishes "order placed" and notifications decides what to send.
 
-The recommendation: break all three circular dependencies with event-driven patterns *before* extracting any service. This is counterintuitive — the team wants to start extracting services immediately — but circular dependencies make extraction impossible. If Billing depends on User and User depends on Billing, you can't extract either one first.
-
-The pattern for breaking each cycle: Billing subscribes to user change events instead of querying the User table directly. Search consumes catalog events through a message queue instead of being triggered by model callbacks. Notifications become event consumers rather than method calls — when an order is placed, the order service publishes an event and the notification service decides what to send.
-
-**Extraction difficulty by service:**
-
-| Service | Difficulty | Why | Team Weeks (3-person team) |
-|---------|------------|-----|---------------------------|
-| Search | Easy | Already loosely coupled, Elasticsearch does heavy lifting | 3 |
-| Notifications | Easy | Mostly async, natural fit for event consumption | 2 |
-| Billing | Medium | Clean boundaries but complex business logic, payment flows | 4 |
-| Auth | Medium | Shared session state across all services complicates extraction | 3 |
-| Catalog | Hard | 31 models, deep coupling to everything else | 4 |
-| Core/API Gateway | Hard | Orchestration layer, touches all services | 4 |
+Order the extractions by difficulty: low-coupling, asynchronous parts first (search, notifications), then billing and auth, and the heavily entangled catalog and the gateway last. Use the agent's estimates as a starting point and re-estimate after the first service ships.
 
 ### Step 3: Plan the Strangler Fig Migration
 
 ```text
-Create a phased migration plan using the strangler fig pattern. Start with the easiest service to extract (Search). For each phase: what gets extracted, what API contracts need to be defined, what data needs to be replicated or split, what the rollback strategy is, and how long it should take a team of 3. Generate the actual API contract (OpenAPI spec) for the Search service.
+Create a phased migration plan using the strangler fig pattern, starting with the easiest service (Search). For each phase: what gets extracted, the API contract, what data is replicated or split, the rollback strategy. Write the OpenAPI 3.1 spec for the Search service to search-service/openapi.yaml.
 ```
 
-The strangler fig pattern means new services grow around the monolith, intercepting requests one by one, until the monolith shrinks to nothing. No big bang rewrite, no "we'll switch everything on Tuesday," no all-hands-on-deck migration weekend. The monolith keeps running throughout — if anything goes wrong with the new service, traffic routes back to the monolith instantly.
-
-The 5-phase plan spans 16 weeks:
-
-| Phase | Service | Duration | Approach | Rollback |
-|-------|---------|----------|----------|----------|
-| 1 | Search | 3 weeks | API gateway routes search traffic to new service, dual-write for indexing | Feature flag to route back to monolith |
-| 2 | Notifications | 2 weeks | Event consumers replace direct model calls | Switch consumers off, re-enable direct calls |
-| 3 | Billing | 4 weeks | New service owns billing tables, API for user data | Dual-write during transition |
-| 4 | Auth | 3 weeks | JWT-based auth, session migration for existing users | Fallback to monolith session store |
-| 5 | Catalog + Gateway | 4 weeks | Largest extraction, API gateway becomes permanent | Phase-by-phase endpoint migration |
-
-Phase 1 extracts Search behind an API gateway with dual-write to both the new service and the monolith. Feature flags control traffic shifting: 1% of searches go to the new service, then 10%, then 50%, then 100%. If anything breaks at any stage, the flag flips back in seconds. Each phase includes an OpenAPI spec, database migration scripts, feature flag configuration, and a rollback runbook that anyone on the team can execute.
+The strangler fig pattern means new services grow around the monolith, taking over requests one route at a time until little of the monolith is left. A gateway or reverse proxy in front routes `/search` to the monolith or the new service. A feature flag or weighted routing shifts traffic gradually (1%, 10%, 50%, 100%) and flips back in seconds if the new service misbehaves. Each phase needs an API contract, data migration scripts, and a rollback runbook anyone on the team can run.
 
 ### Step 4: Scaffold the First Service
 
 ```text
-Scaffold the Search service based on the migration plan. It should be a standalone Node.js service with: the Elasticsearch integration extracted from the monolith, a REST API matching the OpenAPI spec, health checks, structured logging, Docker configuration for local dev and production, and a shared event schema for catalog updates. Keep the same search behavior — this is a lift-and-shift, not a rewrite.
+Scaffold the Search service from the migration plan: a standalone Node.js (TypeScript) service with the Elasticsearch integration extracted from the monolith, a REST API matching search-service/openapi.yaml, health endpoints, structured logging, a multi-stage Dockerfile, and an event consumer for catalog updates. Keep the same search behavior: lift and shift, not a rewrite. Run tsc --noEmit and the service's tests.
 ```
 
-The generated service includes:
+Run this as a scoped background task per the `coding-agent` skill (narrow prompt, `--allowedTools`, a budget cap) and review the diff with **code-reviewer** before merging. docker-helper provides the packaging: a multi-stage Dockerfile (build stage compiles TypeScript, runtime stage keeps only production dependencies and runs as the non-root `node` user) and a compose file for local development. Every port is published on loopback only:
 
-- **12 endpoint handlers** matching the monolith's search behavior exactly — same query parameters, same response format, same pagination
-- **Elasticsearch client configuration** extracted from the Rails codebase, with connection pooling and retry logic
-- **Event consumer** for catalog sync, replacing the ActiveRecord callbacks with a message queue consumer that processes catalog changes asynchronously
-- **Multi-stage Dockerfile** — build stage compiles TypeScript, runtime stage contains only production dependencies (final image: 85MB)
-- **docker-helper** for local development with Elasticsearch, Redis, and RabbitMQ
-- **Health check endpoints** for Kubernetes readiness and liveness probes
+```yaml
+# compose.yaml (local development only)
+services:
+  elasticsearch:
+    image: elasticsearch:9.5.5
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"   # local only; never on a shared network
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports: ["127.0.0.1:9200:9200"]
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:   # the built-in guest user only works from localhost, not from the search container
+      RABBITMQ_DEFAULT_USER: app
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?set it in .env}
+    ports: ["127.0.0.1:5672:5672", "127.0.0.1:15672:15672"]
+  search:
+    build: ./search-service
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      AMQP_URL: amqp://app:${RABBITMQ_PASSWORD}@rabbitmq:5672
+    ports: ["127.0.0.1:4001:4001"]
+    depends_on: [elasticsearch, rabbitmq]
+```
 
-This is deliberately boring — and that's the point. The goal is identical behavior in a separate process, not a better search engine. No rewriting the ranking algorithm. No adding new features. No "while we're at it, let's also fix the pagination." Improvements come later, after the extraction is proven in production and the team has confidence in the service boundary.
-
-Mixing "extract" with "improve" is how microservices migrations stall at month 3. The Search service should return exactly the same results as the monolith for every query. If it doesn't, you've introduced two variables — a new architecture and new behavior — and when something breaks, you can't tell which variable caused it.
+Keep this step deliberately boring: identical behavior in a separate process, no new ranking, no pagination fixes. Mixing "extract" with "improve" is how migrations stall: if results differ you cannot tell whether the architecture or the behavior changed.
 
 ### Step 5: Verify with Shadow Traffic Comparison
 
 ```text
-Generate integration tests that verify the Search service returns identical results to the monolith for the same queries. Create a traffic comparison tool that sends production queries to both the monolith and new service, compares responses, and reports discrepancies. Add Prometheus metrics for latency, error rate, and result count differences.
+Write a comparison tool that replays a sample of production search queries (read-only, GET requests only) against both the monolith and the new Search service, compares the result IDs and order, and reports mismatches. Export latency, error rate and mismatch count as Prometheus metrics.
 ```
 
-A shadow traffic comparator replays 1% of production search queries against both systems simultaneously. The comparison dashboard shows result parity at 99.7% — the 0.3% discrepancy comes from a timing issue where the event consumer processes catalog updates slightly behind the monolith's synchronous ActiveRecord callbacks. A catalog item added at 14:00:00 appears in monolith search results at 14:00:01 but in the new service at 14:00:03.
-
-After tuning the event consumer (smaller batch size, more frequent polling), parity reaches 99.95%. The remaining 0.05% is items that changed during the comparison window — a race condition in the test, not the service.
-
-Alerting rules fire when divergence exceeds 1%, catching any regression before it affects real users. The team sets a quality gate: no cutover until 7 consecutive days above 99.5% parity.
-
-This shadow traffic approach is non-negotiable for a production migration. Without it, the only way to know if the new service works correctly is to cut over and find out — which is exactly the kind of risky move that makes microservices migrations fail. Shadow traffic lets you prove correctness before any real user is affected.
+Run the replay against a staging copy or with production reads only: the comparator must never send writes or carry user credentials into logs. Expect some mismatches from timing: the event consumer updates the index a moment after the monolith's synchronous callback did, so compare after a short settle delay or exclude items changed inside the comparison window. Alert when the mismatch rate passes a threshold you choose, and set a quality gate before cutover, such as a week of parity above your target. Without shadow traffic the only way to learn whether the new service behaves identically is to cut over and find out.
 
 ## Real-World Example
 
-A CTO at a 40-person e-commerce company inherits a 380K-line Rails monolith. Deploy frequency has dropped to once per week because every change risks breaking unrelated features. A bug in billing required a hotfix that couldn't ship because an unrelated catalog change in the same release branch broke search. Scaling for Black Friday requires 8x the infrastructure because search, billing, and the product catalog all scale as one unit.
+A CTO at a 40-person e-commerce company inherits a large Rails monolith. Deploys have slowed to once a week because every change risks breaking unrelated features, and scaling for the holiday peak means scaling billing, catalog and search together.
 
-The codebase analysis maps 5 domain clusters with 14 coupling hotspots. The dependency graph shows things the team didn't know — Billing was directly querying the User table in 11 places, and the Notification system had no boundary at all. The team reviews the graph and agrees on 6 services for the first time in 4 years. Previous architectural discussions were based on organizational charts; this one is based on actual code dependencies.
+The coupling script on the team's own `clusters.csv` surfaces what the architecture diagrams hid: billing queried the users table directly in several places, and notifications had no boundary at all. For the first time the team agrees on service boundaries from the code instead of the org chart.
 
-Search goes first because it's the easiest extraction and the biggest scaling bottleneck. Shadow traffic comparison shows 99.7% result parity before cutting over. The strangler fig approach means the monolith keeps running throughout — no risky cutover weekend, no all-hands-on-deck migration event. If the new search service has a problem, one feature flag flips traffic back.
-
-After 4 months, 3 services run independently. Deploy frequency increases from once per week to 12 times per week — the billing team ships without waiting for catalog, and vice versa. Teams own their services end-to-end, which means on-call rotations are focused (the billing team doesn't get paged for search issues) and code reviews are faster (smaller, domain-specific PRs instead of monolith-wide changes).
-
-Black Friday scaling costs drop 60% because search scales independently on its own Elasticsearch cluster. The catalog service stays at baseline capacity because Black Friday doesn't create new products — it just drives more searches. The billing service scales modestly to handle increased checkout volume. Instead of scaling the entire monolith 8x, each service scales to exactly the capacity it needs.
+Search goes first because it is the easiest extraction and the biggest scaling bottleneck. The strangler routing keeps the monolith answering until shadow comparison is clean; if the new service misbehaves, one flag sends traffic back. Over the following months the billing and notification services follow the same loop, and each team deploys its service without waiting for the others. Search now scales on its own Elasticsearch capacity while the catalog stays at baseline, so peak-season capacity is added where the load is rather than everywhere.

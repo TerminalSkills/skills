@@ -11,169 +11,205 @@ tags: [SDK, OpenAPI, code-generation, API, developer-experience]
 
 ## The Problem
 
-Your API has 31 endpoints and a well-maintained OpenAPI spec. Customers keep asking for SDKs -- the Python team wants a Python client, the JavaScript developers want a typed npm package, and the Go team needs something idiomatic. Hand-writing SDKs for 3 languages means maintaining 3 parallel codebases that drift out of sync every time you add an endpoint.
+Your API has 31 endpoints and a well-maintained OpenAPI spec. Customers keep asking for SDKs -- the Python team wants a Python client, the JavaScript developers want a typed npm package. Hand-writing SDKs for 2 languages means maintaining 2 parallel codebases that drift out of sync every time you add an endpoint.
 
-Existing generators like openapi-generator produce code that compiles but reads like it was written by a machine -- verbose, unidiomatic, and missing the error handling patterns developers expect. The generated code needs so much cleanup that maintaining it becomes a full-time job. You need SDKs that feel hand-written but update automatically when your spec changes.
+Generators such as openapi-generator produce code that compiles but is missing what developers expect from a client: retry on rate limits, auto-pagination, and error types that mean something. Asking an AI agent to write the whole SDK from scratch has the opposite problem -- it looks hand-written, but every regeneration is a new draft and nothing guarantees it still matches the spec.
 
 ## The Solution
 
-Using **coding-agent** to generate idiomatic SDK code from your OpenAPI spec, **test-generator** to create comprehensive test suites, and **markdown-writer** to produce SDK documentation with examples -- the workflow produces publish-ready packages that stay in sync with your API.
+Split the work. A deterministic generator turns `openapi.yaml` into typed models and operation functions, so the part that must match the spec is always regenerated from the spec. **coding-agent** runs Claude Code (or Codex CLI) in the background to write a thin hand-written layer on top -- retries, pagination, friendly errors -- in files the generator never touches. **test-generator** covers that layer with tests, and **markdown-writer** produces the README. CI regenerates the generated part on every spec change.
+
+This page uses two generators: [`@hey-api/openapi-ts`](https://heyapi.dev/openapi-ts/get-started) for TypeScript and [`openapi-python-client`](https://github.com/openapi-generators/openapi-python-client) for Python.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Analyze the OpenAPI Spec
 
 ```text
-Parse our openapi.yaml. Summarize the API surface: endpoints, models, auth patterns, and pagination style. Identify anything that needs special SDK handling.
+Parse our openapi.yaml. Summarize the API surface: endpoints, models, auth patterns, and pagination style. Identify anything the generators will not handle for us.
 ```
 
-The spec analysis maps out the full API surface and flags four patterns that need special SDK treatment:
+The agent maps out the API surface and lists what the hand-written layer must cover:
 
 | Aspect | Details |
 |---|---|
 | **Endpoints** | 31 across 6 groups (Orders, Products, Users, Webhooks, Reports, Events) |
-| **Models** | 24 schemas |
-| **Auth** | JWT bearer tokens + API key header |
-| **Pagination** | Cursor-based with `next_cursor` field |
-| **Errors** | RFC 7807 problem details |
-| **Rate limiting** | 429 status + `Retry-After` header |
+| **Auth** | Bearer token (generators wire this up from `securitySchemes`) |
+| **Pagination** | Cursor-based with `next_cursor` -- not generated, needs a wrapper |
+| **Rate limiting** | 429 status + `Retry-After` header -- not generated, needs a wrapper |
+| **Async reports** | POST returns a job ID, client polls -- needs a convenience method |
 
-**Special handling needed:**
-- Bulk operations accept arrays of up to 1,000 items -- SDKs need chunking
-- Report generation is async (POST returns a job ID, poll for results) -- SDKs need a convenience method that waits for completion
-- Events endpoint supports Server-Sent Events -- SDKs need streaming support
-- Large export endpoints return paginated CSVs -- SDKs need streaming file download
+Run the spec through a validator before generating (`npx @redocly/cli lint openapi.yaml`); a generator turns spec mistakes into SDK bugs.
 
-### Step 2: Generate the TypeScript SDK
+### Step 2: Generate the Typed Core
 
-```text
-Generate a TypeScript SDK for our API. Use fetch, full type safety, automatic pagination, retry on 429, and idiomatic error handling. Structure it as a publishable npm package.
+```console
+$ npm install --save-dev @hey-api/openapi-ts typescript@5
+$ npx openapi-ts -i openapi.yaml -o src/client -c @hey-api/client-fetch
+$ pip install openapi-python-client
+$ openapi-python-client generate --path openapi.yaml --output-path sdks/python --meta uv
 ```
 
-The generated package is structured for immediate publishing:
+The first command produces `src/client/` with `types.gen.ts` (one type per schema), `sdk.gen.ts` (one function per `operationId`, such as `listOrders` and `createOrder`) and a fetch client. The second produces a Python package `orders_api_client` with one module per operation, each exposing `sync`, `sync_detailed`, `asyncio` and `asyncio_detailed`. `--meta` accepts `none`, `poetry`, `setuptools`, `pdm` or `uv`; it also needs `ruff` on the PATH to format the output.
 
-```
-sdks/typescript/
-  src/client.ts        -- Main class with auth, retry on 429, auto-pagination
-  src/resources/        -- Typed methods for all 6 resource groups
-  src/types/            -- 24 TypeScript interfaces + typed error classes
-  package.json          -- ESM + CJS dual output, ready to publish
-  tsconfig.json
-```
-
-The API surface feels natural to TypeScript developers:
+Generated code is typed and ready to use as is:
 
 ```typescript
-import { ApiClient } from '@company/api-sdk';
+import { listOrders, createOrder } from "./client";
+import { client } from "./client/client.gen";   // the index does not re-export the client instance
 
-const client = new ApiClient({ apiKey: 'sk_...' });
-
-// Auto-pagination — iterate through all results without managing cursors
-for await (const order of client.orders.listAll()) {
-  console.log(order.total);
-}
-
-// Typed errors — catch specific failure modes
-try {
-  await client.orders.create({ productId: 'prod_123', quantity: 1 });
-} catch (e) {
-  if (e instanceof RateLimitError) {
-    // Automatic retry already happened 3 times — this is a real problem
-  }
-  if (e instanceof ValidationError) {
-    console.log(e.fields); // { quantity: "must be positive" }
-  }
-}
+client.setConfig({ baseUrl: "https://api.example.com", auth: () => process.env.API_TOKEN });
+const { data, error } = await listOrders({ query: { cursor: undefined } });
+const order = await createOrder({ body: { product_id: "prod_123", quantity: 1 }, throwOnError: true });
 ```
-
-Rate limiting is handled transparently: the client reads the `Retry-After` header, waits, and retries up to 3 times before surfacing the error. Developers never write retry logic.
-
-### Step 3: Generate the Python SDK
-
-```text
-Generate a Python SDK using httpx for async support, Pydantic models, and Pythonic conventions. Package with pyproject.toml for PyPI publishing.
-```
-
-The Python SDK follows the same structure but uses Python conventions throughout:
-
-```
-sdks/python/
-  src/api_client/client.py       -- Sync and async clients with httpx
-  src/api_client/resources/      -- Type-hinted methods for all resources
-  src/api_client/models/         -- 24 Pydantic models with validation
-  pyproject.toml                 -- Poetry config, ready for PyPI
-```
-
-Both sync and async patterns work out of the box:
 
 ```python
-from api_client import ApiClient, AsyncApiClient
+import os
 
-# Synchronous usage
-client = ApiClient(api_key="sk_...")
-for order in client.orders.list_all():
-    print(order.total)
+from orders_api_client import AuthenticatedClient
+from orders_api_client.api.default import list_orders
 
-# Async usage
-async with AsyncApiClient(api_key="sk_...") as client:
-    order = await client.orders.create(product_id="prod_123", quantity=1)
-    print(order.id)
+client = AuthenticatedClient(base_url="https://api.example.com", token=os.environ["API_TOKEN"])
+page = list_orders.sync(client=client)          # typed model, or None on an undeclared status
 ```
 
-Pydantic models provide runtime validation and IDE autocompletion. If the API returns a field your SDK version doesn't know about, Pydantic ignores it instead of crashing -- forward compatibility by default.
+Note that `openapi-python-client` builds `attrs` classes, not Pydantic models, and uses `httpx` underneath. Commit the generated directories, mark them `linguist-generated` in `.gitattributes`, and never hand-edit them.
 
-### Step 4: Generate Test Suites for Both SDKs
+### Step 3: Have a Coding Agent Write the Convenience Layer
+
+Give the agent a precise, self-contained task and run it in the background (the `coding-agent` skill covers this pattern). In print mode nobody can approve prompts, so pre-approve only what the task needs:
+
+```bash
+LOG=$(mktemp /tmp/sdk-agent.XXXXXX)
+claude -p "In sdks/typescript/src/orders.ts write an ApiClient class on top of the generated client in src/client. \
+Add: retry on HTTP 429 honouring Retry-After (max 3 retries, then throw RateLimitError), \
+an async generator listAll() that follows next_cursor, and a typed ValidationError for 422 responses. \
+Do not edit any *.gen.ts file. Finish by running npx tsc --noEmit." \
+  --permission-mode acceptEdits \
+  --allowedTools "Read" "Write" "Edit" "Bash(npx tsc --noEmit)" \
+  --max-budget-usd 2 > "$LOG" 2>&1 &
+echo "agent PID $!, log $LOG"
+```
+
+Equivalent for Codex CLI: `codex exec --sandbox workspace-write --ephemeral "<same prompt>"`. Review the diff when it finishes; the agent only touched `orders.ts`, so review is a few dozen lines instead of a whole SDK. The result looks like this:
+
+```typescript
+const sdk = new ApiClient({ apiKey: process.env.API_TOKEN! });
+
+for await (const order of sdk.listAll()) {   // auto-pagination, 429 retries inside
+  console.log(order.total);
+}
+```
+
+Run the same task for Python. The result is a small module outside the generated package (here `orders_sdk.py`, so it cannot collide with the generated `client.py`); this version was run against a generated client:
+
+```python
+import time
+from collections.abc import Iterator
+
+from orders_api_client import AuthenticatedClient
+from orders_api_client.api.default import list_orders
+from orders_api_client.models import Order
+
+
+class RateLimitError(Exception):
+    pass
+
+
+class ValidationError(Exception):
+    def __init__(self, body: bytes):
+        super().__init__(body.decode(errors="replace"))
+
+
+def list_all(client: AuthenticatedClient, max_retries: int = 3) -> Iterator[Order]:
+    cursor = None
+    while True:
+        for attempt in range(max_retries + 1):
+            resp = list_orders.sync_detailed(client=client, cursor=cursor or None)
+            if resp.status_code != 429:
+                break
+            if attempt == max_retries:
+                raise RateLimitError("still rate limited after retries")
+            time.sleep(float(resp.headers.get("Retry-After", "1")))
+        if resp.status_code == 422:
+            raise ValidationError(resp.content)
+        if resp.parsed is None:
+            raise RuntimeError(f"unexpected status {resp.status_code}")
+        yield from resp.parsed.items
+        if not resp.parsed.next_cursor:   # None and "" both end the loop
+            return
+        cursor = resp.parsed.next_cursor
+```
+
+Because the layer sits outside the generated directories, regenerating never overwrites it.
+
+### Step 4: Generate Tests for the Hand-Written Layer
 
 ```text
-Create test suites for both SDKs. Use recorded HTTP fixtures so tests run without a live API. Cover auth, CRUD, pagination, error handling, and retries.
+Write vitest tests for src/orders.ts using msw to mock https://api.example.com. Cover: a 429 followed by success, cursor pagination across two pages, 422 -> ValidationError, retry exhaustion. Then write pytest tests for the Python wrapper using pytest-httpx.
 ```
 
-Both test suites use recorded HTTP fixtures so they run fast and don't need a live API server:
+The test-generator skill detects the framework and produces Arrange-Act-Assert tests with the HTTP layer mocked, so nothing needs a live API:
 
-| SDK | Tests | Coverage | Framework |
-|---|---|---|---|
-| TypeScript | 42 tests | 94% | vitest + MSW for HTTP mocking |
-| Python | 38 tests | 91% | pytest + pytest-httpx |
+| SDK | Framework | Mocking |
+|---|---|---|
+| TypeScript | vitest + `msw` (`setupServer` from `msw/node`) | `http.get(...)` handlers, `Retry-After: 0` in tests so they run instantly |
+| Python | pytest + `pytest-httpx` | `httpx_mock.add_response(...)` |
 
-The test fixtures are shared between both SDKs in a common `tests/fixtures/` directory -- same JSON responses, different test harnesses. When you add a new endpoint, you record the fixture once and both test suites can use it.
+Measure coverage on the hand-written code only; generated files drag the number down and test nothing you own. In `vitest.config.ts` set `test.coverage.exclude: ["src/client/**"]`, and in pytest use `--cov=orders_sdk`:
 
-### Step 5: Generate Documentation and Publish Pipeline
+```console
+$ npx vitest run --coverage
+$ pytest --cov=orders_sdk --cov-report=term-missing
+```
+
+For the generated part, one contract test is enough: regenerate in CI and fail if `git diff --exit-code` is not clean.
+
+### Step 5: README and a Publish Pipeline
 
 ```text
-Create README docs for both SDKs with installation, quickstart, and per-resource examples. Add CI pipelines to publish on tag.
+Write README docs for both SDKs with installation, quickstart, and one example per resource group.
 ```
 
-Each SDK gets a README with installation instructions, quickstart code, and examples for every resource group. The CI pipelines handle the full publish lifecycle:
+markdown-writer produces the READMEs. Then wire CI so a spec change regenerates the core and a tag publishes. Publish with OIDC trusted publishing instead of long-lived tokens (configure the trusted publisher on npmjs.com and PyPI first; npm needs CLI 11.5.1+ and Node 22.14+):
 
 ```yaml
-# .github/workflows/sdk-typescript.yml — publish on tag
-on:
-  push:
-    tags: ['v*-ts']
-jobs:
-  publish:
-    steps:
-      - run: npm test          # 42 tests must pass
-      - run: npm run build     # Compile TypeScript
-      - run: npm publish       # Push to npm registry
-
-# .github/workflows/sdk-sync.yml — keep SDKs in sync with spec
+# .github/workflows/sdk-sync.yml -- keep generated code in sync with the spec
 on:
   push:
     paths: ['openapi.yaml']
 jobs:
   sync:
+    runs-on: ubuntu-latest
+    permissions: { contents: write, pull-requests: write }
     steps:
-      - run: regenerate-sdks   # Rebuild from updated spec
-      - run: open-pr-if-diff   # Auto-PR if anything changed
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '24' }
+      - run: npm ci && npx openapi-ts -i openapi.yaml -o sdks/typescript/src/client -c @hey-api/client-fetch
+      - uses: peter-evans/create-pull-request@v8  # opens a PR only if the diff is non-empty
+        with: { title: "Regenerate SDKs from openapi.yaml" }
+
+# .github/workflows/sdk-typescript.yml -- publish on tag
+on:
+  push:
+    tags: ['v*-ts']
+permissions: { id-token: write, contents: read }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', registry-url: 'https://registry.npmjs.org' }
+      - run: npm ci && npm test && npm run build
+      - run: npm publish --access public
 ```
 
-The sync workflow is the key to long-term maintenance: every change to `openapi.yaml` triggers a regeneration of both SDKs and opens a PR if anything changed. SDKs never drift from the spec.
+For PyPI use `pypa/gh-action-pypi-publish@release/v1` with `id-token: write` after building with `uv build`. Pin third-party actions to a commit SHA in a real repository.
 
 ## Real-World Example
 
-Tomas, the API lead at a 20-person developer tools startup, was losing deals because competitors had SDKs and he didn't. His 31-endpoint API had a solid OpenAPI spec, but hand-writing SDKs for even 2 languages would take weeks. He'd tried openapi-generator -- the output compiled but felt foreign. The Python SDK used `requests` instead of `httpx`, had no async support, and error handling was a single catch-all exception class.
+Tomas, the API lead at a 20-person developer tools startup, was losing deals because competitors had SDKs and he didn't. His 31-endpoint API had a solid OpenAPI spec. He had tried openapi-generator before: the output compiled but had no retry logic and a single catch-all exception class.
 
-He ran the three-skill workflow on a Wednesday. The coding-agent produced a TypeScript SDK with auto-pagination, typed errors, and retry logic -- code his team would have been proud to write by hand. The Python SDK used Pydantic models and supported both sync and async patterns. The test-generator created 80 tests across both SDKs with recorded HTTP fixtures, catching 3 edge cases in the OpenAPI spec where the documented response didn't match what the API actually returned.
-
-He published both SDKs on Thursday. Within a week, 3 customers who'd been using raw HTTP switched to the SDKs. Support tickets about API integration dropped 40%. The automated sync pipeline proved its worth on Friday -- he added a new endpoint to the API, and the pipeline regenerated both SDKs and opened a PR before he'd even thought about updating them manually.
+This time he let `openapi-ts` and `openapi-python-client` produce the typed core in minutes, and used the coding agent only for the thin layer: retries, pagination and typed errors, about 150 lines per language. The test-generator suite for that layer found one real bug on its first run -- the pagination loop stopped early when `next_cursor` was an empty string instead of `null`. He published both packages the same week. When he added a `/shipments` endpoint a few days later, the sync workflow regenerated both cores and opened a PR before he had thought about updating the SDKs by hand; the only manual work was a one-line `listAll` addition for the new resource.

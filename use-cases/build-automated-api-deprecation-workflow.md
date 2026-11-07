@@ -64,23 +64,41 @@ Pick an endpoint with actual consumers and set up the full lifecycle:
 Create a deprecation plan for the v1/users endpoint. Set a 90-day sunset period. Generate the deprecation headers, API response warnings, and consumer notification emails.
 ```
 
-The plan follows HTTP deprecation standards (RFC 8594) with a clear timeline:
+The plan follows the HTTP standards for this: the `Sunset` header (RFC 8594) carries the removal date as an HTTP-date, the `Deprecation` header (RFC 9745) carries the date deprecation began as a Unix timestamp prefixed with `@`, and a `Link` header with `rel="deprecation"` points to the migration guide. With the 90-day window starting 2026-11-17:
 
 | Day | Action | Impact |
 |-----|--------|--------|
-| 0 (today) | Add `Sunset` and `Deprecation` headers to all responses | Zero — headers are informational |
+| 0 (2026-11-17) | Add `Deprecation`, `Sunset` and `Link` headers to all responses | Zero — headers are informational |
 | 0 | Email identified consumers with migration guide | Consumer awareness |
-| 30 | Add deprecation warning to JSON response body | Visible in consumer logs |
-| 60 | Return `299` warning header, log all remaining callers | Last chance to migrate |
-| 90 | Return `410 Gone` with migration guide URL | Endpoint removed |
+| 30 | Add a deprecation notice to the JSON response body | Visible in consumer logs |
+| 60 | Log every remaining caller (API key, user agent, IP) and contact each one directly | Last chance to migrate |
+| 90 (2027-02-15) | Return `410 Gone` with a body that links to the migration guide | Endpoint removed |
+
+Every response from the deprecated endpoint carries:
+
+```http
+Deprecation: @1794873600
+Sunset: Mon, 15 Feb 2027 00:00:00 GMT
+Link: <https://api.example.com/docs/migrate-v1-users>; rel="deprecation"; type="text/html"
+```
 
 Three files get generated:
 
-- **`middleware/deprecation-headers.ts`** — adds `Sunset` and `Deprecation` headers per RFC 8594. The Sunset header includes the exact date, so automated tools can parse it.
+- **`middleware/deprecation-headers.ts`** — adds the three headers above per route, with the dates read from one config so the plan and the code cannot drift apart.
 - **`docs/migration-guide-v1-users.md`** — step-by-step migration instructions with before/after code examples showing the v1 call and its v2 equivalent. Covers authentication changes, response format differences, and edge cases.
 - **`emails/deprecation-notice-v1-users.md`** — consumer notification template with the sunset date, migration guide link, support contact, and a clear call-to-action.
 
-The graduated approach means consumers who monitor HTTP headers catch the deprecation on day 0. Consumers who don't read emails see the warning in response bodies on day 30. The `299` header on day 60 triggers alerts in most API monitoring tools — tools like Datadog and Grafana flag 299 headers by default. By day 90, anyone still calling the endpoint has been warned through three different channels over three months.
+The graduated approach means consumers whose clients read the headers catch the deprecation on day 0, and consumers who only read email get the notice with the same date. Consumers who read neither see the notice in response bodies on day 30, and anyone still calling on day 60 is contacted by name, using the caller list from the access logs. By day 90, every remaining caller has been warned through several channels over three months.
+
+With the **api-tester** skill, check the headers on a staging deployment before announcing anything, and again after day 90 to confirm the 410:
+
+```console
+$ curl -s -D - -o /dev/null -H "Authorization: Bearer $API_TOKEN" https://staging.example.com/v1/users/123 | grep -i -E '^(HTTP|deprecation|sunset|link)'
+HTTP/2 200
+deprecation: @1794873600
+sunset: Mon, 15 Feb 2027 00:00:00 GMT
+link: <https://api.example.com/docs/migrate-v1-users>; rel="deprecation"; type="text/html"
+```
 
 The migration guide is the piece that makes the difference between "we told them it's deprecated" and "we made it easy to migrate." It includes side-by-side code examples showing the v1 request/response and the exact v2 equivalent, plus notes on response format changes that would break client-side parsing.
 
@@ -88,20 +106,27 @@ The migration guide is the piece that makes the difference between "we told them
 
 Each deprecation gets a tracking issue with an automated checklist:
 
-**GitHub issue #892: "Deprecate GET /v1/users/{id} — Sunset: 2026-05-18"**
+Create the issue with the `gh` CLI (the label is created once per sunset month):
+
+```bash
+gh label create "sunset/2027-02" --description "API sunset in Feb 2027" --color D93F0B
+gh issue create --title "Deprecate GET /v1/users/{id} — Sunset: 2027-02-15" \
+  --body-file deprecation-v1-users.md --label api-deprecation --label sunset/2027-02 --assignee "@me"
+```
+
+**GitHub issue #892: "Deprecate GET /v1/users/{id} — Sunset: 2027-02-15"**
 
 - [x] Deprecation headers added
 - [x] Consumer notification sent (2 consumers)
 - [x] Migration guide published
 - [ ] All consumers migrated (1/2 remaining)
-- [ ] 30-day warning activated (Mar 18)
-- [ ] 60-day final warning activated (Apr 17)
-- [ ] Endpoint removed (May 18)
+- [ ] Day-30 response-body notice enabled (Dec 17)
+- [ ] Day-60 direct outreach to remaining callers (Jan 16)
+- [ ] Endpoint removed (Feb 15)
 
-Labels: `api-deprecation`, `sunset/2026-05-18`
-Assigned: @platform-team
+Labels: `api-deprecation`, `sunset/2027-02`
 
-The checklist makes progress visible to the whole team. Nobody has to ask "where are we on that deprecation?" — the issue tells them. The sunset date in the label makes it searchable (`label:sunset/2026-05`), and the checklist items can be automated: when traffic from the last remaining consumer drops to zero, the "all consumers migrated" box checks itself.
+The checklist makes progress visible to the whole team. Nobody has to ask "where are we on that deprecation?" — the issue tells them. The sunset month in the label makes it searchable (`label:sunset/2027-02`), and a scheduled job can tick the "all consumers migrated" box when traffic from the last remaining consumer drops to zero.
 
 A GitHub project board collects all active deprecation issues, giving the team a single view of every endpoint in the sunset pipeline, ordered by deadline. Monthly deprecation reviews take 15 minutes instead of an hour because all the data is pre-assembled in the issues.
 
@@ -117,11 +142,11 @@ Show me migration progress for all active deprecations. Which consumers haven't 
 
 | Endpoint | Sunset | Migrated | Remaining | Action Needed |
 |----------|--------|----------|-----------|---------------|
-| GET /v1/users/{id} | May 18 | 1/2 | acme-integration (2 calls/day) | Follow-up email sent Feb 17 |
-| POST /v1/reports/generate | Apr 15 | 0/0 | None | Ready for immediate removal |
-| GET /v1/analytics/summary | May 18 | 0/1 | Mobile app v3.1 and below | Force-update scheduled Mar 1 |
+| GET /v1/users/{id} | Feb 15 | 1/2 | acme-integration (2 calls/day) | Follow-up email sent Dec 1 |
+| POST /v1/reports/generate | none needed | 0/0 | None | Ready for immediate removal |
+| GET /v1/analytics/summary | Feb 15 | 0/1 | Mobile app v3.1 and below | Force-update scheduled Jan 5 |
 
-The reports endpoint can be removed immediately — no consumers, no traffic, no risk. The analytics endpoint is blocked on a mobile app force-update that has its own timeline. The users endpoint needs one more outreach to the Acme partner, and if they don't respond by day 60, the 299 warning header will trigger their monitoring.
+The reports endpoint can be removed immediately — no consumers, no traffic, no risk. The analytics endpoint is blocked on a mobile app force-update that has its own timeline. The users endpoint needs one more outreach to the Acme partner, and if they don't respond by day 60, the team calls them using the contact on their API key.
 
 This dashboard replaces the fear-based approach ("don't touch it, someone might be using it") with data-driven confidence ("we know exactly who's using it, we've contacted them, and we can see whether they've migrated").
 

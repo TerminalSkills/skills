@@ -4,12 +4,13 @@ description: >-
   Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet.
   Use when tasks mention searching tweets, reading tweet replies, looking up
   users, listing followers, exporting followers, monitoring accounts or keywords,
-  or Xquik Twitter research and social listening.
+  or Xquik Twitter research and social listening. Read-only: this plugin
+  version does not post, reply, like or send DMs.
 license: Apache-2.0
 compatibility: "Hermes Agent, hermes-tweet 0.1.16 (Python 3.11+), XQUIK_API_KEY for any API call"
 metadata:
   author: kriptoburak
-  version: "1.1.0"
+  version: "1.2.0"
   repository: https://github.com/Xquik-dev/hermes-tweet
   category: automation
   tags: "xquik, twitter, x, automation, social-media"
@@ -27,10 +28,10 @@ Use this skill for X/Twitter research where the agent needs to search tweets,
 read replies, look up users, list followers, set up monitors, or run follower
 exports.
 
-This plugin version does not post to X. Every X write endpoint in its catalog
-(post, reply, DM, like, repost, follow, profile changes) requires an
-`Idempotency-Key` header, and the hermes-tweet 0.1.16 client does not send one.
-Do not offer those actions through this plugin.
+This skill is read-only for X content: it does not post, reply, send DMs, like,
+repost, follow or change profiles. The Xquik write endpoints require an
+`Idempotency-Key` header, and the hermes-tweet client (0.1.16, the latest release
+on PyPI and GitHub as of 2026-11-05) does not send one.
 
 ## Instructions
 
@@ -50,11 +51,14 @@ event, or follower export.
 
 ### 2. Install and Configure the Plugin
 
-Install and enable the plugin with Hermes. Hermes scans plugins on install; read
-any warning, because a dangerous verdict blocks the install.
+Install and enable the plugin with Hermes, pinned to the reviewed release commit
+(`--ref` takes a full 40-character SHA; this one is the `v0.1.16` tag). Hermes
+scans plugins on install; read any warning, because a dangerous verdict blocks
+the install.
 
 ```bash
-hermes plugins install Xquik-dev/hermes-tweet --enable
+git ls-remote https://github.com/Xquik-dev/hermes-tweet 'refs/tags/v0.1.16^{}'   # confirm the SHA
+hermes plugins install Xquik-dev/hermes-tweet --ref 13187e008cc1ff2e5541fe3526b11380a2c76bdf --enable
 ```
 
 The plugin needs no extra Python package (Hermes already ships `httpx`). Only if
@@ -196,6 +200,8 @@ page at a time and needs no action gate.
 
 ## Guidelines
 
+- Offer only research, monitoring and export workflows; decline requests to post or
+  otherwise write to X.
 - Never request X login credentials, cookies, tokens, or raw browser session
   material from the user.
 - Never print or persist `XQUIK_API_KEY` values.

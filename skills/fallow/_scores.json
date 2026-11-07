@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:cc2ec82a850e20c53f7e5e2721fbc5b03a5cada97ff58a951c72c81ae0e6f33e",
+  "scoredAt": "2026-10-28T18:52:39.670Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.2,
+    "baselineAvg": 8,
+    "treatmentAvg": 72,
+    "scenarios": [
+      {
+        "name": "dead-code-workspace-trace",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits the exit code 1 note, while Response A provides no content."
+      },
+      {
+        "name": "audit-pr-gate-all",
+        "baseline": 25,
+        "treatment": 55,
+        "rationale": "Response A includes the required command and notes inherited findings, but omits summary, exit code, and older findings explanation; Response B lacks the command and key details entirely."
+      },
+      {
+        "name": "health-hotspots-targets",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A includes the required command and most rubric details, missing only confidence; Response B lacks the command and rubric specifics."
+      }
+    ]
+  }
+}

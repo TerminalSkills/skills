@@ -52,46 +52,59 @@ verification tests too.
 
 Each consumer gets tests that describe exactly what it expects from the provider. Here is what the billing service's contract looks like:
 
-```typescript
-// billing-service/tests/contracts/users.pact.spec.ts
-describe('Users API contract', () => {
-  it('returns user with subscription fields', async () => {
-    await provider.addInteraction({
-      state: 'user 123 exists with active subscription',
-      uponReceiving: 'a request for user 123',
-      withRequest: {
-        method: 'GET',
-        path: '/users/123',
-      },
-      willRespondWith: {
-        status: 200,
-        body: {
-          id: like('123'),
-          userName: like('jane.doe'),        // Billing depends on this exact field name
-          email: like('jane@example.com'),
-          subscription: {
-            plan_type: like('enterprise'),
-            status: like('active'),
-          },
-        },
+```javascript
+// billing-service/tests/contracts/users.pact.spec.js
+const { PactV3, MatchersV3 } = require('@pact-foundation/pact');
+const path = require('path');
+const { like } = MatchersV3;
+
+const provider = new PactV3({
+  consumer: 'billing-service',
+  provider: 'users-service',
+  dir: path.resolve(__dirname, '../../pacts'),
+});
+
+it('returns user with subscription fields', async () => {
+  provider
+    .given('user 123 exists with active subscription')
+    .uponReceiving('a request for user 123')
+    .withRequest({ method: 'GET', path: '/users/123' })
+    .willRespondWith({
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        id: like('123'),
+        userName: like('jane.doe'),        // Billing depends on this exact field name
+        email: like('jane@example.com'),
+        subscription: { plan_type: like('enterprise'), status: like('active') },
       },
     });
+
+  await provider.executeTest(async (mockServer) => {
+    // in a real suite, call the billing client code against mockServer.url
+    const user = await (await fetch(`${mockServer.url}/users/123`)).json();
+    expect(user.userName).toBe('jane.doe');
   });
 });
 ```
 
-The critical detail: the billing service's contract explicitly specifies `userName` (camelCase). If anyone renames it to `user_name`, the contract fails *before the code ships*.
+Install with `npm i -D @pact-foundation/pact @pact-foundation/pact-cli jest`. Running the test writes the contract to `pacts/billing-service-users-service.json`.
 
-In total: **34 contract test files** — one per consumer-endpoint combination on the consumer side, plus provider verification tests that run all consumer pacts together. The provider cannot ship a change that breaks any consumer.
+The critical detail: the billing service's contract explicitly specifies `userName` (camelCase). Verifying that contract against a provider that returns `user_name` instead fails with `Actual map is missing the following keys: userName`, so the rename is caught *before the code ships*.
+
+In total: **47 contract tests** — one per consumer-endpoint combination on the consumer side, plus provider verification tests that run all consumer pacts together. The provider cannot ship a change that breaks any consumer.
 
 ### Step 3: Set Up the Contract Broker and CI Integration
 
+With **cicd-pipeline**, the contract steps go into GitLab CI (the skill covers GitLab CI and CircleCI; GitHub Actions has its own skill).
+
 ```text
-Configure a Pact broker using the free Pactflow starter. Add CI pipeline steps
-so that: consumer tests run on consumer PRs, provider verification runs on
-provider PRs, and deployment is blocked if any contract is broken. Use GitHub
-Actions. The provider repo is users-service and consumers are billing-service,
-dashboard-app, and mobile-gateway.
+Set up a Pact Broker (the open-source pactfoundation/pact-broker image, or a
+hosted PactFlow account). Add CI jobs so that: consumer tests run on consumer
+merge requests and publish pacts, provider verification runs on provider merge
+requests, and deployment is blocked if any contract is broken. Use GitLab CI.
+The provider repo is users-service and consumers are billing-service,
+dashboard-app, and mobile-gateway. Broker URL and token come from CI variables.
 ```
 
 The CI integration creates a closed loop where contract violations block deployment:
@@ -99,24 +112,50 @@ The CI integration creates a closed loop where contract violations block deploym
 **Consumer side** (billing-service, dashboard-app, mobile-gateway):
 
 ```yaml
-# .github/workflows/contracts.yml
-- name: Run consumer contract tests
-  run: npx jest --testPathPattern=pact
-- name: Publish pacts to broker
-  run: npx pact-broker publish ./pacts --consumer-app-version=${{ github.sha }}
+# .gitlab-ci.yml
+consumer-contracts:
+  image: node:22
+  script:
+    - npm ci
+    - npx jest --testPathPatterns=pact
+    - npx pact-broker publish ./pacts --consumer-app-version "$CI_COMMIT_SHA" --branch "$CI_COMMIT_REF_NAME"
+  # PACT_BROKER_BASE_URL and PACT_BROKER_TOKEN are masked CI/CD variables
 ```
 
-**Provider side** (users-service):
+**Provider side** (users-service): a verification script reads the pacts from the broker and publishes the result.
+
+```javascript
+// pact-verification.js
+const { Verifier } = require('@pact-foundation/pact');
+new Verifier({
+  provider: 'users-service',
+  providerBaseUrl: process.env.PROVIDER_URL,       // the service started in the job, e.g. http://127.0.0.1:3000
+  pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
+  pactBrokerToken: process.env.PACT_BROKER_TOKEN,
+  providerVersion: process.env.CI_COMMIT_SHA,
+  providerVersionBranch: process.env.CI_COMMIT_REF_NAME,
+  publishVerificationResult: process.env.CI === 'true',
+  consumerVersionSelectors: [{ mainBranch: true }, { deployedOrReleased: true }],
+  stateHandlers: { 'user 123 exists with active subscription': async () => { /* seed test data */ } },
+}).verifyProvider();
+```
 
 ```yaml
-# .github/workflows/contracts.yml
-- name: Verify all consumer contracts
-  run: npx jest --testPathPattern=pact-verification
-- name: Can I deploy?
-  run: npx pact-broker can-i-deploy --pacticipant=users-service --version=${{ github.sha }}
+provider-verification:
+  image: node:22
+  script:
+    - npm ci
+    - node pact-verification.js
+    - npx pact-broker can-i-deploy --pacticipant users-service --version "$CI_COMMIT_SHA" --to-environment production
+
+deploy-production:
+  needs: [provider-verification]
+  script:
+    - ./deploy.sh
+    - npx pact-broker record-deployment --pacticipant users-service --version "$CI_COMMIT_SHA" --environment production
 ```
 
-The `can-i-deploy` check is the enforcement mechanism. It queries the broker: "Given my latest code, will any consumer break?" If the answer is yes, the deployment is blocked. No exceptions, no "I'll fix it later."
+The `can-i-deploy` check is the enforcement mechanism. It queries the broker: "Given my latest code, will any consumer break?" If the answer is yes, the job fails and the deployment is blocked. The `record-deployment` step tells the broker which version is live, so the next check compares against what is actually in production.
 
 ### Step 4: Handle the First Breaking Change Safely
 
@@ -178,7 +217,7 @@ A coverage script cross-references the OpenAPI spec with published pacts and pos
 | Admin | 4 | 4 | 100% |
 | **Total** | **23** | **23** | **100%** |
 
-34 out of 34 consumer-endpoint pairs tested. Every endpoint has at least one consumer contract, and every consumer has contracts for every endpoint it uses. When a new endpoint gets added without contracts, the coverage report flags it immediately.
+47 out of 47 consumer-endpoint pairs tested. Every endpoint has at least one consumer contract, and every consumer has contracts for every endpoint it uses. When a new endpoint gets added without contracts, the coverage report flags it immediately.
 
 ## Real-World Example
 

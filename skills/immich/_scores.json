@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d56ae44ea19c3814e510bc9d4621b817f260c8aefcbe40041f8cdddfd443e2c3",
+  "scoredAt": "2026-10-29T23:04:15.797Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume a Linux environment and Docker Compose, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 20,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "deploy-with-docker-compose",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, missing only DB_DATA_LOCATION sed and docker compose ps, while Response A lacks almost all required steps."
+      },
+      {
+        "name": "bulk-upload-with-cli",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A better covers the required login and recursive dry‑run, though it omits the --album flag and summary details; Response B lacks the instance URL and album flag entirely."
+      },
+      {
+        "name": "create-scoped-api-key-and-call-endpoint",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not."
+      }
+    ]
+  }
+}

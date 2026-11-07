@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4695bb86f27da24732fe8809638d8313cad5c090750643d15198961f2c1811b4",
+  "scoredAt": "2026-10-28T18:51:57.621Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly cover error handling or edge cases for sandbox operations."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "create-linux-sandbox-script",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers all required commands except the exact sandbox name, while Response B does not use any cua sb commands and thus fails the rubric entirely."
+      },
+      {
+        "name": "sdk-ephemeral-sandbox-interaction",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is missing or incomplete."
+      },
+      {
+        "name": "vm-service-http-request",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required VM sandbox API."
+      }
+    ]
+  }
+}

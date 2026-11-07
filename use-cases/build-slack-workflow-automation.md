@@ -17,27 +17,59 @@ Every week, 6-8 hours of engineering time goes to coordination that could be aut
 
 ## The Solution
 
-Use **slack-bot-builder** to create interactive Slack bots with slash commands and scheduled messages, **coding-agent** to implement the business logic and database layer, and **n8n** to connect external services like PagerDuty, Google Calendar, and GitHub.
+Use **slack-bot-builder** to create an interactive Slack bot with Bolt for JavaScript (`@slack/bolt`), slash commands, buttons and modals, **coding-agent** to implement the business logic and database layer, and **n8n** to connect external services like PagerDuty, Google Calendar, and GitHub.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Build the Standup Automation
 
 ```text
-Build a Slack bot using the Bolt framework that automates daily standups.
-Every weekday at 9:00 AM, it posts a standup prompt to #engineering with
-three thread reply buttons: "Yesterday", "Today", "Blockers". Team members
-click each button, get a modal to fill in their update, and the bot compiles
-all responses into a summary posted at 9:30 AM. Include a /standup-skip
-command for days off. Store responses in SQLite.
+Build a Slack bot with Bolt for JavaScript (Socket Mode, Node 20+) that
+automates daily standups. Every weekday at 9:00 AM, a cron job posts a standup
+prompt to #engineering with an "Add my update" button. Team members click it,
+get a modal with Yesterday / Today / Blockers fields, and the bot compiles all
+responses into a summary posted at 9:30 AM. Include a /standup-skip command
+for days off. Store responses in SQLite.
 ```
 
-At 9:00 AM every weekday, a Block Kit message appears in #engineering with three buttons: "Yesterday," "Today," and "Blockers." Clicking a button opens a modal -- much cleaner than asking people to format thread replies.
+Bolt has no scheduler of its own, so a cron job (`node-cron`, with an explicit timezone) calls `chat.postMessage` at 9:00 on weekdays. The message carries one Block Kit button; clicking it makes the bot call `views.open` with the click's `trigger_id` (it expires after 3 seconds, so open the modal first and do slow work afterwards). The modal has three input blocks, much cleaner than asking people to format thread replies:
+
+```javascript
+import { App } from '@slack/bolt';
+import cron from 'node-cron';
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,      // xoxb-...
+  appToken: process.env.SLACK_APP_TOKEN,   // xapp-..., scope connections:write
+  socketMode: true,
+});
+
+cron.schedule('0 9 * * 1-5', () => app.client.chat.postMessage({
+  channel: process.env.STANDUP_CHANNEL_ID,
+  text: 'Daily standup',
+  blocks: [{ type: 'actions', elements: [{ type: 'button', action_id: 'standup_open',
+    text: { type: 'plain_text', text: 'Add my update' } }] }],
+}), { timezone: 'Europe/Berlin' });
+
+app.action('standup_open', async ({ ack, body, client }) => {
+  await ack();
+  await client.views.open({ trigger_id: body.trigger_id, view: standupModal() });
+});
+
+app.view('standup_submit', async ({ ack, view, body }) => {
+  await ack();
+  saveUpdate(body.user.id, view.state.values);   // INSERT into SQLite
+});
+
+await app.start();
+```
+
+`standupModal()` returns a modal view with `callback_id: 'standup_submit'` and three `input` blocks. Socket Mode needs no public URL, which suits an internal bot; an app that goes into the Slack Marketplace must use HTTP with request signing instead.
 
 At 9:30 AM, the bot compiles every response into a formatted summary:
 
 ```
-Daily Standup — Tuesday, Feb 18
+Daily Standup — Wednesday, Feb 18
 
 Alex Chen
   Yesterday: Shipped the notification preferences UI
@@ -69,11 +101,11 @@ the bot should:
 When resolved, generate a summary and post to #incidents.
 ```
 
-When someone types `/incident-create P1 Payment processing down`, the following happens in under 2 seconds:
+When someone types `/incident-create P1 Payment processing down`, the handler calls `ack()` immediately (Slack requires an acknowledgement within 3 seconds) and then does the following:
 
-1. A new channel `#inc-20260218-payment-processing` is created
+1. A new channel `#inc-20260218-payment-processing` is created with `conversations.create` (names are lowercase letters, numbers, hyphens and underscores, at most 80 characters; the bot needs the `channels:manage` scope)
 2. The channel topic is set to "P1 -- Payment processing down"
-3. The current on-call engineer is fetched from the PagerDuty API and auto-invited
+3. The current on-call engineer is fetched from the PagerDuty REST API (`GET /oncalls`), matched to a Slack user by email with `users.lookupByEmail`, and invited with `conversations.invite`
 4. A pinned message appears with the incident template:
 
 ```
@@ -91,7 +123,7 @@ Team members use `/incident-update Fixed the connection pool exhaustion` to appe
 
 When someone marks resolved, the bot generates a summary (duration, timeline, participants) and posts it to #incidents for the historical record. The incident channel gets archived after 7 days.
 
-The manual version of this -- creating a channel, tagging on-call, starting a doc, updating stakeholders -- took 15 minutes of scrambling during an active outage. The automated version takes 2 seconds.
+The manual version of this -- creating a channel, tagging on-call, starting a doc, updating stakeholders -- took 15 minutes of scrambling during an active outage. The automated version takes a few seconds.
 
 ### Step 3: Set Up Deployment Approvals
 
@@ -121,7 +153,7 @@ Changes:
 [Approve]  [Reject]
 ```
 
-The diff summary comes from the GitHub API -- the bot fetches the compare between the branch and main, summarizing changed files. For staging deploys, any engineer can click Approve. For production, the bot checks Slack user group membership and only accepts approvals from `@team-leads`.
+The diff summary comes from the GitHub API -- the bot fetches the compare between the branch and main, summarizing changed files. For staging deploys, any engineer can click Approve. For production, the bot reads the `@team-leads` user group with `usergroups.users.list` (scope `usergroups:read`) and only accepts approvals from its members. The requester can never approve their own deploy.
 
 Every deployment is recorded: who requested, who approved, when, and what changed. `/deploy-history payments-api` shows the last 10 deployments with their full approval chain. No more "did anyone approve this?" conversations.
 
@@ -131,46 +163,46 @@ Every deployment is recorded: who requested, who approved, when, and what change
 Add /pto-request [dates] [reason] that creates an approval flow: posts to
 the requester's manager (looked up from a team config), shows a calendar
 view of team availability for those dates, and provides Approve/Deny buttons.
-On approval, update Google Calendar, set a Slack status with vacation emoji for
-those dates, and notify the team channel. Add /pto-calendar showing who's
+On approval, create a Google Calendar out-of-office event (through an n8n
+webhook) and notify the team channel. Add /pto-calendar showing who's
 out this week and next.
 ```
 
-`/pto-request Feb 24-28 Family vacation` sends an approval request to the requester's manager (looked up from a team config JSON):
+`/pto-request Feb 23-27 Family vacation` sends an approval request to the requester's manager (looked up from a team config JSON):
 
 ```
 PTO Request
 From: @alex (Backend team)
-Dates: Feb 24-28 (5 days)
+Dates: Feb 23-27 (5 days)
 Reason: Family vacation
 
 Team availability for those dates:
-  Feb 24 (Mon): 4/5 backend engineers available
-  Feb 25 (Tue): 4/5 backend engineers available
-  Feb 26 (Wed): 3/5 backend engineers available (Priya also out)
-  Feb 27 (Thu): 4/5 backend engineers available
-  Feb 28 (Fri): 4/5 backend engineers available
+  Feb 23 (Mon): 4/5 backend engineers available
+  Feb 24 (Tue): 4/5 backend engineers available
+  Feb 25 (Wed): 3/5 backend engineers available (Priya also out)
+  Feb 26 (Thu): 4/5 backend engineers available
+  Feb 27 (Fri): 4/5 backend engineers available
 
 [Approve]  [Deny]
 ```
 
 The availability visualization is the key detail -- the manager immediately sees whether approving this request leaves the team short-handed on any day.
 
-On approval, three things happen automatically: a Google Calendar event is created (via an n8n webhook), the user's Slack status updates to "On vacation" with a palm tree emoji for those dates, and #engineering gets a notification. No spreadsheet to update, no calendar to maintain.
+On approval, two things happen automatically: an all-day "Out of office" event is created in Google Calendar (an n8n Webhook node feeding a Google Calendar node, operation Create with All Day on), and #engineering gets a notification. A bot cannot set another person's Slack status: `users.profile.set` needs that user's own token, or an admin token, so the status stays the employee's to set (Slack's Google Calendar integration can sync it from the calendar event). No spreadsheet to update, no calendar to maintain.
 
 `/pto-calendar` shows a weekly availability dashboard:
 
 ```
 Team Availability — This Week
-  Mon Feb 17: Everyone in
-  Tue Feb 18: Everyone in
-  Wed Feb 19: Priya out (doctor appointment)
-  Thu Feb 20: Everyone in
-  Fri Feb 21: Alex out (half day)
+  Mon Feb 16: Everyone in
+  Tue Feb 17: Everyone in
+  Wed Feb 18: Priya out (doctor appointment)
+  Thu Feb 19: Everyone in
+  Fri Feb 20: Alex out (half day)
 
 Next Week
-  Mon Feb 24 - Fri Feb 28: Alex out (vacation)
-  Wed Feb 26: Priya out (personal)
+  Mon Feb 23 - Fri Feb 27: Alex out (vacation)
+  Wed Feb 25: Priya out (personal)
 ```
 
 ### Step 5: Connect Everything with n8n
@@ -187,17 +219,17 @@ Show me the n8n workflow JSON for each integration.
 
 Four n8n workflows bridge Slack with the external tools the team already uses:
 
-- **PagerDuty -> Slack**: Webhook receives alerts, routes to the correct channel based on the affected service (payments alerts go to #payments-alerts, infra alerts go to #infra-alerts). P1 alerts also trigger the incident creation workflow.
-- **GitHub -> Slack**: When a PR is tagged "ready for review," a message appears in #code-review with the title, description, and Approve/Request Changes buttons that map back to the GitHub review API.
+- **PagerDuty -> Slack**: A Webhook node receives PagerDuty webhooks (check the `X-PagerDuty-Signature` HMAC before trusting the payload), routes to the correct channel based on the affected service (payments alerts go to #payments-alerts, infra alerts go to #infra-alerts). P1 alerts also trigger the incident creation workflow.
+- **GitHub -> Slack**: A GitHub webhook (verify `X-Hub-Signature-256`) fires when a PR is tagged "ready for review"; a message then appears in #code-review with the title, description, and Approve/Request Changes buttons that map back to the GitHub review API.
 - **Google Calendar -> Slack**: At 8:30 AM, each engineer gets a DM with their meetings for the day, including join links. No more checking the calendar separately.
-- **Slack -> Jira**: `/ticket Bug: payments timeout on large orders` creates a Jira issue with the channel context, message permalink, and reporter automatically populated.
+- **Slack -> Jira**: the bot's `/ticket Bug: payments timeout on large orders` handler acks, then calls an n8n webhook that creates a Jira issue with the channel context, message permalink, and reporter automatically populated.
 
-Each workflow includes an error handling node that posts failures to #bot-errors. If the PagerDuty webhook fails, the team knows within seconds instead of discovering it during an incident.
+Each workflow has an error workflow (n8n's Error Trigger node) that posts failures to #bot-errors, so a broken PagerDuty route is noticed before the next incident.
 
 ## Real-World Example
 
-An engineering manager at a 30-person SaaS company deploys the standup bot first. Daily compilation that used to take 20 minutes of manual work now takes zero. The incident workflow launches the following week and reduces mean-time-to-organize from 15 minutes of scrambling to 2 seconds.
+An engineering manager at a 30-person SaaS company deploys the standup bot first. Daily compilation that used to take 20 minutes of manual work now takes zero. The incident workflow launches the following week and replaces about 15 minutes of manual setup with one command.
 
 Deployment approvals create a complete audit trail -- the team can trace every production deploy back to who requested it, who approved it, and what changed. PTO tracking moves from a spreadsheet to Slack, and the team sees availability at a glance for the first time.
 
-Total time saved: 8+ hours per week across the team. More importantly, every decision -- every deploy approval, every incident timeline, every PTO request -- is documented automatically. The team stops losing information to Slack scroll.
+In this example the team estimates it saves 8+ hours per week. More importantly, every decision -- every deploy approval, every incident timeline, every PTO request -- is documented automatically. The team stops losing information to Slack scroll.

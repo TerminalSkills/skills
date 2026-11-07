@@ -11,9 +11,9 @@ tags: [accessibility, wcag, compliance, a11y, european-accessibility-act]
 
 ## The Problem
 
-The European Accessibility Act takes effect in June 2025, ADA lawsuits against web properties hit a record 4,600+ in 2024, and your product has never had a formal accessibility audit. You know there are issues — the login form uses placeholder text instead of labels, the navigation dropdown traps keyboard focus, and color contrast is inconsistent — but manually auditing 80+ pages against 50 WCAG 2.2 success criteria would take weeks. Automated tools like axe catch only about 30% of violations, and the remaining 70% require human judgment about whether ARIA patterns are correct, focus management works properly, and screen reader announcements make sense.
+The European Accessibility Act (Directive (EU) 2019/882) has applied to consumer-facing products and services since 28 June 2025, including e-commerce services, and your product has never had a formal accessibility audit. Fines are set by each member state, which must make penalties "effective, proportionate and dissuasive" (Article 30); microenterprises providing services are exempt (Article 4(5)). The European standard for web content, EN 301 549, was based on WCAG 2.1 AA up to V3.2.1; V4.1.1 (published September 2026, [ETSI](https://www.etsi.org/deliver/etsi_en/301500_301599/301549/04.01.01_60/)) aligns it with WCAG 2.2 but is not yet cited in the Official Journal for the Act. An audit against WCAG 2.2 AA covers both versions. You know there are issues — the login form uses placeholder text instead of labels, the navigation dropdown traps keyboard focus, and color contrast is inconsistent — but manually auditing 80+ pages against the 55 Level A and AA success criteria of WCAG 2.2 would take weeks. Automated tools like axe catch only part of the violations, and the rest require human judgment about whether ARIA patterns are correct, focus management works properly, and screen reader announcements make sense.
 
-The cost of inaction is concrete. An accessibility lawsuit averages $25,000-$50,000 in settlement costs. The European Accessibility Act carries fines per violation. And enterprise clients increasingly require WCAG compliance as a procurement prerequisite — one failed audit can block a six-figure contract.
+The cost of inaction is concrete: legal exposure in the markets you sell to, and enterprise clients that increasingly require WCAG conformance as a procurement prerequisite — one failed audit can block a large contract.
 
 ## The Solution
 
@@ -24,10 +24,10 @@ Feed your components and page templates to the AI agent for a deep accessibility
 ### Step 1: Audit the Most Critical User Flows First
 
 ```text
-Audit the accessibility of our signup flow: src/pages/signup.tsx, src/components/SignupForm.tsx, and src/components/PasswordStrength.tsx. Check against WCAG 2.2 Level AA. This needs to be compliant before June.
+Audit the accessibility of our signup flow: src/pages/signup.tsx, src/components/SignupForm.tsx, and src/components/PasswordStrength.tsx. Check against WCAG 2.2 Level AA. The EAA already applies to us.
 ```
 
-The audit of three files reveals 14 violations: 5 Critical, 6 Major, 3 Minor. The critical findings are the ones that make the signup flow completely unusable for assistive technology users — not degraded, but actually broken:
+The **accessibility-auditor** skill reviews the three files and reports 14 violations: 5 Critical, 6 Major, 3 Minor. The critical findings are the ones that make the signup flow completely unusable for assistive technology users — not degraded, but actually broken:
 
 **WCAG 1.3.5 — Autocomplete missing on all 4 form fields.** Users with motor disabilities rely on autofill to avoid retyping their name and email on every site. Without `autocomplete` attributes, the browser cannot help them. This is also one of the easiest fixes — four attributes added to four inputs.
 
@@ -63,15 +63,19 @@ The audit of three files reveals 14 violations: 5 Critical, 6 Major, 3 Minor. Th
 // Plus a visible text label alongside the bars: "Weak" / "Fair" / "Strong" / "Very strong"
 ```
 
-**WCAG 1.4.1 — Strength meter relies on color alone.** Red, yellow, green bars convey strength. Approximately 8% of males have some form of color vision deficiency, and many cannot distinguish red from green. The fix adds text labels and distinct icons alongside the colors — not replacing color, but supplementing it so color is never the *only* indicator.
+**WCAG 1.4.1 — Strength meter relies on color alone.** Red, yellow, green bars convey strength. Color vision deficiency is common, and many people with it cannot distinguish red from green. The fix adds text labels and distinct icons alongside the colors — not replacing color, but supplementing it so color is never the *only* indicator.
 
-**WCAG 3.3.1 — Validation errors not announced.** When form submission fails, error messages appear visually next to the offending fields, but screen readers are never notified. A blind user clicks Submit, nothing seems to happen, and they have no idea why. The fix wraps the error container in `role="alert"` with `aria-live="assertive"` and adds `aria-describedby` on each input to link the error directly to its field.
+**WCAG 3.3.1 — Validation errors not announced.** When form submission fails, error messages appear visually next to the offending fields, but screen readers are never notified. A blind user clicks Submit, nothing seems to happen, and they have no idea why. The fix gives the error container `role="alert"` (which already implies assertive announcement, so no extra `aria-live`) and adds `aria-describedby` and `aria-invalid="true"` on each input to link the error directly to its field.
+
+**WCAG 3.3.8 (new in 2.2) — Accessible Authentication.** The confirm-password field blocks paste, so password managers and copy-paste cannot be used. Remove the `onPaste` handler.
 
 ### Step 2: Fix Critical Issues and Verify
 
 ```text
 I've implemented the 5 critical fixes. Review my changes in the git diff and check if the ARIA patterns are correct.
 ```
+
+The **code-reviewer** skill reads the diff for regressions as well as ARIA correctness.
 
 Four out of five fixes are correctly implemented. One subtle bug: the `aria-live` region in `PasswordStrength.tsx` is inside a conditionally rendered block. When strength changes from null to "Weak," the entire region mounts for the first time — and screen readers do not announce the initial content of newly mounted `aria-live` regions. It is a well-known gotcha that trips up even experienced developers.
 
@@ -113,25 +117,25 @@ Shared components are the highest-leverage targets — a fix in `Navigation.tsx`
 </a>
 ```
 
-- **Cookie banner steals focus on every page load** — the banner calls `.focus()` on mount, ripping focus away from wherever the user was. For a returning user who has already dismissed cookies, this is a jarring interruption on every navigation. The fix: only steal focus on first appearance, and use `inert` on the rest of the page while the banner is showing.
+- **Cookie banner steals focus on every page load** — the banner calls `.focus()` on mount, ripping focus away from wherever the user was. For a returning user who has already dismissed cookies, this is a jarring interruption on every navigation. The fix: do not move focus on mount at all for a non-modal banner, and place it in the DOM where keyboard users reach it without being pulled out of their position. If the banner is a true modal dialog, use `<dialog>` with `showModal()`, which makes the rest of the page inert and returns focus on close.
 
 ### Step 4: Generate a Compliance Report
 
 ```text
-Generate a WCAG 2.2 Level AA compliance summary showing: total violations found, violations fixed, remaining issues, and our compliance percentage by WCAG principle (Perceivable, Operable, Understandable, Robust).
+Generate a WCAG 2.2 Level AA status summary showing: total violations found, violations fixed, and remaining issues by WCAG principle (Perceivable, Operable, Understandable, Robust).
 ```
 
-The compliance report breaks down progress by WCAG principle:
+The report breaks down progress by WCAG principle. WCAG conformance is pass or fail per success criterion on a whole page, so the report counts violations rather than quoting a percentage:
 
-| Principle | Found | Fixed | Remaining | Compliance |
-|---|---|---|---|---|
-| Perceivable (1.x) | 12 | 8 | 4 | 67% |
-| Operable (2.x) | 11 | 5 | 6 | 55% |
-| Understandable (3.x) | 9 | 4 | 5 | 56% |
-| Robust (4.x) | 5 | 2 | 3 | 60% |
-| **Total** | **37** | **19** | **18** | **73%** |
+| Principle | Found | Fixed | Remaining |
+|---|---|---|---|
+| Perceivable (1.x) | 12 | 8 | 4 |
+| Operable (2.x) | 11 | 5 | 6 |
+| Understandable (3.x) | 9 | 4 | 5 |
+| Robust (4.x) | 5 | 2 | 3 |
+| **Total** | **37** | **19** | **18** |
 
-Current compliance: 73%, projected to 100% after the remaining 18 fixes. The "Operable" category has the most remaining work because it covers keyboard navigation, focus management, and timing — the interactive behaviors that require careful implementation, not just attribute changes.
+19 of 37 violations are fixed. The "Operable" category has the most remaining work because it covers keyboard navigation, focus management, and timing — the interactive behaviors that require careful implementation, not just attribute changes.
 
 Three high-risk items remain that should be prioritized next:
 
@@ -145,6 +149,6 @@ A frontend engineer at a 30-person HR tech company receives notice that their la
 
 She starts with the 8 most-used shared components — Header, Footer, Navigation, SearchBar, and four form components — since fixes there cascade to every page. The audit finds 37 violations total, with 11 Critical that make key flows completely unusable for screen reader and keyboard users. The signup flow has no labels. The dashboard has no landmark regions. The data tables have no headers.
 
-Critical fixes for shared components take 3 days of focused work. Because these components appear everywhere, 3 days of effort fixes accessibility issues across every page in the application simultaneously. The agent then audits the 12 page-specific templates, finding 14 additional issues — mostly missing form labels, inadequate focus management in modals, and two date pickers that are completely inaccessible to keyboard users.
+Critical fixes for shared components take 3 days of focused work. Because these components appear everywhere, 3 days of effort fixes accessibility issues across every page in the application simultaneously. The agent, working with the **frontend-design** skill on contrast, focus styling and target sizes, then audits the 12 page-specific templates, finding 14 additional issues — mostly missing form labels, inadequate focus management in modals, and two date pickers that are completely inaccessible to keyboard users.
 
-After 2 weeks, all violations are resolved. Manual testing with VoiceOver and NVDA confirms the fixes work in practice, not just in theory — a screen reader user can complete every critical flow from signup through daily use without hitting a dead end. The compliance report goes to the enterprise client, the contract is renewed, and what was estimated as a 3-month, $40,000 project is done in 2 weeks of internal engineering time.
+After 2 weeks, all violations are resolved. Manual testing with VoiceOver and NVDA confirms the fixes work in practice, not just in theory — a screen reader user can complete every critical flow from signup through daily use without hitting a dead end. The status report goes to the enterprise client, the contract is renewed, and what the consultancy quoted as a 3-month, $40,000 project is done in 2 weeks of internal engineering time. A formal conformance statement would still need an evaluation of the complete pages by an accessibility specialist.

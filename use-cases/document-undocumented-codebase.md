@@ -17,7 +17,7 @@ The team knows documentation would save hundreds of hours, but nobody has time t
 
 ## The Solution
 
-Point the agent at your codebase and let it analyze the code structure, extract function contracts, trace data flows, and produce documentation at every level -- from inline docstrings to architecture overviews to onboarding guides. It reads the code the way an experienced engineer would, but documents it immediately instead of keeping the knowledge in their head.
+Point a coding agent at your codebase, with the **code-documenter** skill as its method, and let it analyze the code structure, extract function contracts, trace data flows, and produce documentation at every level -- from inline docstrings to architecture overviews to onboarding guides. It reads the code the way an experienced engineer would, but documents it immediately instead of keeping the knowledge in their head. Use the **coding-agent** skill to hand each module to its own background agent, and the **changelog-generator** skill to rebuild the project's history from git. Generated documentation is a draft that a person who knows the system reviews: the agent can misread intent, so every claim about behavior gets spot-checked against the code before it is merged.
 
 ## Step-by-Step Walkthrough
 
@@ -55,7 +55,7 @@ src/
 ## Key Data Flows
 Order Placement:
   POST /api/orders -> orders.service.create() -> payments.service.charge()
-  -> stripe.charges.create() -> transactions.repo.insert()
+  -> stripe.paymentIntents.create(confirm) -> transactions.repo.insert()
   -> inventory.service.decrement() -> orders.repo.updateStatus('paid')
   -> jobs.enqueue('send-confirmation-email')
 
@@ -72,6 +72,16 @@ RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX, SENTRY_DSN
 A new engineer can now see the entire system in one page: three domains, four external services, one clear data flow for the most important operation. The 12 environment variables are no longer a scavenger hunt through .env.example files and Slack messages.
 
 ### Step 2: Add Docstrings to the Most Critical Modules
+
+Documenting 400 files in one conversation overflows any context, so split the work: one scoped task per module, run as background agents with the **coding-agent** skill's pattern. Each agent gets one directory, may edit only comments, and must leave the compiler happy:
+
+```bash
+claude -p "Add JSDoc to every exported function in src/services/orders.ts. Change comments only; do not modify code." \
+  --permission-mode acceptEdits --allowedTools "Read" "Edit" "Bash(npx tsc --noEmit)" \
+  --max-budget-usd 2 > /tmp/doc-orders.log 2>&1 &
+```
+
+After each agent finishes, read its diff, confirm only comment lines changed (`git diff --stat` and a skim), and run the type check and tests. The prompt for one module, if you are working interactively instead:
 
 ```text
 Add comprehensive JSDoc documentation to every exported function in src/services/orders.ts and src/services/payments.ts. Include parameter types, return types, thrown errors, side effects, and example usage.
@@ -90,16 +100,17 @@ The agent reads each function, traces its dependencies, and produces documentati
  * @param userId - Authenticated user ID (e.g., "usr_k82mf9")
  * @param items - Array of {productId, quantity} objects. Minimum 1 item.
  * @param shippingAddress - Full address with country code for tax calculation.
- * @param paymentMethodId - Stripe payment method ID (e.g., "pm_1N2x3Y...")
- * @returns The created order with status "paid" and Stripe charge ID.
+ * @param paymentMethodId - Stripe payment method ID (e.g., "pm_1N2x3Y4Z5A6B7C8D")
+ * @returns The created order with status "paid" and the Stripe PaymentIntent ID.
  *
  * @throws {ValidationError} If any product is out of stock or quantity exceeds inventory.
  * @throws {PaymentError} If Stripe charge fails (card declined, insufficient funds).
  *   The order is rolled back — no inventory deduction occurs.
  * @throws {DatabaseError} If the transaction fails to commit.
  *
- * @sideEffects
- *   - Creates Stripe charge (external API)
+ * @remarks
+ * Side effects:
+ *   - Creates and confirms a Stripe PaymentIntent (external API)
  *   - Inserts order and line_items rows (PostgreSQL)
  *   - Decrements product inventory counts
  *   - Enqueues 'send-confirmation-email' job (Redis/Bull)
@@ -111,19 +122,19 @@ The agent reads each function, traces its dependencies, and produces documentati
  *   { street: "123 Main St", city: "Portland", state: "OR", zip: "97201", country: "US" },
  *   "pm_1N2x3Y4Z5A6B7C8D"
  * );
- * // => { id: "ord_f83k2", status: "paid", total: 89.98, chargeId: "ch_9x2..." }
+ * // => { id: "ord_f83k2", status: "paid", total: 89.98, paymentIntentId: "pi_3N2x..." }
  */
 ```
 
-The `@sideEffects` section is the most valuable part. Without it, a developer calling `createOrder` might not realize it charges a credit card, sends an email, and modifies inventory -- all in one function call. That kind of hidden coupling is where bugs live.
+The side-effects list is the most valuable part. Without it, a developer calling `createOrder` might not realize it charges a credit card, sends an email, and modifies inventory -- all in one function call. That kind of hidden coupling is where bugs live.
 
 ### Step 3: Document the Tricky Parts -- the Business Logic Nobody Understands
 
 ```text
-Find the 10 most complex functions in the codebase (highest cyclomatic complexity) and add inline comments explaining the business logic. Focus on WHY, not WHAT.
+Rank the functions by cyclomatic complexity with a tool, not by eyeballing (for TypeScript, ESLint's built-in `complexity` rule reports only functions above its threshold, so run it with a low one: `npx eslint src --rule '{"complexity": ["warn", 5]}'`), take the top 10, and add inline comments explaining the business logic. Focus on WHY, not WHAT.
 ```
 
-Complexity analysis reveals the functions that need documentation most urgently:
+The ranking, taken from the linter's report, shows the functions that need documentation most urgently (illustrative numbers):
 
 | Rank | Function | Complexity | Comments Added |
 |---|---|---|---|
@@ -133,13 +144,13 @@ Complexity analysis reveals the functions that need documentation most urgently:
 
 The `calculateShipping` documentation explains the weight-based tier breakpoints (carrier contract terms), the free shipping threshold (marketing rule: orders over $75), the international surcharge calculation, and an edge case handler for oversized items.
 
-This is where documentation pays for itself in bug discoveries. The analysis flagged three issues hiding in the complex code:
+This is where documentation pays for itself in bug discoveries. Writing the comments surfaced three suspected issues, each to be confirmed with a failing test before anyone changes code:
 
 1. **`calculateShipping()`**: oversized + fragile items get charged the surcharge twice
 2. **`handleRefund()`**: partial refunds don't update inventory (items never get restocked)
 3. **`applyDiscount()`**: percentage discounts calculated before tax, flat discounts after -- inconsistent and likely unintentional
 
-Three bugs, found for free, because documenting code forces you to understand it.
+Three leads, found because documenting code forces you to understand it.
 
 ### Step 4: Generate the Onboarding Guide
 
@@ -147,12 +158,28 @@ Three bugs, found for free, because documenting code forces you to understand it
 Based on everything we've documented, generate a GETTING_STARTED.md for new engineers. Cover: local setup, architecture overview, key files to read first, how to run and test, common tasks, and who to ask about each domain.
 ```
 
-The onboarding guide references the architecture doc, links to the most important documented files, explains the local development setup with copy-pasteable commands, and lists the 5 files a new engineer should read in order. It transforms a 6-week archaeological expedition into a guided tour.
+The onboarding guide references the architecture doc, links to the most important documented files, explains the local development setup with copy-pasteable commands, and lists the 5 files a new engineer should read in order. It transforms a 6-week archaeological expedition into a guided tour. Have a new hire follow the setup steps on a clean machine; any command that fails is a documentation bug.
+
+### Step 5: Rebuild the Change History
+
+Nobody remembers why things changed either. Ask the agent to use the **changelog-generator** skill on the repository history:
+
+```text
+List the git tags, then write CHANGELOG.md in Keep a Changelog format, one entry per tag, from the commits between tags. Where commit messages are unhelpful, read the diff. Show me the draft before writing it.
+```
+
+The skill sorts commits into Added / Changed / Fixed (using Conventional Commit prefixes where they exist, the diff where they do not), so the onboarding guide can link to a readable history of what shipped when. Going forward, the same skill produces the entry for each release.
 
 ## Real-World Example
 
 A senior engineer at a 20-person fintech startup was tasked with onboarding 4 new hires in Q1. The payment processing codebase had 140K lines of TypeScript, no documentation, and the two engineers who built it left 18 months ago. Previous onboarding had been taking 6 weeks per engineer.
 
-Architecture mapping completed in 8 minutes and revealed the system's structure for the first time as a single readable document. Docstrings were generated for the 3 most critical service modules -- orders, payments, compliance -- and reviewed in 45 minutes of light editing. The complexity analysis documented the 10 hardest functions and uncovered 3 bugs that had been silently affecting production.
+Architecture mapping completed in 8 minutes and revealed the system's structure for the first time as a single readable document. Docstrings were generated for the 3 most critical service modules -- orders, payments, compliance -- and reviewed by the team in 45 minutes of light editing. The complexity analysis documented the 10 hardest functions and turned up 3 suspected bugs, which tests then confirmed.
 
-The 4 new hires used the documentation to become productive in 8 days instead of 6 weeks. The 3 discovered bugs were fixed before they reached customers. Total documentation effort: one full day instead of the estimated 3 weeks of manual work. The documentation kept paying dividends -- the next quarter's hires onboarded even faster because the docs were already there.
+The 4 new hires used the documentation to become productive in 8 days instead of 6 weeks. The confirmed bugs were fixed. The team's own estimate: one full day instead of 3 weeks of manual writing. The documentation kept paying dividends -- the next quarter's hires onboarded even faster because the docs were already there.
+
+## Related Skills
+
+- **code-documenter** -- the method for docstrings, module overviews, architecture docs and onboarding guides
+- **coding-agent** -- run one scoped, pre-approved background agent per module and collect the results
+- **changelog-generator** -- rebuild CHANGELOG.md from git tags and commits

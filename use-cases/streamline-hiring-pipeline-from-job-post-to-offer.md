@@ -19,72 +19,76 @@ tags:
 
 ## The Problem
 
-A growing startup needs to fill 6 engineering positions in 8 weeks. The HR manager writes each job description from scratch, manually reviews 200+ resumes per role, and drafts individual offer letters with legal review for each hire. The process takes 12-15 hours per role just in administrative work. Inconsistent job descriptions attract the wrong candidates, resume screening is subjective depending on who reviews them, and offer letters take 3 days to produce because they shuttle between HR, legal, and the hiring manager for approval.
+A growing startup needs to fill 6 engineering positions in 8 weeks. The HR manager writes each job description from scratch, reads 200+ resumes per role, and drafts each offer letter before sending it through legal review. That is 12-15 hours of administrative work per role. Job descriptions are inconsistent and attract the wrong candidates, resume screening depends on who happens to review, and offer letters take days because they shuttle between HR, legal and the hiring manager.
 
 ## The Solution
 
-Using **job-description** to generate consistent, compelling postings, **applicant-screening** to score and rank candidates against role requirements, **resume-tailor** to analyze how well each resume maps to the role, and **offer-letter** to produce standardized offers with the correct compensation and legal terms, the startup compresses weeks of admin work into hours.
+Four skills cover the drafting and sorting, while people keep every decision about a candidate:
+
+- **job-description** drafts consistent postings, including the pay range.
+- **resume-tailor** extracts the role's requirements into a short list, so the posting, the screening rubric and the interview plan all use the same terms.
+- **applicant-screening** scores each application against an approved rubric and explains each score with evidence from the resume.
+- **offer-letter** drafts the offer for legal and HR review.
+
+The tools produce drafts and recommendations. A person reads every application that matters, decides who advances, who is declined and what is offered. No candidate is rejected automatically because of a score.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Generate standardized job descriptions
 
-Create job postings that accurately describe each role's requirements, responsibilities, and compensation range.
+> Use job-description to create a posting for Senior Backend Engineer. Requirements: 5+ years Python, PostgreSQL, distributed systems, AWS. The role reports to the VP of Engineering. Compensation: $165,000-$195,000 base plus 0.1-0.15% equity. Culture: code review rigor, on-call rotation, 20% time for technical exploration. Give me a full version for the careers page and a shorter one for job boards.
 
-> Use job-description to create a posting for Senior Backend Engineer. Requirements: 5+ years Python experience, PostgreSQL, distributed systems, AWS. The role reports to the VP of Engineering. Compensation: $165,000-$195,000 base plus 0.1-0.15% equity. Include our engineering culture values: code review rigor, on-call rotation, and 20% time for technical exploration. Output both a full JD for our careers page and a shortened version for LinkedIn.
+Keep the pay range in the posting: several US states and cities (for example Colorado, California, Washington and New York City) require it, and candidates filter on it. Have the hiring manager read the draft for requirements that are really preferences; every "required" item becomes a hard filter later.
 
-### 2. Screen and rank incoming applications
+### 2. Extract the requirements once
 
-Process the applicant pool against weighted criteria to surface the strongest candidates.
+> Use resume-tailor's requirement-extraction step on the Senior Backend Engineer posting. List required skills, preferred skills, responsibilities and soft skills, using the posting's exact terms.
 
-> Use applicant-screening to evaluate 214 applications for the Senior Backend Engineer role. Score each resume against these weighted criteria: Python experience (25%), distributed systems (20%), relevant industry experience (15%), education (10%), open source contributions (10%), communication signals from cover letter (10%), and culture fit indicators (10%). Flag candidates who meet all hard requirements and rank them by overall score. Output the top 30 candidates to /hiring/backend-senior/shortlist.csv.
+resume-tailor is built for candidates tailoring their own resume, and this pipeline uses only its analysis steps (requirement extraction and keyword matching), never its resume-rewriting steps. The output is a plain list the hiring manager approves. It becomes the input to the rubric in the next step and to the interview plan in step 4.
 
-The screening tool produces a ranked summary with scores broken down by criterion:
+### 3. Screen applications against an approved rubric
 
-```text
-Applicant Screening — Senior Backend Engineer
-==============================================
-Applications received: 214
-Hard requirements met:  68 (31.8%)
-Shortlisted (top 30):  30
+> Use applicant-screening. Build a rubric for Senior Backend Engineer from the approved requirements: Python experience, distributed systems, cloud platform, system design, communication, and role alignment, with points per level. Show me the rubric before screening anyone.
 
-Rank  Name              Score  Python  DistSys  Industry  Edu  OSS  Comms  Culture
-  1   Sarah Chen        94.2   25/25   20/20    13/15     8/10 10/10  9/10   9.2/10
-  2   Marcus Rivera     91.8   25/25   18/20    14/15     9/10  8/10  9/10   8.8/10
-  3   Aisha Patel       89.5   23/25   19/20    12/15    10/10  9/10  8/10   8.5/10
-  4   David Kim         87.3   24/25   17/20    13/15     7/10 10/10  8/10   8.3/10
-  5   Elena Volkov      85.9   22/25   20/20    11/15     8/10  7/10  9/10   8.9/10
- ...
- 30   James Okonkwo     72.1   20/25   14/20    10/15     8/10  6/10  7/10   7.1/10
+Approve the rubric first; the skill applies the same one to every application and does not change it mid-run. Then run the batch:
 
-Rejected (hard requirements not met): 146
-  - Insufficient Python experience (<3 years): 89
-  - No distributed systems background:        41
-  - Missing cover letter:                      16
+> Screen the 214 applications in /hiring/backend-senior/applications/ against the approved rubric. For each, give the score per criterion with the evidence from the resume. Write /hiring/backend-senior/screening_summary.csv and a report.
 
-Output: /hiring/backend-senior/shortlist.csv
-```
+The output is a ranked list in tiers, with the evidence next to each score. Treat it as a reading order, not a verdict:
 
-The rejection breakdown helps the recruiter understand whether the job posting is attracting the right applicant pool or needs adjustments to its requirements or distribution channels.
+- **The recruiter reads the evidence for the top tier** and decides who advances to a phone screen.
+- **The middle tier and anyone flagged "ambiguous" are read by a person**, because a resume that does not mention a skill is not proof the candidate lacks it.
+- **The bottom tier is sampled by a person before anyone is declined.** Read a sample of 20 to see whether the rubric is excluding people it should not, such as career changers, or candidates from non-traditional backgrounds. The skill also flags it when every top candidate shares the same background.
 
-### 3. Analyze resume-to-role fit for shortlisted candidates
+Check the rules where you hire before using automated scoring on real candidates. New York City Local Law 144 requires a bias audit and notice for automated employment decision tools, and the EU AI Act classes AI used for recruitment as high-risk. Blind screening (names, photos and ages removed) is available on request. Keep the rubric, scores and decisions, so the process can be audited and repeated.
 
-Deeply compare each shortlisted candidate's experience against the specific role requirements.
+### 4. Prepare the interview focus for shortlisted candidates
 
-> Use resume-tailor to analyze the top 30 shortlisted resumes against the Senior Backend Engineer JD. For each candidate, produce a fit report: skills matched, skills missing, years of relevant experience, notable achievements, and a recommended interview focus area (the skill gap that the interview should validate). Flag any candidates whose resumes suggest they are overqualified or underqualified by more than 2 years of experience.
+> For each shortlisted candidate, compare their resume with the approved requirements list from step 2: which required skills the resume shows evidence for, which it does not mention, and what the interview should ask to find out. Do not rank candidates here.
 
-### 4. Generate offer letters for selected candidates
+This is a reading aid for the interviewer. A gap in the list is a question to ask, not a mark against the candidate. Keep the comparison factual ("resume does not mention Kubernetes") and never infer qualifications that are not on the page.
 
-Produce legally compliant offer letters with correct compensation, equity terms, and start dates.
+### 5. Draft offers for the people the team chose
 
-> Use offer-letter to generate an offer for candidate Sarah Chen. Base salary: $185,000. Equity: 0.12% over 4-year vest with 1-year cliff. Signing bonus: $15,000. Start date: March 17, 2026. Include standard clauses: at-will employment, confidentiality agreement, IP assignment, 90-day probation period, and benefits enrollment eligibility. Generate both PDF and DocuSign-ready formats. CC the VP of Engineering and legal counsel.
+> Use offer-letter to draft an offer for Sarah Chen. Base salary $185,000, equity 0.12% over four years with a one-year cliff, signing bonus $15,000 with a clawback if she leaves within 12 months, start date January 11, 2027, reporting to the VP of Engineering. Contingent on background check and right-to-work verification. Acceptance deadline five business days from sending.
+
+The skill writes a markdown draft with the compensation, benefits, contingencies and next steps. It is a draft, not legal advice: HR and counsel review it, convert it to PDF on letterhead and send it through your own e-signature tool. For stock options, the exercise price must be at least the fair market value set by the latest 409A valuation, so do not promise a number before counsel checks it. Put no cap-table details or revenue figures in the letter.
 
 ## Real-World Example
 
-The startup ran this pipeline for all 6 engineering roles. Job descriptions were generated in 30 minutes total instead of 3 days. The screening tool processed 1,180 total applications across all roles and shortlisted 142 candidates in under 2 hours, compared to the 80+ hours it would have taken to review manually. The HR manager reported that interview-to-offer conversion improved from 1-in-5 to 1-in-3 because better screening meant interviewers spent time with genuinely qualified candidates. All 6 positions were filled in 6 weeks instead of the expected 8, and offer letters were delivered same-day instead of the previous 3-day turnaround.
+The startup runs this pipeline for all six engineering roles. The job descriptions are drafted in an afternoon instead of three days, each reviewed by its hiring manager. Across the roles the team receives a bit over a thousand applications. The recruiter, Dana, no longer starts from a blank pile: the screening report puts the strongest evidence first, and she spends her reading time on the top and middle tiers. She also reads a sample from the bottom tier of every role, and for one role she finds that the rubric's "5+ years of Python" cut-off is hiding two strong candidates who moved from Go; the hiring manager loosens that criterion and the screening is re-run with the new, re-approved rubric.
+
+Hiring managers choose who to interview and who to hire, using the screening evidence, the interview focus notes and their own judgement. Offers go to legal as drafts the same day the manager decides, which removes the back-and-forth over missing terms. Dana keeps the rubrics and decisions in the hiring folder so the next round starts from a reviewed version.
 
 ## Tips
 
-- Calibrate screening weights by having the hiring manager manually score 10 resumes first, then adjust the automated weights until the tool's ranking matches the manager's intuition.
-- Keep the hard requirement threshold strict but the scoring flexible. A candidate with 4 years of Python but exceptional distributed systems experience should still surface above someone with exactly 5 years of Python and nothing else.
-- Generate both a full-length job description for the careers page and a condensed version for job boards. LinkedIn posts with descriptions under 300 words receive significantly more applications than longer ones.
+- Calibrate the rubric by having the hiring manager score 10 resumes by hand first, then compare with the tool and adjust the criteria (not the individual scores) until the reasons match.
+- Keep hard requirements few. A candidate with 4 years of Python and exceptional distributed-systems work should still reach a human.
+- Write a shorter board version of each posting, but check the pay range and requirements match the full version.
+
+## Related Skills
+
+- [job-description](../skills/job-description/SKILL.md) -- postings with consistent structure and a pay range
+- [applicant-screening](../skills/applicant-screening/SKILL.md) -- approved rubric, evidence-based scores, human decisions
+- [offer-letter](../skills/offer-letter/SKILL.md) -- offer drafts for legal and HR review
+- [resume-tailor](../skills/resume-tailor/SKILL.md) -- requirement extraction and keyword matching (analysis steps only)

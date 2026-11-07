@@ -3,8 +3,8 @@ title: Set Up a Zero-Downtime Deployment Pipeline
 slug: set-up-zero-downtime-deployment-pipeline
 description: >-
   Build a CI/CD pipeline that deploys to production with zero downtime using
-  GitHub Actions, Docker multi-stage builds, Terraform for infrastructure,
-  and blue-green deployments with automated rollback.
+  GitHub Actions, Docker multi-stage builds, Terraform-managed ECS services
+  with overlapping rolling deployments, and automatic rollback.
 skills:
   - github-actions
   - docker-helper
@@ -21,60 +21,126 @@ tags:
 
 # Set Up a Zero-Downtime Deployment Pipeline
 
-Kai's team deploys their SaaS app by SSH-ing into the server, pulling the latest code, and restarting. Deploys take 10-30 seconds of downtime, happen at 2 AM to minimize impact, and sometimes fail halfway — leaving the app in a broken state until someone wakes up to fix it. After a deployment causes a 45-minute outage (bad migration + no rollback plan), Kai builds a proper pipeline: automated builds, zero-downtime deployments, and one-click rollback.
+Kai's team deploys their SaaS app by SSH-ing into the server, pulling the latest code, and restarting. Deploys take 10-30 seconds of downtime, happen at 2 AM to minimize impact, and sometimes fail halfway, leaving the app broken until someone wakes up. After a deployment causes a 45-minute outage (bad migration, no rollback plan), Kai builds a proper pipeline: a container image, an ECS service that replaces tasks without dropping traffic, and rollback that does not need a human.
 
 ## Step 1: Docker Multi-Stage Build
 
-The first step is containerizing the app. A multi-stage Dockerfile keeps the production image small and reproducible — same image runs locally, in staging, and in production.
+A multi-stage Dockerfile keeps the production image small and reproducible: the same image runs locally, in staging and in production. Use a Node.js release that is still supported (Node 20 reached end of life in April 2026).
 
 ```dockerfile
-# Dockerfile — Optimized production image
-FROM node:20-alpine AS deps
+# Dockerfile
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
+RUN corepack enable pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN pnpm build && pnpm prune --prod
 
-# Build arguments for environment-specific config
-ARG SENTRY_RELEASE
-ENV SENTRY_RELEASE=$SENTRY_RELEASE
-
-RUN pnpm build
-# Prune dev dependencies after build
-RUN pnpm prune --prod
-
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 app && adduser --system --uid 1001 --ingroup app app
 
-RUN addgroup --system --gid 1001 app && \
-    adduser --system --uid 1001 app
-
-# Copy only production artifacts
 COPY --from=builder --chown=app:app /app/dist ./dist
 COPY --from=builder --chown=app:app /app/node_modules ./node_modules
 COPY --from=builder --chown=app:app /app/package.json ./
 COPY --from=builder --chown=app:app /app/prisma ./prisma
 
-# Health check for load balancer
+# Container-level check; the load balancer has its own target group check (Step 2)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1
 
 USER app
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
 ```
 
-The image builds from 1.2GB (development) down to 180MB (production). It includes a health check that the load balancer uses to verify the container is ready before routing traffic to it.
+Release identity is not baked into the image. The pipeline passes the git SHA to Sentry in Step 3 and the app reads `SENTRY_RELEASE` from its task definition environment.
 
-## Step 2: GitHub Actions Pipeline
+## Step 2: Infrastructure with Terraform
+
+The ECS service is created once with Terraform, and the settings that make a deploy safe live there, not in a shell script. `maximum_percent = 200` starts new tasks before old ones stop, `minimum_healthy_percent = 100` never drops below the desired count, and the service only counts a task healthy after the load balancer's health check passes.
+
+```hcl
+# infra/ecs.tf
+terraform {
+  required_providers {
+    aws = { source = "hashicorp/aws", version = "~> 6.0" }
+  }
+}
+
+resource "aws_ecs_service" "app" {
+  name            = "app"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 3
+  launch_type     = "FARGATE"
+
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+  health_check_grace_period_seconds  = 30
+
+  # Roll back automatically if new tasks never become healthy
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  # ...and if the 5xx alarm fires while the deployment is in progress
+  alarms {
+    alarm_names = [aws_cloudwatch_metric_alarm.alb_5xx.alarm_name]
+    enable      = true
+    rollback    = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "app"
+    container_port   = 3000
+  }
+
+  network_configuration {
+    subnets         = var.private_subnet_ids
+    security_groups = [aws_security_group.app.id]
+  }
+
+  # CI registers new task definition revisions; Terraform must not revert them
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
+  alarm_name          = "app-alb-5xx"
+  namespace           = "AWS/ApplicationELB"
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  dimensions          = { LoadBalancer = aws_lb.app.arn_suffix, TargetGroup = aws_lb_target_group.app.arn_suffix }
+  statistic           = "Sum"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 25
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+}
+```
+
+```console
+$ cd infra && terraform init && terraform plan -out=tfplan && terraform apply tfplan
+```
+
+Terraform owns the service, load balancer, alarm and IAM roles. The pipeline owns only the image and task-definition revision. Keep Terraform state in a remote backend with locking and run `terraform plan` in a separate pull-request workflow.
+
+## Step 3: GitHub Actions Pipeline
+
+Static AWS keys in repository secrets are replaced by GitHub's OIDC token: the deploy job assumes an IAM role limited to `ecs:RegisterTaskDefinition`, `ecs:UpdateService`, `ecs:Describe*` and `iam:PassRole` for the task roles. The `strategy.matrix` with `max-parallel: 1` deploys staging first; production runs only if staging succeeded, and the `production` environment requires manual approval in repository settings.
 
 ```yaml
-# .github/workflows/deploy.yml — Full CI/CD pipeline
+# .github/workflows/deploy.yml
 name: Deploy
 
 on:
@@ -87,30 +153,25 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env: { POSTGRES_PASSWORD: test }
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
+    env:
+      DATABASE_URL: postgresql://postgres:test@localhost:5432/test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint && pnpm typecheck
-      - run: pnpm test
-        env:
-          DATABASE_URL: postgresql://postgres:test@localhost:5432/test
-      - run: pnpm e2e
-        env:
-          DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm e2e
 
   build:
     needs: test
@@ -119,147 +180,100 @@ jobs:
       contents: read
       packages: write
     outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
-      version: ${{ steps.version.outputs.version }}
-
+      image: ${{ steps.ref.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
-
-      - id: version
-        run: echo "version=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
-
-      - uses: docker/build-push-action@v5
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: type=sha,prefix=
+      - id: push
+        uses: docker/build-push-action@v7
         with:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            SENTRY_RELEASE=${{ steps.version.outputs.version }}
+      # Deploy the immutable digest, not a mutable tag
+      - id: ref
+        run: echo "image=${REGISTRY}/${GITHUB_REPOSITORY,,}@${{ steps.push.outputs.digest }}" >> "$GITHUB_OUTPUT"
 
-  deploy-staging:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: staging
+    strategy:
+      max-parallel: 1
+      matrix:
+        env: [staging, production]
+    environment: ${{ matrix.env }}       # production requires manual approval
+    permissions:
+      id-token: write                    # OIDC to AWS
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to staging
-        run: |
-          # Update ECS service with new image
-          aws ecs update-service \
-            --cluster staging \
-            --service app \
-            --force-new-deployment \
-            --task-definition $(aws ecs register-task-definition \
-              --cli-input-json "$(cat task-def.json | jq --arg IMG "$IMAGE" '.containerDefinitions[0].image = $IMG')" \
-              --query 'taskDefinition.taskDefinitionArn' --output text)
-        env:
-          IMAGE: ${{ needs.build.outputs.image-tag }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Wait for deployment
-        run: |
-          aws ecs wait services-stable --cluster staging --services app
-          echo "Staging deployment complete"
-
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-west-1
+      - id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-def.json
+          container-name: app
+          image: ${{ needs.build.outputs.image }}
+          environment-variables: SENTRY_RELEASE=${{ github.sha }}
+      - uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          cluster: ${{ matrix.env }}
+          service: app
+          wait-for-service-stability: true
+          wait-for-minutes: 10
       - name: Smoke test
         run: |
-          for i in {1..10}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://staging.myapp.com/health)
-            if [ "$STATUS" = "200" ]; then echo "Health check passed"; exit 0; fi
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://${{ vars.APP_HOST }}/health")
+            [ "$code" = "200" ] && exit 0
             sleep 5
           done
-          echo "Health check failed" && exit 1
-
-  deploy-production:
-    needs: [build, deploy-staging]
-    runs-on: ubuntu-latest
-    environment: production              # requires manual approval in GitHub
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to production (blue-green)
+          echo "::error::health check failed after deploy"; exit 1
+      - name: Record Sentry release
+        if: matrix.env == 'production'
         run: |
-          # Register new task definition
-          NEW_TASK=$(aws ecs register-task-definition \
-            --cli-input-json "$(cat task-def.json | jq --arg IMG "$IMAGE" '.containerDefinitions[0].image = $IMG')" \
-            --query 'taskDefinition.taskDefinitionArn' --output text)
-
-          # Update service — ECS performs rolling update
-          aws ecs update-service \
-            --cluster production \
-            --service app \
-            --task-definition $NEW_TASK \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=100"
-
-          # maximumPercent=200: spin up new tasks BEFORE stopping old ones
-          # minimumHealthyPercent=100: never go below current count
-        env:
-          IMAGE: ${{ needs.build.outputs.image-tag }}
-
-      - name: Wait for stable
-        run: aws ecs wait services-stable --cluster production --services app --timeout 600
-
-      - name: Create Sentry release
-        run: |
-          npx @sentry/cli releases new ${{ needs.build.outputs.version }}
-          npx @sentry/cli releases set-commits ${{ needs.build.outputs.version }} --auto
-          npx @sentry/cli releases finalize ${{ needs.build.outputs.version }}
-          npx @sentry/cli releases deploys ${{ needs.build.outputs.version }} new -e production
+          npx @sentry/cli releases new "$GITHUB_SHA"
+          npx @sentry/cli releases set-commits "$GITHUB_SHA" --auto
+          npx @sentry/cli releases finalize "$GITHUB_SHA"
+          npx @sentry/cli releases deploys "$GITHUB_SHA" new -e production
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
 ```
 
-The key to zero downtime is `maximumPercent=200,minimumHealthyPercent=100`: ECS launches new containers alongside existing ones, waits for health checks to pass, then drains connections from old containers before stopping them.
+The `task-def.json` file in the repository holds the container definition (ports, log configuration, secrets from SSM or Secrets Manager). A private GHCR image also needs `repositoryCredentials` in the container definition, or push the image to ECR instead.
 
-## Step 3: Automated Rollback
+## Step 4: Rollback
 
-```yaml
-      - name: Post-deploy verification
-        id: verify
-        continue-on-error: true
-        run: |
-          sleep 30  # let traffic flow to new version
-          ERROR_RATE=$(curl -s "https://sentry.io/api/0/projects/myorg/app/stats/" \
-            -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" | jq '.[-1][1]')
+Rollback needs no custom script. If the new tasks fail their health checks, ECS's circuit breaker stops the deployment and returns the service to the last completed one. If tasks start but the target group returns 5xx during the deployment, the CloudWatch alarm from Step 2 triggers the same rollback. `wait-for-service-stability` then fails the job, so a failed deploy is red in GitHub and Sentry never gets a production deploy marker.
 
-          if [ "$ERROR_RATE" -gt 50 ]; then
-            echo "Error rate spike detected: $ERROR_RATE errors"
-            echo "rollback=true" >> $GITHUB_OUTPUT
-          fi
+Two things the pipeline cannot undo are database migrations and non-backwards-compatible API changes. Run migrations as a separate step before the deploy and make each one backwards compatible with the previous app version (add a column now, drop the old one in a later release). That is the lesson of the 45-minute outage.
 
-      - name: Rollback if needed
-        if: steps.verify.outputs.rollback == 'true'
-        run: |
-          PREVIOUS_TASK=$(aws ecs describe-services \
-            --cluster production --services app \
-            --query 'services[0].deployments[1].taskDefinition' --output text)
-
-          aws ecs update-service \
-            --cluster production --service app \
-            --task-definition $PREVIOUS_TASK
-
-          echo "::error::Rolled back to previous version due to error spike"
-          exit 1
-```
+Sentry's release health and issue alerts, tied to the `SENTRY_RELEASE` value, show which commit introduced a regression after traffic has been running for a while. That is information for a human or a follow-up revert; the automatic rollback only covers failures in the first minutes of a deployment.
 
 ## Results
 
-After the migration, deployments happen on every merge to main — during business hours, not at 2 AM. Average deploy time: 4 minutes (build) + 3 minutes (rolling update) = 7 minutes from merge to production. Zero downtime across 200+ deployments in the first quarter. The one time a bad deploy shipped (database query causing 500s), the automated rollback triggered within 90 seconds — total impact was 47 requests that got errors, compared to the old 45-minute outages. The team's deploy frequency increased from 2/week to 8/day, and deploy anxiety dropped to zero.
+Deployments now happen on every merge to main during business hours. The example team's pipeline takes about 4 minutes to build and test and about 3 minutes to roll tasks, so a change reaches production in roughly 7 minutes. Their first bad deploy (a query that returned 500s) was rolled back by the alarm in under two minutes with a few dozen failed requests, compared with the 45-minute outage before. The team went from 2 deploys a week to several a day, and the 2 AM deploy window is gone.
+
+## Related Skills
+
+- `github-actions` - workflow syntax, OIDC, concurrency and environments
+- `docker-helper` - multi-stage Dockerfiles and image hygiene
+- `terraform-iac` - the ECS service, load balancer, alarms and remote state
+- `sentry` - releases, deploy markers and release health

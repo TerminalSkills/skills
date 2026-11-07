@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:df173478e6e645496096956c5c82b42cc5b6067c54f43aa80d7847528f88a29f",
+  "scoredAt": "2026-11-05T20:37:56.618Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack explicit error handling or edge case coverage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.18,
+    "baselineAvg": 22,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "deploy-with-pinned-tag",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key steps such as fetching SQLite files, pinning the image to 3.4.2, binding to 127.0.0.1, and the curl loop."
+      },
+      {
+        "name": "create-objects-and-upload",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B deviates from required endpoints, payloads, and authentication."
+      },
+      {
+        "name": "bulk-add-tag-to-documents",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A closely follows the rubric, missing only the success confirmation, while Response B deviates in endpoint, payload structure, and header format."
+      }
+    ]
+  }
+}
