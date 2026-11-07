@@ -1,12 +1,12 @@
 ---
 name: postgres-js
 description: >-
-  Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to "connect Node to Postgres", "run a SQL query from TypeScript", "insert rows with postgres.js", "use a transaction", "listen for Postgres notifications", "stream a big result set with a cursor", or "cancel a slow query". Covers v4 connection options, dynamic inserts and filters, transactions, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.
+  Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to "connect Node to Postgres", "run a SQL query from TypeScript", "insert rows with postgres.js", "use a transaction", "listen for Postgres notifications", "stream a big result set with a cursor", or "cancel a slow query". Covers v4 connection options, dynamic inserts and filters, transactions, batches, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.
 license: Apache-2.0
-compatibility: "Node.js 20+ (or Bun), a reachable PostgreSQL server"
+compatibility: "Node.js 18+ (or Bun), a reachable PostgreSQL server"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: "postgres, postgresql, nodejs, sql, database-client"
   repository: https://github.com/porsager/postgres
@@ -28,7 +28,7 @@ This skill is the Node client. For the database itself (schemas, indexes, tuning
 npm install postgres
 ```
 
-It is ESM. In an ES module use `import postgres from 'postgres'`. From CommonJS use `const postgres = require('postgres').default`, which works on Node.js 20.19, 22.12 and later. Types ship with the package.
+It is ESM. In an ES module use `import postgres from 'postgres'`. From CommonJS use `const postgres = require('postgres').default`, which works on Node.js 20.19, 22.12 and later. Types ship with the package. Version 4.1 runs on Node.js 18 and later (4.0 required 20).
 
 ### Connect
 
@@ -89,6 +89,10 @@ await sql`select * from orders where id = any(${ids})`
 // identifiers (column or table names) are quoted by sql(name)
 const sortColumn = 'total_cents' // validate against an allow-list first
 await sql`select * from orders order by ${sql(sortColumn)} desc`
+
+// schema-qualified names: sql('app.users') reads the dot as a separator;
+// sql.identifier (4.1+) quotes each part as given, so a part may contain a dot
+await sql`select * from ${sql.identifier('acme.inc', 'users')}`   // "acme.inc"."users"
 ```
 
 JSON values: `${sql.json({ source: 'web' })}` writes a `json`/`jsonb` parameter.
@@ -123,6 +127,17 @@ const [order] = await sql.begin(async tx => {
 
 A savepoint inside a transaction: `await tx.savepoint(async sp => { ... })`. Throwing inside it rolls back only the savepoint.
 
+### Batches (4.1+)
+
+`sql.batch` sends several queries in one round trip and resolves with their results in order. Outside a transaction they commit together, and if one fails none is committed. The rejection carries the failing query's position in `error.index`. Queries in a batch cannot use each other's results, and cursors, streams and `forEach` cannot be part of one.
+
+```ts
+const [, [{ count }]] = await sql.batch([
+  sql`update orders set status = ${'paid'} where id = ${42}`,
+  sql`select count(*)::int as count from orders`,
+])
+```
+
 ### Cursors and large result sets
 
 ```ts
@@ -156,9 +171,11 @@ setTimeout(() => q.cancel(), 100)
 
 Cancellation sends a cancel request on a second connection, so it is best effort. For a hard limit set `statement_timeout` on the server or through `connection: { statement_timeout: 5000 }` in the options.
 
+From 4.1, `query_timeout` (seconds, default 0 = none) limits each query including the wait for a connection. A query that runs out of time is cancelled and rejects with `QUERY_TIMEOUT`, with `57014` as its `cause`. It is the backstop for a silent server or network; prefer `statement_timeout` while the server answers. If a cancel gets no answer within `cancel_timeout` (default 5 s) the connection is closed and the pending queries reject with `CONNECTION_DESTROYED`. Cursors, streams and `listen` are not limited.
+
 ### Errors
 
-Server errors are `PostgresError` with the SQLSTATE in `error.code` (`23505` unique violation, `42P01` missing table, `57014` cancelled, `28P01` bad password). Postgres.js's own codes include `QUEUE_TIMEOUT`.
+Server errors are `PostgresError` with the SQLSTATE in `error.code` (`23505` unique violation, `42P01` missing table, `57014` cancelled, `28P01` bad password). Postgres.js's own codes include `QUEUE_TIMEOUT` and, from 4.1, `QUERY_TIMEOUT`.
 
 ```ts
 try {
@@ -179,6 +196,8 @@ postgres(url, { transform: postgres.camel })   // user_id -> userId in results
 ```
 
 Use `sslmode=require` in the URL as an alternative to the `ssl` option. Behind a transaction-mode pooler, `listen` and `set` outside a transaction do not work.
+
+To parse one query's values differently from the instance, 4.1 adds `.parsers`: ``await sql`select 1.5::numeric as price`.parsers({ 1700: Number })`` returns a number for that query only. The built-in transforms (`postgres.camel` and friends) rename JSON keys in results; add `json: false` to the transform to leave JSON alone.
 
 ### Upgrading from v3
 
