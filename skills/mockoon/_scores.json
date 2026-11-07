@@ -1,47 +1,58 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:807f6dd40832906957d2f78d52924cb153d53a1f1c35aeaf3bf65419aae7f10a",
-  "scoredAt": "2026-10-01T12:03:19.057Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:93fefe0f361ab82efba8168e6114b421ec7a34bc756f55d72034ef633c9151cf",
+  "scoredAt": "2026-11-06T23:48:15.945Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that may distract from core instructions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment, limiting compatibility with non-Node agents."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 7.2,
-    "baselineAvg": 3,
-    "treatmentAvg": 72,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "start-mock-with-templating",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits hostname and faker-seed; Response B does not use mockoon-cli at all."
-      },
-      {
-        "name": "validate-and-repair-environment",
-        "baseline": 10,
-        "treatment": 35,
-        "rationale": "Response B better because it includes the required mockoon-cli validate command, while Response A does not."
-      },
-      {
-        "name": "dockerize-mock-server",
+        "name": "start-mock-with-watch",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not mention mockoon-cli or the required Dockerfile content."
+        "rationale": "Response A correctly uses npx mockoon-cli start with the required flags, while Response B uses a different tool and does not meet the rubric."
+      },
+      {
+        "name": "import-openapi-to-env",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B provides the exact single shell command with the required flags, while Response A does not include the required mockoon-cli import command."
+      },
+      {
+        "name": "dockerize-mock",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required single shell command using npx mockoon-cli dockerize with the specified flags."
       }
     ]
   }
