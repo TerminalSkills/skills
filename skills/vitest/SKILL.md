@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js 22.12+ and Vite 6.4+ (Vitest 5)"
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: development
   repository: https://github.com/vitest-dev/vitest
   tags: "testing, vite, typescript, mocking, coverage"
@@ -21,7 +21,7 @@ metadata:
 
 ## Overview
 
-Vitest is the Vite-native testing framework. It runs unit, integration and component tests with native TypeScript support, a Jest-compatible API, built-in mocking, code coverage, snapshot testing and watch mode — reusing Vite's transform pipeline, so tests need no separate compilation step. This skill targets Vitest 5 (released September 2026), which changed several defaults; the Guidelines list what to check when upgrading.
+Vitest is the Vite-native testing framework. It runs unit, integration and component tests with native TypeScript support, a Jest-compatible API, built-in mocking, code coverage, snapshot testing and watch mode — reusing Vite's transform pipeline, so tests need no separate compilation step. This skill targets Vitest 5 (released September 2026, checked against 5.1), which changed several defaults; the Guidelines list what to check when upgrading.
 
 ## Instructions
 
@@ -184,6 +184,8 @@ npx vitest run -t "applies percentage"     # Tests whose full name matches
 npx vitest run --project unit              # One project
 npx vitest related src/pricing.ts --run    # Tests that import the given source files
 npx vitest run --changed                   # Tests affected by uncommitted changes
+npx vitest run --lastFailed                # Only tests that failed in the previous run (5.1+)
+npx vitest run --sinceLastRun              # Tests whose recorded dependencies changed since their last run, plus last failures (5.1+, experimental; needs the cache)
 npx vitest run --reporter=junit            # Writes .vitest/junit/output.xml
 ```
 
@@ -261,4 +263,5 @@ npx vitest run --project unit --reporter=default
 9. **Reports go to `.vitest/`** — The `json` and `junit` reporters write `.vitest/json/output.json` and `.vitest/junit/output.xml` instead of stdout unless `outputFile` is set
 10. **Quiet output under AI agents** — When Vitest detects a coding agent it switches to the `minimal` reporter, which prints only failures and the totals. Pass `--reporter=default` (or `verbose`) to see every file
 11. **Config lookup** — Vitest 5 no longer searches parent directories for a config file; run from the project root or pass `--config ../vitest.config.ts`
-12. **Not an end-to-end tool** — For full user flows across pages use Playwright or Cypress. Component tests that need a real browser can use Browser Mode (`npx vitest init browser`)
+12. **Fake timers cover `node:timers`** — Since 5.1 `vi.useFakeTimers()` also fakes `node:timers` and `node:timers/promises`, and `vi.setSystemTime()` accepts `Temporal.Instant` and `Temporal.ZonedDateTime`
+13. **Not an end-to-end tool** — For full user flows across pages use Playwright or Cypress. Component tests that need a real browser can use Browser Mode (`npx vitest init browser`)

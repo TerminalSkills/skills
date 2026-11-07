@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:b53cefd794947e14cea5057e594bfa8524f1f364d4bc005cb2f8369a49d1ba43",
-  "scoredAt": "2026-10-01T12:45:38.896Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:79e49bac073b44a76e723ae72f3cfd5244055406a207552d462953d43dac6ef0",
+  "scoredAt": "2026-11-07T00:08:15.600Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.5,
-    "baselineAvg": 48,
-    "treatmentAvg": 72,
+    "multiplier": 1.62,
+    "baselineAvg": 37,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "setup-vitest-with-coverage",
+        "name": "setup-vitest-with-coverage-thresholds",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits branch/function thresholds; Response B misses key install, script names, provider, and ignore entries."
+      },
+      {
+        "name": "mock-modules-with-vi-mock-and-spy",
         "baseline": 50,
         "treatment": 60,
-        "rationale": "Response A covers most rubric items but lacks the required test:watch script and npx vitest command, while Response B uses the wrong coverage provider, omits the specific lines threshold, and also misses the npx command."
+        "rationale": "Both responses miss the vi.mocked rejection and clearMocks note, but B uses the correct module paths and includes more detailed expectations, earning it a slightly higher score."
       },
       {
-        "name": "mock-email-module-with-vi-mock",
-        "baseline": 45,
-        "treatment": 55,
-        "rationale": "Response A correctly mocks sendEmail with a resolved promise and includes a test, but misses the call assertion and hoisting; Response B asserts the call but uses the wrong module path, mock value, and still imports before the mock, making it slightly less compliant."
-      },
-      {
-        "name": "configure-multiple-projects-dom-node",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the dom project, its include pattern, and the specific command to run only DOM tests."
+        "name": "configure-multiple-projects-node-and-jsdom",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A correctly sets up global setupFiles and defines two projects, though the include patterns differ from the rubric; Response B also mis‑matches the required include patterns and setup file path, and neither mentions .gitignore."
       }
     ]
   }
