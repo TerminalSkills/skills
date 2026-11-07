@@ -1,47 +1,63 @@
 {
-  "version": "2.0.0",
-  "skillHash": "sha256:cadb445fd847bc01228e5e5e4b48bd8b1d95639fa019e157312a7fd708034aa8",
-  "scoredAt": "2026-10-01T20:04:02.275Z",
+  "version": "2.1.0",
+  "skillHash": "sha256:cfd2937bd34b7b47739927f8b2b46ce0664a5d4fafd2577ff922fcd84909f52c",
+  "scoredAt": "2026-11-06T23:45:12.152Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not fully address error handling for missing dependencies or unexpected command failures, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may distract from core actions, reducing brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Node.js and Python environments, limiting applicability to other language ecosystems."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.08,
-    "baselineAvg": 40,
-    "treatmentAvg": 83,
+    "multiplier": 1.77,
+    "baselineAvg": 48,
+    "treatmentAvg": 85,
     "scenarios": [
       {
         "name": "identify-shallow-modules",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response B includes a clear evidence table and merge direction, while Response A lacks both a table and a merging strategy."
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully lists modules with fan‑in and line count, while Response A only shows importer and omits explicit fan‑in count."
       },
       {
-        "name": "untangle-clusters",
+        "name": "plan-tangled-cluster-refactor",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A includes a candidate card, a refactoring plan with pull request steps, and an import‑linter CI rule, while Response B lacks all rubric requirements."
+      },
+      {
+        "name": "measure-churn-cochange",
         "baseline": 55,
         "treatment": 75,
-        "rationale": "Response B covers the required metrics and candidate cards, while Response A lacks co‑change and fan‑out analysis and candidate cards."
-      },
-      {
-        "name": "add-ci-dependency-rule",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Response B fully meets the rubric with a .dependency-cruiser.cjs rule, CI integration, and baseline handling, while Response A uses a custom Python script and lacks the required dependency-cruiser configuration."
+        "rationale": "Response B better matches the rubric by providing the correct columns and descending order, though it lacks a formal table; Response A provides a table but with incorrect columns."
       }
     ]
   }
