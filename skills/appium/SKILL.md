@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Node.js 20.19+ (or 22.12+, 24+) and npm 10+ for the Appium server; Android SDK for Android, macOS with Xcode for iOS; Python 3.10+ for the Python client."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   repository: https://github.com/appium/appium
   tags: "mobile-testing, ios, android, automation"
@@ -16,7 +16,7 @@ metadata:
 
 ## Overview
 
-Appium is a server that exposes the W3C WebDriver protocol for mobile apps. Test scripts (WebdriverIO, Python, Java, Ruby, .NET) send commands to the server, and a platform driver carries them out: UiAutomator2 for Android and XCUITest for iOS (iOS needs macOS and Xcode). Appium 3 is the current major version (3.8 at the time of writing); it needs Node.js 20.19+ or 22.12+ and npm 10+, speaks only W3C commands, and ships no drivers, so you install them separately.
+Appium is a server that exposes the W3C WebDriver protocol for mobile apps. Test scripts (WebdriverIO, Python, Java, Ruby, .NET) send commands to the server, and a platform driver carries them out: UiAutomator2 for Android and XCUITest for iOS (iOS needs macOS and Xcode). Appium 3 is the current major version (3.9 at the time of writing); it needs Node.js 20.19+ or 22.12+ and npm 10+, speaks only W3C commands, and ships no drivers, so you install them separately.
 
 ## Instructions
 
@@ -33,6 +33,7 @@ Appium is a server that exposes the W3C WebDriver protocol for mobile apps. Test
 npm install -g appium                     # the only supported install route
 appium driver install uiautomator2        # Android
 appium driver install xcuitest            # iOS (macOS only)
+                                          # (3.9+: if the newest driver needs a newer Appium, install falls back to the latest compatible version)
 appium driver list --installed
 
 # Environment checks. The standalone appium-doctor package is deprecated;
@@ -40,7 +41,8 @@ appium driver list --installed
 appium driver doctor uiautomator2
 appium driver doctor xcuitest
 
-appium                                    # listens on http://127.0.0.1:4723
+appium --address 127.0.0.1                # default is 0.0.0.0 (all interfaces); bind to localhost unless the device farm needs the network
+                                          # server URL: http://127.0.0.1:4723
 ```
 
 Android needs `ANDROID_HOME` pointing at the SDK and `adb` on the PATH. Appium 3 requires driver-scoped insecure features, e.g. `appium --allow-insecure=uiautomator2:adb_shell` (`*:adb_shell` applies to all drivers).
@@ -89,11 +91,11 @@ export const config = {
   }],
   framework: 'mocha',
   mochaOpts: { timeout: 60000 },
-  services: ['appium'],   // starts the globally installed Appium server on port 4723
+  services: [['appium', { args: { address: '127.0.0.1' } }]],   // starts the globally installed Appium server on port 4723, bound to localhost
 };
 ```
 
-Run with `npx wdio run wdio.conf.js`. In WebdriverIO, `$('~login-button')` finds by accessibility id (content-desc on Android, accessibility identifier on iOS).
+Run with `npx wdio run wdio.conf.js`. WebdriverIO 10 needs Node.js 22.23.4+ (24.22.1+ on 24), newer than the Appium server's own minimum. In WebdriverIO, `$('~login-button')` finds by accessibility id (content-desc on Android, accessibility identifier on iOS).
 
 ### Mobile gestures
 
@@ -171,5 +173,5 @@ Install with `pip install Appium-Python-Client pytest` (client 6.x, Python 3.10+
 - Appium 3 removed many old REST endpoints (app launch, lock, clipboard); use the driver's `mobile:` execute commands.
 - Real iOS devices need a development team and WebDriverAgent signing; simulators do not.
 - Keep passwords in environment variables; never commit them or the app binaries.
-- Only expose the server beyond localhost behind authentication; insecure features give shell access to the device.
+- Appium listens on all interfaces by default (`0.0.0.0`) and has no authentication: start it with `--address 127.0.0.1`, and only expose it beyond localhost behind an authenticating proxy or firewall; insecure features give shell access to the device.
 - For React Native apps with synchronised gray-box testing, Detox is a lighter choice.
