@@ -1,12 +1,11 @@
 ---
 title: Automate Small Business Accounting
 slug: automate-small-business-accounting
-description: Connect Stripe and bank exports to automatically categorize transactions, sync them to Xero or QuickBooks, and generate a monthly P&L report — with zero manual data entry.
+description: Connect Stripe and bank exports to automatically categorize transactions, sync them to Xero or QuickBooks, and generate a monthly P&L report — with a human review before anything is posted.
 skills:
   - bookkeeping-automation
   - xero-accounting
   - quickbooks-online
-  - invoice-generator
 category: business
 tags:
   - accounting
@@ -22,320 +21,143 @@ tags:
 
 ## The Problem
 
-Marco runs a bootstrapped SaaS with 80 paying customers and a small team of two contractors. Revenue is $18K/month, but his books are a disaster. He exports his Stripe payouts and bank statements to a spreadsheet, manually categorizes each line item, and pastes the totals into a Google Sheet P&L template his accountant sent him last year.
+Marco (an invented founder) runs a bootstrapped SaaS with 80 paying customers and two contractors. He exports Stripe payouts and bank statements to a spreadsheet, categorizes each line by hand and pastes totals into a Google Sheet P&L template his accountant sent him. It takes 3-4 hours every month and happens the week before his quarterly call with the accountant, so decisions on payroll, hiring and ad spend rest on month-old numbers.
 
-The process takes 3–4 hours every month. He always does it the week before his quarterly tax call, which means he's making business decisions — payroll, new hires, ad spend — with financial data that's a month stale. Last quarter he almost missed an accountant deadline because he couldn't figure out which AWS charges went to which project.
-
-Marco needs his books closed by the 5th of each month, automatically, so he can spend those 3 hours on the product instead.
+Marco wants the categorization and the Xero entry done by a script he reviews, not by hand.
 
 ## The Solution
 
-Build a monthly accounting pipeline that runs automatically:
+A monthly pipeline with a person in the loop:
 
-1. **Parse** Stripe payouts + bank CSV exports using `bookkeeping-automation`
-2. **Categorize** transactions with keyword rules (free) + AI for edge cases (cheap)
-3. **Sync** to Xero or QuickBooks via API using `xero-accounting` or `quickbooks-online`
-4. **Generate** a formatted P&L report and email it to Marco's accountant
+1. **Parse** the bank and Stripe CSV exports with `bookkeeping-automation` (Decimal money, whole-word keyword rules, optional LLM for leftovers, duplicate and reconciliation checks).
+2. **Review** the categorized CSV and the spending breakdown. Nothing is posted until Marco runs the script again with `--post`.
+3. **Sync** to Xero with `xero-accounting` (bank transactions through the Accounting API), or to QuickBooks Online with `quickbooks-online` (see below).
+4. **Report**: read the P&L back from the ledger and send it to the accountant.
 
-The full pipeline runs on a cron job on the 2nd of each month. Marco reviews a 1-page P&L summary over his morning coffee, approves it, and the accountant gets clean data to work with.
+The agent prepares and posts the entries; the accountant owns tax treatment and the chart of accounts. Nothing here is tax advice.
 
 ## Step-by-Step Walkthrough
 
-### Step 1 — Parse and combine transaction sources
+### Step 1: Set up the modules
 
-Marco gets transactions from two places: Stripe (for SaaS revenue) and his business checking account (for expenses). Both export CSV. The `bookkeeping-automation` parser handles both.
+Save `parser.py` and `pipeline.py` from the `bookkeeping-automation` skill, and `xero_auth.py`, `xero_client.py` and `sync_bank_transactions.py` from the `xero-accounting` skill, in one project folder. Install `ofxtools` and `requests` in a virtual environment. Create a Xero app (scopes `accounting.transactions`, `accounting.reports.read`, `offline_access`), authorize it against a **Demo Company** first, and export `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, `XERO_REDIRECT_URI` and `XERO_BANK_ACCOUNT_ID` as environment variables.
+
+### Step 2: Export the two sources
+
+- Bank: the CSV export from the business account. Open it and read the header row; pass the real column names and date format to `parse_csv`. If the bank offers OFX/QFX, `parse_ofx` is more reliable than CSV.
+- Stripe: export the payouts (or balance transactions) report as CSV from the Dashboard. A payout is the net of charges minus Stripe fees and refunds, so the sales figure for revenue should come from the charges report; tell the accountant which one you booked.
+
+### Step 3: Categorize, review, then post
+
+The script below chains the skills' functions. By default it only writes `categorized.csv` and prints a breakdown. With `--post` it refuses to run while any row is "Uncategorized", sends the rest to Xero as `SPEND`/`RECEIVE` bank transactions (the skill's `import_transactions`) and records a fingerprint of every posted row in `synced.json`, so a second run cannot post the same rows twice.
 
 ```python
-# pipeline.py — Monthly accounting pipeline entry point
+# monthly.py - parse, categorize, review, then (only with --post) push to Xero
+import argparse
+import csv
+import hashlib
+import json
+import os
+from decimal import Decimal
+
 from parser import parse_csv
-from categorizer import categorize_by_rules, categorize_with_ai
-from dedup import remove_duplicates
-from reports import expense_report, monthly_summary, export_to_csv
-from datetime import datetime
-import os
+from pipeline import categorize_by_rules, categorize_with_llm, drop_repeated_ids, expense_report
 
-def run_monthly_pipeline(year: int, month: int):
-    """Run the full monthly accounting pipeline."""
-    period = f"{year}-{month:02d}"
-    print(f"\n🧾 Running accounting pipeline for {period}...")
-
-    # --- Parse Stripe payouts (CSV export from Stripe Dashboard) ---
-    stripe_txs = parse_csv(
-        f"data/stripe_{period}.csv",
-        date_col="created (UTC)",
-        desc_col="description",
-        amount_col="net",
-        date_fmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    # Override categories for Stripe revenue
-    for tx in stripe_txs:
-        if tx.amount > 0:
-            tx.category = "Revenue"
-            tx.notes = "Stripe payout"
-
-    # --- Parse bank statement (CSV from business checking account) ---
-    bank_txs = parse_csv(
-        f"data/bank_{period}.csv",
-        date_col="Date",
-        desc_col="Description",
-        amount_col="Amount",
-        date_fmt="%m/%d/%Y",
-    )
-
-    # --- Combine and deduplicate ---
-    all_txs = stripe_txs + bank_txs
-    all_txs = remove_duplicates(all_txs)
-    print(f"  Loaded {len(all_txs)} transactions ({len(stripe_txs)} Stripe + {len(bank_txs)} bank)")
-
-    return all_txs
-```
-
-### Step 2 — Categorize transactions automatically
-
-Rule-based categorization matches 75–80% of Marco's recurring expenses (AWS, GitHub, Vercel, Gusto, etc.) instantly. The remaining edge cases go to an LLM — typically 20–30 transactions per month at near-zero cost.
-
-```python
-# pipeline.py (continued)
-import openai
-
-def categorize_transactions(transactions):
-    """Apply rules first, then AI for unknowns."""
-
-    # Add Marco's specific business rules
-    from categorizer import CATEGORY_RULES
-    CATEGORY_RULES["Revenue"] += ["stripe payment", "stripe payout"]
-    CATEGORY_RULES["Payroll & Contractors"] += ["contractor invoice", "gusto"]
-    CATEGORY_RULES["Software & SaaS"] += [
-        "aws", "vercel", "github", "linear", "loom", "notion",
-        "cloudflare", "datadog", "1password", "zoom",
-    ]
-    CATEGORY_RULES["Advertising"] += ["google ads", "twitter", "linkedin"]
-
-    # Pass 1: rules (free, instant)
-    transactions = categorize_by_rules(transactions)
-
-    uncategorized_count = sum(1 for tx in transactions if tx.category == "Uncategorized")
-    print(f"  Rules matched {len(transactions) - uncategorized_count}/{len(transactions)} transactions")
-
-    # Pass 2: AI for the rest (send only uncategorized to save tokens)
-    if uncategorized_count > 0:
-        transactions = categorize_with_ai(
-            transactions,
-            api_key=os.environ["OPENAI_API_KEY"],
-            model="gpt-4o-mini",  # Cheap, fast, accurate enough for categorization
-        )
-        print(f"  AI categorized {uncategorized_count} remaining transactions")
-
-    return transactions
-```
-
-### Step 3 — Sync to Xero
-
-Once transactions are categorized, push them to Xero: Stripe payouts become sales invoices (already paid), bank expenses become bank transactions coded to the right accounts.
-
-```python
-# sync_to_xero.py — Push categorized transactions into Xero
-from xero_client import XeroClient
-from xero_auth import get_valid_token, get_tenant_id
-from sync_invoices import create_invoice, mark_invoice_paid
-from sync_bank_transactions import create_bank_transaction
-from parser import Transaction
-from typing import List
-import os
-
-# Map bookkeeping categories to Xero account codes
-# Update these to match your Xero chart of accounts
+# Read your real codes from GET /Accounts (needs accounting.settings); these are placeholders.
 XERO_ACCOUNT_MAP = {
-    "Revenue": "200",
-    "Software & SaaS": "489",
-    "Payroll & Contractors": "477",
-    "Advertising": "441",
-    "Meals & Entertainment": "420",
-    "Travel": "493",
-    "Banking & Fees": "404",
-    "Office & Supplies": "469",
-    "Other": "499",
+    "Revenue": "200", "Software & SaaS": "489", "Payroll & Contractors": "477",
+    "Advertising": "441", "Meals & Entertainment": "420", "Travel": "493",
+    "Banking & Fees": "404", "Other": "499",
 }
+LEDGER = "synced.json"   # fingerprints of rows already pushed, so a re-run cannot double-post
 
-BANK_ACCOUNT_ID = os.environ["XERO_BANK_ACCOUNT_ID"]
 
-def sync_to_xero(transactions: List[Transaction]):
-    """Push categorized transactions to Xero."""
-    client = XeroClient()
-    synced = 0
-    errors = 0
+def fingerprint(tx):
+    return hashlib.sha256(f"{tx.raw_id}|{tx.date.date()}|{tx.amount}|{tx.description}".encode()).hexdigest()
 
-    for tx in transactions:
-        try:
-            account_code = XERO_ACCOUNT_MAP.get(tx.category, "499")
 
-            if tx.amount > 0:
-                # Revenue: create invoice + mark paid
-                invoice = create_invoice(
-                    contact_name="Stripe Revenue",
-                    line_items=[{
-                        "description": tx.description or "SaaS Revenue",
-                        "quantity": 1,
-                        "unitAmount": float(tx.amount),
-                        "accountCode": account_code,
-                    }],
-                    due_date=tx.date.strftime("%Y-%m-%d"),
-                )
-                mark_invoice_paid(invoice["InvoiceID"], amount=float(tx.amount))
-            else:
-                # Expense: create bank transaction (SPEND)
-                create_bank_transaction(
-                    account_id=BANK_ACCOUNT_ID,
-                    contact_name=tx.description[:50] or "Unknown",
-                    amount=abs(float(tx.amount)),
-                    date=tx.date.strftime("%Y-%m-%d"),
-                    description=tx.description,
-                    account_code=account_code,
-                    tx_type="SPEND",
-                )
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("csv_file")
+    ap.add_argument("--post", action="store_true", help="push to Xero (default: review only)")
+    args = ap.parse_args()
 
-            synced += 1
+    # Pass the real header names of YOUR export; banks differ.
+    txs = parse_csv(args.csv_file, date_col="Date", desc_col="Description",
+                    amount_col="Amount", date_fmt="%Y-%m-%d", id_col="Transaction ID")
+    txs = categorize_by_rules(drop_repeated_ids(txs))
+    # categorize_with_llm(txs, ask) is optional; see the bookkeeping-automation skill.
+    print(expense_report(txs, "Expenses to review"))
+    left = [t for t in txs if t.category == "Uncategorized"]
+    print(f"{len(left)} rows still Uncategorized: fix the rules or label them before posting")
 
-        except Exception as e:
-            print(f"  ✗ Failed to sync: {tx.description} — {e}")
-            errors += 1
+    with open("categorized.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["date", "description", "amount", "category"])
+        for t in txs:
+            w.writerow([t.date.date(), t.description, t.amount, t.category])
+    if not args.post:
+        print("Review categorized.csv, then re-run with --post")
+        return
+    if left:
+        raise SystemExit("Refusing to post with Uncategorized rows")
 
-    print(f"  Synced {synced} transactions to Xero ({errors} errors)")
-    return synced, errors
+    from sync_bank_transactions import import_transactions   # from the xero-accounting skill
+    done = set(json.load(open(LEDGER))) if os.path.exists(LEDGER) else set()
+    new = [t for t in txs if fingerprint(t) not in done]
+    rows = [{"date": t.date.strftime("%Y-%m-%d"), "contact": t.description[:50] or "Unknown",
+             "amount": float(t.amount), "description": t.description,
+             "account_code": XERO_ACCOUNT_MAP.get(t.category, "499")} for t in new]
+    created = import_transactions(os.environ["XERO_BANK_ACCOUNT_ID"], rows)
+    ok = [t for t, c in zip(new, created) if not c.get("HasValidationErrors")]
+    done.update(fingerprint(t) for t in ok)
+    json.dump(sorted(done), open(LEDGER, "w"))
+    print(f"Posted {len(ok)} of {len(new)} new rows ({len(txs) - len(new)} already synced)")
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-### Step 4 — Generate the monthly P&L report
+Run it in two steps:
 
-After sync, pull the official P&L from Xero (which now includes all the new transactions) and format it for the accountant.
+```console
+$ python monthly.py bank_2026-10.csv
+$ python monthly.py bank_2026-10.csv --post
+```
+
+For the leftovers, `categorize_with_llm(txs, ask)` takes any function that sends a prompt to the model you choose; read the model name from an environment variable because model names are retired regularly. Descriptions leave your machine in that call, so strip account numbers or use a local model.
+
+The account codes in `XERO_ACCOUNT_MAP` are placeholders. Read the organisation's real chart with `GET /Accounts` (scope `accounting.settings`) and map your categories to it.
+
+### Step 4: Read the P&L back
+
+After the sync, `reports.py` from the `xero-accounting` skill returns the profit and loss for the month:
 
 ```python
-# generate_report.py — Pull P&L from Xero and format for review
-from reports_xero import get_profit_and_loss
-from invoice_generator import generate_pdf_report  # Or just format as markdown
-from datetime import datetime
-import calendar
-
-def generate_monthly_report(year: int, month: int) -> str:
-    """Pull P&L from Xero and generate a formatted report."""
-    start_date = f"{year}-{month:02d}-01"
-    last_day = calendar.monthrange(year, month)[1]
-    end_date = f"{year}-{month:02d}-{last_day:02d}"
-    month_name = datetime(year, month, 1).strftime("%B %Y")
-
-    pnl = get_profit_and_loss(start_date, end_date)
-
-    lines = [
-        f"# P&L Report — {month_name}",
-        f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
-        "",
-        "| Category | Amount |",
-        "|---|---|",
-    ]
-
-    for row in pnl["rows"]:
-        label = row["label"]
-        value = row["value"]
-        # Bold the key summary lines
-        if label in ("Total Income", "Gross Profit", "Net Profit", "Net Income"):
-            lines.append(f"| **{label}** | **{value}** |")
-        else:
-            lines.append(f"| {label} | {value} |")
-
-    report_md = "\n".join(lines)
-
-    # Save to file
-    output_path = f"reports/pnl_{year}_{month:02d}.md"
-    os.makedirs("reports", exist_ok=True)
-    with open(output_path, "w") as f:
-        f.write(report_md)
-
-    print(f"\n📊 P&L report saved to {output_path}")
-    return report_md
-
-# --- Full pipeline ---
-if __name__ == "__main__":
-    import sys
-    from datetime import date
-
-    # Default to previous month
-    today = date.today()
-    year = int(sys.argv[1]) if len(sys.argv) > 1 else today.year
-    month = int(sys.argv[2]) if len(sys.argv) > 2 else today.month - 1 or 12
-
-    transactions = run_monthly_pipeline(year, month)
-    transactions = categorize_transactions(transactions)
-    export_to_csv(transactions, f"data/categorized_{year}_{month:02d}.csv")
-    sync_to_xero(transactions)
-    report = generate_monthly_report(year, month)
-    print(report)
+from reports import profit_and_loss
+for label, value in profit_and_loss("2026-10-01", "2026-10-31").items():
+    print(f"{label:<24}{value:>12}")
 ```
 
-### Step 5 — Automate with a monthly cron job
+The labels come from the organisation's own report layout. Save the output to `reports/pnl_2026_10.md` or paste it into an email to the accountant.
 
-Run the pipeline automatically on the 2nd of each month (giving Stripe and the bank time to finalize the prior month's exports):
+### Step 5: Use QuickBooks Online instead
 
-```bash
-# crontab -e
-# Run at 7:00 AM on the 2nd of each month
-0 7 2 * * cd /home/marco/accounting && python pipeline.py >> logs/pipeline.log 2>&1
-```
+If the books live in QuickBooks Online, keep Steps 1-3 up to `categorized.csv` and replace the posting step with the `quickbooks-online` skill: its OAuth client sends every request with an explicit `minorversion=75`, creates vendors and expenses/bills from the categorized rows, and `ProfitAndLoss` report gives Step 4. Map categories to QuickBooks accounts by name from the company's own chart of accounts.
 
-Or as a GitHub Actions scheduled workflow:
+### Step 6: Run it monthly
 
-```yaml
-# .github/workflows/monthly-accounting.yml
-name: Monthly Accounting Pipeline
-
-on:
-  schedule:
-    - cron: "0 7 2 * *"   # 2nd of each month at 7:00 AM UTC
-  workflow_dispatch:       # Allow manual trigger
-
-jobs:
-  run-pipeline:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Download Stripe export
-        env:
-          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
-        run: python scripts/download_stripe_export.py
-
-      - name: Run accounting pipeline
-        env:
-          XERO_CLIENT_ID: ${{ secrets.XERO_CLIENT_ID }}
-          XERO_CLIENT_SECRET: ${{ secrets.XERO_CLIENT_SECRET }}
-          XERO_BANK_ACCOUNT_ID: ${{ secrets.XERO_BANK_ACCOUNT_ID }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python pipeline.py
-
-      - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: monthly-pnl-report
-          path: reports/
-```
+Put a recurring reminder on the 2nd of the month (after Stripe and the bank have finalized the previous month). Run the review step, look at `categorized.csv` and the unmatched rows, fix the rules, then post. Keep the Xero refresh token in a file or database outside git: it is single use and an unused one expires after 60 days, so a month-long gap is fine but a two-month gap needs a new authorization.
 
 ## Results
 
-Marco ran the pipeline for the first time mid-February, processing January's data retroactively. What used to take 3 hours took 4 minutes:
+On the example run for October (invented numbers): 143 rows parsed from two sources, 118 matched by the rules, 25 left for the model or for Marco, and 2 repeated bank ids removed before posting. Marco compares the posted bank transactions with the statement balance using `reconcile` before the report goes to the accountant.
 
-- **143 transactions** parsed from 2 sources (Stripe payout CSV + bank CSV)
-- **118 auto-categorized by rules** (83%) — zero manual review needed
-- **25 sent to GPT-4o-mini** for AI categorization — cost: $0.03
-- **141 synced to Xero** (2 duplicates removed)
-- **P&L report generated** and saved to `reports/pnl_2025_01.md`
+What changes for Marco is the work, not the responsibility: categorizing and keying are done by the script, while approving the categories, the account mapping and the revenue treatment stays with him and his accountant.
 
-The accountant received clean, categorized books by the 3rd of the month instead of the 28th. Marco now makes payroll and ad spend decisions with current data instead of month-old guesses. The monthly cron job runs without intervention — he only reviews the CSV if the error count is non-zero.
+## Related Skills
 
-**Total ongoing cost:** ~$0.05/month in AI API calls + Xero subscription he already had.
+- [bookkeeping-automation](/skills/bookkeeping-automation)
+- [xero-accounting](/skills/xero-accounting)
+- [quickbooks-online](/skills/quickbooks-online)

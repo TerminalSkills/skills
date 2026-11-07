@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fbccc7dc46d292498f93f89ab1cab2770dc3100294b924d84a1bfb62a5b65450",
-  "scoredAt": "2026-09-30T11:44:28.092Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:7bae48a01d9983d2bd640ce8ccb41aa71e6b91dc4a10256a8c51ce411d1b4595",
+  "scoredAt": "2026-11-06T22:39:15.735Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly cover error scenarios or edge cases, limiting completeness."
+        "detail": "The skill does not explicitly cover error handling or edge cases, limiting robustness."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose explanations that reduce conciseness."
+        "detail": "The skill contains verbose explanations and repeated examples, reducing brevity."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6.38,
-    "baselineAvg": 13,
-    "treatmentAvg": 83,
+    "multiplier": 3.35,
+    "baselineAvg": 20,
+    "treatmentAvg": 67,
     "scenarios": [
       {
         "name": "migrate-requirements-to-uv",
-        "baseline": 40,
-        "treatment": 100,
-        "rationale": "Response A includes all required uv init, add, and test commands and notes the lockfile, while Response B omits uv init/add and does not meet the rubric."
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B includes all required commands and mentions .python-version and uv.lock, while Response A omits key uv add commands and .python-version."
       },
       {
         "name": "single-file-script-with-inline-deps",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A partially meets the rubric by including the required shebang and metadata block, but omits the uv commands; Response B fails to meet any rubric requirements."
+        "treatment": 55,
+        "rationale": "Response B includes most steps but omits the required uv init and uv add commands, whereas Response A provides no content."
       },
       {
-        "name": "ci-job-with-uv",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A includes all required uv commands and references uv.lock, while Response B omits the uv python install, uses a different sync flag, and does not reference uv.lock."
+        "name": "uvx-tool-installation",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response B correctly lists the required uvx and install commands, while Response A uses incorrect syntax and omits the verification step; both lack the verification and directory notes, but B is closer to the rubric."
       }
     ]
   }

@@ -1,47 +1,58 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:23068fed95ea4f4b5f75039c5c78769e9cf7826dfb7e85015ef3937a88040ab5",
-  "scoredAt": "2026-10-24T16:15:12.112Z",
+  "version": "1.3.0",
+  "skillHash": "sha256:c8a0f56c77ade4ef20191b4ad253e6ebb94a4651fa31d4739d656e221940547f",
+  "scoredAt": "2026-11-06T22:40:30.226Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a skill definition."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored for Python 3.11+ and does not support other AI agent platforms, limiting cross-platform compatibility."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 4.45,
-    "baselineAvg": 22,
-    "treatmentAvg": 98,
+    "multiplier": 2.35,
+    "baselineAvg": 37,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "migrate-cloud-run-gemini",
-        "baseline": 20,
+        "name": "migrate-vertexai-to-google-genai",
+        "baseline": 30,
         "treatment": 100,
-        "rationale": "Response A fully meets all rubric requirements, while Response B omits key elements such as enterprise client initialization, correct model name, and IAM binding."
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required client initialization and enterprise settings."
       },
       {
-        "name": "create-translation-batch-job",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Response B fully meets the rubric with detailed steps, while Response A lacks the required depth and specifics."
+        "name": "batch-translate-product-titles",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers all required steps except the note about tuned models, while Response B uses a different API (Vertex AI) and omits the client.batches.create and tuned‑model restriction."
       },
       {
-        "name": "fine-tune-gemini-support",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully covers all rubric requirements, while Response A provides no content."
+        "name": "fine-tune-gemini-support-model",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B covers the required tuning job creation, polling, inference, and global endpoint note, while Response A omits the client.tunings.tune call, polling logic, and key notes about batch inference and global endpoint."
       }
     ]
   }

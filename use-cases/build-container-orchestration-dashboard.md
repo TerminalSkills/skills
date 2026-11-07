@@ -1,7 +1,7 @@
 ---
 title: Build a Container Orchestration Dashboard
 slug: build-container-orchestration-dashboard
-description: Build a real-time dashboard that visualizes Docker container health, resource usage, logs, and deployments — giving teams instant infrastructure visibility without kubectl.
+description: Build a real-time dashboard that visualizes Docker container health, resource usage, logs, and restarts across several hosts, giving teams infrastructure visibility without SSH.
 skills:
   - typescript
   - nextjs
@@ -21,463 +21,279 @@ tags:
 
 ## The Problem
 
-Leo manages infrastructure at a 25-person startup running 40+ Docker containers across 3 servers. When something breaks at 2 AM, the on-call engineer SSHes into each server, runs `docker ps`, `docker logs`, and `docker stats` — a 15-minute process just to find which container is unhealthy. There's no centralized view of container health, no alerting on resource spikes, and deployments are manual SSH + docker-compose commands. A dashboard would give the team instant visibility and reduce incident response time from 15 minutes to 30 seconds.
+Leo manages infrastructure at a 25-person startup running 40+ Docker containers across 3 servers. When something breaks at 2 AM, the on-call engineer SSHes into each server and runs `docker ps`, `docker logs` and `docker stats` to find which container is unhealthy. There is no central view of health, no sign of resource spikes, and restarts mean SSH access. The goal: one page that shows every container on every host, with logs and a restart button for the people allowed to use it. An agent on each Docker host reads container state and publishes it to Redis. A Hono API reads Redis and relays log and restart requests back to the right agent. A Next.js page renders it.
 
-## Step 1: Build the Container Metrics Collector
+## Step 1: Run the Agent Next to a Socket Proxy
 
-An agent runs on each Docker host, collecting container stats via the Docker API and pushing them to Redis for real-time aggregation.
+The Docker socket is root on the host, so the agent never mounts it. A `tecnativa/docker-socket-proxy` container mounts it (the `:ro` flag does not limit API calls; the proxy's rules do) and exposes only the `/containers` API, on a private network shared with nothing but the agent. Follow the `docker-helper` conventions: Compose v2 file without `version:`, secrets from `.env`, nothing published except what you need.
+
+```yaml
+# compose.yaml (one per Docker host)
+services:
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    environment:
+      CONTAINERS: 1   # inspect, stats, logs
+      POST: 1         # start/stop/restart; also allows create, so only the agent may reach it
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [agent-net]
+    restart: unless-stopped
+
+  agent:
+    build: ./agent
+    environment:
+      DOCKER_HOST_NAME: docker-proxy
+      HOST_ID: ${HOST_ID:?set HOST_ID in .env}
+      REDIS_URL: ${REDIS_URL:?set REDIS_URL in .env}   # rediss://:password@redis.internal:6379
+    depends_on: [docker-proxy]
+    networks: [agent-net]
+    restart: unless-stopped
+
+networks:
+  agent-net: {}   # no ports published; only the agent shares it
+```
+
+The agent image is a standard multi-stage Node build (the `docker-helper` Dockerfile pattern: `node:24-alpine`, `npm ci`, `npm prune --omit=dev`, `USER node`). Redis runs once, on a private network, with `--requirepass` (or TLS via `rediss://`). Every agent and the API authenticate to it; never expose port 6379 to the internet. Note that `inspect` output includes container environment variables, so the agent below copies only the fields the dashboard needs.
+
+## Step 2: The Agent
+
+It publishes metrics every 5 seconds and listens on one channel for commands for its host. Memory follows what `docker stats` reports: usage minus `inactive_file` on cgroup v2 hosts (`total_inactive_file` on v1). The old `stats.cache` field is cgroup v1 only and leaves v2 numbers wrong.
 
 ```typescript
-// src/agent/collector.ts — Docker metrics collector agent
+// src/agent/collector.ts
 import Docker from "dockerode";
 import { Redis } from "ioredis";
 
-const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+const docker = new Docker({ host: process.env.DOCKER_HOST_NAME ?? "docker-proxy", port: 2375 });
 const redis = new Redis(process.env.REDIS_URL!);
-const HOST_ID = process.env.HOST_ID || "host-1";
+const sub = new Redis(process.env.REDIS_URL!);
+const HOST_ID = process.env.HOST_ID!;
+const MB = 1048576;
 
-interface ContainerMetrics {
-  containerId: string;
-  name: string;
-  image: string;
-  status: string;
-  state: string;
-  health: string | null;
-  cpuPercent: number;
-  memoryUsageMB: number;
-  memoryLimitMB: number;
-  memoryPercent: number;
-  networkRxMB: number;
-  networkTxMB: number;
-  blockReadMB: number;
-  blockWriteMB: number;
-  restartCount: number;
-  uptime: string;
-  ports: Array<{ host: number; container: number; protocol: string }>;
-  labels: Record<string, string>;
-  hostId: string;
-  collectedAt: number;
-}
-
-export async function collectMetrics(): Promise<ContainerMetrics[]> {
-  const containers = await docker.listContainers({ all: true });
-  const metrics: ContainerMetrics[] = [];
-
-  for (const containerInfo of containers) {
+export async function collectMetrics() {
+  const list = await docker.listContainers({ all: true });
+  // `stats` with stream:false takes about a second per container: run them in parallel, not in turn.
+  const rows = await Promise.all(list.map(async (info) => {
     try {
-      const container = docker.getContainer(containerInfo.Id);
-      const inspect = await container.inspect();
-
-      let cpuPercent = 0;
-      let memUsage = 0;
-      let memLimit = 0;
-      let netRx = 0;
-      let netTx = 0;
-
-      // Get live stats (one-shot, don't stream)
-      if (containerInfo.State === "running") {
-        const stats = await container.stats({ stream: false });
-
-        // CPU calculation
-        const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
-        const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-        const numCpus = stats.cpu_stats.online_cpus || 1;
-        cpuPercent = systemDelta > 0 ? (cpuDelta / systemDelta) * numCpus * 100 : 0;
-
-        // Memory
-        memUsage = stats.memory_stats.usage - (stats.memory_stats.stats?.cache || 0);
-        memLimit = stats.memory_stats.limit;
-
-        // Network
-        if (stats.networks) {
-          for (const net of Object.values(stats.networks) as any[]) {
-            netRx += net.rx_bytes;
-            netTx += net.tx_bytes;
-          }
-        }
+      const c = docker.getContainer(info.Id);
+      const inspect = await c.inspect();
+      let cpu = 0, mem = 0, limit = 0;
+      if (info.State === "running") {
+        const s: any = await c.stats({ stream: false });
+        const cpuDelta = s.cpu_stats.cpu_usage.total_usage - s.precpu_stats.cpu_usage.total_usage;
+        const sysDelta = s.cpu_stats.system_cpu_usage - s.precpu_stats.system_cpu_usage;
+        cpu = sysDelta > 0 ? (cpuDelta / sysDelta) * (s.cpu_stats.online_cpus || 1) * 100 : 0;
+        const st = s.memory_stats.stats ?? {};
+        mem = s.memory_stats.usage - (st.inactive_file ?? st.total_inactive_file ?? 0); limit = s.memory_stats.limit;
       }
-
-      const metric: ContainerMetrics = {
-        containerId: containerInfo.Id.slice(0, 12),
-        name: containerInfo.Names[0]?.replace("/", "") || "unknown",
-        image: containerInfo.Image,
-        status: containerInfo.Status,
-        state: containerInfo.State,
-        health: inspect.State.Health?.Status || null,
-        cpuPercent: Math.round(cpuPercent * 100) / 100,
-        memoryUsageMB: Math.round(memUsage / 1048576),
-        memoryLimitMB: Math.round(memLimit / 1048576),
-        memoryPercent: memLimit > 0 ? Math.round((memUsage / memLimit) * 10000) / 100 : 0,
-        networkRxMB: Math.round(netRx / 1048576 * 100) / 100,
-        networkTxMB: Math.round(netTx / 1048576 * 100) / 100,
-        blockReadMB: 0,
-        blockWriteMB: 0,
+      return {
+        containerId: info.Id.slice(0, 12),
+        name: info.Names[0]?.replace("/", "") ?? "unknown",
+        image: info.Image, state: info.State, status: info.Status,
+        health: inspect.State.Health?.Status ?? null,
+        cpuPercent: Math.round(cpu * 100) / 100,
+        memoryUsageMB: Math.round(mem / MB), memoryLimitMB: Math.round(limit / MB),
         restartCount: inspect.RestartCount,
-        uptime: containerInfo.Status,
-        ports: (containerInfo.Ports || []).map((p) => ({
-          host: p.PublicPort,
-          container: p.PrivatePort,
-          protocol: p.Type,
-        })),
-        labels: containerInfo.Labels,
-        hostId: HOST_ID,
-        collectedAt: Date.now(),
+        hostId: HOST_ID, collectedAt: Date.now(),
       };
+    } catch { return null; /* container vanished */ }
+  }));
+  return rows.filter((r): r is NonNullable<typeof r> => r !== null);
+}
 
-      metrics.push(metric);
-    } catch {
-      // Container may have stopped between list and inspect
+async function pushMetrics() {
+  const p = redis.pipeline();
+  for (const m of await collectMetrics()) p.setex(`container:${HOST_ID}:${m.containerId}`, 30, JSON.stringify(m)); // expires if the agent stops
+  await p.exec();
+}
+
+// Strip Docker's 8-byte stream headers (non-TTY logs multiplex stdout and stderr).
+function demux(buf: Buffer): string {
+  let out = "", i = 0;
+  while (i + 8 <= buf.length) {
+    const size = buf.readUInt32BE(i + 4);
+    out += buf.subarray(i + 8, i + 8 + size).toString("utf8");
+    i += 8 + size;
+  }
+  return out;
+}
+
+sub.subscribe(`agent:${HOST_ID}`);
+sub.on("message", async (_ch, raw) => {
+  const cmd = JSON.parse(raw) as { requestId: string; type: "logs" | "action"; containerId: string; lines?: number; action?: string };
+  if (!/^[0-9a-f]{12}$/.test(cmd.containerId)) return;
+  const c = docker.getContainer(cmd.containerId);
+  const reply = (body: unknown) => redis.publish(`reply:${cmd.requestId}`, JSON.stringify(body));
+  try {
+    if (cmd.type === "logs") {
+      const tty = (await c.inspect()).Config.Tty;
+      const buf = (await c.logs({ stdout: true, stderr: true, tail: Math.min(cmd.lines ?? 100, 500), timestamps: true })) as unknown as Buffer;
+      await reply({ logs: tty ? buf.toString("utf8") : demux(buf) });
+    } else if (cmd.type === "action" && ["start", "stop", "restart"].includes(cmd.action ?? "")) {
+      await (c as any)[cmd.action!]();
+      await reply({ success: true });
     }
+  } catch (e) {
+    await reply({ error: (e as Error).message });
   }
+});
 
-  return metrics;
+let busy = false; // never let a slow round overlap the next one
+async function tick() {
+  if (busy) return; busy = true;
+  try { await pushMetrics(); } catch (e) { console.error(e); } finally { busy = false; }
 }
-
-// Push metrics to Redis for the dashboard to consume
-export async function pushMetrics(): Promise<void> {
-  const metrics = await collectMetrics();
-
-  const pipeline = redis.pipeline();
-
-  for (const metric of metrics) {
-    const key = `container:${HOST_ID}:${metric.containerId}`;
-    pipeline.setex(key, 30, JSON.stringify(metric)); // expires if agent stops
-
-    // Store in time series for historical charts
-    pipeline.zadd(
-      `metrics:${metric.containerId}:cpu`,
-      metric.collectedAt,
-      JSON.stringify({ t: metric.collectedAt, v: metric.cpuPercent })
-    );
-    pipeline.zadd(
-      `metrics:${metric.containerId}:memory`,
-      metric.collectedAt,
-      JSON.stringify({ t: metric.collectedAt, v: metric.memoryPercent })
-    );
-
-    // Trim to last hour of data
-    const oneHourAgo = Date.now() - 3600000;
-    pipeline.zremrangebyscore(`metrics:${metric.containerId}:cpu`, 0, oneHourAgo);
-    pipeline.zremrangebyscore(`metrics:${metric.containerId}:memory`, 0, oneHourAgo);
-  }
-
-  // Store host-level summary
-  pipeline.setex(`host:${HOST_ID}`, 30, JSON.stringify({
-    hostId: HOST_ID,
-    containerCount: metrics.length,
-    runningCount: metrics.filter((m) => m.state === "running").length,
-    totalCpuPercent: metrics.reduce((s, m) => s + m.cpuPercent, 0),
-    totalMemoryMB: metrics.reduce((s, m) => s + m.memoryUsageMB, 0),
-    collectedAt: Date.now(),
-  }));
-
-  await pipeline.exec();
-
-  // Publish for real-time WebSocket updates
-  await redis.publish("container:updates", JSON.stringify({
-    hostId: HOST_ID,
-    containers: metrics,
-    timestamp: Date.now(),
-  }));
-}
-
-// Run collection every 5 seconds
-setInterval(pushMetrics, 5000);
-pushMetrics(); // initial collection
+setInterval(tick, 5000);
+tick();
 ```
 
-## Step 2: Build the Dashboard API
+## Step 3: The Dashboard API
 
-The API aggregates metrics from all hosts and serves them to the dashboard frontend.
+Browsers never talk to Redis or the agents. The API needs a bearer token on every route, compared in constant time, and takes a single request-scoped reply channel so two people asking for logs cannot receive each other's answers. `KEYS` is replaced with `SCAN`, which does not block Redis.
 
 ```typescript
-// src/api/routes.ts — Dashboard API endpoints
+// src/api/routes.ts
 import { Hono } from "hono";
 import { Redis } from "ioredis";
+import { timingSafeEqual, randomUUID } from "node:crypto";
 
 const redis = new Redis(process.env.REDIS_URL!);
 const app = new Hono();
+const TOKEN = Buffer.from(process.env.DASHBOARD_TOKEN!);
 
-// Get all containers across all hosts
+app.use("*", async (c, next) => {
+  const given = Buffer.from((c.req.header("authorization") ?? "").replace(/^Bearer /, ""));
+  if (given.length !== TOKEN.length || !timingSafeEqual(given, TOKEN)) return c.json({ error: "unauthorized" }, 401);
+  await next();
+});
+
+async function getAll(match: string) {
+  const keys: string[] = [];
+  for await (const batch of redis.scanStream({ match, count: 200 })) keys.push(...(batch as string[]));
+  if (!keys.length) return [];
+  return (await redis.mget(keys)).filter(Boolean).map((v) => JSON.parse(v!));
+}
+
 app.get("/containers", async (c) => {
-  const keys = await redis.keys("container:*:*");
-  const pipeline = redis.pipeline();
-  keys.forEach((key) => pipeline.get(key));
-  const results = await pipeline.exec();
-
-  const containers = results!
-    .filter(([err, val]) => !err && val)
-    .map(([, val]) => JSON.parse(val as string))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return c.json({ containers, total: containers.length });
+  const containers = (await getAll("container:*:*")).sort((a, b) => a.name.localeCompare(b.name));
+  return c.json({ containers });
 });
 
-// Get all hosts summary
-app.get("/hosts", async (c) => {
-  const keys = await redis.keys("host:*");
-  const pipeline = redis.pipeline();
-  keys.forEach((key) => pipeline.get(key));
-  const results = await pipeline.exec();
-
-  const hosts = results!
-    .filter(([err, val]) => !err && val)
-    .map(([, val]) => JSON.parse(val as string));
-
-  return c.json({ hosts });
-});
-
-// Get container metrics history (last hour)
-app.get("/containers/:id/metrics", async (c) => {
-  const { id } = c.req.param();
-  const metric = c.req.query("metric") || "cpu"; // cpu or memory
-
-  const data = await redis.zrangebyscore(
-    `metrics:${id}:${metric}`,
-    Date.now() - 3600000,
-    "+inf"
-  );
-
-  const points = data.map((d) => JSON.parse(d));
-  return c.json({ metric, points });
-});
-
-// Get container logs (last 100 lines)
-app.get("/containers/:id/logs", async (c) => {
-  const { id } = c.req.param();
-  const lines = Number(c.req.query("lines") || 100);
-
-  // Find which host has this container
-  const keys = await redis.keys(`container:*:${id}`);
-  if (keys.length === 0) return c.json({ error: "Container not found" }, 404);
-
-  const containerData = JSON.parse((await redis.get(keys[0]))!);
-
-  // Logs are fetched on-demand via the agent
-  await redis.publish("log:request", JSON.stringify({
-    containerId: id,
-    hostId: containerData.hostId,
-    lines,
-  }));
-
-  // Wait for log response (agent publishes to log:response:{id})
-  return new Promise((resolve) => {
-    const sub = new Redis(process.env.REDIS_URL!);
-    const timeout = setTimeout(() => {
-      sub.disconnect();
-      resolve(c.json({ error: "Log fetch timeout" }, 504));
-    }, 5000);
-
-    sub.subscribe(`log:response:${id}`);
-    sub.on("message", (channel, message) => {
-      clearTimeout(timeout);
-      sub.disconnect();
-      resolve(c.json(JSON.parse(message)));
+// Send a command to the agent that owns the container and wait for its reply.
+async function ask(hostId: string, cmd: object): Promise<any> {
+  const requestId = randomUUID();
+  const sub = new Redis(process.env.REDIS_URL!);
+  try {
+    const reply = new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error("timeout")), 5000);
+      sub.on("message", (_ch, msg) => { clearTimeout(t); resolve(JSON.parse(msg)); });
     });
-  });
+    await sub.subscribe(`reply:${requestId}`);
+    await redis.publish(`agent:${hostId}`, JSON.stringify({ ...cmd, requestId }));
+    return await reply;
+  } finally { sub.disconnect(); }
+}
+
+// Only containers an agent has reported recently can be targeted.
+const known = async (host: string, id: string) =>
+  /^[\w.-]{1,64}$/.test(host) && /^[0-9a-f]{12}$/.test(id) && (await redis.exists(`container:${host}:${id}`)) === 1;
+
+app.get("/containers/:host/:id/logs", async (c) => {
+  const { host, id } = c.req.param();
+  if (!(await known(host, id))) return c.json({ error: "not found" }, 404);
+  return c.json(await ask(host, { type: "logs", containerId: id, lines: Number(c.req.query("lines")) || 100 }).catch(() => ({ error: "timeout" })));
 });
 
-// Container actions: restart, stop, start
-app.post("/containers/:id/:action", async (c) => {
-  const { id, action } = c.req.param();
-  if (!["restart", "stop", "start"].includes(action)) {
-    return c.json({ error: "Invalid action" }, 400);
-  }
-
-  const keys = await redis.keys(`container:*:${id}`);
-  if (keys.length === 0) return c.json({ error: "Container not found" }, 404);
-
-  const containerData = JSON.parse((await redis.get(keys[0]))!);
-
-  await redis.publish("container:action", JSON.stringify({
-    containerId: id,
-    hostId: containerData.hostId,
-    action,
-    requestedBy: c.get("userId") || "dashboard",
-  }));
-
-  return c.json({ success: true, action, containerId: id });
+app.post("/containers/:host/:id/:action", async (c) => {
+  const { host, id, action } = c.req.param();
+  if (!["start", "stop", "restart"].includes(action)) return c.json({ error: "invalid action" }, 400);
+  if (!(await known(host, id))) return c.json({ error: "not found" }, 404);
+  console.log(JSON.stringify({ audit: "container-action", host, id, action, at: new Date().toISOString() }));
+  return c.json(await ask(host, { type: "action", containerId: id, action }).catch(() => ({ error: "timeout" })));
 });
 
 export default app;
 ```
 
-## Step 3: Build the Dashboard UI
+Serve it with `@hono/node-server` bound to `127.0.0.1`. The token stays on the server: Next.js route handlers check the user's session and call this API, so the browser never sees it.
 
-The frontend displays a real-time grid of containers with health indicators, resource gauges, and one-click actions.
+## Step 4: The Dashboard UI
+
+A client component in the Next.js App Router (`'use client'` is required for state and effects) polls the Next.js route handler every 5 seconds. Tailwind cannot see class names assembled at runtime such as `border-${color}-500`, so colors come from a lookup of complete class names.
 
 ```typescript
-// src/components/ContainerGrid.tsx — Real-time container dashboard
-import { useState, useEffect } from "react";
+// app/containers/ContainerGrid.tsx
+"use client";
+import { useEffect, useState } from "react";
 
 interface Container {
-  containerId: string;
-  name: string;
-  image: string;
-  state: string;
-  health: string | null;
-  cpuPercent: number;
-  memoryPercent: number;
-  memoryUsageMB: number;
-  memoryLimitMB: number;
-  restartCount: number;
-  hostId: string;
-  uptime: string;
+  containerId: string; name: string; image: string; state: string; health: string | null; cpuPercent: number;
+  memoryUsageMB: number; memoryLimitMB: number; restartCount: number; hostId: string; status: string;
 }
+
+// Complete class names, so Tailwind's scanner can see them.
+const BORDER: Record<string, string> = { running: "border-green-500", exited: "border-red-500", restarting: "border-yellow-500" };
 
 export function ContainerGrid() {
   const [containers, setContainers] = useState<Container[]>([]);
-  const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
-    const fetchContainers = async () => {
-      const res = await fetch("/api/containers");
-      const data = await res.json();
-      setContainers(data.containers);
-    };
-
-    fetchContainers();
-    const interval = setInterval(fetchContainers, 5000);
-
-    return () => clearInterval(interval);
+    const load = () => fetch("/api/containers").then((r) => r.ok && r.json()).then((d) => d && setContainers(d.containers));
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
   }, []);
 
-  const filtered = filter === "all"
-    ? containers
-    : containers.filter((c) => c.state === filter);
-
-  const running = containers.filter((c) => c.state === "running").length;
-  const stopped = containers.filter((c) => c.state !== "running").length;
-  const unhealthy = containers.filter((c) => c.health === "unhealthy").length;
+  const act = (c: Container, action: string) =>
+    fetch(`/api/containers/${c.hostId}/${c.containerId}/${action}`, { method: "POST" });
 
   return (
     <div className="p-6">
-      {/* Summary bar */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total" value={containers.length} color="blue" />
-        <StatCard label="Running" value={running} color="green" />
-        <StatCard label="Stopped" value={stopped} color="gray" />
-        <StatCard label="Unhealthy" value={unhealthy} color="red" />
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-4">
-        {["all", "running", "exited", "restarting"].map((f) => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded text-sm ${filter === f ? "bg-blue-600 text-white" : "bg-gray-100"}`}>
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {containers.map((c) => (
+          <div key={`${c.hostId}-${c.containerId}`}
+            className={`rounded-lg border-l-4 bg-white p-4 shadow-sm ${BORDER[c.state] ?? "border-gray-400"}`}>
+            <div className="flex justify-between">
+              <div>
+                <h3 className="font-semibold">{c.name}</h3>
+                <p className="font-mono text-xs text-gray-500">{c.image.split(":")[0]} on {c.hostId}</p>
+              </div>
+              <span className="text-xs">{c.health === "unhealthy" ? "unhealthy" : c.state}</span>
+            </div>
+            <p className="mt-2 text-xs text-gray-600">
+              CPU {c.cpuPercent.toFixed(1)}% · MEM {c.memoryUsageMB}/{c.memoryLimitMB} MB · {c.status}
+              {c.restartCount > 0 ? ` · ${c.restartCount} restarts` : ""}
+            </p>
+            <div className="mt-3 flex gap-2 border-t pt-3">
+              {c.state === "running"
+                ? <><button className="rounded border px-3 py-1 text-xs" onClick={() => act(c, "restart")}>Restart</button>
+                    <button className="rounded border px-3 py-1 text-xs text-red-600" onClick={() => act(c, "stop")}>Stop</button></>
+                : <button className="rounded border px-3 py-1 text-xs" onClick={() => act(c, "start")}>Start</button>}
+            </div>
+          </div>
         ))}
       </div>
-
-      {/* Container cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((container) => (
-          <ContainerCard key={container.containerId} container={container} />
-        ))}
-      </div>
     </div>
-  );
-}
-
-function ContainerCard({ container }: { container: Container }) {
-  const stateColors: Record<string, string> = {
-    running: "border-green-400 bg-green-50",
-    exited: "border-red-400 bg-red-50",
-    restarting: "border-yellow-400 bg-yellow-50",
-  };
-
-  const handleAction = async (action: string) => {
-    await fetch(`/api/containers/${container.containerId}/${action}`, { method: "POST" });
-  };
-
-  return (
-    <div className={`border-l-4 rounded-lg p-4 bg-white shadow-sm ${stateColors[container.state] || "border-gray-400"}`}>
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <h3 className="font-semibold text-gray-900">{container.name}</h3>
-          <p className="text-xs text-gray-500 font-mono">{container.image.split(":")[0]}</p>
-        </div>
-        <div className="flex items-center gap-1">
-          {container.health === "unhealthy" && <span className="text-red-500 text-xs">⚠️</span>}
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
-            container.state === "running" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>{container.state}</span>
-        </div>
-      </div>
-
-      {/* Resource gauges */}
-      <div className="space-y-2 mb-3">
-        <ResourceBar label="CPU" value={container.cpuPercent} max={100} unit="%" warn={80} />
-        <ResourceBar label="MEM" value={container.memoryPercent} max={100}
-          unit={`${container.memoryUsageMB}/${container.memoryLimitMB}MB`} warn={85} />
-      </div>
-
-      <div className="flex justify-between items-center text-xs text-gray-500">
-        <span>{container.uptime}</span>
-        <span>{container.hostId}</span>
-        {container.restartCount > 0 && (
-          <span className="text-yellow-600">🔄 {container.restartCount}</span>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 mt-3 pt-3 border-t">
-        {container.state === "running" ? (
-          <>
-            <ActionButton label="Restart" onClick={() => handleAction("restart")} />
-            <ActionButton label="Stop" onClick={() => handleAction("stop")} danger />
-            <ActionButton label="Logs" onClick={() => {/* open logs modal */}} />
-          </>
-        ) : (
-          <ActionButton label="Start" onClick={() => handleAction("start")} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ResourceBar({ label, value, max, unit, warn }: any) {
-  const pct = Math.min((value / max) * 100, 100);
-  const color = pct > warn ? "bg-red-500" : pct > warn * 0.7 ? "bg-yellow-500" : "bg-green-500";
-  return (
-    <div>
-      <div className="flex justify-between text-xs text-gray-600 mb-1">
-        <span>{label}</span>
-        <span>{typeof unit === "string" && unit.includes("/") ? unit : `${value.toFixed(1)}${unit}`}</span>
-      </div>
-      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, color }: any) {
-  return (
-    <div className={`bg-white rounded-lg p-4 border-l-4 border-${color}-500 shadow-sm`}>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-sm text-gray-500">{label}</div>
-    </div>
-  );
-}
-
-function ActionButton({ label, onClick, danger }: any) {
-  return (
-    <button onClick={onClick}
-      className={`px-3 py-1 text-xs rounded ${danger ? "text-red-600 hover:bg-red-50" : "text-gray-600 hover:bg-gray-100"} border`}>
-      {label}
-    </button>
   );
 }
 ```
 
+The `/api/containers` routes are thin Next.js route handlers (`app/api/containers/route.ts` and `app/api/containers/[host]/[id]/[action]/route.ts`). Each one checks the session, then forwards to the Hono API with `Authorization: Bearer ${process.env.DASHBOARD_TOKEN}` and returns the response. Only roles allowed to restart containers should reach the POST handler.
+
+## Check It Works
+Start with `docker compose up -d --wait`; `redis-cli --scan --pattern 'container:*'` should list your containers within 5 seconds. A `curl` to the API on `127.0.0.1` without the bearer header must return 401.
+
 ## Results
+What Leo's team reported across 3 servers:
 
-After deploying the container dashboard across 3 servers:
+- Finding the unhealthy container went from about 15 minutes of SSH to a glance at one page.
+- Restarts no longer need server access, and every action lands in the audit log.
+- Memory figures showed a dozen containers using far less than they were given, which led to right-sizing.
 
-- **Incident identification time: from 15 minutes to 30 seconds** — one glance at the dashboard shows which container is unhealthy, high on CPU, or restarting; no more SSH-ing into servers
-- **Container restarts handled in 2 clicks** — the dashboard's restart button replaces SSH + docker restart; junior engineers can respond to incidents without server access
-- **Resource over-provisioning reduced by 35%** — historical CPU/memory charts revealed that 12 containers were allocated 2-4x more memory than they actually used; right-sizing saved $400/month
-- **Zero missed unhealthy containers** — the health indicator and restart count badges make problems impossible to overlook; previously, an unhealthy container ran for 3 days before anyone noticed
-- **Deployment visibility** — teams see container image versions at a glance; "is the new version deployed?" no longer requires SSH
+## Related Skills
+- `typescript`: shared types across agent, API and UI
+- `nextjs`: the App Router page and the session-checking route handlers
+- `redis`: metrics store, pub/sub command channel and request-scoped replies
+- `docker-helper`: the Compose files for the agent, socket proxy and Redis
+- `tailwindcss`: the card layout and static color maps

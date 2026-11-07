@@ -5,7 +5,6 @@ description: "Build an end-to-end system that tracks billable hours, generates i
 skills:
   - billing-automation
   - expense-report
-  - invoice-generator
 category: business
 tags:
   - freelancing
@@ -18,63 +17,68 @@ tags:
 
 ## The Problem
 
-A freelance software consultant works with 8 clients simultaneously on hourly and fixed-rate contracts. At the end of each month, she spends an entire Sunday creating invoices in a spreadsheet, cross-referencing time logs from three different tools, calculating taxes for two states and one international client, and manually categorizing 60-80 business expenses for tax deductions. She missed billing a client for 12 hours last quarter because the time entry was in Toggl but the invoice was built from her calendar. Her accountant also flagged that she is under-claiming deductible expenses because categorization is inconsistent.
+A freelance software consultant works with 8 clients simultaneously on hourly and fixed-rate contracts. At the end of each month she spends an entire Sunday creating invoices in a spreadsheet, cross-referencing time logs from three different tools, working out which clients need tax on their invoice, and manually categorizing 60-80 business expenses. She once missed billing a client for 12 hours because the time entry was in Toggl but the invoice was built from her calendar. Her accountant also flagged that her expense categories are inconsistent from month to month.
 
 ## The Solution
 
-Using **billing-automation** to consolidate time tracking into billable line items, **invoice-generator** to produce professional branded invoices with correct tax calculations, and **expense-report** to categorize and summarize business expenses, the consultant replaces a full day of monthly admin with a 10-minute automated run.
+Using **billing-automation** to consolidate time entries into billable line items and render invoice PDFs, and **expense-report** to categorize and summarize business expenses, the consultant replaces most of the monthly admin with a run she reviews instead of builds. The agent does the arithmetic and the bookkeeping. Tax rates, tax wording on invoices and which expenses are deductible come from her accountant and her tax authority, and she supplies them as input files; the agent does not decide them.
 
 ## Step-by-Step Walkthrough
 
 ### 1. Consolidate billable hours from multiple sources
 
-Pull time entries from different tracking tools and reconcile them into a single billing ledger.
+Pull time entries from different tools into one billing ledger. Export each source to CSV first (Toggl Track reports, a calendar export of events tagged "billable", and the manual log), so the run is repeatable and nothing depends on a live API session.
 
-> Use billing-automation to import time entries from Toggl (API export), calendar events tagged "billable" from Google Calendar, and manual entries from /data/time_log.csv. Reconcile overlapping entries, flag any day with more than 10 billable hours for review, and compute totals per client. Apply each client's rate: Acme Corp at $175/hr, Beta Labs at $200/hr, Gamma Inc at fixed $8,000/month. Output a billing summary to /billing/2026-02/summary.csv.
+> Use billing-automation to merge /data/toggl.csv, /data/calendar_billable.csv and /data/time_log.csv. Reconcile overlapping entries (same client, overlapping time range), flag any day with more than 10 billable hours for review, and compute totals per client. Apply the rates in /data/clients.csv: Acme Corp 175/hr, Beta Labs 200/hr, Gamma Inc fixed 8000/month. Write the billing summary to /billing/2026-02/summary.csv.
 
-### 2. Generate invoices with per-client tax handling
+Keep amounts as `Decimal` (or integer cents), never floats; the skill's `calculate_invoice` helper does this.
 
-Produce branded PDF invoices with correct tax calculations based on each client's jurisdiction.
+### 2. Generate invoices
 
-> Use invoice-generator to create February 2026 invoices for all 8 clients. Apply tax rules: California clients get 7.25% sales tax on services, New York clients get 8% sales tax, the UK client gets reverse-charge VAT (0% with a note citing the reverse charge mechanism). Each invoice should include: my business logo, invoice number (sequential from INV-2026-0023), itemized time entries with dates and descriptions, payment terms (Net 15), and bank transfer details. Save PDFs to /invoices/2026-02/.
+Produce a PDF invoice per client. The tax treatment of each client is data, not something the agent infers from a state name.
 
-The generator produces a batch summary with totals and tax breakdowns per client:
+> Use billing-automation to create February 2026 invoices for all 8 clients from /billing/2026-02/summary.csv. For each client read `tax_rate` and `tax_note` from /data/tax_rules.csv (my accountant fills this in; an empty rate means no tax line). Each invoice has my business details, a sequential invoice number starting at INV-2026-0023 with no gaps, itemized time entries with dates and descriptions, payment terms Net 15 and bank transfer details. Save PDFs to /invoices/2026-02/ and never overwrite an issued invoice: correct a mistake with a credit note.
+
+The batch summary (tax lines appear only where tax_rules.csv sets a rate):
 
 ```text
-Invoice Generation — February 2026
-====================================
-INV-2026-0023  Acme Corp         42.5 hrs x $175   $7,437.50 + $539.22 tax (CA)  = $7,976.72
-INV-2026-0024  Beta Labs         38.0 hrs x $200   $7,600.00 + $608.00 tax (NY)  = $8,208.00
-INV-2026-0025  Gamma Inc         fixed              $8,000.00 + $580.00 tax (CA)  = $8,580.00
-INV-2026-0026  Delta Health      28.0 hrs x $175   $4,900.00 + $355.25 tax (CA)  = $5,255.25
-INV-2026-0027  Epsilon UK        35.0 hrs x $200   $7,000.00 + $0.00 (reverse)   = $7,000.00
-INV-2026-0028  Zeta Finance      22.0 hrs x $200   $4,400.00 + $352.00 tax (NY)  = $4,752.00
-INV-2026-0029  Eta Robotics      31.0 hrs x $175   $5,425.00 + $393.31 tax (CA)  = $5,818.31
-INV-2026-0030  Theta Ventures    19.5 hrs x $200   $3,900.00 + $312.00 tax (NY)  = $4,212.00
+Invoice Generation - February 2026
+==================================
+INV-2026-0023  Acme Corp         42.5 hrs x 175   7,437.50
+INV-2026-0024  Beta Labs         38.0 hrs x 200   7,600.00
+INV-2026-0025  Gamma Inc         fixed            8,000.00
+INV-2026-0026  Delta Health      28.0 hrs x 175   4,900.00
+INV-2026-0027  Epsilon UK        35.0 hrs x 200   7,000.00
+INV-2026-0028  Zeta Finance      22.0 hrs x 200   4,400.00
+INV-2026-0029  Eta Robotics      31.0 hrs x 175   5,425.00
+INV-2026-0030  Theta Ventures    19.5 hrs x 200   3,900.00
 
-Total billed:  $48,662.50 gross | $3,139.78 tax | $51,802.28 with tax
-PDFs saved:    /invoices/2026-02/ (8 files)
+Subtotal: 48,662.50 before any tax lines
+PDFs saved: /invoices/2026-02/ (8 files)
 ```
 
 ### 3. Categorize and summarize monthly expenses
 
-Process credit card and bank statements to categorize business expenses and flag deductible items.
+> Use expense-report to process /data/february_transactions.csv (73 rows). Categorize each row with the skill's whole-word rules, extended with GitHub, AWS and Figma under Software & Subscriptions and conference tickets under Training & Education. Leave ambiguous vendors as "Other" and list them for me. Flag every expense over 500 for receipt verification, list possible duplicates, and write monthly totals by category plus a year-to-date column to /expenses/2026-02.xlsx.
 
-> Use expense-report to process 73 transactions from /data/february_transactions.csv. Categorize each expense: software subscriptions (GitHub, AWS, Figma), travel (client site visits), home office (internet, electricity pro-rated at 30%), meals (client meetings only, under $75 per person), and professional development (courses, books, conference tickets). Flag any expense over $500 for receipt verification. Generate a monthly expense summary with totals by category and a running annual total for estimated quarterly tax payments.
+Treat the categories as bookkeeping labels. Whether an item is deductible, and in what proportion (home office, meals), is a question for the tax authority's rules and the accountant: in the US, start from the IRS guidance, for example [Publication 334](https://www.irs.gov/publications/p334) (Tax Guide for Small Business; the IRS discontinued Publication 535 after its 2022 revision) for business expenses and [Publication 463](https://www.irs.gov/publications/p463) for travel and meals, and apply the percentages the accountant gives you.
 
-### 4. Produce a monthly financial snapshot
+### 4. Produce a monthly snapshot for the accountant
 
-Combine billing and expense data into a single financial report for the accountant.
-
-> Combine the billing and expense data into a monthly P&L snapshot: gross revenue from all 8 clients, total expenses by category, net income, estimated tax liability (federal + state), and year-to-date comparison. Highlight the top 3 clients by revenue and flag any clients with outstanding unpaid invoices from previous months. Export as both PDF (for the accountant) and CSV (for QuickBooks import).
+> Combine /billing/2026-02/summary.csv and /expenses/2026-02.xlsx into a monthly snapshot: revenue per client, expenses by category, revenue minus expenses, year-to-date totals, and the top 3 clients by revenue. List invoices from earlier months that are still unpaid, using /data/payments.csv. Export a PDF and a CSV for the accountant. Do not estimate tax; the accountant uses these totals for that.
 
 ## Real-World Example
 
-The consultant ran her first automated billing cycle on March 1st. The system pulled 347 time entries from three sources, flagged 4 duplicate entries she would have double-billed, and generated 8 invoices in 3 minutes. The expense categorizer processed 73 transactions and identified $1,240 in deductible expenses she had been missing -- specifically, a co-working space day pass habit that added up to $480/month and was categorized as "office space" instead of her previous manual categorization of "miscellaneous." Her accountant estimated the improved expense tracking will save approximately $2,800 in taxes annually. The Sunday billing session went from 6 hours to 10 minutes of reviewing auto-generated outputs.
+The consultant ran her first automated cycle on March 1st with her own February exports. The merge surfaced 4 overlapping entries that would have been billed twice, and the expense run left 9 vendors as "Other" for her to label. She reviewed 8 draft invoices and the summary before sending anything, and the accountant received a consistent category list instead of free-text labels. The Sunday session became a review of generated files rather than building them by hand.
 
 ## Tips
 
-- Export time tracking data on the last day of the month, not the first day of the next month. Toggl and similar tools sometimes adjust entries retroactively during their nightly sync, and running the export too early can miss corrections.
-- Keep a separate CSV for manual time entries that do not fit neatly into a tracking tool, such as quick 15-minute phone calls or travel time between client sites.
-- Set invoice numbers to include the year and month (INV-2026-02-001) rather than a plain sequence. This makes it easier for clients to reference specific invoices and prevents numbering collisions if you ever reset your system.
-- Review the expense categorization rules quarterly. Tax law changes, new subscription tools, and shifts in your work patterns can all introduce categories that the original rules do not cover.
+- Export time data on the last day of the month, and re-export before invoicing if you edited entries late.
+- Keep a separate CSV for manual entries that fit no tracker, such as short calls or travel time.
+- Keep the invoice number sequence gap-free and never reuse a number; void with a credit note instead of deleting.
+- Review the expense category rules each quarter, and update `tax_rules.csv` whenever your accountant changes a client's treatment.
+
+## Related Skills
+
+- [billing-automation](/skills/billing-automation)
+- [expense-report](/skills/expense-report)

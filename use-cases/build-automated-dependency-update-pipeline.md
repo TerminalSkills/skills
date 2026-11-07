@@ -2,14 +2,13 @@
 title: Build an Automated Dependency Update Pipeline
 slug: build-automated-dependency-update-pipeline
 description: >
-  Automate npm/pip dependency updates with vulnerability scanning,
-  compatibility testing, and auto-merge for safe updates — keeping
-  200 dependencies current and closing CVEs in hours instead of months.
+  Automate npm dependency updates with Renovate, a CI vulnerability gate and
+  auto-merge for safe updates, so security fixes land in hours and major
+  upgrades stay small and reviewable.
 skills:
   - typescript
   - github-actions
   - docker-helper
-  - vitest
   - zod
 category: devops
 tags:
@@ -25,230 +24,210 @@ tags:
 
 ## The Problem
 
-A monorepo has 200+ npm dependencies. Nobody updates them — "if it works, don't touch it." Result: 47 known CVEs across transitive dependencies, 3 are critical. The team tried Dependabot but got 50 PRs per week that nobody reviews. When someone finally updates a major dependency, it breaks 3 things because the codebase was 18 months behind. A security audit flags the CVEs, and now it's a 2-week emergency project to update everything at once.
+A monorepo has 200+ npm dependencies. Nobody updates them: "if it works, don't touch it." An audit finds dozens of known vulnerabilities, several of them critical. The team tried Dependabot with default settings and got a stream of one-package PRs that nobody reviewed. When someone finally upgrades a major dependency, the codebase is 18 months behind and three things break at once. The fix is not a bigger script that re-implements a bot. It is a bot that is configured to group, schedule and merge by risk, plus a CI gate that blocks known-bad releases.
 
-## Step 1: Dependency Scanner and Risk Scorer
+## Step 1: Configure Renovate by risk
 
-```typescript
-// src/deps/scanner.ts
-import { z } from 'zod';
-import { execSync } from 'child_process';
+Renovate reads `renovate.json` from the repository root. Patches of dev tooling are grouped and auto-merged, runtime patches are grouped and auto-merged, runtime minors are grouped for a human, and every major gets its own PR that is never merged automatically.
 
-const DependencyUpdate = z.object({
-  name: z.string(),
-  currentVersion: z.string(),
-  latestVersion: z.string(),
-  updateType: z.enum(['patch', 'minor', 'major']),
-  isDevDep: z.boolean(),
-  hasBreakingChanges: z.boolean(),
-  cveCount: z.number().int(),
-  cveSeverity: z.enum(['none', 'low', 'medium', 'high', 'critical']),
-  riskScore: z.number().min(0).max(100),
-  autoMergeable: z.boolean(),
-  changelog: z.string().optional(),
-});
-
-export async function scanDependencies(): Promise<z.infer<typeof DependencyUpdate>[]> {
-  // Get outdated packages
-  const outdatedRaw = execSync('npm outdated --json 2>/dev/null || true', { encoding: 'utf8' });
-  const outdated = JSON.parse(outdatedRaw || '{}');
-
-  // Get audit results
-  const auditRaw = execSync('npm audit --json 2>/dev/null || true', { encoding: 'utf8' });
-  const audit = JSON.parse(auditRaw || '{"vulnerabilities":{}}');
-
-  const updates: z.infer<typeof DependencyUpdate>[] = [];
-
-  for (const [name, info] of Object.entries(outdated) as any) {
-    const updateType = getUpdateType(info.current, info.latest);
-    const vulns = audit.vulnerabilities?.[name];
-    const maxSeverity = vulns?.severity ?? 'none';
-    const cveCount = vulns?.via?.length ?? 0;
-
-    const riskScore = calculateRisk(updateType, maxSeverity, info.type === 'devDependencies');
-    const autoMergeable = riskScore < 30; // Low-risk updates auto-merge
-
-    updates.push({
-      name,
-      currentVersion: info.current,
-      latestVersion: info.latest,
-      updateType,
-      isDevDep: info.type === 'devDependencies',
-      hasBreakingChanges: updateType === 'major',
-      cveCount,
-      cveSeverity: maxSeverity,
-      riskScore,
-      autoMergeable,
-    });
-  }
-
-  return updates.sort((a, b) => b.riskScore - a.riskScore);
-}
-
-function getUpdateType(current: string, latest: string): 'patch' | 'minor' | 'major' {
-  const [cMajor, cMinor] = current.split('.').map(Number);
-  const [lMajor, lMinor] = latest.split('.').map(Number);
-  if (cMajor !== lMajor) return 'major';
-  if (cMinor !== lMinor) return 'minor';
-  return 'patch';
-}
-
-function calculateRisk(updateType: string, severity: string, isDev: boolean): number {
-  let score = 0;
-
-  // Update type risk
-  if (updateType === 'major') score += 50;
-  else if (updateType === 'minor') score += 20;
-  else score += 5;
-
-  // CVE severity
-  const severityScores: Record<string, number> = { critical: 40, high: 30, medium: 15, low: 5, none: 0 };
-  score += severityScores[severity] ?? 0;
-
-  // Dev dependencies are lower risk
-  if (isDev) score = Math.floor(score * 0.5);
-
-  return Math.min(100, score);
+```json
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "timezone": "UTC",
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Patch and minor updates of dev tooling: one PR, auto-merge when CI is green",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "dev tooling",
+      "automerge": true
+    },
+    {
+      "description": "Runtime patches: one PR, auto-merge when CI is green",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "runtime patches",
+      "automerge": true
+    },
+    {
+      "description": "Runtime minors: grouped, reviewed by a human",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor"],
+      "groupName": "runtime minors"
+    },
+    {
+      "description": "Majors: one PR per package, never merged automatically",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major-update"]
+    }
+  ]
 }
 ```
 
-## Step 2: Update Strategy Engine
+What each setting does:
 
-```typescript
-// src/deps/strategy.ts
-import type { DependencyUpdate } from './scanner';
+- `schedule` batches routine PRs into one weekly window. Security PRs are exempt: by default a `vulnerabilityAlerts` PR ignores `schedule` and the concurrency limits, so a fix opens the day the advisory is known.
+- `minimumReleaseAge` waits 3 days after a version is published before proposing it, which filters out most quickly-yanked or hijacked releases.
+- `osvVulnerabilityAlerts` adds fixes for advisories from the OSV database (direct dependencies only). Renovate flags this option as experimental, so it may change; drop it if you only want GitHub's alerts. GitHub's own alerts also feed `vulnerabilityAlerts`, but only once the Dependency graph and Dependabot alerts are enabled in the repository settings.
+- Auto-merge only works safely with branch protection that requires the CI checks below. Without required checks, Renovate has nothing to wait for. Renovate's own docs warn that a wrong vulnerability alert can produce a flapping fix, so look at the first few auto-merged security PRs.
 
-interface UpdateBatch {
-  name: string;
-  updates: DependencyUpdate[];
-  strategy: 'auto-merge' | 'test-then-merge' | 'manual-review';
-  priority: number;
-}
+Check the file before committing it: `npx --package renovate@44 renovate-config-validator renovate.json` prints `Config validated successfully`.
 
-export function createUpdateBatches(updates: DependencyUpdate[]): UpdateBatch[] {
-  const batches: UpdateBatch[] = [];
+## Step 2: Run Renovate
 
-  // Batch 1: Critical CVEs (immediate, individual PRs)
-  const criticalCVEs = updates.filter(u => u.cveSeverity === 'critical' || u.cveSeverity === 'high');
-  for (const update of criticalCVEs) {
-    batches.push({
-      name: `security: ${update.name}@${update.latestVersion}`,
-      updates: [update],
-      strategy: update.updateType === 'patch' ? 'auto-merge' : 'test-then-merge',
-      priority: 1,
-    });
-  }
-
-  // Batch 2: Safe patches (grouped, auto-merge)
-  const safePatches = updates.filter(u =>
-    u.updateType === 'patch' && u.cveSeverity === 'none' && !criticalCVEs.includes(u)
-  );
-  if (safePatches.length > 0) {
-    batches.push({
-      name: `chore: patch updates (${safePatches.length} packages)`,
-      updates: safePatches,
-      strategy: 'auto-merge',
-      priority: 3,
-    });
-  }
-
-  // Batch 3: Dev dependency updates (grouped, auto-merge)
-  const devUpdates = updates.filter(u =>
-    u.isDevDep && u.updateType !== 'major' && !criticalCVEs.includes(u) && !safePatches.includes(u)
-  );
-  if (devUpdates.length > 0) {
-    batches.push({
-      name: `chore: dev dependency updates (${devUpdates.length} packages)`,
-      updates: devUpdates,
-      strategy: 'auto-merge',
-      priority: 4,
-    });
-  }
-
-  // Batch 4: Minor updates (test first)
-  const minorUpdates = updates.filter(u =>
-    u.updateType === 'minor' && !u.isDevDep && !criticalCVEs.includes(u)
-  );
-  if (minorUpdates.length > 0) {
-    batches.push({
-      name: `chore: minor updates (${minorUpdates.length} packages)`,
-      updates: minorUpdates,
-      strategy: 'test-then-merge',
-      priority: 5,
-    });
-  }
-
-  // Batch 5: Major updates (individual PRs, manual review)
-  const majorUpdates = updates.filter(u => u.updateType === 'major' && !criticalCVEs.includes(u));
-  for (const update of majorUpdates) {
-    batches.push({
-      name: `feat: upgrade ${update.name} to ${update.latestVersion}`,
-      updates: [update],
-      strategy: 'manual-review',
-      priority: 10,
-    });
-  }
-
-  return batches.sort((a, b) => a.priority - b.priority);
-}
-```
-
-## Step 3: GitHub Actions Workflow
+The simplest option is the Mend Renovate GitHub App, which needs no pipeline of your own. To self-host, use the official action with a token stored as a repository secret (a classic PAT with `repo` scope, or a GitHub App token):
 
 ```yaml
-# .github/workflows/dependency-updates.yml
-name: Automated Dependency Updates
+# .github/workflows/renovate.yml
+name: Renovate
 on:
   schedule:
-    - cron: '0 6 * * 1' # Monday 6 AM
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  scan-and-update:
+  renovate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: npm ci
-
-      - name: Scan dependencies
-        run: npx tsx src/deps/scanner.ts > scan-results.json
-
-      - name: Create update batches
-        run: npx tsx src/deps/strategy.ts < scan-results.json > batches.json
-
-      - name: Apply updates and create PRs
+      - uses: actions/checkout@v7
+      - uses: renovatebot/github-action@v46.3.12
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BATCHES=$(cat batches.json)
-          echo "$BATCHES" | node -e "
-            const fs = require('fs');
-            const batches = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
-            
-            for (const batch of batches) {
-              console.log('Processing: ' + batch.name);
-              console.log('Strategy: ' + batch.strategy);
-              console.log('Updates: ' + batch.updates.map(u => u.name + '@' + u.latestVersion).join(', '));
-              console.log('---');
-            }
-          "
-
-      - name: Run tests for auto-merge candidates
-        run: npm test
-
-      - name: Auto-merge safe updates
-        if: success()
-        run: echo "Auto-merging safe patches..."
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
 ```
+
+The `schedule` in `renovate.json` decides when PRs are created, so the bot can run daily and still keep routine PRs to Mondays while security fixes get through immediately.
+
+To preview what Renovate would do without opening anything, run the official Docker image in dry-run mode from your machine, with the token in the environment and never on the command line:
+
+```console
+$ export RENOVATE_TOKEN=...   # a token with access to the repository
+$ docker run --rm -e RENOVATE_TOKEN -e LOG_LEVEL=debug ghcr.io/renovatebot/renovate:44 renovate --dry-run=full my-org/my-repo
+```
+
+The image tag `44` follows the 44.x release line; pin a full version, or a digest, for reproducible runs. `--dry-run=full` logs the branches and PRs it would create.
+
+## Step 3: A vulnerability gate in CI
+
+Renovate raises PRs; CI decides whether they may merge. This gate parses `npm audit` output with Zod and fails the job on a high or critical advisory in production dependencies. Note the real severity names: npm uses `info`, `low`, `moderate`, `high` and `critical` (there is no `medium`), and the `via` array mixes advisory objects with the names of other vulnerable packages.
+
+```typescript
+// scripts/audit-gate.ts
+// usage: npm audit --omit=dev --json | npx tsx scripts/audit-gate.ts
+import { readFileSync } from 'node:fs';
+import { z } from 'zod';
+
+const Severity = z.enum(['info', 'low', 'moderate', 'high', 'critical']);
+
+const Audit = z.object({
+  vulnerabilities: z.record(
+    z.string(),
+    z.object({
+      severity: Severity,
+      isDirect: z.boolean(),
+      via: z.array(z.union([z.string(), z.object({ title: z.string(), url: z.string() }).passthrough()])),
+      fixAvailable: z.union([
+        z.boolean(),
+        z.object({ name: z.string(), version: z.string(), isSemVerMajor: z.boolean() }),
+      ]),
+    }),
+  ),
+});
+
+const rank = { info: 0, low: 1, moderate: 2, high: 3, critical: 4 } as const;
+const failAt = rank.high;
+
+const audit = Audit.parse(JSON.parse(readFileSync(0, 'utf8')));
+const blocking = Object.entries(audit.vulnerabilities).filter(([, v]) => rank[v.severity] >= failAt);
+
+for (const [name, v] of blocking) {
+  const advisories = v.via.filter((x) => typeof x !== 'string').map((x) => x.url);
+  console.error(`${v.severity.toUpperCase()} ${name} (fix: ${JSON.stringify(v.fixAvailable)}) ${advisories.join(' ')}`);
+}
+if (blocking.length > 0) process.exit(1);
+console.log('No high or critical vulnerabilities in production dependencies.');
+```
+
+Fed an audit report containing a high-severity `lodash` advisory it prints `HIGH lodash (fix: true) https://github.com/advisories/...` and exits 1; with no findings it exits 0.
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - name: Vulnerability gate
+        run: npm audit --omit=dev --json | npx tsx scripts/audit-gate.ts
+```
+
+`npm audit` exits non-zero when it finds anything, but in a pipe only the last command's status counts, so the gate script is what passes or fails the step. Mark `test` as a required status check in branch protection: that is what lets Renovate's auto-merge wait for it.
+
+## Step 4: Test the upgraded app in a container
+
+Dependency upgrades can pass unit tests and still break the production image (a native module that needs glibc, a Node engine bump). Build the real image in CI for update PRs. Follow the Docker helper rules: pin a supported Node LTS, install from the lockfile, prune dev dependencies in the builder, run as the non-root `node` user.
+
+```dockerfile
+FROM node:24-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build && npm prune --omit=dev
+
+FROM node:24-alpine
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/package.json ./
+USER node
+CMD ["node", "dist/index.js"]
+```
+
+Add a `docker build -t app:pr .` step after `npm test` and a smoke test that starts the container on `127.0.0.1` and calls a health endpoint. A `.dockerignore` listing `node_modules`, `.git` and `.env` keeps the build context small and secrets out.
 
 ## Results
 
-- **CVE closure time**: hours (was months — 47 CVEs fixed in first week)
-- **Critical CVEs**: auto-patched same day they're published
-- **50 Dependabot PRs/week**: replaced by 3-5 batched, prioritized PRs
-- **Safe patch auto-merge**: 60% of updates merged without human review
-- **Major version lag**: never more than 1 major version behind
-- **Security audit**: zero CVE findings (was 47)
-- **Developer time on deps**: 1 hour/week reviewing major updates (was 0 hours = ignored)
+An example team of this size can expect:
+
+- Security fixes arrive as labelled PRs the day an advisory appears, and merge themselves when CI passes.
+- The weekly noise drops to a handful of grouped PRs (dev tooling, runtime patches, runtime minors) instead of one PR per package.
+- Major upgrades arrive one package at a time, so a breaking change has one cause and one reviewer.
+- The CI gate blocks any PR, bot or human, that introduces a high or critical advisory in production dependencies.
+
+## Related Skills
+
+- [typescript](/skills/typescript) — the audit gate script
+- [zod](/skills/zod) — validating the `npm audit` JSON
+- [github-actions](/skills/github-actions) — CI and the Renovate workflow
+- [docker-helper](/skills/docker-helper) — the container build and dry-run image

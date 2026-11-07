@@ -13,13 +13,13 @@ tags: [payroll, reporting, spreadsheet, automation, finance]
 
 Payroll seems simple until you do it at scale. A 30-person digital agency tracks hours in spreadsheets — five different spreadsheets, one per department, each with slightly different column names and formatting. The design team's sheet uses "Hours" while engineering uses "Hrs Worked" and operations uses "Time (h)." Same data, three different labels.
 
-Every two weeks the office manager spends an entire day copying timesheet data into a payroll template, manually calculating overtime, cross-referencing tax withholding elections from yet another spreadsheet, and generating individual pay stubs as PDFs in Word. One misplaced decimal means an underpayment that erodes trust — or an overpayment that's awkward to claw back. Last month, a decimal error caused an $800 underpayment that took a week of back-and-forth to resolve.
+Every pay period the office manager spends an entire day copying timesheet data into a payroll template, manually calculating overtime, cross-referencing tax withholding elections (Form W-4) from yet another spreadsheet, and generating individual pay stubs as PDFs in Word. One misplaced decimal means an underpayment that erodes trust — or an overpayment that's awkward to claw back. Last month, a decimal error caused an $800 underpayment that took a week of back-and-forth to resolve.
 
-The reconciliation between five spreadsheets is where most errors creep in: a row gets skipped during copy-paste, overtime gets calculated against the wrong week boundary (the pay period spans two calendar weeks, and the 40-hour threshold applies per week, not per period), a new hire's tax election doesn't get picked up because their W-4 was filed after the spreadsheet was created. The team has grown from 10 to 30 people in a year, and the manual approach that worked at 10 is visibly breaking at 30.
+The reconciliation between five spreadsheets is where most errors creep in: a row gets skipped during copy-paste, overtime gets calculated against the wrong week boundary (the pay period spans parts of three workweeks, and the 40-hour threshold applies per workweek, not per pay period), a new hire's tax election doesn't get picked up because their W-4 was filed after the spreadsheet was created. The team has grown from 10 to 30 people in a year, and the manual approach that worked at 10 is visibly breaking at 30.
 
 ## The Solution
 
-Using the **excel-processor**, **report-generator**, and **template-engine** skills, the workflow ingests timesheets from multiple spreadsheets regardless of formatting differences, normalizes them into a single clean dataset, flags anomalies before any calculation runs, computes gross pay with per-week overtime, applies tax withholdings and benefit deductions from each employee's elections, generates individual PDF pay stubs, and produces a company-wide payroll summary — all from a single command in under three minutes.
+Using the **excel-processor**, **report-generator**, and **template-engine** skills, the workflow ingests timesheets from multiple spreadsheets regardless of formatting differences, normalizes them into a single clean dataset, flags anomalies before any calculation runs, computes gross pay with per-week overtime, applies tax withholdings and benefit deductions from each employee's elections, generates individual PDF pay stubs, and produces a company-wide payroll summary — all from one prompt-driven run.
 
 ## Step-by-Step Walkthrough
 
@@ -28,29 +28,29 @@ Using the **excel-processor**, **report-generator**, and **template-engine** ski
 Start by pointing at the raw data:
 
 ```text
-Read all .xlsx files in the /payroll/timesheets-jan-15/ folder. Each file has columns for employee name, date, hours worked, and project code. Merge them into a single table and flag any rows with missing data or hours over 16 in a day.
+Read all .xlsx files in the /payroll/timesheets-jan-15/ folder. Each file has columns for employee name, date, hours worked, and project code. Merge them into a single table and flag any rows with missing data or hours over 16 in a day. Use pandas, with the column-name mapping written down in one place.
 ```
 
 The agent parses each file, maps different column names to a standard schema (Hours, Hrs Worked, and Time (h) all become `hours_worked`), and merges everything into a single dataset:
 
-**Merged timesheet:** 30 employees, 420 rows (14 working days x 30 employees)
+**Merged timesheet:** 30 employees, 318 rows (one row per employee per worked day, Jan 1-15 with the Jan 1 holiday excluded)
 
 **Flagged issues:**
 - Row 87: Marta Oliveira, Jan 9 — 18 hours logged (exceeds 16h threshold, likely a data entry error — intended 8?)
 - Row 203: Tomas Ferreira, Jan 12 — missing project code (hours logged but no project allocation)
-- Row 341: New hire Yuki Tanaka — first timesheet, W-4 election not found in salary file (needs to be added)
+- Row 301: New hire Yuki Tanaka — first timesheet, W-4 election not found in salary file (needs to be added)
 
-The flags surface problems before any calculation runs. That 18-hour entry would have silently become 2 hours of overtime pay nobody questioned — a $90 error per pay period, $2,340 per year if it recurred. The missing W-4 for the new hire would have caused either zero tax withholding (compliance problem) or a default rate that doesn't match their election (trust problem). Both caught before a single dollar is calculated.
+The flags surface problems before any calculation runs. An 18-hour entry that should have been 8 would silently become paid overtime nobody questioned, and a missing W-4 would leave the new hire's withholding to a guess. Both are caught before a single dollar is calculated.
 
 ### Step 2: Calculate Gross Pay and Overtime
 
 ```text
-Using the merged timesheet and the salary table in /payroll/salary-rates.xlsx, calculate gross pay for each employee. Apply 1.5x for hours over 40 per week. Output a summary table.
+Using the merged timesheet and the salary table in /payroll/salary-rates.xlsx, calculate gross pay for each employee. Apply 1.5x for hours over 40 in each workweek (the week starts on Monday). Treat salaried employees marked exempt in the salary table as no-overtime. Output a summary table.
 ```
 
-The calculation handles the tricky parts — weekly overtime thresholds that span the pay period boundary, hourly vs. salaried employees, and rate lookups from the salary table:
+The calculation handles the tricky parts — weekly overtime thresholds that cross the pay period boundary, hourly vs. salaried employees, and rate lookups from the salary table:
 
-**Payroll Period: Jan 1-15, 2025**
+**Payroll Period: Jan 1-15 (example data)**
 
 | Employee | Regular Hours | OT Hours | Regular Pay | OT Pay | Gross Pay |
 |----------|--------------|----------|-------------|--------|-----------|
@@ -60,17 +60,17 @@ The calculation handles the tricky parts — weekly overtime thresholds that spa
 | Yuki Tanaka | 64.0 | 0.0 | $3,200.00 | $0.00 | $3,200.00 |
 | ... (26 more) | ... | ... | ... | ... | ... |
 
-All 30 employees computed. Overtime is calculated per-week, not averaged across the two-week pay period — a common mistake in manual payroll that's surprisingly hard to catch. If Marta worked 46.5 hours in week 1 and 40 hours in week 2, she gets 6.5 hours of overtime. Averaging the two weeks gives 43.25 hours per week, which looks like only 3.25 hours of overtime per week or 6.5 total — same number by coincidence in this case, but in general, averaging across weeks systematically underpays employees with uneven schedules and creates legal liability under FLSA rules.
+All 30 employees computed. Overtime is calculated per workweek, never averaged across the two-week pay period. The U.S. Department of Labor states that overtime is due at not less than one and one-half times the regular rate for hours over 40 in a workweek, that a workweek is a fixed, recurring 168-hour period (it need not match the calendar week), and that averaging hours over two or more weeks is not permitted ([DOL Fact Sheet #23](https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay)). If Marta worked 46.5 hours in week 1 and 40 in week 2, week 1 has 6.5 overtime hours and week 2 has none; if she had worked 36 in week 2, averaging would wrongly erase the overtime.
 
-The calculation also handles edge cases that trip up manual processing: employees who started mid-period (Yuki joined Jan 6 and only has 8 working days), salaried employees who don't earn overtime, and the holiday on Jan 1 which some departments track as PTO and others don't.
+Edge cases the agent handles: employees who started mid-period (Yuki joined Jan 6 and has 8 working days), salaried employees the table marks exempt, and the Jan 1 holiday that some departments track as PTO and others do not. Whether a salaried employee is exempt depends on legal tests, not on being salaried: a fixed salary for a regular workweek longer than 40 hours does not by itself discharge the overtime obligation (same DOL fact sheet), so confirm exemptions with your payroll adviser before they go into the table.
 
 ### Step 3: Apply Deductions and Compute Net Pay
 
 ```text
-Apply federal tax withholding based on each employee's W-4 data in /payroll/w4-elections.xlsx. Deduct health insurance premiums from /payroll/benefits.xlsx. Calculate net pay for each employee.
+Read each employee's Form W-4 data from /payroll/w4-elections.xlsx and the withholding amounts from /payroll/withholding.xlsx (exported from your payroll provider or computed by your accountant). Deduct health insurance premiums from /payroll/benefits.xlsx. Calculate net pay for each employee.
 ```
 
-Each employee's deductions come from their specific elections — filing status, allowances, dependents, and benefit tier:
+Each employee's deductions come from their specific elections: the withholding amounts, the benefit tier and the 401(k) deferral. The figures below are example data, not a tax calculation:
 
 | Employee | Gross Pay | Federal Tax | State Tax | Health Ins | 401k | Net Pay |
 |----------|-----------|-------------|-----------|------------|------|---------|
@@ -80,15 +80,15 @@ Each employee's deductions come from their specific elections — filing status,
 | Yuki Tanaka | $3,200.00 | $480.00 | $160.00 | $245.00 | $0.00 | $2,315.00 |
 | ... | ... | ... | ... | ... | ... | ... |
 
-The W-4 lookups and benefit deductions are the most error-prone step in manual payroll — three different source files, each with its own format and its own update cycle. The agent joins them by employee ID, not by name, so a "Marta Oliveira" in one sheet and "M. Oliveira" in another still match correctly. Any employee whose ID appears in the timesheet but not in the W-4 file gets flagged immediately (like Yuki above) rather than silently defaulting.
+The agent does not invent tax rules: federal income tax withholding follows the IRS methods in [Publication 15-T](https://www.irs.gov/forms-pubs/about-publication-15-t), driven by the employee's Form W-4 ([IRS](https://www.irs.gov/forms-pubs/about-form-w-4)), and state rules come from the state's own revenue agency. Use your payroll provider's or accountant's withholding output as the input here, and have the agent only join and total it. The three source files are joined by employee ID, not by name, so "Marta Oliveira" and "M. Oliveira" still match. Any employee whose ID appears in the timesheet but not in the W-4 file is flagged and held out of the run (like Yuki) rather than silently defaulting; Yuki's row above is shown once the W-4 has been added.
 
 ### Step 4: Generate Individual Pay Stubs
 
 ```text
-Using the pay stub template in /payroll/templates/pay-stub.html, generate a PDF pay stub for each employee. Save them to /payroll/output/stubs/jan-15/.
+Using the pay stub template in /payroll/templates/pay-stub.html, generate a PDF pay stub for each employee (Jinja2 fills the HTML, WeasyPrint renders the PDF). Save them to /payroll/output/stubs/jan-15/.
 ```
 
-Thirty PDF pay stubs render in under 10 seconds. Each one is a clean, professional document containing:
+Thirty PDF pay stubs are rendered, one per employee. Each contains:
 
 - Pay period dates and payment date
 - Gross pay breakdown: regular hours and rate, overtime hours and rate (at 1.5x), listed separately
@@ -96,7 +96,9 @@ Thirty PDF pay stubs render in under 10 seconds. Each one is a clean, profession
 - Net pay (the number on the check)
 - Year-to-date totals for gross pay, each deduction category, and net pay
 
-The template engine fills in each employee's data from the calculated results — no copy-paste, no formatting errors, no accidentally putting Marta's numbers on Tomas's stub. Each stub is saved as `jan-15-marta-oliveira.pdf` for easy distribution.
+Check your state's pay-stub rules with the state labor agency; they differ by state.
+
+Each stub is filled from the calculated results, so there is no copy-paste between employees. Each stub is saved as `jan-15-marta-oliveira.pdf` for easy distribution.
 
 ### Step 5: Produce the Payroll Summary Report
 
@@ -106,7 +108,7 @@ Generate a payroll summary report showing total gross, total deductions by categ
 
 The summary gives the operations and finance teams a single-page view of the entire pay period:
 
-**Payroll Summary — Jan 1-15, 2025**
+**Payroll Summary — Jan 1-15 (example data)**
 
 | Category | Amount |
 |----------|--------|
@@ -125,16 +127,18 @@ The summary gives the operations and finance teams a single-page view of the ent
 | Design | 6 | $31,200.00 | $1,170.00 | $22,260.00 |
 | Operations | 12 | $43,050.00 | $2,340.00 | $29,551.50 |
 
-Both PDF (for the finance team to review and archive) and Excel (for import into QuickBooks or Xero) versions are generated. The Excel version includes formulas linking to the source data so the numbers can be audited cell by cell — not just flat values that require trust. If someone questions why the Engineering department's overtime is higher than last period, they can trace it from the summary to individual employees to specific timesheet entries.
+The PDF is for the finance team to review and archive. The Excel version is written with openpyxl, with SUM formulas for the totals and the per-employee rows on a separate sheet, so the numbers can be audited cell by cell. If someone questions why the Engineering department's overtime is higher than last period, they can trace it from the summary to individual employees to specific timesheet entries.
 
 The summary also serves as the input for the agency's monthly financial reporting, replacing another manual step where someone would re-aggregate payroll numbers into the P&L spreadsheet.
 
 ## Real-World Example
 
-Rui manages operations at the 30-person digital agency. Payroll day used to consume eight hours: copying numbers between five spreadsheets with different column names, double-checking overtime math by hand, cross-referencing tax elections from a file that was last updated "sometime in Q3," and generating pay stubs one at a time in Word by replacing placeholder text. Last month, a decimal error caused an $800 underpayment that took a week to resolve and damaged trust with the employee.
+Rui manages operations at a 30-person digital agency (an invented team). Payroll day used to take eight hours: copying numbers between five spreadsheets with different column names, double-checking overtime by hand and generating pay stubs one at a time in Word.
 
-Now Rui drops the timesheet files into a folder and runs one command. The agent flags three anomalies — an 18-hour day (data entry error), a missing project code, and a new hire without a W-4 on file. Rui corrects the 18-hour entry to 8, assigns the missing project code, and adds Yuki's W-4 data. The agent calculates gross and net pay for all 30 employees, generates 30 PDF pay stubs, and produces the summary report in under three minutes.
+Now Rui drops the timesheet files into a folder and runs the workflow. The agent flags three anomalies: an 18-hour day, a missing project code and a new hire without a W-4 on file. Rui corrects the entry, assigns the code and adds Yuki's W-4 data. The agent then calculates gross and net pay for all 30 employees, generates 30 PDF pay stubs and produces the summary report. Rui reviews the output and compares the totals with the payroll provider's register before anything is paid; the agent prepares the numbers, a person approves them.
 
-Errors dropped to zero in the first quarter because anomalies get caught before any calculation runs — not after someone notices their paycheck is wrong. The eight-hour payroll day became a 30-minute review session, and Rui has reclaimed a full day every two weeks.
+## Related Skills
 
-The best part: when the agency hires employee 31, 32, and 33, the process doesn't get slower. It's the same single command whether the team is 30 people or 60. The manual approach that broke at 30 would have been impossible at 60 — but the automated pipeline scales linearly with headcount, adding about 10 seconds per new employee.
+- [excel-processor](/skills/excel-processor)
+- [report-generator](/skills/report-generator)
+- [template-engine](/skills/template-engine)

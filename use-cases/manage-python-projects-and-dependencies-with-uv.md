@@ -116,9 +116,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: "0.12.21"
+          version: "0.13.7"
           enable-cache: true
       - run: uv python install
       - run: uv sync --locked --dev
@@ -137,7 +137,7 @@ Rewrite the Dockerfile so dependencies install from uv.lock and the layer is cac
 
 ```dockerfile
 FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:0.12.21 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 WORKDIR /app
 ENV UV_NO_DEV=1 UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
@@ -149,10 +149,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 ENV PATH="/app/.venv/bin:$PATH"
+RUN useradd --system --no-create-home appuser
+USER appuser
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-The agent also adds `.venv` to `.dockerignore`, because a virtual environment built on a laptop does not work inside the image.
+The service runs as a non-root user, and the agent adds `.venv` to `.dockerignore`, because a virtual environment built on a laptop does not work inside the image:
+
+```text
+.venv
+.git
+__pycache__
+```
 
 ```bash
 docker build -t dispatch-api:2026.09.3 .
