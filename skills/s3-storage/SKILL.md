@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.9+. Requires AWS SDK v3 or compatible S3 client library."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.1"
   category: devops
   tags: "s3, object-storage, minio, cloud-storage"
 ---
@@ -32,8 +32,11 @@ Manages S3-compatible object storage across all major providers. Covers bucket o
 ```javascript
 import { S3Client } from '@aws-sdk/client-s3';
 
-// AWS S3
-const s3 = new S3Client({ region: 'us-east-1' }); // Uses env vars or IAM role
+// AWS S3 (checksum options: needed if you presign PUT URLs, see below)
+const s3 = new S3Client({
+  region: 'us-east-1', // Uses env vars or IAM role
+  requestChecksumCalculation: 'WHEN_REQUIRED', responseChecksumValidation: 'WHEN_REQUIRED',
+});
 
 // MinIO (self-hosted)
 const s3 = new S3Client({
@@ -54,7 +57,7 @@ s3 = boto3.client('s3', endpoint_url='http://localhost:9000',
     aws_access_key_id=os.environ['ACCESS_KEY'], aws_secret_access_key=os.environ['SECRET_KEY'])
 ```
 
-**Checksum default (AWS SDK for JavaScript v3):** current SDK releases compute a CRC32 checksum on every upload by default (`requestChecksumCalculation` defaults to `WHEN_SUPPORTED`). AWS S3 accepts it, but some S3-compatible services reject or mishandle it. If PutObject or multipart uploads fail on MinIO or another compatible endpoint with checksum errors, set both options to `WHEN_REQUIRED`:
+**Checksum default (AWS SDK for JavaScript v3):** current SDK releases (checked with 3.1164) compute a CRC32 checksum on every upload by default (`requestChecksumCalculation` defaults to `WHEN_SUPPORTED`) and send `x-amz-checksum-mode: ENABLED` on downloads. Some S3-compatible services reject or mishandle this, and it also breaks **presigned PUT URLs on AWS S3 itself** (see section 3). If PutObject, multipart uploads or presigned PUTs fail with checksum errors, set both options to `WHEN_REQUIRED`:
 
 ```javascript
 const s3 = new S3Client({
@@ -65,7 +68,7 @@ const s3 = new S3Client({
 });
 ```
 
-Cloudflare R2 takes `region: 'auto'` (the SDK requires a value; R2 ignores it) and the endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+On AWS S3, set the same two options on the client you use for presigning. Cloudflare R2 takes `region: 'auto'` (the SDK requires a value; R2 ignores it) and the endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
 
 ### 2. File Operations
 
@@ -112,10 +115,13 @@ await s3.send(new CopyObjectCommand({ Bucket: 'my-app-uploads', CopySource: 'my-
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+// Client with checksum options set to WHEN_REQUIRED (see section 1); without them
+// the presigned PUT URL embeds a CRC32 of an empty body and real uploads fail.
 // Upload URL (client uploads directly to S3)
 const uploadUrl = await getSignedUrl(s3, new PutObjectCommand({
-  Bucket: 'my-app-uploads', Key: `uploads/${userId}/${filename}`, ContentType: contentType,
-}), { expiresIn: 3600 });
+  Bucket: 'my-app-uploads', Key: `uploads/${userId}/${filename}`,
+  ContentType: contentType, ContentLength: size, // size in bytes, validated by your API
+}), { expiresIn: 3600, signableHeaders: new Set(['content-type']) });
 
 // Download URL
 const downloadUrl = await getSignedUrl(s3, new GetObjectCommand({
@@ -123,7 +129,7 @@ const downloadUrl = await getSignedUrl(s3, new GetObjectCommand({
 }), { expiresIn: 900 });
 ```
 
-The signed `ContentType` is part of the signature: the browser's PUT must send the same `Content-Type` header, or S3 returns `SignatureDoesNotMatch`.
+What the signature covers (verified by generating URLs with `@aws-sdk/s3-request-presigner` 3.1164): `ContentType` is **not** signed by default, so `X-Amz-SignedHeaders` is only `host`. Passing `signableHeaders: new Set(['content-type'])` signs it, and the browser's PUT must then send the same `Content-Type` or S3 returns `SignatureDoesNotMatch`. `ContentLength` is signed (`content-length;host`), which caps the upload to that exact size; the client must send exactly that many bytes.
 
 ### 4. Multipart Upload (large files)
 
@@ -152,11 +158,11 @@ await s3.send(new PutBucketLifecycleConfigurationCommand({
   Bucket: 'my-app-uploads',
   LifecycleConfiguration: {
     Rules: [
-      { ID: 'delete-temp-after-1-day', Prefix: 'tmp/', Status: 'Enabled', Expiration: { Days: 1 } },
-      { ID: 'archive-old-logs', Prefix: 'logs/', Status: 'Enabled',
+      { ID: 'delete-temp-after-1-day', Filter: { Prefix: 'tmp/' }, Status: 'Enabled', Expiration: { Days: 1 } },
+      { ID: 'archive-old-logs', Filter: { Prefix: 'logs/' }, Status: 'Enabled',
         Transitions: [{ Days: 30, StorageClass: 'STANDARD_IA' }, { Days: 90, StorageClass: 'GLACIER' }],
         Expiration: { Days: 365 } },
-      { ID: 'cleanup-incomplete-uploads', Prefix: '', Status: 'Enabled',
+      { ID: 'cleanup-incomplete-uploads', Filter: { Prefix: '' }, Status: 'Enabled',
         AbortIncompleteMultipartUpload: { DaysAfterInitiation: 7 } },
     ],
   },
