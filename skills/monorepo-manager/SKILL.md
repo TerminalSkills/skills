@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js monorepos (npm/pnpm/yarn workspaces, Turborepo, Nx)"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "monorepo, dependencies, workspaces, turborepo"
 ---
@@ -145,7 +145,7 @@ Updated 4 package.json files. Review the v3 migration in apps/api.
 - Check for breaking changes before bumping major versions
 - Prefer hoisting shared deps to the root when possible
 - Use the `catalog:` protocol (versions defined once in `pnpm-workspace.yaml`, pnpm 9.5+) or `resolutions` in yarn for version pinning
-- A tool like `syncpack list-mismatches` can find drifting versions automatically in large repos
+- A tool like `npx syncpack lint` (syncpack 14+, replaces `list-mismatches`) can find drifting versions automatically in large repos
 - After any dependency change, verify builds across all affected packages
 - Circular dependencies between packages are a code smell — suggest extraction
 - For large monorepos (50+ packages), prioritize the most impactful mismatches first
