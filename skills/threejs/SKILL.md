@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Modern browser with WebGL 2; bundler such as Vite for npm usage; React 19 for React Three Fiber v9"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: design
   repository: https://github.com/mrdoob/three.js
   tags: "threejs, 3d, webgl, react-three-fiber, visualization"
@@ -22,12 +22,14 @@ metadata:
 
 Three.js is a JavaScript library for creating interactive 3D graphics in the browser. It provides a scene graph, PBR materials, lighting, model loaders (glTF, FBX), and performance tools such as instanced rendering. React Three Fiber (R3F) is a declarative React renderer for it, with Suspense-based loading and automatic disposal.
 
-Versions checked: `three` 0.186 (r186), `@react-three/fiber` 9.8, `@react-three/drei` 10.7. Things that differ from older tutorials:
+Versions checked: `three` 0.187 (r187), `@react-three/fiber` 9.8, `@react-three/drei` 10.7. Things that differ from older tutorials:
 
 - Install from npm and import addons from `three/addons/...` (for example `three/addons/controls/OrbitControls.js`); the old `three/examples/jsm/...` paths and `outputEncoding` / `Texture.encoding` (removed in r152, now `outputColorSpace` / `colorSpace`) are legacy.
-- `THREE.Clock` is deprecated since r182; use `THREE.Timer` (`timer.update()` then `timer.getDelta()`).
-- `WebGPURenderer` and node materials come from `three/webgpu`, shaders written in TSL from `three/tsl`. WebGPU renderer async methods (`renderAsync`, `computeAsync`) are deprecated since r180.
+- `THREE.Clock` is deprecated since r183; use `THREE.Timer` (`timer.update()` then `timer.getDelta()`).
+- `WebGPURenderer` and node materials come from `three/webgpu`, shaders written in TSL from `three/tsl`. WebGPU renderer async methods (`renderAsync`, `computeAsync`) are deprecated since r181: `await renderer.init()` once, then call `render()` / `compute()`.
 - `DRACOLoader.setDecoderConfig()` is deprecated (r185); Draco will always use WASM.
+- `RGBELoader` is deprecated: use `HDRLoader` (same `three/addons/loaders/` folder).
+- r187: PMREMs are built from cube render targets (`CubeUVReflectionMapping` is gone, reflections look slightly different); `MeshPhysicalMaterial.iridescenceThicknessRange` is replaced by `iridescenceThicknessMinimum` / `iridescenceThicknessMaximum`; WebGPU custom lights register with `CustomLight.registerNode(CustomLightNode)` instead of `renderer.library.addLight`.
 - `@react-three/fiber` 9 pairs with React 19; v8 pairs with React 18. `@react-three/drei` 10 needs R3F 9.
 
 ## Instructions
@@ -35,7 +37,7 @@ Versions checked: `three` 0.186 (r186), `@react-three/fiber` 9.8, `@react-three/
 - When setting up a scene, create a `Scene`, `PerspectiveCamera` (or `OrthographicCamera`) and `WebGLRenderer`, add `OrbitControls`, and set `renderer.setPixelRatio(Math.min(devicePixelRatio, 2))`. The renderer's default tone mapping is none; set `toneMapping = THREE.ACESFilmicToneMapping` yourself in vanilla code (R3F's `<Canvas>` already uses ACES Filmic and sRGB output unless `flat` is set).
 - When creating objects, combine geometries (box, sphere, plane, custom `BufferGeometry`) with materials (`MeshStandardMaterial` for PBR, `MeshPhysicalMaterial` for clearcoat, transmission) and set `colorSpace = THREE.SRGBColorSpace` on colour textures only (not normal, roughness or metalness maps).
 - When loading models, use `GLTFLoader` for glTF/GLB. For compressed files add `DRACOLoader` (copy the decoder from `node_modules/three/examples/jsm/libs/draco/gltf/` to your public folder and call `setDecoderPath`) and `KTX2Loader` (transcoder in `examples/jsm/libs/basis/`, call `setTranscoderPath` and `detectSupport(renderer)`). Compress with `gltf-transform` or `gltfpack` first.
-- When building lighting, combine ambient, directional, point and spot lights with an HDR environment map (`RGBELoader` plus `PMREMGenerator`, or drei `<Environment>`); enable `renderer.shadowMap.enabled` and `castShadow` / `receiveShadow` only where needed.
+- When building lighting, combine ambient, directional, point and spot lights with an HDR environment map (`HDRLoader` plus `PMREMGenerator`, or drei `<Environment>`); enable `renderer.shadowMap.enabled` and `castShadow` / `receiveShadow` only where needed.
 - When animating, drive everything from `renderer.setAnimationLoop(fn)` and use the timer delta, not a fixed step.
 - When optimizing, use `InstancedMesh` for 100+ identical objects, merge static geometry, use LOD, and call `dispose()` on geometries, materials and textures you remove.
 - In React, use R3F with drei helpers (`OrbitControls`, `Environment`, `useGLTF`, `ContactShadows`) and `@react-three/postprocessing` for bloom or SSAO. `useGLTF` enables Draco (decoder fetched from Google's CDN) and Meshopt by default; call `useGLTF.preload(url)` and `useGLTF.setDecoderPath(...)` to self-host the decoder.
