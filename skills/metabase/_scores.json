@@ -1,13 +1,13 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:934b0b3a7b35d414adb225e814477894aa44e332d111d4769e01f3b4c6bf811f",
-  "scoredAt": "2026-10-24T22:01:54.096Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:85574dec0af1ba6fb34761e21d6713e3bff58a4ac37f79c9381a6e89507a63f6",
+  "scoredAt": "2026-11-05T00:02:26.831Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The Instructions section is empty, making the skill's guidance ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for the provided scripts."
+        "detail": "The skill file lacks explicit error handling and edge case coverage."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.3,
-    "baselineAvg": 7,
-    "treatmentAvg": 93,
+    "multiplier": 4.71,
+    "baselineAvg": 17,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "stand-up-metabase-docker-db",
-        "baseline": 0,
+        "name": "start-metabase-docker",
+        "baseline": 50,
         "treatment": 80,
-        "rationale": "B covers most rubric items but misses the exact health check command and uses a different password placeholder, while A is incomplete."
+        "rationale": "Response A covers the export, docker compose command, and health check curl, missing only an explicit wait note, while Response B omits the required password export and primary docker compose usage."
       },
       {
-        "name": "create-dashboard-with-api",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A misses key requirements such as the correct headers, collection_id, grid size, and update method."
-      },
-      {
-        "name": "guest-embed-jwt-token",
+        "name": "connect-postgres-db-api",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet the specified payload, secret usage, and HTML embedding details."
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required POST command and JSON body."
+      },
+      {
+        "name": "generate-guest-embed-token",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A includes most required elements but lacks the specified function, while Response B is in Python and misses all rubric requirements."
       }
     ]
   }

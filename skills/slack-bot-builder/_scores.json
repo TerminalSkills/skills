@@ -1,53 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:25f3d25039a588a3a2710a9d13c056148ce783812ce77c3a21560d758b7f17ed",
-  "scoredAt": "2026-10-13T16:10:43.083Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:68a92b8fbfe871a14f378cbf2dab33fe758243e62fbb2d62318ae98a5b19e8d4",
+  "scoredAt": "2026-11-04T23:56:53.819Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.24,
-    "baselineAvg": 37,
+    "multiplier": 3.77,
+    "baselineAvg": 22,
     "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "slash-command-modal",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Response A covers almost all rubric items, only missing a respond() call, while Response B omits block usage and respond(), falling short of the rubric."
+        "name": "quote-slash-command-and-mention",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response B better meets the rubric by using async ack and client.chat.postMessage, while Response A lacks async handling and block kit usage."
       },
       {
-        "name": "mention-button-action",
+        "name": "project-selection-modal",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "B fully satisfies the rubric while A lacks content."
+        "rationale": "Response A fully meets all rubric requirements, while Response B provides no content."
       },
       {
-        "name": "python-longtask-rate-limit",
-        "baseline": 55,
-        "treatment": 60,
-        "rationale": "Both responses miss one rubric requirement; B uses respond() but lacks a try/except, while A includes a try/except but uses chat_postMessage instead of respond()."
+        "name": "daily-standup-scheduler",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response A meets almost all rubric requirements with detailed implementation, while Response B lacks key elements such as block kit usage, proper event listener, and proper app startup."
       }
     ]
   }

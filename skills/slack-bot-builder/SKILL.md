@@ -9,10 +9,10 @@ description: >-
   slack webhook, slack blocks, slack modal, bolt framework, slack events,
   slack notification, slack automation.
 license: Apache-2.0
-compatibility: "Node.js 20+ (Bolt for JavaScript 5) or Python 3.9+ (slack-bolt). Requires a Slack workspace with admin access to install apps."
+compatibility: "Node.js 20+ (Bolt for JavaScript 5) or Python (slack-bolt 1.x; PyPI requires 3.7+, use a currently supported release). Requires a Slack workspace with admin access to install apps."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   repository: "https://github.com/slackapi/bolt-js"
   category: automation
   tags: "slack, bot, messaging, integration"
@@ -32,7 +32,43 @@ When creating a new Slack bot:
 
 1. Guide the user through https://api.slack.com/apps → Create New App
 2. Recommend "From a manifest" for faster setup
-3. Generate the app manifest YAML based on required scopes and features
+3. Generate the app manifest based on required scopes and features (YAML or JSON; paste it in the app's Settings, or when creating the app "From a manifest"). A Socket Mode starting point:
+```yaml
+display_information:
+  name: Deploy Helper
+features:
+  bot_user:
+    display_name: Deploy Helper
+    always_online: false
+  slash_commands:
+    - command: /deploy
+      description: Deploy a service to staging
+      usage_hint: "[service]"
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - chat:write
+      - commands
+      - channels:history
+      - im:history
+      - users:read
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+      - message.channels
+      - message.im
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
+```
+
+Reference: https://docs.slack.dev/reference/app-manifest. In HTTP mode, add `request_url` under `event_subscriptions` and `interactivity`, and `url` on each slash command. After installing, copy the Bot User OAuth Token (`xoxb-`) from OAuth & Permissions, and create the app-level token (`xapp-`, scope `connections:write`) under Basic Information.
+
 4. Set up the following based on needs:
    - **Bot Token Scopes**: `chat:write`, `commands`, `app_mentions:read`, `channels:history` (for `message.channels`), `im:history` (for `message.im`), `users:read`
    - **Event Subscriptions**: `message.channels`, `app_mention`, `message.im` (in Socket Mode no request URL is needed)

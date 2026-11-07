@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: 'Docker with Compose (self-hosted) or n8n Cloud; n8n 2.x'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: automation
   repository: https://github.com/n8n-io/n8n
   tags: "n8n, workflow, automation, integration, low-code"
@@ -16,7 +16,7 @@ metadata:
 
 ## Overview
 
-n8n is a workflow automation tool you can run yourself or use as n8n Cloud. Workflows are graphs of nodes: triggers (Webhook, Schedule, app events), 1500+ integration nodes, flow logic (IF, Switch, Merge), HTTP Request, and Code nodes. The current stable release is 2.44.6 (the docs track stable and beta separately). The source is "fair-code" under the Sustainable Use License, not an OSI open-source license: free to self-host for internal business use, but reselling it as a hosted service needs a commercial agreement. This skill was checked against the n8n documentation and the `n8n-hosting` repository; the Docker setup was not started here.
+n8n is a workflow automation tool you can run yourself or use as n8n Cloud. Workflows are graphs of nodes: triggers (Webhook, Schedule, app events), 1500+ integration nodes, flow logic (IF, Switch, Merge), HTTP Request, and Code nodes. The current stable release is 2.46.6 (the docs track stable and beta separately; n8n 3.x has been tagged but the Docker docs still list 2.46.6 as stable, and 3.0 has its own breaking-changes page, so do not jump to it without reading that page and running the migration report). The source is "fair-code" under the Sustainable Use License, not an OSI open-source license: free to self-host for internal business use, but reselling it as a hosted service needs a commercial agreement. This skill was checked against the n8n documentation and the `n8n-hosting` repository; the Docker setup was not started here.
 
 ## Instructions
 
@@ -41,7 +41,7 @@ services:
       interval: 5s
       retries: 10
   n8n:
-    image: docker.n8n.io/n8nio/n8n:2.44.6   # pin a version; update on purpose
+    image: docker.n8n.io/n8nio/n8n:2.46.6   # pin a version; update on purpose
     restart: always
     ports: ["127.0.0.1:5678:5678"]          # publish to the proxy only, not the internet
     environment:
@@ -71,7 +71,7 @@ $ docker compose logs -f n8n     # wait for "Editor is now accessible via"
 ```
 
 - `N8N_ENCRYPTION_KEY` encrypts stored credentials. Set it once; if it is lost or changed, saved credentials cannot be decrypted. Back it up with the volume.
-- `N8N_WEBHOOK_URL` (n8n 2.30+; the old name `WEBHOOK_URL` is deprecated from 2.35) must be the public URL, otherwise webhook URLs shown in the editor point to localhost. The reverse proxy must forward `X-Forwarded-For`, `-Host` and `-Proto`.
+- `N8N_WEBHOOK_URL` (the old name `WEBHOOK_URL` is deprecated from 2.35) must be the public URL, otherwise webhook URLs shown in the editor point to localhost. The reverse proxy must forward `X-Forwarded-For`, `-Host` and `-Proto`.
 - Quick local try-out without Postgres: `docker run -it --rm --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n`, then open http://localhost:5678.
 - Update by raising the image tag, `docker compose pull`, `docker compose up -d`.
 

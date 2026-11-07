@@ -11,129 +11,224 @@ tags: [ansible, configuration-management, server-setup, deployment, automation]
 
 ## The Problem
 
-A team manages 12 servers across staging and production. Every new server takes a full day to set up: install packages, configure nginx, set up SSL, create users, configure firewall, deploy the app, set up monitoring. The process lives in a 47-step wiki page that is always outdated — step 23 references a package that was renamed two years ago, and step 31 was added by someone who left and nobody knows why it's there.
+A team manages 12 servers across staging and production. Every new server takes a full day to set up: install packages, configure nginx, set up SSL, create users, configure the firewall, deploy the app, set up monitoring. The process lives in a 47-step wiki page that is always outdated: step 23 references a package that was renamed two years ago, and step 31 was added by someone who left and nobody knows why it is there.
 
-Servers drift over time. Someone installs a package on one server and forgets the others. Someone tweaks an nginx config directly in production "just this once" — then forgets to update the wiki, so the next server gets set up differently. Last month a security patch was applied to 10 of 12 servers; the two missed ones got compromised. Scaling means another day of manual setup per server, and there's no guarantee the new server matches the existing ones. The team is afraid to add capacity during traffic spikes because provisioning takes too long.
+Servers drift. Someone installs a package on one server and forgets the others. Someone tweaks an nginx config directly in production "just this once". Last month a security patch was applied to 10 of 12 servers, and the two missed ones were compromised. Scaling means another day of manual setup per server, and nothing guarantees the new server matches the old ones.
 
 ## The Solution
 
-Using **ansible** to write playbooks and roles that automate the entire server lifecycle, **security-audit** to define hardening standards as code, and **coding-agent** to build custom Ansible modules for app-specific deployment logic, the entire 47-step wiki page becomes executable code that runs in 8 minutes and produces identical results every time.
+Use **ansible** to turn the wiki into roles and playbooks that give every server the same result. Use **coding-agent** (headless `claude -p`, one narrow task per run) to draft the roles and playbooks, and **security-audit** to scan the automation repository itself (leaked secrets, unencrypted vault files, vulnerable app dependencies) before anything reaches a server. Every generated file is reviewed and run with `--check --diff` first.
 
 ## Step-by-Step Walkthrough
 
 ### Step 1: Audit Current Servers and Create an Inventory
 
-The first step isn't writing Ansible roles — it's understanding the current state. Every server has drifted in its own direction over months of manual changes, and nobody has a clear picture of the differences:
+Understand the current state before writing roles. Group hosts in an inventory and collect facts:
 
-```text
-We have 12 Ubuntu 22.04 servers: 6 web servers, 2 API servers, 2 PostgreSQL
-(primary + replica), 1 Redis, 1 worker. They're on Hetzner Cloud with
-private networking. SSH access via deploy user with key auth.
+```ini
+# inventory/production.ini
+[web]
+web01 ansible_host=10.0.1.11
+web02 ansible_host=10.0.1.12
 
-Create an Ansible inventory with proper groups and group_vars. Scan all
-servers to document what's currently installed, running services, open
-ports, and user accounts. Produce a drift report showing differences
-between servers that should be identical.
+[api]
+api01 ansible_host=10.0.1.21
+
+[postgres]
+db01 ansible_host=10.0.2.10
+
+[production:children]
+web
+api
+postgres
+
+[all:vars]
+ansible_user=deploy
+ansible_ssh_private_key_file=~/.ssh/deploy_ed25519
 ```
 
-The audit playbook runs across all 12 servers using `ansible.builtin.setup` and `ansible.builtin.shell` to collect installed packages, running services, open ports, and user accounts. The structured inventory organizes hosts into groups (`web`, `api`, `postgres`, `redis`, `worker`) with group-specific variables.
+```bash
+ansible all -i inventory/production.ini -m ansible.builtin.package_facts
+ansible web -i inventory/production.ini -m ansible.builtin.command -a "nginx -v"
+ansible all -i inventory/production.ini -m ansible.builtin.command -a "getent passwd" --become
+```
 
-The drift report is the eye-opener: **23 differences** across servers that should be identical:
-
-- Three web servers have different nginx versions — 1.18.0, 1.22.0, and 1.24.0. The oldest version has known vulnerabilities.
-- Two servers are missing the critical security patch from last month. These are the same two that got compromised.
-- One server has an unauthorized user account that nobody recognizes — `dev_temp`, created three months ago, with sudo access.
-
-That last finding turns a routine audit into an urgent security conversation. The user account gets locked immediately, and the audit becomes the catalyst for doing server management properly.
+Compare the output between hosts that should be identical: nginx versions, patch levels, and local user accounts. In this team's audit the differences were the kind that matter: three web servers on three nginx versions, two servers missing last month's patch, and one unrecognised `dev_temp` account with sudo. The account was locked immediately, and the audit became the argument for doing this properly. Host keys stay verified (do not disable host key checking): add them with `ssh-keyscan` after checking the fingerprints.
 
 ### Step 2: Write Roles for Base Server Configuration
 
-```text
-Create Ansible roles for our standard server setup:
-1. common — deploy user, SSH hardening, UFW firewall, unattended security
-   updates, NTP, log rotation, fail2ban
-2. nginx — install, configure sites, SSL via Let's Encrypt, security headers
-3. nodejs — Node.js 20 via nvm, PM2 process management, systemd service
-4. postgresql — PostgreSQL 16 with streaming replication, automated backups
-5. monitoring — node_exporter for Prometheus, log shipping
+Hand each role to the coding agent as a separate, scoped run:
 
-Each role should be idempotent and tested with Molecule.
+```bash
+timeout 900 claude -p "Create roles/common in this Ansible repo for Ubuntu 24.04: deploy user,
+SSH hardening as a drop-in /etc/ssh/sshd_config.d/10-hardening.conf (PermitRootLogin no,
+PasswordAuthentication no), UFW via community.general.ufw with a deny default and ports from
+defaults/main.yml, fail2ban, unattended-upgrades. Use fully qualified module names. Do not touch
+other roles." \
+  --permission-mode acceptEdits --allowedTools "Read" "Write" "Edit" "Bash(ansible-lint *)" \
+  --max-budget-usd 2 --output-format text > /tmp/role-common.log 2>&1
 ```
 
-Five complete roles get generated, each with tasks, handlers, templates, defaults, and Molecule tests:
+Repeat for `nginx`, `nodejs`, `postgresql` and `monitoring`. Things to check in what comes back:
 
-**common** — Hardens SSH (disables root login, disables password auth, restricts to key-based access only), configures UFW with group-specific port rules (web servers open 80/443, postgres opens 5432 only on the private network, everything else denied by default), sets up fail2ban with custom jail configs (5 failed attempts = 1 hour ban), and enables unattended-upgrades for security patches. Every setting that was a manual step on the wiki is now a variable in `defaults/main.yml` that can be overridden per group or per host.
+- **Firewall order.** Allow SSH before enabling UFW with `policy: deny`, or the run locks you out of the host. Database ports (5432) are allowed only from the private network range.
+- **Node.js.** Node 20 is end-of-life; install Node 24 LTS from the official tarball and let Ansible verify it: `ansible.builtin.get_url` accepts `checksum: "sha256:https://nodejs.org/dist/v24.22.2/SHASUMS256.txt"`. Never pipe a downloaded install script into a shell.
+- **PostgreSQL.** Use a supported major (16 is supported until November 2028; 18 is current). Streaming replication needs the replica's `pg_hba.conf` and a replication role; keep `pg_hba.conf` templated from variables so access rules live in the repo. Bind `listen_addresses` to the private interface, never `*`.
+- **Certificates.** The certbot package installs its own renewal systemd timer; the role needs to enable it, not reinvent it.
+- **Variables, not edits.** Ports, domains and memory limits belong in `defaults/main.yml` and `group_vars`, so a new domain is a three-line change.
 
-**nginx** — Sites configured from variables, so adding a new domain is a 3-line change in `group_vars` instead of SSH-ing into 6 servers and editing config files. Let's Encrypt certificates auto-renew via a systemd timer. Security headers (HSTS, X-Frame-Options, Content-Security-Policy) are in the template by default — no more forgetting to add them on new sites.
-
-**nodejs** — Node.js 20 via nvm, PM2 for process management with a systemd service for automatic restart on reboot, and log rotation for app logs that prevents disks from filling up. The PM2 ecosystem config is templated from variables, so memory limits and instance counts are defined in the inventory, not scattered across server configs.
-
-**postgresql** — PostgreSQL 16 with streaming replication configured between primary and replica. `pg_hba.conf` generated from variables, so access rules are visible in the repo instead of hidden on the server. Automated daily backups to S3 with a 30-day retention policy and a restore script that's tested monthly.
-
-**monitoring** — `node_exporter` for Prometheus metrics, log shipping to centralized logging. Every server is observable from day one — no more "we forgot to set up monitoring on that server."
-
-Each role is idempotent — running it twice produces the same result, so applying it to fix drift never creates new problems. Molecule tests verify this in Docker before anything touches a real server.
+Roles are idempotent: a second run reports `changed=0`, which is the test that applying a role to fix drift is safe. Molecule with the Docker driver (`pip install molecule molecule-plugins[docker]`) can check this for package and template roles; roles that manage systemd units, UFW or sysctl need a VM, so test those on a throwaway Hetzner server.
 
 ### Step 3: Create the Deployment Playbook with Rolling Updates
 
-```text
-Write a deployment playbook for our Node.js API that deploys 2 servers at
-a time, drains connections from the load balancer, runs migrations once,
-does zero-downtime PM2 reload, health checks, and rolls back on failure.
-Usage: ansible-playbook deploy.yml -e version=v1.2.3
+Two points are easy to get wrong. With `serial`, `run_once: true` runs once **per batch**, not once overall, so migrations get their own play that runs before the rolling play. That means migrations must be backward compatible with the version still running (add columns first, remove them in a later release). And the Hetzner load balancer is driven with the `hetzner.hcloud` collection (`ansible-galaxy collection install hetzner.hcloud`; token in `HCLOUD_TOKEN`). The module's `server` option takes the Hetzner server name or ID, so each inventory hostname must equal the server's name in Hetzner (otherwise set `server: "{{ hcloud_server_name }}"` per host).
+
+```yaml
+# deploy.yml  -- usage: ansible-playbook deploy.yml -e version=v1.2.3
+---
+- name: Run database migrations once, before any server changes
+  hosts: api[0]
+  tasks:
+    - name: Check out the new release for the migration
+      ansible.builtin.git:
+        repo: "{{ app_repo }}"
+        dest: "{{ app_dir }}/releases/{{ version }}"
+        version: "{{ version }}"
+
+    - name: Install dependencies for the migration
+      community.general.npm:
+        path: "{{ app_dir }}/releases/{{ version }}"
+        ci: true
+
+    - name: Run migrations from the new release
+      ansible.builtin.command: npm run migrate
+      args:
+        chdir: "{{ app_dir }}/releases/{{ version }}"
+      changed_when: true
+
+- name: Rolling deploy, two servers per batch
+  hosts: web
+  serial: 2
+  any_errors_fatal: true
+  tasks:
+    - name: Deploy one batch with automatic rollback
+      block:
+        - name: Remember the running version
+          ansible.builtin.command: git -C {{ app_dir }}/current describe --tags --exact-match  # noqa: command-instead-of-module
+          register: previous
+          changed_when: false
+
+        - name: Take the server out of the load balancer
+          hetzner.hcloud.load_balancer_target:
+            load_balancer: "{{ lb_name }}"
+            type: server
+            server: "{{ inventory_hostname }}"
+            state: absent
+          delegate_to: localhost
+
+        - name: Let in-flight requests finish
+          ansible.builtin.pause:
+            seconds: 30
+
+        - name: Check out the release tag
+          ansible.builtin.git:
+            repo: "{{ app_repo }}"
+            dest: "{{ app_dir }}/current"
+            version: "{{ version }}"
+
+        - name: Install production dependencies
+          community.general.npm:
+            path: "{{ app_dir }}/current"
+            ci: true
+            production: true
+
+        - name: Reload PM2 without downtime
+          ansible.builtin.command: pm2 reload ecosystem.config.cjs
+          args:
+            chdir: "{{ app_dir }}/current"
+          changed_when: true
+
+        - name: Wait for /health
+          ansible.builtin.uri:
+            url: "http://{{ ansible_host }}:{{ app_port }}/health"
+            status_code: 200
+          register: health
+          until: health.status == 200
+          retries: 10
+          delay: 3
+
+        - name: Put the server back in the load balancer
+          hetzner.hcloud.load_balancer_target:
+            load_balancer: "{{ lb_name }}"
+            type: server
+            server: "{{ inventory_hostname }}"
+            state: present
+          delegate_to: localhost
+
+      rescue:
+        - name: Roll back to the previous tag
+          ansible.builtin.git:
+            repo: "{{ app_repo }}"
+            dest: "{{ app_dir }}/current"
+            version: "{{ previous.stdout }}"
+          when: previous is defined and previous.stdout is defined
+
+        - name: Reload PM2 on the old release
+          ansible.builtin.command: pm2 reload ecosystem.config.cjs
+          args:
+            chdir: "{{ app_dir }}/current"
+          changed_when: true
+
+        - name: Put the rolled-back server back in the load balancer
+          hetzner.hcloud.load_balancer_target:
+            load_balancer: "{{ lb_name }}"
+            type: server
+            server: "{{ inventory_hostname }}"
+            state: present
+          delegate_to: localhost
+
+        - name: Fail the run after rolling back
+          ansible.builtin.fail:
+            msg: "Deploy of {{ version }} failed on {{ inventory_hostname }}; rolled back"
 ```
 
-The deployment playbook uses `serial: 2` so only two servers update at a time — the other four keep serving traffic. The sequence for each batch:
-
-1. **Drain** — Remove the server from the Hetzner load balancer via API. Wait for in-flight requests to complete (30-second grace period).
-2. **Deploy** — Git checkout of the specified tag, `npm ci --production`, PM2 zero-downtime reload
-3. **Migrate** — Database migrations run with `run_once: true` on the first server in the first batch only. No duplicate migrations, no ordering issues.
-4. **Health check** — Hit `/health` with 10 retries at 3-second intervals, waiting for HTTP 200. The health endpoint checks database connectivity and Redis availability, not just "the process is running."
-5. **Restore** — Add the server back to the load balancer
-
-If the health check fails, a `rescue` block rolls back that server (checkout the previous tag, restart PM2) and stops the entire deploy. Slack gets notified with the error details. The remaining servers never get touched, so a bad release affects at most 2 of 6 web servers — and even those get rolled back automatically within 30 seconds of the health check failing.
+This file passes `ansible-playbook --syntax-check` on ansible-core 2.21 and `ansible-lint` on the production profile (the only warnings are the `api_token` argument, which the module reads from `HCLOUD_TOKEN`). `any_errors_fatal` stops the whole run after the failing batch is rolled back, so a bad release reaches at most two servers. Run `npm audit --omit=dev --audit-level=high` in the app repository before tagging, as security-audit teaches.
 
 ### Step 4: Encrypt Secrets with Ansible Vault
 
-```text
-Set up Ansible Vault for database passwords, API keys, SSL private keys,
-and the Hetzner API token. Each environment gets its own vault file.
-Vault variables use the vault_ prefix and are referenced in group_vars.
-CI/CD can decrypt using an environment variable.
+Each environment gets its own vault file. Variables carry a `vault_` prefix and are referenced from plain `group_vars`, so anyone can see which secrets exist without decrypting:
+
+```bash
+ansible-vault create inventory/group_vars/production/vault.yml    # prompts for the vault password
+ansible-vault edit inventory/group_vars/production/vault.yml
 ```
 
-The secrets structure follows best practice:
+```yaml
+# inventory/group_vars/production/vars.yml  (plain text)
+db_password: "{{ vault_db_password }}"
+```
 
-- `group_vars/production/vault.yml` and `group_vars/staging/vault.yml` — each environment isolated, so staging credentials can't accidentally reach production
-- All sensitive variables prefixed with `vault_` and referenced in plain-text group_vars (e.g., `db_password: "{{ vault_db_password }}"`) so anyone can see what's configured without decrypting the vault
-- `.vault_pass` file excluded from git, with `ansible.cfg` pointing to it for local development
-- CI/CD pipeline examples showing how to pass the vault password via `ANSIBLE_VAULT_PASSWORD` environment variable
+The vault password is read from a file, not from a variable named in a pipeline: Ansible's setting is `ANSIBLE_VAULT_PASSWORD_FILE` (or `vault_password_file` in `ansible.cfg`), and there is no `ANSIBLE_VAULT_PASSWORD` variable. In CI, write the password from the secret store to a temporary file, point `ANSIBLE_VAULT_PASSWORD_FILE` at it, and delete it afterwards. Keep that file out of git. Mark tasks that handle secrets with `no_log: true`.
 
-No more passwords in plaintext wiki pages, shared Slack messages, or sticky notes on monitors. Every secret is encrypted at rest, decrypted only at deploy time, and the vault structure makes it immediately clear which secrets exist and which environments they belong to — even without decryption access.
+This is where security-audit earns its place: run `gitleaks dir .` and `gitleaks git .` on the repository, and check that every vault file is really encrypted (`head -1` shows `$ANSIBLE_VAULT;1.1;AES256`), before the first push.
 
 ### Step 5: Set Up CI/CD and Drift Detection
 
-The playbooks and roles are only useful if they're tested before deployment and enforced continuously. Without CI, a broken role reaches production. Without drift detection, manual changes accumulate silently until something breaks.
+- **On pull request:** `pip install ansible-core ansible-lint` then `ansible-lint` and `ansible-playbook site.yml --syntax-check`, plus Molecule for changed roles that it can test.
+- **On merge to main:** deploy to staging with `ansible-playbook -i inventory/staging.ini site.yml`.
+- **On release tag:** production deploy through a GitHub environment with required reviewers, so a human approves the tag.
+- **Weekly:** run `ansible-playbook -i inventory/production.ini site.yml --check --diff` and post any `changed` result to the team channel. Tasks built on `command` or `shell` do not run in check mode and cannot show drift, which is one more reason to use real modules.
 
-```text
-Create a GitHub Actions pipeline for PR linting, staging auto-deploy on
-merge, production deploy on release tag with manual approval, and weekly
-drift detection against production.
-```
-
-Four workflows cover the full lifecycle:
-
-- **On PR** — `ansible-lint` and Molecule tests for all changed roles. Catches misconfigurations before they merge. A broken handler reference or a missing variable gets caught in CI, not on a production server at 2 AM.
-- **On merge to main** — Automatic deployment to staging. Every merge is live in staging within minutes, giving the team continuous confidence that the code works.
-- **On release tag** — Production deployment with GitHub environment protection rules. Requires manual approval from an ops engineer — the human confirms the tag, Ansible handles the rest.
-- **Every Sunday at 2 AM** — Full `site.yml` in `--check --diff` mode against production. The output gets parsed for changes, and any drift is posted to Slack. A teammate's manual nginx config change gets caught within 7 days instead of drifting silently for months.
-
-A monthly security audit playbook also runs, checking for outdated packages, expired SSL certificates, unauthorized SSH keys, and ports that shouldn't be open. The compliance report goes to the team lead with specific remediation steps for each finding.
+A monthly audit playbook can list unauthorised SSH keys (`authorized_keys` content per user), open ports and pending security updates, reported with the host name and the exact remediation.
 
 ## Real-World Example
 
-An ops engineer at a 20-person company manages 12 servers manually. New server setup takes a full day, 2 servers were missed during a critical security patch (and got compromised), and the 47-step wiki is always out of date. The audit reveals the unauthorized `dev_temp` user account, and the security conversation becomes the catalyst for doing this properly.
+An ops engineer at a 20-person company manages 12 servers by hand. Setup takes a day, two servers missed a security patch, and the wiki is out of date. The audit finds the unknown `dev_temp` account, and the team moves the setup into five roles.
 
-Five Ansible roles codify the entire server setup. New servers go from bare metal to production-ready in 8 minutes instead of 8 hours — and every new server is guaranteed identical to the existing ones. Rolling deployment with health checks eliminates failed deploys — the rescue block catches a bad release in its first week, rolling back before it reaches more than 2 servers. Without the automated rollback, that release would have caused a 20-minute outage.
+A new server now goes from a bare Ubuntu image to the same state as its peers in the time one `ansible-playbook` run takes (minutes, on the team's own timing), because there is nothing left to remember. A bad release is caught by the health check in its first batch and rolled back before it reaches the other web servers. The weekly `--check --diff` run catches a teammate's manual nginx edit; the fix is a one-line change in `group_vars` that applies to all web servers. The wiki is archived with a pointer to the repo, and `git log` answers what changed, when and why.
 
-Weekly drift detection catches a teammate's manual nginx config change within 7 days — and instead of a blame conversation, the fix is a one-line change to `group_vars` that deploys consistently to all 6 web servers. After 2 months: zero configuration drift, the unauthorized user account is long gone, and the wiki gets archived with a note pointing to the Ansible repo. The infrastructure is finally self-documenting — `git log` tells you exactly what changed, when, and why.
+## Related Skills
+
+- [ansible](/skills/ansible)
+- [security-audit](/skills/security-audit)
+- [coding-agent](/skills/coding-agent)

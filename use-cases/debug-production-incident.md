@@ -11,71 +11,90 @@ tags: [debugging, incident-response, logs, production, observability]
 
 ## The Problem
 
-Production incidents hit at the worst times. Engineers scramble through thousands of log lines across multiple services, grepping for patterns while Slack channels explode with "is the site down?" messages. Finding the root cause in a sea of cascading failures takes 30-60 minutes even for experienced engineers — and that's before writing the incident report that leadership expects by morning.
+Production incidents hit at the worst times. Engineers scramble through thousands of log lines across multiple services, grepping for patterns while Slack channels explode with "is the site down?" messages. Finding the root cause in a sea of cascading failures can take an hour even for experienced engineers, and that is before writing the incident report that leadership expects by morning.
 
-The real danger is cascading failures. One service goes down, which causes timeouts in three others, which triggers retries that make everything worse. By the time you open the logs, you're looking at 15 different error types across 6 services, and the original cause is buried under an avalanche of symptoms. The engineer's instinct is to fix the most visible error first — but visible errors are usually symptoms, not causes. Fixing symptoms while the root cause persists turns a 15-minute incident into a 2-hour whack-a-mole session.
+The real danger is cascading failures. One service degrades, which causes errors in three others, which triggers retries that make everything worse. By the time you open the logs, you are looking at 15 different error types across 6 services, and the original cause is buried under symptoms. The instinct is to fix the most visible error first, but visible errors are usually symptoms, not causes.
 
 ## The Solution
 
-Using the **log-analyzer** skill to parse logs, build a timeline, and pinpoint the root cause, combined with **data-analysis** to correlate metrics and error rates, thousands of log lines collapse into a structured incident timeline that leads straight to the first failure. The cascade becomes visible, the root cause becomes obvious, and the fix becomes specific.
+The **log-analyzer** skill narrows large logs with command-line tools, orders errors in time, and groups them so the first failure stands out. The **data-analysis** skill (pandas) turns the same logs into counts per service and per minute, so you can see when the incident started and confirm when it ended. The walkthrough below follows a checkout outage on a Monday afternoon.
 
 ## Step-by-Step Walkthrough
 
-Here's how to go from "the site is down" to "here's the root cause and the fix" in under 15 minutes, using an actual incident that took down a checkout flow on a Monday afternoon.
-
 ### Step 1: Feed in the Logs
 
-Start with what you have — raw logs from the service that's screaming the loudest:
+Start with the raw logs from the service that is screaming the loudest:
 
 ```text
-Analyze these application logs from the last 30 minutes. We're getting reports of failed checkouts. The logs are in /var/log/app/checkout-service.log
+Analyze the last 30 minutes of /var/log/app/checkout-service.log. We're getting reports of failed checkouts. Show the error types in the order they first appeared.
 ```
 
-Don't pre-filter. Don't grep for a specific error you think might be the cause. The whole point is to let chronological analysis reveal the pattern rather than confirming your hypothesis.
-
-No formatting, no pre-filtering. The entire log file goes in — megabytes of timestamps, request IDs, debug output, and error traces. Trying to grep for the "right" errors before understanding the incident is premature optimization — you don't know what's relevant yet, and pre-filtering based on assumptions is how engineers spend 30 minutes debugging the wrong service.
+Do not pre-filter for the error you suspect. Chronological analysis reveals the pattern; grepping for your hypothesis only confirms it. For files too big to read at once, the agent narrows with `grep`, `jq`, `journalctl` or `kubectl logs --since=30m` first, and reads the last few hundred lines to see the current state.
 
 ### Step 2: Identify the Error Pattern
 
-The logs get scanned chronologically — this is the critical part. Instead of grouping by error type (which is what most engineers do instinctively), the chronological scan reveals which errors came first. Errors get filtered, deduplicated, and grouped by type with timestamps:
+The agent groups errors by type and sorts the groups by first sighting, not by count:
+
+```bash
+grep ' ERROR ' checkout-service.log | sed -E 's/^[^ ]+ [^ ]+ //; s/#[0-9]+/#N/' | sort | uniq -c | sort -rn | head
+```
+
+With a log in `<timestamp> <LEVEL> <service> <message>` format, the same ordering takes a few lines of pandas (this ran against a synthetic log with pandas 3 in a scratch environment):
+
+```python
+import sys
+import pandas as pd
+
+pattern = r"^(?P<ts>\S+) (?P<level>[A-Z]+) (?P<service>\S+) (?P<message>.*)$"
+lines = pd.read_csv(sys.argv[1], sep="\x00", header=None, names=["raw"], dtype="string")
+df = lines["raw"].str.extract(pattern)
+df["ts"] = pd.to_datetime(df["ts"], utc=True, errors="coerce")
+df = df.dropna(subset=["ts"])          # drops stack-trace continuation lines
+
+errors = df[df["level"].isin(["ERROR", "WARN"])]
+by_type = (errors.groupby(["service", "message"])["ts"]
+           .agg(count="size", first_seen="min", last_seen="max")
+           .sort_values("first_seen"))
+print(by_type)
+```
+
+On the incident the result looks like this:
 
 | Error Type | Count | First Seen | Last Seen |
 |-----------|-------|------------|-----------|
-| Redis ConnectionTimeout | 2,341 | 14:02:03 | 14:31:45 |
+| Redis `OOM command not allowed` (write rejected) | 1,904 | 14:01:58 | 14:31:45 |
 | CartService NullPointer | 412 | 14:02:08 | 14:31:40 |
 | PaymentGateway 503 | 189 | 14:05:22 | 14:31:42 |
 
-Three observations from this table change everything about the debugging approach:
+Three observations change the debugging approach:
 
-1. **Redis errors started first** (14:02:03) — 5 seconds before cart failures, 3 minutes before payment failures. Chronological order reveals causation.
-2. **Redis error count is 5x higher** than other errors — it's not a secondary effect, it's the epicenter.
-3. **All errors share the same time window** — they started within 3 minutes of each other and are all still occurring. This is one incident with three symptoms, not three separate problems.
-
-The first error in the timeline is the most important data point in incident response. Everything that follows is a consequence of that first failure.
+1. **The Redis errors started first**, 10 seconds before the cart failures and 3 minutes before the payment failures. Order in time points at the cause.
+2. **The Redis error count is the highest.** It is the epicenter, not a side effect.
+3. **All errors share one time window.** This is one incident with three symptoms.
 
 ### Step 3: Correlate Across Services
 
-One service's symptoms are another service's root cause. The checkout service logs show Redis timeouts, but the checkout service didn't cause the problem — Redis did. Follow the chain backward to the upstream system:
+The checkout service logs show Redis failing, so follow the chain to the upstream system. Ask the agent to inspect Redis itself rather than only its logs, because Redis does not log every rejected command; clients receive the error:
 
 ```text
-Now check the Redis server logs at /var/log/redis/redis-server.log for the same time window. Also check /var/log/redis/redis-sentinel.log if it exists.
+Check the Redis server for the same window: /var/log/redis/redis-server.log, and run redis-cli INFO memory and CONFIG GET maxmemory-policy.
 ```
 
-The Redis server logs reveal what happened 5 seconds before the checkout errors started:
-
+```console
+$ redis-cli INFO memory | grep -E '^(used_memory_human|maxmemory_human|maxmemory_policy)'
+used_memory_human:16.00G
+maxmemory_human:16.00G
+maxmemory_policy:noeviction
 ```
-14:01:58.332 # WARNING: maxmemory reached, eviction policy: noeviction
-14:01:58.333 # Client connection rejected: OOM command not allowed
-```
 
-Redis hit its 16GB memory limit at 14:01:58 with `noeviction` policy. This is the critical detail: unlike `allkeys-lru` (which evicts old keys to make room for new ones), `noeviction` simply rejects every new operation — reads and writes alike. It's the nuclear option. Every application that depends on Redis suddenly gets connection errors.
+Redis hit its 16 GB limit at 14:01:58 with the `noeviction` policy. Per the [Redis eviction docs](https://redis.io/docs/latest/develop/reference/eviction/), with `noeviction` the server returns an error for commands that would store new data, while commands that only read existing data keep working. So the cart reads kept succeeding, but every write (new carts, session updates) was rejected with `OOM command not allowed when used memory > 'maxmemory'`.
 
 The cascade unfolded in three stages:
-1. Five seconds later, the checkout service couldn't read cart data — Redis ConnectionTimeout errors start at 14:02:03
-2. Cart lookups returned null, which the CartService didn't handle gracefully, throwing NullPointerExceptions — cart failures start at 14:02:08
-3. Three minutes later, orders were being submitted with empty cart data, and the payment gateway returned 503s because it couldn't process zero-dollar orders — payment failures start at 14:05:22
+1. At 14:01:58 writes to Redis start failing, and the checkout service logs the error from its Redis client.
+2. Carts that could not be created or updated came back empty, and CartService, which did not handle a missing cart, threw NullPointerExceptions from 14:02:08.
+3. From 14:05:22 orders were submitted with empty carts and the payment gateway answered 503.
 
-The entire cascade traces back to two lines in the Redis log. Every other error — all 2,942 of them across three services — is a symptom of this one event. An engineer grepping for `PaymentGateway 503` would be looking at symptoms and never find the cause. An engineer starting with "what errored first?" finds it in seconds.
+Every other error, all 2,505 of them across three services, is a symptom of the first event. An engineer grepping for `PaymentGateway 503` would be looking at a consequence.
 
 ### Step 4: Build the Incident Timeline
 
@@ -83,37 +102,31 @@ The entire cascade traces back to two lines in the Redis log. Every other error 
 Build an incident timeline and recommend immediate fixes.
 ```
 
-The timeline traces the cascade from root cause to customer impact:
-
 | Time | Event | Impact |
 |------|-------|--------|
-| 14:01:58 | Redis hit maxmemory limit (16GB), `noeviction` rejects all operations | None yet |
-| 14:02:03 | Checkout service: first ConnectionTimeout to Redis | Cart reads fail |
-| 14:02:08 | Cart lookups return null, NullPointerException in CartService | Cart display broken |
-| 14:05:22 | Payment requests fail — orders submitted with empty carts | Checkout broken |
-| 14:12:00 | PagerDuty alert fires on error rate threshold | Team notified |
-| 14:15:00 | On-call engineer opens investigation | Response begins |
+| 14:01:58 | Redis reached `maxmemory` (16 GB), `noeviction` rejects writes; first `OOM command not allowed` in the checkout service | Cart updates fail |
+| 14:02:08 | Missing cart, NullPointerException in CartService | Cart page broken |
+| 14:05:22 | Orders with empty carts, payment gateway 503 | Checkout broken |
+| 14:12:00 | Alert fires on the error-rate threshold | Team notified |
+| 14:15:00 | On-call engineer opens the investigation | Response begins |
 
-Two things stand out in this timeline. First, the 10-minute gap between the first error (14:02:03) and the PagerDuty alert (14:12:00) — that's 10 minutes of failed checkouts before anyone knew something was wrong. The alert threshold was set on error *rate*, and it took a few minutes for the rate to cross the threshold. A Redis memory utilization alert at 80% would have fired before any customer impact.
+Two things stand out. The alert fired 10 minutes after the first error because it watched the error *rate*; an alert on Redis memory use (for example `used_memory / maxmemory` above 80%) would have fired before any customer impact. And the NullPointerException is a code-level gap independent of Redis: a missing cart should produce a retry or a clear error, not an unhandled exception.
 
-Second, the NullPointerException on the cart service is a code-level issue independent of Redis. The cart service should handle a Redis connection failure gracefully — return a cached response, show an error message, retry — not throw an unhandled exception. This is a resilience gap that will surface again the next time any dependency becomes unavailable.
+**Root cause:** the Redis instance reached its 16 GB `maxmemory` with `noeviction`, rejecting all writes and cascading into checkout and payment failures.
 
-**Root cause:** Redis instance reached its 16GB memory limit with `noeviction` policy, rejecting all new operations and cascading into checkout and payment failures.
+**Why it happened (in this example):** session keys were written without a TTL and a background cleanup job had been failing silently since a deployment two weeks earlier, so sessions accumulated until Redis was full.
 
-**Why it happened:** Session keys were being created with application-level TTL management instead of Redis-native `EXPIRE` commands. The application was supposed to clean up expired sessions in a background job, but the job was silently failing due to an unrelated deployment change two weeks ago. Sessions accumulated until Redis hit its ceiling.
+**Immediate actions, in order:**
+1. Check what is eating memory before deleting anything: `redis-cli --scan --pattern 'sess:*' | head -3 | xargs -n1 redis-cli TTL` (`-1` means the key never expires). Then remove only the abandoned sessions, with `UNLINK` (non-blocking, unlike `DEL` on large values): `redis-cli --scan --pattern 'sess:*' | xargs -r -n 500 redis-cli UNLINK` removes all of them, which logs every user out, so filter to the stale ones if you can. In a Redis Cluster, run this on every node.
+2. Raise the limit for headroom: `redis-cli CONFIG SET maxmemory 24gb`, if the host has the RAM. This does not survive a restart until it is also in `redis.conf` or applied with `CONFIG REWRITE`.
+3. Restart the checkout-service pods to clear connection pools that are still retrying.
+4. Decide on the eviction policy deliberately. `allkeys-lru` suits a pure cache; for sessions or queues it silently drops live data. If Redis holds sessions, keep `noeviction`, give every key a TTL, and rely on the memory alert.
 
-**Immediate actions (do these now, in order):**
-1. Flush expired session keys: `redis-cli --scan --pattern "sess:*" | xargs redis-cli del` — this frees 3GB immediately
-2. Increase Redis maxmemory from 16GB to 24GB — buys headroom while the permanent fix is implemented
-3. Restart checkout-service pods to clear stale connection pool entries that are still retrying dead connections
-4. Switch eviction policy to `allkeys-lru` — so if memory fills again, Redis evicts old keys instead of rejecting all operations
-
-**Follow-up actions (for the post-mortem):**
-- Add Redis memory utilization alert at 80% capacity — this would have fired 2 hours before the incident
-- Add null-safety to CartService Redis calls — the NullPointerException is a resilience gap independent of Redis
-- Add circuit breaker to checkout flow so Redis failures return a user-friendly "please try again in a moment" instead of a 503
-- Fix the broken session cleanup job — the root root cause is that sessions accumulated for two weeks
-- Investigate what filled Redis to 16GB — set proper TTL on Redis keys directly, don't rely on application-level cleanup
+**Follow-up actions for the post-mortem:**
+- Add the 80% memory alert.
+- Handle a missing cart or a failed Redis call in CartService.
+- Add a circuit breaker so a Redis failure returns "please try again in a moment" instead of a 503.
+- Fix the broken cleanup job and set TTLs on session keys when they are written.
 
 ### Step 5: Analyze Error Rate Trends
 
@@ -121,20 +134,24 @@ Second, the NullPointerException on the cart service is a code-level issue indep
 Parse the error counts per minute from the logs and show me the trend. I need to confirm the incident is actually over after applying the fix.
 ```
 
-The per-minute error distribution shows the sharp spike at 14:02, the sustained plateau while Redis was full, and the drop-off after the fix. This matters for two reasons: confirming the fix actually worked (error rate returns to pre-incident baseline), and ruling out that the incident entered a quieter phase before another wave. If errors are declining but not zero, the fix is partial — something else is still wrong.
+This is the data-analysis part. Continuing from the DataFrame above:
 
-The distribution also reveals whether retries are creating a secondary load spike. When Redis came back online, did 2,341 backed-up retry attempts all hit at once and cause a thundering herd? If the error count spikes again briefly right after the fix, that's the thundering herd — every connection in the pool simultaneously discovers Redis is available again and floods it with requests. The fix for next time is exponential backoff with jitter on the connection retry logic, so reconnection attempts spread out over a few seconds instead of all hitting at once.
+```python
+per_minute = errors.set_index("ts").resample("1min").size()
+print(per_minute.loc["2026-11-02 14:00":"2026-11-02 14:35"])
+```
 
-The per-minute view also establishes the baseline for "normal." If pre-incident error rate was 2 per minute and post-fix it's 5 per minute, the incident isn't fully resolved — something else is still broken, or the fix created a new problem.
+The series shows the jump at 14:02, the plateau while Redis was full, and the drop after the fix. It answers two questions: did the error rate return to the pre-incident baseline, and did retries create a second wave? If errors spike again right after the fix, every pooled connection is retrying at once; the cure for next time is exponential backoff with jitter. If the baseline was 2 errors per minute before and is 5 afterwards, the incident is not fully resolved.
 
 ## Real-World Example
 
-Marta, a platform engineer at a 20-person fintech startup, gets paged at 2 AM because checkout success rates dropped from 99.2% to 34%. She opens her terminal and pastes the last 30 minutes of logs from three services.
+Marta, a platform engineer at a 20-person fintech startup, is paged in the afternoon because checkout success dropped from 99% to 34%. She points the agent at the last 30 minutes of logs from three services.
 
-The cascade traces in seconds: Redis OOM at 14:01:58, cart lookup failures 5 seconds later, payment timeouts 3 minutes after that. Instead of spending 40 minutes grepping through logs half-asleep, she has the root cause in under 2 minutes. What used to be "which of these 15 error types is the real problem?" becomes a clear timeline with one starting point.
+The error list sorted by first sighting puts the Redis write rejections at 14:01:58, cart failures a few seconds later and payment failures 3 minutes after that. `INFO memory` confirms the instance is at its limit with `noeviction`. She clears the abandoned session keys, raises `maxmemory` to 24 GB, and restarts the checkout pods. The per-minute error count falls to its baseline within a couple of minutes, and the resample confirms there is no second wave.
 
-She flushes 3GB of expired session keys and bumps Redis maxmemory from 16GB to 24GB. She restarts the checkout-service pods to clear the dead connection pool. Error rate drops back to baseline within 90 seconds. Incident resolved in 12 minutes instead of the usual 45 — and most of that time was spent connecting to the Redis host, not figuring out what was wrong.
+The next day she generates the incident report from the timeline for the post-mortem. It lists the cascade, the 10-minute alert gap, and specific follow-ups: a memory alert at 80%, TTLs on session keys, null-safety in CartService, and a fix for the cleanup job.
 
-The key difference isn't AI doing something magical — it's that chronological error correlation across multiple services happens in seconds instead of 20 minutes of manual grep-and-scroll. At 2 AM, that time savings is the difference between resolving in 15 minutes and thrashing for an hour.
+## Related Skills
 
-The next morning, she generates a formal incident report from the timeline for the 10 AM post-mortem. The report includes the cascade diagram, the 10-minute alert gap, and four follow-up items: Redis memory alerts at 80%, `allkeys-lru` eviction policy, null-safety in CartService, and proper TTL on Redis session keys. The post-mortem takes 20 minutes instead of an hour because the timeline is already written, the root cause is identified, and nobody's arguing about what happened when. The follow-up items are actionable and specific — not "improve Redis monitoring" but "add memory utilization alert at 80% and switch eviction policy to allkeys-lru." Those two changes prevent this exact incident from recurring.
+- [log-analyzer](/skills/log-analyzer) — narrows large logs and builds the timeline and root-cause summary.
+- [data-analysis](/skills/data-analysis) — pandas counts per service and per minute to date the incident and confirm recovery.

@@ -15,7 +15,7 @@ Your team needs to pick a new database, frontend framework, or hosting provider.
 
 ## The Solution
 
-Use **web-research** to gather current benchmarks and community sentiment, **competitor-alternatives** to map the landscape, **data-analysis** to score options against your criteria, and **report-generator** to produce a professional evaluation document.
+Use **web-research** to gather current documentation, pricing and community signals, **competitor-alternatives** to keep a dated, sourced fact ledger for every option, **data-analysis** to score options against your criteria, and **report-generator** to produce a professional evaluation document.
 
 ## Step-by-Step Walkthrough
 
@@ -27,30 +27,49 @@ Tell the agent what you're evaluating and what matters:
 
 ### 2. Research each option
 
-The agent searches for recent benchmarks, documentation, pricing pages, and community discussions for each technology:
+**web-research** (Brave Search API, needs `BRAVE_API_KEY`) collects sources per option. The agent should keep a ledger of facts, each with its source URL and the date it was read, the way **competitor-alternatives** builds comparison pages. Official documentation, vendor pricing pages and release notes go in the ledger; blog benchmarks are marked as such, because they rarely match your workload.
 
 ```text
-Research complete. Sources analyzed:
-- 12 benchmark articles (2024-2025)
-- Official documentation for all 4 options
-- 8 production case studies at similar scale
-- Pricing calculators for managed offerings
-- GitHub activity and Stack Overflow trends
+Research complete. Ledger: 4 options x 5 criteria, each fact with a URL and date.
+Sources: official docs for all 4 options, vendor pricing pages and calculators,
+release notes, and 3 independent benchmark write-ups (flagged "not verified on our workload").
+Gaps: no source found for Redis Streams p99 latency at 50k msgs/sec; needs our own test.
 ```
 
 ### 3. Review the scoring matrix
 
-Tech Stack Evaluation — Message Queue
+**data-analysis** turns the ledger into numbers. Scores of 1-10 for throughput, latency, operational ease and ecosystem are the team's judgement; the cost score is computed from the monthly estimate (the cheapest option scores 10):
 
-| Criteria              | Weight | Kafka  | RabbitMQ | SQS    | Redis Streams |
-|-----------------------|--------|--------|----------|--------|---------------|
-| Throughput            | 25%    | 9/10   | 6/10     | 7/10   | 8/10          |
-| Latency (p99)        | 20%    | 7/10   | 8/10     | 6/10   | 9/10          |
-| Operational cost      | 20%    | 4/10   | 6/10     | 9/10   | 7/10          |
-| Monthly cost          | 20%    | $840   | $620     | $1,250 | $480          |
-| Ecosystem maturity    | 15%    | 9/10   | 8/10     | 7/10   | 5/10          |
-|                       |        |        |          |        |               |
-| **Weighted Score**    |        | **7.1**| **6.8**  | **7.2**| **7.2**       |
+```python
+import pandas as pd
+
+weights = {"throughput": 0.25, "latency": 0.20, "ops_ease": 0.20, "cost": 0.20, "ecosystem": 0.15}
+monthly_usd = {"Kafka": 840, "RabbitMQ": 620, "SQS": 1250, "Redis Streams": 480}  # illustrative figures; take yours from each vendor's calculator
+scores = pd.DataFrame({
+    "Kafka":         {"throughput": 9, "latency": 7, "ops_ease": 4, "ecosystem": 9},
+    "RabbitMQ":      {"throughput": 6, "latency": 8, "ops_ease": 6, "ecosystem": 8},
+    "SQS":           {"throughput": 7, "latency": 6, "ops_ease": 9, "ecosystem": 7},
+    "Redis Streams": {"throughput": 8, "latency": 9, "ops_ease": 7, "ecosystem": 5},
+}).astype(float)
+cost = pd.Series(monthly_usd)
+scores.loc["cost"] = (10 * cost.min() / cost).round(1)
+scores = scores.loc[list(weights)]
+scores.loc["weighted"] = scores.mul(pd.Series(weights), axis=0).sum().round(1)
+print(scores.round(1).to_string())
+```
+
+```console
+$ python score.py
+            Kafka  RabbitMQ  SQS  Redis Streams
+throughput    9.0       6.0  7.0            8.0
+latency       7.0       8.0  6.0            9.0
+ops_ease      4.0       6.0  9.0            7.0
+cost          5.7       7.7  3.8           10.0
+ecosystem     9.0       8.0  7.0            5.0
+weighted      6.9       7.0  6.6            8.0
+```
+
+The scores and dollar figures are the example team's own, not benchmarks. The ranking only means something if the weights match your priorities, so rerun with different weights and see whether the winner changes. When two options land within half a point, the matrix cannot separate them; load-test both.
 
 ### 4. Get the detailed recommendation
 
@@ -58,7 +77,7 @@ Tech Stack Evaluation — Message Queue
 
 ### 5. Generate the structured report
 
-The agent generates a complete evaluation document with an executive summary, detailed analysis per option, risk assessment, migration considerations, and a final recommendation with reasoning — ready to share with stakeholders.
+**report-generator** assembles a complete evaluation document with an executive summary, detailed analysis per option, risk assessment, migration considerations, and a final recommendation with reasoning — ready to share with stakeholders.
 
 ## Real-World Example
 

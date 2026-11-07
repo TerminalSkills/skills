@@ -8,10 +8,10 @@ description: >-
   from Firebase to Supabase". Covers the CLI, migrations, RLS schema design,
   auth flows, realtime subscriptions, storage policies and edge functions.
 license: Apache-2.0
-compatibility: "supabase-js v2, Supabase CLI 2.x (Docker for local development); any framework (Next.js, React, Vue, SvelteKit, Flutter)"
+compatibility: "supabase-js v2, Supabase CLI 3.x (Docker for local development); any framework (Next.js, React, Vue, SvelteKit, Flutter)"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.1"
   category: development
   repository: https://github.com/supabase/supabase
   tags: "supabase, postgres, authentication, realtime, baas"
@@ -21,7 +21,7 @@ metadata:
 
 ## Overview
 
-This skill helps AI agents build full-stack applications on Supabase: Postgres schema design with Row Level Security (RLS), authentication flows (email, OAuth, magic links), realtime subscriptions, file storage with access policies, and edge functions. Checked against the Supabase docs, CLI 2.122.0 and `@supabase/supabase-js` 2.118.
+This skill helps AI agents build full-stack applications on Supabase: Postgres schema design with Row Level Security (RLS), authentication flows (email, OAuth, magic links), realtime subscriptions, file storage with access policies, and edge functions. Checked against the Supabase docs, CLI 3.0.0 and `@supabase/supabase-js` 2.119.
 
 ## Instructions
 
@@ -36,8 +36,10 @@ brew install supabase/tap/supabase       # macOS and Linux alternative
 npx supabase init                        # creates supabase/config.toml
 npx supabase start                       # local stack in Docker; prints local URL and keys
 npx supabase login                       # opens the browser
-npx supabase link --project-ref abcdefghijklmnopqrst   # 20-letter ref from the dashboard URL
+npx supabase link abcdefghijklmnopqrst   # 20-letter project ref from the dashboard URL
 ```
+
+CLI v3 changes what a bare command targets: `db push`, `db pull`, `db dump`, `migration list`, `gen types` and `storage ls` act on the **local** stack unless you pass `--remote` (the linked project) or `--remote=<ref|branch|postgres-url>`; `--linked`, `--project-ref` and `--db-url` are deprecated. Commands that change a hosted project (`db push --remote`, `functions deploy`, `secrets set`, `config push`) ask first, default to No, and fail in CI or agent runs without `--yes`. `SUPABASE_*` variables now override `config.toml`. Rename an old `[inbucket]` section in `config.toml` to `[local_smtp]`, or `start` and `db` commands fail.
 
 API keys: use the **publishable** key (`sb_publishable_...`) in anything you ship and the **secret** key (`sb_secret_...`) only on servers and edge functions. The old `anon` and `service_role` JWT keys still work but are being deprecated by the end of 2026.
 
@@ -68,7 +70,8 @@ Put every schema change in a migration file, test it locally, then push it:
 ```bash
 npx supabase migration new create_profiles_and_projects   # supabase/migrations/<timestamp>_...sql
 npx supabase db reset                                     # rebuild the local database from migrations
-npx supabase db push                                      # apply to the linked remote project
+npx supabase db push --remote --dry-run                   # preview what the linked project would receive
+npx supabase db push --remote                             # apply to the linked project (asks first; --yes in CI)
 ```
 
 ```sql
@@ -140,7 +143,10 @@ const { data, error } = await supabase.auth.signUp({
   options: { data: { username: 'marialopez', full_name: 'Maria Lopez' } },
 });
 
-await supabase.auth.signInWithPassword({ email: 'maria.lopez@northwind.example', password });
+await supabase.auth.signInWithPassword({
+  email: 'maria.lopez@northwind.example',
+  password: process.env.TEST_USER_PASSWORD!,
+});
 
 // OAuth (GitHub, Google, ...): add the provider and redirect URL in the dashboard first
 await supabase.auth.signInWithOAuth({
@@ -176,7 +182,7 @@ await supabase.from('profiles').upsert({ id: user.id, username: 'marialopez' }).
 await supabase.rpc('get_project_stats', { project_id: project.id });   // Postgres function
 ```
 
-Every call returns `{ data, error }` and does not throw: check `error`. Generate types with `npx supabase gen types typescript --linked > lib/database.types.ts` and pass `createClient<Database>(...)`.
+Every call returns `{ data, error }` and does not throw: check `error`. Generate types with `npx supabase gen types typescript --remote > lib/database.types.ts` and pass `createClient<Database>(...)`.
 
 ### Step 5: Realtime
 
@@ -227,9 +233,9 @@ await supabase.storage.from('avatars').remove([`${user.id}/avatar.png`]);
 ### Step 7: Edge functions
 
 ```bash
-npx supabase functions new send-welcome-email    # supabase/functions/send-welcome-email/index.ts
+npx supabase functions new send-welcome-email --auth user   # --auth: none, apikey (default) or user
 npx supabase functions serve                   # serves all functions; needs Docker
-npx supabase secrets set RESEND_API_KEY=...      # value from your shell, not typed into the repo
+npx supabase secrets set RESEND_API_KEY="$RESEND_API_KEY"   # from your shell; asks first, --yes in CI
 npx supabase functions deploy send-welcome-email
 ```
 
@@ -268,7 +274,7 @@ export default {
 
 **User prompt:** "Set up a Supabase backend for a project management app where users can create projects, invite members, and see changes in real time."
 
-The agent runs `supabase init` and `supabase migration new`, creates `profiles`, `projects` and `project_members` with foreign keys, enables RLS with owner/member policies, adds the signup trigger, adds `projects` to the `supabase_realtime` publication, subscribes the dashboard to changes filtered by `owner_id`, and applies it locally with `supabase db reset` before `supabase db push`.
+The agent runs `supabase init` and `supabase migration new`, creates `profiles`, `projects` and `project_members` with foreign keys, enables RLS with owner/member policies, adds the signup trigger, adds `projects` to the `supabase_realtime` publication, subscribes the dashboard to changes filtered by `owner_id`, and applies it locally with `supabase db reset` before `supabase db push --remote`.
 
 ### Example 2: Avatar uploads
 
@@ -283,5 +289,5 @@ The agent creates a public `avatars` bucket, adds the insert policy on `(storage
 - Keep the secret key (and legacy `service_role`) on the server; if it leaks, rotate it in the dashboard.
 - `security definer` functions must set `search_path = ''` and use schema-qualified names.
 - Index columns used in RLS policies and filters; wrap `auth.uid()` in `(select ...)`.
-- All schema changes go through migrations; use `supabase db push`, not manual edits to production.
+- All schema changes go through migrations; use `supabase db push --remote`, not manual edits to production.
 - Unsubscribe realtime channels and auth listeners when a component unmounts.

@@ -17,7 +17,7 @@ New hires spend their first 2-3 weeks piecing together tribal knowledge from old
 
 ## The Solution
 
-Using the **doc-parser** skill to extract existing knowledge from READMEs, config files, and CI pipelines, the **content-writer** to synthesize it into structured guides, and the **markdown-writer** to produce clean documentation that lives in the repo, the agent builds a complete onboarding package from the source code itself — not from what people remember about the source code, but from what the code actually says.
+The agent reads the repo's config files and CI pipelines directly. The **doc-parser** skill (Docling) converts the knowledge that lives outside the repo, such as PDF runbooks, Word and PowerPoint decks and exported wiki pages, into Markdown the agent can read. The **content-writer** skill synthesizes it all into structured guides, and the **markdown-writer** skill produces clean documentation that lives in the repo. The package comes from what the code actually says, not from what people remember about it.
 
 ## Step-by-Step Walkthrough
 
@@ -25,36 +25,45 @@ Using the **doc-parser** skill to extract existing knowledge from READMEs, confi
 
 Before writing anything new, figure out what already exists and what is still accurate. Most teams have more documentation than they think — it is just scattered, outdated, or both.
 
+Part of it is not in the repo: PDF runbooks, a Word deployment checklist, an old onboarding deck. The **doc-parser** skill converts those into Markdown with [Docling](https://github.com/docling-project/docling) (Python 3.10+; the first run downloads its models):
+
+```console
+$ python3 -m venv .venv && .venv/bin/pip install docling
+$ .venv/bin/docling runbooks/deploy-runbook.pdf onboarding-deck.pptx --output converted/
+```
+
+The Markdown in `converted/` joins the inventory below, so the agent can check every old step against the current config files instead of trusting it.
+
 ```text
-Scan our repo for all documentation: READMEs, markdown files, docker-helper files, Makefiles, and CI configs. List what exists and what's outdated.
+Scan our repo for all documentation: READMEs, markdown files, Docker Compose files, Makefiles, and CI configs. List what exists and what's outdated.
 ```
 
 The inventory reveals the real situation:
 
 | File | Status | Issue |
 |---|---|---|
-| `README.md` | Outdated (14 months) | References Node 16, current is Node 20 |
+| `README.md` | Outdated (14 months) | References Node 20, `.nvmrc` says 24 |
 | `docs/api.md` | Partial | Covers 12 of 31 endpoints |
-| `docker-helper.yml` | Current | 3 services, comments explain setup |
+| `compose.yaml` | Current | 3 services, comments explain setup |
 | `.env.example` | Partial | 18 variables, 4 have no description |
 | `Makefile` | Broken | 12 targets, 3 no longer work |
 | `.github/workflows/deploy.yml` | Current | Well-commented |
 
-The gaps are where new hires spend their time: no setup guide, no architecture overview, no debugging playbook. The information exists — scattered across `docker-helper.yml` comments, `.env.example` defaults, `Makefile` targets, and CI configs. Nobody has assembled these fragments into something a new hire can follow from top to bottom.
+The gaps are where new hires spend their time: no setup guide, no architecture overview, no debugging playbook. The information exists — scattered across `compose.yaml` comments, `.env.example` defaults, `Makefile` targets, and CI configs. Nobody has assembled these fragments into something a new hire can follow from top to bottom.
 
 ### Step 2: Generate the Local Development Setup Guide
 
 The setup guide is the highest-value document because every single new hire needs it on day one. Getting the dev environment running should take 30 minutes, not 3 days.
 
 ```text
-Create a step-by-step local dev setup guide from docker-helper.yml, .env.example, and the Makefile.
+Create a step-by-step local dev setup guide from compose.yaml, .env.example, and the Makefile.
 ```
 
 The guide is built by reading the actual config files — not by asking someone to recall the process from memory. This matters because what people remember often differs from what the config files actually say.
 
 **Prerequisites:**
 - Docker Desktop 4.x+ and Docker Compose v2
-- Node.js 20.x (see `.nvmrc` — this file is the source of truth, not the README that says Node 16)
+- Node.js 24.x (see `.nvmrc` — this file is the source of truth, not the README that says Node 20)
 
 **Setup steps:**
 
@@ -75,8 +84,8 @@ make dev
 # API on :3000, worker on :3001, frontend on :5173
 ```
 
-**Common issues** (extracted from Slack threads and git history):
-- **Port 5432 conflict:** Stop local PostgreSQL first, or the Docker container fails silently and the migration step gives a misleading "connection refused" error
+**Common issues** (collected from past hires' notes and git history):
+- **Port already in use:** `compose.yaml` maps Postgres to host port 5433 so it does not collide with a local PostgreSQL on 5432. If `docker compose up` reports a port as taken, stop the process holding it, or the migration step fails with a misleading "connection refused"
 - **Migration fails:** Check that `DATABASE_URL` uses port 5433 (Docker-mapped), not 5432. This is the single most common new-hire setup issue.
 - **Seed script fails on Apple Silicon:** Run `npm rebuild` after `npm install` to recompile native modules for the ARM architecture
 
@@ -94,9 +103,9 @@ The overview is derived from the actual codebase structure — not from a whiteb
 
 **Services:**
 - **API** (Express.js) — 31 REST endpoints, JWT authentication, input validation with Zod
-- **Worker** (Bull + Redis) — background jobs for emails, PDF report generation, and outbound webhooks
+- **Worker** (BullMQ + Redis) — background jobs for emails, PDF report generation, and outbound webhooks
 - **Frontend** (React + Vite) — SPA that proxies API requests through Vite's dev server in development
-- **PostgreSQL 15** — 24 tables, primary data store
+- **PostgreSQL 17** — 24 tables, primary data store
 - **Redis 7** — serves triple duty as job queue, cache layer, and rate limiter
 
 **Data flow:**
@@ -126,19 +135,19 @@ Generate a day-by-day first-week checklist for new engineers covering setup, cod
 
 ### Step 5: Add Documentation Freshness Checks
 
-Documentation that is not maintained is documentation that lies. The README said Node 16 for 14 months. A CI check keeps the docs honest:
+Documentation that is not maintained is documentation that lies. The README named a Node version that had since reached end of life, and nobody noticed for 14 months. A CI check keeps the docs honest:
 
 ```text
 Create a CI check that flags PRs changing code without updating related docs.
 ```
 
-The workflow `.github/workflows/docs-check.yml` triggers on PRs that modify `src/`, `docker-helper.yml`, or `.env.example`. If the corresponding files in `docs/` were not updated in the same PR, the CI posts a reminder comment — not a blocking check (that would be too aggressive), just a nudge: "This PR modifies docker-helper.yml. Does docs/setup.md need an update?"
+The workflow `.github/workflows/docs-check.yml` triggers on PRs that modify `src/`, `compose.yaml`, or `.env.example`. If the corresponding files in `docs/` were not updated in the same PR, the CI posts a reminder comment — not a blocking check (that would be too aggressive), just a nudge: "This PR modifies compose.yaml. Does docs/setup.md need an update?"
 
 A quarterly scheduled issue on the first Monday of each quarter triggers a full documentation review. The issue template includes a checklist of every doc file with a "still accurate?" checkbox.
 
 ## Real-World Example
 
-Dani runs the three-skill workflow on a Thursday afternoon. The doc-parser finds 14 existing markdown files, 6 of which reference deprecated services or outdated Node versions. The content-writer cross-references `docker-helper.yml`, the `Makefile`, and the CI config to build accurate instructions — catching that the Makefile's `make test` target still references a test runner the team replaced six months ago. The markdown-writer produces a four-document onboarding package: setup guide, architecture overview, first-week checklist, and debugging playbook.
+Dani runs the three-skill workflow on a Thursday afternoon. The agent finds 14 existing markdown files, 6 of which reference deprecated services or outdated Node versions, and the doc-parser turns the 3 PDF runbooks and the old onboarding slide deck from the shared drive into Markdown so their still-valid steps can be reused. The content-writer cross-references `compose.yaml`, the `Makefile`, and the CI config to build accurate instructions — catching that the Makefile's `make test` target still references a test runner the team replaced six months ago. The markdown-writer produces a four-document onboarding package: setup guide, architecture overview, first-week checklist, and debugging playbook.
 
 The following Monday, the next hire Rui starts. He has his dev environment running by lunch on day one — previously a 2-3 day ordeal involving multiple Slack conversations, at least one "works on my machine" dead end, and a senior engineer spending an hour debugging a port conflict over screen share. He opens his first PR on Wednesday. On Friday, he updates two outdated steps in the setup guide (the Redis version in the prerequisites and a missing environment variable), establishing the update-as-you-go culture Dani wanted.
 

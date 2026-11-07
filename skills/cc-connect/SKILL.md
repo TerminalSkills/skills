@@ -5,10 +5,11 @@ description: >-
   platforms (Slack, Telegram, Discord). Use when: controlling AI agents from team chat,
   sending coding tasks via Slack/Telegram, building team-accessible AI workflows.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.10+"
+compatibility: "Node.js with npm (or Homebrew), plus an authenticated agent CLI"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  repository: "https://github.com/chenhg5/cc-connect"
+  version: "2.0.0"
   category: automation
   tags: "ai-agents, messaging, slack, telegram, bridge"
 ---
@@ -17,143 +18,147 @@ metadata:
 
 ## Overview
 
-CC-Connect bridges AI coding agents running on your local machine to the messaging platforms your team already uses. Code review, research, automation, data analysis — anything an AI agent can do, now accessible from your phone, tablet, or any device with a chat app.
+[cc-connect](https://github.com/chenhg5/cc-connect) (npm package `cc-connect`, a Go binary distributed through npm, Homebrew and GitHub releases) relays chat messages to an AI coding agent CLI running on your machine and sends the replies back. Agents: Claude Code, Codex, Cursor Agent, Gemini CLI, Qoder CLI, OpenCode. Platforms: Slack, Telegram, Discord, Feishu, DingTalk, LINE, WeChat Work, QQ and more. Slack, Telegram and Discord need no public IP (Socket Mode, long polling, gateway).
 
-**Architecture:** Your local AI agent <-> CC-Connect bridge <-> Messaging platform (Slack/Telegram/Discord/etc.)
+**Architecture:** chat platform <-> cc-connect (on your machine) <-> agent CLI in a project directory.
 
-Send a message in Slack, CC-Connect routes it to your local Claude Code instance, the agent does the work, and the response comes back to your chat.
+Configuration is a **TOML** file, `~/.cc-connect/config.toml` (or `./config.toml`, or `--config <path>`). There is no `cc-connect.yaml`, `init` or `start` command.
 
 ## Instructions
 
 ### Installation
 
+Install and authenticate the agent CLI first; cc-connect exits with `claude CLI not found in PATH` otherwise.
+
 ```bash
-npm install -g cc-connect
+npm install -g @anthropic-ai/claude-code   # then run `claude` once to sign in
+npm install -g cc-connect                  # or: brew install cc-connect
+cc-connect --version
 ```
+
+Upgrade with `npm install -g cc-connect`, `brew upgrade cc-connect` or `cc-connect update` (`--pre` for betas).
 
 ### Configuration
 
-Create a `cc-connect.yaml` in your project:
+The first run of `cc-connect` creates `~/.cc-connect/config.toml` and prints a Web admin URL (default `http://localhost:9820`) where you can add projects and platform tokens; changes hot-reload. `cc-connect config example` prints the full annotated file. By hand, a project is an agent plus one or more platforms:
 
-```yaml
-agent:
-  type: claude-code  # or: codex, gemini, cursor
-  workdir: /path/to/your/project
+```toml
+[log]
+level = "info"
 
-platform:
-  type: telegram  # or: slack, discord, feishu, dingtalk
-  token: "your-bot-token"
+[[projects]]
+name = "my-backend"
+admin_from = "U0123ABCD"     # may run /dir, /shell, /restart, /upgrade, /cron addexec
+
+[projects.agent]
+type = "claudecode"          # also: codex, cursor, gemini, qoder, opencode
+
+[projects.agent.options]
+work_dir = "/home/dev/my-backend"
+mode = "default"             # default | acceptEdits | plan | auto | bypassPermissions | dontAsk
+
+[[projects.platforms]]
+type = "telegram"
+
+[projects.platforms.options]
+token = "<bot token from @BotFather>"
+allow_from = "198274563"     # comma-separated user IDs; "*" lets everyone in
 ```
 
-### Platform Setup
+`admin_from` belongs under `[[projects]]`, not under platform options. Send `/whoami` to the bot to learn your user ID. Run several projects by repeating `[[projects]]`; each has its own agent, directory and platforms.
 
-**Telegram:** Create a bot via @BotFather, get the bot token, and add it to your config.
+### Platform setup
 
-**Slack:** Create a Slack App at api.slack.com/apps, enable Socket Mode and Event Subscriptions, add Bot Token Scopes (`chat:write`, `app_mentions:read`, `messages.im`), and install to your workspace.
+**Slack** (Socket Mode, full guide: `docs/slack.md` in the repo):
+1. Create an app at api.slack.com/apps (From scratch).
+2. Bot Token Scopes: `app_mentions:read`, `chat:write`, `im:history`, `im:read`, `im:write`, `users:read`; add `channels:history` / `groups:history` for plain channel messages.
+3. Enable Socket Mode and generate an app-level token with `connections:write` (`xapp-...`).
+4. Event Subscriptions: bot events `app_mention`, `message.im` (and `message.channels` for channels).
+5. Install to the workspace and copy the Bot User OAuth Token (`xoxb-...`).
 
-**Discord:** Create an application at discord.com/developers, create a bot, enable Message Content Intent, and invite the bot to your server.
+```toml
+[[projects.platforms]]
+type = "slack"
 
-### Starting the Bridge
+[projects.platforms.options]
+bot_token = "xoxb-..."
+app_token = "xapp-..."
+allow_from = "U0381KDLS,U0492JFMA"   # Slack user IDs
+session_scope = "thread"             # "user" (default) | "channel" | "thread"
+```
+
+**Telegram:** create a bot with @BotFather and put its token in `token`. Long polling, nothing to expose.
+
+**Discord:** create an application and bot at discord.com/developers, enable the Message Content intent, invite the bot, and follow `docs/discord.md` for the option names.
+
+### Running
 
 ```bash
-cc-connect init    # Interactive wizard for platform credentials
-cc-connect start   # Start routing messages
+cc-connect                          # foreground, uses the default config path
+cc-connect --config ./config.toml   # explicit file
+cc-connect daemon install           # run as a systemd/launchd service
+cc-connect daemon status
+cc-connect daemon logs -f
 ```
 
-### Session Management
+### Chat commands
 
-```yaml
-session:
-  timeout: 30m
-  max_concurrent: 3
-  continue: true
-  auto_compress: true
+```
+/new [name]  /list  /switch <id>  /current    sessions
+/dir [path|reset]                            show or switch work directory (admin)
+/mode [yolo|default]                         permission mode
+/model, /provider list|switch <name>         model and API provider
+/cron add 0 9 * * 1-5 <prompt>               scheduled agent task
+/whoami, /status                             your user ID, project status
 ```
 
-### Multi-Agent Routing
-
-Route different commands to different agents:
-
-```yaml
-agents:
-  code-review:
-    type: claude-code
-    workdir: /path/to/project
-    trigger: "!review"
-  research:
-    type: gemini
-    trigger: "!research"
-```
-
-### Access Control
-
-```yaml
-access:
-  allowed_users: ["U123", "U456"]
-  allowed_channels: ["C789"]
-  admin_users: ["U123"]
-```
+Sessions rotate automatically after 30 idle minutes (`reset_on_idle_mins` on the project; `0` disables); old ones stay available through `/list` and `/switch`. Auto-compaction is `[projects.auto_compress]` with `enabled = true`.
 
 ## Examples
 
-### Example 1: Team Code Review via Slack
+### Example 1: Team code review in Slack
 
-A team sets up CC-Connect to allow engineers to request code reviews from Slack:
+```toml
+[[projects]]
+name = "acme-api"
+admin_from = "U0381KDLS"
 
-```yaml
-# cc-connect.yaml
-agent:
-  type: claude-code
-  workdir: /home/dev/acme-api
+[projects.agent]
+type = "claudecode"
 
-platform:
-  type: slack
-  app_token: "xapp-1-A07QX4R..."
-  bot_token: "xoxb-8234567890-..."
-  channels: ["#code-review"]
+[projects.agent.options]
+work_dir = "/home/dev/acme-api"
+mode = "plan"                # the agent proposes, nothing runs until approved
 
-session:
-  timeout: 10m
-  auto_compress: true
+[[projects.platforms]]
+type = "slack"
 
-access:
-  allowed_channels: ["#code-review"]
-  allowed_users: ["U0381KDLS", "U0492JFMA"]
+[projects.platforms.options]
+bot_token = "xoxb-..."
+app_token = "xapp-..."
+allow_from = "U0381KDLS,U0492JFMA"
+session_scope = "thread"     # each Slack thread is its own agent session
 ```
 
-In Slack `#code-review`, an engineer types: `@agent Review the auth module for SQL injection risks`. Claude Code analyzes the code and responds in the thread with findings.
+Invite the bot to the channel (`/invite @cc_connect`) and write `@cc_connect Review the auth module for SQL injection risks`. The answer comes back in the thread.
 
-### Example 2: Scheduled Daily Reports via Telegram
+### Example 2: Daily standup summary in Telegram
 
-A solo developer configures CC-Connect with cron jobs for automated daily standup reports:
+Use the Telegram project from the configuration section, then in the chat with the bot:
 
-```yaml
-agent:
-  type: claude-code
-  workdir: /home/dev/saas-app
-
-platform:
-  type: telegram
-  token: "7284619035:AAF-kLm9xPqR..."
-  allowed_users: ["198274563"]
-
-cron:
-  - schedule: "0 9 * * 1-5"
-    command: "Summarize yesterday's git commits and open PRs, highlight blockers"
-    platform: telegram
-    timeout: 5m
-    fresh_session: true
+```
+/cron add 0 9 * * 1-5 Summarize yesterday's git commits and open PRs, highlight blockers
 ```
 
-Every weekday at 9am, the agent generates a summary of recent activity and sends it to the developer's Telegram chat.
+Every weekday at 09:00 the agent runs in `work_dir` and the summary arrives in that chat. Manage jobs from a shell with `cc-connect cron list`, `cc-connect cron del <id>`. Set `[cron] session_mode = "new_per_run"` so each run starts without the previous run's context.
 
 ## Guidelines
 
-- Start with one messaging platform and get it working before expanding to others
-- Always set `allowed_users` in production to restrict access
-- Use threads in Slack/Discord to keep conversations organized
-- Set `session.timeout` to prevent runaway agent sessions consuming resources
-- Enable `auto_compress` for long conversations to prevent context overflow
-- Use `fresh_session: true` for cron jobs to avoid inherited context from previous runs
-- Verify your setup with `cc-connect status` if messages are not routing
-- See the [GitHub Repository](https://github.com/chenhg5/cc-connect) for full documentation
+- Never leave `allow_from = "*"` on a bot that can run code; list user IDs.
+- Prefer `mode = "default"`, `plan` or `dontAsk`; `bypassPermissions` ("yolo") lets any allowed chat user run arbitrary tools on your machine.
+- The config file holds bot tokens: keep it out of git and readable only by you (`chmod 600`).
+- Start with one platform and one project before adding more.
+- Use `session_scope = "thread"` in Slack to keep conversations separate.
+- If the bot does not answer, check `cc-connect daemon logs -f` (or the foreground output) for the agent CLI or token error.
+- The Web admin listens on port 9820; do not expose it to the internet.
+- Full reference: the [repository README](https://github.com/chenhg5/cc-connect) and `config.example.toml`.

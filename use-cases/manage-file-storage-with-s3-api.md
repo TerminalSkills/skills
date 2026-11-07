@@ -1,10 +1,10 @@
 ---
 title: "Build a Production File Storage System with S3-Compatible APIs"
 slug: manage-file-storage-with-s3-api
-description: "Design and implement a complete file storage backend with uploads, presigned URLs, image processing, lifecycle policies, and CDN delivery using any S3-compatible provider."
+description: "Design and implement a complete file storage backend with uploads, presigned URLs, image processing, lifecycle policies, and CDN delivery using AWS S3 or another S3-compatible provider."
 skills: [s3-storage, coding-agent, security-audit]
 category: devops
-tags: [s3, object-storage, file-upload, minio, cloud-storage, cdn]
+tags: [s3, object-storage, file-upload, cloud-storage, cdn]
 ---
 
 # Build a Production File Storage System with S3-Compatible APIs
@@ -32,15 +32,15 @@ Design an S3 bucket structure and migrate everything. Requirements:
 - Migrate all existing files preserving the directory structure
 - Verify migration by comparing file counts and checksums
 
-We want to use AWS S3 for production and MinIO for local development.
-Write a storage abstraction layer that works with both.
+We want to use AWS S3 for production and a local S3-compatible server for
+development. Write a storage abstraction layer that works with both.
 ```
 
 The architecture uses three buckets -- `uploads-raw` for original files, `uploads-processed` for thumbnails and optimized images, and `system-backups` for database dumps and configuration snapshots. Object keys follow the pattern `{userId}/{fileId}/{filename}` for efficient per-user listing.
 
-A storage client factory switches between AWS S3 and MinIO based on the `STORAGE_PROVIDER` environment variable, so development uses a local MinIO container with matching bucket configuration and production hits AWS. The migration script streams files from disk in batches with progress tracking -- no loading 280 GB into memory. Each file gets a SHA-256 checksum on upload, and a verification pass compares checksums and file counts between source and destination.
+A storage client factory builds an AWS SDK v3 `S3Client` from environment variables: production uses the default AWS credential chain, development sets `endpoint` and `forcePathStyle: true` for a local S3-compatible server (for example SeaweedFS, Apache-2.0; the community MinIO repository was archived in 2026, so do not build new tooling on it). Recent SDK releases add a CRC32 checksum to every upload by default, which some compatible servers reject. The factory sets `requestChecksumCalculation` and `responseChecksumValidation` to `WHEN_REQUIRED` for the local endpoint only. The migration script streams files from disk in batches with progress tracking -- no loading 280 GB into memory. Each file is hashed with SHA-256 locally and the hash is stored as object metadata; the verification pass compares file counts and hashes between source and destination. (An S3 ETag is not a content hash for multipart or KMS-encrypted objects, so do not compare against it.)
 
-A Docker Compose setup provides local MinIO with pre-created buckets and matching CORS configuration, so developers never need an AWS account to work on file features.
+A Docker Compose file starts the local server bound to `127.0.0.1` with the buckets pre-created, so developers never need an AWS account to work on file features. The 280 GB copy itself runs best with `aws s3 sync` or a similar tool; the agent's script then handles only the verification and the metadata.
 
 ### Step 2: Implement Secure Direct Uploads with Presigned URLs
 
@@ -50,10 +50,10 @@ uploads using presigned URLs. The flow should be:
 1. Client requests upload URL from our API (sends filename, size, content type)
 2. API validates: file type allowlist (images, PDFs, docs), max size 50MB,
    user has upload quota remaining
-3. API generates presigned PUT URL with 15-minute expiry
+3. API generates a presigned POST (size-limited) or PUT URL with 15-minute expiry
 4. Client uploads directly to S3 using the presigned URL
-5. S3 event notification triggers our processing webhook
-6. Webhook validates the upload, scans for malware, updates the database
+5. An S3 event notification (to SQS or EventBridge) triggers our processing worker
+6. Worker validates the upload, scans for malware, updates the database
 
 Include CORS configuration for browser uploads and handle multipart uploads
 for files over 10MB.
@@ -61,11 +61,11 @@ for files over 10MB.
 
 The old flow proxied every byte through the API server -- a 50 MB upload occupied a server connection for the entire transfer. The new flow eliminates that bottleneck entirely.
 
-An Express endpoint validates the request (file type against an allowlist, size within limits, user quota not exceeded) and generates a presigned PUT URL with content-type and content-length constraints baked in. The client uploads directly to S3 -- the API server never touches the file data.
+An Express endpoint validates the request (file type against an allowlist, size within limits, user quota not exceeded) and generates a presigned URL with the content type signed into it. A presigned PUT cannot enforce a size range, so the size cap uses a presigned POST (`createPresignedPost` from `@aws-sdk/s3-presigned-post`) with a `content-length-range` condition, plus a `HeadObject` check in the worker. The client uploads directly to S3 -- the API server never touches the file data.
 
-For files over 10 MB, a multipart upload helper on the frontend splits the file into 5 MB chunks and uploads them in parallel with retry logic. A progress bar tracks completion across all chunks.
+For files over 10 MB, the API starts a multipart upload and returns one presigned `UploadPart` URL per part; the frontend uploads parts of at least 5 MiB (the last part may be smaller) in parallel with retries, then asks the API to complete the upload. A progress bar tracks completion across all parts.
 
-After the file lands in S3, an event notification triggers a webhook handler that validates the actual file content (magic bytes check, not just the extension the client claimed), updates the database record, and queues processing jobs. CORS configuration on the upload bucket allows browser-based PUT requests from the application domain only.
+After the file lands in S3, an event notification triggers the worker, which validates the actual file content (magic bytes check, not just the extension the client claimed), runs a malware scan (for example GuardDuty Malware Protection for S3 or ClamAV), updates the database record, and queues processing jobs. CORS configuration on the upload bucket allows browser-based POST and PUT requests (and the `ETag` response header, which multipart parts need) from the application domain only.
 
 ### Step 3: Build the Image Processing Pipeline
 
@@ -93,7 +93,7 @@ The on-demand fallback is the safety net. If a client requests a processed image
 
 ```text
 Configure lifecycle policies for all buckets:
-- Raw uploads: move to Infrequent Access after 30 days, delete after 1 year
+- Raw uploads: move to Standard-IA after 30 days, delete after 1 year
   (unless the user has a premium plan)
 - Processed images: keep in Standard (served to users frequently)
 - Temp uploads (failed/abandoned): delete after 24 hours
@@ -105,23 +105,23 @@ accidentally deleted files within 30 days. Add a lifecycle rule to
 delete old versions after 30 days.
 ```
 
-Lifecycle rules handle the boring but expensive work of storage class management automatically. Raw uploads transition to Infrequent Access after 30 days -- most files are accessed heavily in the first week then rarely again. After a year, they're deleted unless the user has a premium plan. An intelligent cleanup script checks the user's plan before applying deletion rules, so premium users keep their files indefinitely.
+Lifecycle rules handle the boring but expensive work of storage class management automatically. Raw uploads transition to Standard-IA after 30 days (the minimum S3 allows for that class, and objects under 128 KB are not worth moving) -- most files are accessed heavily in the first week then rarely again. After a year, they're deleted unless the user has a premium plan. An intelligent cleanup script checks the user's plan before applying deletion rules, so premium users keep their files indefinitely.
 
 Incomplete multipart uploads are the hidden cost sink -- abandoned uploads from crashed browsers or network failures accumulate silently. The 7-day abort rule prevents them from piling up.
 
 Versioning on the raw uploads bucket enables 30-day recovery for accidentally deleted files. A noncurrent version expiration rule automatically cleans up old versions after 30 days, preventing version history from inflating storage costs.
 
-A cost monitoring dashboard tracks storage usage per bucket and per storage class, with alerts when costs exceed projected thresholds.
+Cost alerts come from AWS Budgets, and S3 Storage Lens shows usage per bucket and per storage class.
 
 ### Step 5: Secure the Storage and Add CDN Delivery
 
 ```text
 Security audit all bucket configurations:
 - Block all public access on raw uploads bucket
-- Processed images served through CloudFront with signed cookies for premium content
+- Processed images served through CloudFront (origin access control) with signed cookies for premium content
 - All presigned URLs have minimum necessary expiry time
 - No wildcard CORS origins in production
-- Enable server-side encryption (AES-256) on all buckets
+- Confirm default encryption on all buckets (SSE-S3, AES-256, is on by default; use SSE-KMS where keys must be audited)
 - Enable access logging to a separate logging bucket
 - IAM policy for the application: least privilege (only the operations it needs)
 
@@ -129,18 +129,18 @@ Set up CloudFront distribution for processed images with 1-year cache headers
 for immutable content (thumbnails, processed images with content-addressed keys).
 ```
 
-Security starts with explicit deny policies on public access for the raw uploads bucket. Processed images route through a CloudFront distribution with Origin Access Identity -- files are only accessible through the CDN, never via direct S3 URLs. Premium content uses signed cookies for access control.
+Security starts with S3 Block Public Access on all three buckets, and ACLs stay disabled (the default for new buckets). Processed images route through a CloudFront distribution that reaches S3 with origin access control (OAC); AWS documents the older origin access identity as legacy and not recommended. The bucket policy allows only the `cloudfront.amazonaws.com` service principal, conditioned on the distribution's ARN, so files are never reachable via direct S3 URLs. Premium content uses CloudFront signed cookies.
 
-AES-256 server-side encryption covers all three buckets. Access logging goes to a separate logging bucket for audit trails. The application's IAM policy follows least privilege: `PutObject` on the raw bucket, `GetObject` on both raw and processed, `DeleteObject` only on raw, and no permissions it doesn't need.
+Since January 2023 S3 encrypts every new object with SSE-S3 (AES-256) automatically, so the audit confirms the setting instead of enabling it. Access logging goes to a separate logging bucket for audit trails. The application's IAM policy follows least privilege: `PutObject` on the raw bucket, `GetObject` on both raw and processed, `DeleteObject` only on raw, and no permissions it doesn't need.
 
-Cache headers on processed images use `max-age=31536000, immutable` because the content-addressed keys (containing a hash of the source file) guarantee that a URL always maps to the same content. CloudFront caches these at the edge indefinitely, so image load times drop to single-digit milliseconds for repeat visitors.
+Cache headers on processed images use `max-age=31536000, immutable` because the content-addressed keys (containing a hash of the source file) guarantee that a URL always maps to the same content. (The earlier `{userId}/{fileId}/thumb.webp` keys are not content-addressed; add the hash to the key, or keep a short TTL.) CloudFront serves repeat requests from the edge cache.
 
 ## Real-World Example
 
 A CTO at a 15-person SaaS company watches the `/uploads` directory grow past 280 GB on a single server. File downloads eat 60% of API bandwidth, images are re-processed on every request, and a disk failure would mean total data loss.
 
-She migrates all 280 GB to S3 with checksum verification -- zero files lost, migration takes 4 hours. Direct uploads via presigned URLs eliminate file proxying, and API server CPU drops 40%. The image processing pipeline generates thumbnails once and serves them through CloudFront -- image load times drop from 1.2 seconds to 80ms. Lifecycle policies move old files to Infrequent Access, cutting storage costs 35% in the first month.
+She migrates all 280 GB to S3 with hash verification and compares counts before switching traffic. Direct uploads via presigned URLs stop the API server from proxying file bytes, so its bandwidth and CPU load fall and it moves to a smaller instance. Thumbnails are generated once and served through CloudFront. Lifecycle rules move old files to Standard-IA automatically.
 
-After the migration: the API server runs on a smaller instance (saving $200/month), files are replicated across 3 availability zones with 99.999999999% durability, and the team sleeps through the night without disk space alerts. The CDN serves images from edge locations worldwide, so a user in Tokyo gets the same sub-100ms load time as a user in New York.
+S3 Standard stores data redundantly across at least three Availability Zones in a region and is designed for 99.999999999% durability. The team sleeps through the night without disk space alerts.
 
 The biggest change is psychological. The team stops worrying about storage. No more disk space monitoring, no more manual cleanup scripts, no more "what happens if the server dies" anxiety. S3 handles durability, CloudFront handles performance, and lifecycle policies handle cost optimization -- all automatically.

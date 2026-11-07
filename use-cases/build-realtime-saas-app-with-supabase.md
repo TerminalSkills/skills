@@ -280,7 +280,7 @@ Uploading needs only the INSERT policy. If you later allow overwriting with `ups
 
 ### Step 5: Configure for production
 
-- **Environments**: one Supabase project per environment. `npx supabase link --project-ref <ref>` then `npx supabase db push` applies the migrations; `npx supabase db diff` generates a migration from changes made locally. Run `db push` from CI on merge to main.
+- **Environments**: one Supabase project per environment. `npx supabase link <ref>` then `npx supabase db push --remote` applies the migrations (CLI 3 targets the local stack unless you pass `--remote`, and asks before changing a hosted project, so CI needs `--yes`); `npx supabase db diff -f name` saves changes made to the local database as a migration. Run `db push --remote --yes` from CI on merge to main.
 - **Auth URLs**: set the production Site URL and an exact list of redirect URLs; no wildcards for the production domain.
 - **Keys**: only the publishable key goes to the browser. The service-role (secret) key bypasses RLS and stays on the server.
 - **Email**: custom SMTP and a branded magic-link template.

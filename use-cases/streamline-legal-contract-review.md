@@ -22,7 +22,9 @@ Last quarter, a vendor contract went through without a data processing addendum,
 
 ## The Solution
 
-Use the **contract-review** skill to automatically analyze contracts against the company's standard terms, flag risky or non-standard clauses, compare key terms across similar agreements, and generate concise review summaries that highlight what needs negotiation.
+Use the **contract-review** skill to analyze contracts against the company's standard terms, flag risky or non-standard clauses, compare key terms across similar agreements, and generate concise review summaries that highlight what needs negotiation. The skill reads PDF (pdfplumber), DOCX (python-docx, including tables such as fee schedules) and plain-text contracts, sorts clauses into ten categories (parties, term, payment, liability, confidentiality, non-compete, IP, disputes, force majeure, data protection), and rates each High, Medium or Low.
+
+The output is a first pass for the attorney, not legal advice: every flagged clause and every "complies" verdict gets checked against the actual text before anything goes to the vendor. Contracts are confidential, so send them only to a model whose data terms your company has approved.
 
 ## Step-by-Step Walkthrough
 
@@ -30,7 +32,9 @@ Use the **contract-review** skill to automatically analyze contracts against the
 
 Review a new vendor agreement against the company's required terms checklist:
 
-> Review the attached Master Service Agreement from CloudVault Inc (data backup vendor). Check against our standard requirements: liability cap must not exceed 12 months of fees paid, indemnification must be mutual, termination for convenience requires 30 days notice or less, auto-renewal period must not exceed 1 year, data processing addendum must be included, SLA must guarantee 99.9% uptime, data residency must be US or EU only, intellectual property clause must not include work product assignment, non-compete must not exceed the term of the agreement, and governing law must be Delaware or New York. For each requirement, report whether the contract complies, does not comply, or does not address the term.
+> Review the attached Master Service Agreement from CloudVault Inc (data backup vendor). Check against our standard requirements: liability cap must not exceed 12 months of fees paid, indemnification must be mutual, termination for convenience requires 30 days notice or less, auto-renewal period must not exceed 1 year, data processing addendum must be included, SLA must guarantee 99.9% uptime, data residency must be US or EU only, intellectual property clause must not include work product assignment, non-compete must not exceed the term of the agreement, and governing law must be Delaware or New York. For each requirement, report whether the contract complies, does not comply, or does not address the term, and quote the section that supports the verdict.
+
+If the PDF is a scan, the text extraction returns nothing and the agent has to OCR it first; legacy `.doc` files must be converted to DOCX or PDF.
 
 A "does not address" result is often more dangerous than "does not comply." A missing data processing addendum means the contract says nothing about how the vendor handles your data, which is a compliance gap, not just a negotiation point.
 
@@ -60,14 +64,14 @@ Separating "must negotiate" from "nice to have" items prevents negotiation fatig
 
 ### 5. Track contract review status and outstanding items
 
-Maintain a review log across all active contract negotiations:
+The skill does not keep state between sessions, so keep the log in a file the agent reads and rewrites, such as `contracts/review-log.csv` in your repository or shared drive:
 
-> Update the contract review tracker with the CloudVault MSA status. Current pipeline: CloudVault MSA (under review, 4 items flagged for negotiation), Pinnacle Analytics renewal (redlines sent, awaiting response), Harbor Consulting SOW (approved, pending signature), and TechFlow API license (new, not yet reviewed). For each contract, show: vendor name, contract type, total value, review status, number of flagged items, and days since receipt. Flag any contracts that have been in review for more than 10 business days.
+> Update `contracts/review-log.csv` with the CloudVault MSA (received 2026-10-27, under review, 4 items flagged). Keep the other rows as they are: Pinnacle Analytics renewal (redlines sent, awaiting response), Harbor Consulting SOW (approved, pending signature), TechFlow API license (new, not yet reviewed). Columns: vendor, contract type, total value, status, flagged items, date received. Then print every contract that has been in review for more than 10 business days.
 
-The tracker prevents contracts from stalling in the pipeline. A 10-day aging alert catches agreements that have fallen through the cracks, which is common when the legal team juggles 15-20 active reviews.
+The log prevents contracts from stalling in the pipeline. The 10-day check catches agreements that have fallen through the cracks, which is common when the legal team juggles 15-20 active reviews. The agent computes the age from the date-received column each time, so nothing goes stale.
 
 ## Real-World Example
 
-The legal team receives the CloudVault MSA on a Tuesday. Within an hour, the automated review identifies 6 non-compliant terms: no data processing addendum (critical gap), unlimited liability on the vendor's side but capped for the company (unfair), auto-renewal of 3 years (too long), price escalation of 8% annually (above threshold), data breach notification in 30 days (should be 72 hours), and governing law set to California (preference is Delaware). The comparison against BackupHero and DataSafe shows that both existing vendors accepted mutual liability caps and 72-hour breach notification.
+The legal team receives the CloudVault MSA on a Tuesday. Within an hour, the automated review identifies 6 non-compliant terms: no data processing addendum (critical gap), the vendor's liability capped at one month of fees while the company's is unlimited (one-sided), auto-renewal of 3 years (too long), price escalation of 8% annually (above threshold), data breach notification in 30 days (should be 72 hours), and governing law set to California (preference is Delaware). The comparison against BackupHero and DataSafe shows that both existing vendors accepted mutual liability caps and 72-hour breach notification.
 
-The attorney walks into the Thursday negotiation call with a one-page redline and closes the contract by Friday with all critical items resolved. The data processing addendum is added, liability is capped at 12 months of fees, auto-renewal is reduced to 1 year, and breach notification is set to 72 hours. The two "nice to have" items (governing law and price escalation) are conceded as negotiation leverage. What previously took a full week of back-and-forth now takes three days from receipt to signature.
+After checking each flagged clause against the contract text, the attorney walks into the Thursday negotiation call with a one-page redline and closes the contract by Friday with all critical items resolved. The data processing addendum is added, liability is capped at 12 months of fees, auto-renewal is reduced to 1 year, and breach notification is set to 72 hours. The two "nice to have" items (governing law and price escalation) are conceded as negotiation leverage. What previously took a full week of back-and-forth now takes three days from receipt to signature.

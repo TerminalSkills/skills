@@ -1,29 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:f29cbb4177bd115c340b0b1fecab7d19564631f9873631aa16d144906aff5ef8",
-  "scoredAt": "2026-10-24T14:42:55.411Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:b5abaa9ea12b1d30b3d4dec431332412a2200d2dadc15cb760d5016a8ddbd425",
+  "scoredAt": "2026-11-05T00:04:21.016Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack explicit handling of error scenarios and edge cases such as API failures or missing parameters."
+        "detail": "The instructions lack explicit error handling for API failures, rate limits, or unexpected responses."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to Hermes Agent and its specific plugin architecture, limiting portability to other AI agents."
+        "detail": "The skill is tightly coupled to Hermes Agent and hermes-tweet, limiting portability to other AI agents."
       }
     ]
   },
@@ -32,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6,
-    "baselineAvg": 2,
-    "treatmentAvg": 60,
+    "multiplier": 8.2,
+    "baselineAvg": 5,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "search-tweets-and-read-replies",
-        "baseline": 0,
-        "treatment": 85,
-        "rationale": "Response A largely follows the required sequence and provides a summary, but omits the original tweet text; Response B fails to meet any rubric criteria."
+        "name": "search-tweets-with-replies",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B follows the required API calls and notes no write actions, while Response A uses a different library and omits the specified steps and summary."
       },
       {
-        "name": "list-user-followers-page-by-page",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to provide the required follower usernames, pagination details, and total follower count as specified in the rubric."
-      },
-      {
-        "name": "create-keyword-monitor-with-approval",
+        "name": "monitor-hashtag-ai",
         "baseline": 5,
         "treatment": 95,
-        "rationale": "Response B meets the rubric requirements, while Response A does not."
+        "rationale": "Response B meets all rubric points while A does not."
+      },
+      {
+        "name": "export-followers-openai",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits explicit post‑approval reporting of job ID and link; Response A fails entirely."
       }
     ]
   }

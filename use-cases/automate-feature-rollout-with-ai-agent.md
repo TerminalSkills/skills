@@ -17,60 +17,104 @@ tags:
 
 ## The Problem
 
-Shipping a new feature behind a feature flag requires touching multiple files: the flag configuration, the backend evaluation logic, the frontend conditional rendering, analytics events for measuring impact, and a cleanup plan for removing the flag later. For a team shipping 3-4 flagged features per sprint, the scaffolding work alone takes 2-3 hours per feature.
+Shipping a new feature behind a feature flag requires touching multiple files: the flag definition, the backend evaluation, the conditional rendering, an assignment log for measuring impact, and a plan for removing the flag later. For a team shipping 3-4 flagged features per sprint, the scaffolding alone takes hours per feature.
 
-Developers often skip analytics integration because it is tedious, or forget cleanup entirely, leaving dead flags in the codebase. The team has 23 orphaned flags from features that reached 100% months ago but were never cleaned up. The overhead discourages adoption -- engineers shortcut the process by shipping without flags, which is exactly how the last production incident happened.
+Developers skip the tedious parts, or forget cleanup entirely, and flags that reached 100% months ago stay in the code. The overhead discourages adoption: engineers shortcut the process by shipping without a flag, which is exactly how the last production incident happened.
 
 ## The Solution
 
-Use the **feature-flag-manager** skill to design flag configurations with proper targeting rules, and the **coding-agent** skill to generate the implementation code, wrapping existing logic in flag checks and adding analytics hooks automatically.
+Use **feature-flag-manager** to design the flag: a self-hosted definition with deterministic bucketing, targeting rules and a kill switch. Use **coding-agent** to hand each well-scoped piece of scaffolding to a headless Claude Code run (`claude -p`) that wraps the feature in flag checks. You review the diff of every run before it merges.
 
 ## Step-by-Step Walkthrough
 
-### 1. Define the feature and flag configuration
+### 1. Define the flag
 
-Start with a clear specification the coding agent can use to generate scaffolding:
+The flag shape comes from feature-flag-manager: `enabled` is the global kill switch, `allocation` is the percentage per variant, and `targeting` rules are checked in order, each with its own allocation override.
 
-> I need to ship a new bulk export feature that lets users export up to 10,000 records as CSV. Create a feature flag called 'bulk-csv-export' with these rules: 100% for internal team accounts, 10% rollout for Pro plan users, 0% for free plan. Include a kill switch.
+```typescript
+const bulkCsvExport: FeatureFlag = {
+  key: 'bulk-csv-export',
+  type: 'boolean',
+  enabled: true,                      // set to false to kill the feature everywhere
+  variants: ['off', 'on'],
+  allocation: [100, 0],               // default (free plan): nobody
+  targeting: [
+    { attribute: 'email', operator: 'contains', values: ['@acme.example'], allocation: [0, 100] },
+    { attribute: 'plan',  operator: 'eq',       values: ['pro'],           allocation: [90, 10] },
+  ],
+  createdAt: new Date(), updatedAt: new Date(),
+};
+```
 
-The flag configuration is generated with targeting rules, default values, and the kill switch. The feature-flag-manager validates that targeting rules do not conflict, that the percentage rollout uses deterministic hashing, and that the kill switch is wired to the incident response channel.
+Bucketing hashes `flagKey:userId` with SHA-256, so the same user always gets the same answer and different flags are independent. Running the skill's `assignVariant` over 20,000 simulated user IDs with a 90/10 split puts about 2,000 of them (10%, give or take a few dozen) in `on`, which confirms the distribution before anything ships. Do this check for every new flag.
 
-### 2. Generate the flagged backend implementation
+### 2. Generate the flagged backend
 
-With the flag defined, generate the feature code wrapped in flag checks from the start:
+Give the coding agent one narrow task and pre-approve only the tools it needs:
 
-> Implement the bulk CSV export endpoint at POST /api/exports/csv. Wrap it with the 'bulk-csv-export' feature flag. For users without the flag, return a 404. Stream the CSV to avoid memory issues with 10,000 rows. Add Mixpanel events for export_started and export_completed with row count and duration.
+```bash
+LOG=$(mktemp /tmp/claude-agent.XXXXXX)
+timeout 900 claude -p "Implement POST /api/exports/csv in src/routes/exports.ts. \
+Call evaluateFlag('bulk-csv-export', req.user.id, req.user) and return 404 when the variant is 'off'. \
+Stream the CSV with a cursor so 10,000 rows never sit in memory. \
+Log an assignment event and an export_completed event with row count and duration. \
+Do not modify other files." \
+  --permission-mode acceptEdits \
+  --allowedTools "Read" "Edit" "Write" "Bash(npx tsc --noEmit)" \
+  --max-budget-usd 2 --output-format text > "$LOG" 2>&1 &
+AGENT_PID=$!
+```
 
-The coding agent generates the endpoint with the flag check, streaming CSV logic, error handling, and analytics integration. The flag check returns 404 (not 403) so users without access do not know the feature exists, preventing premature support tickets.
+When it finishes (`wait $AGENT_PID`, then read `$LOG`), read the diff and run the type check and tests yourself. The flag check returns 404, not 403, so users without access cannot tell the feature exists.
 
 ### 3. Generate the frontend integration
 
-Add UI elements behind the same flag:
+Flags are evaluated on the server only: a client-side SDK leaks experiment details and flickers. The agent task therefore passes the evaluated result down instead of calling a flag service from the browser:
 
-> Add a "Bulk Export" button to the RecordsTable component that only renders when 'bulk-csv-export' is enabled. Show a progress indicator during export with estimated time remaining. If the flag is off, render nothing. Include the React hook integration.
+```bash
+timeout 900 claude -p "Add a 'Bulk Export' button to the RecordsTable component. \
+Render it only when the prop flags['bulk-csv-export'] === 'on'; the server already \
+puts evaluated flags into the page payload. Show progress while the export runs. \
+Do not touch other components." \
+  --permission-mode acceptEdits --allowedTools "Read" "Edit" "Write" \
+  --max-budget-usd 2 --output-format text > "$LOG" 2>&1
+```
 
-The coding agent produces the conditional UI component, progress state management with WebSocket updates, and the flag hook. The component tree is completely absent when the flag is off -- not hidden with CSS, but not rendered at all.
+When the flag is `off` the component is not rendered at all; it is not hidden with CSS.
 
-### 4. Generate the cleanup plan
+### 4. Generate the cleanup plan before shipping
 
-Feature flags that live forever become tech debt. Generate a cleanup ticket before the flag ships:
+A read-only run lists everything that must go when the flag is retired:
 
-> Generate a cleanup checklist for 'bulk-csv-export'. List every file that references the flag, code to remove when it reaches 100%, and analytics events to convert from flag-gated to permanent. Create this as a GitHub issue draft with a 30-day reminder.
+```bash
+timeout 600 claude -p "List every file and line that references 'bulk-csv-export' and the \
+code to delete once it is at 100%. Output a markdown checklist." \
+  --allowedTools "Read" "Grep" "Glob" --output-format text > cleanup-bulk-csv-export.md
+```
 
-The checklist includes 6 files with exact line numbers, the code to remove, and a reminder to delete the flag definition from the database. The issue is created before the feature ships, with a timer that starts when the rollout monitor records 100% for 24 hours.
+Attach the checklist to a ticket created before the rollout starts. feature-flag-manager tracks the lifecycle (CREATED, TESTING, RAMPING, DECIDED, ARCHIVED) and alerts when a flag has sat in DECIDED for more than 14 days, which is what keeps orphaned flags from piling up.
 
-### 5. Monitor the rollout and auto-progress
+### 5. Ramp up through the admin API
 
-Set up automated progression through rollout stages:
+Move through the lifecycle with the skill's admin endpoints, changing the Pro allocation in steps (5, 25, 50, 100). `PATCH` takes the whole `targeting` array in this example, so send every rule you want to keep (including the internal-email rule from step 1). Keep each step only while your own error-rate dashboard stays flat against the `off` group:
 
-> Configure the rollout to auto-progress from 10% to 25% to 50% to 100% if error rates stay within 1.1x of the control group for 24 hours at each stage. Auto-rollback to 0% if error rates exceed 2x control. Post each transition to the #releases Slack channel.
+```bash
+curl -X PATCH "$FLAGS_API/api/flags/bulk-csv-export" -H "Authorization: Bearer $FLAGS_ADMIN_TOKEN" \
+  -H 'content-type: application/json' -d '{"targeting":[{"attribute":"plan","operator":"eq","values":["pro"],"allocation":[75,25]}]}'
 
-The progression ladder takes a minimum of 72 hours to reach full rollout. Each step requires clean metrics for 24 hours. If error rates spike at any stage, the flag drops to 0% immediately and an alert fires with the specific error pattern that triggered the rollback.
+# kill switch
+curl -X PATCH "$FLAGS_API/api/flags/bulk-csv-export/toggle" -H "Authorization: Bearer $FLAGS_ADMIN_TOKEN"
+```
+
+The endpoints are the ones feature-flag-manager defines for the flag service you build; the paths and auth are yours to match to that service. Because the config is cached for about 30 seconds, a toggle takes effect everywhere within that window.
 
 ## Real-World Example
 
-A product team at a B2B analytics company shipped 4 features per sprint behind flags. Before automating, developers spent 2.5 hours per feature on scaffolding, analytics integration, and documentation. After combining coding-agent with feature-flag-manager, scaffolding time dropped to 25 minutes.
+A product team at a B2B analytics company ships four features per sprint behind flags. Each feature used to need a couple of hours of scaffolding, so engineers sometimes skipped the flag. With the flag definition tested up front and the four agent tasks above run per feature, the team's measure of scaffolding time (their own numbers, from sprint retros) fell to under an hour, and the review of the agent's diffs became the main cost.
 
-Over 8 sprints, the team saved roughly 72 hours of repetitive work. Every flagged feature shipped with analytics from day one and a cleanup issue in the backlog. The orphaned flag count dropped from 23 to 4 within 3 months as automated cleanup reminders caught up with the backlog.
+Every flagged feature now ships with an assignment log and a cleanup ticket created before the rollout. Flags in DECIDED for more than 14 days page the owning team, so the backlog of dead flags shrinks sprint by sprint instead of growing. When flagging takes less effort than shipping without one, the correct path is also the easy one.
 
-More importantly, engineers stopped bypassing the flag system. When scaffolding takes 25 minutes instead of 2.5 hours, the path of least resistance is the correct one.
+## Related Skills
+
+- [feature-flag-manager](/skills/feature-flag-manager)
+- [coding-agent](/skills/coding-agent)

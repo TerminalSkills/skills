@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:48eb2c3db344fa1a45d1bec4f63ac25021a5e1c5ef19bd7d74f97bbf0df63f75",
-  "scoredAt": "2026-05-13T15:10:31.096Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:e29042f5f673fbb277053aae6e0c476d4d1925ce7b0e706298134b9525781bfd",
+  "scoredAt": "2026-11-04T23:53:28.365Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack explicit error handling and edge case scenarios."
+        "detail": "The instructions do not cover all potential error scenarios or edge cases, such as missing or invalid tokens, configuration errors, or agent CLI failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific AI agent CLIs and a Node.js environment, limiting compatibility to those agents and platforms."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 20,
-    "treatmentAvg": 100,
+    "multiplier": 9.2,
+    "baselineAvg": 10,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "slack-code-review-setup",
-        "baseline": 20,
+        "name": "telegram-daily-cron",
+        "baseline": 15,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits the required cc-connect.yaml configuration and key steps."
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different format and omits key elements."
       },
       {
-        "name": "telegram-daily-report-cron",
-        "baseline": 20,
+        "name": "slack-project-switch",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric with a complete cc-connect.yaml, cron config, and setup steps, while Response B omits the required YAML, init/start commands, and key details."
+        "rationale": "Response B fully satisfies the rubric, while Response A is absent and thus scores zero."
+      },
+      {
+        "name": "daemon-install-status-logs",
+        "baseline": 15,
+        "treatment": 75,
+        "rationale": "Response A covers the required commands and launchd context but omits the admin UI port and systemd mention, while Response B fails to use the specified cc-connect daemon commands."
       }
     ]
   }

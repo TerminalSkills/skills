@@ -19,7 +19,7 @@ The failed scanner attempt has a second-order effect: the team becomes resistant
 
 ## The Solution
 
-Using the **security-audit** skill to configure and tune scanning tools, the **cicd-pipeline** skill to integrate scans into the PR workflow, and the **coding-agent** to auto-triage findings and generate fix suggestions, the pipeline catches real vulnerabilities while keeping noise low enough that developers actually pay attention. The key insight: a scanner that surfaces 8 real findings is infinitely more valuable than one that surfaces 300 findings nobody reads.
+Using the **security-audit** skill to configure and tune scanning tools, the **cicd-pipeline** skill's pipeline practices (parallel jobs, required checks, artifacts) to run the scans on every PR, and the **coding-agent** to auto-triage findings and generate fix suggestions, the pipeline catches real vulnerabilities while keeping noise low enough that developers actually pay attention. The key insight: a scanner that surfaces 8 real findings is infinitely more valuable than one that surfaces 300 findings nobody reads.
 
 ## Step-by-Step Walkthrough
 
@@ -46,7 +46,7 @@ The gap analysis comes back with a clear inventory of blind spots:
 
 **Risk indicators that need immediate attention:**
 - `api/package-lock.json` has 847 dependencies, last audit unknown
-- 3 Dockerfiles using `node:18` base image — not pinned to a digest, so a compromised or vulnerable image could be pulled silently on any build
+- 3 Dockerfiles using the `node:18` base image — Node 18 reached end of life in April 2025 and the tag is not pinned to a digest, so a changed image could be pulled silently on any build
 - No `.gitignore` entry for `.env` files in `worker/` — one accidental `git add .` away from leaking database credentials to the repository
 
 ### Step 3: Generate CI Pipeline Configuration
@@ -58,56 +58,70 @@ The scanning workflow covers three dimensions — dependencies, secrets, and sta
 name: Security Scan
 on: [pull_request]
 
+permissions:
+  contents: read
+  pull-requests: write   # gitleaks-action comments on the PR
+
 jobs:
   dependency-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: npm audit --audit-level=high --workspace=api
-      - run: npm audit --audit-level=high --workspace=worker
-      - run: npm audit --audit-level=high --workspace=web
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci
+      # Each workspace's runtime dependencies; exits non-zero on high or critical
+      - run: npm audit --omit=dev --audit-level=high --workspace=api --workspace=worker --workspace=web
 
   secret-detection:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Full history for detecting secrets in past commits
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # required for organization repos, not personal accounts
 
   static-analysis:
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
-      - uses: returntocorp/semgrep-action@v1
-        with:
-          config: p/nodejs p/jwt p/sql-injection
+      - uses: actions/checkout@v7
+      - run: >-
+          semgrep scan --error --severity ERROR
+          --config p/nodejs --config p/jwt --config p/sql-injection
 ```
 
-Three jobs, running in parallel on every PR. Dependency check catches known CVEs in the 847 transitive dependencies. Secret detection scans the full git history — not just the current diff — for leaked credentials, API keys, and tokens. Static analysis looks for code-level vulnerabilities with rulesets specific to the Node.js ecosystem: injection patterns, insecure JWT handling, and SQL construction.
+Three jobs, running in parallel on every PR. Dependency check catches known CVEs in the transitive dependencies. Secret detection scans the full git history, not just the current diff, for leaked credentials, API keys, and tokens. Static analysis runs Semgrep from its official Docker image with rulesets from the public registry (`p/nodejs`, `p/jwt`, `p/sql-injection`). `--error` makes the job fail when a finding is reported, and `--severity ERROR` limits that to the highest-severity rules.
 
-The three jobs run in parallel, so the total scan time is the duration of the slowest job (usually static analysis at 2-3 minutes), not the sum of all three.
+`returntocorp/semgrep-action` is deprecated; the Semgrep project recommends running `semgrep` directly. `gitleaks-action@v2` runs on Node 20, which GitHub is removing from hosted runners, so use `@v3`. For organization repositories gitleaks-action needs a license key stored as a secret (`GITLEAKS_LICENSE`); without one the job fails. If you do not want a license, run the open-source `gitleaks git` command from a release binary instead, after verifying the checksum the project publishes.
+
+The jobs run in parallel, so total scan time is the duration of the slowest job, not the sum of all three. Pin each action to a commit SHA once the workflow is stable: a mutable tag can be moved by whoever controls the action's repository.
 
 ### Step 4: Configure Triage Rules to Cut the Noise
 
 This is the step that makes or breaks the entire setup. Without triage, the first scan surfaces 300 findings and developers tune out permanently. The previous team that tried this made exactly that mistake.
 
-The triage configuration (`security-triage.json`) maps severity and location to action:
+Triage is built from options the tools already have, not a separate config file:
 
 | Finding | Location | Action |
 |---|---|---|
-| CRITICAL or HIGH | `src/` | **Block PR**, require fix before merge |
-| MEDIUM | `src/` | Warn, add PR comment, don't block |
-| Any severity | `test/` or `__mocks__/` | Suppress entirely |
-| Dependency vuln with no fix available | Any | Warn only, don't block |
+| ERROR-severity Semgrep rule or high/critical dependency CVE | `src/` | **Block PR** (`--error --severity ERROR`, `--audit-level=high`) |
+| WARNING-severity Semgrep rule | `src/` | Report without blocking: run a second non-blocking job without `--error` |
+| Any severity | `test/`, `__mocks__/`, generated code | Excluded through `.semgrepignore` |
+| Dev-only dependency | Any | Skipped with `npm audit --omit=dev` |
 
-A `.semgrep-ignore` file excludes 12 rule patterns for test files and generated code. Test files that deliberately contain injection patterns (for testing input validation, for example) don't trigger alerts. Generated code from ORMs and protobuf compilers gets excluded because developers can't fix those findings anyway.
+A `.semgrepignore` file (gitignore syntax) lists `test/`, `__mocks__/` and generated ORM or protobuf output. Test files that deliberately contain injection patterns, for example to test input validation, then do not trigger alerts, and generated code is excluded because developers cannot fix those findings anyway. Known false positives from gitleaks go in a `.gitleaksignore` file by fingerprint. Ask the coding agent to draft these files from the first scan's output, then review each exclusion yourself: an ignore rule is a decision to stop looking.
 
-Expected noise reduction: roughly 80% fewer false positive comments on PRs. The scanner goes from "300 findings, ignore everything" to "8 findings, all worth reading."
+In this example the scanner goes from "300 findings, ignore everything" to "8 findings, all worth reading."
 
 ### Step 5: Generate Fixes for Real Vulnerabilities
 
-The initial scan of the current codebase surfaces 3 actionable vulnerabilities:
+In this example the initial scan of the codebase surfaces 3 actionable vulnerabilities:
 
 **1. SQL injection in `api/src/routes/search.js:42`** (HIGH)
 
@@ -124,20 +138,30 @@ This is the exact vulnerability the penetration test found. It's been in product
 **2. Prototype pollution via lodash.merge in `worker/`** (HIGH)
 
 ```bash
-npm install lodash@4.17.21 --workspace=worker
+npm audit fix --workspace=worker
 ```
 
-A one-line fix — the patched version of lodash closes the prototype pollution vector. The vulnerable version has been in the lockfile since the worker service was created.
+Usually a one-line fix: `npm audit` reports the patched version, and `npm audit fix` bumps the lockfile to it when a semver-compatible fix exists. The vulnerable version has been in the lockfile since the worker service was created.
 
 **3. Missing rate limiting on `/api/auth/login`** (MEDIUM)
 
-A generated patch adds `express-rate-limit` middleware — 5 attempts per minute per IP, with a clear 429 response for the client. Without rate limiting, the login endpoint is vulnerable to credential stuffing attacks.
+A generated patch adds the `express-rate-limit` middleware, 5 attempts per minute per IP, with a 429 response for the client:
 
-Three findings, three fixes, all applied in one sprint. The contrast with the previous experience is stark: instead of 300 findings that paralyze the team, there are 3 that each have a clear fix. The same SQL injection that a $20,000 penetration test found would have been caught on the developer's first PR if this pipeline had existed eight months ago.
+```javascript
+import { rateLimit } from 'express-rate-limit'
+
+app.use('/api/auth/login', rateLimit({ windowMs: 60_000, limit: 5 }))
+```
+
+Without rate limiting, the login endpoint is open to credential stuffing. Behind a reverse proxy, also set Express `trust proxy` correctly, or every client shares the proxy's IP.
+
+Three findings, three fixes, all applied in one sprint. The contrast with the previous experience is stark: instead of 300 findings that paralyze the team, there are 3 that each have a clear fix. The same SQL injection that the penetration test found would have been caught on the developer's first PR if this pipeline had existed eight months ago.
 
 Going forward, every new PR gets scanned automatically. A developer introducing a string-interpolated SQL query gets blocked at the PR level with a specific fix suggestion — not a generic "vulnerability detected" message, but the exact parameterized query they should use instead.
 
 ## Real-World Example
+
+(An invented team; the numbers are the example's own.)
 
 Tomas leads backend engineering at a 25-person SaaS startup. They passed a customer security questionnaire by promising automated scanning, but never actually implemented it. Then a penetration test found an SQL injection that had been in production for eight months — the kind of finding that shakes customer confidence and requires a post-incident disclosure.
 

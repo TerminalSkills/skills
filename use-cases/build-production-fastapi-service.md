@@ -24,285 +24,275 @@ tags:
 
 # Build a Production FastAPI Microservice
 
-Ramon's team is migrating from a Django monolith to microservices. The first service to extract is the notification system — it handles email, SMS, push notifications, and webhook delivery. He builds it with FastAPI for async performance, SQLAlchemy for the database, and a clean architecture that the team can replicate for future services.
+Ramon's team is migrating from a Django monolith to microservices. The first service to extract is the notification system, which handles email, SMS, push and webhook delivery. He builds it with FastAPI for async I/O, SQLAlchemy for the database, and a layout the team can copy for the next service.
 
-## Step 1: Project Structure
+## Step 1: Project and Configuration
 
 ```bash
-poetry new notification-service && cd notification-service
-poetry add fastapi uvicorn[standard] sqlalchemy[asyncio] asyncpg pydantic-settings alembic
-poetry add --group dev pytest pytest-asyncio pytest-cov httpx ruff mypy
+uv init --bare --python 3.12 --name notification-service && cd notification-service
+uv add "fastapi[standard]" "sqlalchemy[asyncio]" asyncpg pydantic-settings alembic
+uv add --dev pytest pytest-asyncio aiosqlite ruff
+mkdir -p app/models app/schemas app/routes app/services tests
+uv run alembic init -t async migrations
+printf '[tool.pytest.ini_options]\nasyncio_mode = "auto"\nasyncio_default_fixture_loop_scope = "function"\npythonpath = ["."]\n' >> pyproject.toml
 ```
 
-```text
-notification-service/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI app factory
-│   ├── config.py            # Settings from environment
-│   ├── dependencies.py      # Database, auth, shared deps
-│   ├── errors.py            # Custom exceptions
-│   ├── models/              # SQLAlchemy models
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── notification.py
-│   ├── schemas/             # Pydantic schemas
-│   │   ├── __init__.py
-│   │   └── notification.py
-│   ├── routes/              # API endpoints
-│   │   ├── __init__.py
-│   │   ├── notifications.py
-│   │   └── health.py
-│   ├── services/            # Business logic
-│   │   ├── __init__.py
-│   │   ├── email.py
-│   │   ├── sms.py
-│   │   └── push.py
-│   └── db.py                # Database engine and session
-├── alembic/                 # Migrations
-├── tests/
-│   ├── conftest.py
-│   ├── test_notifications.py
-│   └── test_services.py
-├── Dockerfile
-├── docker-helper.yml
-└── pyproject.toml
-```
+`fastapi[standard]` brings Uvicorn, the `fastapi` CLI and `httpx`; `aiosqlite` is for tests only. The last line lets pytest find the `app` package, run async tests without markers, and sets the fixture loop scope explicitly (pytest-asyncio warns when it is unset).
 
-## Step 2: Configuration
-
-Type-safe settings from environment variables — no more `os.getenv` scattered everywhere.
+Settings come from the environment (`pydantic-settings`); secrets are `SecretStr`, so they never appear in a repr or log line.
 
 ```python
-# app/config.py — Centralized configuration
-from pydantic_settings import BaseSettings
+# app/config.py
 from functools import lru_cache
 
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables.
+    model_config = SettingsConfigDict(env_file=".env")
+    database_url: str = "postgresql+asyncpg://notifications:change-me@localhost:5432/notifications"
+    api_token: SecretStr = SecretStr("")  # bearer token callers must send
 
-    Args:
-        database_url: PostgreSQL connection string (async driver)
-        redis_url: Redis for caching and rate limiting
-        sendgrid_api_key: SendGrid API key for email delivery
-        twilio_account_sid: Twilio SID for SMS
-        twilio_auth_token: Twilio auth token
-        environment: Current environment (development, staging, production)
-        debug: Enable debug mode (verbose logging, auto-reload)
-    """
-    database_url: str = "postgresql+asyncpg://localhost:5432/notifications"
-    redis_url: str = "redis://localhost:6379"
-    sendgrid_api_key: str = ""
-    twilio_account_sid: str = ""
-    twilio_auth_token: str = ""
-    environment: str = "development"
-    debug: bool = False
-
-    model_config = {"env_file": ".env"}
-
-@lru_cache
-def get_settings() -> Settings:
-    return Settings()
+get_settings = lru_cache(Settings)
 ```
 
-## Step 3: Database Models
+## Step 2: Database Model
 
 ```python
-# app/models/notification.py — Notification model
-from sqlalchemy import String, DateTime, Text, JSON, Index, func
-from sqlalchemy.orm import Mapped, mapped_column
-from app.models.base import Base
-from datetime import datetime
+# app/models/notification.py
 import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, String, Text, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+class Base(DeclarativeBase):
+    pass
 
 class Notification(Base):
     __tablename__ = "notifications"
-
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    channel: Mapped[str] = mapped_column(String(20))         # email, sms, push, webhook
-    recipient: Mapped[str] = mapped_column(String(255))       # email address, phone, device token
+    channel: Mapped[str] = mapped_column(String(20))  # email, sms, push, webhook
+    recipient: Mapped[str] = mapped_column(String(255), index=True)
     subject: Mapped[str | None] = mapped_column(String(200))
     body: Mapped[str] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, sent, failed, delivered
-    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON)
-    error_message: Mapped[str | None] = mapped_column(Text)
-    sent_at: Mapped[datetime | None] = mapped_column(DateTime)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
-    __table_args__ = (
-        Index("ix_notifications_status_created", "status", "created_at"),
-        Index("ix_notifications_recipient", "recipient"),
-    )
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)  # pending, sent, failed
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 ```
 
-## Step 4: Pydantic Schemas
+## Step 3: Pydantic Schemas
+
+Pydantic validates the request body before the route runs. A `model_validator` sees every field at once, so cross-field rules (an email needs a subject, an SMS number must be E.164) live in one place.
 
 ```python
-# app/schemas/notification.py — Request/response schemas
-from pydantic import BaseModel, Field, field_validator
-from datetime import datetime
+# app/schemas/notification.py
 from typing import Literal
 
-class NotificationCreate(BaseModel):
-    """Schema for creating a notification.
+from pydantic import BaseModel, Field, model_validator
 
-    Args:
-        channel: Delivery channel — email, sms, push, or webhook
-        recipient: Target address (email, phone number, device token, or URL)
-        subject: Optional subject line (required for email)
-        body: Notification content
-        metadata: Optional key-value pairs for template variables
-    """
+class NotificationCreate(BaseModel):
     channel: Literal["email", "sms", "push", "webhook"]
     recipient: str = Field(min_length=1, max_length=255)
     subject: str | None = Field(None, max_length=200)
     body: str = Field(min_length=1, max_length=10000)
-    metadata: dict | None = None
 
-    @field_validator("recipient")
-    @classmethod
-    def validate_recipient(cls, v, info):
-        channel = info.data.get("channel")
-        if channel == "email" and "@" not in v:
-            raise ValueError("Email recipient must contain @")
-        if channel == "sms" and not v.startswith("+"):
+    @model_validator(mode="after")
+    def check_channel_rules(self):
+        if self.channel == "email" and ("@" not in self.recipient or not self.subject):
+            raise ValueError("Email needs an address with @ and a subject")
+        if self.channel == "sms" and not self.recipient.startswith("+"):
             raise ValueError("SMS recipient must be E.164 format (+1234567890)")
-        return v
-
-class NotificationResponse(BaseModel):
-    id: str
-    channel: str
-    recipient: str
-    status: str
-    sent_at: datetime | None
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-class NotificationList(BaseModel):
-    data: list[NotificationResponse]
-    total: int
-    page: int
-    per_page: int
+        return self
 ```
 
-## Step 5: Routes with Dependency Injection
+## Step 4: Dependencies and Delivery
+
+One engine per process; routes ask for the session factory, which tests override. The bearer token is compared in constant time (as bytes, because `compare_digest` raises on non-ASCII `str`), and the service rejects every request while `API_TOKEN` is unset.
 
 ```python
-# app/routes/notifications.py — API endpoints
-from fastapi import APIRouter, Depends, BackgroundTasks, Query
-from sqlalchemy import select, func
-from app.dependencies import DB, CurrentUser
-from app.schemas.notification import NotificationCreate, NotificationResponse, NotificationList
+# app/dependencies.py
+import hmac
+from typing import Annotated
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.config import get_settings
+
+engine = create_async_engine(get_settings().database_url, pool_pre_ping=True)
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
+    return SessionLocal
+
+Sessions = Annotated[async_sessionmaker[AsyncSession], Depends(get_sessionmaker)]
+
+def require_token(creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]) -> None:
+    expected = get_settings().api_token.get_secret_value()
+    if not expected or not hmac.compare_digest(creds.credentials.encode(), expected.encode()):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid bearer token")
+```
+
+The background task opens its own session, because the request's session is closed once the response is sent. It skips rows that are no longer `pending`, so a retry cannot deliver twice.
+
+```python
+# app/services/dispatcher.py
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 from app.models.notification import Notification
+
+async def dispatch_notification(sessions: async_sessionmaker[AsyncSession], notification_id: str) -> None:
+    async with sessions() as db:
+        notification = await db.get(Notification, notification_id)
+        if notification is None or notification.status != "pending":
+            return  # already handled: makes a retry safe
+        try:
+            if notification.channel == "webhook":  # caller-supplied URLs need a host allow-list (SSRF)
+                raise NotImplementedError
+            ...  # call SendGrid, Twilio or the push provider for notification.channel here
+            notification.status = "sent"
+        except Exception:
+            notification.status = "failed"
+        await db.commit()
+```
+
+## Step 5: Routes
+
+```python
+# app/routes/notifications.py
+from fastapi import APIRouter, BackgroundTasks, Depends
+
+from app.dependencies import Sessions, require_token
+from app.models.notification import Notification
+from app.schemas.notification import NotificationCreate
 from app.services.dispatcher import dispatch_notification
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
-@router.post("/", response_model=NotificationResponse, status_code=201)
-async def create_notification(
-    data: NotificationCreate,
-    db: DB,
-    user: CurrentUser,
-    background_tasks: BackgroundTasks,
-):
-    """Create and queue a notification for delivery."""
-    notification = Notification(
-        channel=data.channel,
-        recipient=data.recipient,
-        subject=data.subject,
-        body=data.body,
-        metadata_=data.metadata,
-        status="pending",
-    )
-    db.add(notification)
-    await db.commit()
-    await db.refresh(notification)
-
-    # Deliver asynchronously
-    background_tasks.add_task(dispatch_notification, notification.id)
-
-    return notification
-
-@router.get("/", response_model=NotificationList)
-async def list_notifications(
-    db: DB,
-    user: CurrentUser,
-    status: str | None = None,
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-):
-    """List notifications with pagination and optional status filter."""
-    query = select(Notification).order_by(Notification.created_at.desc())
-    if status:
-        query = query.where(Notification.status == status)
-
-    # Count total
-    count_query = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_query)).scalar()
-
-    # Paginate
-    notifications = (await db.execute(
-        query.offset((page - 1) * per_page).limit(per_page)
-    )).scalars().all()
-
-    return NotificationList(data=notifications, total=total, page=page, per_page=per_page)
+@router.post("/", status_code=202, dependencies=[Depends(require_token)])  # accepted: delivery happens after the response
+async def create_notification(data: NotificationCreate, sessions: Sessions, background_tasks: BackgroundTasks):
+    notification = Notification(**data.model_dump())
+    async with sessions() as db:
+        db.add(notification)
+        await db.commit()
+    background_tasks.add_task(dispatch_notification, sessions, notification.id)
+    return {"id": notification.id, "status": "pending"}
 ```
 
-## Step 6: Tests
+`app/main.py` is a small factory: `create_app()` builds `FastAPI(title="Notification Service")`, includes `notifications.router` and returns it; `app = create_app()` is what Uvicorn serves.
+
+## Step 6: Migrations
+
+In `migrations/env.py` (generated above), import the metadata and point Alembic at the same URL the app uses (the generated `alembic.ini` already has `prepend_sys_path = .`, which lets `env.py` import `app`):
 
 ```python
-# tests/conftest.py — Test fixtures
-import pytest
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.main import create_app
-from app.models.base import Base
-from app.dependencies import get_db
+from app.config import get_settings
+from app.models.notification import Base
 
-@pytest.fixture
-async def db():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+target_metadata = Base.metadata
+config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))
+```
+
+```bash
+export DATABASE_URL="postgresql+asyncpg://notifications:$POSTGRES_PASSWORD@127.0.0.1:5432/notifications"
+uv run alembic revision --autogenerate -m "create notifications"   # review the file it writes
+uv run alembic upgrade head
+```
+
+## Step 7: Tests
+
+```python
+# tests/conftest.py
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from app.config import get_settings
+from app.dependencies import get_sessionmaker
+from app.main import create_app
+from app.models.notification import Base
+
+@pytest_asyncio.fixture
+async def client(monkeypatch, tmp_path):
+    monkeypatch.setenv("API_TOKEN", "test-token")
+    get_settings.cache_clear()
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/test.db")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    session_maker = async_sessionmaker(engine, expire_on_commit=False)
-    async with session_maker() as session:
-        yield session
-
-@pytest.fixture
-async def client(db):
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
     app = create_app()
-    app.dependency_overrides[get_db] = lambda: db
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    app.dependency_overrides[get_sessionmaker] = lambda: sessions
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        ac.headers["Authorization"] = "Bearer test-token"
+        ac.sessions = sessions
         yield ac
+```
 
+```python
 # tests/test_notifications.py
-@pytest.mark.asyncio
-async def test_create_email_notification(client):
-    response = await client.post("/notifications/", json={
-        "channel": "email",
-        "recipient": "user@example.com",
-        "subject": "Test",
-        "body": "Hello from tests",
-    }, headers={"Authorization": "Bearer test-token"})
+from sqlalchemy import select
 
-    assert response.status_code == 201
-    data = response.json()
-    assert data["channel"] == "email"
-    assert data["status"] == "pending"
+from app.models.notification import Notification
 
-@pytest.mark.asyncio
-async def test_create_sms_requires_e164(client):
-    response = await client.post("/notifications/", json={
-        "channel": "sms",
-        "recipient": "not-a-phone",
-        "body": "Hello",
-    }, headers={"Authorization": "Bearer test-token"})
+EMAIL = {"channel": "email", "recipient": "user@example.com", "subject": "Test", "body": "Hello"}
 
-    assert response.status_code == 422
+async def test_email_notification_is_created_and_delivered(client):
+    response = await client.post("/notifications/", json=EMAIL)
+    assert response.status_code == 202
+    assert response.json()["status"] == "pending"
+    # ASGITransport runs background tasks before returning, so the row is already "sent"
+    async with client.sessions() as db:
+        assert (await db.scalar(select(Notification.status))) == "sent"
+
+async def test_email_needs_a_subject(client):
+    payload = {"channel": "email", "recipient": "user@example.com", "body": "Hello"}
+    assert (await client.post("/notifications/", json=payload)).status_code == 422
+
+async def test_requires_bearer_token(client):
+    response = await client.post("/notifications/", json=EMAIL, headers={"Authorization": "Bearer x"})
+    assert response.status_code == 401
+```
+
+## Step 8: Docker
+
+A multi-stage build keeps uv and the build cache out of the final image, the service runs as a non-root user, and `uv.lock` makes the install reproducible. Use a managed or separately run PostgreSQL for the data.
+
+```dockerfile
+FROM python:3.14-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:0.12.20 /uv /usr/local/bin/uv
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+FROM python:3.14-slim
+WORKDIR /app
+RUN useradd --system --uid 1001 app
+COPY --from=builder /app/.venv /app/.venv
+COPY . .
+ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
+USER app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+```
+
+Add a `.dockerignore` with `.venv`, `.git`, `.env`, `__pycache__` and `tests/`; `DATABASE_URL` and `API_TOKEN` go in an env file kept out of the repo and the image. Run migrations in a one-off container so the four workers never race to migrate, and publish the port on `127.0.0.1` only (a reverse proxy in front handles TLS):
+
+```bash
+docker build -t notification-service .
+docker run --rm --env-file prod.env notification-service alembic upgrade head
+docker run -d --name notifications --env-file prod.env -p 127.0.0.1:8000:8000 --restart unless-stopped notification-service
 ```
 
 ## Results
 
-The notification service handles 5,000 notifications/minute on a single instance (4 Uvicorn workers). The async architecture means sending an email doesn't block processing other requests. Pydantic catches malformed inputs before they reach the database — invalid phone numbers, missing subjects for emails, oversized payloads. Alembic migrations run in CI, so schema changes are tested before reaching production. The test suite runs in 3 seconds (in-memory SQLite), giving the team confidence to refactor and ship daily. When the team extracts the next microservice (billing), they copy the project structure and have a working skeleton in 30 minutes.
+Ramon's team now has a service skeleton with separate layers: Pydantic rejects malformed input before it reaches the database, delivery runs after the response and is safe to retry, and the same Alembic migrations run locally, in CI and in the container. The tests run in under a second against SQLite. For the next service (billing) they copy this layout and the Dockerfile.
+
+## Related Skills
+
+- [fastapi](/skills/fastapi) — app factory, `Depends`, background tasks and async tests
+- [sqlalchemy](/skills/sqlalchemy) — the async engine, sessions and the 2.x mapped model
+- [alembic](/skills/alembic) — the async migration environment and autogenerate
+- [pydantic](/skills/pydantic) — cross-field validation and settings
+- [pytest](/skills/pytest) — async fixtures and `asyncio_mode`
+- [uvicorn](/skills/uvicorn) — running the app with several workers
+- [docker-helper](/skills/docker-helper) — the multi-stage Dockerfile and `.dockerignore`

@@ -1,13 +1,13 @@
 ---
-title: "Migrate from Firebase to Supabase and Cut Costs by 60%"
+title: "Migrate a Production App from Firebase to Supabase Without Downtime"
 slug: migrate-firebase-to-supabase
-description: "Migrate a production application from Firebase to Supabase: move Firebase Auth users with their password hashes, Firestore data to Postgres, and real-time listeners, while running both systems in parallel."
+description: "Migrate a production application from Firebase to Supabase: move Firebase Auth users, Firestore data to Postgres, and real-time listeners, while running both systems in parallel."
 skills: [supabase, data-migration, database-schema-designer]
 category: development
 tags: [supabase, firebase, migration, postgres, database, cost-optimization]
 ---
 
-# Migrate from Firebase to Supabase and Cut Costs by 60%
+# Migrate a Production App from Firebase to Supabase Without Downtime
 
 ## The Problem
 
@@ -19,7 +19,7 @@ Leo wants Postgres (JOINs, full-text search, SQL) on Supabase, but the app has p
 
 ## The Solution
 
-Using the **supabase**, **data-migration** and **database-schema-designer** skills, the agent redesigns the schema from denormalized Firestore documents into relational tables, copies the data in dependency order with idempotent upserts, imports Firebase Auth users together with their password hashes, converts the real-time listeners, and runs both systems in parallel before cutting over.
+Using the **supabase**, **data-migration** and **database-schema-designer** skills, the agent redesigns the schema from denormalized Firestore documents into relational tables, copies the data in dependency order with idempotent upserts, imports Firebase Auth users, converts the real-time listeners, and runs both systems in parallel before cutting over.
 
 ## Step-by-Step Walkthrough
 
@@ -107,11 +107,21 @@ create policy "members read tasks" on tasks for select to authenticated using (
 
 -- Realtime: postgres_changes only fires for tables in this publication
 alter publication supabase_realtime add table tasks;
+-- DELETE events can only be filtered (Step 4) when the old row is logged in full
+alter table tasks replica identity full;
 ```
 
-### Step 2: Move Firebase Auth Users With Their Passwords
+Apply it to a local stack first, then to the linked hosted project (CLI 3 acts on the local stack unless you pass `--remote`, and asks before changing a hosted project; add `--yes` in CI):
 
-Firebase does export password hashes: they are scrypt hashes (a modified scrypt), and Supabase Auth can verify that format natively. Nobody has to reset a password. In the Firebase console open Authentication, Users, the three-dot menu, Password hash parameters, and save `base64_signer_key`, `base64_salt_separator`, `rounds` and `mem_cost`. Then `admin.createUser` takes a `password_hash` in the form `$fbscrypt$v=1,n=<mem_cost>,r=<rounds>,p=1,ss=<salt separator>,sk=<signer key>$<user salt>$<user hash>`; the first two parameters map onto `n` and `r` exactly as the Supabase Auth test suite uses them.
+```console
+$ npx supabase db reset
+$ npx supabase db push --remote --dry-run
+$ npx supabase db push --remote
+```
+
+### Step 2: Move Firebase Auth Users
+
+Firebase password hashes are a modified scrypt. Supabase's documented route for them is the community [`firebase-to-supabase`](https://github.com/supabase-community/firebase-to-supabase) repository (linked from Supabase's [Firebase Auth migration guide](https://supabase.com/docs/guides/platform/migrating-to-supabase/firebase-auth)): `firestoreusers2json.js` exports the users to a JSON file, `import_users.js` writes them into `auth.users` over a direct Postgres connection, and its `middleware` server verifies a user's existing Firebase password at login. All three need the hash parameters from the Firebase console (Authentication, Users, the three-dot menu, Password hash parameters: `base64_signer_key`, `base64_salt_separator`, `rounds`, `mem_cost`), and the repository marks the middleware as work in progress. If you do not want to run that server, the simpler route below creates the users without passwords and has each user set a new one the first time they sign in.
 
 ```typescript
 import { initializeApp, cert } from 'firebase-admin/app';
@@ -119,15 +129,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { createClient } from '@supabase/supabase-js';
 
 initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS!) });
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-// Firebase console > Authentication > Users > ⋮ > Password hash parameters
-const { SIGNER_KEY, SALT_SEPARATOR, ROUNDS, MEM_COST } = process.env as Record<string, string>;
-const b64 = (s: string) => Buffer.from(s, 'base64').toString('base64'); // web-safe -> standard base64
-
-// Supabase Auth verifies this format natively; the hash is replaced by a bcrypt one when the user next sets a password
-export const fbscrypt = (salt: string, hash: string) =>
-  `$fbscrypt$v=1,n=${MEM_COST},r=${ROUNDS},p=1,ss=${b64(SALT_SEPARATOR)},sk=${b64(SIGNER_KEY)}$${b64(salt)}$${b64(hash)}`;
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
 
 async function main() {
   let pageToken: string | undefined;
@@ -138,10 +140,9 @@ async function main() {
       const { error } = await supabase.auth.admin.createUser({
         email: u.email,
         email_confirm: u.emailVerified,
-        password_hash: u.passwordHash && u.passwordSalt ? fbscrypt(u.passwordSalt, u.passwordHash) : undefined,
         user_metadata: { firebase_uid: u.uid, display_name: u.displayName, avatar_url: u.photoURL },
       });
-      if (error) console.error(u.uid, error.message); // log and continue; rerun is safe for already-created users
+      if (error) console.error(u.uid, error.message); // log and continue; users that already exist just report an error on rerun
     }
     pageToken = page.pageToken;
   } while (pageToken);
@@ -149,7 +150,7 @@ async function main() {
 if (require.main === module) main();
 ```
 
-Users who signed in with Google or a magic link have no hash. They are created with a confirmed email, and when they next sign in through Google, Supabase Auth links the new identity to the existing user because the verified email matches. The `handle_new_user` trigger from Step 1 creates each user's profile with their `firebase_uid`. Phone and anonymous users have no email and need their own handling. The community [`firebase-to-supabase`](https://github.com/supabase-community/firebase-to-supabase) tools are an alternative; their password-verifying middleware is still marked work in progress, so the `password_hash` route above is the simpler one.
+Users who signed in with Google or a magic link need nothing more: when they next sign in through Google, Supabase Auth links the new identity to the existing user because the verified email matches. Email/password users get a "set your password" email (`supabase.auth.resetPasswordForEmail(email, { redirectTo })`) when they first open the new app, so announce this to them before cutover. The `handle_new_user` trigger from Step 1 creates each user's profile with their `firebase_uid`.
 
 Timeline: import auth users in week 1 (no user impact), switch login in week 2, disable Firebase Auth in week 4.
 
@@ -164,7 +165,7 @@ import { createClient } from '@supabase/supabase-js';
 
 initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS!) });
 const db = getFirestore();
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); // service role bypasses RLS
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!); // the secret key bypasses RLS
 
 const iso = (v: unknown) => (v instanceof Timestamp ? v.toDate().toISOString() : v ?? null);
 
@@ -218,11 +219,11 @@ async function main() {
 if (require.main === module) main();
 ```
 
-The service role key bypasses RLS: keep it in the migration environment only, never in a client.
+The secret key (`sb_secret_...`; the legacy `service_role` key behaves the same) bypasses RLS: keep it in the migration environment only, never in a client.
 
 ### Step 4: Convert Real-Time Listeners
 
-The app used Firestore `onSnapshot` in four places. In Supabase, loading and subscribing are separate calls. The table must be in the `supabase_realtime` publication (done at the end of the schema) and RLS policies apply to what each user receives. For `DELETE` events `payload.old` carries only the primary key unless you set `replica identity full` on the table.
+The app used Firestore `onSnapshot` in four places. In Supabase, loading and subscribing are separate calls. The table must be in the `supabase_realtime` publication (done at the end of the schema) and RLS policies apply to what each user receives. RLS policies are not applied to `DELETE` events, and a `filter` only matches `DELETE` events when the table has `replica identity full` (set in the schema above); without it `payload.old` carries only the primary key.
 
 ```typescript
 // Load current data
@@ -257,11 +258,11 @@ Write to Supabase and Firebase for two weeks, read only from Supabase. A nightly
 - The rollback plan (switch reads back to Firebase) has been tested
 - A billing alert is set on the Firebase project
 
-Storage buckets follow the same pattern: the Supabase guide on migrating Firebase Storage files covers copying files and keeping their paths. One week after cutover remove the dual-write code, and archive the Firebase project for 90 days before deleting it.
+Storage buckets follow the same pattern: Supabase's guides on Firestore data and Firebase Storage migration (under Platform > Migrating to Supabase in the docs) cover the official scripts for copying data and files. One week after cutover remove the dual-write code, and archive the Firebase project for 90 days before deleting it.
 
 ## Real-World Example
 
-Leo's team replaces Firebase plus Algolia with one Supabase project. The Algolia subscription disappears because Postgres full-text search covers it, and the monthly bill drops by about 60 percent (Leo's figures, yours depend on plan, compute size and traffic). Queries that needed client-side gymnastics, such as "all projects tagged urgent where user X is assigned", become a two-table JOIN. The migration takes three weeks end to end without downtime, and email/password users sign in with the passwords they already had.
+Leo's team replaces Firebase plus Algolia with one Supabase project. The Algolia subscription disappears because Postgres full-text search covers it, and the monthly bill drops (Leo's own figures; yours depend on plan, compute size and traffic). Queries that needed client-side gymnastics, such as "all projects tagged urgent where user X is assigned", become a two-table JOIN. The migration takes three weeks end to end without downtime, and email/password users set a new password through a reset email on their first visit.
 
 ## Related Skills
 

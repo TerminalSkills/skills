@@ -2,7 +2,7 @@
 title: "Deploy and Manage Production Applications on Kubernetes with Helm"
 slug: deploy-and-manage-apps-on-kubernetes
 description: "Go from Docker containers to a production Kubernetes deployment with Helm charts, autoscaling, TLS ingress, GitOps, and zero-downtime rollouts."
-skills: [kubernetes-helm, docker-helper, cicd-pipeline, security-audit]
+skills: [kubernetes-helm, docker-helper, github-actions, security-audit]
 category: devops
 tags: [kubernetes, helm, deployment, gitops, containers, production]
 ---
@@ -11,13 +11,13 @@ tags: [kubernetes, helm, deployment, gitops, containers, production]
 
 ## The Problem
 
-A team runs 6 microservices on a handful of EC2 instances with docker-helper. Deployments are SSH-and-pray: someone logs into the server, pulls the latest image, and restarts the container. There is no autoscaling — during a product launch last quarter, the API server maxed out and returned 503s for 2 hours while the team scrambled to spin up more instances manually.
+A team runs 6 microservices on a handful of EC2 instances with Docker Compose. Deployments are SSH-and-pray: someone logs into the server, pulls the latest image, and restarts the container. There is no autoscaling — during a product launch last quarter, the API server maxed out and returned 503s for 2 hours while the team scrambled to spin up more instances manually.
 
 Rollbacks mean manually reverting image tags and hoping the database migration was backward-compatible. Staging and production drift constantly because configs are edited in place. The team wants to move to Kubernetes but nobody has done it before, and the Kubernetes documentation reads like it was written for people who already know Kubernetes.
 
 ## The Solution
 
-Using **kubernetes-helm** to write Kubernetes manifests and Helm charts, **docker-helper** to optimize container images, **cicd-pipeline** to automate builds and deploys with GitOps, and **security-audit** to harden the cluster, the entire stack goes from SSH-and-pray to automated, scalable, and reproducible.
+Using **kubernetes-helm** to write Kubernetes manifests and Helm charts, **docker-helper** to optimize container images, **github-actions** to automate image builds and chart checks (with Argo CD doing the deploys), and **security-audit** to scan images and charts and review the cluster, the entire stack goes from SSH-and-pray to automated, scalable, and reproducible.
 
 ## Step-by-Step Walkthrough
 
@@ -28,10 +28,10 @@ The migration happens in five stages: optimize the Docker images, write the Helm
 The Docker images are the foundation, and right now they're massive:
 
 ```text
-We have 6 services: API (Node.js), frontend (React/nginx), auth service (Go), worker (Python), PostgreSQL, and Redis. The Docker images are large (API is 1.2 GB, worker is 900 MB). Optimize all Dockerfiles with multi-stage builds and create a docker-helper.yaml for local development that mirrors the Kubernetes setup. Target image sizes under 200 MB each.
+We have 6 services: API (Node.js), frontend (React/nginx), auth service (Go), worker (Python), PostgreSQL, and Redis. The Docker images are large (API is 1.2 GB, worker is 900 MB). Optimize all Dockerfiles with multi-stage builds and create a `compose.yaml` for local development that mirrors the Kubernetes setup. Target image sizes under 200 MB each.
 ```
 
-Multi-stage builds make the difference. The Node.js API drops from 1.2GB to 140MB by using an alpine builder stage that installs dependencies, compiles TypeScript, and copies only the production output to a slim runtime image. The Python worker goes from 900MB to 180MB with the same pattern — `pip install` in a build stage, copy site-packages to a slim base.
+Multi-stage builds make the difference. The Node.js API drops from 1.2GB to 140MB: a builder stage installs dependencies and compiles TypeScript, then `npm prune --omit=dev` and the compiled output are copied to a `node:24-alpine` runtime stage that runs as the built-in `node` user. The Python worker goes from 900MB to 180MB with the same pattern — `pip install` in a build stage, copy site-packages to a slim base.
 
 | Service | Before | After | Technique |
 |---------|--------|-------|-----------|
@@ -40,7 +40,7 @@ Multi-stage builds make the difference. The Node.js API drops from 1.2GB to 140M
 | Auth (Go) | 350 MB | 12 MB | Scratch base with static binary |
 | Worker (Python) | 900 MB | 180 MB | Slim runtime, no build tools |
 
-Every image gets a health check endpoint and runs as a non-root user. The Go auth service compiles to a static binary and runs on `scratch` — the smallest possible base image, with literally nothing except the binary. Total image size drops from 4.5GB to 800MB — deploy times shrink proportionally, and container startup times improve because there's less to load from the registry.
+Every image runs as a non-root user and exposes a health endpoint that Kubernetes probes will use (a `HEALTHCHECK` in the Dockerfile is ignored by Kubernetes). The Go auth service compiles to a static binary and runs on `scratch` — the smallest possible base image, with literally nothing except the binary. Total image size drops from 4.5GB to 800MB — deploy times shrink proportionally, and container startup times improve because there's less to load from the registry.
 
 ### Step 2: Write the Helm Chart
 
@@ -52,15 +52,15 @@ Create a Helm chart for our entire platform. Each service should be a subchart o
 - Worker: 2 replicas, processes background jobs from Redis queue
 - PostgreSQL: StatefulSet with 50Gi persistent volume (or use cloud-managed)
 - Redis: single replica for caching, no persistence needed
-- Ingress: nginx-ingress with TLS via cert-manager
+- Routing: Gateway API (`Gateway` + `HTTPRoute`) with TLS via cert-manager, not ingress-nginx (the Kubernetes project retired it in March 2026)
 - Separate values files for dev, staging, and production
 
-Include resource requests/limits, pod disruption budgets, network policies, and service accounts with minimal RBAC.
+Include resource requests/limits, pod disruption budgets, network policies, and service accounts with minimal RBAC. Use `autoscaling/v2` for the HPA.
 ```
 
 The Helm chart comes out with parameterized templates, helper functions for consistent labels and selectors, and three environment-specific values files. Dev uses minimal resources (1 replica each, small memory limits). Production uses HA configuration (multiple replicas, pod disruption budgets, anti-affinity rules).
 
-The key insight: resource requests and limits are different per environment. Dev gets `requests: 128Mi / limits: 256Mi` so it runs on a laptop. Production gets `requests: 512Mi / limits: 1Gi` with HPA to scale based on actual load. The chart passes `helm lint` and `helm template` without errors.
+The key insight: resource requests and limits are different per environment. Dev gets `requests: 128Mi / limits: 256Mi` so it runs on a laptop. Production gets `requests: 512Mi / limits: 1Gi` with HPA to scale based on actual load. The chart is checked with `helm lint` and `helm template ... | kubectl apply --dry-run=server -f -` before anything is deployed, and `helm diff upgrade` (a plugin) shows what each upgrade would change.
 
 ### Step 3: Set Up the Cluster and Deploy
 
@@ -68,18 +68,18 @@ The key insight: resource requests and limits are different per environment. Dev
 We're using EKS (AWS). Set up the cluster with:
 - 3 node groups: system (t3.medium), app (t3.large), worker (c5.xlarge spot)
 - Taints on worker nodes so only worker pods schedule there
-- Install nginx-ingress controller, cert-manager, external-secrets-operator
+- Install the Gateway API CRDs and a Gateway API controller (Envoy Gateway, Traefik, or your cloud's), cert-manager with its Gateway API support enabled, and external-secrets-operator
 - Create namespaces: app-dev, app-staging, app-production with resource quotas
 - Deploy our Helm chart to staging first
 
 Walk me through the commands step by step.
 ```
 
-The cluster setup follows a specific order: EKS cluster first (via `eksctl` with a cluster config YAML), then cluster add-ons (ingress, cert-manager, external-secrets), then namespaces with resource quotas and limit ranges, then the first deployment to staging.
+The cluster setup follows a specific order: EKS cluster first (via `eksctl` with a cluster config YAML), then cluster add-ons (Gateway API controller, cert-manager, external-secrets), then namespaces with resource quotas and limit ranges, then the first deployment to staging.
 
-Spot instances for the worker node group save 65% on compute — background jobs are tolerant of interruption, so spot is a natural fit. Taints ensure only worker pods land on worker nodes, keeping the app nodes clean for latency-sensitive API traffic.
+Spot instances for the worker node group cost far less than on-demand — background jobs are tolerant of interruption, so spot is a natural fit (the discount varies by instance type and region, so check current spot prices). Taints ensure only worker pods land on worker nodes, keeping the app nodes clean for latency-sensitive API traffic.
 
-Each step includes verification commands. The cluster isn't "done" until `kubectl get pods -A` shows everything running, cert-manager successfully issues a test certificate, and the staging deployment responds to health checks through the ingress.
+Each step includes verification commands. The cluster isn't "done" until `kubectl get pods -A` shows everything running, cert-manager successfully issues a test certificate for the Gateway listener, and the staging deployment responds to health checks through the `HTTPRoute`.
 
 One common mistake at this stage: deploying directly to production-like settings before validating in staging. The staging namespace gets resource quotas that cap total CPU and memory — so a misconfigured deployment can't consume the entire cluster — and limit ranges that set defaults for pods that don't specify resource requests. This catches configuration errors early, before they affect production.
 
@@ -100,12 +100,14 @@ Show me the full ArgoCD configuration.
 
 ArgoCD turns git into the source of truth. Push a change to the Helm chart, ArgoCD detects the diff and syncs the cluster to match. No more SSH, no more `kubectl apply` from laptops, no more "who deployed what and when?"
 
+The **github-actions** skill covers the CI half: a GitHub Actions workflow runs the tests, builds each image, pushes it tagged with the commit SHA, runs `helm lint`, and commits the new tag into the values file Argo CD watches. CI never holds cluster credentials; Argo CD pulls the change.
+
 Three Application resources get created with different sync policies:
 - **Dev:** auto-sync on every push to main, auto-prune orphaned resources
 - **Staging:** auto-sync from release branches, requires passing health checks
-- **Production:** manual sync only, requires platform team approval via RBAC
+- **Production:** no automated sync; only the platform team's Argo CD RBAC role is allowed to run `sync` for the production Application
 
-Slack notifications fire on every sync — success and failure. The team always knows when a deployment happened and whether it worked. No more "who deployed to production at 3 PM?" — the notification includes the git commit, the author, and the sync result.
+Slack notifications (Argo CD Notifications, with triggers and templates from its catalog) fire on every sync — success and failure. The team always knows when a deployment happened and whether it worked. No more "who deployed to production at 3 PM?" — the notification includes the git commit, the author, and the sync result.
 
 ### Step 5: Add Monitoring, Autoscaling, and Security
 
@@ -116,22 +118,22 @@ Complete the production setup:
 - Alerts for: pod CrashLoopBackOff, high error rate, HPA at max replicas, node disk pressure, certificate expiry
 - Configure zero-downtime rolling updates with preStop hooks and PDBs
 - Set up KEDA for the worker to scale based on Redis queue length
-- Run a security audit: pod security standards, network policies, RBAC review
+- Run a security audit: Pod Security Admission labels (`pod-security.kubernetes.io/enforce: restricted`), network policies, RBAC review, plus `trivy config` on the chart and `trivy image` on each image
 ```
 
 The monitoring stack goes in via `kube-prometheus-stack` with custom Grafana dashboards covering all key metrics. Alerting rules catch the things that matter: CrashLoopBackOff (something is broken), HPA at max replicas (you're running out of headroom), and certificate expiry (TLS will break in 30 days).
 
 Zero-downtime deploys use `preStop` hooks (`sleep 10` to drain connections) and PodDisruptionBudgets (`minAvailable: 1` so at least one pod is always serving). KEDA scales the worker based on Redis list length instead of CPU — a much better signal for queue-based workloads.
 
-The security audit scans for common Kubernetes misconfigurations: containers running as root, missing network policies, overly permissive RBAC roles, and pods without security contexts. Each finding comes with a specific fix — not a vague recommendation but an actual manifest change. "Container runs as root" becomes "add `securityContext: { runAsNonRoot: true, runAsUser: 1000 }` to the pod spec" with the exact YAML.
+The security-audit skill reviews the rendered manifests (running `trivy config` and `trivy image` alongside its own scans) for common Kubernetes misconfigurations: containers running as root, missing network policies, overly permissive RBAC roles, and pods without security contexts. Each finding comes with a specific fix — not a vague recommendation but an actual manifest change. "Container runs as root" becomes "add `securityContext: { runAsNonRoot: true, runAsUser: 1000 }` to the pod spec" with the exact YAML.
 
 This is the kind of hardening that teams skip when they're rushing to get to production and then never come back to. Having it built into the initial setup means the cluster starts secure instead of starting insecure and hoping someone remembers to fix it later.
 
 ## Real-World Example
 
-A lead engineer at a 20-person SaaS startup runs 6 services on EC2 with docker-helper. Deployments require SSH access, there's no autoscaling, and last quarter's product launch caused a 2-hour outage from overloaded servers.
+A lead engineer at a 20-person SaaS startup runs 6 services on EC2 with Docker Compose. Deployments require SSH access, there's no autoscaling, and last quarter's product launch caused a 2-hour outage from overloaded servers.
 
-Docker image optimization drops total image size from 4.5GB to 800MB, cutting deploy times by 70%. The Helm chart codifies the entire stack — spinning up a new environment takes 5 minutes instead of a day of manual configuration. EKS with spot instances for workers saves 65% on compute costs compared to on-demand EC2.
+Docker image optimization drops total image size from 4.5GB to 800MB, cutting deploy times by 70%. The Helm chart codifies the entire stack — spinning up a new environment takes 5 minutes instead of a day of manual configuration. Spot instances for the workers cut the compute bill for background jobs noticeably.
 
 ArgoCD automates deployments: git push triggers a staged rollout through dev, staging, and production. No more SSH, no more "who deployed this?" The HPA handles the next product launch smoothly — the API scales from 3 to 15 pods in 2 minutes, zero 503s, zero manual intervention.
 

@@ -5,7 +5,6 @@ description: Build a memory system that lets your AI agent remember project cont
 skills:
   - agent-memory
   - supabase
-  - test-generator
   - hindsight
 category: data-ai
 tags:
@@ -27,29 +26,33 @@ Riku needs the agent to remember: project decisions, coding preferences, past mi
 
 ## The Solution
 
-Use agent-memory to build a three-tier memory system: file-based daily logs for session continuity, structured entity files for project knowledge, and a curated long-term memory that the agent loads at session start. Use supabase for storing embeddings when the memory grows large enough to need semantic search.
+Start with the memory the agent already loads (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`). Add the three-tier file memory from agent-memory only for what those files cannot hold: daily logs for session continuity, entity files for project knowledge, and a curated `MEMORY.md`. When the notes outgrow grep, use supabase (Postgres with pgvector) for semantic search, or run hindsight when several agents or users must share one memory service.
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Set Up the Memory File Structure
+### Step 1: Use the memory your agent already has
 
-The simplest memory system is also the most robust — markdown files in a `memory/` directory. No database, no embeddings, no API keys. The agent reads them at session start and writes to them during work.
+Instruction files are loaded at the start of every session, reviewed in pull requests, and need no code:
+
+| Agent | Persistent instructions |
+|-------|-------------------------|
+| Claude Code | `CLAUDE.md` (project and `~/.claude/CLAUDE.md`), `.claude/rules/*.md`; auto memory writes notes to `~/.claude/projects/<project>/memory/` (browse with `/memory`) |
+| OpenAI Codex | `AGENTS.md`, combined size capped by `project_doc_max_bytes` (32 KiB) |
+| Gemini CLI | `GEMINI.md` (`/memory show`, `/memory reload`) |
+
+Put the facts that cost Riku the most time there: "Vitest, not Jest", "tRPC only", "run `prisma migrate deploy` before tests". Everything below is for memory that is too large, too dynamic, or must be searched by meaning.
+
+### Step 2: Set up the memory file structure
+
+Markdown files in a `memory/` directory are the simplest system and the easiest to debug: no database, no embeddings, no API keys.
 
 ```
 workspace/
-├── MEMORY.md                    # Curated long-term knowledge
 ├── memory/
-│   ├── 2026-02-24.md           # Today's session log
-│   ├── 2026-02-23.md           # Yesterday's log
-│   ├── entities/
-│   │   ├── architecture.md     # System architecture decisions
-│   │   ├── conventions.md      # Coding standards and preferences
-│   │   ├── mistakes.md         # Past errors to avoid
-│   │   └── people.md           # Team members and their roles
-│   └── heartbeat-state.json    # Periodic task tracking
+│   ├── MEMORY.md               # Curated long-term knowledge, kept short
+│   ├── 2026-11-05.md           # Today's session log
+│   └── entities/               # architecture.md, conventions.md, mistakes.md
 ```
-
-The `MEMORY.md` file is the agent's curated brain — distilled knowledge it loads every session:
 
 ```markdown
 # MEMORY.md — Project Knowledge Base
@@ -59,343 +62,238 @@ The `MEMORY.md` file is the agent's curated brain — distilled knowledge it loa
 - **API**: tRPC exclusively — no REST endpoints, no GraphQL
 - **Testing**: Vitest + Testing Library — NOT Jest
 - **Deployment**: Railway (not Vercel) — needs persistent workers
-- **Database**: Supabase Postgres with RLS enabled on all tables
-- **Auth**: Lucia Auth v3 with GitHub OAuth + magic links
-
-## Coding Conventions
-- TypeScript strict mode, no `any` types
-- Barrel exports prohibited — import from specific files
-- Error handling: neverthrow Result types, not try-catch
-- File naming: kebab-case for files, PascalCase for components
-- Max file length: 300 lines — split into modules if larger
 
 ## Known Pitfalls
 - CI breaks if migrations aren't run before tests (prisma migrate deploy)
-- Railway deploys fail if the health check path isn't /api/health
-- Supabase RLS policies must use auth.uid(), never trust client IDs
-- The monorepo uses pnpm workspaces — npm install will break lockfile
-
-## Team
-- Riku: Lead dev, focuses on backend and infrastructure
-- Aiko: Frontend, owns the design system and component library
-- Bot access: Read-only to staging DB, no production access
 ```
 
-### Step 2: Implement Session Lifecycle Hooks
+Keep the always-loaded file short and put detail in topic files. Never store secrets or personal data here; the folder is plain text and usually committed.
 
-The agent needs two hooks: one at session start to load context, one during work to save important information.
+### Step 3: Load and save memory at session boundaries
+
+The agent needs a way to load context at session start and write notes during work. Point your agent's startup instruction at the output of this module.
 
 ```typescript
-// session-memory.ts — Memory management for agent session lifecycle
-/**
- * Handles loading memory at session start and saving new
- * knowledge during the session. Designed to be called from
- * the agent's initialization and on-event hooks.
- */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+// session-memory.ts — load memory at session start, save notes during work
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-const WORKSPACE = process.cwd();
-const MEMORY_DIR = join(WORKSPACE, "memory");
-const MEMORY_FILE = join(WORKSPACE, "MEMORY.md");
+const MEMORY_DIR = join(process.cwd(), "memory");
+const MEMORY_FILE = join(MEMORY_DIR, "MEMORY.md");
 
-interface SessionContext {
-  longTermMemory: string;
-  recentLogs: string[];
-  entities: Record<string, string>;
-}
+const today = (offsetDays = 0) =>
+  new Date(Date.now() - offsetDays * 86_400_000).toISOString().slice(0, 10);
 
-/**
- * Load all relevant memory at session start.
- * Called once when the agent initializes.
- */
-export function loadSessionContext(): SessionContext {
-  // Load curated long-term memory
-  const longTermMemory = existsSync(MEMORY_FILE)
-    ? readFileSync(MEMORY_FILE, "utf-8")
-    : "";
+/** Everything the agent should read before its first task. */
+export function loadSessionContext() {
+  const read = (p: string) => (existsSync(p) ? readFileSync(p, "utf-8") : "");
 
-  // Load last 3 days of session logs
-  const recentLogs: string[] = [];
-  for (let i = 0; i < 3; i++) {
-    const date = new Date(Date.now() - i * 86400000)
-      .toISOString()
-      .split("T")[0];
-    const logFile = join(MEMORY_DIR, `${date}.md`);
-    if (existsSync(logFile)) {
-      recentLogs.push(readFileSync(logFile, "utf-8"));
-    }
-  }
+  const recentLogs = [0, 1, 2]
+    .map((i) => read(join(MEMORY_DIR, `${today(i)}.md`)))
+    .filter(Boolean);
 
-  // Load entity files
-  const entities: Record<string, string> = {};
   const entitiesDir = join(MEMORY_DIR, "entities");
+  const entities: Record<string, string> = {};
   if (existsSync(entitiesDir)) {
-    const { readdirSync } = require("fs");
-    for (const file of readdirSync(entitiesDir)) {
-      if (file.endsWith(".md")) {
-        const name = file.replace(".md", "");
-        entities[name] = readFileSync(join(entitiesDir, file), "utf-8");
-      }
+    for (const file of readdirSync(entitiesDir).filter((f) => f.endsWith(".md"))) {
+      entities[file.replace(/\.md$/, "")] = read(join(entitiesDir, file));
     }
   }
-
-  return { longTermMemory, recentLogs, entities };
+  return { longTermMemory: read(MEMORY_FILE), recentLogs, entities };
 }
 
-/**
- * Log a memory to today's session file.
- * Called whenever something worth remembering happens.
- */
-export function logMemory(content: string, section: string = "Notes"): void {
+/** Append a timestamped note under a section of today's log. */
+export function logMemory(content: string, section = "Notes"): void {
   mkdirSync(MEMORY_DIR, { recursive: true });
+  const logFile = join(MEMORY_DIR, `${today()}.md`);
+  let text = existsSync(logFile) ? readFileSync(logFile, "utf-8") : `# ${today()}\n`;
 
-  const today = new Date().toISOString().split("T")[0];
-  const logFile = join(MEMORY_DIR, `${today}.md`);
+  const header = `## ${section}`;
+  if (!text.includes(header)) text += `\n${header}\n`;
 
-  const timestamp = new Date().toLocaleTimeString("en-US", { hour12: false });
-
-  let existing = "";
-  if (existsSync(logFile)) {
-    existing = readFileSync(logFile, "utf-8");
-  } else {
-    existing = `# ${today}\n`;
-  }
-
-  // Append under the right section
-  const sectionHeader = `## ${section}`;
-  if (!existing.includes(sectionHeader)) {
-    existing += `\n${sectionHeader}\n`;
-  }
-
-  const entry = `- [${timestamp}] ${content}\n`;
-  const insertPos = existing.indexOf(sectionHeader) + sectionHeader.length + 1;
-  const updated = existing.slice(0, insertPos) + entry + existing.slice(insertPos);
-
-  writeFileSync(logFile, updated);
-}
-
-/**
- * Update long-term memory with a new fact or correction.
- * Called when the agent learns something that should persist permanently.
- */
-export function updateLongTermMemory(
-  section: string,
-  key: string,
-  value: string
-): void {
-  let content = existsSync(MEMORY_FILE)
-    ? readFileSync(MEMORY_FILE, "utf-8")
-    : "# MEMORY.md\n";
-
-  const sectionHeader = `## ${section}`;
-
-  // Add section if it doesn't exist
-  if (!content.includes(sectionHeader)) {
-    content += `\n${sectionHeader}\n`;
-  }
-
-  // Check if key already exists and update it
-  const keyPattern = new RegExp(`^- \\*\\*${key}\\*\\*:.*$`, "m");
-  const newEntry = `- **${key}**: ${value}`;
-
-  if (keyPattern.test(content)) {
-    content = content.replace(keyPattern, newEntry);
-  } else {
-    // Insert after section header
-    const pos = content.indexOf(sectionHeader) + sectionHeader.length + 1;
-    content = content.slice(0, pos) + newEntry + "\n" + content.slice(pos);
-  }
-
-  writeFileSync(MEMORY_FILE, content);
+  const time = new Date().toLocaleTimeString("en-GB"); // 24-hour HH:MM:SS
+  const at = text.indexOf(header) + header.length + 1;
+  writeFileSync(logFile, `${text.slice(0, at)}- [${time}] ${content}\n${text.slice(at)}`);
 }
 ```
 
-### Step 3: Add Semantic Search for Large Memory Stores
+### Step 4: Consolidate daily logs into long-term knowledge
 
-When memory grows past what fits in a context window — hundreds of daily logs, dozens of entity files — keyword search isn't enough. "That time we fixed the WebSocket reconnection issue" should find the log entry about "Supabase realtime subscription kept dropping."
+Raw session logs are noisy. Once a week, give the last seven days of logs and the current `MEMORY.md` to the agent (or a local model) with an instruction like: "Merge durable decisions and corrections into MEMORY.md, drop facts that are no longer true, date each change, keep it under 150 lines." Write the result back to `MEMORY.md` and review the diff. A wrong memory is worse than none, so the consolidation pass must also delete stale entries, not only add new ones.
+
+### Step 5: Add semantic search with Supabase pgvector
+
+When there are hundreds of logs, "that time the WebSocket reconnection kept failing" should find the entry about "realtime subscription kept dropping". Keep the files as the source of truth and index them in Postgres. Create the schema as a migration so it is reproducible:
+
+Run `npx supabase init`, `npx supabase start` and `npx supabase migration new memory_embeddings`, then put this in the new file under `supabase/migrations/`. `text-embedding-3-small` returns 1536 dimensions; the column size must match the embedding model.
+
+```sql
+create extension if not exists vector with schema extensions;
+
+create table public.memory_embeddings (
+  id bigint generated always as identity primary key,
+  file_path text not null,
+  chunk_index int not null,
+  content text not null,
+  embedding extensions.vector(1536) not null,
+  updated_at timestamptz not null default now(),
+  unique (file_path, chunk_index)
+);
+
+-- No policies: with RLS on, only the secret key (server side) can read or write.
+alter table public.memory_embeddings enable row level security;
+
+create index on public.memory_embeddings using hnsw (embedding extensions.vector_cosine_ops);
+
+create or replace function public.match_memories(
+  query_embedding extensions.vector(1536),
+  match_threshold float,
+  match_count int
+)
+returns table (content text, file_path text, similarity float)
+language sql stable
+set search_path = ''
+as $$
+  select m.content, m.file_path,
+         1 - (m.embedding operator(extensions.<=>) query_embedding) as similarity
+  from public.memory_embeddings m
+  where 1 - (m.embedding operator(extensions.<=>) query_embedding) > match_threshold
+  order by m.embedding operator(extensions.<=>) query_embedding
+  limit least(match_count, 50);
+$$;
+```
+
+Apply it locally with `npx supabase db reset`, check it, then send it to the linked project with `npx supabase db push --remote --dry-run` followed by `npx supabase db push --remote` (the CLI asks first; add `--yes` in CI).
+
+The indexer runs on a server or your laptop, never in a browser. It uses the **secret** key (`sb_secret_...`, which bypasses RLS) from the environment; the older `service_role` key still works but is being deprecated.
 
 ```typescript
-// semantic-search.ts — Vector search over agent memory files
-/**
- * Embeds memory files and provides semantic search using
- * Supabase pgvector. Falls back to keyword search if embeddings
- * are unavailable. Designed for memory stores with 1000+ entries.
- */
+// semantic-search.ts — index memory files and search them by meaning
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
-import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
-const openai = new OpenAI();
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
+  auth: { persistSession: false },
+});
+const openai = new OpenAI(); // reads OPENAI_API_KEY
+const MODEL = "text-embedding-3-small"; // 1536 dimensions
 
-/**
- * Index all memory files into Supabase with vector embeddings.
- * Run this periodically (e.g., at the end of each session).
- */
+async function embed(inputs: string[]): Promise<number[][]> {
+  const res = await openai.embeddings.create({ model: MODEL, input: inputs });
+  return res.data.map((d) => d.embedding);
+}
+
+function* markdownFiles(dir: string): Generator<string> {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) yield* markdownFiles(p);
+    else if (name.endsWith(".md")) yield p;
+  }
+}
+
+function splitIntoChunks(text: string, maxChars = 1000): string[] {
+  const chunks: string[] = [];
+  let current = "";
+  for (const para of text.split("\n\n")) {
+    if (current && current.length + para.length > maxChars) {
+      chunks.push(current.trim());
+      current = "";
+    }
+    current += para + "\n\n";
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+/** Re-index every memory file. Safe to run at the end of each session. */
 export async function indexMemoryFiles(memoryDir: string): Promise<number> {
   let indexed = 0;
+  for (const file of markdownFiles(memoryDir)) {
+    const path = relative(memoryDir, file);
+    const chunks = splitIntoChunks(readFileSync(file, "utf-8"));
+    if (chunks.length === 0) continue;
+    const vectors = await embed(chunks); // one request per file
 
-  for (const file of getAllMarkdownFiles(memoryDir)) {
-    const content = readFileSync(file, "utf-8");
-    const chunks = splitIntoChunks(content, 500); // 500 chars per chunk
+    const rows = chunks.map((content, i) => ({
+      file_path: path,
+      chunk_index: i,
+      content,
+      embedding: vectors[i],
+      updated_at: new Date().toISOString(),
+    }));
+    const { error } = await supabase
+      .from("memory_embeddings")
+      .upsert(rows, { onConflict: "file_path,chunk_index" });
+    if (error) throw error;
 
-    for (const chunk of chunks) {
-      const embedding = await embed(chunk.text);
-
-      await supabase.from("memory_embeddings").upsert({
-        file_path: file,
-        chunk_index: chunk.index,
-        content: chunk.text,
-        embedding,
-        updated_at: new Date().toISOString(),
-      });
-
-      indexed++;
-    }
+    // Drop chunks left over when the file got shorter.
+    const { error: delError } = await supabase
+      .from("memory_embeddings")
+      .delete()
+      .eq("file_path", path)
+      .gte("chunk_index", chunks.length);
+    if (delError) throw delError;
+    indexed += chunks.length;
   }
-
   return indexed;
 }
 
-/**
- * Semantic search across all indexed memory.
- * Returns the most relevant chunks ranked by cosine similarity.
- */
-export async function searchMemory(
-  query: string,
-  limit: number = 5,
-  threshold: number = 0.7 // Minimum similarity score
-): Promise<Array<{ content: string; file: string; similarity: number }>> {
-  const queryEmbedding = await embed(query);
-
+/** Most relevant chunks by cosine similarity. */
+export async function searchMemory(query: string, limit = 5, threshold = 0.4) {
+  const [queryEmbedding] = await embed([query]);
   const { data, error } = await supabase.rpc("match_memories", {
     query_embedding: queryEmbedding,
     match_threshold: threshold,
     match_count: limit,
   });
-
   if (error) throw error;
-
-  return data.map((row: any) => ({
-    content: row.content,
-    file: row.file_path,
-    similarity: row.similarity,
-  }));
-}
-
-async function embed(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",  // $0.02 per 1M tokens
-    input: text,
-  });
-  return response.data[0].embedding;
-}
-
-function splitIntoChunks(text: string, maxChars: number) {
-  const paragraphs = text.split("\n\n");
-  const chunks: Array<{ text: string; index: number }> = [];
-  let current = "";
-  let index = 0;
-
-  for (const para of paragraphs) {
-    if (current.length + para.length > maxChars && current.length > 0) {
-      chunks.push({ text: current.trim(), index });
-      current = "";
-      index++;
-    }
-    current += para + "\n\n";
-  }
-
-  if (current.trim()) {
-    chunks.push({ text: current.trim(), index });
-  }
-
-  return chunks;
+  return data as { content: string; file_path: string; similarity: number }[];
 }
 ```
 
-### Step 4: Memory Consolidation — Daily Logs to Long-Term Knowledge
+Set a similarity threshold from real queries (0.4 is a starting point for this model, not a rule) so weak matches are not injected into the prompt. Add the top three or four hits, with their file names, to the agent's instructions rather than to user messages. Every indexed chunk is sent to the embedding provider; use a local embedding model for sensitive notes, and change the column size if you switch models.
 
-Raw session logs are noisy. Every few days, the agent should review recent logs and extract the important bits into MEMORY.md. This is the equivalent of a human reviewing their notes and updating their mental model.
+### Step 6: Share memory between agents with Hindsight
 
-```typescript
-// consolidate.ts — Distill daily logs into long-term memory
-/**
- * Reviews recent daily log files and identifies:
- * - New decisions that should be permanent
- * - Mistakes that shouldn't be repeated
- * - Updated preferences or conventions
- * - Project status changes
- * Outputs a list of updates to apply to MEMORY.md.
- */
+When several agents or users need one memory, or you want fact extraction instead of managing chunks yourself, run the hindsight server. It stores memories in isolated banks and answers `recall` (search) and `reflect` (reasoned answers):
 
-interface MemoryUpdate {
-  action: "add" | "update" | "remove";
-  section: string;
-  key: string;
-  value: string;
-  reason: string; // Why this matters
-}
-
-export function identifyUpdates(recentLogs: string[]): MemoryUpdate[] {
-  const updates: MemoryUpdate[] = [];
-
-  for (const log of recentLogs) {
-    // Pattern: decisions marked with "Decision:" or "Decided:"
-    const decisions = log.match(/(?:Decision|Decided|Chose|Switched to):?\s+(.+)/gi);
-    if (decisions) {
-      for (const d of decisions) {
-        updates.push({
-          action: "add",
-          section: "Architecture Decisions",
-          key: extractKey(d),
-          value: d.replace(/^(Decision|Decided|Chose|Switched to):?\s+/i, ""),
-          reason: "Explicit decision recorded in session log",
-        });
-      }
-    }
-
-    // Pattern: errors or corrections
-    const mistakes = log.match(/(?:Mistake|Error|Bug|Fix|Wrong|Correction):?\s+(.+)/gi);
-    if (mistakes) {
-      for (const m of mistakes) {
-        updates.push({
-          action: "add",
-          section: "Known Pitfalls",
-          key: extractKey(m),
-          value: m.replace(/^(Mistake|Error|Bug|Fix|Wrong|Correction):?\s+/i, ""),
-          reason: "Error encountered and corrected during session",
-        });
-      }
-    }
-  }
-
-  return updates;
-}
-
-function extractKey(text: string): string {
-  // Take first 3-4 significant words as the key
-  return text
-    .replace(/^[^:]+:\s*/, "")
-    .split(/\s+/)
-    .slice(0, 4)
-    .join(" ")
-    .replace(/[^a-zA-Z0-9\s]/g, "")
-    .trim();
-}
+```console
+$ export OPENAI_API_KEY="$(cat ~/.secrets/openai-key)"
+$ docker run -d --name hindsight --restart unless-stopped \
+    -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 \
+    -e HINDSIGHT_API_LLM_API_KEY="$OPENAI_API_KEY" \
+    -v hindsight-data:/home/hindsight/.pg0 \
+    ghcr.io/vectorize-io/hindsight:latest
+$ pip install -U hindsight-client
 ```
+
+Keep the `127.0.0.1:` prefix: without it Docker publishes both ports on every network interface.
+
+```python
+from hindsight_client import Hindsight
+
+client = Hindsight(base_url="http://127.0.0.1:8888")
+
+client.retain(
+    bank_id="riku-project",
+    content="We switched CI to run `prisma migrate deploy` before Vitest; tests failed without it.",
+)
+
+for item in client.recall(bank_id="riku-project", query="Why did CI fail before tests?").results:
+    print(item.type, item.text)
+
+```
+
+The server uses its configured LLM to extract facts, so memory contents leave your machine for that provider. Choose file memory for one project, pgvector when you want the data in your own Postgres, and Hindsight when many agents share it.
 
 ## The Outcome
 
-Riku's agent now loads MEMORY.md at every session start — in under a second, it knows the entire project context. It uses Vitest, not Jest. It deploys to Railway, not Vercel. It uses tRPC exclusively. When it encounters something new — a tricky edge case, a team preference, a deployment gotcha — it logs it to the daily file and eventually consolidates it into long-term memory.
-
-After a month, the agent has built a comprehensive knowledge base of the project. New team members can read MEMORY.md to get up to speed. The agent's suggestions get better over time because it learns from corrections. The repeated context-setting that used to waste hours every week is gone — the agent remembers.
+Riku's agent now starts every session knowing the project: it writes Vitest tests, uses tRPC, and deploys to Railway. The facts that matter live in `CLAUDE.md` or `AGENTS.md`; the larger history lives in dated logs, consolidated weekly into `MEMORY.md`, and searchable by meaning once there is too much to grep.
 
 ## Related Skills
 
+- [agent-memory](/skills/agent-memory) — the instruction-file, markdown, SQLite and ChromaDB memory patterns
+- [supabase](/skills/supabase) — Postgres with pgvector, migrations, RLS and the CLI
 - [hindsight](/skills/hindsight) — a self-hosted memory server with retain, recall and reflect, when file-based memory is no longer enough
