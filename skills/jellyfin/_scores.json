@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:67510ba308cab4f3e4a965344fe903f13c21182ed8995812429fe06eb2767eff",
+  "scoredAt": "2026-11-06T22:46:47.319Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Linux host with Docker Engine and Compose, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.5,
+    "baselineAvg": 3,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "deploy-and-list-movies",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required Docker Compose setup, wizard POST sequence, API key creation, and specific library endpoints."
+      },
+      {
+        "name": "list-movies-without-poster",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fulfills all rubric requirements, while Response A uses a database query instead of the required API call."
+      },
+      {
+        "name": "revoke-api-key",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response A provides the required API calls and logic, while Response B does not address the task at all."
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@ skills:
   - electron
   - tauri
   - rust
+  - pake
 category: development
 tags:
   - desktop
@@ -92,3 +93,4 @@ A logistics startup with 12 warehouses built their inventory scanner as a React 
 ## Related Skills
 
 - [rust](/skills/rust) — Choose rust when the team goes the Tauri route and needs the Rust toolchain installed and help with the compile and borrow-checker errors the use case warns slow down the first weeks.
+- [pake](/skills/pake) — Choose pake when the app already exists as a website or a static build and only needs a small native window, tray icon and installers, with no native code to write.

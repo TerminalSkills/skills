@@ -7,6 +7,7 @@ skills:
   - nextjs
   - postgresql
   - yjs
+  - plate
 category: development
 tags:
   - rich-text
@@ -205,3 +206,4 @@ Olga's team ships the editor behind their existing document pages. Within the fi
 - [nextjs](/skills/nextjs): hosts the editor page and server-renders the shell
 - [postgresql](/skills/postgresql): stores the Yjs document state
 - [yjs](/skills/yjs): the CRDT layer, awareness, and persistence options
+- [plate](/skills/plate): choose it instead of Tiptap when the app is React-only and you want a Slate-based editor with a shadcn/ui kit and a ready Yjs plugin

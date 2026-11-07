@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3bd61e665485c24aea9b0128e7333135073e96f0e4204f263e31babebf777c72",
+  "scoredAt": "2026-11-06T22:43:58.604Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation instructions assume a bash shell, which may not be available on all platforms, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "install-auth-rss-monitor",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B is missing."
+      },
+      {
+        "name": "docker-compose-subpath-proxy",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements while Response A misses key specifications."
+      },
+      {
+        "name": "validate-missing-env-var",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A includes the required command and variable handling, though it lacks the exact error text and final 'valid' output; Response B omits the command, error message, and validation output entirely."
+      }
+    ]
+  }
+}

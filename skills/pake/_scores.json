@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:9585399d9024b7ca875e78692cc1a1f7538c6984a344dd323e50ed3bc0704f3b",
+  "scoredAt": "2026-11-06T22:49:55.593Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.8,
+    "baselineAvg": 0,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "package-website-with-tray-and-multi-targets",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response A includes a pake command with most required flags but omits width/height, while Response B does not use pake at all."
+      },
+      {
+        "name": "package-local-build-with-config-file",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not."
+      },
+      {
+        "name": "package-website-with-injection-and-proxy",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B directly provides the required pake command with all flags, while Response A offers an Electron setup but omits the pake command entirely."
+      }
+    ]
+  }
+}

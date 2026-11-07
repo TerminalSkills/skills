@@ -6,6 +6,7 @@ skills:
   - figma-to-code
   - tailwindcss
   - react-native
+  - screenshot-to-code
 category: design
 tags:
   - figma
@@ -335,3 +336,10 @@ export function Button({ className, variant, size, children, ...props }: ButtonP
 Marta extracts design tokens once, generating a Tailwind config that matches the Figma file exactly. Then she points the agent at individual frames and gets React components in seconds — correct spacing, colors, typography, and responsive breakpoints. Variants come out as typed props using class-variance-authority.
 
 The 40-screen design that would have taken two weeks of manual translation is done in a day. More importantly, when the designer updates a color or spacing value, Marta re-extracts tokens and every component updates. The Figma file becomes the single source of truth, not a static reference that drifts from the code.
+
+## Related Skills
+
+- [figma-to-code](/skills/figma-to-code): extracts tokens and frames from the Figma file
+- [tailwindcss](/skills/tailwindcss): utility classes and the generated token config
+- [react-native](/skills/react-native): carries the same components and tokens to mobile
+- [screenshot-to-code](/skills/screenshot-to-code): choose it when the only source is a screenshot, mockup or screen recording and there is no Figma file to read tokens from
