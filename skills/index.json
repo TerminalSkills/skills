@@ -10032,7 +10032,7 @@
     {
       "name": "postgres-js",
       "slug": "postgres-js",
-      "description": "Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to \"connect Node to Postgres\", \"run a SQL query from TypeScript\", \"insert rows with postgres.js\", \"use a transaction\", \"listen for Postgres notifications\", \"stream a big result set with a cursor\", or \"cancel a slow query\". Covers v4 connection options, dynamic inserts and filters, transactions, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.",
+      "description": "Postgres.js is a PostgreSQL client for Node.js, Bun and Deno that builds safe parameterized queries from tagged template literals. Use it when asked to \"connect Node to Postgres\", \"run a SQL query from TypeScript\", \"insert rows with postgres.js\", \"use a transaction\", \"listen for Postgres notifications\", \"stream a big result set with a cursor\", or \"cancel a slow query\". Covers v4 connection options, dynamic inserts and filters, transactions, batches, cursors, LISTEN/NOTIFY, timeouts, TLS and PgBouncer settings.",
       "category": "development",
       "tags": [
         "postgres",
@@ -10960,7 +10960,7 @@
     {
       "name": "remix",
       "slug": "remix",
-      "description": "Assists with building full-stack React web applications with Remix v2 and its successor, React Router framework mode. Use when creating apps with nested routing, loader/action patterns, progressive enhancement, or deploying to Node.js, Cloudflare Workers, or other adapters, or when migrating Remix v2 to React Router v7. Trigger words: remix, remix run, loader, action, useFetcher, nested routes, progressive enhancement, remix to react router.",
+      "description": "Assists with building full-stack React web applications with Remix v2 and its successor, React Router framework mode. Use when creating apps with nested routing, loader/action patterns, progressive enhancement, or deploying to Node.js, Cloudflare Workers, or other adapters, or when migrating Remix v2 to React Router (v7, then v8). Trigger words: remix, remix run, loader, action, useFetcher, nested routes, progressive enhancement, remix to react router.",
       "category": "development",
       "tags": [
         "remix",
@@ -14824,5 +14824,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-07T11:50:13.597Z"
+  "updatedAt": "2026-11-07T12:22:58.925Z"
 }
