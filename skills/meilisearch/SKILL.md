@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: 'Linux, macOS, Docker'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: "1.2.0"
   repository: https://github.com/meilisearch/meilisearch
   category: development
   tags: "meilisearch, search, full-text, autocomplete, indexing"
@@ -36,7 +36,7 @@ docker run -d --name meilisearch \
   -v meili_data:/meili_data \
   -e MEILI_MASTER_KEY \
   -e MEILI_ENV=production \
-  getmeili/meilisearch:v1.54
+  getmeili/meilisearch:v1.56.1
 
 # Verify
 curl http://localhost:7700/health
