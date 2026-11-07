@@ -1,53 +1,47 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:b4695bbc5f95f0befab849bfa037dcd0f75cfb07c7239f397acb216e6832807f",
-  "scoredAt": "2026-10-02T22:50:03.174Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "2.0.0",
+  "skillHash": "sha256:e1203313c4202e2e0dfe724aa9e4ccec77f0e628127caa8a341466aff1921568",
+  "scoredAt": "2026-11-07T12:02:35.643Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling is covered for masking and depth limits, but there is no worked example for rate limiting (the @rateLimit directive and identifyFn are described but never shown), uploads, or Redis-backed multi-instance setups, and Example 2 uses undefined typeDefs/resolvers."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.53,
-    "baselineAvg": 58,
-    "treatmentAvg": 89,
+    "multiplier": 5.59,
+    "baselineAvg": 17,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "users-api-sse-subscription-masked-errors",
-        "baseline": 62,
-        "treatment": 92,
-        "rationale": "A matches the rubric closely, with default error masking left on, GraphQLError NOT_FOUND, createPubSub, and no WebSocket server. B overrides maskedErrors with a custom maskError, which the rubric says not to do (it asks to leave default masking on), though B's other parts are correct."
+        "name": "file-upload-sse-subscription",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A meets almost all rubric requirements, only missing the dev‑only GraphiQL condition, while Response B diverges by using Apollo, a different scalar, and SSE instead of Yoga, PubSub, and GraphQL subscriptions."
       },
       {
-        "name": "response-cache-and-depth-limit-with-fetch-test",
-        "baseline": 62,
-        "treatment": 88,
-        "rationale": "A matches the rubric closely (ttl 60_000, per-user authorization session, maxDepth 8, POST yoga.fetch with JSON body) while B uses maxDepth 7, a custom x-user header session, and messy leftover helper code, deviating from the rubric's maxDepth 8 despite correct packages and fetch testing."
+        "name": "plugin-response-cache-depth-limit-rate-limiter",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses different plugins and omits the required imports, SDL directive, and plugin configuration."
       },
       {
-        "name": "file-upload-and-rate-limit-multi-replica",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "B matches the rubric closely: it declares scalar File, takes a File! argument, reads it with file.text(), uses useRateLimiter with identifyFn, defines the @rateLimit directive with max 10 and window 5s, and notes in-memory PubSub and cache are per-process while recommending the Redis event target and a shared cache. A uses a File! argument and the Redis event target and shared cache, but it never declares scalar File, uses rate-limiter-flexible instead of @envelop/rate-limiter, and has no @rateLimit directive or useRateLimiter."
+        "name": "migrate-apollo-to-yoga",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B misses key imports, schema creation, and error handling details."
       }
     ]
   }
