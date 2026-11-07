@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:633f58a0a23ae86a77f2dc31959b64c1c0fd30bc4e8ad2e5bc65e3a8a53763e0",
-  "scoredAt": "2026-10-03T13:08:06.799Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:fb3503388bd58af32c312014ba4886e89afe43b6cd9e942dc069434a584911f1",
+  "scoredAt": "2026-11-06T23:56:13.575Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.39,
-    "baselineAvg": 64,
-    "treatmentAvg": 89,
+    "multiplier": 1.23,
+    "baselineAvg": 53,
+    "treatmentAvg": 65,
     "scenarios": [
       {
-        "name": "fix-async-fixture-strict-mode",
-        "baseline": 88,
-        "treatment": 88,
-        "rationale": "Both name the strict-mode cause, show `@pytest_asyncio.fixture` with `import pytest_asyncio`, and mention `asyncio_mode = auto` as an alternative without telling the user to rewrite the fixture synchronously; A is more focused, while B adds extra loop_scope and version advice that goes beyond the question."
+        "name": "parametrize-shipping-cost-tests",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, with B providing additional edge‑case tests."
       },
       {
-        "name": "configure-pytest-toml-with-markers",
-        "baseline": 88,
-        "treatment": 90,
-        "rationale": "Both fix imports with pythonpath, set asyncio_mode auto, register the slow marker, show strict marker enforcement, and run `pytest -m \"not slow\"`; A uses `strict = true` (matches the rubric exactly, though it needs pytest 9 and `pytest.toml`), while B uses `--strict-markers` via addopts (an accepted equivalent) and adds useful extras like the ini variant and a default-skip option."
+        "name": "async-database-fixture-test",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the required @pytest_asyncio.fixture decorator."
       },
       {
-        "name": "mock-email-patch-lookup-location",
-        "baseline": 15,
-        "treatment": 88,
-        "rationale": "Response A matches the rubric: it uses the pytest-mock `mocker` fixture, patches `app.services.notifications.send_email` with `new_callable=AsyncMock` and a `return_value`, asserts with `assert_awaited_once_with`, and checks the returned id. Response B patches the definition site `app.services.email.send_email`, uses `unittest.mock.patch` instead of `mocker`, and claims the notifications path would raise `AttributeError`, so it contradicts the rubric on the central requirement."
+        "name": "mock-email-service-test",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses import unittest.mock directly, violating the rubric's requirement to avoid direct use of unittest.mock."
       }
     ]
   }
