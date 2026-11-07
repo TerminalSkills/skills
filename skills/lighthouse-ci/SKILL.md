@@ -3,10 +3,10 @@ name: lighthouse-ci
 description: >-
   Lighthouse CI (lhci) runs Google Lighthouse audits on every pull request, checks the scores and metrics against assertions or performance budgets, and uploads the reports. Use when a user asks to track Core Web Vitals in CI, stop performance regressions, audit accessibility on each PR, or set a performance budget for a web app.
 license: Apache-2.0
-compatibility: "Node.js and Chrome on the CI runner; GitHub Actions, GitLab CI, CircleCI or any shell CI. @lhci/cli 0.15.x (bundles Lighthouse 12.x)."
+compatibility: "Node.js and Chrome on the CI runner; GitHub Actions, GitLab CI, CircleCI or any shell CI. @lhci/cli 0.16.x (bundles Lighthouse 13.6; needs Node.js 22.19 or newer)."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   repository: https://github.com/GoogleChrome/lighthouse-ci
   tags: "lighthouse, performance, web-vitals, accessibility, ci"
@@ -16,7 +16,7 @@ metadata:
 
 ## Overview
 
-Lighthouse CI is the `lhci` command-line tool (npm package `@lhci/cli`, latest 0.15.1) that runs Lighthouse several times against your URLs, aggregates the runs, fails the build when assertions break, and uploads the reports. Reports can go to free temporary public storage, to your own Lighthouse CI server (history and build diffs), or to the local filesystem.
+Lighthouse CI is the `lhci` command-line tool (npm package `@lhci/cli`, latest 0.16.0, which bundles Lighthouse 13.6.0 and requires Node.js 22.19 or newer) that runs Lighthouse several times against your URLs, aggregates the runs, fails the build when assertions break, and uploads the reports. Reports can go to free temporary public storage, to your own Lighthouse CI server (history and build diffs), or to the local filesystem.
 
 Lab runs measure First Contentful Paint, Largest Contentful Paint, Cumulative Layout Shift and Total Blocking Time. Interaction to Next Paint is a field metric and Lighthouse cannot measure it in CI; Total Blocking Time is the lab stand-in. Scores vary between runs, so assert on the median or optimistic value of several runs.
 
@@ -25,7 +25,7 @@ Lab runs measure First Contentful Paint, Largest Contentful Paint, Cumulative La
 ### Run it locally first
 
 ```bash
-npm install --save-dev @lhci/cli@0.15.x
+npm install --save-dev @lhci/cli@0.16
 npx lhci healthcheck                         # checks config, Chrome and upload settings
 npx lhci autorun --collect.numberOfRuns=3    # collect + assert + upload
 ```
@@ -55,7 +55,7 @@ module.exports = {
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
         'total-blocking-time': ['warn', { maxNumericValue: 300 }],
         'resource-summary:script:size': ['warn', { maxNumericValue: 300000 }], // bytes
-        'uses-webp-images': 'off',
+        'image-delivery-insight': 'off',             // Lighthouse 13 replaced uses-webp-images and similar audits with insights
       },
     },
     upload: { target: 'temporary-public-storage' },
@@ -63,7 +63,7 @@ module.exports = {
 };
 ```
 
-For a purely static build, use `staticDistDir: './dist'` instead of `startServerCommand`; LHCI serves it itself (add `isSinglePageApplication: true` for SPA routing). Presets: `lighthouse:recommended` (every non-performance audit must pass, metrics warn below 0.9), `lighthouse:no-pwa` (same without PWA audits) and `lighthouse:all` (everything must be perfect, rarely realistic). Assertion levels are `off`, `warn` and `error`; only `error` fails the build.
+For a purely static build, use `staticDistDir: './dist'` instead of `startServerCommand`; LHCI serves it itself (add `isSinglePageApplication: true` for SPA routing). Presets: `lighthouse:recommended` (audits that do not depend on timing must pass, flaky metrics only warn), `lighthouse:no-pwa` (recommended with `is-on-https` and `viewport-insight` turned off, useful on a local HTTP server; Lighthouse 13 no longer has a PWA category) and `lighthouse:all` (everything must be perfect, rarely realistic). Lighthouse 13 replaced many legacy audits (for example `uses-webp-images`) with `*-insight` audits; lhci 0.16 maps the presets accordingly, so use the new IDs in your own assertions. Assertion levels are `off`, `warn` and `error`; only `error` fails the build.
 
 ### Performance budgets
 
@@ -91,19 +91,17 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }   # lhci 0.16 needs Node 22.19+
       - run: npm ci
       - run: npm run build
-      - uses: treosh/lighthouse-ci-action@v12
-        with:
-          configPath: ./lighthouserc.js
-          uploadArtifacts: true
-          temporaryPublicStorage: true
+      - run: npx lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}   # optional, for PR status checks
 ```
 
-The action also accepts `urls`, `budgetPath` and `serverBaseUrl`. For richer PR status checks, install the Lighthouse CI GitHub App and pass its token as `LHCI_GITHUB_APP_TOKEN`, or set `upload.githubToken`. Without the Action, run `npx lhci autorun` after the build step.
+For richer PR status checks, install the Lighthouse CI GitHub App and pass its token as `LHCI_GITHUB_APP_TOKEN`, or set `upload.githubToken`. The `treosh/lighthouse-ci-action@v12` wrapper is an alternative (inputs `configPath`, `urls`, `budgetPath`, `uploadArtifacts`, `temporaryPublicStorage`), but it bundles its own lhci 0.15.1 with Lighthouse 12.6.1, so audit IDs and scores can differ from a local `npx lhci` 0.16 run; prefer `npx lhci autorun` so CI and local runs use one version.
 
 ## Examples
 
