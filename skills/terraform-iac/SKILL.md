@@ -13,7 +13,7 @@ license: Apache-2.0
 compatibility: "Terraform 1.11+ or OpenTofu 1.10+. Requires provider credentials (AWS, GCP, Azure, etc.)."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   repository: "https://github.com/hashicorp/terraform"
   category: devops
   tags: "terraform, infrastructure-as-code, cloud, devops"
@@ -251,7 +251,8 @@ terraform plan -generate-config-out=generated.tf
 
 ```yaml
 # GitHub Actions
-- uses: hashicorp/setup-terraform@v3
+- uses: actions/checkout@v7
+- uses: hashicorp/setup-terraform@v4   # v4 runs on Node 24; pin terraform_version for reproducible plans
 - name: Terraform Plan
   run: |
     terraform init -input=false
@@ -295,5 +296,4 @@ terraform plan -generate-config-out=generated.tf
 - Run `terraform fmt` and `terraform validate` before committing; use `terraform plan` as a review tool — never apply without reviewing the plan
 - Prefer `for_each` over `count` — it handles additions/removals without index shifting
 - Use `moved` blocks for refactoring without destroying resources, and `removed` blocks (1.7+) to drop a resource from state without destroying it
-- For large configs: split into smaller state files by component (networking, compute, data)
-- Use `terraform-docs` to generate module documentation
+- For large configs: split into smaller state files by component (networking, compute, data); use `terraform-docs` to generate module documentation
