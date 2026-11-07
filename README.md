@@ -88,6 +88,7 @@ underlying skill ([seog](skills/seog/)) still installs on its own with
 | [ax-extract-workflow](skills/ax-extract-workflow/) | Productivity | Reconstruct past coding workflows from local ax session and commit history |
 | [agent-workflow-packager](skills/agent-workflow-packager/) | Development | Convert repeated AI coding-agent workflows into reusable skill packages |
 | [api-tester](skills/api-tester/) | Development | Test REST and GraphQL API endpoints with assertions |
+| [agent-qa-testing](skills/agent-qa-testing/) | Development | Write web/mobile regression tests and review results using app knowledge retained between runs |
 | [docker-helper](skills/docker-helper/) | DevOps | Build, debug, and optimize Docker configurations |
 | [web-scraper](skills/web-scraper/) | Automation | Extract structured data from web pages reliably |
 | [xquik-twitter](skills/xquik-twitter/) | Automation | Search tweets, read replies, monitor X/Twitter, and run approval-gated actions through Xquik |

@@ -2,7 +2,7 @@
 title: "Automate Regression Testing After Refactoring with AI"
 slug: automate-regression-testing-after-refactoring
 description: "Generate and run targeted regression tests after refactoring to verify behavior is preserved without manual QA."
-skills: [regression-tester, test-generator, code-reviewer]
+skills: [regression-tester, test-generator, code-reviewer, agent-qa-testing]
 category: development
 tags: [regression-testing, refactoring, testing, code-quality, automation]
 ---
@@ -100,6 +100,8 @@ The test "restores stock for all items in a bundle when order is canceled" expos
 The bundle expansion logic didn't make it into `InventoryService.ts:45`. During the split, the method that handled bundle components stayed in `OrderService` where it no longer gets called during the cancellation flow. In production, canceling orders with bundles would permanently reduce available stock for each component item — a phantom inventory leak.
 
 This is the kind of bug that takes weeks to surface. Nobody notices until a popular item mysteriously shows "out of stock" despite warehouse shelves being full. Customer support investigates, warehouse confirms stock is available, and engineering has to trace through order history to find the leak. By that time, dozens of cancellations have each silently removed items from the available count.
+
+For an existing agent-qa project, use **agent-qa-testing** to add a user-facing check alongside these code-level tests. Ask: "Using the existing staging target, write a YAML test that changes a $12.00 mug's quantity from one to two and verifies the $24.00 subtotal. Stop before placing an order." Validate the file, run the selected flow against the authorized baseline and changed environments, and compare their recorded verdicts and step evidence. Retain the same assertion across both runs; a dry run only confirms test selection.
 
 ### Step 4: Fix and Re-Verify
 
