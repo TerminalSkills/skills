@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:b006e8538244f7be271146b0e01c696db5f2c0c558800c5d498f41df883c1121",
-  "scoredAt": "2026-10-02T23:25:18.252Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:80a0a0b8533f9f64159c883a25fa3871084b7371ee28c5d7f93c2498b7b2ae80",
+  "scoredAt": "2026-11-06T23:37:40.720Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Covers mostly the happy path and does not address error scenarios or edge cases such as unparseable files, unsupported languages, tool installation failures, or very large repositories, and the Example 2 output mentions nesting depth and git-history ranking that the instructions never explain how to produce."
+        "detail": "The instructions lack handling for errors such as missing tools, permission issues, or invalid paths, and do not address edge cases like binary files or non-code files."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.23,
-    "baselineAvg": 71,
-    "treatmentAvg": 87,
+    "multiplier": 2.2,
+    "baselineAvg": 35,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "python-hotspots-with-analyzer",
-        "baseline": 62,
-        "treatment": 85,
-        "rationale": "Both use lizard with -C 15 -L 100 -w and radon cc -s -n C and exclude migrations and tests, though neither excludes node_modules, vendor, dist, build, __pycache__ or .git. B adds the Critical/Warning/OK tier table and a refactoring order, while A offers only a custom severity script with no tiers, so B covers more of the rubric."
-      },
-      {
-        "name": "eslint-cognitive-complexity-setup",
-        "baseline": 55,
-        "treatment": 80,
-        "rationale": "B matches the rubric closely: flat config scoped to src/**/*.{js,ts}, both rules at threshold 15, and `npx eslint src/`. It uses 'error' rather than 'warn' but explains the choice. A is more elaborate and has CI extras, but it uses 'error', scopes to .ts/.tsx, runs `npm run lint` instead of `npx eslint src/`, and includes an odd override command. Neither says cognitive complexity is a better readability measure; A only notes that the two metrics count differently."
-      },
-      {
-        "name": "manual-cognitive-complexity-count",
-        "baseline": 95,
+        "name": "ts-complexity-scan",
+        "baseline": 10,
         "treatment": 95,
-        "rationale": "Both responses compute cyclomatic 6 and cognitive 9 with correct per-construct breakdowns, but neither mentions the else in the cyclomatic list differently; A omits the explicit OK (<15) classification that B includes, while B's ordering is slightly less clean, so B edges out on rubric coverage."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not mention lizard, eslint, or the specified thresholds."
+      },
+      {
+        "name": "python-hotspot-report",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response B is closer to the rubric, providing a more complete command and output format, but both miss the required -n C flag."
+      },
+      {
+        "name": "go-complexity-check",
+        "baseline": 35,
+        "treatment": 65,
+        "rationale": "Response A provides refactoring suggestions and a sample output, but omits gocognit; Response B lacks refactoring suggestions."
       }
     ]
   }

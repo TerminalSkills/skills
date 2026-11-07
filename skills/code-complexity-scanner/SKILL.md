@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Works with any language; best results with JS/TS, Python, Go, Java"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "code-quality, complexity, metrics, static-analysis"
 ---
@@ -34,10 +34,10 @@ Run an established tool when one is available; counting by reading code is slow 
 
 ```bash
 pip install lizard radon          # use a virtual environment
-lizard src/ -C 15 -L 100 -w       # any language; warns above CCN 15 or 100 lines (-w = warnings only)
+lizard src/ -C 15 -L 100 -w       # 30+ languages (Dart and COBOL since 1.25); warns above CCN 15 or 100 lines (-w = warnings only)
 radon cc -s -n C src/             # Python: only grade C or worse
 ```
-For JS/TS, enable the core ESLint `complexity` rule (cyclomatic) and `sonarjs/cognitive-complexity` from `eslint-plugin-sonarjs` (cognitive, default threshold 15) in `eslint.config.js`, then run `npx eslint src/`:
+For JS/TS, enable the core ESLint `complexity` rule (cyclomatic) and `sonarjs/cognitive-complexity` from `eslint-plugin-sonarjs` (cognitive, default threshold 15) in `eslint.config.js`, then run `npx eslint src/` (`.ts` files also need a TypeScript parser such as `typescript-eslint` in the config; plain `.js` works as shown):
 ```javascript
 import sonarjs from 'eslint-plugin-sonarjs'
 export default [{ files: ['src/**/*.{js,ts}'], plugins: { sonarjs },
