@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Docker with the NVIDIA Container Toolkit for GPU serving (the server also runs on CPU only), Linux. Images come from NVIDIA NGC (nvcr.io) and are several gigabytes."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.1.1"
   category: data-ai
   tags: "inference-server, model-serving, nvidia, dynamic-batching, model-ensembles"
   repository: https://github.com/triton-inference-server/server
@@ -16,7 +16,7 @@ metadata:
 
 ## Overview
 
-Triton loads models from a directory called the model repository and serves each of them over HTTP (port 8000), gRPC (8001) and Prometheus metrics (8002), using the KServe v2 inference protocol. Each model is run by a *backend* (`onnxruntime`, `tensorrt`, `pytorch`, `tensorflow`, `openvino`, `python`, `fil`, `vllm` and others), so one server can host models from different frameworks. The server is released together with an NGC container of the same year.month: release 2.73.0 is container `26.09` (checked October 2026). Use the newest container your NVIDIA driver supports; the release notes list the minimum driver for each tag.
+Triton loads models from a directory called the model repository and serves each of them over HTTP (port 8000), gRPC (8001) and Prometheus metrics (8002), using the KServe v2 inference protocol. Each model is run by a *backend* (`onnxruntime`, `tensorrt`, `pytorch`, `tensorflow`, `openvino`, `python`, `fil`, `vllm` and others), so one server can host models from different frameworks. The server is released together with an NGC container of the same year.month: release 2.74.0 is container `26.10` (checked November 2026). Use the newest container your NVIDIA driver supports; the release notes list the minimum driver for each tag.
 
 ## Instructions
 
@@ -44,9 +44,10 @@ Default file names are fixed per backend: `model.onnx`, `model.plan`, `model.pt`
 ### Step 2: Start the server
 
 ```bash
-docker run --gpus all --rm -p 8000:8000 -p 8001:8001 -p 8002:8002 \
+docker run --gpus all --rm \
+    -p 127.0.0.1:8000:8000 -p 127.0.0.1:8001:8001 -p 127.0.0.1:8002:8002 \
     -v "$(pwd)/model_repository:/models" \
-    nvcr.io/nvidia/tritonserver:26.09-py3 \
+    nvcr.io/nvidia/tritonserver:26.10-py3 \
     tritonserver --model-repository=/models
 ```
 
@@ -118,7 +119,7 @@ result = client.infer("text_classifier", inputs, outputs=[grpcclient.InferReques
 print(result.as_numpy("logits").shape)         # (4, 2)
 ```
 
-The `tritonclient` version follows the server release (2.73.0 today). Extras are `http`, `grpc`, `cuda`, `perf-analyzer` and `all`.
+The `tritonclient` version follows the server release (2.74.0 today). Extras are `http`, `grpc`, `cuda`, `perf-analyzer` and `all`.
 
 ### Step 5: Python backend and ensembles
 
@@ -188,8 +189,8 @@ Request: "I exported sentiment.onnx from PyTorch; serve it so the app can POST t
 
 ```bash
 mkdir -p model_repository/sentiment/1 && cp sentiment.onnx model_repository/sentiment/1/model.onnx
-docker run --gpus all --rm -p 8000:8000 -v "$(pwd)/model_repository:/models" \
-    nvcr.io/nvidia/tritonserver:26.09-py3 tritonserver --model-repository=/models
+docker run --gpus all --rm -p 127.0.0.1:8000:8000 -v "$(pwd)/model_repository:/models" \
+    nvcr.io/nvidia/tritonserver:26.10-py3 tritonserver --model-repository=/models
 curl -s localhost:8000/v2/models/sentiment/config      # the configuration Triton generated
 ```
 
@@ -204,7 +205,7 @@ Read the status table at startup; the reason is printed in the last column, for 
 ## Guidelines
 
 - Pin the container tag; do not use `latest`. A GPU image needs a recent enough NVIDIA driver, and the SDK container (`-py3-sdk`) matches the server release.
-- Never expose ports 8000 to 8002 to the internet. Triton has no authentication by default; put it behind a gateway, and keep the model-control and repository endpoints private.
+- Publish ports 8000 to 8002 on 127.0.0.1 only (as above) and never expose them to the internet. Triton has no authentication by default; put it behind a gateway, and keep the model-control and repository endpoints private.
 - `dims` never includes the batch dimension when `max_batch_size` is above 0; with `max_batch_size: 0` it must include it.
 - Do not guess dynamic-batching numbers: benchmark with Perf Analyzer, and raise `max_queue_delay_microseconds` only if latency targets allow it.
 - Triton metrics may not work when another DCGM agent runs on the same host; the release notes list this known issue.
