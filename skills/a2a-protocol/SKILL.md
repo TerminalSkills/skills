@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: "Python 3.10+ (a2a-sdk 1.x) or Node.js 20+ (@a2a-js/sdk 1.x). Go, Java and .NET SDKs also exist."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.3.0"
   category: development
   tags: "a2a, agents, interoperability, protocol"
   repository: https://github.com/a2aproject/A2A
@@ -24,9 +24,9 @@ metadata:
 
 ## Overview
 
-The Agent2Agent (A2A) protocol lets agents built on different frameworks discover each other through an Agent Card, exchange messages, and run long-lived tasks without exposing their internals. The current spec is **1.0** (a2a-protocol.org/v1.0.0/specification) with three bindings: JSON-RPC 2.0 over HTTP, HTTP+JSON/REST and gRPC; streaming uses SSE and async work can use webhook push notifications. This skill was checked against `a2a-sdk` 1.2.1 (Python) and `@a2a-js/sdk` 1.3.0.
+The Agent2Agent (A2A) protocol lets agents built on different frameworks discover each other through an Agent Card, exchange messages, and run long-lived tasks without exposing their internals. The current spec is **1.0** (a2a-protocol.org/v1.0.0/specification) with three bindings: JSON-RPC 2.0 over HTTP, HTTP+JSON/REST and gRPC; streaming uses SSE and async work can use webhook push notifications. This skill was checked against `a2a-sdk` 1.3.0 (Python) and `@a2a-js/sdk` 1.3.0.
 
-Most tutorials online still show the 0.2/0.3 API (`A2AStarletteApplication`, `TextPart`, `/.well-known/agent.json`, `A2AClient`). Those no longer exist in 1.x. If a project pins `a2a-sdk<1`, follow the SDK's v0.3 to v1.0 migration guide (docs/migrations/v1_0 in the a2a-python repo) rather than mixing styles.
+Most tutorials online still show the 0.2/0.3 API (`A2AStarletteApplication`, `TextPart`, `A2AClient`, and for 0.2.x also `/.well-known/agent.json`). Those no longer exist in 1.x. If a project pins `a2a-sdk<1`, follow the SDK's v0.3 to v1.0 migration guide (docs/migrations/v1_0 in the a2a-python repo) rather than mixing styles.
 
 ## Instructions
 
@@ -41,7 +41,7 @@ Most tutorials online still show the 0.2/0.3 API (`A2AStarletteApplication`, `Te
 ### 2. Install
 
 ```bash
-pip install "a2a-sdk[http-server]"   # core + Starlette/SSE server pieces
+pip install "a2a-sdk[http-server]" uvicorn   # core + Starlette/SSE server pieces; uvicorn runs the example
 pip install "a2a-sdk[grpc]"          # gRPC; also: [fastapi] [postgresql] [mysql] [sqlite] [telemetry] [all]
 npm install @a2a-js/sdk express      # Node; express is a peer dependency of the server helpers
 ```
@@ -83,7 +83,8 @@ class BillingAgent(AgentExecutor):
 
 card = AgentCard(
     name="Billing Agent", description="Answers questions about invoices.", version="1.0.0",
-    supported_interfaces=[AgentInterface(protocol_binding="JSONRPC", url="http://127.0.0.1:9000/")],
+    supported_interfaces=[AgentInterface(protocol_binding="JSONRPC", protocol_version="1.0",
+                                         url="http://127.0.0.1:9000/")],
     capabilities=AgentCapabilities(streaming=True),
     default_input_modes=["text/plain"], default_output_modes=["text/plain"],
     skills=[AgentSkill(id="invoice-status", name="Invoice status",
@@ -169,7 +170,7 @@ Run three servers on ports 9101 to 9103, each with its own card. The orchestrato
 
 ## Guidelines
 
-- Serve the Agent Card at `/.well-known/agent-card.json`; older `/.well-known/agent.json` is the 0.2/0.3 path.
+- Serve the Agent Card at `/.well-known/agent-card.json`; the older `/.well-known/agent.json` was the 0.2.x spec path (0.3.0 already uses `agent-card.json`).
 - Make skill descriptions specific: other agents choose whether to delegate from them.
 - Pick message-only or task lifecycle per request and never mix; enqueue the `Task` before any update.
 - Handle `TASK_STATE_INPUT_REQUIRED` and `AUTH_REQUIRED` explicitly; implement `cancel` for long tasks.
