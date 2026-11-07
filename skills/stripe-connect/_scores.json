@@ -1,24 +1,34 @@
 {
-  "version": "1.3.0",
-  "skillHash": "sha256:160ee7b16d13966d7443f5637afd3ff1d21f9f42b6e943ba5170f7dd3fe8510b",
-  "scoredAt": "2026-10-03T13:11:20.232Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.4.0",
+  "skillHash": "sha256:08c47c3990f23279381aa3514905da549f98f020501095410c262e15e7b6fb29",
+  "scoredAt": "2026-11-07T00:02:00.127Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Error handling is largely absent from the main file: no handling of card declines, failed or SCA-required PaymentIntents, Stripe API errors, idempotency keys for charges and transfers, or refund and dispute paths (deferred to references)."
+        "detail": "Missing error handling for API failures and edge cases in onboarding and charging flows."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Excessive explanatory text and tables increase file length without adding actionable code."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Implementation relies on Node.js 20+ and stripe-node, limiting compatibility with other runtime environments."
       }
     ]
   },
@@ -27,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.71,
-    "baselineAvg": 55,
-    "treatmentAvg": 94,
+    "multiplier": 4.65,
+    "baselineAvg": 20,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "onboard-seller-v2-express",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Response A matches the rubric: it uses stripe.v2.core.accounts.create with dashboard express, the merchant card_payments and recipient stripe_transfers configurations, and application as fees_collector and losses_collector, then creates the link with v2 accountLinks using account_onboarding, both configurations, refresh_url and return_url; Response B makes the v1 stripe.accounts.create({type:'express'}) its primary path, which the rubric forbids, and only mentions v2 in a note."
+        "name": "onboard-seller-with-link",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, whereas Response A omits many required fields and uses the wrong API endpoints."
       },
       {
-        "name": "destination-charge-with-fee",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "B hits every rubric item (Math.round on the fee, transfer_data.destination, confirm: true, $18/$102 before Stripe fees, and the recipient configuration for the seller account), while A gets the core split and code right but only mentions the `transfers` capability instead of the recipient configuration and computes the fee as Math.round(totalCents * 0.15), which is fine for the rubric but lacks the recipient-config note."
+        "name": "charge-buyer-destination",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response B meets all but one rubric item, while Response A misses two items."
       },
       {
-        "name": "hold-funds-then-transfer",
-        "baseline": 90,
-        "treatment": 92,
-        "rationale": "Both correctly describe separate charges and transfers with no transfer_data, latest_charge, and transfer with source_transaction, amount 8500, and destination; B explicitly notes the ch_ vs pi_ distinction as the rubric wants, though it only implies the pattern name, while A names the pattern explicitly but doesn't call out the ch_/pi_ difference as clearly (it does comment 'ch_...')."
+        "name": "separate-charge-and-transfer",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to use the required PaymentIntent API, omits the source_transaction, and does not return the Transfer object."
       }
     ]
   }
