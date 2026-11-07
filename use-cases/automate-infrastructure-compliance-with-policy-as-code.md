@@ -153,7 +153,7 @@ process.stdout.write(JSON.stringify({ results, markdown: toMarkdown(results), bl
 process.exit(blocking ? 1 : 0);
 ```
 
-The scanner only parses a file, so it runs in a multi-stage container as the non-root `node` user, with no network and a read-only filesystem.
+The scanner only parses a file, so it runs in a multi-stage container as the non-root `node` user, with no network and a read-only filesystem. The imports use `.js` suffixes, so `package.json` needs `"type": "module"` and `tsconfig.json` needs `module` and `moduleResolution` set to `nodenext`, `outDir: dist` and `rootDir: src` (TypeScript 6 and later require `rootDir` when you set `outDir`).
 
 ```dockerfile
 # policy/Dockerfile (build context: policy/, which holds package.json, package-lock.json, tsconfig.json, src/)
