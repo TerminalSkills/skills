@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "Python 3.10+ for the client (3.11+ for the server package), Docker 24+ for the container route, and an LLM provider API key for the server"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: "agent-memory, hindsight, llm-agents, retain-recall, mcp"
   repository: https://github.com/vectorize-io/hindsight
@@ -96,7 +96,7 @@ answer = client.reflect(bank_id="user-4812", query="What should I keep in mind w
 print(answer.text)
 ```
 
-Verified signatures (hindsight-client 1.1.0):
+Verified signatures (hindsight-client 1.2.0):
 
 - `retain(bank_id, content, timestamp=None, context=None, document_id=None, metadata=None, tags=None, retain_async=False, ...)`.
 - `recall(bank_id, query, types=None, max_tokens=4096, budget="mid", tags=None, tags_match="any", ...)` returns an object whose `results` have `text`, `type`, `tags`, `context`, `occurred_start`.

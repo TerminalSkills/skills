@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f5246d627d359eef7beeffcadaed9b42793f10c1791622e6003742c8dc0c4832",
-  "scoredAt": "2026-10-28T18:54:32.512Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:98a5b3fad2b162c9efd2bedd0b1fe98655066fca2a534c521c3857c026a91019",
+  "scoredAt": "2026-11-06T23:43:53.554Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling for missing API keys, server downtime, or network failures."
+        "detail": "The instructions lack guidance for handling errors such as missing environment variables, Docker failures, or network issues."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 4.17,
+    "baselineAvg": 18,
+    "treatmentAvg": 75,
     "scenarios": [
       {
-        "name": "setup-docker-server-with-bank",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified Docker image, command, or Python snippet criteria."
+        "name": "setup-docker-and-python-memory",
+        "baseline": 5,
+        "treatment": 75,
+        "rationale": "Response B meets the Docker and most Python requirements but uses the wrong bank_id, whereas Response A fails to meet any of the rubric criteria."
       },
       {
-        "name": "batch-retain-recall-reflect-flaky-tests",
+        "name": "create-bank-with-mission-and-tag-filtering",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required functions or parameters."
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric but uses incorrect tags, while Response B does not use the required client API at all."
       },
       {
-        "name": "mcp-client-connect-and-use",
-        "baseline": 0,
+        "name": "use-mcp-endpoint-with-client",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric, while Response B does not match the required URL pattern or interface."
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to provide the required endpoint and thus only partially meets the criteria."
       }
     ]
   }
