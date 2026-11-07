@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: 'Linux, FreeBSD, macOS, Windows. 3proxy 1.0 (current) or 0.9.9.x (LTS)'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: devops
   repository: https://github.com/3proxy/3proxy
   tags: "3proxy, proxy, socks5, http-proxy, networking"
@@ -46,14 +46,22 @@ EOF
 sudo apt update && sudo apt install 3proxy
 ```
 
-RHEL, AlmaLinux, Rocky and CentOS Stream 8–10 use the dnf repository described at https://3proxy.org/repo/. A container image is on Docker Hub as `3proxy/3proxy` (tags `latest`, `1.0.0`, `lts`, `busybox`, `minimal`):
+RHEL, AlmaLinux, Rocky and CentOS Stream 8–10 use the dnf repository described at https://3proxy.org/repo/. A container image is on Docker Hub as `3proxy/3proxy` (tags `latest`, `1.0.2`, `lts`, `busybox`, `minimal`; 1.0.2 is the current release):
 
 ```bash
-docker run -d --name 3proxy --read-only -p 3128:3128 -p 1080:1080 \
-  -v /srv/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg:ro 3proxy/3proxy:1.0.0
+docker run -d --name 3proxy --read-only \
+  -p 203.0.113.50:3128:3128 -p 203.0.113.50:1080:1080 \
+  -v /srv/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg:ro 3proxy/3proxy:1.0.2
 ```
 
-In the container, use a bare `log` line so records go to stdout (`docker logs 3proxy`).
+Always give `-p` an address (the server's public IP, or `127.0.0.1` when only local programs or an SSH tunnel use it). A bare `-p 3128:3128` listens on every interface, and Docker adds its own firewall rules that bypass `ufw`, so the proxy would be open to the whole internet even if you meant to restrict it. Use `-p 127.0.0.1:3128:3128` for a service that should stay local, and no `-p` at all for one that only other containers on the compose network should reach.
+
+In the container, use a bare `log` line so records go to stdout (`docker logs 3proxy`). The image is distroless: it holds only `/bin/3proxy` and the plugins, with no shell and no `3proxy_crypt` or `add3proxyuser`. Create password hashes on the host. `openssl passwd -1` gives an MD5-crypt hash that 3proxy accepts as `CR:`; keep the file out of the config and read it with `users $/etc/3proxy/passwd` (mounted read-only):
+
+```bash
+printf '%s\n' "alice:CR:$(openssl passwd -1 "$ALICE_PROXY_PASSWORD")" > /srv/3proxy/passwd
+chmod 644 /srv/3proxy/passwd   # the container user must read it; keep /srv/3proxy itself private (700)
+```
 
 **What the package installs:**
 
@@ -103,7 +111,7 @@ sudo add3proxyuser bob "$BOB_PROXY_PASSWORD" 2048 8388608   # + 2048 MB/day quot
 sudo systemctl restart 3proxy
 ```
 
-A `users` line can also be written by hand. Password types: `CL:` cleartext, `CR:` crypt hash (`$3$` BLAKE2b, or `$1$` MD5-crypt when built with OpenSSL), `NT:` NT hash. `3proxy_crypt "$PROXY_SALT" "$ALICE_PROXY_PASSWORD"` prints a ready `CR:$3$…` value. Quote any entry that contains `$` — an unquoted `$` starts a file include:
+A `users` line can also be written by hand. Password types: `CL:` cleartext, `CR:` crypt hash (`$3$` BLAKE2b, or `$1$` MD5-crypt when built with OpenSSL), `NT:` NT hash. On the host package, `3proxy_crypt "$PROXY_SALT" "$ALICE_PROXY_PASSWORD"` prints a ready `CR:$3$…` value; the Docker image does not ship it, so use `openssl passwd -1` there (Step 1). Quote any entry that contains `$` — an unquoted `$` starts a file include:
 
 ```
 users "alice:CR:$3$k7Qm2x$G47yV9w…" ops:CL:Winter-Harbor-48
@@ -278,4 +286,5 @@ Result: the printed address changes between the three upstreams from one connect
 - `bandlimin`/`bandlimout` rates are bits per second; multiply bytes per second by 8.
 - Start the service as root and let the config drop privileges — the packaged launcher does `chroot /usr/local/3proxy proxy proxy`; in a custom config put `setgid` before `setuid`, after the last service on a privileged port.
 - When you download a release file by hand, check it first: `sha256sum -c SHA256SUMS-x86_64 --ignore-missing`, and `gpg --verify SHA256SUMS-x86_64.asc SHA256SUMS-x86_64` with the project's release key.
+- FTP over the HTTP proxy (`ftp://` URLs) is not in a default build (needs `FTP=true` at build time); since 1.0.2 a build that has it fetches `ftp://` URLs only for a service started with `-Xftp`.
 - 3proxy is not a caching proxy and not a VPN: it does not cache responses or tunnel all of a device's traffic.
