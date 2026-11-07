@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+, npm/pnpm/yarn, @ai-sdk/google-vertex and ai packages, Google Cloud project with Vertex AI API enabled"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   repository: https://github.com/vercel/ai
   category: data-ai
   tags: "vertex-ai, gemini-image, veo, image-generation, video-generation"
@@ -31,24 +31,26 @@ npm install ai @ai-sdk/google-vertex
 gcloud auth application-default login
 ```
 
-Use the default provider instance (reads `GOOGLE_CLOUD_PROJECT` from env), or create a custom one:
+The default provider instance reads `GOOGLE_VERTEX_PROJECT` and `GOOGLE_VERTEX_LOCATION` (for example `us-central1`) from the environment. `gemini-3.1-flash-lite-image` is served from the `global` location only, so make a second instance for images:
 
 ```typescript
-import { vertex } from '@ai-sdk/google-vertex';
-// Or: import { createVertex } from '@ai-sdk/google-vertex';
-// const vertex = createVertex({ project: 'my-gcp-project', location: 'us-central1' });
+import { vertex, createVertex } from '@ai-sdk/google-vertex';
+// vertex: video, and anything served from GOOGLE_VERTEX_LOCATION
+const vertexGlobal = createVertex({ location: 'global' }); // project from GOOGLE_VERTEX_PROJECT
 ```
 
 ### Step 2: Generate images with Gemini image models
 
-Google has discontinued the Imagen endpoints on Vertex AI (`imagen-3.0-generate-002`, `imagen-3.0-capability-001`, `imagen-4.0-generate-001`, `-fast-` and `-ultra-`). Google's replacement mapping points all of them to `gemini-2.5-flash-image`, and the AI SDK Vertex page now documents only Gemini image models. Use `generateImage` with one of these:
+Google has discontinued the Imagen endpoints on Vertex AI (`imagen-3.0-generate-002`, `imagen-3.0-capability-001`, `imagen-4.0-generate-001`, `-fast-` and `-ultra-`). Google's docs map them to Gemini image models. The first replacement, `gemini-2.5-flash-image`, is itself deprecated and retires on March 15, 2027; Google's migration target is `gemini-3.1-flash-lite-image`. Use `generateImage` with one of these:
 
 ```typescript
-import { vertex } from '@ai-sdk/google-vertex';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { generateImage } from 'ai';
 
+const vertexGlobal = createVertex({ location: 'global' });
+
 const { image } = await generateImage({
-  model: vertex.image('gemini-2.5-flash-image'),
+  model: vertexGlobal.image('gemini-3.1-flash-lite-image'),
   prompt: 'A futuristic cityscape at sunset',
   aspectRatio: '16:9',
 });
@@ -56,17 +58,18 @@ const { image } = await generateImage({
 
 | Model | Notes |
 |-------|-------|
-| `gemini-2.5-flash-image` | Stable default, the documented replacement for Imagen |
+| `gemini-3.1-flash-lite-image` | Default; Google's migration target, global location only |
+| `gemini-2.5-flash-image` | Deprecated, retires 2027-03-15; do not start new work on it |
 | `gemini-3-pro-image-preview` | Preview; up to 14 reference images |
 | `gemini-3.1-flash-image-preview` | Preview |
 
-Gemini image models do not support `size` or `n`; use `aspectRatio` (`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`). Preview model ids change often, so check the AI SDK Vertex page before pinning one.
+Gemini image models do not support `size` or `n`; use `aspectRatio` (`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`). Preview model ids change often, so check the AI SDK Vertex page and Google's model-versions page before pinning one.
 
 Provider options go under `providerOptions.vertex` (type `GoogleVertexImageModelOptions`):
 
 ```typescript
 const { image } = await generateImage({
-  model: vertex.image('gemini-3-pro-image-preview'),
+  model: vertexGlobal.image('gemini-3-pro-image-preview'),
   prompt: 'Professional headshot portrait',
   providerOptions: {
     vertex: {
@@ -90,7 +93,7 @@ Gemini editing is mask-free: pass the source image(s) with an instruction. Input
 import fs from 'fs';
 
 const { image } = await generateImage({
-  model: vertex.image('gemini-2.5-flash-image'),
+  model: vertexGlobal.image('gemini-3.1-flash-lite-image'),
   prompt: {
     text: 'Add a golden retriever sitting on the grass on the left',
     images: [fs.readFileSync('./photo.png')],
@@ -123,7 +126,7 @@ Available Veo models:
 | Model | Notes |
 |-------|-------|
 | `veo-3.1-generate-001` | Audio; 720p/1080p (4K output); 4, 6 or 8 s; 16:9 or 9:16 |
-| `veo-3.1-fast-generate-001` | Audio; faster, up to 1080p |
+| `veo-3.1-fast-generate-001` | Audio; faster, 720p/1080p output (no 4K) |
 | `veo-3.1-lite-generate-001` | Preview |
 
 `veo-3.0-generate-001` and `veo-3.0-fast-generate-001` were retired on June 30, 2026; Google's replacements are the matching 3.1 ids. `veo-2.0-generate-001` is listed in the AI SDK docs but absent from Google's current Veo pages, so prefer 3.1. Veo 3.1 supports `frameImages` (`first_frame` / `last_frame`) for image-to-video.
@@ -158,9 +161,11 @@ Provider options: `generateAudio` (boolean), `personGeneration`, `negativePrompt
 **Actions taken:**
 
 ```typescript
-import { vertex } from '@ai-sdk/google-vertex';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { generateImage } from 'ai';
 import fs from 'fs';
+
+const vertexGlobal = createVertex({ location: 'global' });
 
 const backgrounds = [
   'Minimalist white marble countertop with soft natural lighting',
@@ -170,7 +175,7 @@ const backgrounds = [
 
 for (const [i, scene] of backgrounds.entries()) {
   const { image } = await generateImage({
-    model: vertex.image('gemini-2.5-flash-image'),
+    model: vertexGlobal.image('gemini-3.1-flash-lite-image'),
     prompt: `Professional product photo of a handmade ceramic coffee mug, earth-tone glaze, ${scene}. No text, logo or watermark.`,
     aspectRatio: '1:1',
   });
@@ -224,12 +229,14 @@ console.log('Saved hiking-app-ad.mp4');
 **Actions taken:**
 
 ```typescript
-import { vertex } from '@ai-sdk/google-vertex';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { generateImage } from 'ai';
 import fs from 'fs';
 
+const vertexGlobal = createVertex({ location: 'global' });
+
 const { image } = await generateImage({
-  model: vertex.image('gemini-2.5-flash-image'),
+  model: vertexGlobal.image('gemini-3.1-flash-lite-image'),
   prompt: {
     text: 'Keep the product exactly as it is. Replace the background with a sandy tropical beach at sunset with palm trees and calm waves.',
     images: [fs.readFileSync('./product-original.png')],
@@ -244,7 +251,7 @@ console.log('Saved product-beach-bg.png');
 
 ## Guidelines
 
-- Do not build on Imagen ids (`imagen-3.0-*`, `imagen-4.0-*`): Google lists them as discontinued. Existing code should move to `gemini-2.5-flash-image` or a newer Gemini image model, and drop `negativePrompt`, `addWatermark`, `safetySetting` and `storageUri`, which were Imagen options. Put exclusions in the prompt text.
+- Do not build on Imagen ids (`imagen-3.0-*`, `imagen-4.0-*`): Google lists them as discontinued. Existing code should move to `gemini-3.1-flash-lite-image` (not `gemini-2.5-flash-image`, which is deprecated), and drop `negativePrompt`, `addWatermark`, `safetySetting` and `storageUri`, which were Imagen options. Put exclusions in the prompt text.
 - Use `aspectRatio` instead of `size`; `n` is also unsupported for Gemini image models.
 - Set `pollTimeoutMs` to at least 600000 (10 min) for Veo; generation can take several minutes.
 - For production video pipelines, set `gcsOutputDirectory` to write to Cloud Storage instead of holding base64 in memory.
