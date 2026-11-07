@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "macOS, Linux and Windows; a single native binary (no Python needed); an API key for an LLM provider or a local Ollama model"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "ai-agent, extensible, coding-agent, mcp"
   repository: https://github.com/aaif-goose/goose
@@ -58,7 +58,7 @@ Sessions are stored in a SQLite database (`sessions.db`) since v1.10. Run `goose
 goose run -t "Write unit tests for src/auth.py and run them" --no-session
 goose run -i plan.md                  # instructions from a file
 echo "Explain this stack trace" | goose run -i -   # stdin
-goose run --provider anthropic --model claude-sonnet-4-5 -t "Summarise the last 5 commits" -q
+goose run --provider anthropic --model claude-sonnet-5-5 -t "Summarise the last 5 commits" -q
 goose run --recipe nginx-triage.yaml --params log_file=/var/log/nginx/access.log --output-format json
 ```
 
@@ -70,7 +70,7 @@ Settings live in `~/.config/goose/config.yaml` (Windows: `%APPDATA%\Block\goose\
 
 ```bash
 export GOOSE_PROVIDER=anthropic
-export GOOSE_MODEL=claude-sonnet-4-5-20250929
+export GOOSE_MODEL=claude-sonnet-5-5
 export ANTHROPIC_API_KEY="$(cat ~/.secrets/anthropic)"   # keys belong in env or the keyring
 export GOOSE_MODE=smart_approve        # auto (default) | approve | smart_approve | chat
 ```
@@ -81,7 +81,7 @@ active_provider: anthropic
 providers:
   anthropic:
     enabled: true
-    model: claude-sonnet-4-5-20250929
+    model: claude-sonnet-5-5
     configured: true
 GOOSE_MODE: smart_approve
 GOOSE_MAX_TURNS: 50
@@ -156,7 +156,7 @@ goose run --recipe nginx-triage.yaml --params log_file=/var/log/nginx/access.log
 Request: "Run goose in GitHub Actions to fix failing tests and print only the result."
 
 ```bash
-export GOOSE_PROVIDER=anthropic GOOSE_MODEL=claude-sonnet-4-5-20250929 GOOSE_MODE=auto
+export GOOSE_PROVIDER=anthropic GOOSE_MODEL=claude-sonnet-5-5 GOOSE_MODE=auto
 goose run --no-session -q --max-turns 30 \
   -t "Run npm test. If tests fail, fix the code (not the tests) and rerun until green. Report what you changed."
 ```

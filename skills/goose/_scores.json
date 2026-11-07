@@ -1,47 +1,53 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:0bc0074c2c3e4941400cbd7e458076fbf7463de79620ed48cb184539fc50d7bd",
-  "scoredAt": "2026-10-02T23:25:39.786Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.2.0",
+  "skillHash": "sha256:6075dd6901f323febdbdc850087987ea67498b2f64d80570722fc217d9f29843",
+  "scoredAt": "2026-11-07T12:01:17.486Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions lack coverage of error scenarios and edge cases."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.51,
-    "baselineAvg": 57,
-    "treatmentAvg": 86,
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "ci-headless-test-fixer",
-        "baseline": 78,
+        "name": "install-goose-with-anthropic",
+        "baseline": 10,
         "treatment": 80,
-        "rationale": "Both use goose run with --no-session, quiet, -t, --max-turns, GOOSE_PROVIDER/MODEL and secrets-based API key, and neither invents --stdin or --profile; A uses the short -q, mentions --max-tool-repetitions and GOOSE_MAX_TURNS, and says to keep keys out of config, while B uses --quiet (equivalent) but adds extras (timeouts, </dev/null, a verify step) and omits --max-tool-repetitions and hedges on --max-turns."
+        "rationale": "Response B covers almost all rubric items except the explicit goose configure command, while Response A omits the required brew install, environment variables, and config path."
       },
       {
-        "name": "write-validated-recipe",
-        "baseline": 72,
-        "treatment": 90,
-        "rationale": "Both give a valid recipe with the right parameters, templating, builtin developer extension, `goose recipe validate`, and `goose run --recipe --params`; B explicitly states the `.yaml`-not-`.yml` requirement and adds a useful render option and notes, while A never mentions the extension rule and includes unverified flags and extra extension fields."
+        "name": "ci-test-fix-with-goose",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not."
       },
       {
-        "name": "add-mcp-extensions-config",
-        "baseline": 20,
-        "treatment": 88,
-        "rationale": "B uses a streamable_http extension with a uri, says Goose no longer supports SSE and that the endpoint should be migrated, and has a correct stdio filesystem entry. A configures the internal server with the deprecated `type: sse`, which contradicts the rubric, though its filesystem entry is correct."
+        "name": "nginx-triage-recipe-run",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the .yaml/.yml note, while Response B fails to provide the required goose commands and the file extension detail."
       }
     ]
   }
