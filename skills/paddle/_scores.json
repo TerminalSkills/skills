@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:a8190d752b3d707dcf32e571b1f6d52170ff5544aa7ead43919e61fca4d94ebc",
-  "scoredAt": "2026-10-01T12:17:39.371Z",
+  "version": "1.1.1",
+  "skillHash": "sha256:940e1353ffc45fa7d5ddc92170b44905a4b57fb8e953f3f8f3c186ea996e21e1",
+  "scoredAt": "2026-11-06T23:52:58.866Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -22,26 +22,26 @@
   },
   "impact": {
     "multiplier": 10,
-    "baselineAvg": 7,
+    "baselineAvg": 2,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "checkout-integration-with-webhook",
+        "name": "integrate-paddle-checkout-overlay",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks the required Paddle initialization, priceId usage, and complete webhook handling."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks the required Paddle initialization, environment variable, and checkout parameters."
       },
       {
-        "name": "customer-portal-link",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B fully meets the rubric by using the Paddle SDK with sandbox, calling customerPortalSessions.create, and returning a JSON 'url'; Response A does not use the SDK or sandbox and returns a different field name."
-      },
-      {
-        "name": "cancel-subscription-at-period-end",
+        "name": "setup-paddle-webhook-handler",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric, Response B does not use Paddle at all."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as Paddle SDK usage, raw body handling, and proper event processing."
+      },
+      {
+        "name": "create-customer-portal-session",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the Paddle SDK, Environment.sandbox, or the required POST handler with getBillingForCurrentUser."
       }
     ]
   }
