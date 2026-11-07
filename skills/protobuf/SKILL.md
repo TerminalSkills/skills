@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "protoc 33+ or the buf CLI 1.x; runtimes for C++, Java, Python, Go, Node.js/TypeScript, C#, Rust, Ruby, PHP, Kotlin, Dart."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.1.1"
   category: development
   tags: "protobuf, grpc, serialization, schema, buf"
   repository: "https://github.com/protocolbuffers/protobuf"
@@ -21,7 +21,7 @@ metadata:
 
 ## Overview
 
-Protocol Buffers describe data in `.proto` files; a compiler generates classes for your language, and messages are encoded in a compact binary format identified by field numbers, not names. Payloads are usually much smaller than JSON and parsing is faster, and the schema is a checked contract between services. The same files define gRPC services. Current releases at the time of writing: protoc/protobuf v36.2 (September 2026), buf 1.73, `@bufbuild/protobuf` and `protoc-gen-es` 2.16. Schemas start with `syntax = "proto3";` (still fully supported) or the newer `edition = "2023";` / `"2024"`, which replaces `syntax` and makes behaviours such as field presence a per-file or per-field feature.
+Protocol Buffers describe data in `.proto` files; a compiler generates classes for your language, and messages are encoded in a compact binary format identified by field numbers, not names. Payloads are usually much smaller than JSON and parsing is faster, and the schema is a checked contract between services. The same files define gRPC services. Current releases at the time of writing: protoc/protobuf v36.2 (September 2026), buf 1.75, `@bufbuild/protobuf` and `protoc-gen-es` 2.17. Schemas start with `syntax = "proto3";` (still fully supported) or the newer `edition = "2023";` / `"2024"`, which replaces `syntax` and makes behaviours such as field presence a per-file or per-field feature.
 
 ## Instructions
 
