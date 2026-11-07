@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Better Stack account with an API token; Node.js for the @logtail packages; Terraform 0.14+ for the provider
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: devops
   tags: "uptime, logging, incident-management, status-page, on-call"
 ---
@@ -58,7 +58,7 @@ The same monitor through the API is `POST https://incidents.betterstack.com/api/
 
 ### Log Management (Logtail)
 
-Create a source under **Sources** in the Better Stack dashboard; every source has its own source token and ingesting host. Both are required — the client must be pointed at the source's own host.
+Create a source under **Sources** in the Better Stack dashboard; every source has its own source token and ingesting host. Both are required — the client must be pointed at the source's own host. Since `@logtail/node` 0.6.0 the `endpoint` option is mandatory: `new Logtail(token)` without it throws "Better Stack endpoint missing" (0.5.13 only warned), so older snippets that pass just the token no longer run.
 
 ```typescript
 // Send structured logs to Better Stack
@@ -83,7 +83,7 @@ logtail.error("Payment failed", {
 
 await logtail.flush();   // logs are batched; flush before the process exits
 
-// Pino integration (Pino 7+)
+// Pino integration (Pino 7.9.2 or newer; @logtail/pino 0.6 raised the floor)
 import pino from "pino";
 
 const logger = pino(
@@ -159,7 +159,7 @@ const response = await fetch(
       title: "Elevated API latency",
       message: "API responses are slower than usual while a database migration runs. No data loss expected.",
       report_type: "manual",            // or "maintenance": ends_at required, every status "maintenance"
-      notify_subscribers: true,         // default false
+      notify_subscribers: true,         // default true; send false to publish silently
       affected_resources: [
         { status_page_resource_id: "8742113", status: "degraded" },  // resolved | degraded | downtime
       ],
@@ -196,8 +196,8 @@ In shell jobs, send the output and append the exit code instead: `output=$(/opt/
 
 ```bash
 # Node.js logging
-npm install @logtail/node
-npm install @logtail/pino pino     # Pino transport
+npm install @logtail/node          # 0.6.x: the endpoint option is required
+npm install @logtail/pino pino     # Pino transport, needs pino >= 7.9.2
 ```
 
 ```hcl
