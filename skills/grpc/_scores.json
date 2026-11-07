@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:2f3b1ed53e76aad80c8f66aa11988afd2e26cb7f2a5a6327e2763247a9b1a59b",
-  "scoredAt": "2026-10-13T12:07:26.270Z",
-  "backend": "claude-code",
-  "model": "claude-haiku-4-5-20251001",
+  "version": "1.2.0",
+  "skillHash": "sha256:9fed5a1358535856f4a2d1fd1386be7fc66ea5df8c9bb4d6601745eca1bd8cca",
+  "scoredAt": "2026-11-07T12:04:10.278Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Description promises interceptors, load balancing, and gRPC-Web implementation, but instructions omit these production patterns; focuses on happy path only."
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as missing dependencies or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and extended guidelines that could be trimmed for brevity."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.08,
-    "baselineAvg": 83,
-    "treatmentAvg": 90,
+    "multiplier": 2.37,
+    "baselineAvg": 35,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "bidirectional-stock-price-updates",
-        "baseline": 92,
-        "treatment": 90,
-        "rationale": "Both responses fully satisfy the rubric: bidirectional RPC with stream on both request/response, call.on('data') receiving symbols, call.write() sending updates, and messages containing symbol, price, timestamp. Response A edges ahead with more complete setup (full package.json, interactive CLI for testing), making it immediately runnable. Response B is more professional (uses google.protobuf.Timestamp, includes backpressure handling, cleaner code organization) but lacks the setup completeness that makes A more practically useful for learning and testing the bidirectional flow."
+        "name": "create-user-service-with-health-and-reflection",
+        "baseline": 50,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items with detailed proto, server, and stub generation, but omits the grpcurl command; Response B is incomplete and lacks key details."
       },
       {
-        "name": "payment-service-error-handling",
-        "baseline": 76,
-        "treatment": 88,
-        "rationale": "Response B explicitly invokes callbacks with `{ code: grpc.status.X, message: '...' }` structure as the rubric requires, while Response A abstracts this through NestJS framework (correct but implicit). Response B also includes more comprehensive error scenarios, gateway simulation, and concrete test commands."
+        "name": "add-batch-create-users-client-streaming",
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response B better meets the rubric, providing the required server handler pattern and proto definition, while Response A lacks the call.on('data')/call.on('end') implementation and the grpcurl command."
       },
       {
-        "name": "client-deadline-enforcement",
-        "baseline": 82,
-        "treatment": 92,
-        "rationale": "Both cover all three rubric requirements: Date deadline created with setSeconds(), passed as second argument in options object, and DEADLINE_EXCEEDED handling. Response A is focused and concise with immediately runnable code plus a production helper function; Response B is more comprehensive (proto definition, server example, TypeScript) but introduces an alternative Promise.race() timeout pattern that sidesteps gRPC's native deadline mechanism, potentially misleading users about best practices."
+        "name": "implement-chat-bidirectional-stream-with-interceptor",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content to evaluate."
       }
     ]
   }
