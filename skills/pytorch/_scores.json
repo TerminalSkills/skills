@@ -1,47 +1,53 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:e0bf5d5cf5e6e19ea1f89e135834c312de5897f36ce3b98f6405c9118bc8044e",
-  "scoredAt": "2026-10-03T13:02:57.734Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.3.0",
+  "skillHash": "sha256:e1b72dd079a77f5d8cbcf0d9d422b70630b8ec856f49ef5ea727e708ec960ad8",
+  "scoredAt": "2026-11-06T23:58:31.584Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as handling missing CUDA or corrupted checkpoints."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.96,
-    "baselineAvg": 45,
-    "treatmentAvg": 88,
+    "multiplier": 1.8,
+    "baselineAvg": 40,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "resnet-transfer-learning-modern-api",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "B hits nearly every rubric item (ResNet50_Weights.DEFAULT, frozen backbone with new 12-way Linear fc, zero_grad/backward/step, bfloat16 autocast, single cuda.is_available() device check), whereas A uses IMAGENET1K_V2 rather than DEFAULT, wraps fc in Sequential with Dropout, unfreezes the backbone after 3 epochs, uses float16 autocast with GradScaler instead of bfloat16, and enables AMP only on CUDA with a multi-way device check."
+        "name": "custom-cnn-cifar10-onnx",
+        "baseline": 20,
+        "treatment": 45,
+        "rationale": "Response B better meets the rubric, covering persistent workers, gradient clipping, and eval mode, while Response A lacks these and also misses compile, dtype, and export."
       },
       {
-        "name": "bert-sentiment-onnx-export",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "A matches the rubric closely: eval(), torch.onnx.export with dynamo=True, input_ids and attention_mask with input_names, torch.export.export first, dynamic_shapes, and a warning against torch.jit. B uses the legacy exporter with dynamic_axes as its main path, only mentions dynamo as a late fallback, doesn't say to run torch.export.export first, and recommends torch.jit.script as a fallback, which contradicts the rubric."
-      },
-      {
-        "name": "safe-checkpoint-save-load-and-quantize",
-        "baseline": 55,
+        "name": "bert-sentiment-finetune-onnx",
+        "baseline": 30,
         "treatment": 80,
-        "rationale": "B hits every rubric point (state_dict, weights_only=True with map_location, warning against weights_only=False, torchao quantize_, torch.ao being phased out) but gives no concrete INT8 config, while A recommends safetensors and demos torch.ao.quantize_dynamic as option 1, never states the weights_only=False risk, and only hedges on the torch.ao deprecation, though it does show torchao quantize_ with INT8 configs."
+        "rationale": "Response A covers most rubric items but omits freezing layers; Response B lacks the required training loop, mixed‑precision, freezing, and dynamo export."
+      },
+      {
+        "name": "distributed-resnet-mixed-precision",
+        "baseline": 70,
+        "treatment": 90,
+        "rationale": "Response B covers more rubric items, including dtype=bfloat16, persistent_workers, and mixed‑precision handling, while Response A omits persistent_workers, dtype specification, and model.eval() after training."
       }
     ]
   }

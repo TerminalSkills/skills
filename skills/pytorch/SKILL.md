@@ -6,10 +6,10 @@ description: >-
   with mixed precision and distributed strategies, or exporting models for production
   inference. Trigger words: pytorch, torch, neural network, deep learning, training loop, cuda.
 license: Apache-2.0
-compatibility: "Requires Python 3.10+ (PyTorch 2.9 and later); a CUDA-capable GPU is recommended"
+compatibility: "Requires Python 3.11+ for PyTorch 2.15 (3.10 wheels end at 2.14); a CUDA-capable GPU is recommended"
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   repository: https://github.com/pytorch/pytorch
   category: data-ai
   tags: "pytorch, deep-learning, neural-network, gpu, machine-learning"
@@ -23,14 +23,15 @@ PyTorch is a deep learning framework for building and training neural networks w
 
 ## Instructions
 
-- Install with pip from the selector at pytorch.org/get-started/locally (it prints the right index URL for your CUDA version or CPU-only). PyTorch 2.9 and later need Python 3.10+.
+- Install with pip from the selector at pytorch.org/get-started/locally (it prints the right index URL for your CUDA version or CPU-only). PyTorch 2.15 needs Python 3.11 or newer (no cp310 wheels; on Python 3.10 pip stops at 2.14). The 2.15 PyPI wheel is built for CUDA 13.2 (driver 580+, Turing/sm_75 or newer); on older GPUs or a CUDA 12.x driver pin `torch==2.14.0 --index-url https://download.pytorch.org/whl/cu126`.
 - Pick the device once: `device = "cuda" if torch.cuda.is_available() else "cpu"` (Apple Silicon: `"mps"`).
 - When defining models, subclass `nn.Module` with `__init__` for layers and `forward` for computation, using `nn.Sequential` for simple stacks.
+- Pass optimizers a list of parameters (`model.parameters()`), not a bare `set`: since 2.15 a set emits a `FutureWarning` because its order can change between runs.
 - When training, run the standard loop: `optimizer.zero_grad()`, forward pass, loss, `loss.backward()`, `clip_grad_norm_`, `optimizer.step()`. Call `model.train()` before the loop and `model.eval()` for validation.
 - When loading data, subclass `Dataset` with `__len__` and `__getitem__`, then use `DataLoader` with `num_workers=4`, `pin_memory=True` and `persistent_workers=True` for GPU training.
 - When optimizing performance, use `torch.compile(model)` (first call is slow while it compiles), mixed precision with `torch.autocast(device_type="cuda", dtype=torch.bfloat16)`, and `DistributedDataParallel` launched with `torchrun` for multi-GPU. With float16 also use `torch.amp.GradScaler("cuda")`; bfloat16 does not need it.
 - When doing transfer learning, load pretrained weights with the `weights=` enum (`ResNet50_Weights.DEFAULT`; the old `pretrained=True` was removed) or from Hugging Face, freeze the backbone, and replace the classifier head.
-- When saving, store `model.state_dict()`; load with `torch.load(path, map_location=device, weights_only=True)`. `weights_only=True` is the default since 2.6 and rejects arbitrary pickled objects.
+- When saving, store `model.state_dict()`; load with `torch.load(path, map_location=device, weights_only=True)`. `weights_only=True` is the default since 2.6 and rejects arbitrary pickled objects. Since 2.15 nested tensors are no longer on its allowlist; load them inside `torch.serialization.safe_globals([...])` or, for a file you trust, `weights_only=False`.
 - When deploying, use `torch.export.export(model, example_args)` for a graph you can ship, and `torch.onnx.export(model, example_args, "model.onnx", dynamo=True)` for ONNX (the dynamo exporter is the default since 2.9). TorchScript (`torch.jit.trace`/`script`) is deprecated; keep it only for legacy code.
 - For INT8 or lower-precision inference, use the `torchao` package (`torchao.quantization.quantize_`). `torch.ao.quantization` is being phased out in favour of it.
 
@@ -43,7 +44,7 @@ pip install torch torchvision
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 
-Prints the version (for example `2.14.1`) and `True` when a CUDA GPU is usable.
+Prints the version (for example `2.15.0`) and `True` when a CUDA GPU is usable.
 
 ### Example 1: Fine-tune a vision model for image classification
 
