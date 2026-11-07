@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: 'R3F 9.x needs React 19 and three 0.156 or newer; drei 10.x pairs with R3F 9. React 18 projects use R3F 8 and drei 9.'
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: "3d, webgl, react, threejs, r3f"
   repository: https://github.com/pmndrs/react-three-fiber
@@ -18,7 +18,7 @@ metadata:
 
 React Three Fiber (R3F) is a React renderer for Three.js. You write scenes as JSX (`<mesh>`, `<boxGeometry>`, `<meshStandardMaterial>`), and props map straight onto Three.js object properties. Hooks, state, Suspense and context work as in any React app, and everything in the Three.js ecosystem stays available. `@react-three/drei` adds ready-made helpers (controls, loaders, environment maps, text, HTML overlays).
 
-Current versions: `@react-three/fiber` 9.8, `@react-three/drei` 10.7, `three` 0.186. R3F 9 requires React 19; with React 18 install `@react-three/fiber@8` and `@react-three/drei@9`.
+Current versions: `@react-three/fiber` 9.8, `@react-three/drei` 10.7, `three` 0.187. R3F 9 requires React 19; with React 18 install `@react-three/fiber@8` and `@react-three/drei@9`.
 
 ## Instructions
 
@@ -137,8 +137,21 @@ R3F raycasts pointer events onto meshes. Use `e.stopPropagation()` so objects be
 ### Rendering only when needed
 
 ```tsx
-<Canvas frameloop="demand">…</Canvas>
-// elsewhere: const invalidate = useThree((s) => s.invalidate); invalidate()
+import { Canvas, useThree } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
+
+function RedrawButton() {
+  const invalidate = useThree((s) => s.invalidate)   // call inside a component under <Canvas>
+  return <Html><button onClick={() => invalidate()}>Redraw</button></Html>
+}
+
+export default function Viewer() {
+  return (
+    <Canvas frameloop="demand">
+      <RedrawButton />
+    </Canvas>
+  )
+}
 ```
 
 With `frameloop="demand"` a frame is drawn only when props change or `invalidate()` is called; useful for static configurators on laptops and phones.
