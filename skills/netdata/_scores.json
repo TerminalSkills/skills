@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fc885f61dc38825b626d710ce802b5ba8c25b1997864ca5a8708ad52236f0eff",
+  "scoredAt": "2026-11-05T20:37:06.499Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Linux or Docker environments and does not support other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "install-netdata-docker-loopback",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A lacks key elements."
+      },
+      {
+        "name": "create-custom-ram-alert",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no content."
+      },
+      {
+        "name": "export-metrics-prometheus",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B includes the required curl command and demonstrates the presence of the metric, though it omits the &help=no parameter; Response A does not meet the rubric at all."
+      }
+    ]
+  }
+}

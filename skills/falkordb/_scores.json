@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2a4e23cabbdbfd6e43e21076e3486df5be5ca7275a632746c86ccb587cf8f126",
+  "scoredAt": "2026-11-05T20:33:01.705Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error handling or edge cases such as query failures or missing graphs."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.2,
+    "baselineAvg": 10,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "start-falkordb-and-create-graph",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B satisfies all rubric requirements, while Response A fails to meet key specifications such as the correct Docker image tag, port, and use of GRAPH.QUERY."
+      },
+      {
+        "name": "vector-search-with-python-client",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key steps such as graph selection, vector index creation via query, and the required ro_query with db.idx.vector.queryNodes."
+      },
+      {
+        "name": "manage-graphs-with-redis-cli",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits the parameter dict; Response A misses all required commands."
+      }
+    ]
+  }
+}

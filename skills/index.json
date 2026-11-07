@@ -1642,6 +1642,19 @@
       ]
     },
     {
+      "name": "budibase",
+      "slug": "budibase",
+      "description": "Budibase is an open-source platform for building internal tools, workflow automations and AI agents on top of your own databases, with a visual builder and a REST API. Use when a user asks to self-host Budibase with Docker, set its secrets, get an API key, create tables and rows through the public API, search or publish a workspace from a script, or back up a self-hosted install with the budi CLI.",
+      "category": "development",
+      "tags": [
+        "budibase",
+        "internal-tools",
+        "low-code",
+        "self-hosted",
+        "rest-api"
+      ]
+    },
+    {
       "name": "bug-hunt-swarm",
       "slug": "bug-hunt-swarm",
       "description": "Finds the cause of a hard bug by running several read-only subagents in parallel, each attacking it from a different angle (change history, code path, data and state, environment, reproduction), then checking their evidence, ranking the hypotheses and naming the one experiment that would confirm the leader. It diagnoses and does not fix. Use when someone says \"hunt this bug with multiple agents\", \"swarm on this regression\", \"investigate in parallel\", \"find the root cause\", or when a failure is intermittent, crosses components, or has resisted a first look.",
@@ -2246,6 +2259,19 @@
         "nextjs",
         "react",
         "rbac"
+      ]
+    },
+    {
+      "name": "click",
+      "slug": "click",
+      "description": "Click is the Python library for building command-line tools from decorated functions: it parses options and arguments, validates types, prompts for missing values, and writes the --help pages. Use when a user asks to \"build a Python CLI\", \"add a subcommand\", \"add an option with an environment variable fallback\", \"prompt for a password\", \"test a click command with CliRunner\", \"package a CLI with pyproject.toml scripts\", or \"add shell completion\". Covers Click 8.2 to 8.5.",
+      "category": "development",
+      "tags": [
+        "python",
+        "cli",
+        "click",
+        "command-line",
+        "argument-parsing"
       ]
     },
     {
@@ -4068,6 +4094,19 @@
       ]
     },
     {
+      "name": "express",
+      "slug": "express",
+      "description": "Express is the minimal web framework for Node.js: routes, middleware, a Router for grouping endpoints, and helpers like res.json. Use when a user asks to \"build a REST API with Express\", \"add a route or middleware\", \"parse JSON bodies\", \"handle errors in Express\", \"serve static files\", \"write a catch-all route\", or \"upgrade from Express 4 to 5\". Targets Express 5, where async handler errors reach the error middleware and route patterns changed.",
+      "category": "development",
+      "tags": [
+        "nodejs",
+        "express",
+        "rest-api",
+        "middleware",
+        "http-server"
+      ]
+    },
+    {
       "name": "external-dns",
       "slug": "external-dns",
       "description": "ExternalDNS automatically creates and updates DNS records for Kubernetes Services, Ingresses, Gateway API routes and Istio resources in providers such as Route 53, Cloud DNS and Cloudflare. Use when someone asks to \"point a hostname at my Kubernetes service automatically\", \"install external-dns with Helm\", \"sync Ingress hosts to Route 53 or Cloudflare\", or \"fix external-dns deleting or not creating records\".",
@@ -4155,6 +4194,19 @@
         "containers",
         "threat-detection",
         "ebpf"
+      ]
+    },
+    {
+      "name": "falkordb",
+      "slug": "falkordb",
+      "description": "FalkorDB is a graph database that runs as a Redis module and answers openCypher queries. Use it to store knowledge graphs, agent memory or connected data and to run vector similarity search next to graph traversal. Trigger phrases - \"run FalkorDB\", \"GRAPH.QUERY\", \"store a knowledge graph in FalkorDB\", \"falkordb Python client\", \"vector index on graph nodes\", \"graph database on Redis\", \"Cypher in Docker\".",
+      "category": "data-ai",
+      "tags": [
+        "falkordb",
+        "graph-database",
+        "cypher",
+        "redis",
+        "knowledge-graph"
       ]
     },
     {
@@ -5215,6 +5267,19 @@
       ]
     },
     {
+      "name": "graphrag",
+      "slug": "graphrag",
+      "description": "GraphRAG is Microsoft's pipeline that turns a folder of text into a knowledge graph with community summaries, then answers questions over it. Use it for corpus-wide questions that plain vector RAG misses, such as \"what are the main themes across these 500 documents\". Trigger phrases - \"graphrag index\", \"graphrag query\", \"global search vs local search\", \"build a knowledge graph from documents with an LLM\", \"Microsoft GraphRAG\", \"prompt tuning for GraphRAG\".",
+      "category": "data-ai",
+      "tags": [
+        "graphrag",
+        "knowledge-graph",
+        "rag",
+        "microsoft",
+        "llm"
+      ]
+    },
+    {
       "name": "great-expectations",
       "slug": "great-expectations",
       "description": "Great Expectations (GX Core) is a Python framework for testing and documenting data quality. Use when a user wants to define expectations about a dataset (nulls, ranges, uniqueness, allowed values), validate a pandas DataFrame or a SQL table against them, wire a checkpoint into a pipeline, or generate Data Docs that show what passed and failed.",
@@ -5731,6 +5796,19 @@
         "ffmpeg",
         "animation",
         "rendering"
+      ]
+    },
+    {
+      "name": "hyperswitch",
+      "slug": "hyperswitch",
+      "description": "Hyperswitch is an open-source payments switch written in Rust that puts one API in front of many payment processors such as Stripe, Adyen and PayPal, with routing, retries and a dashboard. Use when a user asks to run Hyperswitch locally with Docker Compose, connect a test processor, create and confirm a test payment through the REST API, split traffic between two processors, set routing rules, or refund a payment. Test mode and dummy processors only.",
+      "category": "business",
+      "tags": [
+        "payments",
+        "hyperswitch",
+        "payment-orchestration",
+        "routing",
+        "rust"
       ]
     },
     {
@@ -6974,6 +7052,19 @@
       ]
     },
     {
+      "name": "llamafactory",
+      "slug": "llamafactory",
+      "description": "Fine-tunes open large language and vision-language models from YAML config files, with LoRA, QLoRA or full training, through the llamafactory-cli command. Use when someone asks to \"fine-tune Qwen with LoRA\", \"train a model on my own instruction dataset\", \"merge a LoRA adapter\", \"chat with my fine-tuned model\", \"serve a tuned model over an OpenAI-compatible API\", or \"use LLaMA-Factory\". Covers dataset_info.json registration, the train/chat/export/api/webui commands, QLoRA quantization and multi-GPU launches.",
+      "category": "data-ai",
+      "tags": [
+        "fine-tuning",
+        "lora",
+        "qlora",
+        "llm",
+        "llamafactory"
+      ]
+    },
+    {
       "name": "llamafile",
       "slug": "llamafile",
       "description": "llamafile packages a large language model and the llama.cpp runtime into one executable that runs on Linux, macOS, Windows and BSD without installation. Use when running an LLM offline from a single file, serving a local OpenAI- or Anthropic-compatible API, scripting one-shot prompts with --cli, bundling a GGUF model with zipalign, or distributing a portable AI app.",
@@ -7307,6 +7398,19 @@
         "google-maps",
         "mapbox",
         "leaflet"
+      ]
+    },
+    {
+      "name": "marimo",
+      "slug": "marimo",
+      "description": "marimo is a reactive Python notebook that is stored as a plain .py file, so it diffs cleanly in git, runs as a script, and serves as a web app. Use when a user asks to \"create a marimo notebook\", \"convert my Jupyter notebook to marimo\", \"turn this notebook into an app\", \"run a notebook from the command line with arguments\", \"export a notebook to HTML\", or \"query a dataframe with SQL in a notebook\". Covers marimo edit, run, convert, export, check, mo.ui elements and SQL cells.",
+      "category": "data-ai",
+      "tags": [
+        "marimo",
+        "notebook",
+        "python",
+        "reactive",
+        "data-exploration"
       ]
     },
     {
@@ -8174,6 +8278,19 @@
         "api",
         "rest",
         "nestjs"
+      ]
+    },
+    {
+      "name": "netdata",
+      "slug": "netdata",
+      "description": "Netdata is a real-time host and container monitoring agent that collects thousands of per-second metrics with no setup, ships hundreds of ready-made alerts, and serves a dashboard and REST API from one local process. Use it when asked to \"monitor this server\", \"install Netdata\", \"add a disk or RAM alert\", \"pull CPU numbers from Netdata\", \"export metrics to Prometheus\", or \"why is this box slow right now\".",
+      "category": "devops",
+      "tags": [
+        "netdata",
+        "monitoring",
+        "observability",
+        "alerts",
+        "metrics"
       ]
     },
     {
@@ -9265,6 +9382,19 @@
       ]
     },
     {
+      "name": "paperless-ngx",
+      "slug": "paperless-ngx",
+      "description": "Paperless-ngx is a self-hosted document archive that OCRs scanned paper and PDFs, indexes the text, and lets you search and organise everything with tags, correspondents and custom fields. Use it when the user asks to \"set up a paperless office\", \"digitise and archive my scanned documents\", \"self-host a document management system\", \"upload PDFs through an API\", \"search my archive by correspondent or tag\", or \"script Paperless-ngx\". Covers Docker Compose deployment, the consumption folder, token-authenticated REST API calls, bulk edits and export.",
+      "category": "documents",
+      "tags": [
+        "paperless-ngx",
+        "document-management",
+        "ocr",
+        "self-hosted",
+        "docker"
+      ]
+    },
+    {
       "name": "partykit",
       "slug": "partykit",
       "description": "PartyKit and its successor PartyServer are libraries for building real-time multiplayer and collaborative apps on Cloudflare Durable Objects: each room is a server instance that handles WebSocket connections, broadcasts and storage. Use this skill when a user asks for live cursors, chat rooms, collaborative editing, real-time polls or any WebSocket sync, or needs to migrate off the hosted PartyKit platform, which shuts down on 23 October 2026.",
@@ -10300,6 +10430,19 @@
       ]
     },
     {
+      "name": "pywinauto",
+      "slug": "pywinauto",
+      "description": "Drives Windows desktop applications from Python by finding windows and controls and clicking, typing and reading them through the Win32 or UI Automation backends. Use when someone asks to \"automate a Windows app that has no API\", \"click a button in a desktop program\", \"fill a legacy form from a script\", \"read text out of a dialog\", \"script Notepad or an old ERP client\", or \"use pywinauto\". Covers Application start and connect, window and child_window lookup, print_control_identifiers, type_keys, click_input, waits and Desktop.",
+      "category": "automation",
+      "tags": [
+        "windows",
+        "gui-automation",
+        "desktop",
+        "uia",
+        "python"
+      ]
+    },
+    {
       "name": "qdrant",
       "slug": "qdrant",
       "description": "Qdrant is an open-source vector database written in Rust for similarity search over embeddings, with payload filtering, named and sparse vectors, hybrid search and quantization. Use when someone asks to set up Qdrant, build semantic search or RAG retrieval, store embeddings, filter vector search by metadata, combine dense and keyword search, or move from the removed search() and recommend() calls to query().",
@@ -10451,6 +10594,19 @@
         "macos",
         "extensions",
         "react"
+      ]
+    },
+    {
+      "name": "rclone",
+      "slug": "rclone",
+      "description": "Rclone is a command-line tool that copies, syncs, checks, encrypts, mounts and serves files across more than 70 storage backends, including S3-compatible object storage, Google Drive, Dropbox, SFTP, WebDAV and the local disk. Use it when asked to \"sync a folder to a bucket\", \"migrate files from one cloud to another\", \"back up to Backblaze or Cloudflare R2\", \"encrypt files before uploading\", \"verify that two storages match\", or \"serve a bucket over HTTP\".",
+      "category": "devops",
+      "tags": [
+        "rclone",
+        "cloud-storage",
+        "sync",
+        "backup",
+        "s3"
       ]
     },
     {
@@ -11172,6 +11328,19 @@
         "crawler",
         "python",
         "browser-automation",
+        "data-extraction"
+      ]
+    },
+    {
+      "name": "scrapy",
+      "slug": "scrapy",
+      "description": "Scrapy is the standard Python framework for crawling websites and extracting structured data into items, files or databases. Use it when the user asks to \"write a Scrapy spider\", \"crawl a whole site\", \"follow pagination and export to JSON or CSV\", \"scrape with CSS selectors\", \"throttle or obey robots.txt\", or \"clean scraped items in a pipeline\". Covers project scaffolding, spiders, items, pipelines, feed exports, polite-crawl settings and debugging with scrapy shell.",
+      "category": "data-ai",
+      "tags": [
+        "scrapy",
+        "web-scraping",
+        "crawler",
+        "python",
         "data-extraction"
       ]
     },
@@ -14422,6 +14591,19 @@
       ]
     },
     {
+      "name": "zenml",
+      "slug": "zenml",
+      "description": "ZenML is an open-source Python framework for writing machine learning pipelines as typed steps whose inputs and outputs are versioned automatically, and for running the same code locally or on Kubernetes, Airflow, SageMaker and other backends. Use when a user asks to \"build an ML pipeline\", \"track model training runs and artifacts\", \"make my training script reproducible\", \"version datasets and models\", or \"run a pipeline on a different stack\". Covers @step and @pipeline, zenml init, stacks, run configs, artifacts, the Model control plane and the CLI.",
+      "category": "data-ai",
+      "tags": [
+        "zenml",
+        "mlops",
+        "ml-pipelines",
+        "artifacts",
+        "model-registry"
+      ]
+    },
+    {
       "name": "zig",
       "slug": "zig",
       "description": "Zig is a systems programming language with compile-time evaluation, seamless C interop, no hidden control flow and no garbage collector. Use when writing, building, testing or cross-compiling Zig code, porting C projects, or fixing code that broke on a new Zig release (std.Io, Writergate, @cImport removal). Covers zig init, zig build, comptime generics, explicit allocators and an HTTP server on Zig 0.17.",
@@ -14499,5 +14681,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-07T11:48:57.290Z"
+  "updatedAt": "2026-11-07T11:49:35.106Z"
 }

@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:63648cf59e93590df3d99bd3771939f949c0b51a0f9bb84570b27eca27b57f30",
+  "scoredAt": "2026-11-05T20:30:13.540Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is Windows-specific and assumes a Windows environment, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.7,
+    "baselineAvg": 10,
+    "treatmentAvg": 67,
+    "scenarios": [
+      {
+        "name": "automate-notepad-save",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response A covers most of the rubric but misses the explicit child_window Edit control for typing and uses invoke instead of click_input, whereas Response B provides no script and fails to meet any rubric requirements."
+      },
+      {
+        "name": "calculator-button-click",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A is closer to the rubric, using pywinauto to start Calculator, locate and click the '1' button, and read the result, though it misses click_input, window_text, and verification; Response B uses PowerShell and UIAutomation, missing the required pywinauto methods and verification."
+      },
+      {
+        "name": "desktop-window-close",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items but lacks the final exists() check; Response A does not use pywinauto at all."
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:082cfc43e3965c201bb6d69238eee2f47153b70bcd590c831f377976b46db82d",
+  "scoredAt": "2026-11-05T20:39:25.974Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not comprehensively cover all error scenarios and edge cases, focusing mainly on happy paths."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.29,
+    "baselineAvg": 35,
+    "treatmentAvg": 45,
+    "scenarios": [
+      {
+        "name": "scaffold-scifi-spider",
+        "baseline": 35,
+        "treatment": 45,
+        "rationale": "Response A covers more rubric items (item definition, parse, pagination) than Response B, which lacks an item class and FEEDS configuration."
+      }
+    ]
+  }
+}

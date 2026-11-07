@@ -10,6 +10,7 @@ skills:
   - cheerio
   - puppeteer
   - postgresql
+  - scrapy
 category: automation
 tags:
   - scraping
@@ -333,3 +334,10 @@ export async function getLastPrice(competitor, sku) {
 ```
 
 After a month of daily scraping, Ravi has a complete price history for every competitor product. He can see trends, spot patterns (like competitors running sales on weekends), and automatically adjust his own prices to stay competitive. The 45-minute daily manual check is now a 15-minute automated cron job that runs while he sleeps.
+
+## Related Skills
+
+- [cheerio](/skills/cheerio) — parse the static competitor pages in Node.js
+- [puppeteer](/skills/puppeteer) — render the JavaScript-built competitor pages
+- [postgresql](/skills/postgresql) — store the price history and query changes
+- [scrapy](/skills/scrapy) — choose it instead of Cheerio when the competitor pages are static HTML and you want a single Python crawler with built-in delay, AutoThrottle, robots.txt handling and JSON/CSV exports

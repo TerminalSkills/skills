@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:95a069b06af3071e037d26943eaacb31b4baaef54e0a239b996d0151c0f0b1e6",
+  "scoredAt": "2026-11-05T20:29:27.913Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all potential error scenarios and edge cases, such as missing dependencies or incorrect YAML syntax."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume a Linux environment and GPU, limiting applicability on other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "register-dataset-and-lora-fine-tune",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not."
+      },
+      {
+        "name": "qlora-fine-tune-and-api",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "B covers most rubric items but misses the vllm backend requirement; A is empty."
+      },
+      {
+        "name": "multi-gpu-qlora-webui",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not."
+      }
+    ]
+  }
+}
