@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Capacitor 8: Node.js 22+, any web framework (React, Vue, Angular, Svelte). iOS builds need macOS with Xcode 26+; Android builds need Android Studio 2025.2.1+."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   repository: https://github.com/ionic-team/capacitor
   tags: "mobile, capacitor, hybrid, native, ios"
@@ -260,5 +260,5 @@ On a device the native camera opens and the photo is posted as multipart form da
 - **`capacitor.config.ts`** — configure server URL, plugins, app info
 - **Permissions in native config** — camera, location, etc. need `Info.plist` usage descriptions; on Android the Camera plugin needs no permission unless `saveToGallery` is used
 - **Push setup is native** — Android needs the Firebase `google-services.json` in `android/app/`; iOS needs the Push Notifications capability and the two `AppDelegate.swift` forwarding methods from the plugin README
-- **Upgrading** — keep `@capacitor/core`, `cli`, `ios` and `android` on the same version; `npx cap migrate` moves a Capacitor 7 project to 8 (Node 22+, Xcode 26+, iOS 15 deployment target, `minSdkVersion` 24). New iOS projects use Swift Package Manager; pass `--packagemanager CocoaPods` to `cap add ios` to keep CocoaPods
+- **Upgrading** — 8.6 fixes R8 minification of plugin annotation types and callback base classes in Android release builds, and `cap doctor`/`cap migrate` report install scripts blocked by npm 12; keep `@capacitor/core`, `cli`, `ios` and `android` on the same version; `npx cap migrate` moves a Capacitor 7 project to 8 (Node 22+, Xcode 26+, iOS 15 deployment target, `minSdkVersion` 24). New iOS projects use Swift Package Manager; pass `--packagemanager CocoaPods` to `cap add ios` to keep CocoaPods
 - **Not for gaming** — great for content apps, tools, dashboards; use Unity/Flutter for games
