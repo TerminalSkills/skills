@@ -1,29 +1,29 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:e6a34b881b03ed831d7c213912c4b9cc2463efaa6cbe34fa2ea62b95dcfe4659",
-  "scoredAt": "2026-10-01T12:58:59.452Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:89548f67bc16d4841372d4b6f98fb47066a8a8d913f03862075f91c6d2d7b0d4",
+  "scoredAt": "2026-11-07T00:01:12.851Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing objects or network failures."
+        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as handling network failures or missing objects."
       },
       {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains extensive explanatory text that may be considered verbose and not strictly necessary for execution."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Spline and does not work with other 3D design tools or generic AI agents."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.03,
-    "baselineAvg": 33,
-    "treatmentAvg": 67,
+    "multiplier": 7.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "lazy-loaded-viewer-with-placeholder",
-        "baseline": 10,
-        "treatment": 30,
-        "rationale": "Response B is closer to the rubric, using Spline runtime and a click listener on a named object, but still misses the required <spline-viewer> element and load-complete event; Response A uses Three.js and lacks all rubric elements."
+        "name": "react-hero-cube-move",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric but misses the required onLoad cube positioning and sets the position incorrectly; Response B does not use Spline at all and thus fails the rubric."
       },
       {
-        "name": "react-control-variables-and-events",
-        "baseline": 50,
+        "name": "viewer-lazy-load-hide-placeholder",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong prop name and omits the onSplineMouseDown handler."
+        "rationale": "Response A includes all required elements and correctly implements the load-complete handler, while Response B lacks the viewer script, spline-viewer element, and uses the wrong event name."
       },
       {
-        "name": "vanilla-runtime-object-manipulation",
-        "baseline": 40,
-        "treatment": 70,
-        "rationale": "Response A meets most rubric items except the exact canvas id, while Response B uses a different API and element, missing key requirements."
+        "name": "vanilla-mouseclick-set-variable",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the canvas id, while Response B fails to import Application, uses a different library, and wrong event type."
       }
     ]
   }

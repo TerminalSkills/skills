@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Scenes are authored in the Spline editor (browser or desktop app). Embedding needs a browser with WebGL or WebGPU; @splinetool/react-spline needs React, and its /next entry needs Next.js 14.2+."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: design
   tags: "3d, design-tool, no-code, interactive, web"
 ---
@@ -85,7 +85,7 @@ In Next.js, export as **Next.js** and import from `@splinetool/react-spline/next
 
 ```html
 <!-- Web component: no build step, lazy-loads when it scrolls into view -->
-<script type="module" src="https://cdn.spline.design/@splinetool/viewer@2.0.64/build/spline-viewer.js"></script>
+<script type="module" src="https://cdn.spline.design/@splinetool/viewer@2.0.151/build/spline-viewer.js"></script>
 <spline-viewer
   url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"
   loading-anim-type="spinner-small-dark"
@@ -124,9 +124,20 @@ app.addEventListener("mouseDown", (e) => {
 | `findObjectByName(name)`, `findObjectById(uuid)`, `getAllObjects()` | Get objects; each has `position`, `rotation`, `scale`, `visible`, `color`, `state`, `show()`, `hide()`, `emitEvent()` |
 | `emitEvent(eventName, nameOrUuid)`, `emitEventReverse(...)` | Run an event defined in the editor: `mouseDown`, `mouseUp`, `mouseHover`, `keyDown`, `keyUp`, `start`, `lookAt`, `follow`, `scroll` |
 | `setVariable(name, value)`, `setVariables({...})`, `getVariable(name)`, `getVariables()` | Read and write scene variables |
-| `addEventListener(eventName, cb)`, `removeEventListener(eventName, cb)` | Subscribe to Spline events |
+| `addEventListener(eventName, cb)`, `removeEventListener(eventName, cb)` | Subscribe to Spline events; the names are `mouseDown`, `mouseUp`, `mouseHover`, `keyDown`, `keyUp`, `start`, `lookAt`, `follow`, `scroll`, `collision`, `rendered` |
+| `getSplineEvents()` | List the events the scene actually defines |
 | `setZoom(n)`, `setBackgroundColor(css)`, `setSize(w, h)` | Camera zoom, background, canvas size |
-| `stop()`, `play()`, `dispose()` | Pause, resume, and free the runtime |
+| `stop()`, `play()`, `dispose()` | Pause, resume, and free the runtime; call `dispose()` on unmount or each mount leaks a WebGL/WebGPU context |
+
+`new Application(canvas, { renderMode, renderer, wasmPath, htmlContentMode })` takes options: `renderMode` is `auto`, `manual` (render only on `app.requestRender()`) or `continuous`; `renderer` is `webgl` or `webgpu` (auto-selected when unset; use one backend per page). A scene can carry HTML content authored in the editor: `htmlContentMode` `sandbox` (runtime default) runs it in an isolated iframe, `inline` runs its scripts as ordinary page scripts, `none` drops it. `<Spline>` accepts the same prop and defaults to `inline`, so pass `htmlContentMode="sandbox"` for a scene you did not author.
+
+To start the download early, add `<link rel="preload" href="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" as="fetch" crossorigin>` to the page head; the `crossorigin` attribute is needed or the browser fetches the scene twice. Never pass `mode: "no-cors"` to `load()`: the response is opaque and the scene fails to load.
+
+### Credit, remixing and scene URLs
+
+- A `.splinecode` URL is minted by the editor at export time (Export, Code). It cannot be derived from a share link, file id or Community page; ask the owner to copy it. A Community scene has no `.splinecode` URL: the owner opens it and presses **Remix**, then exports their own copy.
+- `spline-viewer` shows a Spline credit badge on its own, and the runtime draws a watermark when the publisher baked one into the scene. Never write CSS or JS that hides either.
+- A bare `<canvas>` (runtime) has no credit, so add one in the markup: a link "Made with Spline" to `https://spline.design`, and an "Open in Spline" link next to the embed. Credit the creator when the scene came from Community.
 
 ### Design Workflow
 
@@ -188,7 +199,7 @@ export function ProductShowcase() {
 **User request:** "Our marketing site is plain HTML. Embed the Spline hero and fade out the placeholder once it has loaded."
 
 ```html
-<script type="module" src="https://cdn.spline.design/@splinetool/viewer@2.0.64/build/spline-viewer.js"></script>
+<script type="module" src="https://cdn.spline.design/@splinetool/viewer@2.0.151/build/spline-viewer.js"></script>
 
 <div class="hero">
   <img id="hero-poster" src="/img/hero-poster.webp" alt="Abstract 3D shapes">
@@ -213,9 +224,9 @@ export function ProductShowcase() {
 2. **Interactions in Spline** — Use Spline's built-in events for hover/click effects; code can only listen to or trigger events that were set up in the editor
 3. **Names are the contract** — Object, event and variable names come from the designer's file. Agree on them, and guard against `findObjectByName` returning `undefined`
 4. **Optimize the scene** — Use the Performance panel in the Export dialog: fewer polygons, objects, lights and textures, components for repeated objects, and geometry and image compression in Play Settings
-5. **Lazy load** — The dual-engine viewer script alone is about 3.5 MB (roughly 1.1 MB compressed); load scenes below the fold lazily, or use `spline-viewer.webgl.js` when the scene was exported for WebGL only
+5. **Lazy load** — The dual-engine viewer script alone is about 3.5 MB (roughly 1.1 MB compressed); the viewer's default `loading="auto"` waits for the viewport, so use `loading="eager"` only above the fold, add `unloadable` when several scenes share a long page, and use `build/spline-viewer.webgl.js` (about 34% smaller) when the scene was exported for WebGL only
 6. **Fallback for slow connections** — Show a static image or loading animation while the Spline scene loads
 7. **Self-host to avoid CORS problems** — Download the `.splinecode` file from the code export panel and serve it from your own origin; only `.splinecode` files load at runtime, `.spline` files are for the editor
 8. **Pin versions** — Pin the viewer script and the npm packages; `@splinetool/runtime` ships new builds often and now picks WebGPU where available, falling back to WebGL
-9. **Plan limits** — The free plan shows a Spline logo on web exports; removing it needs a paid plan, and the fully self-contained Self-Hosted export is Enterprise only
+9. **Plan limits** — Do not state what a plan includes or costs (logo, export limits, self-hosting); link to https://spline.design/pricing instead
 10. **Team workflow** — Designers edit in Spline and update the export; the hosted URL then serves the new scene without a developer deploy, so review changes before promoting them
