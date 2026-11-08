@@ -8,6 +8,7 @@ skills:
   - openspec
   - spec-driven-dev
   - obra-superpowers
+  - bmad-method
 category: development
 tags:
   - spec-kit
@@ -168,3 +169,4 @@ The two problems that would have reached staging under the old process were both
 - [openspec](/skills/openspec) — a lighter spec-first workflow kept in the repository: a proposal, a design and tasks per change, archived when the change ships
 - [spec-driven-dev](/skills/spec-driven-dev) — the method without any tool: spec templates, validation checklists and an implementation plan the agent follows
 - [obra-superpowers](/skills/obra-superpowers) — choose it when you want the agent itself to enforce the method: brainstorming, a written plan, test-first tasks and a review after each one, installed as a plugin with no spec files to maintain
+- [bmad-method](/skills/bmad-method) — choose it when the work needs product and architecture documents and a sprint plan before code, with role agents and a build step that reviews its own diff.

@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7249838029877f0ae8ef969e183f657a7353204f6f26a9696c13ed2aa8b061ad",
+  "scoredAt": "2026-11-08T14:37:36.496Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "FAIL",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all potential error scenarios and edge cases, such as network failures or missing dependencies beyond uv."
+      },
+      {
+        "severity": "HIGH",
+        "category": "conciseness",
+        "detail": "The file contains repeated filler text, notably a duplicated paragraph about not using the full planning chain for a typo or config tweak, which inflates the content unnecessarily."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.7,
+    "baselineAvg": 23,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "install-bmad-with-custom-output",
+        "baseline": 10,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but omits stable channel/uv and config regeneration details, while Response B fails to meet key requirements."
+      },
+      {
+        "name": "plan-login-feature-with-pm-architect",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response B fully covers the required invocation steps, command usage, and output location, while Response A lacks any mention of agent invocation or command execution."
+      },
+      {
+        "name": "build-export-csv-feature",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B fully covers the rubric, while Response A omits key details such as the specific skill invocation, clarifying questions, artifact location, and plan review."
+      }
+    ]
+  }
+}
