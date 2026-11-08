@@ -2,7 +2,7 @@
 title: "Optimize Core Web Vitals with AI"
 slug: optimize-core-web-vitals
 description: "Diagnose and fix LCP, CLS, and INP issues to pass Google's Core Web Vitals thresholds and improve user experience."
-skills: [web-vitals-analyzer, frontend-design, code-reviewer]
+skills: [web-vitals-analyzer, frontend-design, code-reviewer, chrome-devtools-mcp]
 category: development
 tags: [performance, web-vitals, lighthouse, frontend, seo]
 ---
@@ -169,3 +169,7 @@ In this example the engineer implements the top three fixes — hero image optim
 After deployment, the team's lab Lighthouse score jumps from 34 to 91. LCP drops to 1.4s, CLS to 0.03, INP to 75ms. All three metrics are now in the "Good" range.
 
 Field data lags because the Chrome UX Report uses a rolling 28-day window, so Search Console moves the 340 product pages to "Good" only after that window fills with fast visits. The team tracks the recovery of organic traffic separately. The "performance epic" that was being scoped as a two-sprint project — with investigation, planning, and implementation phases — turned out to be one afternoon of targeted fixes. The difference: knowing exactly which 3 of the 12 issues to fix first, and having the exact code changes instead of vague Lighthouse suggestions.
+
+## Related Skills
+
+- [chrome-devtools-mcp](../skills/chrome-devtools-mcp/SKILL.md): lets the agent record the performance trace and run Lighthouse itself in a real Chrome (with network and CPU throttling), instead of working from a pasted report
