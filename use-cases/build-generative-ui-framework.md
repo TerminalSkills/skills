@@ -8,6 +8,7 @@ skills:
   - hono
   - zod
   - a2ui
+  - openui
 category: data-ai
 tags:
   - generative-ui
@@ -244,3 +245,4 @@ Finn's team replaced the markdown tables in their analytics chatbot with the fou
 - [hono](../skills/hono/SKILL.md): the SSE and action endpoints
 - [redis](../skills/redis/SKILL.md): per-session action expiry with `SET ... EX` and `GETDEL`
 - [a2ui](../skills/a2ui/SKILL.md): choose it when the UI should be a declarative JSON protocol rendered by a client's own trusted component catalog (web or Flutter) rather than a framework you build yourself
+- [openui](../skills/openui/SKILL.md): choose it when you would rather adopt an existing open-source framework (OpenUI Lang, component library, streaming renderer, ready chat UI) than build the schema and renderer yourself
