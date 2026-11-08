@@ -3,7 +3,7 @@ title: Build an AI-Powered Team Knowledge Base
 slug: build-ai-powered-team-knowledge-base
 description: >-
   Build an internal RAG knowledge base that ingests Notion, Confluence, Slack, and GitHub docs into pgvector, letting team members ask questions and get cited answers.
-skills: [pgvector, crawlee, openai-sdk, ai-sdk]
+skills: [pgvector, crawlee, openai-sdk, ai-sdk, weknora]
 category: data-ai
 tags: [rag, knowledge-base, vector-search, embeddings, internal-tools]
 ---
@@ -141,3 +141,4 @@ Nadia, VP of Engineering at a 50-person startup, deploys the knowledge base inde
 - [crawlee](../skills/crawlee/) — Web crawling for ingesting external documentation
 - [openai-sdk](../skills/openai-sdk/) — Embeddings and answer generation
 - [vercel-ai-sdk](../skills/vercel-ai-sdk/) — Build the chat interface frontend
+- [weknora](/skills/weknora) — choose it to host a ready-made platform that syncs Notion, Confluence and similar sources, searches them and answers with citations, instead of writing the ingestion and retrieval code

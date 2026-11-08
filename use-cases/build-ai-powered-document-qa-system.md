@@ -13,6 +13,7 @@ skills:
   - chromadb
   - ragflow
   - open-notebook
+  - weknora
 category: data-ai
 tags:
   - rag
@@ -339,3 +340,4 @@ The system handles both modes transparently — lawyers don't need to know wheth
 ## Related Skills
 - [ragflow](/skills/ragflow) — choose it when you would rather host a ready-made document-parsing and retrieval engine (web UI, API and Python SDK) than build the ingestion and search steps yourself
 - [open-notebook](/skills/open-notebook) — choose it when the people asking questions are researchers who want a ready-made notebook UI (sources, cited chat, podcasts) on their own machine instead of building the upload and search steps
+- [weknora](/skills/weknora) — choose it when you would rather host a ready-made knowledge-base platform with document parsing, hybrid search, cited answers and an API than build the ingestion and search steps yourself
