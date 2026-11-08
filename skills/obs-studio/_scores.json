@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ecdbad178aab489e109a610d67483bf17943aa4ce81fbb7ad3b2a15f4ec19132",
+  "scoredAt": "2026-11-08T14:41:24.343Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases beyond basic retry logic."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.57,
+    "baselineAvg": 23,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "launch-with-profile-collection-scene",
+        "baseline": 50,
+        "treatment": 50,
+        "rationale": "Both responses omit the required --scene flag, so they are equally incomplete according to the rubric."
+      },
+      {
+        "name": "switch-scene-mute-input",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses incorrect methods and does not meet the specified requirements."
+      },
+      {
+        "name": "monitor-dropped-frames",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A uses a different library and method, missing key rubric elements."
+      }
+    ]
+  }
+}

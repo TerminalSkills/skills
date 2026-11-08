@@ -2,7 +2,7 @@
 title: Build a Production LLM App with Guardrails and Full Observability
 slug: build-llm-app-with-guardrails-and-observability
 description: Build a customer support AI that routes queries across multiple LLM providers via OpenRouter, enforces structured output with Outlines, tracks every call with Langtrace and Weave evaluations, and deploys on AWS Lambda with Powertools — creating a production-grade AI pipeline with cost optimization, quality monitoring, and automatic fallbacks.
-skills: [openrouter, outlines, langtrace, weave, powertools-lambda]
+skills: [openrouter, outlines, langtrace, weave, powertools-lambda, lmnr]
 category: data-ai
 tags: [llm, observability, guardrails, multi-model, production, monitoring]
 ---
@@ -207,3 +207,7 @@ After deploying the full pipeline, the support AI handles 2,000 queries/day with
 - **Observability**: Every query traced end-to-end; debug any issue in <2 minutes via Langtrace dashboard
 - **Latency**: P50 = 340ms (simple), P50 = 890ms (complex); CloudWatch metrics via Powertools
 - **Hallucination rate**: Tracked at 3.2% via Weave evaluations; down from unmeasured
+
+## Related Skills
+
+- [lmnr](/skills/lmnr) — open-source alternative for the tracing and evaluation layer: Laminar records each agent run as an OpenTelemetry trace and can be self-hosted with Docker Compose when prompts must stay in-house

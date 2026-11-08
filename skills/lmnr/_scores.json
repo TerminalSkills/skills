@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4fa0b0fdc1d8fb557be6ea98305a862ff9e2003b12bd13788779c1688e78af44",
+  "scoredAt": "2026-11-08T14:40:28.604Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error scenarios or edge cases, such as missing API keys or network failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.96,
+    "baselineAvg": 27,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "python-agent-tracing-with-ignore",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits ignore_input; Response B lacks the required Laminar.initialize, @observe, and flush calls."
+      },
+      {
+        "name": "run-eval-cli",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items, including the eval file path, continue-on-error flag, and output file, whereas Response A omits the flag and output specification and both miss the evaluate function call."
+      },
+      {
+        "name": "self-host-laminar-docker-compose",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key steps such as cloning, overriding ports, and initializing Laminar."
+      }
+    ]
+  }
+}

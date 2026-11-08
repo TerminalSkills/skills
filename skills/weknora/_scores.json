@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:a3ecfcdbab723a0ed0498b867d95fadc81ed993435e5c6d70732491d3dfbd681",
+  "scoredAt": "2026-11-08T14:45:18.588Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose, impacting conciseness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill requires Go 1.26+ and Docker Compose, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.88,
+    "baselineAvg": 40,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "deploy-weknora-with-ollama",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Response A covers more of the rubric, including the required .env setup and docker compose commands, whereas Response B focuses on API calls but omits the specific endpoints and parameters required by the rubric."
+      },
+      {
+        "name": "cli-link-upload-search",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response A correctly uses the required weknora CLI commands and covers all rubric items, while Response B uses incorrect commands and misses key details."
+      },
+      {
+        "name": "api-create-retrieve-with-citations",
+        "baseline": 60,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items (correct endpoints, IDs, match_count, and multipart upload) but lacks a citations field, whereas Response A uses incorrect endpoints and field names."
+      }
+    ]
+  }
+}

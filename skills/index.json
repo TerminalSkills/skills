@@ -195,6 +195,19 @@
       ]
     },
     {
+      "name": "affine",
+      "slug": "affine",
+      "description": "AFFiNE is an open-source workspace that combines documents, whiteboards and databases, and its server can be self-hosted with Docker Compose. Use this skill to deploy the AFFiNE server on your own machine, set its public URL, back up and restore its data, and upgrade it safely. Trigger phrases: \"self-host AFFiNE\", \"AFFiNE docker compose\", \"private Notion alternative\", \"back up AFFiNE\", \"upgrade AFFiNE server\".",
+      "category": "productivity",
+      "tags": [
+        "affine",
+        "self-hosted",
+        "docker-compose",
+        "knowledge-base",
+        "notion-alternative"
+      ]
+    },
+    {
       "name": "after-effects",
       "slug": "after-effects",
       "description": "Automate Adobe After Effects workflows. Use when a user asks to script After Effects with ExtendScript or CEP, batch render compositions, automate motion graphics templates (MOGRTs), build render pipelines with aerender, create expressions for animations, manage project files programmatically, automate text and image replacements in templates, build data-driven motion graphics, integrate After Effects with CI/CD, or control AE via command line. Covers ExtendScript, CEP panels, expressions, aerender CLI, and template automation.",
@@ -636,6 +649,19 @@
       ]
     },
     {
+      "name": "anubis",
+      "slug": "anubis",
+      "description": "Anubis is a self-hosted reverse proxy that makes browsers solve a small proof-of-work challenge before they reach your website, which raises the cost of mass scraping by AI crawlers. Use it when a wiki, forge, blog or docs site is being hammered by scrapers, or when the user asks to \"protect my site from AI crawlers\", \"put Anubis in front of Gitea\", \"block GPTBot\", or \"write an Anubis bot policy\". Covers install, environment variables, policy files and nginx/Caddy placement.",
+      "category": "devops",
+      "tags": [
+        "anubis",
+        "bot-protection",
+        "reverse-proxy",
+        "proof-of-work",
+        "scrapers"
+      ]
+    },
+    {
       "name": "anything-llm",
       "slug": "anything-llm",
       "description": "All-in-one private AI app that chats with your own documents in workspaces, using any local or hosted LLM, a built-in vector database and a developer REST API. Use when someone asks to \"run AnythingLLM in Docker\", \"chat with my PDFs privately\", \"create a workspace and upload documents through the API\", \"generate an AnythingLLM API key\", or \"connect AnythingLLM to Ollama\".",
@@ -762,6 +788,19 @@
         "ios",
         "android",
         "automation"
+      ]
+    },
+    {
+      "name": "apple-container",
+      "slug": "apple-container",
+      "description": "Runs Linux containers on a Mac, each one inside its own lightweight virtual machine, using Apple's open-source `container` CLI for Apple Silicon. Use when the user wants containers on macOS 26 without Docker Desktop, asks \"run a container natively on my Mac\", \"container run\", \"container build\", \"push an image from a Mac without Docker\", or wants isolated Linux dev environments (container machine) on an M-series laptop. Needs Apple Silicon and macOS 26.",
+      "category": "devops",
+      "tags": [
+        "containers",
+        "macos",
+        "apple-silicon",
+        "oci",
+        "linux-vm"
       ]
     },
     {
@@ -1551,6 +1590,19 @@
       ]
     },
     {
+      "name": "bmad-method",
+      "slug": "bmad-method",
+      "description": "BMad Method installs a set of agile planning and delivery skills (product brief, PRD, architecture, epics and stories, build, code review) and role agents (analyst, PM, architect, developer, UX designer) into a project so a coding agent works from written decisions instead of a chat history. Use when a user asks to \"set up BMad\", \"install bmad-method\", \"run bmad-build\", \"plan a feature with a PM and architect agent\", \"spec then build with Claude Code, Codex or Cursor\", or \"keep project context across agent sessions\".",
+      "category": "development",
+      "tags": [
+        "bmad",
+        "agile",
+        "spec-driven-development",
+        "ai-agents",
+        "planning"
+      ]
+    },
+    {
       "name": "bolt",
       "slug": "bolt",
       "description": "Bolt (bolt.new, by StackBlitz) is an AI app builder that turns a text prompt into a working web or mobile app, with built-in database, hosting and domains. Use when asked to prototype an app from a prompt in Bolt, write better Bolt prompts, plan with Plan Mode, spend fewer tokens, connect GitHub, Supabase, Stripe or Netlify, publish a Bolt project, or run the open-source bolt.diy instead.",
@@ -2155,6 +2207,19 @@
         "storybook",
         "regression",
         "ui-review"
+      ]
+    },
+    {
+      "name": "chrome-devtools-mcp",
+      "slug": "chrome-devtools-mcp",
+      "description": "Lets a coding agent drive a real Chrome browser with DevTools: record performance traces, read console and network logs, run Lighthouse audits, take screenshots and click through pages. Use when asked to \"debug this page in Chrome\", \"why is LCP slow\", \"check the console errors\", \"profile this page\", \"run Lighthouse from the agent\", \"set up Chrome DevTools MCP\" or \"install chrome-devtools-mcp\". Covers MCP client setup, the chrome-devtools CLI, safe launch flags and when to pick Playwright MCP instead.",
+      "category": "development",
+      "tags": [
+        "chrome-devtools",
+        "mcp",
+        "performance",
+        "debugging",
+        "lighthouse"
       ]
     },
     {
@@ -3292,6 +3357,19 @@
         "real-time",
         "video",
         "computer-vision"
+      ]
+    },
+    {
+      "name": "deepagents",
+      "slug": "deepagents",
+      "description": "Deep Agents is LangChain's open-source Python harness for long-running agents: one call, create_deep_agent(), returns a LangGraph agent that already has file tools, a task tool for sub-agents, context summarization, and optional human approval. Use when someone asks to \"build a deep agent\", \"research agent with sub-agents\", \"agent that reads and writes files\", \"give my agent a virtual filesystem\", \"deepagents create_deep_agent\", or needs more than a plain tool-calling loop but less than a hand-built LangGraph.",
+      "category": "data-ai",
+      "tags": [
+        "deepagents",
+        "langchain",
+        "langgraph",
+        "ai-agents",
+        "sub-agents"
       ]
     },
     {
@@ -7182,6 +7260,19 @@
       ]
     },
     {
+      "name": "lmnr",
+      "slug": "lmnr",
+      "description": "Laminar (package name lmnr) is an open-source observability platform for AI agents: it records every LLM call, tool call and sub-step of an agent run as an OpenTelemetry trace, and runs evaluations over datasets. Use when asked to \"trace my agent\", \"add Laminar\", \"install lmnr\", \"see why the agent failed in production\", \"self-host Laminar\", \"run evals in CI\" or to wire tracing into OpenAI, Anthropic, LangChain or the Vercel AI SDK code with the Python or TypeScript SDK.",
+      "category": "data-ai",
+      "tags": [
+        "observability",
+        "tracing",
+        "llm-evals",
+        "opentelemetry",
+        "agents"
+      ]
+    },
+    {
       "name": "load-balancer",
       "slug": "load-balancer",
       "description": "Configures load balancers and reverse proxies with Nginx and HAProxy: upstream pools, least-connections balancing, HTTPS termination, health checks, rate limiting, sticky sessions and WebSocket proxying. Use when someone asks to \"set up load balancing\", \"configure an Nginx reverse proxy\", \"set up HAProxy\", \"add SSL termination\", \"configure health checks\", \"proxy WebSocket connections\", \"rate limit traffic\", or \"set up failover\".",
@@ -8734,6 +8825,19 @@
       ]
     },
     {
+      "name": "obs-studio",
+      "slug": "obs-studio",
+      "description": "OBS Studio is free open-source software that captures, mixes, records and live-streams video; its built-in obs-websocket v5 server lets scripts switch scenes, start and stop recording or streaming, mute inputs and read performance stats. Use this skill when the user asks to \"automate OBS\", \"start recording from a script\", \"switch scenes from the terminal\", \"launch OBS already streaming\", or \"monitor dropped frames in OBS\". Covers launch flags, the websocket setup and the obsws-python client.",
+      "category": "content",
+      "tags": [
+        "obs",
+        "obs-websocket",
+        "live-streaming",
+        "screen-recording",
+        "automation"
+      ]
+    },
+    {
       "name": "observability-setup",
       "slug": "observability-setup",
       "description": "Set up end-to-end observability for microservices. Use when someone asks to \"add tracing\", \"set up monitoring\", \"configure OpenTelemetry\", \"build Grafana dashboards\", \"distributed tracing\", \"structured logging\", \"metrics collection\", or \"debug production issues\". Covers OpenTelemetry instrumentation, collector configuration, Grafana LGTM stack deployment, dashboard provisioning, and alert rules.",
@@ -8898,6 +9002,19 @@
         "kubernetes",
         "admission-control",
         "rego"
+      ]
+    },
+    {
+      "name": "open-notebook",
+      "slug": "open-notebook",
+      "description": "Open Notebook is a self-hosted, open-source alternative to Google NotebookLM: you collect PDFs, web pages, text and audio or video into notebooks, search them, chat with the sources and generate podcasts, with your choice of AI provider. Use this skill to deploy it with Docker Compose bound to localhost, connect a model provider, load sources and query them through its REST API. Triggers: \"self-hosted NotebookLM\", \"chat with my PDFs privately\", \"open notebook docker\", \"research notebook with citations\", \"generate a podcast from documents\".",
+      "category": "research",
+      "tags": [
+        "notebooklm-alternative",
+        "self-hosted",
+        "rag",
+        "research",
+        "podcast"
       ]
     },
     {
@@ -9132,6 +9249,19 @@
         "opentype",
         "glyphs",
         "text-rendering"
+      ]
+    },
+    {
+      "name": "openui",
+      "slug": "openui",
+      "description": "OpenUI is an MIT-licensed generative UI framework: the model writes a compact line-based language (OpenUI Lang) that names components from a library you define, and a streaming renderer shows them as tokens arrive in React, Vue, Svelte or Angular. Use when asked to \"let the LLM answer with charts, forms and tables instead of markdown\", \"add generative UI to my chat app\", \"generate a system prompt from my component library\", or \"render streamed model output as live components\". Not the older wandb/openui mockup tool.",
+      "category": "development",
+      "tags": [
+        "generative-ui",
+        "react",
+        "llm",
+        "streaming",
+        "components"
       ]
     },
     {
@@ -12770,6 +12900,19 @@
       ]
     },
     {
+      "name": "tart",
+      "slug": "tart",
+      "description": "Runs macOS and Linux virtual machines on Apple Silicon Macs from the command line, pulling and pushing VM images through any OCI registry. Use when the user wants a disposable macOS build VM, a clean iOS or Xcode CI runner on a Mac mini, a Linux VM on an M-series Mac, or says \"tart clone\", \"tart run\", \"macOS VM for CI\", \"ephemeral Mac runner\", \"push a VM image to ghcr.io\". Needs an Apple Silicon Mac; it cannot run on Linux or Intel.",
+      "category": "devops",
+      "tags": [
+        "macos-vm",
+        "apple-silicon",
+        "ci-runner",
+        "virtualization",
+        "oci-registry"
+      ]
+    },
+    {
       "name": "tauri",
       "slug": "tauri",
       "description": "Tauri builds desktop and mobile apps from a web frontend and a Rust backend, rendering the UI in the operating system's webview instead of a bundled Chromium. Use when creating or extending a Tauri v2 app: scaffolding with create-tauri-app, writing Rust commands and calling them with invoke, pushing events or channel data to the frontend, adding plugins, fixing \"not allowed\" permission errors in capabilities, bundling installers, or shipping signed auto-updates. Trigger words: tauri, tauri v2, tauri command, tauri plugin, capabilities, system webview, rust desktop app.",
@@ -14321,6 +14464,19 @@
       ]
     },
     {
+      "name": "weknora",
+      "slug": "weknora",
+      "description": "WeKnora is Tencent's open-source knowledge base and RAG platform: it parses documents, indexes them for hybrid search, answers questions with citations, and runs agents over the same knowledge bases. Use this skill to self-host it with Docker Compose bound to localhost, point it at Ollama or a cloud model, create knowledge bases, upload documents and query them through the REST API or the weknora CLI. Triggers: \"self-hosted RAG platform\", \"Tencent WeKnora\", \"private knowledge base with citations\", \"document Q&A server with an API\", \"weknora docker\".",
+      "category": "data-ai",
+      "tags": [
+        "rag",
+        "knowledge-base",
+        "document-parsing",
+        "self-hosted",
+        "tencent"
+      ]
+    },
+    {
       "name": "whatsapp-bot-builder",
       "slug": "whatsapp-bot-builder",
       "description": "Builds WhatsApp bots and integrations using the WhatsApp Business API (Cloud API). Use when the user wants to create a WhatsApp bot, send template messages, handle incoming messages, build interactive lists and buttons, process media, or automate customer communication via WhatsApp. Trigger words: whatsapp bot, whatsapp business api, whatsapp integration, whatsapp cloud api, whatsapp template, whatsapp webhook, whatsapp automation, whatsapp chatbot, meta business, whatsapp flows.",
@@ -14824,5 +14980,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-07T11:50:13.597Z"
+  "updatedAt": "2026-11-08T14:53:15.284Z"
 }

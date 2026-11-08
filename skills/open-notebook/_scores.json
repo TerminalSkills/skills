@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6edf233c8e943b8449ac375c81a06fd703490f29b527b538cd3c69be65a85c17",
+  "scoredAt": "2026-11-08T14:42:31.333Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "deploy-local-with-auth",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not address any of the required points."
+      },
+      {
+        "name": "configure-ollama-provider",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required API calls and verification, while Response A only configures via files and CLI, missing the rubric steps."
+      },
+      {
+        "name": "upload-and-search-asynchronous",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required API calls and logic, while Response A is empty."
+      }
+    ]
+  }
+}

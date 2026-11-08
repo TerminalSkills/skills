@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2cb9ee81b533bd52c7c851a149fe50a7ab38eb39d1eaeb036751f9925a5fb9ab",
+  "scoredAt": "2026-11-08T14:46:23.074Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios or edge cases, such as handling failed commands or network errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive detail and verbose explanations that may be excessive for quick reference."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment and Chrome installation, limiting its applicability to other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "run-mobile-lighthouse-audit",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric criteria; Response B does not include the required command."
+      },
+      {
+        "name": "screenshot-with-emulation",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required chrome-devtools commands but omits the viewport flag, while Response A uses Puppeteer and does not meet the rubric at all."
+      },
+      {
+        "name": "performance-trace-and-insight",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands and details, while Response A is empty."
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:03b409cf8d1255ac53a4cc0c0d35ed17fda4813620882fafc9a34afa0b4d1ef2",
+  "scoredAt": "2026-11-08T14:49:39.575Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.33,
+    "baselineAvg": 30,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "deploy-with-caddy-reverse-proxy",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key steps such as port binding, image pinning, Caddyfile validation, and config updates."
+      }
+    ]
+  }
+}

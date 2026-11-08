@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4ca703221d108ef20293241b3e9f975ab5d4fab1742183d73e6ccd114254fb72",
+  "scoredAt": "2026-11-08T14:50:42.874Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Linux environment or Docker, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.52,
+    "baselineAvg": 25,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "docker-compose-install-with-policy",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response B meets almost all rubric items except METRICS_BIND, while Response A fails to meet key requirements such as correct image, environment variables, and policy format."
+      },
+      {
+        "name": "robots-to-policy-and-nginx",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no solution."
+      },
+      {
+        "name": "verify-challenge-with-metrics",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Response A includes the required curl commands and greps, though the UA string is more elaborate, while Response B lacks the specific challenge request and metric grep entirely."
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:83f671225b7d6918c8651a410a89a162ffe6844453d5f10c7375b7c8557e57fc",
+  "scoredAt": "2026-11-08T14:52:52.011Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Apple Silicon Macs and cannot run on other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.8,
+    "baselineAvg": 2,
+    "treatmentAvg": 68,
+    "scenarios": [
+      {
+        "name": "ci-xcode-build",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A follows the required tart workflow and includes all necessary commands, though it runs a full build instead of just `xcodebuild -version`; Response B does not use tart at all."
+      },
+      {
+        "name": "custom-linux-build-and-push",
+        "baseline": 5,
+        "treatment": 55,
+        "rationale": "Response B follows most of the required tart workflow but omits the mandatory `tart create` step, whereas Response A does not use tart at all."
+      },
+      {
+        "name": "prune-limit-and-list-json",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A includes most required tart commands but uses the wrong image tag, whereas Response B uses a completely different tool (multipass) and fails to meet the rubric."
+      }
+    ]
+  }
+}
