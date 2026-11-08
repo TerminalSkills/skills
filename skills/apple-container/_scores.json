@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:960089ad735b0e7cc9def8639a7ac518a1be4727beba4eb446ecb15386340510",
+  "scoredAt": "2026-11-08T14:35:59.916Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Apple Silicon Macs running macOS 26, making it vendor-locked."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "build-and-push-node-api",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A includes most required container commands but uses the wrong login syntax and username; Response B fails entirely by using Docker commands."
+      },
+      {
+        "name": "run-ubuntu-with-resources",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses miss the required exact command syntax and flags."
+      },
+      {
+        "name": "create-container-machine",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required container machine commands; Response B uses Docker commands and does not meet the rubric."
+      }
+    ]
+  }
+}
