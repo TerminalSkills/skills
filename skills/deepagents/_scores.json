@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dd8adf1fdbe53e27b4db7ee832dffb5e9ea8f80a1eed7c29fd3618eaa9fc0e12",
+  "scoredAt": "2026-11-08T14:39:30.437Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to deepagents and does not support other AI agent frameworks."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.5,
+    "baselineAvg": 2,
+    "treatmentAvg": 45,
+    "scenarios": [
+      {
+        "name": "write-summary-to-file",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required create_deep_agent call with the specified backend and system_prompt, and neither demonstrates the required tool call to write_file with the correct path and content."
+      },
+      {
+        "name": "subagent-digest-files",
+        "baseline": 5,
+        "treatment": 35,
+        "rationale": "Response A uses deepagents and defines a subagent, but misnames it and omits required tool calls; Response B does not use deepagents or the specified subagent at all."
+      },
+      {
+        "name": "human-approval-file-edit",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet any of the specified requirements."
+      }
+    ]
+  }
+}

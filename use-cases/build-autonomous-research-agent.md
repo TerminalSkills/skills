@@ -9,6 +9,7 @@ skills:
   - langchain
   - langgraph
   - anthropic-sdk
+  - deepagents
 category: research
 tags:
   - agents
@@ -92,3 +93,4 @@ The analyst reviews and edits for 30 minutes instead of spending 12 hours from s
 - [deer-flow](/skills/deer-flow) — DeerFlow-inspired autonomous research orchestration
 - [langgraph](/skills/langgraph) — LangGraph workflow engine for multi-step agents
 - [anthropic-sdk](/skills/anthropic-sdk) — direct Anthropic API integration
+- [deepagents](/skills/deepagents) — choose it when you want a ready-made harness (a virtual filesystem, sub-agents per source, context summarization, approval before writes) instead of wiring the LangGraph graph by hand.
