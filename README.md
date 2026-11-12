@@ -106,6 +106,7 @@ underlying skill ([seog](skills/seog/)) still installs on its own with
 | [monorepo-manager](skills/monorepo-manager/) | Development | Manage dependencies and workspaces in monorepos |
 | [data-validator](skills/data-validator/) | Data & AI | Validate data quality in CSV, JSON, and database exports |
 | [log-analyzer](skills/log-analyzer/) | DevOps | Analyze application logs to identify root causes and incident timelines |
+| [boxd](skills/boxd/) | Data & AI | Run agent code, shell commands and web apps in isolated Linux microVMs that can be hibernated, forked and snapshotted |
 
 ## Use Cases
 

@@ -1577,6 +1577,19 @@
       ]
     },
     {
+      "name": "boxd",
+      "slug": "boxd",
+      "description": "boxd runs code in full Ubuntu microVMs (\"machines\") that boot in about a second, keep their disk, and can be hibernated, forked and snapshotted. Use when a user wants an AI agent to run shell commands, Python or Node code, install packages, read and write files, or serve a web app on a public HTTPS URL without touching the host, or wants to give a LangChain or custom agent loop a sandboxed code-execution tool backed by boxd.",
+      "category": "data-ai",
+      "tags": [
+        "sandbox",
+        "code-execution",
+        "ai-agents",
+        "microvm",
+        "boxd"
+      ]
+    },
+    {
       "name": "braintrust",
       "slug": "braintrust",
       "description": "Braintrust is a hosted platform for evaluating and tracing LLM applications: it runs a task over a dataset, scores the outputs, stores each run as an experiment and logs production traces. Use when a user asks to write or run a Braintrust eval, score LLM outputs with autoevals, compare prompt or model versions as experiments, run evals in CI and fail on regressions, trace OpenAI or Anthropic calls with Braintrust, manage evaluation datasets, or use the bt CLI.",
@@ -14824,5 +14837,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-07T11:50:13.597Z"
+  "updatedAt": "2026-11-12T03:35:03.495Z"
 }
