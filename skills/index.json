@@ -1579,7 +1579,7 @@
     {
       "name": "boxd",
       "slug": "boxd",
-      "description": "boxd runs code in full Ubuntu microVMs (\"machines\") that boot in about a second, keep their disk, and can be hibernated, forked and snapshotted. Use when a user wants an AI agent to run shell commands, Python or Node code, install packages, read and write files, or serve a web app on a public HTTPS URL without touching the host, or wants to give a LangChain or custom agent loop a sandboxed code-execution tool backed by boxd.",
+      "description": "boxd runs code in full Ubuntu microVMs (\"machines\") that are ready in about 0.8 seconds, keep their disk, and can be hibernated, forked and snapshotted. Use when a user wants an AI agent to run shell commands, Python or Node code, install packages, read and write files, or serve a web app on a public HTTPS URL without touching the host, or wants to give a LangChain or custom agent loop a sandboxed code-execution tool backed by boxd.",
       "category": "data-ai",
       "tags": [
         "sandbox",
@@ -14837,5 +14837,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-11-12T03:35:03.495Z"
+  "updatedAt": "2026-11-12T20:40:09.900Z"
 }
